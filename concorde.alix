@@ -1,0 +1,37 @@
+project_name = Concorde
+source_dir = src
+source_dir = src/ai
+source_dir = src/codes
+source_dir = src/driver
+source_dir = src/empires
+source_dir = src/galaxy
+source_dir = src/graphs
+source_dir = src/objects
+source_dir = src/systems
+source_dir = src/ships
+source_dir = src/ui
+depend = { project = Tropos version = any }
+depend = { project = Lui version = any }
+depend = { project = Wlib version = any }
+depend = { project = xi version = any }
+depend = { project = gtkada external = yes }
+main_unit = concorde-driver
+exec_name = concorde
+config_dir = config
+path_unit = { unit = Concorde.Paths path = src/concorde-paths.ads }
+builder_option = "-g"
+builder_option = "-k"
+builder_option = "-s"
+compiler_option = "-g"
+compiler_option = "-gnatwea.w"
+compiler_option = "-gnatyabcefhiklmnoprstOSuxB"
+compiler_option = "-gnata"
+compiler_option = "-fstack-check"
+compiler_option = "-gnato"
+linker_option = "-lpixman-1"
+#linker_option = "-lopengl32"
+#linker_option = "./lib/glee.o"
+#linker_option = "-lglu32"
+#linker_option = "-lfreeglut"
+#linker_option = "-L./lib"
+post_install = concorde --self-test
