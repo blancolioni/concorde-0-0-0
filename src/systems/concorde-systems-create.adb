@@ -24,6 +24,7 @@ package body Concorde.Systems.Create is
                     Arriving      => Concorde.Ships.Lists.Empty_List,
                     Departing     => Concorde.Ships.Lists.Empty_List,
                     Last_Battle   => 0,
+                    Battle_Size   => 0,
                     Last_Attacker => null,
                     Capital       => False,
                     Owner         => null,

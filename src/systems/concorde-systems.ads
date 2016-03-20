@@ -78,6 +78,10 @@ package Concorde.Systems is
    function Last_Battle (System : Root_Star_System_Type'Class)
                          return Concorde.Dates.Date_Type;
 
+   function Last_Battle_Size
+     (System : Root_Star_System_Type'Class)
+      return Natural;
+
    procedure Set_Owner
      (System : in out Root_Star_System_Type'Class;
       New_Owner : not null access
@@ -96,13 +100,9 @@ package Concorde.Systems is
 
    type Star_System_Type is access constant Root_Star_System_Type'Class;
 
-   procedure Attacked
-     (System   : in out Root_Star_System_Type'Class;
-      Attacker : Star_System_Type);
-
-   function Last_Attacker
-     (From : Root_Star_System_Type'Class)
-      return Star_System_Type;
+   procedure Battle
+     (System     : in out Root_Star_System_Type'Class;
+      Ship_Count : Positive);
 
    function Distance
      (System_1, System_2 : Star_System_Type)
@@ -134,6 +134,7 @@ private
          Departing     : Concorde.Ships.Lists.List;
          Capital       : Boolean;
          Last_Battle   : Concorde.Dates.Date_Type;
+         Battle_Size   : Natural;
          Last_Attacker : Star_System_Type;
          Owner         : access Concorde.Empires.Root_Empire_Type'Class;
          Edges         : Edge_Info_Lists.List;

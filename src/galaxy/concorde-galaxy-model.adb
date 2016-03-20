@@ -118,25 +118,12 @@ package body Concorde.Galaxy.Model is
       use Concorde.Systems;
       A_System : constant Star_System_Type := Galaxy_Graph.Vertex (A);
       B_System : constant Star_System_Type := Galaxy_Graph.Vertex (B);
-      A_Battle : constant Boolean := Recent_Battle (A_System, 1);
-      B_Battle : constant Boolean := Recent_Battle (B_System, 1);
       A_Owner  : constant Concorde.Empires.Empire_Type := A_System.Owner;
       B_Owner  : constant Concorde.Empires.Empire_Type := B_System.Owner;
-
-      A_B_Attack : constant Boolean :=
-                     A_Owner /= null and then B_Battle
-                           and then B_System.Last_Attacker = A_System;
-      B_A_Attack : constant Boolean :=
-                     B_Owner /= null and then A_Battle
-                           and then A_System.Last_Attacker = B_System;
 
       Link_Colour    : constant Lui.Colours.Colour_Type :=
                          (if A_Owner /= null and then B_Owner = A_Owner
                           then A_Owner.Colour
-                          elsif A_B_Attack
-                          then A_Owner.Colour
-                          elsif B_A_Attack
-                          then B_Owner.Colour
                           elsif A_Owner = null or else B_Owner = null
                           then Unexplored_Colour
                           else Border_Colour);
@@ -261,18 +248,24 @@ package body Concorde.Galaxy.Model is
                  (X, Y, 0.0, Screen_X, Screen_Y, Screen_Z);
                if Star_Pass then
 
-                  if System.Last_Battle /= 0
-                    and then Date - System.Last_Battle in 0 .. 5
-                  then
-                     Renderer.Draw_Circle
-                       (X          => Screen_X,
-                        Y          => Screen_Y,
-                        Radius     => 20,
-                        Colour     => (1.0, 0.0, 0.0,
-                                       Real (6 - (Date - System.Last_Battle))
-                                       / 10.0),
-                        Filled     => True,
-                        Line_Width => 1);
+                  if Recent_Battle (System, 5) then
+                     declare
+                        Size : constant Positive :=
+                                 System.Last_Battle_Size;
+                        Days : constant Natural :=
+                                 Natural (Date - System.Last_Battle);
+                     begin
+                        if Days < Size then
+                           Renderer.Draw_Circle
+                             (X          => Screen_X,
+                              Y          => Screen_Y,
+                              Radius     => Size - Days,
+                              Colour     => (1.0, 0.0, 0.0,
+                                             1.0 - Real (Days) / Real (Size)),
+                              Filled     => True,
+                              Line_Width => 1);
+                        end if;
+                     end;
                   end if;
 
                   Renderer.Draw_Circle

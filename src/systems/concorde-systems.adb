@@ -57,14 +57,14 @@ package body Concorde.Systems is
    -- Attack --
    ------------
 
-   procedure Attacked
-     (System   : in out Root_Star_System_Type'Class;
-      Attacker : Star_System_Type)
+   procedure Battle
+     (System     : in out Root_Star_System_Type'Class;
+      Ship_Count : Positive)
    is
    begin
       System.Last_Battle := Concorde.Dates.Current_Date;
-      System.Last_Attacker := Attacker;
-   end Attacked;
+      System.Battle_Size := Ship_Count;
+   end Battle;
 
    --------------
    -- Capacity --
@@ -171,18 +171,6 @@ package body Concorde.Systems is
    end Index;
 
    -----------------
-   -- Last_Attack --
-   -----------------
-
-   function Last_Attacker
-     (From : Root_Star_System_Type'Class)
-      return Star_System_Type
-   is
-   begin
-      return From.Last_Attacker;
-   end Last_Attacker;
-
-   -----------------
    -- Last_Battle --
    -----------------
 
@@ -193,6 +181,18 @@ package body Concorde.Systems is
    begin
       return System.Last_Battle;
    end Last_Battle;
+
+   ----------------------
+   -- Last_Battle_Size --
+   ----------------------
+
+   function Last_Battle_Size
+     (System : Root_Star_System_Type'Class)
+      return Natural
+   is
+   begin
+      return System.Battle_Size;
+   end Last_Battle_Size;
 
    -----------
    -- Owner --

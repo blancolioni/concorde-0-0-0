@@ -54,6 +54,8 @@ package body Concorde.Ships.Battles is
       Info_Vector : Ship_Info_Vectors.Vector;
    begin
 
+      System.Battle (Positive (Ships.Length));
+
       for Ship of Ships loop
          declare
             Owner      : constant Empire_Type := Empire_Type (Ship.Owner);
