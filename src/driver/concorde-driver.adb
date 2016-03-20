@@ -25,8 +25,8 @@ procedure Concorde.Driver is
    Large_Size      : constant Positive := 400;
    Ave_Connections : constant Positive := 4;
    Enable_Logging  : constant Boolean  := True;
-   Show_GUI        : constant Boolean := False;
-   Update_Count    : constant Natural := 400;
+   Show_GUI        : constant Boolean := True;
+   Update_Count    : constant Natural := 200;
 begin
 
    if Randomise then
@@ -129,9 +129,9 @@ begin
       declare
          Process : WL.Processes.Process_Type;
       begin
-         Process.Start_Bar
+         Process.Start_Percentage
            ("Updating",
-            Tick_Size => Update_Count / 40);
+            Finish => Update_Count);
 
          Concorde.Galaxy.Locking.Init_Locking;
 

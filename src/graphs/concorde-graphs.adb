@@ -100,21 +100,6 @@ package body Concorde.Graphs is
       Container.Vertices (From).Edges.Append ((To, Cost));
    end Connect;
 
-   -------------
-   -- Connect --
-   -------------
-
-   procedure Connect
-     (Container : in out Graph'Class;
-      From, To  : in     Vertex_Type;
-      Cost      : in     Cost_Type := Default_Cost)
-   is
-   begin
-      Container.Connect (Container.Index_Of (From),
-                         Container.Index_Of (To),
-                         Cost);
-   end Connect;
-
    ---------------
    -- Connected --
    ---------------
@@ -131,20 +116,6 @@ package body Concorde.Graphs is
          end if;
       end loop;
       return False;
-   end Connected;
-
-   ---------------
-   -- Connected --
-   ---------------
-
-   function Connected
-     (Container    : Graph;
-      From, To     : Vertex_Type)
-      return Boolean
-   is
-   begin
-      return Container.Connected (Container.Index_Of (From),
-                                  Container.Index_Of (To));
    end Connected;
 
    --------------
@@ -288,6 +259,22 @@ package body Concorde.Graphs is
          end if;
       end loop;
    end Get_Connected_Components;
+
+   --------------
+   -- Get_Path --
+   --------------
+
+   function Get_Path (P         : Path) return Array_Of_Vertices is
+      Result : Array_Of_Vertices (1 .. Natural (P.Edges.Length) + 1);
+      Count  : Positive := 1;
+   begin
+      Result (Count) := P.Start;
+      for Edge of P.Edges loop
+         Count := Count + 1;
+         Result (Count) := Edge.To;
+      end loop;
+      return Result;
+   end Get_Path;
 
    --------------
    -- Index_Of --
@@ -434,6 +421,7 @@ package body Concorde.Graphs is
       Tried : Sub_Graph;
       Result : Path := (From, 0.0, Edge_Lists.Empty_List);
    begin
+
       Container.Create (Tried);
       Queue.Append ((From, 0.0, Edge_Lists.Empty_List));
 
@@ -444,12 +432,15 @@ package body Concorde.Graphs is
             Queue.Delete_First;
             if P.Start = To then
                declare
-                  V      : Index_Type := P.Start;
+                  V      : Index_Type;
                begin
-                  for Edge of reverse P.Edges loop
-                     Result.Edges.Append ((V, Edge.Cost));
+                  for Edge of P.Edges loop
                      V := Edge.To;
+                     Result.Edges.Append ((V, Edge.Cost));
                   end loop;
+                  Result.Start := P.Edges.Last_Element.To;
+                  Result.Edges.Delete_Last;
+                  Result.Edges.Append ((P.Start, P.Edges.Last_Element.Cost));
                   Result.Start := V;
                   Result.Cost := P.Cost;
                   exit;
@@ -458,12 +449,15 @@ package body Concorde.Graphs is
             if not Contains (Tried, P.Start) then
                Append (Tried, P.Start);
                for Edge of Container.Vertices.Element (P.Start).Edges loop
-                  if Test_Vertex (Container.Vs (Edge.To)) then
+                  if Edge.To = To
+                    or else Test_Vertex (Container.Vs (Edge.To))
+                  then
                      declare
                         New_Path : Path :=
                                      (Edge.To, P.Cost + Edge.Cost, P.Edges);
                      begin
-                        New_Path.Edges.Append ((P.Start, Edge.Cost));
+                        New_Path.Edges.Insert
+                          (New_Path.Edges.First, (P.Start, Edge.Cost));
                         Queue.Append (New_Path);
                      end;
                   end if;

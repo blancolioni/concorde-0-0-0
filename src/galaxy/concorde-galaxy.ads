@@ -45,6 +45,13 @@ package Concorde.Galaxy is
      (System_1, System_2 : Concorde.Systems.Star_System_Type)
       return Non_Negative_Real;
 
+   function Shortest_Path
+     (From, To : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      OK       : access function (System : Concorde.Systems.Star_System_Type)
+      return Boolean := null)
+      return Concorde.Systems.Graphs.Array_Of_Vertices;
+
    procedure Iterate
      (Filter : not null access
         function (System : Concorde.Systems.Star_System_Type)

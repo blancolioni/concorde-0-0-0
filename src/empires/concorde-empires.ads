@@ -101,6 +101,13 @@ package Concorde.Empires is
       Frontier : Boolean);
    --  Frontier: this system has at least one connection to an unowned system
 
+   procedure Set_Neighbour
+     (Empire    : in out Root_Empire_Type'Class;
+      System    : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Neighbour : Boolean);
+   --  Neighbour: this system has a neighbour which is owned by Empire
+
    procedure Set_Border
      (Empire  : in out Root_Empire_Type'Class;
       System   : not null access constant
@@ -108,6 +115,25 @@ package Concorde.Empires is
       Border  : Boolean);
    --  Border: this system has at least one connection to a system
    --  owned by another empire
+
+   function Next_Path_Node_Index
+     (Empire : in out Root_Empire_Type'Class;
+      From, To : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Natural;
+
+   function Owned_System
+     (Empire : Root_Empire_Type'Class;
+      System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean;
+
+   function Neighbour_System
+     (Empire : Root_Empire_Type'Class;
+      System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean;
+   --  System is a neighbour of a system which is owned by Empire
 
    type Empire_Type is access all Root_Empire_Type'Class;
 
@@ -130,25 +156,37 @@ private
        (Concorde.Systems.Star_System_Type,
         Concorde.Systems."=");
 
+   type Destination_Next_Index is
+     array (Positive range <>) of Integer;
+   --  -1: not cached
+   --   0: no path
+   --   1 .. system count: index of next node in path
+
+   type Destination_Next_Access is
+     access Destination_Next_Index;
+
    type Empire_Star_System_Record is
       record
          Focus     : Boolean := False;
          Internal  : Boolean := False;
          Frontier  : Boolean := False;
          Border    : Boolean := False;
+         Neighbour : Boolean := False;
+         Next_Node : Destination_Next_Access := null;
       end record
      with Pack;
 
-   type Focus_Array is
+   type System_Data_Array is
      array (Positive range <>) of Empire_Star_System_Record
      with Pack;
 
    type Root_Empire_Type is
      new Concorde.Objects.Root_Named_Object_Type with
       record
+         Index           : Positive;
          Colour          : Lui.Colours.Colour_Type;
          Focus_List      : access List_Of_Focus_Systems.List;
-         System_Data     : access Focus_Array;
+         System_Data     : access System_Data_Array;
          AI              : access Concorde.AI.Root_AI_Type'Class;
          Max_Ships       : Natural := 0;
          Current_Ships   : Natural := 0;
@@ -162,5 +200,9 @@ private
    Vector : Empire_Vectors.Vector;
 
    procedure Add_Empire (Empire : Empire_Type);
+
+   procedure Check_Cache (Empire   : in out Root_Empire_Type'Class;
+                          From, To : not null access constant
+                            Concorde.Systems.Root_Star_System_Type'Class);
 
 end Concorde.Empires;

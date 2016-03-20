@@ -20,6 +20,10 @@ package body Concorde.Ships.Updates is
         (System : Concorde.Systems.Star_System_Type)
          return Natural;
 
+      ---------------------
+      -- System_Priority --
+      ---------------------
+
       function System_Priority
         (System : Concorde.Systems.Star_System_Type)
          return Natural
@@ -53,6 +57,10 @@ package body Concorde.Ships.Updates is
          Ship.Destination :=
            Ship.Owner.Minimum_Score_Focus
              (System_Priority'Access);
+      end if;
+
+      if Ship.Destination = Ship.System then
+         Ship.Destination := null;
       end if;
 
       if Ship.Destination /= null then

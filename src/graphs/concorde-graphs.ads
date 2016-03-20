@@ -42,11 +42,6 @@ package Concorde.Graphs is
       From, To     : Index_Type)
       return Boolean;
 
-   function Connected
-     (Container    : Graph;
-      From, To     : Vertex_Type)
-      return Boolean;
-
    function Edge_Cost
      (Container    : Graph;
       From, To     : in     Index_Type)
@@ -56,12 +51,6 @@ package Concorde.Graphs is
    procedure Connect
      (Container : in out Graph'Class;
       From, To  : in     Index_Type;
-      Cost      : in     Cost_Type := Default_Cost)
-     with Pre => not Container.Connected (From, To);
-
-   procedure Connect
-     (Container : in out Graph'Class;
-      From, To  : in     Vertex_Type;
       Cost      : in     Cost_Type := Default_Cost)
      with Pre => not Container.Connected (From, To);
 
@@ -140,6 +129,10 @@ package Concorde.Graphs is
                   P         : Path)
                   return Vertex_Type
      with Pre => Vertex_Count (P) > 1;
+
+   type Array_Of_Vertices is array (Positive range <>) of Index_Type;
+
+   function Get_Path (P : Path) return Array_Of_Vertices;
 
    function Shortest_Path
      (Container : Graph'Class;

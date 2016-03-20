@@ -7,4 +7,8 @@ package Concorde.Empires.Logging is
      (Empire  : not null access constant Root_Empire_Type'Class;
       Message : String);
 
+   procedure Log
+     (Empire  : Root_Empire_Type'Class;
+      Message : String);
+
 end Concorde.Empires.Logging;

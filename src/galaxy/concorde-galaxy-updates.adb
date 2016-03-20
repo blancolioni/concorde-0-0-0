@@ -29,6 +29,7 @@ package body Concorde.Galaxy.Updates is
                for N of Neighbours (System) loop
                   if System.Owner /= N.Owner then
                      Border := True;
+                     System.Owner.Set_Neighbour (N, True);
                      if N.Owned then
                         if N.Owner /= System.Owner then
                            System.Owner.Set_Border (System, True);

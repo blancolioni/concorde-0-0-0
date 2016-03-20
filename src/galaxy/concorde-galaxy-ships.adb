@@ -1,5 +1,7 @@
 with Concorde.Galaxy.Locking;
 
+with Concorde.Empires;
+
 with Concorde.Ships.Battles;
 with Concorde.Ships.Lists;
 
@@ -14,16 +16,11 @@ package body Concorde.Galaxy.Ships is
       Destination : Concorde.Systems.Star_System_Type)
       return Boolean
    is
-      function System_OK
-        (System : Concorde.Systems.Star_System_Type)
-         return Boolean
-      is (System.Owner = null or else System.Owner = Ship.Owner);
-
+      use type Concorde.Systems.Star_System_Type;
    begin
-      return Concorde.Systems.Graphs.Cost
-        (Galaxy_Graph.Shortest_Path
-           (Ship.System.Index, Destination.Index, System_OK'Access))
-          > 0.0;
+      return Destination = Ship.System
+        or else Neighbours (Ship.System, Destination)
+        or else Ship.Owner.Next_Path_Node_Index (Ship.System, Destination) > 0;
    end Can_Move_To;
 
    -----------------------
@@ -53,43 +50,37 @@ package body Concorde.Galaxy.Ships is
      (Ship : Concorde.Ships.Ship_Type)
    is
       use Concorde.Systems.Graphs;
-      P : constant Path :=
-            Galaxy_Graph.Shortest_Path
-              (Ship.System.Index, Ship.Destination.Index);
+      use Concorde.Systems;
+
+      Next_Index : constant Natural :=
+                     Ship.Owner.Next_Path_Node_Index
+                       (Ship.System, Ship.Destination);
+      From : constant Star_System_Access :=
+               Galaxy_Vector.Element (Ship.System.Index);
+      To   : constant Star_System_Access :=
+               Galaxy_Vector.Element (Next_Index);
    begin
-      if Vertex_Count (P) > 1 then
-         declare
-            use Concorde.Systems;
-            From : constant Star_System_Access :=
-                     Galaxy_Vector.Element (Ship.System.Index);
-            To   : constant Star_System_Access :=
-                     Galaxy_Vector.Element (Galaxy_Graph.Next (P).Index);
-         begin
 
-            if From.Index < To.Index then
-               Locking.Lock_System (From, True);
-               Locking.Lock_System (To, True);
-            else
-               Locking.Lock_System (To, True);
-               Locking.Lock_System (From, True);
-            end if;
-
-            From.Departing (Ship);
-            To.Arriving (Ship);
-            From.Add_Traffic (To, 1);
-
-            if From.Index < To.Index then
-               Locking.Unlock_System (To);
-               Locking.Unlock_System (From);
-            else
-               Locking.Unlock_System (From);
-               Locking.Unlock_System (To);
-            end if;
-
-         end;
+      if From.Index < To.Index then
+         Locking.Lock_System (From, True);
+         Locking.Lock_System (To, True);
       else
-         Ship.Set_Destination (null);
+         Locking.Lock_System (To, True);
+         Locking.Lock_System (From, True);
       end if;
+
+      From.Departing (Ship);
+      To.Arriving (Ship);
+      From.Add_Traffic (To, 1);
+
+      if From.Index < To.Index then
+         Locking.Unlock_System (To);
+         Locking.Unlock_System (From);
+      else
+         Locking.Unlock_System (From);
+         Locking.Unlock_System (To);
+      end if;
+
    end Move_Ship;
 
    ----------------------

@@ -243,8 +243,28 @@ package body Concorde.Galaxy is
       return Boolean
    is
    begin
-      return Galaxy_Graph.Connected (System_1, System_2);
+      return Galaxy_Graph.Connected (System_1.Index, System_2.Index);
    end Neighbours;
+
+   -------------------
+   -- Shortest_Path --
+   -------------------
+
+   function Shortest_Path
+     (From, To : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      OK       : access function (System : Concorde.Systems.Star_System_Type)
+      return Boolean := null)
+      return Concorde.Systems.Graphs.Array_Of_Vertices
+   is
+      use Concorde.Systems;
+      Path : constant Concorde.Systems.Graphs.Path :=
+               (if OK = null
+                then Galaxy_Graph.Shortest_Path (From.Index, To.Index)
+                else Galaxy_Graph.Shortest_Path (From.Index, To.Index, OK));
+   begin
+      return Concorde.Systems.Graphs.Get_Path (Path);
+   end Shortest_Path;
 
    ----------------------------
    -- Shortest_Path_Distance --

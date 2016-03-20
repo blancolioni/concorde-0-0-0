@@ -16,6 +16,18 @@ package body Concorde.Empires.Logging is
       Message : String)
    is
    begin
+      Log (Empire.all, Message);
+   end Log;
+
+   ---------
+   -- Log --
+   ---------
+
+   procedure Log
+     (Empire  : Root_Empire_Type'Class;
+      Message : String)
+   is
+   begin
       if Opened then
          Put_Line
            (File,
@@ -23,6 +35,7 @@ package body Concorde.Empires.Logging is
               (Concorde.Dates.Current_Date)
             & ": "
             & Empire.Name & ": " & Message);
+         Flush (File);
       end if;
    end Log;
 
