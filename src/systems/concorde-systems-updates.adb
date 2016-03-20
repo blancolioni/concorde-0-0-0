@@ -1,4 +1,5 @@
 with Concorde.Empires;
+with Concorde.Ships.Create;
 
 package body Concorde.Systems.Updates is
 
@@ -6,16 +7,16 @@ package body Concorde.Systems.Updates is
    -- Update_System --
    -------------------
 
-   procedure Update_System (System : in out Root_Star_System_Type'Class) is
+   procedure Update_System (System : Star_System_Access) is
    begin
       if System.Owner /= null then
          System.Progress := System.Progress + System.Production;
          if System.Progress >= 1.0 then
-            if System.Owner.Available_Fleet_Capacity > 0 then
-               if Real (System.Fleets) < System.Capacity then
-                  System.Fleets := System.Fleets + 1;
-                  System.Owner.New_Fleets (1);
-               end if;
+            if System.Owner.Available_Ship_Capacity > 0 then
+               Concorde.Ships.Create.New_Ship
+                 (Owner  => Concorde.Empires.Empire_Type (System.Owner),
+                  System => System,
+                  Max_HP => 10);
                System.Progress := System.Progress - 1.0;
             else
                System.Progress := 1.0;

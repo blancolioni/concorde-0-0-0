@@ -2,6 +2,57 @@ with Concorde.Elementary_Functions;
 
 package body Concorde.Systems is
 
+   --------------
+   -- Add_Ship --
+   --------------
+
+   procedure Add_Ship
+     (System : in out Root_Star_System_Type'Class;
+      Ship   : Concorde.Ships.Ship_Type)
+   is
+   begin
+      System.Ships.Append (Ship);
+   end Add_Ship;
+
+   -----------------
+   -- Add_Traffic --
+   -----------------
+
+   procedure Add_Traffic
+     (From  : in out Root_Star_System_Type'Class;
+      To    : not null access constant Root_Star_System_Type'Class;
+      Count : Positive := 1)
+   is
+      To_System : constant Star_System_Type := Star_System_Type (To);
+   begin
+      for Position in From.Edges.Iterate loop
+         declare
+            Edge : Edge_Info := Edge_Info_Lists.Element (Position);
+         begin
+            if Edge.To = To_System then
+               Edge.Traffic := Edge.Traffic + Count;
+               From.Edges.Replace_Element (Position, Edge);
+               return;
+            end if;
+         end;
+      end loop;
+
+      From.Edges.Append ((To_System, Count));
+
+   end Add_Traffic;
+
+   --------------
+   -- Arriving --
+   --------------
+
+   procedure Arriving
+     (System : in out Root_Star_System_Type'Class;
+      Ship   : Concorde.Ships.Ship_Type)
+   is
+   begin
+      System.Arriving.Append (Ship);
+   end Arriving;
+
    ------------
    -- Attack --
    ------------
@@ -37,6 +88,48 @@ package body Concorde.Systems is
       return System.Capital;
    end Capital;
 
+   -------------------------
+   -- Clear_Ship_Movement --
+   -------------------------
+
+   procedure Clear_Ship_Movement
+     (System : in out Root_Star_System_Type'Class)
+   is
+   begin
+      System.Arriving.Clear;
+      System.Departing.Clear;
+      System.Edges.Clear;
+   end Clear_Ship_Movement;
+
+   --------------------------
+   -- Commit_Ship_Movement --
+   --------------------------
+
+   procedure Commit_Ship_Movement
+     (System : not null access Root_Star_System_Type'Class)
+   is
+   begin
+      for Ship of System.Departing loop
+         System.Remove_Ship (Ship);
+      end loop;
+      for Ship of System.Arriving loop
+         System.Add_Ship (Ship);
+         Ship.Set_System (System);
+      end loop;
+   end Commit_Ship_Movement;
+
+   ---------------
+   -- Departing --
+   ---------------
+
+   procedure Departing
+     (System : in out Root_Star_System_Type'Class;
+      Ship   : Concorde.Ships.Ship_Type)
+   is
+   begin
+      System.Departing.Append (Ship);
+   end Departing;
+
    --------------
    -- Distance --
    --------------
@@ -52,16 +145,21 @@ package body Concorde.Systems is
                    + (System_1.Y - System_2.Y) ** 2);
    end Distance;
 
-   ------------
-   -- Fleets --
-   ------------
+   ---------------
+   -- Get_Ships --
+   ---------------
 
-   function Fleets (System : Root_Star_System_Type'Class)
-                    return Natural
+   procedure Get_Ships
+     (System    : Root_Star_System_Type'Class;
+      Result    : in out Concorde.Ships.Lists.List)
    is
    begin
-      return System.Fleets;
-   end Fleets;
+      for Ship of System.Ships loop
+         if Ship.Alive then
+            Result.Append (Ship);
+         end if;
+      end loop;
+   end Get_Ships;
 
    -----------
    -- Index --
@@ -119,6 +217,23 @@ package body Concorde.Systems is
       return System.Production;
    end Production;
 
+   -----------------
+   -- Remove_Ship --
+   -----------------
+
+   procedure Remove_Ship
+     (System : in out Root_Star_System_Type'Class;
+      Ship   : Concorde.Ships.Ship_Type)
+   is
+      use Concorde.Ships.Lists;
+      Position : Cursor := System.Ships.Find (Ship);
+   begin
+      pragma Assert (Has_Element (Position),
+                     "could not find ship " & Ship.Name
+                     & " at " & System.Name);
+      System.Ships.Delete (Position);
+   end Remove_Ship;
+
    ------------------
    -- Set_Capacity --
    ------------------
@@ -141,18 +256,6 @@ package body Concorde.Systems is
    begin
       System.Capital := True;
    end Set_Capital;
-
-   ----------------
-   -- Set_Fleets --
-   ----------------
-
-   procedure Set_Fleets
-     (System     : in out Root_Star_System_Type'Class;
-      New_Fleets : Natural)
-   is
-   begin
-      System.Fleets := New_Fleets;
-   end Set_Fleets;
 
    ---------------
    -- Set_Owner --
@@ -178,6 +281,37 @@ package body Concorde.Systems is
    begin
       System.Production := New_Production;
    end Set_Production;
+
+   -----------
+   -- Ships --
+   -----------
+
+   function Ships
+     (System : Root_Star_System_Type'Class)
+      return Natural
+   is
+   begin
+      return Natural (System.Ships.Length);
+   end Ships;
+
+   -------------
+   -- Traffic --
+   -------------
+
+   function Traffic
+     (From : Root_Star_System_Type'Class;
+      To   : not null access constant Root_Star_System_Type'Class)
+      return Natural
+   is
+      To_System : constant Star_System_Type := Star_System_Type (To);
+   begin
+      for Edge of From.Edges loop
+         if Edge.To = To_System then
+            return Edge.Traffic;
+         end if;
+      end loop;
+      return 0;
+   end Traffic;
 
    -------
    -- X --

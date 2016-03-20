@@ -63,25 +63,26 @@ package body Concorde.AI is
       System       : Concorde.Systems.Star_System_Type;
       Former_Owner : Concorde.Empires.Empire_Type)
    is
+      pragma Unreferenced (System);
       use Concorde.Empires;
    begin
-      if AI.Empire.Has_Focus (System) then
-         declare
-            Stop : Boolean := True;
-            Ns   : constant Concorde.Galaxy.Array_Of_Star_Systems :=
-                     Concorde.Galaxy.Neighbours (System);
-         begin
-            for N of Ns loop
-               if N.Owner = null then
-                  Stop := False;
-                  AI.Empire.Add_Focus (N);
-               end if;
-            end loop;
-            if not Stop then
-               AI.Empire.Remove_Focus (System);
-            end if;
-         end;
-      end if;
+--        if AI.Empire.Has_Focus (System) then
+--           declare
+--              Stop : Boolean := True;
+--              Ns   : constant Concorde.Galaxy.Array_Of_Star_Systems :=
+--                       Concorde.Galaxy.Neighbours (System);
+--           begin
+--              for N of Ns loop
+--                 if N.Owner = null then
+--                    Stop := False;
+--                    AI.Empire.Add_Focus (N);
+--                 end if;
+--              end loop;
+--              if not Stop then
+--                 AI.Empire.Remove_Focus (System);
+--              end if;
+--           end;
+--        end if;
 
       if Former_Owner /= null then
          Update_Defensiveness (AI, Former_Owner);
@@ -115,16 +116,16 @@ package body Concorde.AI is
    is
       D : Non_Negative_Real;
    begin
-      if AI.Empire.Current_Fleets > Enemy.Current_Fleets then
+      if AI.Empire.Current_Ships > Enemy.Current_Ships then
          D := 1.2;
-      elsif AI.Empire.Current_Fleets = 0
-        or else AI.Empire.Current_Fleets * 4 < Enemy.Current_Fleets
+      elsif AI.Empire.Current_Ships = 0
+        or else AI.Empire.Current_Ships * 4 < Enemy.Current_Ships
       then
          D := 4.0;
       else
          D :=
-           Real (Enemy.Current_Fleets) * 1.3
-           / Real (AI.Empire.Current_Fleets);
+           Real (Enemy.Current_Ships) * 1.3
+           / Real (AI.Empire.Current_Ships);
       end if;
 
       if (D < AI.Defensiveness and then Can_Decrease)
@@ -159,6 +160,10 @@ package body Concorde.AI is
          return Boolean;
 
       function Outnumbered_Defenders
+        (System : Concorde.Systems.Star_System_Type)
+         return Boolean;
+
+      function Unexplored
         (System : Concorde.Systems.Star_System_Type)
          return Boolean;
 
@@ -214,7 +219,7 @@ package body Concorde.AI is
          end if;
 
          for N of Ns loop
-            if N.Owner = null or else N.Owner /= AI.Empire then
+            if N.Owner /= null and then N.Owner /= AI.Empire then
                return False;
             end if;
          end loop;
@@ -239,31 +244,64 @@ package body Concorde.AI is
             return False;
          end if;
 
-         if System.Index = 13 then
-            Defenders := System.Fleets;
-         end if;
-
-         Defenders := System.Fleets;
+         Defenders := System.Ships;
          for N of Ns loop
             if N.Owner = AI.Empire then
-               Attackers := Attackers + N.Fleets;
+               Attackers := Attackers + N.Ships;
             elsif N.Owner = System.Owner then
-               Defenders := Defenders + N.Fleets / 2;
+               Defenders := Defenders + N.Ships / 2;
             end if;
          end loop;
 
          if Attackers /= 0 and then Defenders /= 0 then
-            Concorde.Empires.Logging.Log
-              (AI.Empire,
-               System.Name & ": checking attack"
-               & Attackers'Img & " vs" & Defenders'Img);
-            return Real (Attackers)
-              / Root_AI_Type'Class (AI).Minimum_Attack_Factor
-              > Real (Defenders);
+            declare
+               Ratio : constant Real :=
+                         Real (Attackers) / Real (Defenders);
+               Min   : constant Real :=
+                         Root_AI_Type'Class (AI).Minimum_Attack_Factor;
+            begin
+               if Ratio > Min then
+                  Concorde.Empires.Logging.Log
+                    (AI.Empire,
+                     "ordering attack on " & System.Name
+                     & "; attackers" & Attackers'Img
+                     & "; defenders" & Defenders'Img
+                     & "; ratio = "
+                     & Lui.Approximate_Image (Ratio)
+                     & "; minimum = "
+                     & Lui.Approximate_Image (Min));
+                  return True;
+               else
+                  return False;
+               end if;
+            end;
          else
             return False;
          end if;
       end Outnumbered_Defenders;
+
+      ----------------
+      -- Unexplored --
+      ----------------
+
+      function Unexplored
+        (System : Concorde.Systems.Star_System_Type)
+         return Boolean
+      is
+      begin
+         if System.Owner /= null then
+            return False;
+         end if;
+
+         for N of Galaxy.Neighbours (System) loop
+            if N.Owner = AI.Empire then
+               return True;
+            end if;
+         end loop;
+
+         return False;
+
+      end Unexplored;
 
    begin
       AI.Empire.Remove_Focus (Other_Owner'Access);
@@ -271,6 +309,7 @@ package body Concorde.AI is
 
       Galaxy.Iterate (Border_System'Access, Add_Focus'Access);
       Galaxy.Iterate (Outnumbered_Defenders'Access, Add_Focus'Access);
+      Galaxy.Iterate (Unexplored'Access, Add_Focus'Access);
    end Update_Focus;
 
 end Concorde.AI;

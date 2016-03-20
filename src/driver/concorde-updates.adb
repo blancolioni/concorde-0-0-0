@@ -1,13 +1,23 @@
+with Ada.Unchecked_Deallocation;
+
 with Concorde.Dates;
 with Concorde.Empires.Updates;
 with Concorde.Galaxy.Updates;
 
+with Concorde.Galaxy.Locking;
+
 package body Concorde.Updates is
 
-   task Update_Task is
-      entry Start;
+   task type Update_Task is
       entry Stop;
    end Update_Task;
+
+   type Update_Task_Access is access Update_Task;
+
+   procedure Free is
+     new Ada.Unchecked_Deallocation (Update_Task, Update_Task_Access);
+
+   Current_Update_Task : Update_Task_Access;
 
    --------------------
    -- Perform_Update --
@@ -26,7 +36,8 @@ package body Concorde.Updates is
 
    procedure Start_Updates is
    begin
-      Update_Task.Start;
+      Concorde.Galaxy.Locking.Init_Locking;
+      Current_Update_Task := new Update_Task;
    end Start_Updates;
 
    ------------------
@@ -35,7 +46,8 @@ package body Concorde.Updates is
 
    procedure Stop_Updates is
    begin
-      Update_Task.Stop;
+      Current_Update_Task.Stop;
+      Free (Current_Update_Task);
    end Stop_Updates;
 
    -----------------
@@ -44,12 +56,6 @@ package body Concorde.Updates is
 
    task body Update_Task is
    begin
-      select
-         accept Start;
-      or
-         terminate;
-      end select;
-
       loop
          select
             accept Stop;

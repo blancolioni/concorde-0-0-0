@@ -8,6 +8,8 @@ with Concorde.AI;
 with Concorde.Dates;
 with Concorde.Empires;
 
+with Concorde.Galaxy.Locking;
+
 package body Concorde.Galaxy.Model is
 
    subtype Empire_Column is Integer range 1 .. 4;
@@ -22,7 +24,7 @@ package body Concorde.Galaxy.Model is
    is ((case Empire_Column (Col) is
            when 1 => "Name",
            when 2 => "Systems",
-           when 3 => "Fleets",
+           when 3 => "Ships",
            when 4 => "Attack"));
 
    overriding function Cell_Text
@@ -97,7 +99,7 @@ package body Concorde.Galaxy.Model is
                return Natural'Image (Count);
             end;
          when 3 =>
-            return Lui.Approximate_Image (E.Current_Fleets);
+            return Lui.Approximate_Image (E.Current_Ships);
          when 4 =>
             return Lui.Approximate_Image (E.AI.Minimum_Attack_Factor);
       end case;
@@ -138,10 +140,12 @@ package body Concorde.Galaxy.Model is
                           elsif A_Owner = null or else B_Owner = null
                           then Unexplored_Colour
                           else Border_Colour);
-      Link_Width     : constant Natural :=
-                         (if A_B_Attack or else B_A_Attack
-                          then 4
-                          else 1);
+      Link_Width     : constant Positive :=
+                         Natural'Min
+                           (A_System.Traffic (B_System)
+                            + B_System.Traffic (A_System),
+                            5)
+                         + 1;
       X1, X2, Y1, Y2 : Integer;
    begin
       Model.Star_System_Screen (A_System, X1, Y1);
@@ -288,13 +292,13 @@ package body Concorde.Galaxy.Model is
                         Text   => System.Name);
                   end if;
 
-                  if Owner /= null and then System.Fleets > 0 then
+                  if Owner /= null and then System.Ships > 0 then
                      Renderer.Draw_String
                        (X      => Screen_X + 6,
                         Y      => Screen_Y + 6,
                         Size   => 8,
                         Colour => Colour,
-                        Text   => Natural'Image (System.Fleets));
+                        Text   => Natural'Image (System.Ships));
                   end if;
 
                   if Owner /= null and then Owner.Has_Focus (System) then
@@ -362,8 +366,16 @@ package body Concorde.Galaxy.Model is
                         pragma Unreferenced (Cost);
                      begin
                         if To > System.Index then
+                           Concorde.Galaxy.Locking.Lock_System
+                             (System, False);
+                           Concorde.Galaxy.Locking.Lock_System
+                             (Galaxy_Vector (To), False);
                            Model.Draw_Connection
                              (Renderer, System.Index, To);
+                           Concorde.Galaxy.Locking.Unlock_System
+                             (Galaxy_Vector (To));
+                           Concorde.Galaxy.Locking.Unlock_System
+                             (System);
                         end if;
                      end Draw_Connection;
 

@@ -1,5 +1,7 @@
 with Ada.Text_IO;                      use Ada.Text_IO;
 
+with Concorde.Dates;
+
 package body Concorde.Empires.Logging is
 
    File   : File_Type;
@@ -10,12 +12,17 @@ package body Concorde.Empires.Logging is
    ---------
 
    procedure Log
-     (Empire  : Empire_Type;
+     (Empire  : not null access constant Root_Empire_Type'Class;
       Message : String)
    is
    begin
       if Opened then
-         Put_Line (File, Empire.Name & ": " & Message);
+         Put_Line
+           (File,
+            Concorde.Dates.To_String
+              (Concorde.Dates.Current_Date)
+            & ": "
+            & Empire.Name & ": " & Message);
       end if;
    end Log;
 

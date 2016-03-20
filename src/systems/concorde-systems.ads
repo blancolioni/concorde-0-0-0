@@ -1,7 +1,12 @@
+private with Ada.Containers.Doubly_Linked_Lists;
+
 limited with Concorde.Empires;
 
 with Concorde.Dates;
 with Concorde.Objects;
+with Concorde.Ships;
+
+with Concorde.Ships.Lists;
 
 package Concorde.Systems is
 
@@ -16,24 +21,62 @@ package Concorde.Systems is
      (System : Root_Star_System_Type'Class)
       return access Concorde.Empires.Root_Empire_Type'Class;
 
+   function Owned
+     (System : Root_Star_System_Type'Class)
+      return Boolean
+   is (System.Owner /= null);
+
    function Production (System : Root_Star_System_Type'Class)
                         return Non_Negative_Real;
 
    function Capacity (System : Root_Star_System_Type'Class)
                       return Non_Negative_Real;
 
-   function Fleets (System : Root_Star_System_Type'Class)
-                    return Natural;
-
    function Capital (System : Root_Star_System_Type'Class)
                      return Boolean;
 
+   function Ships
+     (System : Root_Star_System_Type'Class)
+      return Natural;
+
+   procedure Add_Ship
+     (System : in out Root_Star_System_Type'Class;
+      Ship   : Concorde.Ships.Ship_Type);
+
+   procedure Remove_Ship
+     (System : in out Root_Star_System_Type'Class;
+      Ship   : Concorde.Ships.Ship_Type);
+
+   procedure Arriving
+     (System : in out Root_Star_System_Type'Class;
+      Ship   : Concorde.Ships.Ship_Type);
+
+   procedure Departing
+     (System : in out Root_Star_System_Type'Class;
+      Ship   : Concorde.Ships.Ship_Type);
+
+   procedure Commit_Ship_Movement
+     (System : not null access Root_Star_System_Type'Class);
+
+   procedure Clear_Ship_Movement
+     (System : in out Root_Star_System_Type'Class);
+
+   procedure Add_Traffic
+     (From  : in out Root_Star_System_Type'Class;
+      To    : not null access constant Root_Star_System_Type'Class;
+      Count : Positive := 1);
+
+   function Traffic
+     (From : Root_Star_System_Type'Class;
+      To   : not null access constant Root_Star_System_Type'Class)
+      return Natural;
+
+   procedure Get_Ships
+     (System    : Root_Star_System_Type'Class;
+      Result    : in out Concorde.Ships.Lists.List);
+
    function Last_Battle (System : Root_Star_System_Type'Class)
                          return Concorde.Dates.Date_Type;
-
-   procedure Set_Fleets
-     (System     : in out Root_Star_System_Type'Class;
-      New_Fleets : Natural);
 
    procedure Set_Owner
      (System : in out Root_Star_System_Type'Class;
@@ -69,6 +112,15 @@ package Concorde.Systems is
 
 private
 
+   type Edge_Info is
+      record
+         To      : Star_System_Type;
+         Traffic : Natural := 0;
+      end record;
+
+   package Edge_Info_Lists is
+      new Ada.Containers.Doubly_Linked_Lists (Edge_Info);
+
    type Root_Star_System_Type is
      new Concorde.Objects.Root_Named_Object_Type with
       record
@@ -77,11 +129,14 @@ private
          Production    : Non_Negative_Real;
          Capacity      : Non_Negative_Real;
          Progress      : Non_Negative_Real;
-         Fleets        : Natural;
+         Ships         : Concorde.Ships.Lists.List;
+         Arriving      : Concorde.Ships.Lists.List;
+         Departing     : Concorde.Ships.Lists.List;
          Capital       : Boolean;
          Last_Battle   : Concorde.Dates.Date_Type;
          Last_Attacker : Star_System_Type;
          Owner         : access Concorde.Empires.Root_Empire_Type'Class;
+         Edges         : Edge_Info_Lists.List;
       end record;
 
 end Concorde.Systems;

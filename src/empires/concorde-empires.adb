@@ -1,4 +1,5 @@
 with Concorde.Empires.Logging;
+with Concorde.Galaxy;
 
 package body Concorde.Empires is
 
@@ -16,11 +17,14 @@ package body Concorde.Empires is
    ---------------
 
    procedure Add_Focus
-     (Empire : in out Root_Empire_Type'Class;
-      Focus  : Concorde.Systems.Star_System_Type)
+     (Empire   : in out Root_Empire_Type'Class;
+      Focus    : Concorde.Systems.Star_System_Type;
+      Priority : Non_Negative_Real := 1.0)
    is
+      pragma Unreferenced (Priority);
       Added : Boolean;
    begin
+      Empire.System_Data (Focus.Index).Focus := True;
       Empire.Focus_List.Add_If_Missing (Focus, Added);
       if Added then
          Concorde.Empires.Logging.Log
@@ -42,16 +46,33 @@ package body Concorde.Empires is
    end AI;
 
    ------------------------------
-   -- Available_Fleet_Capacity --
+   -- Available_Ship_Capacity --
    ------------------------------
 
-   function Available_Fleet_Capacity
+   function Available_Ship_Capacity
      (Empire : Root_Empire_Type'Class)
       return Natural
    is
    begin
-      return Integer'Max (Empire.Max_Fleets - Empire.Current_Fleets, 0);
-   end Available_Fleet_Capacity;
+      return Integer'Max (Empire.Max_Ships - Empire.Current_Ships, 0);
+   end Available_Ship_Capacity;
+
+   ------------------------
+   -- Clear_System_Flags --
+   ------------------------
+
+   procedure Clear_System_Flags
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+   is
+      Flags : Empire_Star_System_Record renames
+                Empire.System_Data (System.Index);
+   begin
+      Flags.Internal := False;
+      Flags.Frontier := False;
+      Flags.Border   := False;
+   end Clear_System_Flags;
 
    ------------
    -- Colour --
@@ -66,16 +87,28 @@ package body Concorde.Empires is
    end Colour;
 
    --------------------
-   -- Current_Fleets --
+   -- Current_Ships --
    --------------------
 
-   function Current_Fleets
+   function Current_Ships
      (Empire : Root_Empire_Type'Class)
       return Natural
    is
    begin
-      return Empire.Current_Fleets;
-   end Current_Fleets;
+      return Empire.Current_Ships;
+   end Current_Ships;
+
+   ---------------------
+   -- Current_Systems --
+   ---------------------
+
+   function Current_Systems
+     (Empire : Root_Empire_Type'Class)
+      return Natural
+   is
+   begin
+      return Empire.Current_Systems;
+   end Current_Systems;
 
    ------------------
    -- Empire_Count --
@@ -120,9 +153,9 @@ package body Concorde.Empires is
             when Normal =>
                return False;
             when By_Star_Systems =>
-               return X.Current_Fleets > Y.Current_Fleets;
-            when By_Fleets =>
-               return X.Current_Fleets > Y.Current_Fleets;
+               return X.Current_Ships > Y.Current_Ships;
+            when By_Ships =>
+               return X.Current_Ships > Y.Current_Ships;
          end case;
       end Higher;
 
@@ -147,36 +180,72 @@ package body Concorde.Empires is
 
    function Has_Focus
      (Empire : Root_Empire_Type'Class;
-      Focus  : Concorde.Systems.Star_System_Type)
+      Focus  : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
       return Boolean
    is
    begin
-      return Empire.Focus_List.Contains (Focus);
+      return Empire.System_Data (Focus.Index).Focus;
    end Has_Focus;
 
    ------------------------------
-   -- Maximum_Supported_Fleets --
+   -- Maximum_Supported_Ships --
    ------------------------------
 
-   function Maximum_Supported_Fleets
+   function Maximum_Supported_Ships
      (Empire : Root_Empire_Type'Class)
       return Natural
    is
    begin
-      return Empire.Max_Fleets;
-   end Maximum_Supported_Fleets;
+      return Empire.Max_Ships;
+   end Maximum_Supported_Ships;
+
+   -------------------------
+   -- Minimum_Score_Focus --
+   -------------------------
+
+   function Minimum_Score_Focus
+     (Empire : Root_Empire_Type'Class;
+      Score  : not null access
+        function (System : Concorde.Systems.Star_System_Type)
+      return Natural)
+      return Concorde.Systems.Star_System_Type
+   is
+      Min_Score  : Natural := Natural'Last;
+      Min_System : Concorde.Systems.Star_System_Type := null;
+
+      procedure Update (System : Concorde.Systems.Star_System_Type);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update (System : Concorde.Systems.Star_System_Type) is
+         This_Score : constant Natural := Score (System);
+      begin
+         if This_Score < Min_Score then
+            Min_Score := This_Score;
+            Min_System := System;
+         end if;
+      end Update;
+
+   begin
+
+      Empire.Focus_List.Iterate (Update'Access);
+      return Min_System;
+
+   end Minimum_Score_Focus;
 
    ----------------
-   -- New_Fleets --
+   -- New_Ships --
    ----------------
 
-   procedure New_Fleets
-     (Empire : in out Root_Empire_Type'Class;
-      Count  : Natural)
+   procedure New_Ship
+     (Empire : in out Root_Empire_Type'Class)
    is
    begin
-      Empire.Current_Fleets := Empire.Current_Fleets + Count;
-   end New_Fleets;
+      Empire.Current_Ships := Empire.Current_Ships + 1;
+   end New_Ship;
 
    ------------------
    -- Remove_Focus --
@@ -188,6 +257,7 @@ package body Concorde.Empires is
    is
       Deleted : Boolean;
    begin
+      Empire.System_Data (Focus.Index).Focus := False;
       Empire.Focus_List.Delete_If_Present (Focus, Deleted);
       if Deleted then
          Concorde.Empires.Logging.Log
@@ -206,26 +276,102 @@ package body Concorde.Empires is
         function (System : Concorde.Systems.Star_System_Type)
       return Boolean)
    is
+      Systems : constant Concorde.Galaxy.Array_Of_Star_Systems :=
+                  Concorde.Galaxy.Get_Systems
+                    (Matching);
    begin
+      for System of Systems loop
+         Empire.System_Data (System.Index).Focus := False;
+      end loop;
       Empire.Focus_List.Delete_Matching (Matching);
    end Remove_Focus;
 
---        New_List : List_Of_Systems.List;
---        Changed  : Boolean := False;
---     begin
---        for Focus of Empire.Focus_List loop
---           if not Matching (Focus) then
---              New_List.Append (Focus);
---           else
---              Concorde.Empires.Logging.Log
---                (Empire'Unchecked_Access,
---                 "remove focus: " & Focus.Name);
---              Changed := True;
---           end if;
---        end loop;
---        if Changed then
---           Empire.Focus_List := New_List;
---        end if;
---     end Remove_Focus;
+   -----------------
+   -- Remove_Ship --
+   -----------------
+
+   procedure Remove_Ship
+     (Empire : in out Root_Empire_Type'Class)
+   is
+   begin
+      Empire.Current_Ships := Empire.Current_Ships - 1;
+   end Remove_Ship;
+
+   ----------------
+   -- Set_Border --
+   ----------------
+
+   procedure Set_Border
+     (Empire  : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Border   : Boolean)
+   is
+   begin
+      Empire.System_Data (System.Index).Border := Border;
+   end Set_Border;
+
+   ------------------
+   -- Set_Frontier --
+   ------------------
+
+   procedure Set_Frontier
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Frontier : Boolean)
+   is
+   begin
+      Empire.System_Data (System.Index).Frontier := Frontier;
+   end Set_Frontier;
+
+   ------------------
+   -- Set_Internal --
+   ------------------
+
+   procedure Set_Internal
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Internal : Boolean)
+   is
+   begin
+      Empire.System_Data (System.Index).Internal := Internal;
+   end Set_Internal;
+
+   ---------------------
+   -- System_Acquired --
+   ---------------------
+
+   procedure System_Acquired
+     (Empire : in out Root_Empire_Type'Class;
+      System : Concorde.Systems.Star_System_Type)
+   is
+      pragma Unreferenced (System);
+   begin
+      Empire.Current_Systems := Empire.Current_Systems + 1;
+   end System_Acquired;
+
+   -----------------
+   -- System_Lost --
+   -----------------
+
+   procedure System_Lost
+     (Empire : in out Root_Empire_Type'Class;
+      System : Concorde.Systems.Star_System_Type)
+   is
+      pragma Unreferenced (System);
+   begin
+      Empire.Current_Systems := Empire.Current_Systems - 1;
+   end System_Lost;
+
+   ------------
+   -- Unload --
+   ------------
+
+   procedure Unload is
+   begin
+      Vector.Clear;
+   end Unload;
 
 end Concorde.Empires;

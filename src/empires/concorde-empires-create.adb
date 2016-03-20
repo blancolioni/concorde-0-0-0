@@ -81,10 +81,12 @@ package body Concorde.Empires.Create is
                           (OK_For_Start'Access);
       begin
          New_Empire.Set_Name (Name);
-         New_Empire.Focus_List := new List_Of_Systems.List;
+         New_Empire.Focus_List := new List_Of_Focus_Systems.List;
+         New_Empire.System_Data := new Focus_Array (1 .. Galaxy.System_Count);
          New_Empire.Colour := Colour;
          New_Empire.Capital := Start;
          New_Empire.AI := AI;
+         New_Empire.Current_Systems := 1;
          Concorde.Galaxy.Update_System (Start, Choose'Access);
          Add_Empire (New_Empire);
          Ada.Text_IO.Put_Line ("New empire: " & Name);

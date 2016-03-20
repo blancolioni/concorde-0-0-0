@@ -4,7 +4,7 @@ package Concorde.Empires.Logging is
    procedure Stop_Logging;
 
    procedure Log
-     (Empire  : Empire_Type;
+     (Empire  : not null access constant Root_Empire_Type'Class;
       Message : String);
 
 end Concorde.Empires.Logging;

@@ -15,9 +15,9 @@ package Concorde.Galaxy is
       Update : not null access
         procedure (System : in out Systems.Root_Star_System_Type'Class));
 
-   procedure Move_Fleets
-     (From, To : Concorde.Systems.Star_System_Type;
-      Count    : Natural);
+--     procedure Move_Fleets
+--       (From, To : Concorde.Systems.Star_System_Type;
+--        Count    : Natural);
 
    type Array_Of_Star_Systems is
      array (Positive range <>) of Concorde.Systems.Star_System_Type;
@@ -29,7 +29,8 @@ package Concorde.Galaxy is
       return Array_Of_Star_Systems;
 
    function Neighbours
-     (System : Concorde.Systems.Star_System_Type)
+     (System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
       return Array_Of_Star_Systems;
 
    function Neighbours

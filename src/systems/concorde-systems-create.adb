@@ -20,11 +20,14 @@ package body Concorde.Systems.Create is
                     Production    => Production,
                     Capacity      => Capacity,
                     Progress      => 0.0,
-                    Fleets        => 0,
+                    Ships         => Concorde.Ships.Lists.Empty_List,
+                    Arriving      => Concorde.Ships.Lists.Empty_List,
+                    Departing     => Concorde.Ships.Lists.Empty_List,
                     Last_Battle   => 0,
                     Last_Attacker => null,
                     Capital       => False,
-                    Owner         => null);
+                    Owner         => null,
+                    Edges         => Edge_Info_Lists.Empty_List);
    begin
       Result.Set_Name (Name);
       return Result;

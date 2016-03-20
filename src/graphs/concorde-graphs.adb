@@ -370,6 +370,18 @@ package body Concorde.Graphs is
       return Container.Vertices.Last_Index;
    end Last_Vertex_Index;
 
+   ----------
+   -- Next --
+   ----------
+
+   function Next (Container : Graph;
+                  P         : Path)
+                  return Vertex_Type
+   is
+   begin
+      return Container.Vs (P.Edges.First_Element.To);
+   end Next;
+
    --------------------
    -- Same_Sub_Graph --
    --------------------
@@ -397,6 +409,23 @@ package body Concorde.Graphs is
    function Shortest_Path
      (Container : Graph'Class;
       From, To  : Index_Type)
+      return Path
+   is
+      function OK (Vertex : Vertex_Type) return Boolean
+      is (True);
+   begin
+      return Container.Shortest_Path (From, To, OK'Access);
+   end Shortest_Path;
+
+   -------------------
+   -- Shortest_Path --
+   -------------------
+
+   function Shortest_Path
+     (Container : Graph'Class;
+      From, To  : Index_Type;
+      Test_Vertex : not null access
+        function (Vertex : Vertex_Type) return Boolean)
       return Path
    is
       package Queue_Of_Partials is
@@ -429,13 +458,15 @@ package body Concorde.Graphs is
             if not Contains (Tried, P.Start) then
                Append (Tried, P.Start);
                for Edge of Container.Vertices.Element (P.Start).Edges loop
-                  declare
-                     New_Path : Path :=
-                                  (Edge.To, P.Cost + Edge.Cost, P.Edges);
-                  begin
-                     New_Path.Edges.Append ((P.Start, Edge.Cost));
-                     Queue.Append (New_Path);
-                  end;
+                  if Test_Vertex (Container.Vs (Edge.To)) then
+                     declare
+                        New_Path : Path :=
+                                     (Edge.To, P.Cost + Edge.Cost, P.Edges);
+                     begin
+                        New_Path.Edges.Append ((P.Start, Edge.Cost));
+                        Queue.Append (New_Path);
+                     end;
+                  end if;
                end loop;
             end if;
          end;

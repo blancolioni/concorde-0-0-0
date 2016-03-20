@@ -1,0 +1,60 @@
+private with Ada.Containers.Vectors;
+
+limited with Concorde.Empires;
+limited with Concorde.Systems;
+
+with Concorde.Objects;
+
+package Concorde.Ships is
+
+   type Root_Ship_Type is
+     new Concorde.Objects.Root_Named_Object_Type with private;
+
+   function Alive
+     (Ship : Root_Ship_Type'Class)
+      return Boolean;
+
+   function Owner
+     (Ship : Root_Ship_Type'Class)
+      return access Concorde.Empires.Root_Empire_Type'Class;
+
+   function System
+     (Ship : Root_Ship_Type'Class)
+      return access constant Concorde.Systems.Root_Star_System_Type'Class;
+
+   function Destination
+     (Ship : Root_Ship_Type'Class)
+      return access constant Concorde.Systems.Root_Star_System_Type'Class;
+
+   procedure Set_System
+     (Ship : in out Root_Ship_Type'Class;
+      System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class);
+
+   procedure Set_Destination
+     (Ship : in out Root_Ship_Type'Class;
+      System : access constant Concorde.Systems.Root_Star_System_Type'Class);
+
+   type Ship_Type is access all Root_Ship_Type'Class;
+
+private
+
+   type Root_Ship_Type is
+     new Concorde.Objects.Root_Named_Object_Type with
+      record
+         Owner       : access Concorde.Empires.Root_Empire_Type'Class;
+         System      : access constant
+           Concorde.Systems.Root_Star_System_Type'Class;
+         Destination : access constant
+           Concorde.Systems.Root_Star_System_Type'Class;
+         Alive       : Boolean;
+         HP          : Natural;
+         Max_HP      : Positive;
+      end record;
+
+   package Ship_Vectors is
+     new Ada.Containers.Vectors (Positive, Ship_Type);
+
+   Ship_Vector : Ship_Vectors.Vector;
+
+end Concorde.Ships;

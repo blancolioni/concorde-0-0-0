@@ -136,10 +136,21 @@ package Concorde.Graphs is
 
    function Cost (P : Path) return Cost_Type;
    function Vertex_Count (P : Path) return Index_Type;
+   function Next (Container : Graph;
+                  P         : Path)
+                  return Vertex_Type
+     with Pre => Vertex_Count (P) > 1;
 
    function Shortest_Path
      (Container : Graph'Class;
       From, To  : Index_Type)
+      return Path;
+
+   function Shortest_Path
+     (Container : Graph'Class;
+      From, To  : Index_Type;
+      Test_Vertex : not null access
+        function (Vertex : Vertex_Type) return Boolean)
       return Path;
 
 private

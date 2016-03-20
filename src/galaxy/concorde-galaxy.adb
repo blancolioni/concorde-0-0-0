@@ -1,7 +1,7 @@
-with WL.Random;
-
-with Concorde.AI;
-with Concorde.Empires;
+--  with WL.Random;
+--
+--  with Concorde.AI;
+--  with Concorde.Empires;
 
 package body Concorde.Galaxy is
 
@@ -117,75 +117,79 @@ package body Concorde.Galaxy is
    -- Move_Fleets --
    -----------------
 
-   procedure Move_Fleets
-     (From, To : Concorde.Systems.Star_System_Type;
-      Count    : Natural)
-   is
-      use type Concorde.Empires.Empire_Type;
-      use Concorde.Systems;
-      From_Index : constant Positive := From.Index;
-      To_Index   : constant Positive := To.Index;
-      F          : constant Star_System_Access :=
-                     Galaxy_Vector.Element (From_Index);
-      T          : constant Star_System_Access :=
-                     Galaxy_Vector.Element (To_Index);
-      Old_Owner  : constant Concorde.Empires.Empire_Type := T.Owner;
-   begin
-      F.Set_Fleets (F.Fleets - Count);
-      if Count > 0 and then T.Fleets = 0
-        and then (T.Owner = null or else T.Owner /= F.Owner)
-      then
-         T.Set_Owner (F.Owner);
-         if Old_Owner /= null then
-            Old_Owner.AI.System_Lost (To, F.Owner);
-         end if;
-         F.Owner.AI.System_Acquired (To, Old_Owner);
-      end if;
-
-      if T.Owner = F.Owner then
-         T.Set_Fleets (T.Fleets + Count);
-      else
-         declare
-            Defenders : Natural := T.Fleets;
-            Attackers : Natural := Count;
-         begin
-
-            if Defenders > 0 and then Attackers > 0 then
-               T.Attacked (From);
-            end if;
-
-            for I in 1 .. Attackers + Defenders loop
-               exit when Defenders = 0 or else Attackers = 0;
-               if WL.Random.Random_Number (1, 100) <= 60 then
-                  Attackers := Attackers - 1;
-               else
-                  Defenders := Defenders - 1;
-               end if;
-            end loop;
-
-            if Attackers > 0 then
-               if Defenders > 0 then
-                  F.Set_Fleets (F.Fleets + Attackers);
-               else
-                  if T.Owner /= null then
-                     T.Owner.AI.System_Lost (To, F.Owner);
-                  end if;
-                  T.Set_Owner (F.Owner);
-                  F.Owner.AI.System_Acquired (To, Old_Owner);
-                  T.Set_Fleets (Attackers);
-               end if;
-            end if;
-         end;
-      end if;
-
-   end Move_Fleets;
+--     procedure Move_Fleets
+--       (From, To : Concorde.Systems.Star_System_Type;
+--        Count    : Natural)
+--     is
+--        use type Concorde.Empires.Empire_Type;
+--        use Concorde.Systems;
+--        From_Index : constant Positive := From.Index;
+--        To_Index   : constant Positive := To.Index;
+--        F          : constant Star_System_Access :=
+--                       Galaxy_Vector.Element (From_Index);
+--        T          : constant Star_System_Access :=
+--                       Galaxy_Vector.Element (To_Index);
+--        Old_Owner  : constant Concorde.Empires.Empire_Type := T.Owner;
+--     begin
+--        F.Set_Fleets (F.Fleets - Count);
+--        if Count > 0 and then T.Fleets = 0
+--          and then (T.Owner = null or else T.Owner /= F.Owner)
+--        then
+--           T.Set_Owner (F.Owner);
+--           if Old_Owner /= null then
+--              Old_Owner.AI.System_Lost (To, F.Owner);
+--           end if;
+--           F.Owner.System_Acquired (To);
+--           F.Owner.AI.System_Acquired (To, Old_Owner);
+--        end if;
+--
+--        if T.Owner = F.Owner then
+--           T.Set_Fleets (T.Fleets + Count);
+--        else
+--           declare
+--              Defenders : Natural := T.Fleets;
+--              Attackers : Natural := Count;
+--           begin
+--
+--              if Defenders > 0 and then Attackers > 0 then
+--                 T.Attacked (From);
+--              end if;
+--
+--              for I in 1 .. Attackers + Defenders loop
+--                 exit when Defenders = 0 or else Attackers = 0;
+--                 if WL.Random.Random_Number (1, 100) <= 60 then
+--                    Attackers := Attackers - 1;
+--                 else
+--                    Defenders := Defenders - 1;
+--                 end if;
+--              end loop;
+--
+--              if Attackers > 0 then
+--                 if Defenders > 0 then
+--                    F.Set_Fleets (F.Fleets + Attackers);
+--                 else
+--                    if T.Owner /= null then
+--                       T.Owner.System_Lost (To);
+--                       T.Owner.AI.System_Lost (To, F.Owner);
+--                    end if;
+--                    T.Set_Owner (F.Owner);
+--                    F.Owner.System_Acquired (To);
+--                    F.Owner.AI.System_Acquired (To, Old_Owner);
+--                    T.Set_Fleets (Attackers);
+--                 end if;
+--              end if;
+--           end;
+--        end if;
+--
+--     end Move_Fleets;
 
    ----------------
    -- Neighbours --
    ----------------
 
    function Neighbours
-     (System : Concorde.Systems.Star_System_Type)
+     (System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
       return Array_Of_Star_Systems
    is
    begin

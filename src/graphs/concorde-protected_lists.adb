@@ -31,7 +31,9 @@ package body Concorde.Protected_Lists is
       Result : Boolean;
    begin
       Container.Lock.Shared;
-      Result := Container.Inner_List.Contains (Item);
+      begin
+         Result := Container.Inner_List.Contains (Item);
+      end;
       Container.Lock.Unlock;
       return Result;
    end Contains;
@@ -94,10 +96,18 @@ package body Concorde.Protected_Lists is
       Process   : not null access
         procedure (Element : Element_Type))
    is
+      use List_Of_Elements;
+      Position : Cursor;
    begin
       Container.Lock.Exclusive;
-      for Element of Container.Inner_List loop
-         Process (Element);
+      Position := Container.Inner_List.First;
+      while Has_Element (Position) loop
+         declare
+            Item : constant Element_Type := Element (Position);
+         begin
+            Process (Item);
+            Next (Position);
+         end;
       end loop;
       Container.Lock.Unlock;
    end Iterate;

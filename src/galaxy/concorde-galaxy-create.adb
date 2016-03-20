@@ -33,7 +33,7 @@ package body Concorde.Galaxy.Create is
             System : constant Star_System_Access :=
                        Concorde.Systems.Create.New_System
                          (I, "System" & I'Img, X, Y,
-                          Production => 0.1,
+                          Production => 0.025,
                           Capacity   => 10.0);
          begin
             Galaxy_Graph.Append (Concorde.Systems.Star_System_Type (System));
