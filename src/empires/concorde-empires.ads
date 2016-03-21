@@ -17,6 +17,10 @@ package Concorde.Empires is
      (Empire : Root_Empire_Type'Class)
       return Lui.Colours.Colour_Type;
 
+   function Capital
+     (Empire : Root_Empire_Type'Class)
+      return Concorde.Systems.Star_System_Type;
+
    procedure Add_Focus
      (Empire   : in out Root_Empire_Type'Class;
       Focus    : Concorde.Systems.Star_System_Type;
@@ -140,6 +144,19 @@ package Concorde.Empires is
    --  Border: this system has at least one connection to a system
    --  owned by another empire
 
+   function Is_Attack_Target
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean;
+
+   procedure Set_Attack_Target
+     (Empire        : in out Root_Empire_Type'Class;
+      System        : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Attack_Target : Boolean);
+   --  Attack_Target: Emprie planning an attack on this system
+
    function Required
      (Empire : Root_Empire_Type'Class;
       System : not null access constant
@@ -229,6 +246,7 @@ private
          Frontier  : Boolean := False;
          Border    : Boolean := False;
          Neighbour : Boolean := False;
+         Attack    : Boolean := False;
          Required  : Integer := 0;
          Next_Node : Destination_Next_Access := null;
       end record
@@ -262,5 +280,7 @@ private
    procedure Check_Cache (Empire   : in out Root_Empire_Type'Class;
                           From, To : not null access constant
                             Concorde.Systems.Root_Star_System_Type'Class);
+
+   procedure Clear_Path_Cache (Empire : in out Root_Empire_Type'Class);
 
 end Concorde.Empires;

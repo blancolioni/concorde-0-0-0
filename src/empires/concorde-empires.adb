@@ -63,6 +63,18 @@ package body Concorde.Empires is
       return Integer'Max (Empire.Max_Ships - Empire.Current_Ships, 0);
    end Available_Ship_Capacity;
 
+   -------------
+   -- Capital --
+   -------------
+
+   function Capital
+     (Empire : Root_Empire_Type'Class)
+      return Concorde.Systems.Star_System_Type
+   is
+   begin
+      return Empire.Capital;
+   end Capital;
+
    ---------------------
    -- Change_Required --
    ---------------------
@@ -131,12 +143,26 @@ package body Concorde.Empires is
 
             if Path'Length <= 1 then
                Empire.System_Data (From.Index).Next_Node (To.Index) :=
-                 (0, 0);
+                 (Natural'Last, 0);
             end if;
 
          end;
       end if;
    end Check_Cache;
+
+   ----------------------
+   -- Clear_Path_Cache --
+   ----------------------
+
+   procedure Clear_Path_Cache (Empire : in out Root_Empire_Type'Class) is
+   begin
+      for I in Empire.System_Data'Range loop
+         if Empire.System_Data (I).Next_Node /= null then
+            Empire.System_Data (I).Next_Node.all :=
+              (others => (0, -1));
+         end if;
+      end loop;
+   end Clear_Path_Cache;
 
    ------------------------
    -- Clear_System_Flags --
@@ -288,6 +314,20 @@ package body Concorde.Empires is
            & " ->" & Image (Path (Path'First + 1 .. Path'Last));
       end if;
    end Image;
+
+   ----------------------
+   -- Is_Attack_Target --
+   ----------------------
+
+   function Is_Attack_Target
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean
+   is
+   begin
+      return Empire.System_Data (System.Index).Attack;
+   end Is_Attack_Target;
 
    ---------------
    -- Is_Border --
@@ -532,6 +572,20 @@ package body Concorde.Empires is
       return Empire.System_Data (System.Index).Required;
    end Required;
 
+   -----------------------
+   -- Set_Attack_Target --
+   -----------------------
+
+   procedure Set_Attack_Target
+     (Empire        : in out Root_Empire_Type'Class;
+      System        : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Attack_Target : Boolean)
+   is
+   begin
+      Empire.System_Data (System.Index).Attack := Attack_Target;
+   end Set_Attack_Target;
+
    ----------------
    -- Set_Border --
    ----------------
@@ -614,6 +668,7 @@ package body Concorde.Empires is
       pragma Unreferenced (System);
    begin
       Empire.Current_Systems := Empire.Current_Systems + 1;
+      Empire.Clear_Path_Cache;
    end System_Acquired;
 
    -----------------
@@ -627,6 +682,7 @@ package body Concorde.Empires is
       pragma Unreferenced (System);
    begin
       Empire.Current_Systems := Empire.Current_Systems - 1;
+      Empire.Clear_Path_Cache;
    end System_Lost;
 
    ------------
