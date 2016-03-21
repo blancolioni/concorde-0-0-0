@@ -6,6 +6,8 @@ with Concorde.Galaxy.Updates;
 
 with Concorde.Galaxy.Locking;
 
+with Concorde.Locking;
+
 package body Concorde.Updates is
 
    task type Update_Task is
@@ -19,15 +21,37 @@ package body Concorde.Updates is
 
    Current_Update_Task : Update_Task_Access;
 
+   Render_Lock : Concorde.Locking.Lock;
+
+   ------------------
+   -- Begin_Render --
+   ------------------
+
+   procedure Begin_Render is
+   begin
+      Render_Lock.Exclusive;
+   end Begin_Render;
+
+   -------------------
+   -- Finish_Render --
+   -------------------
+
+   procedure Finish_Render is
+   begin
+      Render_Lock.Unlock;
+   end Finish_Render;
+
    --------------------
    -- Perform_Update --
    --------------------
 
    procedure Perform_Update is
    begin
+      Render_Lock.Exclusive;
       Concorde.Dates.Tick;
       Concorde.Galaxy.Updates.Update_Galaxy;
       Concorde.Empires.Updates.Update_Empires;
+      Render_Lock.Unlock;
    end Perform_Update;
 
    -------------------

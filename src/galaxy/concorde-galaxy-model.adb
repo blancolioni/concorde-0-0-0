@@ -10,6 +10,8 @@ with Concorde.Empires;
 
 with Concorde.Galaxy.Locking;
 
+with Concorde.Updates;
+
 package body Concorde.Galaxy.Model is
 
    subtype Empire_Column is Integer range 1 .. 4;
@@ -199,9 +201,6 @@ package body Concorde.Galaxy.Model is
      (Model    : in out Root_Galaxy_Model;
       Renderer : in out Lui.Rendering.Root_Renderer'Class)
    is
-      use Concorde.Dates;
-      Date : constant Date_Type := Current_Date;
-
    begin
       if Model.Frames = 0 then
          Model.Start := Ada.Calendar.Clock;
@@ -224,6 +223,8 @@ package body Concorde.Galaxy.Model is
            (10, 10, 14, Lui.Colours.White,
             Lui.Approximate_Image (Model.FPS) & " FPS");
       end if;
+
+      Concorde.Updates.Begin_Render;
 
       for Star_Pass in Boolean loop
          for I in 1 .. Galaxy_Graph.Last_Vertex_Index loop
@@ -251,9 +252,12 @@ package body Concorde.Galaxy.Model is
                   if Recent_Battle (System, 5) then
                      declare
                         Size : constant Positive :=
-                                 System.Last_Battle_Size;
+                                 Positive'Max
+                                   (System.Last_Battle_Size,
+                                    5);
                         Days : constant Natural :=
-                                 Natural (Date - System.Last_Battle);
+                                 Natural (Concorde.Dates.Current_Date)
+                                 - Natural (System.Last_Battle);
                      begin
                         if Days < Size then
                            Renderer.Draw_Circle
@@ -379,6 +383,9 @@ package body Concorde.Galaxy.Model is
             end;
          end loop;
       end loop;
+
+      Concorde.Updates.Finish_Render;
+
    end Render;
 
    ------------------------

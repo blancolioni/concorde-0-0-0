@@ -5,4 +5,7 @@ package Concorde.Updates is
 
    procedure Perform_Update;
 
+   procedure Begin_Render;
+   procedure Finish_Render;
+
 end Concorde.Updates;
