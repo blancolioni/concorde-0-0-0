@@ -176,6 +176,7 @@ package body Concorde.Ships.Battles is
                   if Ship.HP = 0 then
                      Ship.Alive := False;
                      Ship.Owner.Remove_Ship;
+                     System.Remove_Ship (Ship);
                      Empires.Logging.Log
                        (Ship.Owner, Ship.Name & " destroyed");
                   end if;
