@@ -257,7 +257,7 @@ package body Concorde.Galaxy.Model is
                                  Positive'Max
                                    (Natural
                                       (Sqrt (Real (System.Last_Battle_Size))),
-                                    5);
+                                    10);
                         Days : constant Natural :=
                                  Natural (Concorde.Dates.Current_Date)
                                  - Natural (System.Last_Battle);
@@ -296,43 +296,33 @@ package body Concorde.Galaxy.Model is
                      Renderer.Draw_String
                        (X      => Screen_X + 6,
                         Y      => Screen_Y + 6,
-                        Size   => 8,
+                        Size   => 10,
                         Colour => Colour,
                         Text   => Natural'Image (System.Ships));
                   end if;
 
-                  if Owner /= null and then Owner.Has_Focus (System) then
-                     Renderer.Draw_Circle
-                       (X          => Screen_X,
-                        Y          => Screen_Y,
-                        Radius     => 8,
-                        Colour     => Colour,
-                        Filled     => False,
-                        Line_Width => 1);
-                  elsif True then
-                     declare
-                        Radius : Positive := 8;
-                     begin
-                        for Index in 1 .. Empires.Empire_Count loop
-                           declare
-                              E : constant Empires.Empire_Type :=
-                                    Empires.Get (Index);
-                              Focus : constant Boolean := E.Has_Focus (System);
-                           begin
-                              if Focus then
-                                 Renderer.Draw_Circle
-                                   (X          => Screen_X,
-                                    Y          => Screen_Y,
-                                    Radius     => Radius,
-                                    Colour     => Empires.Get (Index).Colour,
-                                    Filled     => False,
-                                    Line_Width => 1);
-                                 Radius := Radius + 2;
-                              end if;
-                           end;
-                        end loop;
-                     end;
-                  end if;
+                  declare
+                     Radius : Positive := 8;
+                  begin
+                     for Index in 1 .. Empires.Empire_Count loop
+                        declare
+                           E : constant Empires.Empire_Type :=
+                                 Empires.Get (Index);
+                        begin
+                           if E.Is_Attack_Target (System) then
+                              Renderer.Draw_Circle
+                                (X          => Screen_X,
+                                 Y          => Screen_Y,
+                                 Radius     => Radius,
+                                 Colour     => Empires.Get (Index).Colour,
+                                 Filled     => False,
+                                 Line_Width => 1);
+                              Radius := Radius + 2;
+                           end if;
+                        end;
+                     end loop;
+                  end;
+
                   if False and then Owner /= null then
                      declare
                         Colour : Lui.Colours.Colour_Type := Owner.Colour;
