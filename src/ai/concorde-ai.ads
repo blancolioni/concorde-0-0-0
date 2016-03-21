@@ -73,8 +73,8 @@ private
          Awake                 : Boolean := True;
          Planned_Offensive     : Boolean := False;
          Launch_Offensive      : Boolean := False;
-         Current_Offensive     : Concorde.Systems.Star_System_Type;
-         Current_Target        : Concorde.Systems.Star_System_Type;
+         Attack_From           : Concorde.Systems.Star_System_Type;
+         Target                : Concorde.Systems.Star_System_Type;
       end record;
 
    procedure Update_Defensiveness

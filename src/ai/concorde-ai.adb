@@ -154,34 +154,81 @@ package body Concorde.AI is
       Shuffle (AI.Attack_Destinations);
 
       if AI.Planned_Offensive then
-         if AI.Empire.Owned_System (AI.Current_Target)
-           or else not AI.Empire.Owned_System (AI.Current_Offensive)
+         if AI.Empire.Owned_System (AI.Target)
+           or else not AI.Empire.Owned_System (AI.Attack_From)
+           or else AI.Empire.Next_Path_Node_Index
+             (AI.Empire.Capital, AI.Attack_From) = 0
          then
             AI.Planned_Offensive := False;
             AI.Launch_Offensive := False;
+            AI.Empire.Set_Attack_Target (AI.Target, False);
          end if;
       end if;
 
       if not AI.Planned_Offensive
         and then not AI.Attack_Destinations.Is_Empty
       then
-         AI.Current_Target := AI.Attack_Destinations.First_Element.System;
 
-         for N of Galaxy.Neighbours (AI.Current_Target) loop
-            if AI.Empire.Owned_System (N) then
-               AI.Current_Offensive := N;
-               AI.Planned_Offensive := True;
-               AI.Launch_Offensive := False;
-               exit;
+         declare
+            Found             : Boolean := False;
+            Closest_System    : Concorde.Systems.Star_System_Type := null;
+            Shortest_Distance : Natural := Natural'Last;
+         begin
+            for Info of AI.Attack_Destinations loop
+               declare
+                  D : constant Natural :=
+                        AI.Empire.Path_Length
+                          (AI.Empire.Capital, Info.System);
+               begin
+                  if D < Shortest_Distance then
+                     Shortest_Distance := D;
+                     Closest_System := Info.System;
+                     Found := True;
+                  end if;
+               end;
+            end loop;
+
+            if Found then
+               AI.Target := Closest_System;
+
+               Found := False;
+               Closest_System := null;
+               Shortest_Distance := Natural'Last;
+
+               if Galaxy.Neighbours (AI.Target, AI.Empire.Capital) then
+                  Closest_System := AI.Empire.Capital;
+                  Found := True;
+               else
+                  for N of Galaxy.Neighbours (AI.Target) loop
+                     declare
+                        D    : constant Natural :=
+                                 AI.Empire.Path_Length
+                                   (AI.Empire.Capital, N);
+                     begin
+                        if D < Shortest_Distance then
+                           Shortest_Distance := D;
+                           Closest_System := N;
+                           Found := True;
+                        end if;
+                     end;
+                  end loop;
+               end if;
+
+               if Found then
+                  AI.Attack_From := Closest_System;
+                  AI.Planned_Offensive := True;
+                  AI.Launch_Offensive := False;
+               end if;
             end if;
-         end loop;
+         end;
 
          if AI.Planned_Offensive then
             Concorde.Empires.Logging.Log
               (AI.Empire,
-               "planning attack on " & AI.Current_Target.Name
-               & " owned by " & AI.Current_Target.Owner.Name
-               & " from " & AI.Current_Offensive.Name);
+               "planning attack on " & AI.Target.Name
+               & " owned by " & AI.Target.Owner.Name
+               & " from " & AI.Attack_From.Name);
+            AI.Empire.Set_Attack_Target (AI.Target, True);
          end if;
       end if;
 
@@ -190,7 +237,7 @@ package body Concorde.AI is
             function Local_Undamaged
               (Ship : Concorde.Ships.Ship_Type)
                return Boolean
-            is (Ship.System = AI.Current_Offensive
+            is (Ship.System = AI.Attack_From
                 and then Ship.Damage < 0.1);
 
             Available_Ships : constant Natural :=
@@ -198,23 +245,23 @@ package body Concorde.AI is
                                   (Local_Undamaged'Access);
             Committed_Ships : constant Integer :=
                                 Available_Ships
-                                  - AI.Empire.Required (AI.Current_Offensive);
-            Opposition      : constant Natural := AI.Current_Target.Ships;
+                                  - AI.Empire.Required (AI.Attack_From);
+            Opposition      : constant Natural := AI.Target.Ships;
          begin
-            if Real (Committed_Ships) - Real (Opposition)
+            if Real (Committed_Ships) / Real (Opposition)
               > AI.Defensiveness
             then
                AI.Launch_Offensive := True;
                Concorde.Empires.Logging.Log
                  (AI.Empire,
                   "launching attack from "
-                  & AI.Current_Offensive.Name
+                  & AI.Attack_From.Name
                   & " with"
                   & Natural'Image (Committed_Ships)
-                  & " on " & AI.Current_Target.Name
+                  & " on " & AI.Target.Name
                   & " with"
                   & Natural'Image (Opposition)
-                  & " owned by " & AI.Current_Target.Owner.Name);
+                  & " owned by " & AI.Target.Owner.Name);
             end if;
          end;
       end if;
@@ -328,14 +375,14 @@ package body Concorde.AI is
       else
 
          if AI.Launch_Offensive
-           and then Ship.System = AI.Current_Offensive
+           and then Ship.System = AI.Attack_From
            and then Ship.Damage < 0.4
          then
             Empires.Logging.Log
               (AI.Empire,
                Ship.Name & " joins attack on "
-               & AI.Current_Target.Name);
-            Ship.Set_Destination (AI.Current_Target);
+               & AI.Target.Name);
+            Ship.Set_Destination (AI.Target);
             Stop := True;
          end if;
 
@@ -350,20 +397,19 @@ package body Concorde.AI is
          if not Stop
            and then AI.Planned_Offensive
            and then AI.Empire.Next_Path_Node_Index
-             (Ship.System, AI.Current_Offensive)
-           /= 0
+             (Ship.System, AI.Attack_From) /= 0
          then
             Stop := True;
-            if Ship.System = AI.Current_Offensive then
+            if Ship.System = AI.Attack_From then
                null;
             else
                Empires.Logging.Log
                  (AI.Empire,
                   Ship.Name & " heads to "
-                  & AI.Current_Offensive.Name
+                  & AI.Attack_From.Name
                   & " for offensive against "
-                  & AI.Current_Target.Name);
-               Ship.Set_Destination (AI.Current_Offensive);
+                  & AI.Target.Name);
+               Ship.Set_Destination (AI.Attack_From);
             end if;
          end if;
 
@@ -479,10 +525,11 @@ package body Concorde.AI is
       end if;
 
       if AI.Planned_Offensive
-        and then AI.Current_Target.Index = System.Index
+        and then AI.Target.Index = System.Index
       then
          AI.Planned_Offensive := False;
          AI.Launch_Offensive := False;
+         AI.Empire.Set_Attack_Target (System, False);
       end if;
 
       AI.Awake := True;
@@ -502,10 +549,11 @@ package body Concorde.AI is
       Update_Defensiveness (AI, New_Owner, Can_Decrease => False);
 
       if AI.Planned_Offensive
-        and then AI.Current_Offensive.Index = System.Index
+        and then AI.Attack_From.Index = System.Index
       then
          AI.Planned_Offensive := False;
          AI.Launch_Offensive := False;
+         AI.Empire.Set_Attack_Target (System, False);
       end if;
 
       AI.Awake := True;
