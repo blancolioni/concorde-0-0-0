@@ -33,7 +33,7 @@ package body Concorde.Ships.Updates is
          if not Concorde.Galaxy.Ships.Can_Move_To (Ship, System) then
             return Natural'Last;
          elsif System.Owner = Ship.Owner then
-            return System.Ships * 100 + Salt;
+            return System.Ships * 10 + Salt;
          else
             return Salt;
          end if;

@@ -1,0 +1,252 @@
+with Ada.Command_Line;
+with Ada.Strings.Fixed;
+
+with Tropos.Reader;
+with Concorde.Paths;
+
+package body Concorde.Options is
+
+   Option_Config : Tropos.Configuration;
+   Got_Config    : Boolean := False;
+
+   function With_Underscores (S : String) return String;
+
+   procedure Load_Options;
+
+   function String_Value (Long_Name  : String;
+                          Short_Name : Character;
+                          Default    : String := "")
+                          return String;
+
+   function Integer_Value (Long_Name  : String;
+                           Short_Name : Character;
+                           Default    : Integer := 0)
+                          return Integer;
+
+   function Boolean_Value (Long_Name  : String;
+                           Short_Name : Character;
+                           Default    : Boolean := False)
+                           return Boolean;
+
+   -------------------------
+   -- Average_Connections --
+   -------------------------
+
+   function Average_Connections return Positive is
+   begin
+      return Integer_Value ("average_connections", 'x');
+   end Average_Connections;
+
+   -------------------
+   -- Boolean_Value --
+   -------------------
+
+   function Boolean_Value (Long_Name  : String;
+                           Short_Name : Character;
+                           Default    : Boolean := False)
+                           return Boolean
+   is
+      use Ada.Strings.Fixed;
+   begin
+      for I in 1 .. Ada.Command_Line.Argument_Count loop
+         declare
+            Argument : constant String :=
+                         Ada.Command_Line.Argument (I);
+         begin
+            if Argument'Length > 2
+              and then Argument (1 .. 2) = "--"
+              and then Index (Argument, "=") = 0
+            then
+               return not Default;
+            elsif Argument (1) = '-' then
+               for J in 2 .. Argument'Last loop
+                  if Argument (J) = Short_Name then
+                     return not Default;
+                  end if;
+               end loop;
+            end if;
+         end;
+      end loop;
+
+      Load_Options;
+
+      if Option_Config.Contains (Long_Name) then
+         return Option_Config.Get (Long_Name);
+      elsif Option_Config.Contains (With_Underscores (Long_Name)) then
+         return Option_Config.Get (With_Underscores (Long_Name));
+      else
+         return Default;
+      end if;
+
+   end Boolean_Value;
+
+   -------------
+   -- Console --
+   -------------
+
+   function Console return Boolean is
+   begin
+      return Boolean_Value ("console", 'c');
+   end Console;
+
+   ------------------------------------
+   -- Enable_Detailed_Battle_Logging --
+   ------------------------------------
+
+   function Enable_Detailed_Battle_Logging return Boolean is
+   begin
+      return Boolean_Value ("detailed-battle-logging", 'B');
+   end Enable_Detailed_Battle_Logging;
+
+   ---------------------------
+   -- Enable_Empire_Logging --
+   ---------------------------
+
+   function Enable_Empire_Logging return Boolean is
+   begin
+      return Boolean_Value ("empire-logging", 'E');
+   end Enable_Empire_Logging;
+
+   -------------------
+   -- Integer_Value --
+   -------------------
+
+   function Integer_Value (Long_Name  : String;
+                           Short_Name : Character;
+                           Default    : Integer := 0)
+                           return Integer
+   is
+   begin
+      return Integer'Value (String_Value (Long_Name, Short_Name,
+                            Integer'Image (Default)));
+   exception
+      when Constraint_Error =>
+         return Default;
+   end Integer_Value;
+
+   ------------------
+   -- Load_Options --
+   ------------------
+
+   procedure Load_Options is
+   begin
+      if not Got_Config then
+         Option_Config :=
+           Tropos.Reader.Read_Config
+             (Concorde.Paths.Config_File ("options.txt"));
+         Got_Config := True;
+      end if;
+   end Load_Options;
+
+   -----------------------------
+   -- Minimum_Size_For_Battle --
+   -----------------------------
+
+   function Minimum_Size_For_Battle return Natural is
+   begin
+      return Integer_Value ("minimum-battle-size", 'M', 10);
+   end Minimum_Size_For_Battle;
+
+   -----------------------
+   -- Number_Of_Empires --
+   -----------------------
+
+   function Number_Of_Empires return Positive is
+   begin
+      return Integer_Value ("empire-count", 'e', 99);
+   end Number_Of_Empires;
+
+   -----------------------
+   -- Number_Of_Systems --
+   -----------------------
+
+   function Number_Of_Systems return Positive is
+   begin
+      return Integer_Value ("system-count", 's', 500);
+   end Number_Of_Systems;
+
+   -----------------------
+   -- Number_Of_Updates --
+   -----------------------
+
+   function Number_Of_Updates return Natural is
+   begin
+      return Integer_Value ("update-count", 'u', 500);
+   end Number_Of_Updates;
+
+   ---------------
+   -- Randomise --
+   ---------------
+
+   function Randomise return Boolean is
+   begin
+      return Boolean_Value ("randomise", 'R');
+   end Randomise;
+
+   ------------------
+   -- String_Value --
+   ------------------
+
+   function String_Value (Long_Name  : String;
+                          Short_Name : Character;
+                          Default    : String := "")
+                          return String
+   is
+      use Ada.Strings.Fixed;
+   begin
+      for I in 1 .. Ada.Command_Line.Argument_Count loop
+         declare
+            Argument : constant String :=
+                         Ada.Command_Line.Argument (I);
+         begin
+            if Argument'Length > 2
+              and then Argument (1 .. 2) = "--"
+              and then Index (Argument, "=") > 0
+            then
+               declare
+                  Name : constant String :=
+                           Argument (3 .. Index (Argument, "=") - 1);
+               begin
+                  if Name = Long_Name then
+                     return Argument (Index (Argument, "=") + 1
+                                      .. Argument'Last);
+                  end if;
+               end;
+            elsif Argument (1) = '-'
+              and then Argument'Length = 2
+              and then Argument (2) = Short_Name
+              and then I < Ada.Command_Line.Argument_Count
+            then
+               return Ada.Command_Line.Argument (I + 1);
+            end if;
+         end;
+      end loop;
+
+      Load_Options;
+
+      if Option_Config.Contains (Long_Name) then
+         return Option_Config.Get (Long_Name);
+      elsif Option_Config.Contains (With_Underscores (Long_Name)) then
+         return Option_Config.Get (With_Underscores (Long_Name));
+      else
+         return Default;
+      end if;
+
+   end String_Value;
+
+   ----------------------
+   -- With_Underscores --
+   ----------------------
+
+   function With_Underscores (S : String) return String is
+      Result : String := S;
+   begin
+      for I in Result'Range loop
+         if Result (I) = '-' then
+            Result (I) := '_';
+         end if;
+      end loop;
+      return Result;
+   end With_Underscores;
+
+end Concorde.Options;
