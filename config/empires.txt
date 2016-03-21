@@ -83,3 +83,8 @@ gondor = {
    colour = { 192 192 192 }
 }
 
+federation = {
+   name = "The Federation"
+   capital = Earth
+   colour = { 255 215 0 }
+}

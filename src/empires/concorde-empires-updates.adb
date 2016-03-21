@@ -31,8 +31,7 @@ package body Concorde.Empires.Updates is
      with Unreferenced;
 
    procedure Update_Empire
-     (Empire : Empire_Type;
-      Owned  : Concorde.Galaxy.Array_Of_Star_Systems);
+     (Empire : Empire_Type);
 
    ---------------------
    -- Add_Move_Orders --
@@ -121,15 +120,24 @@ package body Concorde.Empires.Updates is
    -------------------
 
    procedure Update_Empire
-     (Empire : Empire_Type;
-      Owned  : Concorde.Galaxy.Array_Of_Star_Systems)
+     (Empire : Empire_Type)
    is
-      pragma Unreferenced (Owned);
+      pragma Unreferenced (Empire);
    begin
-
-      Empire.AI.Update_Focus;
-
+      null;
    end Update_Empire;
+
+   ----------------------
+   -- Update_Empire_AI --
+   ----------------------
+
+   procedure Update_Empire_AI is
+   begin
+      for Empire of Vector loop
+         Empire.AI.Update_Focus;
+         Empire.AI.Allocate_Ships;
+      end loop;
+   end Update_Empire_AI;
 
    --------------------
    -- Update_Empires --
@@ -155,15 +163,7 @@ package body Concorde.Empires.Updates is
       end loop;
 
       for Empire of Vector loop
-         declare
-            function Owned
-              (System : Concorde.Systems.Star_System_Type)
-               return Boolean
-            is (System.Owner = Empire);
-         begin
-            Update_Empire
-              (Empire, Concorde.Galaxy.Get_Systems (Owned'Access));
-         end;
+         Update_Empire (Empire);
       end loop;
    end Update_Empires;
 

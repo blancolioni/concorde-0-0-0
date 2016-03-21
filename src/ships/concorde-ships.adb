@@ -13,6 +13,39 @@ package body Concorde.Ships is
    end Alive;
 
    -----------------
+   -- Count_Ships --
+   -----------------
+
+   function Count_Ships
+     (Test : not null access function
+        (Ship : Ship_Type)
+      return Boolean)
+      return Natural
+   is
+      Result : Natural := 0;
+   begin
+      for Ship of Ship_Vector loop
+         if Test (Ship) then
+            Result := Result + 1;
+         end if;
+      end loop;
+      return Result;
+   end Count_Ships;
+
+   ------------
+   -- Damage --
+   ------------
+
+   function Damage
+     (Ship : Root_Ship_Type'Class)
+      return Unit_Real
+   is
+   begin
+      return Non_Negative_Real (Ship.Max_HP - Ship.HP)
+        / Non_Negative_Real (Ship.Max_HP);
+   end Damage;
+
+   -----------------
    -- Destination --
    -----------------
 

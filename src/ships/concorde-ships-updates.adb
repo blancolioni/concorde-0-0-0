@@ -1,5 +1,6 @@
 with WL.Random;
 
+with Concorde.AI;
 with Concorde.Galaxy.Ships;
 with Concorde.Empires;
 with Concorde.Systems;
@@ -33,35 +34,41 @@ package body Concorde.Ships.Updates is
          if not Concorde.Galaxy.Ships.Can_Move_To (Ship, System) then
             return Natural'Last;
          elsif System.Owner = Ship.Owner then
-            return System.Ships * 10 + Salt;
+            return System.Ships * 10
+              + Ship.Owner.Path_Length (Ship.System, System)
+              + Salt;
          else
-            return Salt;
+            return Salt + Ship.Owner.Path_Length (Ship.System, System);
          end if;
       end System_Priority;
 
    begin
 
-      for N of Concorde.Galaxy.Neighbours (Ship.System) loop
-         if Ship.Owner.Has_Focus (N)
-           and then N.Owner /= null
-           and then N.Owner /= Ship.Owner
+      if False then
+         for N of Concorde.Galaxy.Neighbours (Ship.System) loop
+            if Ship.Owner.Has_Focus (N)
+              and then N.Owner /= null
+              and then N.Owner /= Ship.Owner
+            then
+               Ship.Destination := N;
+               exit;
+            end if;
+         end loop;
+
+         if Ship.Destination = null
+           and then not Ship.Owner.Has_Focus (Ship.System)
          then
-            Ship.Destination := N;
-            exit;
+            Ship.Destination :=
+              Ship.Owner.Minimum_Score_Focus
+                (System_Priority'Access);
          end if;
-      end loop;
 
-      if Ship.Destination = null
-        and then not Ship.Owner.Has_Focus (Ship.System)
-      then
-         Ship.Destination :=
-           Ship.Owner.Minimum_Score_Focus
-             (System_Priority'Access);
+         if Ship.Destination = Ship.System then
+            Ship.Destination := null;
+         end if;
       end if;
 
-      if Ship.Destination = Ship.System then
-         Ship.Destination := null;
-      end if;
+      Ship.Owner.AI.Order_Ship (Ship);
 
       if Ship.Destination /= null then
          Concorde.Empires.Logging.Log

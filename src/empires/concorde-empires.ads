@@ -86,6 +86,12 @@ package Concorde.Empires is
         Concorde.Systems.Root_Star_System_Type'Class);
    --  Clear all flags apart from Focus
 
+   function Is_Internal
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean;
+
    procedure Set_Internal
      (Empire   : in out Root_Empire_Type'Class;
       System   : not null access constant
@@ -94,6 +100,12 @@ package Concorde.Empires is
    --  Internal: this system is has connections only to other systems
    --  owned by Empire
 
+   function Is_Frontier
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean;
+
    procedure Set_Frontier
      (Empire   : in out Root_Empire_Type'Class;
       System   : not null access constant
@@ -101,12 +113,24 @@ package Concorde.Empires is
       Frontier : Boolean);
    --  Frontier: this system has at least one connection to an unowned system
 
+   function Is_Neighbour
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean;
+
    procedure Set_Neighbour
      (Empire    : in out Root_Empire_Type'Class;
       System    : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
       Neighbour : Boolean);
    --  Neighbour: this system has a neighbour which is owned by Empire
+
+   function Is_Border
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean;
 
    procedure Set_Border
      (Empire  : in out Root_Empire_Type'Class;
@@ -116,7 +140,31 @@ package Concorde.Empires is
    --  Border: this system has at least one connection to a system
    --  owned by another empire
 
+   function Required
+     (Empire : Root_Empire_Type'Class;
+      System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Integer;
+
+   procedure Set_Required
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Required : Integer);
+
+   procedure Change_Required
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Change   : Integer);
+
    function Next_Path_Node_Index
+     (Empire : in out Root_Empire_Type'Class;
+      From, To : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Natural;
+
+   function Path_Length
      (Empire : in out Root_Empire_Type'Class;
       From, To : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
@@ -156,11 +204,20 @@ private
        (Concorde.Systems.Star_System_Type,
         Concorde.Systems."=");
 
-   type Destination_Next_Index is
-     array (Positive range <>) of Integer;
+   type Destination_Info is
+      record
+         Path_Length : Natural := 0;
+         Next_Node   : Integer := 0;
+      end record;
+
+   --  next_node:
    --  -1: not cached
    --   0: no path
    --   1 .. system count: index of next node in path
+
+   type Destination_Next_Index is
+     array (Positive range <>) of Destination_Info
+     with Pack;
 
    type Destination_Next_Access is
      access Destination_Next_Index;
@@ -172,6 +229,7 @@ private
          Frontier  : Boolean := False;
          Border    : Boolean := False;
          Neighbour : Boolean := False;
+         Required  : Integer := 0;
          Next_Node : Destination_Next_Access := null;
       end record
      with Pack;

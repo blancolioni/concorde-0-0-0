@@ -35,7 +35,17 @@ package Concorde.Ships is
      (Ship : in out Root_Ship_Type'Class;
       System : access constant Concorde.Systems.Root_Star_System_Type'Class);
 
+   function Damage
+     (Ship : Root_Ship_Type'Class)
+      return Unit_Real;
+
    type Ship_Type is access all Root_Ship_Type'Class;
+
+   function Count_Ships
+     (Test : not null access function
+        (Ship : Ship_Type)
+      return Boolean)
+      return Natural;
 
 private
 

@@ -1,7 +1,7 @@
 randomise = no
 
-empire_count = 99
-system_count = 500
+empire_count = 3
+system_count = 50
 
 average_connections = 4
 detailed_battle_logging = yes
@@ -9,5 +9,5 @@ empire_logging = yes
 minimum_battle_size = 10
 
 console = no
-number_of_updates = 500
+update_count = 500
 

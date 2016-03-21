@@ -17,34 +17,8 @@ package body Concorde.Galaxy.Updates is
    -------------------
 
    procedure Update_Galaxy is
+      Changed_Owners : Boolean := False;
    begin
-
-      for System of Galaxy_Vector loop
-
-         if System.Owned then
-            System.Owner.Clear_System_Flags (System);
-            declare
-               Border : Boolean := False;
-            begin
-               for N of Neighbours (System) loop
-                  if System.Owner /= N.Owner then
-                     Border := True;
-                     System.Owner.Set_Neighbour (N, True);
-                     if N.Owned then
-                        if N.Owner /= System.Owner then
-                           System.Owner.Set_Border (System, True);
-                        end if;
-                     else
-                        System.Owner.Set_Frontier (System, True);
-                     end if;
-                  end if;
-               end loop;
-               if not Border then
-                  System.Owner.Set_Internal (System, True);
-               end if;
-            end;
-         end if;
-      end loop;
 
       for System of Galaxy_Vector loop
          Concorde.Systems.Updates.Update_System (System);
@@ -63,6 +37,7 @@ package body Concorde.Galaxy.Updates is
                                     Empire_Type (List.First_Element.Owner);
                begin
                   if Current_Owner /= Ship_Owner then
+                     Changed_Owners := True;
                      if Current_Owner /= null then
                         Current_Owner.System_Lost
                           (Concorde.Systems.Star_System_Type (System));
@@ -73,6 +48,10 @@ package body Concorde.Galaxy.Updates is
                           (Ship_Owner,
                            "acquires " & System.Name & " from "
                            & Current_Owner.Name);
+                     else
+                        Concorde.Empires.Logging.Log
+                          (Ship_Owner,
+                           "acquires " & System.Name);
                      end if;
                      System.Set_Owner (Ship_Owner);
                      Ship_Owner.System_Acquired
@@ -86,6 +65,10 @@ package body Concorde.Galaxy.Updates is
          end;
       end loop;
 
+      if Changed_Owners then
+         Update_System_Flags;
+      end if;
+
       Concorde.Galaxy.Ships.Start_Ship_Moves;
       Concorde.Ships.Updates.Update_Ship_Movement;
       Concorde.Galaxy.Ships.Commit_Ship_Moves;
@@ -95,5 +78,42 @@ package body Concorde.Galaxy.Updates is
       end loop;
 
    end Update_Galaxy;
+
+   -------------------------
+   -- Update_System_Flags --
+   -------------------------
+
+   procedure Update_System_Flags is
+   begin
+      for System of Galaxy_Vector loop
+
+         if System.Owned then
+            System.Owner.Clear_System_Flags (System);
+            declare
+               Border : Boolean := False;
+            begin
+               for N of Neighbours (System) loop
+                  if System.Owner /= N.Owner then
+                     Border := True;
+                     System.Owner.Set_Neighbour (N, True);
+                     if N.Owned then
+                        if N.Owner /= System.Owner then
+                           System.Owner.Set_Border (System, True);
+                           System.Owner.Set_Neighbour (N, True);
+                        end if;
+                     else
+                        System.Owner.Set_Frontier (System, True);
+                        System.Owner.Set_Neighbour (N, True);
+                     end if;
+                  end if;
+               end loop;
+               if not Border then
+                  System.Owner.Set_Internal (System, True);
+               end if;
+            end;
+         end if;
+      end loop;
+
+   end Update_System_Flags;
 
 end Concorde.Galaxy.Updates;

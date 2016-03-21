@@ -3,6 +3,8 @@ with WL.Random;
 with Concorde.Empires;
 with Concorde.Empires.Logging;
 
+with Concorde.AI;
+
 package body Concorde.Ships.Battles is
 
    type Team_Info is
@@ -77,6 +79,7 @@ package body Concorde.Ships.Battles is
                   List.Append (Ship);
                   Teams.Append ((Owner, List));
                   Team_Index := Teams.Last_Index;
+                  Owner.AI.Wake;
                end;
             end if;
 
@@ -122,8 +125,24 @@ package body Concorde.Ships.Battles is
       for Round_Index in 1 .. 10 loop
          declare
             Continue : Boolean := False;
+            Count    : constant Natural := Info_Vector.Last_Index;
+            Order    : array (1 .. Count) of Positive;
          begin
-            for Ship_Info_Index in 1 .. Info_Vector.Last_Index loop
+            for I in Order'Range loop
+               Order (I) := I;
+            end loop;
+            for I in Order'Range loop
+               declare
+                  New_Index : constant Positive :=
+                                WL.Random.Random_Number (1, Count);
+                  T         : constant Positive := Order (New_Index);
+               begin
+                  Order (New_Index) := Order (I);
+                  Order (I) := T;
+               end;
+            end loop;
+
+            for Ship_Info_Index of Order loop
                declare
                   Info : Ship_Info renames Info_Vector (Ship_Info_Index);
                begin

@@ -6,6 +6,7 @@ with Lui.Tables;
 
 with Concorde.AI;
 with Concorde.Dates;
+with Concorde.Elementary_Functions;
 with Concorde.Empires;
 
 with Concorde.Galaxy.Locking;
@@ -251,9 +252,11 @@ package body Concorde.Galaxy.Model is
 
                   if Recent_Battle (System, 5) then
                      declare
+                        use Concorde.Elementary_Functions;
                         Size : constant Positive :=
                                  Positive'Max
-                                   (System.Last_Battle_Size,
+                                   (Natural
+                                      (Sqrt (Real (System.Last_Battle_Size))),
                                     5);
                         Days : constant Natural :=
                                  Natural (Concorde.Dates.Current_Date)

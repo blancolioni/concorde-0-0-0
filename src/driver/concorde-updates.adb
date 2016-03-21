@@ -49,6 +49,8 @@ package body Concorde.Updates is
    begin
       Render_Lock.Exclusive;
       Concorde.Dates.Tick;
+      Concorde.Galaxy.Updates.Update_System_Flags;
+      Concorde.Empires.Updates.Update_Empire_AI;
       Concorde.Galaxy.Updates.Update_Galaxy;
       Concorde.Empires.Updates.Update_Empires;
       Render_Lock.Unlock;
@@ -86,9 +88,7 @@ package body Concorde.Updates is
             exit;
          else
             delay 0.2;
-            Concorde.Dates.Tick;
-            Concorde.Galaxy.Updates.Update_Galaxy;
-            Concorde.Empires.Updates.Update_Empires;
+            Perform_Update;
          end select;
       end loop;
    end Update_Task;

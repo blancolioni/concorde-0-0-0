@@ -5,6 +5,8 @@ with Concorde.Empires;
 with Concorde.Ships.Battles;
 with Concorde.Ships.Lists;
 
+with Concorde.AI;
+
 package body Concorde.Galaxy.Ships is
 
    -----------------
@@ -79,6 +81,10 @@ package body Concorde.Galaxy.Ships is
       else
          Locking.Unlock_System (From);
          Locking.Unlock_System (To);
+      end if;
+
+      if To = Ship.Destination then
+         Ship.Owner.AI.Wake;
       end if;
 
    end Move_Ship;

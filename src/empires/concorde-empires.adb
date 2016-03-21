@@ -4,6 +4,10 @@ with Concorde.Systems.Graphs;
 
 package body Concorde.Empires is
 
+   function Image
+     (Path : Concorde.Systems.Graphs.Array_Of_Vertices)
+      return String;
+
    ----------------
    -- Add_Empire --
    ----------------
@@ -59,6 +63,21 @@ package body Concorde.Empires is
       return Integer'Max (Empire.Max_Ships - Empire.Current_Ships, 0);
    end Available_Ship_Capacity;
 
+   ---------------------
+   -- Change_Required --
+   ---------------------
+
+   procedure Change_Required
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Change   : Integer)
+   is
+      R : Integer renames Empire.System_Data (System.Index).Required;
+   begin
+      R := R + Change;
+   end Change_Required;
+
    -----------------
    -- Check_Cache --
    -----------------
@@ -72,7 +91,7 @@ package body Concorde.Empires is
                Empire.System_Data (From.Index);
    begin
       if Data.Next_Node = null
-        or else Data.Next_Node (To.Index) = -1
+        or else Data.Next_Node (To.Index).Next_Node = -1
       then
          declare
             function OK
@@ -86,6 +105,12 @@ package body Concorde.Empires is
 
          begin
 
+            if False and then Path'Length > 2 then
+               Logging.Log (Empire,
+                            "from" & From.Name & " to " & To.Name & ":"
+                            & Image (Path));
+            end if;
+
             for I in Path'First .. Path'Last loop
                declare
                   D : Empire_Star_System_Record renames
@@ -94,17 +119,19 @@ package body Concorde.Empires is
                   if D.Next_Node = null then
                      D.Next_Node :=
                        new Destination_Next_Index (1 .. Galaxy.System_Count);
-                     D.Next_Node.all := (others => -1);
+                     D.Next_Node.all := (others => (0, -1));
                   end if;
 
                   for J in I + 1 .. Path'Last loop
-                     D.Next_Node (Path (J)) := Path (I + 1);
+                     D.Next_Node (Path (J)) :=
+                       (Path'Length - I, Path (I + 1));
                   end loop;
                end;
             end loop;
 
             if Path'Length <= 1 then
-               Empire.System_Data (From.Index).Next_Node (To.Index) := 0;
+               Empire.System_Data (From.Index).Next_Node (To.Index) :=
+                 (0, 0);
             end if;
 
          end;
@@ -243,6 +270,81 @@ package body Concorde.Empires is
       return Empire.System_Data (Focus.Index).Focus;
    end Has_Focus;
 
+   -----------
+   -- Image --
+   -----------
+
+   function Image
+     (Path : Concorde.Systems.Graphs.Array_Of_Vertices)
+      return String
+   is
+   begin
+      if Path'Length = 0 then
+         return "";
+      elsif Path'Length = 1 then
+         return Integer'Image (Path (Path'First));
+      else
+         return Integer'Image (Path (Path'First))
+           & " ->" & Image (Path (Path'First + 1 .. Path'Last));
+      end if;
+   end Image;
+
+   ---------------
+   -- Is_Border --
+   ---------------
+
+   function Is_Border
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean
+   is
+   begin
+      return Empire.System_Data (System.Index).Border;
+   end Is_Border;
+
+   -----------------
+   -- Is_Frontier --
+   -----------------
+
+   function Is_Frontier
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean
+   is
+   begin
+      return Empire.System_Data (System.Index).Frontier;
+   end Is_Frontier;
+
+   -----------------
+   -- Is_Internal --
+   -----------------
+
+   function Is_Internal
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean
+   is
+   begin
+      return Empire.System_Data (System.Index).Internal;
+   end Is_Internal;
+
+   ------------------
+   -- Is_Neighbour --
+   ------------------
+
+   function Is_Neighbour
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean
+   is
+   begin
+      return Empire.System_Data (System.Index).Neighbour;
+   end Is_Neighbour;
+
    ------------------------------
    -- Maximum_Supported_Ships --
    ------------------------------
@@ -331,7 +433,7 @@ package body Concorde.Empires is
    begin
       Empire.Check_Cache (From, To);
 
-      return Data.Next_Node (To.Index);
+      return Data.Next_Node (To.Index).Next_Node;
    end Next_Path_Node_Index;
 
    ------------------
@@ -347,6 +449,24 @@ package body Concorde.Empires is
    begin
       return System.Owned and then System.Owner.Index = Empire.Index;
    end Owned_System;
+
+   -----------------
+   -- Path_Length --
+   -----------------
+
+   function Path_Length
+     (Empire : in out Root_Empire_Type'Class;
+      From, To : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Natural
+   is
+      Data : Empire_Star_System_Record renames
+               Empire.System_Data (From.Index);
+   begin
+      Empire.Check_Cache (From, To);
+
+      return Data.Next_Node (To.Index).Path_Length;
+   end Path_Length;
 
    ------------------
    -- Remove_Focus --
@@ -397,6 +517,20 @@ package body Concorde.Empires is
    begin
       Empire.Current_Ships := Empire.Current_Ships - 1;
    end Remove_Ship;
+
+   --------------
+   -- Required --
+   --------------
+
+   function Required
+     (Empire : Root_Empire_Type'Class;
+      System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Integer
+   is
+   begin
+      return Empire.System_Data (System.Index).Required;
+   end Required;
 
    ----------------
    -- Set_Border --
@@ -453,6 +587,21 @@ package body Concorde.Empires is
    begin
       Empire.System_Data (System.Index).Neighbour := Neighbour;
    end Set_Neighbour;
+
+   ------------------
+   -- Set_Required --
+   ------------------
+
+   procedure Set_Required
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Required : Integer)
+   is
+      R : Integer renames Empire.System_Data (System.Index).Required;
+   begin
+      R := Required;
+   end Set_Required;
 
    ---------------------
    -- System_Acquired --
