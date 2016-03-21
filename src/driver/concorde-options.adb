@@ -56,6 +56,7 @@ package body Concorde.Options is
             if Argument'Length > 2
               and then Argument (1 .. 2) = "--"
               and then Index (Argument, "=") = 0
+              and then Argument (3 .. Argument'Last) = Long_Name
             then
                return not Default;
             elsif Argument (1) = '-' then
