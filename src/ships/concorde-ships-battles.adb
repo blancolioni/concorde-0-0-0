@@ -50,11 +50,10 @@ package body Concorde.Ships.Battles is
       Ships  : Concorde.Ships.Lists.List)
    is
       use Concorde.Empires;
-      Teams       : Team_Vectors.Vector;
-      Info_Vector : Ship_Info_Vectors.Vector;
+      Teams         : Team_Vectors.Vector;
+      Info_Vector   : Ship_Info_Vectors.Vector;
+      Min_Team_Size : Natural := Natural'Last;
    begin
-
-      System.Battle (Positive (Ships.Length));
 
       for Ship of Ships loop
          declare
@@ -87,9 +86,31 @@ package body Concorde.Ships.Battles is
 
       pragma Assert (Teams.Last_Index >= 2);
 
-      Concorde.Empires.Logging.Log
-        (Empire  => Teams.First_Element.Leader,
-         Message => "The Battle of " & System.Name);
+      for Team of Teams loop
+         declare
+            Size : constant Positive := Positive (Team.Ships.Length);
+         begin
+            if Size < Min_Team_Size then
+               Min_Team_Size := Size;
+            end if;
+         end;
+      end loop;
+
+      System.Battle (Min_Team_Size);
+
+      if Min_Team_Size > 5 then
+         Concorde.Empires.Logging.Log
+           (Empire  => Teams.First_Element.Leader,
+            Message =>
+              "The Battle of " & System.Name
+            & (if System.Owned
+              then ", owned by " & System.Owner.Name
+              else ", disputed system"));
+      else
+         Concorde.Empires.Logging.Log
+           (Empire  => Teams.First_Element.Leader,
+            Message => "Skirmish at " & System.Name);
+      end if;
 
       for Team of Teams loop
          Concorde.Empires.Logging.Log
@@ -145,6 +166,48 @@ package body Concorde.Ships.Battles is
             exit when not Continue;
          end;
       end loop;
+
+      declare
+         Remaining_Teams : Natural := 0;
+         Victor          : Concorde.Empires.Empire_Type := null;
+      begin
+         for Team of Teams loop
+            declare
+               Team_Remaining : Natural := 0;
+            begin
+               for Ship of Team.Ships loop
+                  if Ship.Alive then
+                     Team_Remaining := Team_Remaining + 1;
+                  end if;
+               end loop;
+
+               Concorde.Empires.Logging.Log
+                 (Team.Leader,
+                  "ships remaining:" & Team_Remaining'Img);
+               if Team_Remaining > 0 then
+                  Remaining_Teams := Remaining_Teams + 1;
+                  if Remaining_Teams = 1 then
+                     Victor := Team.Leader;
+                  else
+                     Victor := null;
+                  end if;
+               end if;
+            end;
+         end loop;
+
+         if Remaining_Teams = 0 then
+            Empires.Logging.Log
+              (Teams.First_Element.Leader,
+               "mutual annihilation");
+         elsif Remaining_Teams = 1 then
+            Empires.Logging.Log
+              (Victor, "victory!");
+         else
+            Empires.Logging.Log
+              (Teams.First_Element.Leader,
+               "the battle continues");
+         end if;
+      end;
 
    end Fight;
 

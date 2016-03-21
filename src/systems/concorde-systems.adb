@@ -54,16 +54,16 @@ package body Concorde.Systems is
    end Arriving;
 
    ------------
-   -- Attack --
+   -- Battle --
    ------------
 
    procedure Battle
-     (System     : in out Root_Star_System_Type'Class;
-      Ship_Count : Positive)
+     (System : in out Root_Star_System_Type'Class;
+      Size   : Positive)
    is
    begin
       System.Last_Battle := Concorde.Dates.Current_Date;
-      System.Battle_Size := Ship_Count;
+      System.Battle_Size := Size;
    end Battle;
 
    --------------

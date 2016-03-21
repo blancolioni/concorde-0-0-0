@@ -101,8 +101,8 @@ package Concorde.Systems is
    type Star_System_Type is access constant Root_Star_System_Type'Class;
 
    procedure Battle
-     (System     : in out Root_Star_System_Type'Class;
-      Ship_Count : Positive);
+     (System : in out Root_Star_System_Type'Class;
+      Size   : Positive);
 
    function Distance
      (System_1, System_2 : Star_System_Type)
