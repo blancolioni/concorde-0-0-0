@@ -415,50 +415,61 @@ package body Concorde.Graphs is
         function (Vertex : Vertex_Type) return Boolean)
       return Path
    is
+      type Partial_Path is
+         record
+            Current  : Index_Type;
+            Previous : Natural;
+            Cost     : Cost_Type;
+         end record;
+
       package Queue_Of_Partials is
-         new Ada.Containers.Doubly_Linked_Lists (Path);
+        new Ada.Containers.Doubly_Linked_Lists (Partial_Path);
+      package Vector_Of_Partials is
+        new Ada.Containers.Vectors (Positive, Partial_Path);
+
       Queue : Queue_Of_Partials.List;
+      Vector : Vector_Of_Partials.Vector;
       Tried : Sub_Graph;
       Result : Path := (From, 0.0, Edge_Lists.Empty_List);
    begin
 
       Container.Create (Tried);
-      Queue.Append ((From, 0.0, Edge_Lists.Empty_List));
+      Queue.Append ((From, 0, 0.0));
 
       while not Queue.Is_Empty loop
          declare
-            P    : constant Path := Queue.First_Element;
+            P    : constant Partial_Path := Queue.First_Element;
          begin
             Queue.Delete_First;
-            if P.Start = To then
+            if P.Current = To then
                declare
-                  V      : Index_Type;
+                  V      : Partial_Path := P;
                begin
-                  for Edge of P.Edges loop
-                     V := Edge.To;
-                     Result.Edges.Append ((V, Edge.Cost));
+                  while V.Previous > 0 loop
+                     Result.Edges.Insert
+                       (Result.Edges.First,
+                        (V.Current, V.Cost));
+                     Result.Cost := Result.Cost + V.Cost;
+                     V := Vector.Element (V.Previous);
                   end loop;
-                  Result.Start := P.Edges.Last_Element.To;
-                  Result.Edges.Delete_Last;
-                  Result.Edges.Append ((P.Start, P.Edges.Last_Element.Cost));
-                  Result.Start := V;
-                  Result.Cost := P.Cost;
+
+                  Result.Start := V.Current;
                   exit;
                end;
             end if;
-            if not Contains (Tried, P.Start) then
-               Append (Tried, P.Start);
-               for Edge of Container.Vertices.Element (P.Start).Edges loop
+            if not Contains (Tried, P.Current) then
+               Append (Tried, P.Current);
+               Vector.Append (P);
+               for Edge of Container.Vertices.Element (P.Current).Edges loop
                   if Edge.To = To
                     or else Test_Vertex (Container.Vs (Edge.To))
                   then
                      declare
-                        New_Path : Path :=
-                                     (Edge.To, P.Cost + Edge.Cost, P.Edges);
+                        New_Partial : constant Partial_Path :=
+                                        (Edge.To, Vector.Last_Index,
+                                         Edge.Cost);
                      begin
-                        New_Path.Edges.Insert
-                          (New_Path.Edges.First, (P.Start, Edge.Cost));
-                        Queue.Append (New_Path);
+                        Queue.Append (New_Partial);
                      end;
                   end if;
                end loop;
