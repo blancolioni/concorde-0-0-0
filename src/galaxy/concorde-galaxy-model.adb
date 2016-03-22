@@ -57,6 +57,11 @@ package body Concorde.Galaxy.Model is
       Renderer : in out Lui.Rendering.Root_Renderer'Class;
       A, B     : Positive);
 
+   procedure Draw_Influence
+     (Model    : in out Root_Galaxy_Model'Class;
+      Renderer : in out Lui.Rendering.Root_Renderer'Class;
+      System   : Concorde.Systems.Star_System_Type);
+
    procedure Star_System_Screen
      (Model    : in out Root_Galaxy_Model'Class;
       System   : Concorde.Systems.Star_System_Type;
@@ -142,6 +147,40 @@ package body Concorde.Galaxy.Model is
       Model.Star_System_Screen (B_System, X2, Y2);
       Renderer.Draw_Line (X1, Y1, X2, Y2, Link_Colour, Link_Width);
    end Draw_Connection;
+
+   --------------------
+   -- Draw_Influence --
+   --------------------
+
+   procedure Draw_Influence
+     (Model    : in out Root_Galaxy_Model'Class;
+      Renderer : in out Lui.Rendering.Root_Renderer'Class;
+      System   : Concorde.Systems.Star_System_Type)
+   is
+      Boundary : constant Concorde.Systems.System_Influence_Boundary :=
+                   System.Influence_Boundary;
+      Points : Lui.Rendering.Buffer_Points (Boundary'Range);
+      Bg     : Lui.Colours.Colour_Type := System.Owner.Colour;
+   begin
+      for I in Points'Range loop
+         declare
+            X : constant Real := Boundary (I).X;
+            Y : constant Real := Boundary (I).Y;
+            Z : Real;
+         begin
+            Model.Get_Screen_Coordinates
+              (X, Y, 0.0,
+               Points (I).X, Points (I).Y, Z);
+         end;
+      end loop;
+
+      Bg.Alpha := 0.3;
+      Renderer.Draw_Polygon
+        (Vertices => Points,
+         Colour   => Bg,
+         Filled   => True);
+
+   end Draw_Influence;
 
    ------------------
    -- Galaxy_Model --
@@ -249,6 +288,11 @@ package body Concorde.Galaxy.Model is
                Model.Get_Screen_Coordinates
                  (X, Y, 0.0, Screen_X, Screen_Y, Screen_Z);
                if Star_Pass then
+
+                  if System.Owned then
+                     Draw_Influence
+                       (Model, Renderer, System);
+                  end if;
 
                   if Recent_Battle (System, 5) then
                      declare

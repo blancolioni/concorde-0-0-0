@@ -4,6 +4,8 @@ with Ada.Float_Text_IO;
 with Ada.Numerics.Float_Random;
 
 with Concorde.Elementary_Functions;
+with Concorde.Voronoi_Diagrams;
+
 with Concorde.Systems.Create;
 
 package body Concorde.Galaxy.Create is
@@ -20,22 +22,39 @@ package body Concorde.Galaxy.Create is
       use Ada.Numerics.Float_Random;
       use Concorde.Systems;
       Total_Connections : Natural := 0;
-      Gen : Generator;
+      Gen               : Generator;
+      Influence         : Concorde.Voronoi_Diagrams.Voronoi_Diagram;
+      Xs, Ys            : array (1 .. System_Count) of Real;
    begin
       if Reset_Seed then
          Reset (Gen);
       end if;
 
       for I in 1 .. System_Count loop
+         Xs (I) := Real (Random (Gen) * 2.0 - 1.0);
+         Ys (I) := Real (Random (Gen) * 2.0 - 1.0);
+         Influence.Add_Point (Xs (I), Ys (I));
+      end loop;
+
+      Influence.Generate;
+
+      for I in 1 .. System_Count loop
          declare
-            X : constant Real := Real (Random (Gen) * 2.0 - 1.0);
-            Y : constant Real := Real (Random (Gen) * 2.0 - 1.0);
-            System : constant Star_System_Access :=
-                       Concorde.Systems.Create.New_System
-                         (I, "System" & I'Img, X, Y,
-                          Production => 0.025,
-                          Capacity   => 10.0);
+            Boundary : Concorde.Systems.System_Influence_Boundary
+              (1 .. Influence.Vertex_Count (I));
+            System   : Star_System_Access;
          begin
+            for J in Boundary'Range loop
+               Boundary (J) :=
+                 (Influence.Vertex_X (I, J), Influence.Vertex_Y (I, J));
+            end loop;
+
+            System :=
+              Concorde.Systems.Create.New_System
+                (I, "System" & I'Img, Xs (I), Ys (I), Boundary,
+                 Production => 0.025,
+                 Capacity   => 10.0);
+
             Galaxy_Graph.Append (Concorde.Systems.Star_System_Type (System));
             Galaxy_Vector.Append (System);
          end;

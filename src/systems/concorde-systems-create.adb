@@ -8,6 +8,7 @@ package body Concorde.Systems.Create is
      (Index      : Positive;
       Name       : String;
       X, Y       : Real;
+      Boundary   : System_Influence_Boundary;
       Production : Non_Negative_Real;
       Capacity   : Non_Negative_Real)
       return Star_System_Access
@@ -28,7 +29,8 @@ package body Concorde.Systems.Create is
                     Last_Attacker => null,
                     Capital       => False,
                     Owner         => null,
-                    Edges         => Edge_Info_Lists.Empty_List);
+                    Edges         => Edge_Info_Lists.Empty_List,
+                    Boundary      => new System_Influence_Boundary'(Boundary));
    begin
       Result.Set_Name (Name);
       return Result;

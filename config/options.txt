@@ -1,7 +1,7 @@
 randomise = no
 
-empire_count = 3
-system_count = 50
+empire_count = 99
+system_count = 400
 
 average_connections = 4
 detailed_battle_logging = yes

@@ -84,8 +84,8 @@ private
        (Positive, Concorde.Systems.Star_System_Access,
         Concorde.Systems."=");
 
-   Galaxy_Vector : Star_System_Vectors.Vector;
-   Galaxy_Graph : Concorde.Systems.Graphs.Graph;
+   Galaxy_Vector  : Star_System_Vectors.Vector;
+   Galaxy_Graph   : Concorde.Systems.Graphs.Graph;
 
    type Star_System_Set is
       record

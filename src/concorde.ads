@@ -8,4 +8,9 @@ package Concorde is
 
    subtype Non_Negative_Real is Real range 0.0 .. Real'Last;
 
+   type Point_Type is
+      record
+         X, Y : Real;
+      end record;
+
 end Concorde;

@@ -98,6 +98,13 @@ package Concorde.Systems is
      (System : in out Root_Star_System_Type'Class;
       New_Capacity : Non_Negative_Real);
 
+   type System_Influence_Boundary is
+     array (Positive range <>) of Point_Type;
+
+   function Influence_Boundary
+     (System : Root_Star_System_Type'Class)
+      return System_Influence_Boundary;
+
    type Star_System_Type is access constant Root_Star_System_Type'Class;
 
    procedure Battle
@@ -138,6 +145,7 @@ private
          Last_Attacker : Star_System_Type;
          Owner         : access Concorde.Empires.Root_Empire_Type'Class;
          Edges         : Edge_Info_Lists.List;
+         Boundary      : access System_Influence_Boundary;
       end record;
 
 end Concorde.Systems;

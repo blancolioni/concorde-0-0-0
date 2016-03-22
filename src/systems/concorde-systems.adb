@@ -170,6 +170,18 @@ package body Concorde.Systems is
       return System.Index;
    end Index;
 
+   ------------------------
+   -- Influence_Boundary --
+   ------------------------
+
+   function Influence_Boundary
+     (System : Root_Star_System_Type'Class)
+      return System_Influence_Boundary
+   is
+   begin
+      return System.Boundary.all;
+   end Influence_Boundary;
+
    -----------------
    -- Last_Battle --
    -----------------
