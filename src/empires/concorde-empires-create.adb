@@ -37,7 +37,7 @@ package body Concorde.Empires.Create is
          System.Set_Owner (New_Empire);
          System.Set_Production (System.Production * 4.0);
          System.Set_Capacity (System.Capacity * 4.0);
-         System.Set_Capital;
+         System.Set_Capital (True);
          System.Set_Name (Capital);
       end Choose;
 
