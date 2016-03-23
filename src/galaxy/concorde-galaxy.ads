@@ -32,6 +32,22 @@ package Concorde.Galaxy is
       return Boolean)
       return Array_Of_Star_Systems;
 
+   function Minimum
+     (Score : not null access
+        function (System : Concorde.Systems.Star_System_Type)
+      return Natural)
+      return Concorde.Systems.Star_System_Type;
+   --  find the system which minimises Score.
+   --  return null if no system scores less than Natural'Last
+
+   function Maximum
+     (Score : not null access
+        function (System : Concorde.Systems.Star_System_Type)
+      return Natural)
+      return Concorde.Systems.Star_System_Type;
+   --  find the system which maximises Score.
+   --  return null if no system scores more than zero
+
    function Neighbours
      (System : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
