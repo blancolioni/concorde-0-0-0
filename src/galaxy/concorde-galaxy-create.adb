@@ -21,22 +21,61 @@ package body Concorde.Galaxy.Create is
    is
       use Ada.Numerics.Float_Random;
       use Concorde.Systems;
+      Min_Distance      : constant Non_Negative_Real :=
+                            (1.0 / (2.0 * Real (System_Count)));
       Total_Connections : Natural := 0;
       Gen               : Generator;
       Influence         : Concorde.Voronoi_Diagrams.Voronoi_Diagram;
       Xs, Ys            : array (1 .. System_Count) of Real;
+      Retries           : Natural := 0;
    begin
       if Reset_Seed then
          Reset (Gen);
       end if;
 
+      Ada.Text_IO.Put_Line ("System count:" & System_Count'Img);
+      Ada.Text_IO.Put ("Minimum distance: ");
+      Ada.Float_Text_IO.Put (Float (Min_Distance), 1, 8, 0);
+      Ada.Text_IO.New_Line;
+
       for I in 1 .. System_Count loop
-         Xs (I) := Real (Random (Gen) * 2.0 - 1.0);
-         Ys (I) := Real (Random (Gen) * 2.0 - 1.0);
-         Influence.Add_Point (Xs (I), Ys (I));
+         declare
+            D : Non_Negative_Real := 0.0;
+            X, Y : Real;
+         begin
+            Xs (I) := 0.0;
+            Ys (I) := 0.0;
+            while D < Min_Distance loop
+               Retries := Retries + 1;
+               D :=  Non_Negative_Real'Last;
+               X := Real (Random (Gen) * 2.0 - 1.0);
+               Y := Real (Random (Gen) * 2.0 - 1.0);
+               for J in 1 .. I - 1 loop
+                  declare
+                     Test_D : constant Real :=
+                                (X - Xs (J)) ** 2 + (Y - Ys (J)) ** 2;
+                  begin
+                     if Test_D < D then
+                        D := Test_D;
+                     end if;
+                  end;
+               end loop;
+            end loop;
+
+            Xs (I) := X;
+            Ys (I) := Y;
+            Influence.Add_Point (X, Y);
+
+         end;
+
       end loop;
 
+      Ada.Text_IO.Put_Line
+        ("retries:" & Integer'Image (Retries - System_Count));
+
       Influence.Generate;
+
+      Ada.Text_IO.Put_Line ("created Voronoi map");
 
       for I in 1 .. System_Count loop
          declare
@@ -59,6 +98,8 @@ package body Concorde.Galaxy.Create is
             Galaxy_Vector.Append (System);
          end;
       end loop;
+
+      Ada.Text_IO.Put_Line ("created" & System_Count'Img & " systems");
 
       for I in 1 .. System_Count loop
          declare
@@ -116,6 +157,10 @@ package body Concorde.Galaxy.Create is
             end loop;
          end;
       end loop;
+
+      Ada.Text_IO.Put_Line ("created"
+                            & Total_Connections'Img
+                            & " connections");
 
       loop
          declare
