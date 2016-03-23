@@ -75,6 +75,28 @@ package body Concorde.Empires is
       return Empire.Capital;
    end Capital;
 
+   -------------------------
+   -- Change_Relationship --
+   -------------------------
+
+   procedure Change_Relationship
+     (Empire  : in out Root_Empire_Type'Class;
+      To      : not null access constant Root_Empire_Type'Class;
+      Change  : Empire_Relationship_Range)
+   is
+      Current_Value : constant Integer := Integer (Empire.Relationship (To));
+      New_Value     : constant Integer :=
+                        Current_Value + Integer (Change);
+      New_Relationship : constant Empire_Relationship_Range :=
+                           (if New_Value < Minimum_Relationship
+                            then Minimum_Relationship
+                            elsif New_Value > Maximum_Relationship
+                            then Maximum_Relationship
+                            else Empire_Relationship_Range (New_Value));
+   begin
+      Empire.Set_Relationship (To, New_Relationship);
+   end Change_Relationship;
+
    ---------------------
    -- Change_Required --
    ---------------------
@@ -456,6 +478,7 @@ package body Concorde.Empires is
    is
    begin
       Empire.Current_Ships := Empire.Current_Ships + 1;
+      Empire.Built_Ships := Empire.Built_Ships + 1;
    end New_Ship;
 
    --------------------------
@@ -509,6 +532,23 @@ package body Concorde.Empires is
    end Path_Length;
 
    ------------------
+   -- Relationship --
+   ------------------
+
+   function Relationship
+     (Empire : Root_Empire_Type'Class;
+      To     : not null access constant Root_Empire_Type'Class)
+      return Empire_Relationship_Range
+   is
+   begin
+      if Empire.Empire_Data = null then
+         return 0;
+      else
+         return Empire.Empire_Data (To.Index).Relationship;
+      end if;
+   end Relationship;
+
+   ------------------
    -- Remove_Focus --
    ------------------
 
@@ -556,6 +596,7 @@ package body Concorde.Empires is
    is
    begin
       Empire.Current_Ships := Empire.Current_Ships - 1;
+      Empire.Lost_Ships := Empire.Lost_Ships + 1;
    end Remove_Ship;
 
    --------------
@@ -642,6 +683,23 @@ package body Concorde.Empires is
       Empire.System_Data (System.Index).Neighbour := Neighbour;
    end Set_Neighbour;
 
+   ----------------------
+   -- Set_Relationship --
+   ----------------------
+
+   procedure Set_Relationship
+     (Empire : in out Root_Empire_Type'Class;
+      To     : not null access constant Root_Empire_Type'Class;
+      Value  : Empire_Relationship_Range)
+   is
+   begin
+      if Empire.Empire_Data = null then
+         Empire.Empire_Data := new Empire_Data_Array (1 .. Empire_Count);
+      end if;
+
+      Empire.Empire_Data (To.Index).Relationship := Value;
+   end Set_Relationship;
+
    ------------------
    -- Set_Required --
    ------------------
@@ -679,9 +737,36 @@ package body Concorde.Empires is
      (Empire : in out Root_Empire_Type'Class;
       System : Concorde.Systems.Star_System_Type)
    is
-      pragma Unreferenced (System);
    begin
       Empire.Current_Systems := Empire.Current_Systems - 1;
+      if System.Capital then
+         Empires.Logging.Log
+           (Empire,
+            "lost its capital " & System.Name);
+         Galaxy.Set_Capital (System, False);
+         declare
+            use Concorde.Systems;
+            function Score
+              (Test : Concorde.Systems.Star_System_Type)
+               return Natural
+            is (if Empire.Owned_System (Test)
+                then Test.Ships + 10
+                else 0);
+            New_Capital : constant Concorde.Systems.Star_System_Type :=
+                            Galaxy.Maximum (Score'Access);
+         begin
+            if New_Capital /= null then
+               Galaxy.Set_Capital (New_Capital, True);
+               Empire.Capital := New_Capital;
+               Empires.Logging.Log
+                 (Empire, "new capital: " & New_Capital.Name);
+            else
+               Empires.Logging.Log
+                 (Empire, "eliminated");
+               Empire.Capital := null;
+            end if;
+         end;
+      end if;
       Empire.Clear_Path_Cache;
    end System_Lost;
 

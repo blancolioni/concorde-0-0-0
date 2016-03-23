@@ -10,6 +10,12 @@ with Concorde.Systems;
 
 package Concorde.Empires is
 
+   Minimum_Relationship : constant := -100;
+   Maximum_Relationship : constant := 100;
+
+   type Empire_Relationship_Range is
+   range Minimum_Relationship .. Maximum_Relationship;
+
    type Root_Empire_Type is
      new Concorde.Objects.Root_Named_Object_Type with private;
 
@@ -49,6 +55,21 @@ package Concorde.Empires is
       return Natural)
       return Concorde.Systems.Star_System_Type;
    --  focus system which minimised Score is returned
+
+   function Relationship
+     (Empire : Root_Empire_Type'Class;
+      To     : not null access constant Root_Empire_Type'Class)
+      return Empire_Relationship_Range;
+
+   procedure Set_Relationship
+     (Empire : in out Root_Empire_Type'Class;
+      To     : not null access constant Root_Empire_Type'Class;
+      Value  : Empire_Relationship_Range);
+
+   procedure Change_Relationship
+     (Empire  : in out Root_Empire_Type'Class;
+      To      : not null access constant Root_Empire_Type'Class;
+      Change  : Empire_Relationship_Range);
 
    function AI
      (Empire : Root_Empire_Type'Class)
@@ -205,6 +226,8 @@ package Concorde.Empires is
    function Empire_Count return Natural;
    function Get (Index : Positive) return Empire_Type;
 
+   type Array_Of_Empires is array (Positive range <>) of Empire_Type;
+
    type Ranking is (Normal, By_Star_Systems, By_Ships);
 
    function Get
@@ -256,6 +279,14 @@ private
      array (Positive range <>) of Empire_Star_System_Record
      with Pack;
 
+   type Empire_Data_Record is
+      record
+         Relationship : Empire_Relationship_Range := 0;
+      end record;
+
+   type Empire_Data_Array is
+     array (Positive range <>) of Empire_Data_Record;
+
    type Root_Empire_Type is
      new Concorde.Objects.Root_Named_Object_Type with
       record
@@ -263,10 +294,13 @@ private
          Colour          : Lui.Colours.Colour_Type;
          Focus_List      : access List_Of_Focus_Systems.List;
          System_Data     : access System_Data_Array;
+         Empire_Data     : access Empire_Data_Array;
          AI              : access Concorde.AI.Root_AI_Type'Class;
          Max_Ships       : Natural := 0;
          Current_Ships   : Natural := 0;
          Current_Systems : Natural := 0;
+         Built_Ships     : Natural := 0;
+         Lost_Ships      : Natural := 0;
          Capital         : Concorde.Systems.Star_System_Type;
       end record;
 
