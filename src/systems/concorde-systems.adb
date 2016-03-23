@@ -263,10 +263,11 @@ package body Concorde.Systems is
    -----------------
 
    procedure Set_Capital
-     (System : in out Root_Star_System_Type'Class)
+     (System     : in out Root_Star_System_Type'Class;
+      Is_Capital : Boolean)
    is
    begin
-      System.Capital := True;
+      System.Capital := Is_Capital;
    end Set_Capital;
 
    ---------------

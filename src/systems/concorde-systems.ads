@@ -88,7 +88,8 @@ package Concorde.Systems is
         Concorde.Empires.Root_Empire_Type'Class);
 
    procedure Set_Capital
-     (System : in out Root_Star_System_Type'Class);
+     (System     : in out Root_Star_System_Type'Class;
+      Is_Capital : Boolean);
 
    procedure Set_Production
      (System : in out Root_Star_System_Type'Class;
