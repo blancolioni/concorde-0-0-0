@@ -110,8 +110,52 @@ package body Concorde.Galaxy is
             Process (Galaxy_Graph.Vertex (I));
          end if;
       end loop;
-
    end Iterate;
+
+   -------------
+   -- Maximum --
+   -------------
+
+   function Maximum
+     (Score : not null access
+        function (System : Concorde.Systems.Star_System_Type)
+      return Natural)
+      return Concorde.Systems.Star_System_Type
+   is
+      Max_System : Concorde.Systems.Star_System_Type := null;
+      Max_Value  : Natural := 0;
+   begin
+      for I in 1 .. Galaxy_Graph.Last_Vertex_Index loop
+         declare
+            System : constant Concorde.Systems.Star_System_Type :=
+                       Galaxy_Graph.Vertex (I);
+            Value  : constant Natural := Score (System);
+         begin
+            if Value > Max_Value then
+               Max_Value := Value;
+               Max_System := System;
+            end if;
+         end;
+      end loop;
+      return Max_System;
+   end Maximum;
+
+   -------------
+   -- Minimum --
+   -------------
+
+   function Minimum
+     (Score : not null access
+        function (System : Concorde.Systems.Star_System_Type)
+      return Natural)
+      return Concorde.Systems.Star_System_Type
+   is
+      function Local_Score (System : Concorde.Systems.Star_System_Type)
+                            return Natural
+      is (Natural'Last - Score (System));
+   begin
+      return Maximum (Local_Score'Access);
+   end Minimum;
 
    -----------------
    -- Move_Fleets --
@@ -245,6 +289,32 @@ package body Concorde.Galaxy is
    begin
       return Galaxy_Graph.Connected (System_1.Index, System_2.Index);
    end Neighbours;
+
+   -----------------
+   -- Set_Capital --
+   -----------------
+
+   procedure Set_Capital
+     (System  : Concorde.Systems.Star_System_Type;
+      Capital : Boolean)
+   is
+      procedure Update
+        (System : in out Systems.Root_Star_System_Type'Class);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update
+        (System : in out Systems.Root_Star_System_Type'Class)
+      is
+      begin
+         System.Set_Capital (Capital);
+      end Update;
+
+   begin
+      Update_System (System, Update'Access);
+   end Set_Capital;
 
    -------------------
    -- Shortest_Path --

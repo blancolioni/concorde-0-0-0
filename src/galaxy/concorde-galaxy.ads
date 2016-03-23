@@ -15,6 +15,10 @@ package Concorde.Galaxy is
       Update : not null access
         procedure (System : in out Systems.Root_Star_System_Type'Class));
 
+   procedure Set_Capital
+     (System  : Concorde.Systems.Star_System_Type;
+      Capital : Boolean);
+
 --     procedure Move_Fleets
 --       (From, To : Concorde.Systems.Star_System_Type;
 --        Count    : Natural);
