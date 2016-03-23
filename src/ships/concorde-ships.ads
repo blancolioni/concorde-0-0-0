@@ -10,6 +10,8 @@ package Concorde.Ships is
    type Root_Ship_Type is
      new Concorde.Objects.Root_Named_Object_Type with private;
 
+   function Long_Name (Ship : Root_Ship_Type'Class) return String;
+
    function Alive
      (Ship : Root_Ship_Type'Class)
       return Boolean;
@@ -25,6 +27,11 @@ package Concorde.Ships is
    function Destination
      (Ship : Root_Ship_Type'Class)
       return access constant Concorde.Systems.Root_Star_System_Type'Class;
+
+   function Has_Destination
+     (Ship : Root_Ship_Type'Class)
+      return Boolean
+   is (Ship.Destination /= null);
 
    procedure Set_System
      (Ship : in out Root_Ship_Type'Class;

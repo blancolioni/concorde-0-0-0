@@ -1,3 +1,5 @@
+with Concorde.Systems;
+
 package body Concorde.Ships is
 
    -----------
@@ -56,6 +58,15 @@ package body Concorde.Ships is
    begin
       return Ship.Destination;
    end Destination;
+
+   ---------------
+   -- Long_Name --
+   ---------------
+
+   function Long_Name (Ship : Root_Ship_Type'Class) return String is
+   begin
+      return Ship.Name & " [" & Ship.System.Name & "]";
+   end Long_Name;
 
    -----------
    -- Owner --
