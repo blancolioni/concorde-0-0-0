@@ -73,6 +73,9 @@ private
          Awake                 : Boolean := True;
          Planned_Offensive     : Boolean := False;
          Launch_Offensive      : Boolean := False;
+         Required_Strength     : Natural := 0;
+         Available_Strength    : Natural := 0;
+         Local_Strength        : Natural := 0;
          Attack_From           : Concorde.Systems.Star_System_Type;
          Target                : Concorde.Systems.Star_System_Type;
       end record;
