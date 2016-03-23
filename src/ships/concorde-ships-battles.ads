@@ -3,6 +3,10 @@ with Concorde.Ships.Lists;
 
 package Concorde.Ships.Battles is
 
+   function Empires_Present
+     (Ships : Concorde.Ships.Lists.List)
+      return Concorde.Empires.Array_Of_Empires;
+
    function Has_Conflict
      (Ships : Concorde.Ships.Lists.List)
       return Boolean;

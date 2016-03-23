@@ -43,6 +43,36 @@ package body Concorde.Ships.Battles is
       end if;
    end Attack;
 
+   ---------------------
+   -- Empires_Present --
+   ---------------------
+
+   function Empires_Present
+     (Ships : Concorde.Ships.Lists.List)
+      return Concorde.Empires.Array_Of_Empires
+   is
+      Result : Concorde.Empires.Array_Of_Empires (1 .. Natural (Ships.Length));
+      Count  : Natural := 0;
+   begin
+      for Ship of Ships loop
+         declare
+            use Concorde.Empires;
+            Found : Boolean := False;
+         begin
+            for I in 1 .. Count loop
+               if Empire_Type (Ship.Owner) = Result (I) then
+                  Found := True;
+               end if;
+            end loop;
+            if not Found then
+               Count := Count + 1;
+               Result (Count) := Empire_Type (Ship.Owner);
+            end if;
+         end;
+      end loop;
+      return Result (1 .. Count);
+   end Empires_Present;
+
    -----------
    -- Fight --
    -----------
@@ -240,14 +270,17 @@ package body Concorde.Ships.Battles is
       return Boolean
    is
       use Concorde.Empires;
-      E : Empire_Type := null;
+      Es : constant Array_Of_Empires :=
+             Empires_Present (Ships);
    begin
-      for Ship of Ships loop
-         if E = null then
-            E := Empire_Type (Ship.Owner);
-         elsif Empire_Type (Ship.Owner) /= E then
-            return True;
-         end if;
+      for I in 2 .. Es'Last loop
+         for J in 1 .. I - 1 loop
+            if Es (I).Relationship (Es (J)) < 0
+              or else Es (J).Relationship (Es (I)) < 0
+            then
+               return True;
+            end if;
+         end loop;
       end loop;
       return False;
    end Has_Conflict;
