@@ -13,6 +13,8 @@ with Concorde.Galaxy.Locking;
 
 with Concorde.Updates;
 
+with Concorde.Options;
+
 package body Concorde.Galaxy.Model is
 
    subtype Empire_Column is Integer range 1 .. 4;
@@ -39,9 +41,11 @@ package body Concorde.Galaxy.Model is
    type Root_Galaxy_Model is
      new Lui.Models.Root_Object_Model with
       record
-         Frames : Natural := 0;
-         Start  : Ada.Calendar.Time;
-         FPS    : Real;
+         Frames             : Natural := 0;
+         Start              : Ada.Calendar.Time;
+         FPS                : Real;
+         Show_Capital_Names : Boolean := True;
+         Show_System_Names  : Boolean := False;
       end record;
 
    overriding procedure Idle_Update
@@ -201,7 +205,11 @@ package body Concorde.Galaxy.Model is
       else
          Result.Initialise ("Galaxy");
       end if;
-      Result.Set_Eye_Position (0.0, 0.0, 2.5);
+      Result.Set_Eye_Position (0.0, 0.0, 2.2);
+      Result.Show_Capital_Names :=
+        Concorde.Options.Show_Capital_Names;
+      Result.Show_System_Names :=
+        Concorde.Options.Show_System_Names;
       return new Root_Galaxy_Model'(Result);
    end Galaxy_Model;
 
@@ -327,7 +335,9 @@ package body Concorde.Galaxy.Model is
                      Filled     => True,
                      Line_Width => 1);
 
-                  if System.Capital then
+                  if Model.Show_System_Names
+                    or else (System.Capital and then Model.Show_Capital_Names)
+                  then
                      Renderer.Draw_String
                        (X      => Screen_X - 20,
                         Y      => Screen_Y - 10,
