@@ -1,6 +1,7 @@
 with Concorde.Galaxy.Locking;
 
 with Concorde.Empires;
+with Concorde.Empires.Logging;
 
 with Concorde.Ships.Battles;
 with Concorde.Ships.Lists;
@@ -59,9 +60,23 @@ package body Concorde.Galaxy.Ships is
                        (Ship.System, Ship.Destination);
       From : constant Star_System_Access :=
                Galaxy_Vector.Element (Ship.System.Index);
-      To   : constant Star_System_Access :=
-               Galaxy_Vector.Element (Next_Index);
+      To         : constant Star_System_Access :=
+                     (if Next_Index = 0
+                      then null
+                      else Galaxy_Vector.Element (Next_Index));
    begin
+
+      if Next_Index = 0 then
+         Concorde.Empires.Logging.Log
+           (Ship.Owner,
+            "movement canceled because path from "
+            & Ship.System.Name
+            & " to "
+            & Ship.Destination.Name
+            & " is blocked");
+         Ship.Set_Destination (null);
+         return;
+      end if;
 
       if From.Index < To.Index then
          Locking.Lock_System (From, True);
