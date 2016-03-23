@@ -14,6 +14,10 @@ package body Concorde.Empires.Reports is
       Put ("Systems");
       Set_Col (32);
       Put ("Ships");
+      Set_Col (40);
+      Put ("Built");
+      Set_Col (48);
+      Put ("Lost");
       New_Line;
 
       for Empire of Vector loop
@@ -22,6 +26,10 @@ package body Concorde.Empires.Reports is
          Put (Lui.Approximate_Image (Empire.Current_Systems));
          Set_Col (32);
          Put (Lui.Approximate_Image (Empire.Current_Ships));
+         Set_Col (40);
+         Put (Lui.Approximate_Image (Empire.Built_Ships));
+         Set_Col (48);
+         Put (Lui.Approximate_Image (Empire.Lost_Ships));
          New_Line;
       end loop;
    end Report_Empires;
