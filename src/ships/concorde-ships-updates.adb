@@ -73,10 +73,14 @@ package body Concorde.Ships.Updates is
       if Ship.Destination /= null then
          Concorde.Empires.Logging.Log
            (Ship.Owner,
-            "warship " & Ship.Name
+            Ship.Name
             & " at " & Ship.System.Name
             & " on its way to "
-            & Ship.Destination.Name);
+            & Ship.Destination.Name
+            & " (distance"
+            & Natural'Image
+              (Ship.Owner.Path_Length (Ship.System, Ship.Destination))
+            & ")");
 
          Concorde.Galaxy.Ships.Move_Ship (Ship);
       elsif Ship.HP < Ship.Max_HP then
