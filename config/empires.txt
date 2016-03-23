@@ -72,7 +72,7 @@ rovac = {
 }
 
 mordor = {
-   name = Morder
+   name = Mordor
    capital = "Mount Doom"
    colour = { 89 79 79 }
 }
