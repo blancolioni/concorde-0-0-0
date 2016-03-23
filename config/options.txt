@@ -11,3 +11,5 @@ minimum_battle_size = 10
 console = no
 update_count = 500
 
+show_capital_names = yes
+show_system_names = no

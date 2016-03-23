@@ -58,8 +58,17 @@ package body Concorde.Options is
               and then Index (Argument, "=") = 0
               and then Argument (3 .. Argument'Last) = Long_Name
             then
-               return not Default;
-            elsif Argument (1) = '-' then
+               return True;
+            elsif Argument'Length > 5
+              and then Argument (1 .. 5) = "--no-"
+              and then Index (Argument, "=") = 0
+              and then Argument (6 .. Argument'Last) = Long_Name
+            then
+               return False;
+            elsif Argument (1) = '-'
+              and then Argument'Length > 1
+              and then Argument (2) /= '-'
+            then
                for J in 2 .. Argument'Last loop
                   if Argument (J) = Short_Name then
                      return not Default;
@@ -183,6 +192,24 @@ package body Concorde.Options is
    begin
       return Boolean_Value ("randomise", 'R');
    end Randomise;
+
+   ------------------------
+   -- Show_Capital_Names --
+   ------------------------
+
+   function Show_Capital_Names return Boolean is
+   begin
+      return Boolean_Value ("show-capital-names", 'N', Default => True);
+   end Show_Capital_Names;
+
+   -----------------------
+   -- Show_System_Names --
+   -----------------------
+
+   function Show_System_Names return Boolean is
+   begin
+      return Boolean_Value ("show-system-names", 'n', Default => False);
+   end Show_System_Names;
 
    ------------------
    -- String_Value --
