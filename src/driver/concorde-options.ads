@@ -12,4 +12,10 @@ package Concorde.Options is
    function Show_Capital_Names return Boolean;
    function Show_System_Names return Boolean;
 
+   function Boolean_Value
+     (Long_Name  : String;
+      Short_Name : Character := Character'Val (0);
+      Default    : Boolean := False)
+      return Boolean;
+
 end Concorde.Options;
