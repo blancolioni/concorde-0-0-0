@@ -1,5 +1,7 @@
 with WL.Processes;
-with WL.Random;
+with WL.Random.Names;
+
+with Concorde.Paths;
 
 with Concorde.Empires.Configure;
 with Concorde.Galaxy.Create;
@@ -19,7 +21,14 @@ with Concorde.Options;
 with Concorde.AI.Configure;
 
 procedure Concorde.Driver is
+
+   Name_Generator : WL.Random.Names.Name_Generator;
 begin
+
+   WL.Random.Names.Load_Lexicon
+     (Name_Generator,
+      Concorde.Paths.Config_File ("totro-vowels.txt"),
+      Concorde.Paths.Config_File ("totro-consonants.txt"));
 
    if Concorde.Options.Randomise then
       WL.Random.Randomise;
@@ -30,7 +39,8 @@ begin
    Concorde.Galaxy.Create.Create_Galaxy
      (System_Count        => Concorde.Options.Number_Of_Systems,
       Average_Connections => Concorde.Options.Average_Connections,
-      Reset_Seed          => Concorde.Options.Randomise);
+      Reset_Seed          => Concorde.Options.Randomise,
+      Name_Generator      => Name_Generator);
 
    Concorde.Empires.Configure.Create_Empires
      (Count => Concorde.Options.Number_Of_Empires);
