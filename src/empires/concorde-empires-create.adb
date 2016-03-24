@@ -1,5 +1,3 @@
-with Ada.Text_IO;
-
 with Concorde.Galaxy;
 with Concorde.Systems;
 
@@ -90,7 +88,6 @@ package body Concorde.Empires.Create is
          New_Empire.Current_Systems := 1;
          Concorde.Galaxy.Update_System (Start, Choose'Access);
          Add_Empire (New_Empire);
-         Ada.Text_IO.Put_Line ("New empire: " & Name);
       end;
    end New_Empire;
 
