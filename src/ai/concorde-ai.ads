@@ -29,6 +29,10 @@ package Concorde.AI is
      (AI : Root_AI_Type)
       return Non_Negative_Real;
 
+   function Minimum_Defense_Factor
+     (AI : Root_AI_Type)
+      return Non_Negative_Real;
+
    procedure Allocate_Ships
      (AI : in out Root_AI_Type);
 
@@ -53,34 +57,35 @@ private
 
    type Root_AI_Type is abstract tagged
       record
-         Empire                : Concorde.Empires.Empire_Type;
-         Defensiveness         : Non_Negative_Real := 1.2;
-         Owned_Systems         : Natural := 0;
-         Owned_Ships           : Natural := 0;
-         Threat_Systems        : Natural := 0;
-         Border_Systems        : Natural := 0;
-         Frontier_Systems      : Natural := 0;
-         Enemy_Strength        : Natural := 0;
-         Unexplored_Systems    : Natural := 0;
-         Internal_Systems      : Natural := 0;
-         Nominal_Defense_Ships : Natural := 0;
-         Defense_Ships         : Natural := 0;
-         Exploration_Ships     : Natural := 0;
-         Offense_Ships         : Natural := 0;
-         Defense_Destinations  : Destination_Vectors.Vector;
-         Explore_Destinations  : Destination_Vectors.Vector;
-         Attack_Destinations   : Destination_Vectors.Vector;
-         Awake                 : Boolean := True;
-         Planned_Offensive     : Boolean := False;
-         Launch_Offensive      : Boolean := False;
-         Required_Strength     : Natural := 0;
-         Available_Strength    : Natural := 0;
-         Local_Strength        : Natural := 0;
-         Attack_From           : Concorde.Systems.Star_System_Type;
-         Target                : Concorde.Systems.Star_System_Type;
+         Empire                 : Concorde.Empires.Empire_Type;
+         Current_Attack_Factor  : Non_Negative_Real := 1.2;
+         Current_Defense_Factor : Non_Negative_Real := 1.0;
+         Owned_Systems          : Natural := 0;
+         Owned_Ships            : Natural := 0;
+         Threat_Systems         : Natural := 0;
+         Border_Systems         : Natural := 0;
+         Frontier_Systems       : Natural := 0;
+         Enemy_Strength         : Natural := 0;
+         Unexplored_Systems     : Natural := 0;
+         Internal_Systems       : Natural := 0;
+         Nominal_Defense_Ships  : Natural := 0;
+         Defense_Ships          : Natural := 0;
+         Exploration_Ships      : Natural := 0;
+         Offense_Ships          : Natural := 0;
+         Defense_Destinations   : Destination_Vectors.Vector;
+         Explore_Destinations   : Destination_Vectors.Vector;
+         Attack_Destinations    : Destination_Vectors.Vector;
+         Awake                  : Boolean := True;
+         Planned_Offensive      : Boolean := False;
+         Launch_Offensive       : Boolean := False;
+         Required_Strength      : Natural := 0;
+         Available_Strength     : Natural := 0;
+         Local_Strength         : Natural := 0;
+         Attack_From            : Concorde.Systems.Star_System_Type;
+         Target                 : Concorde.Systems.Star_System_Type;
       end record;
 
-   procedure Update_Defensiveness
+   procedure Update_Attack_Factor
      (AI           : in out Root_AI_Type'Class;
       Enemy        : Concorde.Empires.Empire_Type;
       Can_Increase : Boolean := True;

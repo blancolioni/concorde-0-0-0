@@ -134,7 +134,9 @@ package body Concorde.AI is
 
       AI.Nominal_Defense_Ships := AI.Enemy_Strength;
       AI.Defense_Ships :=
-        Natural'Min (AI.Enemy_Strength * 3 / 4, Total_Ships);
+        Natural'Min
+          (Natural (Real (AI.Enemy_Strength) * AI.Minimum_Defense_Factor),
+           Total_Ships);
 
       if AI.Nominal_Defense_Ships = 0 then
          AI.Defense_Destinations.Clear;
@@ -371,8 +373,20 @@ package body Concorde.AI is
       return Non_Negative_Real
    is
    begin
-      return AI.Defensiveness;
+      return AI.Current_Attack_Factor;
    end Minimum_Attack_Factor;
+
+   ----------------------------
+   -- Minimum_Defense_Factor --
+   ----------------------------
+
+   function Minimum_Defense_Factor
+     (AI : Root_AI_Type)
+      return Non_Negative_Real
+   is
+   begin
+      return AI.Current_Defense_Factor;
+   end Minimum_Defense_Factor;
 
    ----------------
    -- Order_Ship --
@@ -637,26 +651,8 @@ package body Concorde.AI is
    is
       use Concorde.Empires;
    begin
---        if AI.Empire.Has_Focus (System) then
---           declare
---              Stop : Boolean := True;
---              Ns   : constant Concorde.Galaxy.Array_Of_Star_Systems :=
---                       Concorde.Galaxy.Neighbours (System);
---           begin
---              for N of Ns loop
---                 if N.Owner = null then
---                    Stop := False;
---                    AI.Empire.Add_Focus (N);
---                 end if;
---              end loop;
---              if not Stop then
---                 AI.Empire.Remove_Focus (System);
---              end if;
---           end;
---        end if;
-
       if Former_Owner /= null then
-         Update_Defensiveness (AI, Former_Owner);
+         AI.Update_Attack_Factor (Former_Owner);
       end if;
 
       if AI.Planned_Offensive
@@ -681,7 +677,9 @@ package body Concorde.AI is
       New_Owner : Concorde.Empires.Empire_Type)
    is
    begin
-      Update_Defensiveness (AI, New_Owner, Can_Decrease => False);
+
+      AI.Update_Attack_Factor
+        (New_Owner, Can_Decrease => False);
 
       if AI.Planned_Offensive
         and then AI.Attack_From.Index = System.Index
@@ -699,33 +697,33 @@ package body Concorde.AI is
    -- Update_Defensiveness --
    --------------------------
 
-   procedure Update_Defensiveness
+   procedure Update_Attack_Factor
      (AI           : in out Root_AI_Type'Class;
       Enemy        : Concorde.Empires.Empire_Type;
       Can_Increase : Boolean := True;
       Can_Decrease : Boolean := True)
    is
-      D : Non_Negative_Real;
+      AF : Non_Negative_Real;
    begin
       if AI.Empire.Current_Ships > Enemy.Current_Ships then
-         D := 1.2;
+         AF := 1.2;
       elsif AI.Empire.Current_Ships = 0
         or else AI.Empire.Current_Ships * 4 < Enemy.Current_Ships
       then
-         D := 4.0;
+         AF := 4.0;
       else
-         D :=
+         AF :=
            Real (Enemy.Current_Ships) * 1.3
            / Real (AI.Empire.Current_Ships);
       end if;
 
-      if (D < AI.Defensiveness and then Can_Decrease)
-        or else (D > AI.Defensiveness and then Can_Increase)
+      if (AF < AI.Current_Attack_Factor and then Can_Decrease)
+        or else (AF > AI.Current_Attack_Factor and then Can_Increase)
       then
-         AI.Defensiveness := (AI.Defensiveness + D) / 2.0;
+         AI.Current_Attack_Factor := (AI.Current_Attack_Factor + AF) / 2.0;
       end if;
 
-   end Update_Defensiveness;
+   end Update_Attack_Factor;
 
    ------------------
    -- Update_Focus --

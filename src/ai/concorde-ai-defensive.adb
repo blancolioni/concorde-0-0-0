@@ -7,6 +7,11 @@ package body Concorde.AI.Defensive is
       return Non_Negative_Real
    is (3.0);
 
+   overriding function Minimum_Defense_Factor
+     (AI : Defensive_AI_Type)
+      return Non_Negative_Real
+   is (1.2);
+
    ----------------
    -- Defensive_AI --
    ----------------
