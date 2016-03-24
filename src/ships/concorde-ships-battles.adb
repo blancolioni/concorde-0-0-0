@@ -275,8 +275,8 @@ package body Concorde.Ships.Battles is
    begin
       for I in 2 .. Es'Last loop
          for J in 1 .. I - 1 loop
-            if Es (I).Relationship (Es (J)) < 0
-              or else Es (J).Relationship (Es (I)) < 0
+            if Es (I).Relationship (Es (J)) <= 0
+              or else Es (J).Relationship (Es (I)) <= 0
             then
                return True;
             end if;
