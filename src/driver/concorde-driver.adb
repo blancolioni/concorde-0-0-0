@@ -16,12 +16,16 @@ with Concorde.Empires.Logging;
 
 with Concorde.Options;
 
+with Concorde.AI.Configure;
+
 procedure Concorde.Driver is
 begin
 
    if Concorde.Options.Randomise then
       WL.Random.Randomise;
    end if;
+
+   Concorde.AI.Configure.Register;
 
    Concorde.Galaxy.Create.Create_Galaxy
      (System_Count        => Concorde.Options.Number_Of_Systems,

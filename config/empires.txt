@@ -1,10 +1,3 @@
-byz = {
-   name = Byzantium
-   capital = Constantinople
-   colour = { 102 2 60 }
-   ai = defensive
-}
-
 mallorea = {
    name = Mallorea
    capital = "Mal Zeth"
@@ -15,6 +8,14 @@ argan = {
    name = Argan
    capital = "Harvest Plains"
    colour = { 255 144 30 }
+   ai = test
+}
+
+byz = {
+   name = Byzantium
+   capital = Constantinople
+   colour = { 102 2 60 }
+   ai = defensive
 }
 
 itc = {
@@ -23,22 +24,10 @@ itc = {
    colour = { 144 255 30 }
 }
 
-hre = {
-   name = "Holy Roman Empire"
-   capital = Vienna
-   colour = { 160 160 0 }
-}
-
 cal = {
    name = Caledonia
    capital = Dublin
    colour = { 0 160 0 }
-}
-
-heg = {
-   name = "The Hegemony"
-   capital = "Tau Ceti Centre"
-   colour = { 0 0 160 }
 }
 
 mac = {
@@ -47,22 +36,10 @@ mac = {
    colour = { 106 74 60 }
 }
 
-mnb = {
-   name = Melniboné
-   capital = Imrryr
-   colour = { 84 121 128 }
-}
-
 rome = {
    name = Rome
    capital = Rome
    colour = { 192 41 66 }
-}
-
-council = {
-   name = "The Council"
-   capital = "Citidel Station"
-   colour = { 85 98 112 }
 }
 
 rovac = {
@@ -88,3 +65,28 @@ federation = {
    capital = Earth
    colour = { 255 215 0 }
 }
+
+mnb = {
+   name = Melniboné
+   capital = Imrryr
+   colour = { 84 121 128 }
+}
+
+hre = {
+   name = "Holy Roman Empire"
+   capital = Vienna
+   colour = { 160 160 0 }
+}
+
+heg = {
+   name = "The Hegemony"
+   capital = "Tau Ceti Centre"
+   colour = { 0 0 160 }
+}
+
+council = {
+   name = "The Council"
+   capital = "Citidel Station"
+   colour = { 85 98 112 }
+}
+

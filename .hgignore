@@ -14,3 +14,4 @@ GNAT-TEMP*.TMP
 gmon.out
 build/obj/*
 gprof.txt
+ai-tests/*

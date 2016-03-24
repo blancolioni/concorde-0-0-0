@@ -5,7 +5,7 @@ with Concorde.Galaxy;
 
 with Concorde.Ships.Lists;
 
-package body Concorde.AI.Default is
+package body Concorde.AI.Test is
 
    Max_Battle_Damage : constant := 0.1;
    Max_Defence_Damage : constant := 0.2;
@@ -13,47 +13,47 @@ package body Concorde.AI.Default is
 
    procedure Shuffle (V : in out Destination_Vectors.Vector);
 
-   type Root_Default_AI_Type is
+   type Root_Test_AI_Type is
      new Root_AI_Type with null record;
 
    overriding procedure Allocate_Ships
-     (AI : in out Root_Default_AI_Type);
+     (AI : in out Root_Test_AI_Type);
 
-   overriding function Awake (AI : Root_Default_AI_Type) return Boolean;
+   overriding function Awake (AI : Root_Test_AI_Type) return Boolean;
 
    overriding function Minimum_Attack_Factor
-     (AI : Root_Default_AI_Type)
+     (AI : Root_Test_AI_Type)
       return Non_Negative_Real;
 
    overriding procedure Order_Ship
-     (AI : in out Root_Default_AI_Type;
+     (AI : in out Root_Test_AI_Type;
       Ship : not null access Concorde.Ships.Root_Ship_Type'Class);
 
    overriding procedure Start
-     (AI     : in out Root_Default_AI_Type;
+     (AI     : in out Root_Test_AI_Type;
       Empire : Concorde.Empires.Empire_Type);
 
    overriding procedure System_Acquired
-     (AI           : in out Root_Default_AI_Type;
+     (AI           : in out Root_Test_AI_Type;
       System       : Concorde.Systems.Star_System_Type;
       Former_Owner : Concorde.Empires.Empire_Type);
 
    overriding procedure System_Lost
-     (AI        : in out Root_Default_AI_Type;
+     (AI        : in out Root_Test_AI_Type;
       System    : Concorde.Systems.Star_System_Type;
       New_Owner : Concorde.Empires.Empire_Type);
 
    overriding procedure Update_Focus
-     (AI : in out Root_Default_AI_Type);
+     (AI : in out Root_Test_AI_Type);
 
-   overriding procedure Wake (AI : in out Root_Default_AI_Type);
+   overriding procedure Wake (AI : in out Root_Test_AI_Type);
 
    --------------------
    -- Allocate_Ships --
    --------------------
 
    overriding procedure Allocate_Ships
-     (AI : in out Root_Default_AI_Type)
+     (AI : in out Root_Test_AI_Type)
    is
       use type Concorde.Systems.Star_System_Type;
 
@@ -403,26 +403,17 @@ package body Concorde.AI.Default is
    -- Awake --
    -----------
 
-   overriding function Awake (AI : Root_Default_AI_Type) return Boolean is
+   overriding function Awake (AI : Root_Test_AI_Type) return Boolean is
    begin
       return AI.Awake;
    end Awake;
-
-   ----------------
-   -- Default_AI --
-   ----------------
-
-   function Default_AI return AI_Type is
-   begin
-      return new Root_Default_AI_Type;
-   end Default_AI;
 
    ---------------------------
    -- Minimum_Attack_Factor --
    ---------------------------
 
    overriding function Minimum_Attack_Factor
-     (AI : Root_Default_AI_Type)
+     (AI : Root_Test_AI_Type)
       return Non_Negative_Real
    is
    begin
@@ -434,7 +425,7 @@ package body Concorde.AI.Default is
    ----------------
 
    overriding procedure Order_Ship
-     (AI : in out Root_Default_AI_Type;
+     (AI : in out Root_Test_AI_Type;
       Ship : not null access Concorde.Ships.Root_Ship_Type'Class)
    is
 
@@ -653,7 +644,7 @@ package body Concorde.AI.Default is
    -----------
 
    overriding procedure Start
-     (AI     : in out Root_Default_AI_Type;
+     (AI     : in out Root_Test_AI_Type;
       Empire : Concorde.Empires.Empire_Type)
    is
       pragma Unreferenced (AI);
@@ -692,7 +683,7 @@ package body Concorde.AI.Default is
    ---------------------
 
    overriding procedure System_Acquired
-     (AI           : in out Root_Default_AI_Type;
+     (AI           : in out Root_Test_AI_Type;
       System       : Concorde.Systems.Star_System_Type;
       Former_Owner : Concorde.Empires.Empire_Type)
    is
@@ -737,7 +728,7 @@ package body Concorde.AI.Default is
    -----------------
 
    overriding procedure System_Lost
-     (AI        : in out Root_Default_AI_Type;
+     (AI        : in out Root_Test_AI_Type;
       System    : Concorde.Systems.Star_System_Type;
       New_Owner : Concorde.Empires.Empire_Type)
    is
@@ -756,12 +747,21 @@ package body Concorde.AI.Default is
 
    end System_Lost;
 
+   -------------
+   -- Test_AI --
+   -------------
+
+   function Test_AI return AI_Type is
+   begin
+      return new Root_Test_AI_Type;
+   end Test_AI;
+
    ------------------
    -- Update_Focus --
    ------------------
 
    overriding procedure Update_Focus
-     (AI : in out Root_Default_AI_Type)
+     (AI : in out Root_Test_AI_Type)
    is
       function Other_Owner
         (System : Concorde.Systems.Star_System_Type)
@@ -878,7 +878,7 @@ package body Concorde.AI.Default is
                Ratio : constant Real :=
                          Real (Attackers) / Real (Defenders);
                Min   : constant Real :=
-                         Root_Default_AI_Type'Class (AI).Minimum_Attack_Factor;
+                         Root_Test_AI_Type'Class (AI).Minimum_Attack_Factor;
             begin
                if Ratio > Min then
 --                    Concorde.Empires.Logging.Log
@@ -936,9 +936,9 @@ package body Concorde.AI.Default is
    -- Wake --
    ----------
 
-   overriding procedure Wake (AI : in out Root_Default_AI_Type) is
+   overriding procedure Wake (AI : in out Root_Test_AI_Type) is
    begin
       AI.Awake := True;
    end Wake;
 
-end Concorde.AI.Default;
+end Concorde.AI.Test;

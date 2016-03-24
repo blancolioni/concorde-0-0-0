@@ -1,8 +1,7 @@
 with Tropos.Reader;
 with Concorde.Paths;
 
-with Concorde.AI.Default;
-with Concorde.AI.Defensive;
+with Concorde.AI.Configure;
 
 with Concorde.Empires.Create;
 
@@ -32,11 +31,9 @@ package body Concorde.Empires.Configure is
             Red     : constant Natural := Colour.Get (1);
             Green   : constant Natural := Colour.Get (2);
             Blue    : constant Natural := Colour.Get (3);
-            AI_Name : constant String := Config.Get ("ai", "");
+            AI_Name : constant String := Config.Get ("ai", "default");
             AI      : constant Concorde.AI.AI_Type :=
-                        (if AI_Name = "defensive"
-                         then Concorde.AI.Defensive.Defensive_AI
-                         else Concorde.AI.Default.Default_AI);
+                        Concorde.AI.Configure.Get_AI (AI_Name);
          begin
             Concorde.Empires.Create.New_Empire
               (Name    => Name,
