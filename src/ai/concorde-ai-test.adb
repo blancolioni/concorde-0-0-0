@@ -499,7 +499,9 @@ package body Concorde.AI.Test is
       if Ship.Has_Destination
         and then (Ship.System = Ship.Destination
                   or else AI.Empire.Next_Path_Node_Index
-                    (Ship.System, Ship.Destination) = 0)
+                    (Ship.System, Ship.Destination) = 0
+                  or else (not AI.Empire.Owned_System (Ship.Destination)
+                           and then Ship.Destination.Owned))
       then
          Ship.Set_Destination (null);
       end if;
