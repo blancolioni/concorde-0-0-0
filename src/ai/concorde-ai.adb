@@ -3,7 +3,12 @@ with WL.Random;
 with Concorde.Empires.Logging;
 with Concorde.Galaxy;
 
+with Concorde.Ships.Lists;
 package body Concorde.AI is
+
+   Max_Battle_Damage : constant := 0.1;
+   Max_Defence_Damage : constant := 0.2;
+   Max_Explore_Damage : constant := 0.6;
 
    procedure Shuffle (V : in out Destination_Vectors.Vector);
 
@@ -18,12 +23,6 @@ package body Concorde.AI is
 
       Total_Systems      : constant Natural := AI.Empire.Current_Systems;
       Total_Ships        : constant Natural := AI.Empire.Current_Ships;
-
-      function Local_Undamaged
-        (Ship : Concorde.Ships.Ship_Type)
-               return Boolean
-      is (Ship.System = AI.Attack_From
-          and then Ship.Damage < 0.1);
 
       function Destination_Planned_Offensive
         (Ship : Concorde.Ships.Ship_Type)
@@ -217,6 +216,7 @@ package body Concorde.AI is
 
       if not AI.Planned_Offensive
         and then not AI.Attack_Destinations.Is_Empty
+        and then AI.Offense_Ships > 0
       then
 
          declare
@@ -301,23 +301,33 @@ package body Concorde.AI is
 
       if AI.Planned_Offensive then
          declare
-            Available_Ships : constant Natural :=
-                                Concorde.Ships.Count_Ships
-                                  (Local_Undamaged'Access);
-            Committed_Ships : constant Integer :=
-                                Available_Ships
-                                  - AI.Empire.Required (AI.Attack_From);
-            Opposition      : constant Natural := AI.Target.Ships;
+            Available_Ships     : Concorde.Ships.Lists.List;
+            Committed_Ships     : Integer := 0;
+            Opposition          : Concorde.Ships.Lists.List;
+            Opposition_Strength : Non_Negative_Real := 0.0;
          begin
+            AI.Attack_From.Get_Ships (Available_Ships);
+            AI.Target.Get_Ships (Opposition);
+
+            for Ship of Available_Ships loop
+               if Ship.Damage < Max_Battle_Damage then
+                  Committed_Ships := Committed_Ships + 1;
+               end if;
+            end loop;
+
+            for Ship of Opposition loop
+               Opposition_Strength := Opposition_Strength +
+                 1.0 - Ship.Damage;
+            end loop;
 
             AI.Available_Strength :=
-              AI.Attack_From.Ships +
+              Committed_Ships +
                 Concorde.Ships.Count_Ships
                   (Destination_Planned_Offensive'Access);
-            AI.Local_Strength := Available_Ships;
+            AI.Local_Strength := Committed_Ships;
             AI.Required_Strength :=
               Natural'Max
-                (Natural (Real (Opposition) * AI.Minimum_Attack_Factor)
+                (Natural (Opposition_Strength * AI.Minimum_Attack_Factor)
                  + AI.Empire.Required (AI.Attack_From) + 1,
                  5);
 
@@ -331,7 +341,7 @@ package body Concorde.AI is
                   & Natural'Image (Committed_Ships)
                   & " on " & AI.Target.Name
                   & " with"
-                  & Natural'Image (Opposition)
+                  & Natural'Image (Natural (Opposition_Strength))
                   & " owned by " & AI.Target.Owner.Name);
             else
                Concorde.Empires.Logging.Log
@@ -344,7 +354,7 @@ package body Concorde.AI is
                   & "; required"
                   & Natural'Image (AI.Required_Strength)
                   & "; opposition"
-                  & Natural'Image (Opposition));
+                  & Natural'Image (Natural (Opposition_Strength)));
             end if;
          end;
       end if;
@@ -447,6 +457,9 @@ package body Concorde.AI is
 
    begin
 
+      Empires.Logging.Log
+        (AI.Empire, Ship.Short_Description);
+
       if Ship.Has_Destination
         and then (Ship.System = Ship.Destination
                   or else AI.Empire.Next_Path_Node_Index
@@ -459,7 +472,7 @@ package body Concorde.AI is
          null;
       elsif AI.Planned_Offensive
         and then Ship.System = AI.Attack_From
-        and then AI.Attack_From.Ships <= AI.Required_Strength
+        and then AI.Attack_From.Ships < AI.Required_Strength
       then
          if AI.Launch_Offensive then
             Empires.Logging.Log
@@ -488,7 +501,7 @@ package body Concorde.AI is
 
          if AI.Launch_Offensive
            and then Ship.System = AI.Attack_From
-           and then Ship.Damage < 0.4
+           and then Ship.Damage < Max_Battle_Damage
          then
             Empires.Logging.Log
               (AI.Empire,
@@ -498,11 +511,11 @@ package body Concorde.AI is
             Stop := True;
          end if;
 
-         if not Stop and then Ship.Damage < 0.2 then
+         if not Stop and then Ship.Damage < Max_Defence_Damage then
             Choose_Destination (AI.Defense_Destinations, Stop);
          end if;
 
-         if not Stop and then Ship.Damage < 0.6 then
+         if not Stop and then Ship.Damage < Max_Explore_Damage then
             Choose_Destination (AI.Explore_Destinations, Stop);
          end if;
 
@@ -514,13 +527,16 @@ package body Concorde.AI is
                & "; available ="
                & AI.Available_Strength'Img
                & "; connected: "
-               & (if AI.Empire.Next_Path_Node_Index
-                 (Ship.System, AI.Attack_From) /= 0
+               & (if Ship.System = AI.Attack_From
+                 then "yes"
+                 elsif AI.Empire.Next_Path_Node_Index
+                   (Ship.System, AI.Attack_From) /= 0
                  then "yes" else "no"));
 
             if AI.Required_Strength > AI.Available_Strength
-              and then AI.Empire.Next_Path_Node_Index
-                (Ship.System, AI.Attack_From) /= 0
+              and then (Ship.System = AI.Attack_From
+                        or else AI.Empire.Next_Path_Node_Index
+                          (Ship.System, AI.Attack_From) /= 0)
             then
                Stop := True;
                if Ship.System = AI.Attack_From then
