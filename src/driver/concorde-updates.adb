@@ -10,8 +10,12 @@ with Concorde.Locking;
 
 package body Concorde.Updates is
 
+   Update_Delay : constant array (Update_Speed) of Duration :=
+                    (0.1, 2.0, 1.0, 0.5, 0.2, 0.01);
+
    task type Update_Task is
       entry Stop;
+      entry Set_Speed (New_Speed : Update_Speed);
    end Update_Task;
 
    type Update_Task_Access is access Update_Task;
@@ -56,6 +60,17 @@ package body Concorde.Updates is
       Render_Lock.Unlock;
    end Perform_Update;
 
+   ----------------------
+   -- Set_Update_Speed --
+   ----------------------
+
+   procedure Set_Update_Speed
+     (Speed : Update_Speed)
+   is
+   begin
+      Current_Update_Task.Set_Speed (Speed);
+   end Set_Update_Speed;
+
    -------------------
    -- Start_Updates --
    -------------------
@@ -81,14 +96,21 @@ package body Concorde.Updates is
    -----------------
 
    task body Update_Task is
+      Speed : Update_Speed := 0;
    begin
       loop
          select
             accept Stop;
             exit;
+         or
+            accept Set_Speed (New_Speed : in Update_Speed) do
+               Speed := New_Speed;
+            end Set_Speed;
          else
-            delay 0.2;
-            Perform_Update;
+            delay Update_Delay (Speed);
+            if Speed > 0 then
+               Perform_Update;
+            end if;
          end select;
       end loop;
    end Update_Task;
