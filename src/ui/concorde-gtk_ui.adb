@@ -5,6 +5,7 @@ with Glib.Error;
 
 with Gtk.Box;
 with Gtk.Builder;
+with Gtk.Button;
 with Gtk.Label;
 with Gtk.Main;
 with Gtk.Notebook;
@@ -14,6 +15,7 @@ with Gtk.Window;
 with Concorde.Dates;
 with Concorde.Galaxy.Model;
 with Concorde.Paths;
+with Concorde.Updates;
 
 with Lui.Models;
 
@@ -56,6 +58,15 @@ package body Concorde.Gtk_UI is
      (State : in out Concorde_UI);
 
    procedure Destroy_Handler (W : access Gtk.Widget.Gtk_Widget_Record'Class);
+
+   procedure On_Pause_Button_Clicked
+     (Button : access Gtk.Button.Gtk_Button_Record'Class);
+
+   procedure On_Play_1_Button_Clicked
+     (Button : access Gtk.Button.Gtk_Button_Record'Class);
+
+   procedure On_Play_2_Button_Clicked
+     (Button : access Gtk.Button.Gtk_Button_Record'Class);
 
    --------------------
    -- Append_Feature --
@@ -129,6 +140,42 @@ package body Concorde.Gtk_UI is
       end if;
    end On_Idle;
 
+   -----------------------------
+   -- On_Pause_Button_Clicked --
+   -----------------------------
+
+   procedure On_Pause_Button_Clicked
+     (Button : access Gtk.Button.Gtk_Button_Record'Class)
+   is
+      pragma Unreferenced (Button);
+   begin
+      Concorde.Updates.Set_Update_Speed (0);
+   end On_Pause_Button_Clicked;
+
+   ------------------------------
+   -- On_Play_1_Button_Clicked --
+   ------------------------------
+
+   procedure On_Play_1_Button_Clicked
+     (Button : access Gtk.Button.Gtk_Button_Record'Class)
+   is
+      pragma Unreferenced (Button);
+   begin
+      Concorde.Updates.Set_Update_Speed (1);
+   end On_Play_1_Button_Clicked;
+
+   ------------------------------
+   -- On_Play_2_Button_Clicked --
+   ------------------------------
+
+   procedure On_Play_2_Button_Clicked
+     (Button : access Gtk.Button.Gtk_Button_Record'Class)
+   is
+      pragma Unreferenced (Button);
+   begin
+      Concorde.Updates.Set_Update_Speed (4);
+   end On_Play_2_Button_Clicked;
+
    -----------
    -- Start --
    -----------
@@ -198,6 +245,22 @@ package body Concorde.Gtk_UI is
          Lui.Gtk_UI.Start
            (Main => UI,
             Top  => Concorde.Galaxy.Model.Galaxy_Model);
+      end;
+
+      declare
+         Pause  : constant Gtk.Button.Gtk_Button :=
+                    Gtk.Button.Gtk_Button
+                      (Builder.Get_Object ("Game_Pause"));
+         Play_1 : constant Gtk.Button.Gtk_Button :=
+                    Gtk.Button.Gtk_Button
+                      (Builder.Get_Object ("Game_Play_1"));
+         Play_2 : constant Gtk.Button.Gtk_Button :=
+                    Gtk.Button.Gtk_Button
+                      (Builder.Get_Object ("Game_Play_2"));
+      begin
+         Pause.On_Clicked (On_Pause_Button_Clicked'Access);
+         Play_1.On_Clicked (On_Play_1_Button_Clicked'Access);
+         Play_2.On_Clicked (On_Play_2_Button_Clicked'Access);
       end;
 
       Gtk.Main.Main;
