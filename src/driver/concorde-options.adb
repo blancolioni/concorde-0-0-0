@@ -23,11 +23,6 @@ package body Concorde.Options is
                            Default    : Integer := 0)
                           return Integer;
 
-   function Boolean_Value (Long_Name  : String;
-                           Short_Name : Character;
-                           Default    : Boolean := False)
-                           return Boolean;
-
    -------------------------
    -- Average_Connections --
    -------------------------
@@ -41,10 +36,11 @@ package body Concorde.Options is
    -- Boolean_Value --
    -------------------
 
-   function Boolean_Value (Long_Name  : String;
-                           Short_Name : Character;
-                           Default    : Boolean := False)
-                           return Boolean
+   function Boolean_Value
+     (Long_Name  : String;
+      Short_Name : Character := Character'Val (0);
+      Default    : Boolean := False)
+      return Boolean
    is
       use Ada.Strings.Fixed;
    begin
@@ -65,7 +61,8 @@ package body Concorde.Options is
               and then Argument (6 .. Argument'Last) = Long_Name
             then
                return False;
-            elsif Argument (1) = '-'
+            elsif Short_Name /= Character'Val (0)
+              and then Argument (1) = '-'
               and then Argument'Length > 1
               and then Argument (2) /= '-'
             then
