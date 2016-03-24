@@ -14,7 +14,10 @@ package body Concorde.AI.Test is
    procedure Shuffle (V : in out Destination_Vectors.Vector);
 
    type Root_Test_AI_Type is
-     new Root_AI_Type with null record;
+     new Root_AI_Type with
+      record
+         null;
+      end record;
 
    overriding procedure Allocate_Ships
      (AI : in out Root_Test_AI_Type);
@@ -319,6 +322,25 @@ package body Concorde.AI.Test is
 
                if Found then
                   AI.Attack_From := Closest_System;
+
+                  for N of Galaxy.Neighbours (AI.Attack_From) loop
+                     declare
+                        OK : Boolean := True;
+                     begin
+                        for M of Galaxy.Neighbours (N) loop
+                           if not AI.Empire.Owned_System (M) then
+                              OK := False;
+                              exit;
+                           end if;
+                        end loop;
+
+                        if OK then
+                           AI.Attack_From := N;
+                           exit;
+                        end if;
+                     end;
+                  end loop;
+
                   AI.Planned_Offensive := True;
                   AI.Launch_Offensive := False;
                end if;
@@ -330,7 +352,12 @@ package body Concorde.AI.Test is
               (AI.Empire,
                "planning attack on " & AI.Target.Name
                & " owned by " & AI.Target.Owner.Name
-               & " from " & AI.Attack_From.Name);
+               & " from " & AI.Attack_From.Name
+               & " (distance"
+               & Natural'Image
+                 (AI.Empire.Path_Length (AI.Attack_From, AI.Target))
+               & ")");
+
             AI.Empire.Set_Attack_Target (AI.Target, True);
          end if;
       end if;
@@ -508,7 +535,6 @@ package body Concorde.AI.Test is
          null;
       elsif AI.Planned_Offensive
         and then Ship.System = AI.Attack_From
-        and then AI.Attack_From.Ships < AI.Required_Strength
       then
          if AI.Launch_Offensive then
             Empires.Logging.Log
