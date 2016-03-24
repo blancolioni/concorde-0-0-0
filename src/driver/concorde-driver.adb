@@ -76,4 +76,12 @@ begin
 
    Concorde.Empires.Unload;
 
+exception
+
+   when others =>
+      if Concorde.Options.Enable_Empire_Logging then
+         Concorde.Empires.Logging.Stop_Logging;
+      end if;
+      raise;
+
 end Concorde.Driver;
