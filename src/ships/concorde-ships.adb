@@ -108,6 +108,16 @@ package body Concorde.Ships is
       end if;
    end Set_System;
 
+   -----------------------
+   -- Short_Description --
+   -----------------------
+
+   function Short_Description (Ship : Root_Ship_Type'Class) return String is
+   begin
+      return Ship.Long_Name & " dmg"
+        & Natural'Image (Natural (Ship.Damage * 100.0)) & "%";
+   end Short_Description;
+
    ------------
    -- System --
    ------------

@@ -12,6 +12,8 @@ package Concorde.Ships is
 
    function Long_Name (Ship : Root_Ship_Type'Class) return String;
 
+   function Short_Description (Ship : Root_Ship_Type'Class) return String;
+
    function Alive
      (Ship : Root_Ship_Type'Class)
       return Boolean;
