@@ -11,4 +11,6 @@ package Concorde.Empires.Logging is
      (Empire  : Root_Empire_Type'Class;
       Message : String);
 
+   procedure Flush_Log;
+
 end Concorde.Empires.Logging;
