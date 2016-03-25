@@ -177,7 +177,7 @@ package body Concorde.AI.Test is
 
       AI.Nominal_Defense_Ships := AI.Enemy_Strength;
       AI.Defense_Ships :=
-        Natural'Min (AI.Enemy_Strength * 3 / 4, Total_Ships);
+        Natural'Min (AI.Enemy_Strength * 4 / 3, Total_Ships);
 
       if AI.Nominal_Defense_Ships = 0 then
          AI.Defense_Destinations.Clear;
