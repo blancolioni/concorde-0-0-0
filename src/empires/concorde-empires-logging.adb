@@ -44,12 +44,12 @@ package body Concorde.Empires.Logging is
             begin
                Open (File, Append_File, Log_File_Path (Empire));
                New_Line (File);
-               Put_Line (File, "-----------------");
+               Put_Line (File, "----------------");
                Put_Line (File,
                          "-- "
                          & Concorde.Dates.To_String (Current_Log_Date)
                          & " --");
-               Put_Line (File, "-----------------");
+               Put_Line (File, "----------------");
                New_Line (File);
 
                for Line of Current_Logs.Element (Empire.Index) loop
