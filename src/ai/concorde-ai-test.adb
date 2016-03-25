@@ -406,14 +406,21 @@ package body Concorde.AI.Test is
                   & " with"
                   & Natural'Image (Natural (Opposition_Strength))
                   & " owned by " & AI.Target.Owner.Name);
+               for Ship of Available_Ships loop
+                  if Ship.Damage < Max_Battle_Damage then
+                     Ship.Set_Destination (AI.Target);
+                  end if;
+               end loop;
             else
                Concorde.Empires.Logging.Log
                  (AI.Empire,
                   "building attack from "
                   & AI.Attack_From.Name
                   & " on " & AI.Target.Name
-                  & ": current strength"
+                  & ": potential strength"
                   & Natural'Image (AI.Attack_From.Ships)
+                  & ": active strength"
+                  & Natural'Image (Committed_Ships)
                   & "; required"
                   & Natural'Image (AI.Required_Strength)
                   & "; opposition"
@@ -528,6 +535,7 @@ package body Concorde.AI.Test is
                   or else AI.Empire.Next_Path_Node_Index
                     (Ship.System, Ship.Destination) = 0
                   or else (not AI.Empire.Owned_System (Ship.Destination)
+                           and then Ship.Destination /= AI.Target
                            and then Ship.Destination.Owned))
       then
          Ship.Set_Destination (null);
@@ -541,10 +549,8 @@ package body Concorde.AI.Test is
          if AI.Launch_Offensive then
             Empires.Logging.Log
               (AI.Empire,
-               Ship.Name & " delays offensive because only"
-               & Natural'Image (AI.Attack_From.Ships)
-               & " are available and we need"
-               & Natural'Image (AI.Required_Strength));
+               Ship.Name & " delays offensive because "
+               & " no attack order was given");
          else
             Empires.Logging.Log
               (AI.Empire,
