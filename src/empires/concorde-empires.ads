@@ -178,6 +178,19 @@ package Concorde.Empires is
       Attack_Target : Boolean);
    --  Attack_Target: Emprie planning an attack on this system
 
+   function Is_Opportunity_Target
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean;
+
+   procedure Set_Opportunity_Target
+     (Empire             : in out Root_Empire_Type'Class;
+      System             : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Opportunity_Target : Boolean);
+   --  Opportunity target: undefended system we can attack
+
    function Required
      (Empire : Root_Empire_Type'Class;
       System : not null access constant
@@ -264,13 +277,14 @@ private
 
    type Empire_Star_System_Record is
       record
-         Focus     : Boolean := False;
-         Internal  : Boolean := False;
-         Frontier  : Boolean := False;
-         Border    : Boolean := False;
-         Neighbour : Boolean := False;
-         Attack    : Boolean := False;
-         Required  : Integer := 0;
+         Focus       : Boolean := False;
+         Internal    : Boolean := False;
+         Frontier    : Boolean := False;
+         Border      : Boolean := False;
+         Neighbour   : Boolean := False;
+         Attack      : Boolean := False;
+         Opportunity : Boolean := False;
+         Required    : Integer := 0;
          Next_Node : Destination_Next_Access := null;
       end record
      with Pack;

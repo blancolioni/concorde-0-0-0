@@ -407,6 +407,20 @@ package body Concorde.Empires is
       return Empire.System_Data (System.Index).Neighbour;
    end Is_Neighbour;
 
+   ---------------------------
+   -- Is_Opportunity_Target --
+   ---------------------------
+
+   function Is_Opportunity_Target
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean
+   is
+   begin
+      return Empire.System_Data (System.Index).Opportunity;
+   end Is_Opportunity_Target;
+
    ------------------------------
    -- Maximum_Supported_Ships --
    ------------------------------
@@ -682,6 +696,20 @@ package body Concorde.Empires is
    begin
       Empire.System_Data (System.Index).Neighbour := Neighbour;
    end Set_Neighbour;
+
+   ----------------------------
+   -- Set_Opportunity_Target --
+   ----------------------------
+
+   procedure Set_Opportunity_Target
+     (Empire        : in out Root_Empire_Type'Class;
+      System        : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Opportunity_Target : Boolean)
+   is
+   begin
+      Empire.System_Data (System.Index).Opportunity := Opportunity_Target;
+   end Set_Opportunity_Target;
 
    ----------------------
    -- Set_Relationship --
