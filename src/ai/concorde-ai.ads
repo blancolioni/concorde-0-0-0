@@ -53,7 +53,10 @@ private
       end record;
 
    package Destination_Vectors is
-     new Ada.Containers.Vectors (Positive, Destination_Info);
+     new Ada.Containers.Vectors
+       (Index_Type   => Positive,
+        Element_Type => Concorde.Systems.Star_System_Type,
+        "="          => Concorde.Systems."=");
 
    type Root_AI_Type is abstract tagged
       record

@@ -76,12 +76,10 @@ package body Concorde.AI is
                      end if;
                      AI.Enemy_Strength := AI.Enemy_Strength + Threat_Ships;
                   end;
-                  AI.Attack_Destinations.Append
-                    ((System => System));
+                  AI.Attack_Destinations.Append (System);
                else
                   AI.Unexplored_Systems := AI.Unexplored_Systems + 1;
-                  AI.Explore_Destinations.Append
-                    ((System => System));
+                  AI.Explore_Destinations.Append (System);
                   AI.Empire.Change_Required (System, 1);
                end if;
             elsif AI.Empire.Is_Border (System) then
@@ -102,8 +100,7 @@ package body Concorde.AI is
                   end loop;
 
                   if Required > 0 then
-                     AI.Defense_Destinations.Append
-                       ((System => System));
+                     AI.Defense_Destinations.Append (System);
                      AI.Empire.Change_Required (System, Required);
 
                      Concorde.Empires.Logging.Log
@@ -144,20 +141,21 @@ package body Concorde.AI is
 
       for I in 1 .. AI.Defense_Destinations.Last_Index loop
          declare
-            Info : Destination_Info renames AI.Defense_Destinations (I);
+            Defense_System : Concorde.Systems.Star_System_Type
+            renames AI.Defense_Destinations (I);
          begin
             AI.Empire.Set_Required
-              (Info.System,
-               AI.Empire.Required (Info.System)
+              (Defense_System,
+               AI.Empire.Required (Defense_System)
                * AI.Defense_Ships / AI.Nominal_Defense_Ships);
             Concorde.Empires.Logging.Log
               (AI.Empire,
-               Info.System.Name
+               Defense_System.Name
                & " allocated"
-               & Integer'Image (AI.Empire.Required (Info.System))
+               & Integer'Image (AI.Empire.Required (Defense_System))
                & " ships for defence; currently has"
-               & Natural'Image (Info.System.Ships));
-            AI.Empire.Change_Required (Info.System, -Info.System.Ships);
+               & Natural'Image (Defense_System.Ships));
+            AI.Empire.Change_Required (Defense_System, -Defense_System.Ships);
          end;
       end loop;
 
@@ -232,18 +230,18 @@ package body Concorde.AI is
                declare
                   D : constant Natural :=
                         AI.Empire.Path_Length
-                          (AI.Empire.Capital, Info.System);
+                          (AI.Empire.Capital, Info);
                   Opp : constant Natural :=
-                          Info.System.Ships;
+                          Info.Ships;
                begin
                   if D < Shortest_Distance then
                      Shortest_Distance := D;
-                     Closest_System := Info.System;
+                     Closest_System := Info;
                      Found := True;
                   end if;
                   if Opp < Least_Opposition then
                      Least_Opposition := Opp;
-                     Easiest_System := Info.System;
+                     Easiest_System := Info;
                      Found := True;
                   end if;
                end;
@@ -416,13 +414,13 @@ package body Concorde.AI is
 
          for I in 1 .. V.Last_Index loop
             declare
-               Dest : Destination_Info renames
+               Dest : Concorde.Systems.Star_System_Type renames
                         V.Element (I);
                Hops : constant Natural :=
                         AI.Empire.Path_Length
-                          (Ship.System, Dest.System);
+                          (Ship.System, Dest);
             begin
-               if AI.Empire.Required (Dest.System) > 0
+               if AI.Empire.Required (Dest) > 0
                  and then Hops < Minimum_Hops
                then
                   Closest_Index := I;
@@ -435,15 +433,16 @@ package body Concorde.AI is
             Stop := True;
             if Minimum_Hops > 0 then
                declare
-                  Dest : Destination_Info renames V (Closest_Index);
+                  Dest : Concorde.Systems.Star_System_Type renames
+                           V (Closest_Index);
                begin
-                  Ship.Set_Destination (Dest.System);
-                  AI.Empire.Change_Required (Dest.System, -1);
+                  Ship.Set_Destination (Dest);
+                  AI.Empire.Change_Required (Dest, -1);
 
                   Empires.Logging.Log
                     (AI.Empire,
                      "ordering " & Ship.Name & " to "
-                     & Dest.System.Name
+                     & Dest.Name
                      & " at distance"
                      & Minimum_Hops'Img);
                end;
@@ -591,7 +590,8 @@ package body Concorde.AI is
          begin
             if From_Index /= To_Index then
                declare
-                  T : constant Destination_Info := V.Element (From_Index);
+                  T : constant Concorde.Systems.Star_System_Type :=
+                        V.Element (From_Index);
                begin
                   V.Replace_Element (From_Index, V.Element (To_Index));
                   V.Replace_Element (To_Index, T);
