@@ -16,7 +16,7 @@ package body Concorde.AI.Test is
    type Root_Test_AI_Type is
      new Root_AI_Type with
       record
-         null;
+         Opportunity_Destinations : Destination_Vectors.Vector;
       end record;
 
    overriding procedure Allocate_Ships
@@ -88,6 +88,7 @@ package body Concorde.AI.Test is
       AI.Defense_Destinations.Clear;
       AI.Explore_Destinations.Clear;
       AI.Attack_Destinations.Clear;
+      AI.Opportunity_Destinations.Clear;
 
       AI.Available_Strength := 0;
       AI.Required_Strength  := 0;
@@ -108,6 +109,10 @@ package body Concorde.AI.Test is
                                       System.Owner.Current_Ships;
                      Threat_Ships : Natural := System.Ships;
                   begin
+                     if Threat_Ships = 0 then
+                        AI.Opportunity_Destinations.Append
+                          (System);
+                     end if;
                      if Enemy_Ships < AI.Empire.Current_Ships then
                         Threat_Ships := Threat_Ships
                           * Enemy_Ships / AI.Empire.Current_Ships;
