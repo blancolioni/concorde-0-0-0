@@ -17,7 +17,8 @@ package body Concorde.Galaxy.Create is
    procedure Create_Galaxy
      (System_Count        : Natural;
       Average_Connections : Positive;
-      Reset_Seed          : Boolean)
+      Reset_Seed          : Boolean;
+      Name_Generator      : WL.Random.Names.Name_Generator)
    is
       use Ada.Numerics.Float_Random;
       use Concorde.Systems;
@@ -82,6 +83,9 @@ package body Concorde.Galaxy.Create is
             Boundary : Concorde.Systems.System_Influence_Boundary
               (1 .. Influence.Vertex_Count (I));
             System   : Star_System_Access;
+            Name     : constant String :=
+                         WL.Random.Names.Random_Name
+                           (Name_Generator);
          begin
             for J in Boundary'Range loop
                Boundary (J) :=
@@ -90,7 +94,7 @@ package body Concorde.Galaxy.Create is
 
             System :=
               Concorde.Systems.Create.New_System
-                (I, "System" & I'Img, Xs (I), Ys (I), Boundary,
+                (I, Name, Xs (I), Ys (I), Boundary,
                  Production => 0.025,
                  Capacity   => 10.0);
 

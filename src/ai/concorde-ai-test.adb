@@ -14,7 +14,10 @@ package body Concorde.AI.Test is
    procedure Shuffle (V : in out Destination_Vectors.Vector);
 
    type Root_Test_AI_Type is
-     new Root_AI_Type with null record;
+     new Root_AI_Type with
+      record
+         null;
+      end record;
 
    overriding procedure Allocate_Ships
      (AI : in out Root_Test_AI_Type);
@@ -319,6 +322,25 @@ package body Concorde.AI.Test is
 
                if Found then
                   AI.Attack_From := Closest_System;
+
+                  for N of Galaxy.Neighbours (AI.Attack_From) loop
+                     declare
+                        OK : Boolean := True;
+                     begin
+                        for M of Galaxy.Neighbours (N) loop
+                           if not AI.Empire.Owned_System (M) then
+                              OK := False;
+                              exit;
+                           end if;
+                        end loop;
+
+                        if OK then
+                           AI.Attack_From := N;
+                           exit;
+                        end if;
+                     end;
+                  end loop;
+
                   AI.Planned_Offensive := True;
                   AI.Launch_Offensive := False;
                end if;
@@ -330,7 +352,12 @@ package body Concorde.AI.Test is
               (AI.Empire,
                "planning attack on " & AI.Target.Name
                & " owned by " & AI.Target.Owner.Name
-               & " from " & AI.Attack_From.Name);
+               & " from " & AI.Attack_From.Name
+               & " (distance"
+               & Natural'Image
+                 (AI.Empire.Path_Length (AI.Attack_From, AI.Target))
+               & ")");
+
             AI.Empire.Set_Attack_Target (AI.Target, True);
          end if;
       end if;
@@ -417,7 +444,7 @@ package body Concorde.AI.Test is
       return Non_Negative_Real
    is
    begin
-      return AI.Defensiveness;
+      return AI.Current_Attack_Factor;
    end Minimum_Attack_Factor;
 
    ----------------
@@ -510,7 +537,6 @@ package body Concorde.AI.Test is
          null;
       elsif AI.Planned_Offensive
         and then Ship.System = AI.Attack_From
-        and then AI.Attack_From.Ships < AI.Required_Strength
       then
          if AI.Launch_Offensive then
             Empires.Logging.Log
@@ -691,26 +717,8 @@ package body Concorde.AI.Test is
    is
       use Concorde.Empires;
    begin
---        if AI.Empire.Has_Focus (System) then
---           declare
---              Stop : Boolean := True;
---              Ns   : constant Concorde.Galaxy.Array_Of_Star_Systems :=
---                       Concorde.Galaxy.Neighbours (System);
---           begin
---              for N of Ns loop
---                 if N.Owner = null then
---                    Stop := False;
---                    AI.Empire.Add_Focus (N);
---                 end if;
---              end loop;
---              if not Stop then
---                 AI.Empire.Remove_Focus (System);
---              end if;
---           end;
---        end if;
-
       if Former_Owner /= null then
-         Update_Defensiveness (AI, Former_Owner);
+         AI.Update_Attack_Factor (Former_Owner);
       end if;
 
       if AI.Planned_Offensive
@@ -735,7 +743,7 @@ package body Concorde.AI.Test is
       New_Owner : Concorde.Empires.Empire_Type)
    is
    begin
-      Update_Defensiveness (AI, New_Owner, Can_Decrease => False);
+      AI.Update_Attack_Factor (New_Owner, Can_Decrease => False);
 
       if AI.Planned_Offensive
         and then AI.Attack_From.Index = System.Index

@@ -426,7 +426,7 @@ package body Concorde.AI.Default is
       return Non_Negative_Real
    is
    begin
-      return AI.Defensiveness;
+      return AI.Current_Attack_Factor;
    end Minimum_Attack_Factor;
 
    ----------------
@@ -698,26 +698,9 @@ package body Concorde.AI.Default is
    is
       use Concorde.Empires;
    begin
---        if AI.Empire.Has_Focus (System) then
---           declare
---              Stop : Boolean := True;
---              Ns   : constant Concorde.Galaxy.Array_Of_Star_Systems :=
---                       Concorde.Galaxy.Neighbours (System);
---           begin
---              for N of Ns loop
---                 if N.Owner = null then
---                    Stop := False;
---                    AI.Empire.Add_Focus (N);
---                 end if;
---              end loop;
---              if not Stop then
---                 AI.Empire.Remove_Focus (System);
---              end if;
---           end;
---        end if;
 
       if Former_Owner /= null then
-         Update_Defensiveness (AI, Former_Owner);
+         AI.Update_Attack_Factor (Former_Owner);
       end if;
 
       if AI.Planned_Offensive
@@ -742,7 +725,8 @@ package body Concorde.AI.Default is
       New_Owner : Concorde.Empires.Empire_Type)
    is
    begin
-      Update_Defensiveness (AI, New_Owner, Can_Decrease => False);
+      AI.Update_Attack_Factor
+        (New_Owner, Can_Decrease => False);
 
       if AI.Planned_Offensive
         and then AI.Attack_From.Index = System.Index
