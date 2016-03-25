@@ -19,6 +19,13 @@ package body Concorde.Empires.Logging is
    Current_Log_Date : Concorde.Dates.Date_Type := 0;
    Current_Logs     : Empire_Log_Vectors.Vector;
 
+   function Log_File_Path
+     (Empire : Empire_Type)
+      return String
+   is (Concorde.Paths.Config_Path & "/../log/empires/"
+       & Empire.Name
+       & ".txt");
+
    ---------------
    -- Flush_Log --
    ---------------
@@ -35,11 +42,16 @@ package body Concorde.Empires.Logging is
                use Ada.Text_IO;
                File : File_Type;
             begin
-               Create (File, Out_File,
-                       Concorde.Paths.Config_Path & "/../log/"
-                       & Concorde.Dates.To_String (Current_Log_Date)
-                       & " - " & Empire.Name
-                       & ".txt");
+               Open (File, Append_File, Log_File_Path (Empire));
+               New_Line (File);
+               Put_Line (File, "-----------------");
+               Put_Line (File,
+                         "-- "
+                         & Concorde.Dates.To_String (Current_Log_Date)
+                         & " --");
+               Put_Line (File, "-----------------");
+               New_Line (File);
+
                for Line of Current_Logs.Element (Empire.Index) loop
                   Put_Line (File, Line);
                end loop;
@@ -79,9 +91,7 @@ package body Concorde.Empires.Logging is
       end if;
 
       if Current_Log_Date = 0 then
-         for I in 1 .. Empire_Count loop
-            Current_Logs.Append (List_Of_Log_Lines.Empty_List);
-         end loop;
+         null;
       elsif Current_Log_Date /= Today then
          Flush_Log;
          Current_Log_Date := Today;
@@ -99,8 +109,19 @@ package body Concorde.Empires.Logging is
    procedure Start_Logging is
    begin
       if not Started then
-         Current_Log_Date := 0;
          Current_Logs.Clear;
+         for I in 1 .. Empire_Count loop
+            Current_Logs.Append (List_Of_Log_Lines.Empty_List);
+            declare
+               File : Ada.Text_IO.File_Type;
+            begin
+               Ada.Text_IO.Create (File, Ada.Text_IO.Out_File,
+                                   Log_File_Path (Vector (I)));
+               Ada.Text_IO.Close (File);
+            end;
+         end loop;
+
+         Current_Log_Date := 0;
          Started := True;
       end if;
    end Start_Logging;
