@@ -16,3 +16,4 @@ build/obj/*
 gprof.txt
 ai-tests/*
 log/*.txt
+log/empires/*.txt
