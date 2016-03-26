@@ -3,8 +3,6 @@ with Ada.Strings.Fixed.Hash_Case_Insensitive;
 with Ada.Containers.Indefinite_Hashed_Maps;
 
 with Concorde.AI.Default;
-with Concorde.AI.Defensive;
-with Concorde.AI.Test;
 
 package body Concorde.AI.Configure is
 
@@ -33,8 +31,6 @@ package body Concorde.AI.Configure is
    procedure Register is
    begin
       Register ("default", Concorde.AI.Default.Default_AI'Access);
-      Register ("defensive", Concorde.AI.Defensive.Defensive_AI'Access);
-      Register ("test", Concorde.AI.Test.Test_AI'Access);
    end Register;
 
    --------------

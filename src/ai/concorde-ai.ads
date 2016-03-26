@@ -10,35 +10,43 @@ package Concorde.AI is
 
    procedure Start
      (AI     : in out Root_AI_Type;
-      Empire : Concorde.Empires.Empire_Type);
+      Empire : Concorde.Empires.Empire_Type)
+   is abstract;
 
    procedure Update_Focus
-     (AI : in out Root_AI_Type);
+     (AI : in out Root_AI_Type)
+   is abstract;
 
    procedure System_Acquired
      (AI           : in out Root_AI_Type;
       System       : Concorde.Systems.Star_System_Type;
-      Former_Owner : Concorde.Empires.Empire_Type);
+      Former_Owner : Concorde.Empires.Empire_Type)
+   is abstract;
 
    procedure System_Lost
      (AI        : in out Root_AI_Type;
       System    : Concorde.Systems.Star_System_Type;
-      New_Owner : Concorde.Empires.Empire_Type);
+      New_Owner : Concorde.Empires.Empire_Type)
+   is abstract;
 
    function Minimum_Attack_Factor
      (AI : Root_AI_Type)
-      return Non_Negative_Real;
+      return Non_Negative_Real
+   is (1.0);
 
    function Minimum_Defense_Factor
      (AI : Root_AI_Type)
-      return Non_Negative_Real;
+      return Non_Negative_Real
+   is (1.0);
 
    procedure Allocate_Ships
-     (AI : in out Root_AI_Type);
+     (AI : in out Root_AI_Type)
+   is abstract;
 
    procedure Order_Ship
      (AI : in out Root_AI_Type;
-      Ship : not null access Concorde.Ships.Root_Ship_Type'Class);
+      Ship : not null access Concorde.Ships.Root_Ship_Type'Class)
+   is abstract;
 
    function Awake (AI : Root_AI_Type) return Boolean;
    procedure Wake (AI : in out Root_AI_Type);
