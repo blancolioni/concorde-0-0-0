@@ -201,7 +201,7 @@ package body Concorde.Galaxy.Model is
          end;
       end loop;
 
-      Bg.Alpha := 0.3;
+      Bg.Alpha := System.Loyalty * 0.3;
       Renderer.Draw_Polygon
         (Vertices => Points,
          Colour   => Bg,
