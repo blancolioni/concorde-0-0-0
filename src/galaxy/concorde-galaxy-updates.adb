@@ -45,6 +45,10 @@ package body Concorde.Galaxy.Updates is
                           (Concorde.Systems.Star_System_Type (System),
                            Ship_Owner);
                         Concorde.Empires.Logging.Log
+                          (Current_Owner,
+                           "loses control of " & System.Name & " to "
+                           & Ship_Owner.Name);
+                        Concorde.Empires.Logging.Log
                           (Ship_Owner,
                            "acquires " & System.Name & " from "
                            & Current_Owner.Name);
