@@ -225,6 +225,8 @@ package body Concorde.AI.Default is
            or else (AI.Attack_From /= AI.Empire.Capital
                     and then AI.Empire.Next_Path_Node_Index
                       (AI.Empire.Capital, AI.Attack_From) = 0)
+           or else AI.Empire.Next_Path_Node_Index
+             (AI.Attack_From, AI.Target) = 0
            or else AI.Target.Ships > AI.Offense_Ships
          then
             Concorde.Empires.Logging.Log
@@ -245,6 +247,9 @@ package body Concorde.AI.Default is
                    (AI.Empire.Capital, AI.Attack_From) = 0
                  then "we are not connected to the launch site "
                  & AI.Attack_From.Name
+                   elsif AI.Empire.Next_Path_Node_Index
+                   (AI.Attack_From, AI.Target) = 0
+                 then "the launch site is no longer connected to the target"
                  elsif AI.Target.Ships > AI.Offense_Ships
                  then "we need at least" & Natural'Image (AI.Target.Ships)
                  & " but have only" & Natural'Image (AI.Offense_Ships)
