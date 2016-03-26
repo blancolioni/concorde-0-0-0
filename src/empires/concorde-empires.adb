@@ -60,7 +60,8 @@ package body Concorde.Empires is
       return Natural
    is
    begin
-      return Integer'Max (Empire.Max_Ships - Empire.Current_Ships, 0);
+      return Integer'Max
+        (Natural (Empire.Max_Ships) - Empire.Current_Ships, 0);
    end Available_Ship_Capacity;
 
    -------------
@@ -305,6 +306,20 @@ package body Concorde.Empires is
    end Get;
 
    ---------------
+   -- Has_Claim --
+   ---------------
+
+   function Has_Claim
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean
+   is
+   begin
+      return Empire.System_Data (System.Index).Claim;
+   end Has_Claim;
+
+   ---------------
    -- Has_Focus --
    ---------------
 
@@ -430,7 +445,7 @@ package body Concorde.Empires is
       return Natural
    is
    begin
-      return Empire.Max_Ships;
+      return Natural (Empire.Max_Ships);
    end Maximum_Supported_Ships;
 
    -------------------------
@@ -654,6 +669,20 @@ package body Concorde.Empires is
    begin
       Empire.System_Data (System.Index).Border := Border;
    end Set_Border;
+
+   ---------------
+   -- Set_Claim --
+   ---------------
+
+   procedure Set_Claim
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Claim    : Boolean)
+   is
+   begin
+      Empire.System_Data (System.Index).Claim := Claim;
+   end Set_Claim;
 
    ------------------
    -- Set_Frontier --

@@ -125,6 +125,19 @@ package Concorde.Empires is
    --  Internal: this system is has connections only to other systems
    --  owned by Empire
 
+   function Has_Claim
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean;
+
+   procedure Set_Claim
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Claim    : Boolean);
+   --  Claim: Empire has cause to own this system
+
    function Is_Frontier
      (Empire   : in out Root_Empire_Type'Class;
       System   : not null access constant
@@ -284,6 +297,7 @@ private
          Neighbour   : Boolean := False;
          Attack      : Boolean := False;
          Opportunity : Boolean := False;
+         Claim       : Boolean := False;
          Required    : Integer := 0;
          Next_Node : Destination_Next_Access := null;
       end record
@@ -310,7 +324,7 @@ private
          System_Data     : access System_Data_Array;
          Empire_Data     : access Empire_Data_Array;
          AI              : access Concorde.AI.Root_AI_Type'Class;
-         Max_Ships       : Natural := 0;
+         Max_Ships       : Non_Negative_Real := 0.0;
          Current_Ships   : Natural := 0;
          Current_Systems : Natural := 0;
          Built_Ships     : Natural := 0;

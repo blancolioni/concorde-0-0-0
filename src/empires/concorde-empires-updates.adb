@@ -146,7 +146,7 @@ package body Concorde.Empires.Updates is
    procedure Update_Empires is
    begin
       for Empire of Vector loop
-         Empire.Max_Ships := 0;
+         Empire.Max_Ships := 0.0;
       end loop;
 
       for I in 1 .. Concorde.Galaxy.System_Count loop
@@ -157,7 +157,7 @@ package body Concorde.Empires.Updates is
          begin
             if Empire /= null then
                Empire.Max_Ships := Empire.Max_Ships
-                 + Natural (System.Capacity);
+                 + System.Capacity * System.Loyalty;
             end if;
          end;
       end loop;
