@@ -59,6 +59,9 @@ package body Concorde.Gtk_UI is
 
    procedure Destroy_Handler (W : access Gtk.Widget.Gtk_Widget_Record'Class);
 
+   procedure On_Step_Button_Clicked
+     (Button : access Gtk.Button.Gtk_Button_Record'Class);
+
    procedure On_Pause_Button_Clicked
      (Button : access Gtk.Button.Gtk_Button_Record'Class);
 
@@ -176,6 +179,18 @@ package body Concorde.Gtk_UI is
       Concorde.Updates.Set_Update_Speed (4);
    end On_Play_2_Button_Clicked;
 
+   ----------------------------
+   -- On_Step_Button_Clicked --
+   ----------------------------
+
+   procedure On_Step_Button_Clicked
+     (Button : access Gtk.Button.Gtk_Button_Record'Class)
+   is
+      pragma Unreferenced (Button);
+   begin
+      Concorde.Updates.Perform_Update;
+   end On_Step_Button_Clicked;
+
    -----------
    -- Start --
    -----------
@@ -257,10 +272,14 @@ package body Concorde.Gtk_UI is
          Play_2 : constant Gtk.Button.Gtk_Button :=
                     Gtk.Button.Gtk_Button
                       (Builder.Get_Object ("Game_Play_2"));
+         Step  : constant Gtk.Button.Gtk_Button :=
+                    Gtk.Button.Gtk_Button
+                      (Builder.Get_Object ("Game_Step"));
       begin
          Pause.On_Clicked (On_Pause_Button_Clicked'Access);
          Play_1.On_Clicked (On_Play_1_Button_Clicked'Access);
          Play_2.On_Clicked (On_Play_2_Button_Clicked'Access);
+         Step.On_Clicked (On_Step_Button_Clicked'Access);
       end;
 
       Gtk.Main.Main;
