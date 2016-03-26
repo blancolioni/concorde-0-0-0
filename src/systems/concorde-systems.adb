@@ -206,6 +206,18 @@ package body Concorde.Systems is
       return System.Battle_Size;
    end Last_Battle_Size;
 
+   -------------
+   -- Loyalty --
+   -------------
+
+   function Loyalty
+     (System : Root_Star_System_Type'Class)
+      return Unit_Real
+   is
+   begin
+      return System.Loyalty;
+   end Loyalty;
+
    -----------
    -- Owner --
    -----------
@@ -268,6 +280,8 @@ package body Concorde.Systems is
    is
    begin
       System.Capital := Is_Capital;
+      System.Loyalty := 1.0;
+      System.Original_Owner := null;
    end Set_Capital;
 
    ---------------
@@ -280,6 +294,19 @@ package body Concorde.Systems is
         Concorde.Empires.Root_Empire_Type'Class)
    is
    begin
+      if System.Owner /= null then
+         if System.Original_Owner = null then
+            System.Original_Owner := System.Owner;
+            System.Loyalty := 0.1;
+         elsif New_Owner = System.Original_Owner then
+            System.Loyalty := 1.0;
+            System.Original_Owner := null;
+         end if;
+      else
+         System.Original_Owner := null;
+         System.Loyalty := 1.0;
+      end if;
+
       System.Owner := New_Owner;
    end Set_Owner;
 

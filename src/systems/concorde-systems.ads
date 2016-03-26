@@ -21,6 +21,10 @@ package Concorde.Systems is
      (System : Root_Star_System_Type'Class)
       return access Concorde.Empires.Root_Empire_Type'Class;
 
+   function Loyalty
+     (System : Root_Star_System_Type'Class)
+      return Unit_Real;
+
    function Owned
      (System : Root_Star_System_Type'Class)
       return Boolean
@@ -132,21 +136,23 @@ private
    type Root_Star_System_Type is
      new Concorde.Objects.Root_Named_Object_Type with
       record
-         Index         : Positive;
-         X, Y          : Real;
-         Production    : Non_Negative_Real;
-         Capacity      : Non_Negative_Real;
-         Progress      : Non_Negative_Real;
-         Ships         : Concorde.Ships.Lists.List;
-         Arriving      : Concorde.Ships.Lists.List;
-         Departing     : Concorde.Ships.Lists.List;
-         Capital       : Boolean;
-         Last_Battle   : Concorde.Dates.Date_Type;
-         Battle_Size   : Natural;
-         Last_Attacker : Star_System_Type;
-         Owner         : access Concorde.Empires.Root_Empire_Type'Class;
-         Edges         : Edge_Info_Lists.List;
-         Boundary      : access System_Influence_Boundary;
+         Index          : Positive;
+         X, Y           : Real;
+         Production     : Non_Negative_Real;
+         Capacity       : Non_Negative_Real;
+         Progress       : Non_Negative_Real;
+         Ships          : Concorde.Ships.Lists.List;
+         Arriving       : Concorde.Ships.Lists.List;
+         Departing      : Concorde.Ships.Lists.List;
+         Capital        : Boolean;
+         Last_Battle    : Concorde.Dates.Date_Type;
+         Battle_Size    : Natural;
+         Last_Attacker  : Star_System_Type;
+         Owner          : access Concorde.Empires.Root_Empire_Type'Class;
+         Original_Owner : access Concorde.Empires.Root_Empire_Type'Class;
+         Loyalty        : Unit_Real;
+         Edges          : Edge_Info_Lists.List;
+         Boundary       : access System_Influence_Boundary;
       end record;
 
 end Concorde.Systems;
