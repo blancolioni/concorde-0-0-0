@@ -7,6 +7,11 @@ package Concorde.Ships.Battles is
      (Ships : Concorde.Ships.Lists.List)
       return Concorde.Empires.Array_Of_Empires;
 
+   function Empire_Ship_Count
+     (Empire : Concorde.Empires.Empire_Type;
+      Ships  : Concorde.Ships.Lists.List)
+      return Natural;
+
    function Has_Conflict
      (Ships : Concorde.Ships.Lists.List)
       return Boolean;

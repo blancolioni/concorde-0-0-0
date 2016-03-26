@@ -43,6 +43,25 @@ package body Concorde.Ships.Battles is
       end if;
    end Attack;
 
+   -----------------------
+   -- Empire_Ship_Count --
+   -----------------------
+
+   function Empire_Ship_Count
+     (Empire : Concorde.Empires.Empire_Type;
+      Ships  : Concorde.Ships.Lists.List)
+      return Natural
+   is
+      Count : Natural := 0;
+   begin
+      for Ship of Ships loop
+         if Ship.Owner = Empire then
+            Count := Count + 1;
+         end if;
+      end loop;
+      return Count;
+   end Empire_Ship_Count;
+
    ---------------------
    -- Empires_Present --
    ---------------------
