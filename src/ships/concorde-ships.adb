@@ -65,7 +65,7 @@ package body Concorde.Ships is
 
    function Long_Name (Ship : Root_Ship_Type'Class) return String is
    begin
-      return Ship.Name & " [" & Ship.System.Name & "]";
+      return Ship.Identity & " " & Ship.Name & " [" & Ship.System.Name & "]";
    end Long_Name;
 
    -----------
