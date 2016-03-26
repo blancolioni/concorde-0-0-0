@@ -124,6 +124,7 @@ package body Concorde.AI.Default is
                   AI.Unexplored_Systems := AI.Unexplored_Systems + 1;
                   AI.Explore_Destinations.Append (System);
                   AI.Empire.Change_Required (System, 1);
+                  AI.Empire.Set_Claim (System, True);
                end if;
             elsif AI.Empire.Is_Border (System) then
                AI.Border_Systems := AI.Border_Systems + 1;
