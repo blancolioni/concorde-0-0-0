@@ -55,8 +55,8 @@ package body Concorde.Updates is
       Concorde.Dates.Tick;
       Concorde.Galaxy.Updates.Update_System_Flags;
       Concorde.Empires.Updates.Update_Empire_AI;
-      Concorde.Galaxy.Updates.Update_Galaxy;
       Concorde.Empires.Updates.Update_Empires;
+      Concorde.Galaxy.Updates.Update_Galaxy;
       Render_Lock.Unlock;
    end Perform_Update;
 
