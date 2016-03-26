@@ -96,7 +96,7 @@ package body Concorde.Galaxy.Create is
               Concorde.Systems.Create.New_System
                 (I, Name, Xs (I), Ys (I), Boundary,
                  Production => 0.025,
-                 Capacity   => 10.0);
+                 Capacity   => 2.0);
 
             Galaxy_Graph.Append (Concorde.Systems.Star_System_Type (System));
             Galaxy_Vector.Append (System);
