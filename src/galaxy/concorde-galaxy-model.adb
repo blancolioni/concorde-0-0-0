@@ -9,6 +9,9 @@ with Concorde.Dates;
 with Concorde.Elementary_Functions;
 with Concorde.Empires;
 
+with Concorde.Ships.Battles;
+with Concorde.Ships.Lists;
+
 with Concorde.Galaxy.Locking;
 
 with Concorde.Updates;
@@ -17,7 +20,13 @@ with Concorde.Options;
 
 package body Concorde.Galaxy.Model is
 
-   subtype Empire_Column is Integer range 1 .. 4;
+   System_Radius : constant := 5;
+
+   function Ship_Count_Image
+     (Count : Natural)
+      return String;
+
+   subtype Empire_Column is Integer range 1 .. 5;
 
    type Empire_Table is
      new Lui.Tables.Root_Model_Table with null record;
@@ -30,7 +39,8 @@ package body Concorde.Galaxy.Model is
            when 1 => "Name",
            when 2 => "Systems",
            when 3 => "Ships",
-           when 4 => "Attack"));
+           when 4 => "Attack",
+           when 5 => "Defence"));
 
    overriding function Cell_Text
      (Table : Empire_Table;
@@ -56,6 +66,11 @@ package body Concorde.Galaxy.Model is
      (Model    : in out Root_Galaxy_Model;
       Renderer : in out Lui.Rendering.Root_Renderer'Class);
 
+   overriding function Get_Drag_Behaviour
+     (Model : Root_Galaxy_Model)
+      return Lui.Models.Drag_Behaviour
+   is (Lui.Models.Translation);
+
    procedure Draw_Connection
      (Model    : in out Root_Galaxy_Model'Class;
       Renderer : in out Lui.Rendering.Root_Renderer'Class;
@@ -65,6 +80,12 @@ package body Concorde.Galaxy.Model is
      (Model    : in out Root_Galaxy_Model'Class;
       Renderer : in out Lui.Rendering.Root_Renderer'Class;
       System   : Concorde.Systems.Star_System_Type);
+
+   procedure Draw_Ships
+     (Model    : in out Root_Galaxy_Model'Class;
+      Renderer : in out Lui.Rendering.Root_Renderer'Class;
+      System   : Concorde.Systems.Star_System_Type;
+      Ships    : Concorde.Ships.Lists.List);
 
    procedure Star_System_Screen
      (Model    : in out Root_Galaxy_Model'Class;
@@ -114,6 +135,8 @@ package body Concorde.Galaxy.Model is
             return Lui.Approximate_Image (E.Current_Ships);
          when 4 =>
             return Lui.Approximate_Image (E.AI.Minimum_Attack_Factor);
+         when 5 =>
+            return Lui.Approximate_Image (E.AI.Minimum_Defense_Factor);
       end case;
    end Cell_Text;
 
@@ -185,6 +208,32 @@ package body Concorde.Galaxy.Model is
          Filled   => True);
 
    end Draw_Influence;
+
+   ----------------
+   -- Draw_Ships --
+   ----------------
+
+   procedure Draw_Ships
+     (Model    : in out Root_Galaxy_Model'Class;
+      Renderer : in out Lui.Rendering.Root_Renderer'Class;
+      System   : Concorde.Systems.Star_System_Type;
+      Ships    : Concorde.Ships.Lists.List)
+   is
+      Es : constant Concorde.Empires.Array_Of_Empires :=
+             Concorde.Ships.Battles.Empires_Present (Ships);
+      X, Y : Integer;
+   begin
+      Model.Star_System_Screen (System, X, Y);
+      Y := Y + System_Radius + 12;
+      for E of Es loop
+         Renderer.Draw_String
+           (X, Y, 10, E.Colour,
+            Ship_Count_Image
+              (Concorde.Ships.Battles.Empire_Ship_Count
+                   (E, Ships)));
+         Y := Y + 12;
+      end loop;
+   end Draw_Ships;
 
    ------------------
    -- Galaxy_Model --
@@ -267,9 +316,14 @@ package body Concorde.Galaxy.Model is
             end;
          end if;
 
-         Renderer.Draw_String
-           (10, 10, 14, Lui.Colours.White,
-            Lui.Approximate_Image (Model.FPS) & " FPS");
+         declare
+            X, Y : Integer;
+         begin
+            Model.Get_Location (X, Y);
+            Renderer.Draw_String
+              (X, Y, 14, Lui.Colours.White,
+               Lui.Approximate_Image (Model.FPS) & " FPS");
+         end;
       end if;
 
       Concorde.Updates.Begin_Render;
@@ -330,7 +384,7 @@ package body Concorde.Galaxy.Model is
                   Renderer.Draw_Circle
                     (X          => Screen_X,
                      Y          => Screen_Y,
-                     Radius     => (if Owner /= null then 6 else 4),
+                     Radius     => System_Radius,
                      Colour     => Colour,
                      Filled     => True,
                      Line_Width => 1);
@@ -346,13 +400,13 @@ package body Concorde.Galaxy.Model is
                         Text   => System.Name);
                   end if;
 
-                  if Owner /= null and then System.Ships > 0 then
-                     Renderer.Draw_String
-                       (X      => Screen_X + 6,
-                        Y      => Screen_Y + 6,
-                        Size   => 10,
-                        Colour => Colour,
-                        Text   => Natural'Image (System.Ships));
+                  if System.Ships > 0 then
+                     declare
+                        Ships : Concorde.Ships.Lists.List;
+                     begin
+                        System.Get_Ships (Ships);
+                        Model.Draw_Ships (Renderer, System, Ships);
+                     end;
                   end if;
 
                   declare
@@ -434,6 +488,34 @@ package body Concorde.Galaxy.Model is
       Concorde.Updates.Finish_Render;
 
    end Render;
+
+   ----------------------
+   -- Ship_Count_Image --
+   ----------------------
+
+   function Ship_Count_Image
+     (Count : Natural)
+      return String
+   is
+   begin
+      if Count < 10 then
+         return Result : constant String (1 .. Count) := (others => 'I') do
+            null;
+         end return;
+      elsif Count < 100 then
+         declare
+            Xs : constant String (1 .. Count / 10) := (others => 'X');
+         begin
+            return Xs & Ship_Count_Image (Count mod 10);
+         end;
+      else
+         declare
+            Result : constant String := Natural'Image (Count);
+         begin
+            return Result (2 .. Result'Last);
+         end;
+      end if;
+   end Ship_Count_Image;
 
    ------------------------
    -- Star_System_Screen --
