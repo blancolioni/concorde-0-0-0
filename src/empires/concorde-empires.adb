@@ -807,6 +807,7 @@ package body Concorde.Empires is
               (Test : Concorde.Systems.Star_System_Type)
                return Natural
             is (if Empire.Owned_System (Test)
+                and then Test /= System
                 then Test.Ships + 10
                 else 0);
             New_Capital : constant Concorde.Systems.Star_System_Type :=
