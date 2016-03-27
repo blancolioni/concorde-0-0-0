@@ -271,19 +271,27 @@ package body Concorde.AI.Default is
             Found             : Boolean := False;
             Easiest_System    : Concorde.Systems.Star_System_Type := null;
             Closest_System    : Concorde.Systems.Star_System_Type := null;
-            ShorDefault_Distance : Natural := Natural'Last;
+            Shortest_Distance : Natural := Natural'Last;
             Least_Opposition  : Natural := Natural'Last;
          begin
             for Info of AI.Attack_Destinations loop
                declare
-                  D : constant Natural :=
-                        AI.Empire.Path_Length
-                          (AI.Empire.Capital, Info);
-                  Opp : constant Natural :=
-                          Info.Ships;
+                  use Concorde.Empires;
+                  Relation_Factor : constant Natural :=
+                                      Integer
+                                        (AI.Empire.Relationship
+                                           (Info.Owner))
+                                      - Minimum_Relationship;
+                  D               : constant Natural :=
+                                      AI.Empire.Path_Length
+                                        (AI.Empire.Capital, Info)
+                                        + Relation_Factor;
+                  Opp             : constant Natural :=
+                                      Info.Ships
+                                        + Relation_Factor;
                begin
-                  if D < ShorDefault_Distance then
-                     ShorDefault_Distance := D;
+                  if D < Shortest_Distance then
+                     Shortest_Distance := D;
                      Closest_System := Info;
                      Found := True;
                   end if;
@@ -297,7 +305,7 @@ package body Concorde.AI.Default is
 
             if Found then
                if AI.Empire.Path_Length (AI.Empire.Capital, Easiest_System)
-                 > ShorDefault_Distance + 3
+                 > Shortest_Distance + 3
                then
                   AI.Target := Closest_System;
                else
@@ -306,7 +314,7 @@ package body Concorde.AI.Default is
 
                Found := False;
                Closest_System := null;
-               ShorDefault_Distance := Natural'Last;
+               Shortest_Distance := Natural'Last;
 
                if Galaxy.Neighbours (AI.Target, AI.Empire.Capital) then
                   Closest_System := AI.Empire.Capital;
@@ -319,8 +327,8 @@ package body Concorde.AI.Default is
                                     AI.Empire.Path_Length
                                       (AI.Empire.Capital, N);
                         begin
-                           if D < ShorDefault_Distance then
-                              ShorDefault_Distance := D;
+                           if D < Shortest_Distance then
+                              Shortest_Distance := D;
                               Closest_System := N;
                               Found := True;
                            end if;
@@ -420,6 +428,13 @@ package body Concorde.AI.Default is
                      Ship.Set_Destination (AI.Target);
                   end if;
                end loop;
+
+               declare
+                  use type Concorde.Empires.Empire_Relationship_Range;
+               begin
+                  AI.Empire.Set_Relationship (AI.Target.Owner, -100);
+               end;
+
             else
                Concorde.Empires.Logging.Log
                  (AI.Empire,
