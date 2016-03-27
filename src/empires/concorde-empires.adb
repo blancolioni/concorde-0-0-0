@@ -754,7 +754,20 @@ package body Concorde.Empires is
          Empire.Empire_Data := new Empire_Data_Array (1 .. Empire_Count);
       end if;
 
-      Empire.Empire_Data (To.Index).Relationship := Value;
+      declare
+         Relationship : Empire_Relationship_Range renames
+                          Empire.Empire_Data (To.Index).Relationship;
+      begin
+         if Relationship >= 0
+           and then Value < 0
+         then
+            Concorde.Empires.Logging.Log
+              (Empire, "now at war with " & To.Name);
+         end if;
+
+         Relationship := Value;
+      end;
+
    end Set_Relationship;
 
    ------------------
@@ -783,6 +796,10 @@ package body Concorde.Empires is
       pragma Unreferenced (System);
    begin
       Empire.Current_Systems := Empire.Current_Systems + 1;
+      Concorde.Empires.Logging.Log
+        (Empire,
+         "new system count:"
+         & Empire.Current_Systems'Img);
       Empire.Clear_Path_Cache;
    end System_Acquired;
 
@@ -796,6 +813,11 @@ package body Concorde.Empires is
    is
    begin
       Empire.Current_Systems := Empire.Current_Systems - 1;
+      Empire.Clear_Path_Cache;
+      Concorde.Empires.Logging.Log
+        (Empire,
+         "new system count:"
+         & Empire.Current_Systems'Img);
       if System.Capital then
          Empires.Logging.Log
            (Empire,
@@ -825,7 +847,6 @@ package body Concorde.Empires is
             end if;
          end;
       end if;
-      Empire.Clear_Path_Cache;
    end System_Lost;
 
    ------------
