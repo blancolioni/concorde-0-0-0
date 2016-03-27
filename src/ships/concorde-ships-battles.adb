@@ -2,6 +2,7 @@ with WL.Random;
 
 with Concorde.Empires;
 with Concorde.Empires.Logging;
+with Concorde.Empires.Relations;
 
 with Concorde.AI;
 
@@ -202,7 +203,10 @@ package body Concorde.Ships.Battles is
                   then
                      Info.Target := null;
                      for I in 1 .. Teams.Last_Index loop
-                        if I /= Info.Team then
+                        if I /= Info.Team
+                          and then Concorde.Empires.Relations.At_War
+                            (Info.Ship.Owner, Teams (I).Leader)
+                        then
                            for Ship of Teams (I).Ships loop
                               if Ship.HP > 0 then
                                  Info.Target := Ship;
@@ -215,6 +219,8 @@ package body Concorde.Ships.Battles is
 
                   if Info.Target /= null then
                      Continue := True;
+                     Info.Target.Owner.Set_Relationship
+                       (Info.Ship.Owner, -100);
                      Attack (Info.Ship, Info.Target);
                   end if;
                end;
@@ -292,16 +298,7 @@ package body Concorde.Ships.Battles is
       Es : constant Array_Of_Empires :=
              Empires_Present (Ships);
    begin
-      for I in 2 .. Es'Last loop
-         for J in 1 .. I - 1 loop
-            if Es (I).Relationship (Es (J)) <= 0
-              or else Es (J).Relationship (Es (I)) <= 0
-            then
-               return True;
-            end if;
-         end loop;
-      end loop;
-      return False;
+      return Concorde.Empires.Relations.Has_Conflict (Es);
    end Has_Conflict;
 
 end Concorde.Ships.Battles;
