@@ -103,7 +103,10 @@ package Concorde.Empires is
 
    procedure System_Lost
      (Empire : in out Root_Empire_Type'Class;
-      System : Concorde.Systems.Star_System_Type);
+      System : Concorde.Systems.Star_System_Type)
+     with Pre => System.Owner.Name = Empire.Name
+     and then Empire.Current_Systems > 0
+     and then (Empire.Current_Systems > 1 or else System.Capital);
 
    procedure Clear_System_Flags
      (Empire   : in out Root_Empire_Type'Class;
