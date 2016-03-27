@@ -166,7 +166,7 @@ package body Concorde.Empires is
 
             if Path'Length <= 1 then
                Empire.System_Data (From.Index).Next_Node (To.Index) :=
-                 (Natural'Last, 0);
+                 (Natural'Last / 2, 0);
             end if;
 
          end;
