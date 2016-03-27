@@ -1,6 +1,7 @@
 with Concorde.AI.Default;
 with Concorde.Galaxy;
 
+with Concorde.Empires.History;
 with Concorde.Empires.Logging;
 
 package body Concorde.Empires.Updates is
@@ -165,6 +166,9 @@ package body Concorde.Empires.Updates is
       for Empire of Vector loop
          Update_Empire (Empire);
       end loop;
+
+      History.Update_History;
+
    end Update_Empires;
 
 end Concorde.Empires.Updates;

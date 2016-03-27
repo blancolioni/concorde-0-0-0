@@ -8,6 +8,7 @@ with Concorde.AI;
 with Concorde.Dates;
 with Concorde.Elementary_Functions;
 with Concorde.Empires;
+with Concorde.Empires.History;
 
 with Concorde.Ships.Battles;
 with Concorde.Ships.Lists;
@@ -86,6 +87,10 @@ package body Concorde.Galaxy.Model is
       Renderer : in out Lui.Rendering.Root_Renderer'Class;
       System   : Concorde.Systems.Star_System_Type;
       Ships    : Concorde.Ships.Lists.List);
+
+   procedure Draw_History
+     (Model    : in out Root_Galaxy_Model'Class;
+      Renderer : in out Lui.Rendering.Root_Renderer'Class);
 
    procedure Star_System_Screen
      (Model    : in out Root_Galaxy_Model'Class;
@@ -174,6 +179,55 @@ package body Concorde.Galaxy.Model is
       Model.Star_System_Screen (B_System, X2, Y2);
       Renderer.Draw_Line (X1, Y1, X2, Y2, Link_Colour, Link_Width);
    end Draw_Connection;
+
+   ------------------
+   -- Draw_History --
+   ------------------
+
+   procedure Draw_History
+     (Model    : in out Root_Galaxy_Model'Class;
+      Renderer : in out Lui.Rendering.Root_Renderer'Class)
+   is
+      use Concorde.Dates;
+      Start : Date_Type := 1;
+      Width : constant := 100.0;
+      Xs    : array (1 .. Empires.Empire_Count) of Non_Negative_Real;
+      Total : Non_Negative_Real;
+      X     : Integer;
+   begin
+      if Natural (Current_Date) > Model.Height then
+         Start := Date_Type (Natural (Current_Date) - Model.Height + 1);
+      end if;
+
+      for I in Date_Type range Start .. Current_Date - 2 loop
+         Xs := (others => 0.0);
+         Total := 0.0;
+         for E_Index in 1 .. Empires.Empire_Count loop
+            Xs (E_Index) :=
+              Concorde.Empires.History.Get_Metric
+                (I, Concorde.Empires.History.Capacity,
+                 Empires.Get (E_Index));
+            Total := Total + Xs (E_Index);
+         end loop;
+
+         X := Model.Width - Natural (Width);
+         for J in Xs'Range loop
+            declare
+               New_X : constant Natural :=
+                         X + Natural (Xs (J) / Total * Width);
+            begin
+               Renderer.Draw_Line
+                 (X1         => X,
+                  Y1         => Natural (I - Start),
+                  X2         => New_X,
+                  Y2         => Natural (I - Start),
+                  Colour     => Empires.Get (J).Colour,
+                  Line_Width => 1);
+               X := New_X;
+            end;
+         end loop;
+      end loop;
+   end Draw_History;
 
    --------------------
    -- Draw_Influence --
@@ -484,6 +538,14 @@ package body Concorde.Galaxy.Model is
             end;
          end loop;
       end loop;
+
+      declare
+         use Concorde.Dates;
+      begin
+         if Current_Date > 10 then
+            Model.Draw_History (Renderer);
+         end if;
+      end;
 
       Concorde.Updates.Finish_Render;
 
