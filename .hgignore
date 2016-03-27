@@ -17,3 +17,4 @@ gprof.txt
 ai-tests/*
 log/*.txt
 log/empires/*.txt
+log/battles/*.txt

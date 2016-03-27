@@ -1,10 +1,17 @@
+with Ada.Text_IO;
+
 with WL.Random;
+
+with Concorde.Dates;
 
 with Concorde.Empires;
 with Concorde.Empires.Logging;
 with Concorde.Empires.Relations;
 
 with Concorde.AI;
+
+with Concorde.Options;
+with Concorde.Paths;
 
 package body Concorde.Ships.Battles is
 
@@ -28,19 +35,23 @@ package body Concorde.Ships.Battles is
      new Ada.Containers.Vectors (Positive, Ship_Info);
 
    procedure Attack
-     (Attacker, Defender : Ship_Type);
+     (Attacker, Defender : Ship_Type;
+      Hit                : out Boolean);
 
    ------------
    -- Attack --
    ------------
 
    procedure Attack
-     (Attacker, Defender : Ship_Type)
+     (Attacker, Defender : Ship_Type;
+      Hit                : out Boolean)
    is
       pragma Unreferenced (Attacker);
    begin
+      Hit := False;
       if WL.Random.Random_Number (1, 2) = 2 then
          Defender.HP := Defender.HP - 1;
+         Hit := True;
       end if;
    end Attack;
 
@@ -105,7 +116,29 @@ package body Concorde.Ships.Battles is
       Teams         : Team_Vectors.Vector;
       Info_Vector   : Ship_Info_Vectors.Vector;
       Min_Team_Size : Natural := Natural'Last;
+      Log_File_Name : constant String :=
+                        Concorde.Paths.Config_Path
+                        & "/../log/battles/"
+                        & System.Name
+                        & " "
+                        & Concorde.Dates.To_String
+                          (Concorde.Dates.Current_Date)
+                        & ".txt";
+      Log_Battle    : constant Boolean :=
+                        Concorde.Options.Enable_Detailed_Battle_Logging;
+      Log_File      : Ada.Text_IO.File_Type;
    begin
+
+      if Log_Battle then
+         Ada.Text_IO.Create (Log_File, Ada.Text_IO.Out_File,
+                             Log_File_Name);
+         Ada.Text_IO.Put_Line
+           (Log_File,
+            "The Battle of " & System.Name
+            & (if System.Owned then " owned by " & System.Owner.Name
+              else ""));
+
+      end if;
 
       for Ship of Ships loop
          declare
@@ -143,8 +176,20 @@ package body Concorde.Ships.Battles is
          declare
             Size : constant Positive := Positive (Team.Ships.Length);
          begin
+            Team.Leader.Set_Battle (System);
             if Size < Min_Team_Size then
                Min_Team_Size := Size;
+            end if;
+            if Log_Battle then
+               Ada.Text_IO.Put_Line
+                 (Log_File,
+                  Team.Leader.Name
+                  & ": ship count" & Positive'Image (Size));
+               for Ship of Team.Ships loop
+                  Ada.Text_IO.Put_Line
+                    (Log_File,
+                     "    " & Ship.Short_Description);
+               end loop;
             end if;
          end;
       end loop;
@@ -178,6 +223,11 @@ package body Concorde.Ships.Battles is
             Count    : constant Natural := Info_Vector.Last_Index;
             Order    : array (1 .. Count) of Positive;
          begin
+            if Log_Battle then
+               Ada.Text_IO.Put_Line
+                 (Log_File, "-- Round" & Round_Index'Img & " --");
+            end if;
+
             for I in Order'Range loop
                Order (I) := I;
             end loop;
@@ -207,12 +257,21 @@ package body Concorde.Ships.Battles is
                           and then Concorde.Empires.Relations.At_War
                             (Info.Ship.Owner, Teams (I).Leader)
                         then
-                           for Ship of Teams (I).Ships loop
-                              if Ship.HP > 0 then
-                                 Info.Target := Ship;
-                                 exit;
-                              end if;
-                           end loop;
+                           declare
+                              Most_Damage : Ship_Type;
+                              Least_HP    : Natural := Natural'Last;
+                           begin
+                              for Ship of Teams (I).Ships loop
+                                 if Ship.HP > 0
+                                   and then Ship.HP < Least_HP
+                                 then
+                                    Most_Damage := Ship;
+                                    Least_HP := Ship.HP;
+                                 end if;
+                              end loop;
+
+                              Info.Target := Most_Damage;
+                           end;
                         end if;
                      end loop;
                   end if;
@@ -221,7 +280,20 @@ package body Concorde.Ships.Battles is
                      Continue := True;
                      Info.Target.Owner.Set_Relationship
                        (Info.Ship.Owner, -100);
-                     Attack (Info.Ship, Info.Target);
+                     declare
+                        Hit : Boolean;
+                     begin
+                        Attack (Info.Ship, Info.Target, Hit);
+                        if Log_Battle then
+                           Ada.Text_IO.Put_Line
+                             (Log_File,
+                              Info.Ship.Short_Description
+                              & " attacks "
+                              & Info.Target.Short_Description
+                              & ": "
+                              & (if Hit then "Hit" else "Miss"));
+                        end if;
+                     end;
                   end if;
                end;
             end loop;
@@ -234,6 +306,11 @@ package body Concorde.Ships.Battles is
                      System.Remove_Ship (Ship);
                      Empires.Logging.Log
                        (Ship.Owner, Ship.Name & " destroyed");
+                     if Log_Battle then
+                        Ada.Text_IO.Put_Line
+                          (Log_File,
+                           Ship.Short_Description & ": destroyed");
+                     end if;
                   end if;
                end if;
             end loop;
@@ -283,6 +360,10 @@ package body Concorde.Ships.Battles is
                "the battle continues");
          end if;
       end;
+
+      if Log_Battle then
+         Ada.Text_IO.Close (Log_File);
+      end if;
 
    end Fight;
 

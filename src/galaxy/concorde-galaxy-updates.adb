@@ -21,6 +21,8 @@ package body Concorde.Galaxy.Updates is
       Changed_Owners : Boolean := False;
    begin
 
+      Concorde.Empires.Clear_Battles;
+
       for System of Galaxy_Vector loop
          Concorde.Systems.Updates.Update_System (System);
          declare

@@ -173,6 +173,17 @@ package body Concorde.Empires is
       end if;
    end Check_Cache;
 
+   -------------------
+   -- Clear_Battles --
+   -------------------
+
+   procedure Clear_Battles is
+   begin
+      for Empire of Vector loop
+         Empire.Battles.Clear;
+      end loop;
+   end Clear_Battles;
+
    ----------------------
    -- Clear_Path_Cache --
    ----------------------
@@ -304,6 +315,22 @@ package body Concorde.Empires is
       end loop;
       return Rank (Index);
    end Get;
+
+   ----------------
+   -- Has_Battle --
+   ----------------
+
+   function Has_Battle
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean
+   is
+   begin
+      return List_Of_Systems.Has_Element
+        (Empire.Battles.Find
+           (Concorde.Systems.Star_System_Type (System)));
+   end Has_Battle;
 
    ---------------
    -- Has_Claim --
@@ -655,6 +682,22 @@ package body Concorde.Empires is
    begin
       Empire.System_Data (System.Index).Attack := Attack_Target;
    end Set_Attack_Target;
+
+   ----------------
+   -- Set_Battle --
+   ----------------
+
+   procedure Set_Battle
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+   is
+   begin
+      if not Empire.Has_Battle (System) then
+         Empire.Battles.Append
+           (Concorde.Systems.Star_System_Type (System));
+      end if;
+   end Set_Battle;
 
    ----------------
    -- Set_Border --

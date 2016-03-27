@@ -1,3 +1,4 @@
+private with Ada.Containers.Doubly_Linked_Lists;
 private with Ada.Containers.Vectors;
 private with Concorde.Protected_Lists;
 
@@ -127,6 +128,20 @@ package Concorde.Empires is
       Internal : Boolean);
    --  Internal: this system is has connections only to other systems
    --  owned by Empire
+
+   function Has_Battle
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean;
+
+   procedure Set_Battle
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class);
+   --  Battle: we are currently fighting in this system
+
+   procedure Clear_Battles;
 
    function Has_Claim
      (Empire   : in out Root_Empire_Type'Class;
@@ -301,8 +316,9 @@ private
          Attack      : Boolean := False;
          Opportunity : Boolean := False;
          Claim       : Boolean := False;
+         Battle      : Boolean := False;
          Required    : Integer := 0;
-         Next_Node : Destination_Next_Access := null;
+         Next_Node   : Destination_Next_Access := null;
       end record
      with Pack;
 
@@ -317,6 +333,10 @@ private
 
    type Empire_Data_Array is
      array (Positive range <>) of Empire_Data_Record;
+
+   package List_Of_Systems is
+     new Ada.Containers.Doubly_Linked_Lists
+       (Concorde.Systems.Star_System_Type, Concorde.Systems."=");
 
    type Root_Empire_Type is
      new Concorde.Objects.Root_Named_Object_Type with
@@ -333,6 +353,7 @@ private
          Built_Ships     : Natural := 0;
          Lost_Ships      : Natural := 0;
          Capital         : Concorde.Systems.Star_System_Type;
+         Battles         : List_Of_Systems.List;
       end record;
 
    package Empire_Vectors is

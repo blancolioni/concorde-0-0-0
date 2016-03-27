@@ -1,6 +1,8 @@
 with WL.Random;
 
 with Concorde.Empires.Logging;
+with Concorde.Empires.Relations;
+
 with Concorde.Galaxy;
 
 with Concorde.Ships.Lists;
@@ -83,12 +85,14 @@ package body Concorde.AI.Default is
       AI.Unexplored_Systems := 0;
       AI.Frontier_Systems   := 0;
       AI.Internal_Systems   := 0;
+      AI.Battle_Systems     := 0;
       AI.Enemy_Strength     := 0;
 
       AI.Defense_Destinations.Clear;
       AI.Explore_Destinations.Clear;
       AI.Attack_Destinations.Clear;
       AI.Opportunity_Destinations.Clear;
+      AI.Battle_Destinations.Clear;
 
       AI.Available_Strength := 0;
       AI.Required_Strength  := 0;
@@ -101,7 +105,38 @@ package body Concorde.AI.Default is
 
             AI.Empire.Set_Required (System, 0);
 
-            if AI.Empire.Is_Neighbour (System) then
+            if AI.Empire.Has_Battle (System) then
+               declare
+                  List : Concorde.Ships.Lists.List;
+                  Us   : Non_Negative_Real := 0.0;
+                  Them : Non_Negative_Real := 0.0;
+               begin
+                  Empires.Logging.Log
+                    (AI.Empire,
+                     "continuing battle at " & System.Name);
+
+                  AI.Battle_Systems := AI.Battle_Systems + 1;
+                  AI.Battle_Destinations.Append (System);
+
+                  System.Get_Ships (List);
+                  for Ship of List loop
+                     if Ship.Owner = AI.Empire then
+                        Us := Us + 1.0 - Ship.Damage;
+                     elsif Concorde.Empires.Relations.At_War
+                       (AI.Empire, Ship.Owner)
+                     then
+                        Them := Them + 1.0 - Ship.Damage;
+                     end if;
+                  end loop;
+
+                  if Them > Us * 0.8 then
+                     AI.Empire.Set_Required
+                       (System, 1 + Natural (Them - Us * 0.8));
+                     AI.Reinforce_Ships :=
+                       AI.Reinforce_Ships + AI.Empire.Required (System);
+                  end if;
+               end;
+            elsif AI.Empire.Is_Neighbour (System) then
                if System.Owned then
                   AI.Threat_Systems := AI.Threat_Systems + 1;
                   declare
@@ -167,7 +202,8 @@ package body Concorde.AI.Default is
 
       Concorde.Empires.Logging.Log
         (AI.Empire,
-         "border systems:" & AI.Border_Systems'Img
+         "contested systems:" & AI.Battle_Systems'Img
+         & "; border systems:" & AI.Border_Systems'Img
          & "; frontier systems:" & AI.Frontier_Systems'Img
          & "; threat systems:" & AI.Threat_Systems'Img
          & "; unexplored systems:" & AI.Unexplored_Systems'Img
@@ -179,6 +215,36 @@ package body Concorde.AI.Default is
 
       if AI.Nominal_Defense_Ships = 0 then
          AI.Defense_Destinations.Clear;
+      end if;
+
+      AI.Nominal_Reinforce_Ships := AI.Reinforce_Ships;
+
+      if AI.Defense_Ships + AI.Reinforce_Ships > Total_Ships then
+         AI.Defense_Ships :=
+           Total_Ships * AI.Defense_Ships
+             / (AI.Defense_Ships + AI.Reinforce_Ships);
+         AI.Reinforce_Ships := Total_Ships - AI.Defense_Ships;
+      end if;
+
+      if AI.Nominal_Reinforce_Ships > 0 then
+         for I in 1 .. AI.Battle_Destinations.Last_Index loop
+            declare
+               Info : Concorde.Systems.Star_System_Type renames
+                        AI.Battle_Destinations (I);
+            begin
+               AI.Empire.Set_Required
+                 (Info,
+                  AI.Empire.Required (Info)
+                  * AI.Reinforce_Ships / AI.Nominal_Reinforce_Ships);
+               Concorde.Empires.Logging.Log
+                 (AI.Empire,
+                  Info.Name
+                  & " allocated"
+                  & Integer'Image (AI.Empire.Required (Info))
+                  & " ships for reinforcement; currently has"
+                  & Natural'Image (Info.Ships));
+            end;
+         end loop;
       end if;
 
       for I in 1 .. AI.Defense_Destinations.Last_Index loop
@@ -197,7 +263,8 @@ package body Concorde.AI.Default is
                & Integer'Image (AI.Empire.Required (Info))
                & " ships for defence; currently has"
                & Natural'Image (Info.Ships));
-            AI.Empire.Change_Required (Info, -Info.Ships);
+            AI.Empire.Change_Required
+              (Info, -Info.Ships);
          end;
       end loop;
 
@@ -216,6 +283,7 @@ package body Concorde.AI.Default is
          & "; exploration:" & AI.Exploration_Ships'Img
          & "; offensive ships:" & AI.Offense_Ships'Img);
 
+      Shuffle (AI.Battle_Destinations);
       Shuffle (AI.Defense_Destinations);
       Shuffle (AI.Explore_Destinations);
       Shuffle (AI.Attack_Destinations);
@@ -566,35 +634,45 @@ package body Concorde.AI.Default is
       Empires.Logging.Log
         (AI.Empire, Ship.Short_Description);
 
-      for Opportunity of AI.Opportunity_Destinations loop
-
-         if Galaxy.Neighbours (Ship.System, Opportunity)
-           and then not AI.Empire.Is_Opportunity_Target (Opportunity)
-           and then not Ship.Has_Destination
-         then
-            AI.Empire.Set_Opportunity_Target (Opportunity, True);
-            Ship.Set_Destination (Opportunity);
-            Opportunity_Attack := True;
-            Empires.Logging.Log
-              (AI.Empire,
-               Ship.Short_Description & " sees attack opportunity at "
-               & Opportunity.Name);
-            exit;
-         end if;
-      end loop;
-
-      if Ship.Has_Destination and then not Opportunity_Attack
-        and then (Ship.System = Ship.Destination
-                  or else AI.Empire.Next_Path_Node_Index
-                    (Ship.System, Ship.Destination) = 0
-                  or else (not AI.Empire.Owned_System (Ship.Destination)
-                           and then Ship.Destination /= AI.Target
-                           and then Ship.Destination.Owned))
-      then
+      if AI.Empire.Has_Battle (Ship.System) then
          Ship.Set_Destination (null);
+         Stop := True;
+         Empires.Logging.Log
+           (AI.Empire,
+            Ship.Name & " fighting at "
+            & AI.Target.Name);
+      else
+         for Opportunity of AI.Opportunity_Destinations loop
+
+            if Galaxy.Neighbours (Ship.System, Opportunity)
+              and then Empires.Relations.At_War (AI.Empire, Opportunity.Owner)
+              and then not AI.Empire.Is_Opportunity_Target (Opportunity)
+              and then not Ship.Has_Destination
+            then
+               AI.Empire.Set_Opportunity_Target (Opportunity, True);
+               Ship.Set_Destination (Opportunity);
+               Opportunity_Attack := True;
+               Empires.Logging.Log
+                 (AI.Empire,
+                  Ship.Short_Description & " sees attack opportunity at "
+                  & Opportunity.Name);
+               exit;
+            end if;
+         end loop;
+
+         if Ship.Has_Destination and then not Opportunity_Attack
+           and then (Ship.System = Ship.Destination
+                     or else AI.Empire.Next_Path_Node_Index
+                       (Ship.System, Ship.Destination) = 0
+                     or else (not AI.Empire.Owned_System (Ship.Destination)
+                              and then Ship.Destination /= AI.Target
+                              and then Ship.Destination.Owned))
+         then
+            Ship.Set_Destination (null);
+         end if;
       end if;
 
-      if Ship.Has_Destination then
+      if Stop or else Ship.Has_Destination then
          null;
       elsif AI.Planned_Offensive
         and then Ship.System = AI.Attack_From
@@ -632,6 +710,21 @@ package body Concorde.AI.Default is
                & AI.Target.Name);
             Ship.Set_Destination (AI.Target);
             Stop := True;
+         end if;
+
+         if AI.Launch_Offensive
+           and then Ship.System = AI.Target
+         then
+            Empires.Logging.Log
+              (AI.Empire,
+               Ship.Name & " continues the battle at "
+               & AI.Target.Name);
+            Ship.Set_Destination (null);
+            Stop := True;
+         end if;
+
+         if not Stop and then Ship.Damage < Max_Battle_Damage then
+            Choose_Destination (AI.Battle_Destinations, Stop);
          end if;
 
          if not Stop and then Ship.Damage < Max_Defence_Damage then
