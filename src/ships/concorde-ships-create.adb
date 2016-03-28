@@ -5,6 +5,8 @@ with Concorde.Roman_Images;
 
 with Concorde.Empires.Logging;
 
+with Concorde.Ships.Designs;
+
 package body Concorde.Ships.Create is
 
    --------------
@@ -14,10 +16,12 @@ package body Concorde.Ships.Create is
    procedure New_Ship
      (Owner  : Concorde.Empires.Empire_Type;
       System : Concorde.Systems.Star_System_Access;
-      Max_HP : Natural)
+      Design : String)
    is
       use Concorde.Roman_Images;
-      Ship : constant Ship_Type := new Root_Ship_Type;
+      Ship : constant Ship_Type :=
+               Concorde.Ships.Designs.Create_Ship_From_Design
+                 (Design);
    begin
       if Owner.Current_Ships = 0 then
          Ship.Set_Name (Owner.Name);
@@ -29,8 +33,7 @@ package body Concorde.Ships.Create is
       Ship.System := System;
       Ship.Destination := null;
       Ship.Alive := True;
-      Ship.HP := 1;
-      Ship.Max_HP := Max_HP;
+
       Ship_Vector.Append (Ship);
 
       declare

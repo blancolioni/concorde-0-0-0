@@ -3,6 +3,8 @@ private with Ada.Containers.Vectors;
 limited with Concorde.Empires;
 limited with Concorde.Systems;
 
+--  with Concorde.Components;
+with Concorde.Modules;
 with Concorde.Objects;
 
 package Concorde.Ships is
@@ -48,6 +50,33 @@ package Concorde.Ships is
      (Ship : Root_Ship_Type'Class)
       return Unit_Real;
 
+   procedure Hit
+     (Ship : in out Root_Ship_Type'Class;
+      Damage : Natural);
+
+   function Acceleration
+     (Ship : Root_Ship_Type'Class)
+      return Non_Negative_Real
+   is (5.0);
+   --  m/s/s
+
+   function Turn
+     (Ship : Root_Ship_Type'Class)
+      return Non_Negative_Real
+   is (1.0);
+   --  degrees/s
+
+   function Size
+     (Ship : Root_Ship_Type'Class)
+      return Natural;
+
+   procedure Update_Power
+     (Ship : in out Root_Ship_Type'Class);
+
+   function Get_Weapon_Modules
+     (Ship : Root_Ship_Type'Class)
+      return Concorde.Modules.Array_Of_Modules;
+
    type Ship_Type is access all Root_Ship_Type'Class;
 
    function Count_Ships
@@ -57,6 +86,10 @@ package Concorde.Ships is
       return Natural;
 
 private
+
+   package Module_Vectors is
+     new Ada.Containers.Vectors
+       (Positive, Concorde.Modules.Module_Type, Concorde.Modules."=");
 
    type Root_Ship_Type is
      new Concorde.Objects.Root_Named_Object_Type with
@@ -68,8 +101,9 @@ private
          Destination : access constant
            Concorde.Systems.Root_Star_System_Type'Class;
          Alive       : Boolean;
-         HP          : Natural;
-         Max_HP      : Positive;
+         Structure   : Module_Vectors.Vector;
+         Size        : Natural;
+         Empty_Mass  : Natural;
       end record;
 
    package Ship_Vectors is

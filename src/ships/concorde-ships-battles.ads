@@ -1,3 +1,4 @@
+with Concorde.Combat.Ship_Combat;
 with Concorde.Systems;
 with Concorde.Ships.Lists;
 
@@ -16,8 +17,9 @@ package Concorde.Ships.Battles is
      (Ships : Concorde.Ships.Lists.List)
       return Boolean;
 
-   procedure Fight
+   function Create_Arena
      (System : Concorde.Systems.Star_System_Access;
-      Ships  : Concorde.Ships.Lists.List);
+      Ships  : Concorde.Ships.Lists.List)
+     return Concorde.Combat.Ship_Combat.Combat_Arena;
 
 end Concorde.Ships.Battles;

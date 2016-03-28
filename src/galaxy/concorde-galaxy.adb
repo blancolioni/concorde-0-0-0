@@ -1,9 +1,23 @@
---  with WL.Random;
---
---  with Concorde.AI;
---  with Concorde.Empires;
-
 package body Concorde.Galaxy is
+
+   package Battle_Vectors is
+     new Ada.Containers.Vectors
+       (Positive,
+        Concorde.Combat.Ship_Combat.Combat_Arena,
+        Concorde.Combat.Ship_Combat."=");
+
+   Local_Battle_Container : Battle_Vectors.Vector;
+
+   ----------------
+   -- Add_Battle --
+   ----------------
+
+   procedure Add_Battle
+     (Arena : Concorde.Combat.Ship_Combat.Combat_Arena)
+   is
+   begin
+      Local_Battle_Container.Append (Arena);
+   end Add_Battle;
 
    -----------------
    -- Add_Systems --
@@ -20,6 +34,32 @@ package body Concorde.Galaxy is
         (Start.Index, Max_Distance, Sub);
       Concorde.Systems.Graphs.Append (To.Collection, Sub);
    end Add_Systems;
+
+   ------------------
+   -- Battle_Count --
+   ------------------
+
+   function Battle_Count return Natural is
+   begin
+      return Local_Battle_Container.Last_Index;
+   end Battle_Count;
+
+   -------------------
+   -- Clear_Battles --
+   -------------------
+
+   procedure Clear_Battles is
+   begin
+      for Position in Local_Battle_Container.Iterate loop
+         declare
+            Arena : Concorde.Combat.Ship_Combat.Combat_Arena :=
+                      Battle_Vectors.Element (Position);
+         begin
+            Concorde.Combat.Ship_Combat.Close_Arena (Arena);
+         end;
+      end loop;
+      Local_Battle_Container.Clear;
+   end Clear_Battles;
 
    -----------------
    -- Find_System --
@@ -44,6 +84,18 @@ package body Concorde.Galaxy is
       end loop;
       return null;
    end Find_System;
+
+   ----------------
+   -- Get_Battle --
+   ----------------
+
+   function Get_Battle
+     (Index : Positive)
+      return Concorde.Combat.Ship_Combat.Combat_Arena
+   is
+   begin
+      return Local_Battle_Container.Element (Index);
+   end Get_Battle;
 
    ----------------
    -- Get_System --

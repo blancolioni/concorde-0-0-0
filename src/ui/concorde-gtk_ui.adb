@@ -81,6 +81,7 @@ package body Concorde.Gtk_UI is
       Element : not null access Lui.Root_UI_Element'Class;
       Top     : not null access Gtk.Widget.Gtk_Widget_Record'Class)
    is
+      use Glib;
       use Lui;
    begin
       case Feature is
@@ -89,6 +90,8 @@ package body Concorde.Gtk_UI is
          when UI_Model =>
             To.Models.Append (Lui.Models.Object_Model (Element));
             To.Notebook.Append_Page (Top);
+            To.Notebook.Set_Current_Page
+              (To.Notebook.Get_N_Pages - 1);
          when UI_Table =>
             To.Info_Boxes.Add (Top);
       end case;
@@ -188,7 +191,7 @@ package body Concorde.Gtk_UI is
    is
       pragma Unreferenced (Button);
    begin
-      Concorde.Updates.Perform_Update;
+      Concorde.Updates.Perform_Update (False);
    end On_Step_Button_Clicked;
 
    -----------

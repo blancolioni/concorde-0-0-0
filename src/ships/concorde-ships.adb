@@ -1,3 +1,6 @@
+with WL.Random;
+
+with Concorde.Components;
 with Concorde.Systems;
 
 package body Concorde.Ships is
@@ -42,9 +45,12 @@ package body Concorde.Ships is
      (Ship : Root_Ship_Type'Class)
       return Unit_Real
    is
+      Total : Non_Negative_Real := 0.0;
    begin
-      return Non_Negative_Real (Ship.Max_HP - Ship.HP)
-        / Non_Negative_Real (Ship.Max_HP);
+      for Module of Ship.Structure loop
+         Total := Total + Module.Damage;
+      end loop;
+      return Total / Non_Negative_Real (Ship.Structure.Length);
    end Damage;
 
    -----------------
@@ -58,6 +64,48 @@ package body Concorde.Ships is
    begin
       return Ship.Destination;
    end Destination;
+
+   ------------------------
+   -- Get_Weapon_Modules --
+   ------------------------
+
+   function Get_Weapon_Modules
+     (Ship : Root_Ship_Type'Class)
+      return Concorde.Modules.Array_Of_Modules
+   is
+      use Concorde.Components;
+      use Concorde.Modules;
+      Result : Array_Of_Modules (1 .. Ship.Structure.Last_Index);
+      Count  : Natural := 0;
+   begin
+      for Module of Ship.Structure loop
+         if Module.Component.Class = Weapon then
+            Count := Count + 1;
+            Result (Count) := Module;
+         end if;
+      end loop;
+      return Result (1 .. Count);
+   end Get_Weapon_Modules;
+
+   ---------
+   -- Hit --
+   ---------
+
+   procedure Hit
+     (Ship : in out Root_Ship_Type'Class;
+      Damage : Natural)
+   is
+   begin
+      for I in 1 .. Damage loop
+         declare
+            Index : constant Positive :=
+                      WL.Random.Random_Number (1, Ship.Structure.Last_Index);
+         begin
+            Ship.Structure.Element (Index).Hit;
+         end;
+      end loop;
+      Ship.Alive := Ship.Damage < 1.0;
+   end Hit;
 
    ---------------
    -- Long_Name --
@@ -118,6 +166,18 @@ package body Concorde.Ships is
         & Natural'Image (Natural (Ship.Damage * 100.0)) & "%";
    end Short_Description;
 
+   ----------
+   -- Size --
+   ----------
+
+   function Size
+     (Ship : Root_Ship_Type'Class)
+      return Natural
+   is
+   begin
+      return Ship.Size;
+   end Size;
+
    ------------
    -- System --
    ------------
@@ -129,5 +189,18 @@ package body Concorde.Ships is
    begin
       return Ship.System;
    end System;
+
+   ------------------
+   -- Update_Power --
+   ------------------
+
+   procedure Update_Power
+     (Ship : in out Root_Ship_Type'Class)
+   is
+   begin
+      for Module of Ship.Structure loop
+         Module.Draw_Power (Module.Component.Max_Power_Draw);
+      end loop;
+   end Update_Power;
 
 end Concorde.Ships;

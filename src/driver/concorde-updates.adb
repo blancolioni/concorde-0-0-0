@@ -1,6 +1,8 @@
 with Ada.Unchecked_Deallocation;
 
 with Concorde.Dates;
+
+with Concorde.Combat.Ship_Combat;
 with Concorde.Empires.Updates;
 with Concorde.Galaxy.Updates;
 
@@ -49,7 +51,9 @@ package body Concorde.Updates is
    -- Perform_Update --
    --------------------
 
-   procedure Perform_Update is
+   procedure Perform_Update
+     (Execute_Battles : Boolean)
+   is
    begin
       Render_Lock.Exclusive;
       Concorde.Dates.Tick;
@@ -57,6 +61,20 @@ package body Concorde.Updates is
       Concorde.Empires.Updates.Update_Empire_AI;
       Concorde.Empires.Updates.Update_Empires;
       Concorde.Galaxy.Updates.Update_Galaxy;
+
+      if Execute_Battles then
+         for Battle_Index in 1 .. Concorde.Galaxy.Battle_Count loop
+            declare
+               Arena : constant Concorde.Combat.Ship_Combat.Combat_Arena :=
+                         Concorde.Galaxy.Get_Battle (Battle_Index);
+            begin
+               while not Arena.Done loop
+                  Arena.Tick;
+               end loop;
+            end;
+         end loop;
+      end if;
+
       Render_Lock.Unlock;
    end Perform_Update;
 
@@ -109,7 +127,10 @@ package body Concorde.Updates is
          else
             delay Update_Delay (Speed);
             if Speed > 0 then
-               Perform_Update;
+               Perform_Update (False);
+               if Concorde.Galaxy.Battle_Count > 0 then
+                  Speed := 0;
+               end if;
             end if;
          end select;
       end loop;

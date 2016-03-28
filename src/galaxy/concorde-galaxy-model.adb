@@ -49,6 +49,38 @@ package body Concorde.Galaxy.Model is
       Col   : Positive)
       return String;
 
+   subtype Battle_Column is Integer range 1 .. 4;
+
+   type Battle_Table is
+     new Lui.Tables.Root_Model_Table with null record;
+
+   overriding function Heading_Column_Text
+     (Table : Battle_Table;
+      Col   : Positive)
+      return String
+   is ((case Battle_Column (Col) is
+           when 1 => "System",
+           when 2 => "Empire 1",
+           when 3 => "Empire 2",
+           when 4 => "Size"));
+
+   overriding function Cell_Text
+     (Table : Battle_Table;
+      Row   : Positive;
+      Col   : Positive)
+      return String;
+
+   overriding function Row_Count
+     (Table : Battle_Table)
+      return Natural
+   is (Battle_Count);
+
+   overriding function Row_Model
+     (Table : Battle_Table;
+      Row   : Positive)
+      return access Lui.Models.Root_Object_Model'Class
+   is (Get_Battle (Row));
+
    type Root_Galaxy_Model is
      new Lui.Models.Root_Object_Model with
       record
@@ -57,6 +89,7 @@ package body Concorde.Galaxy.Model is
          FPS                : Real;
          Show_Capital_Names : Boolean := True;
          Show_System_Names  : Boolean := False;
+         Battles            : Lui.Tables.Model_Table;
       end record;
 
    overriding procedure Idle_Update
@@ -107,6 +140,8 @@ package body Concorde.Galaxy.Model is
    Border_Colour : constant Lui.Colours.Colour_Type :=
                      (1.0, 1.0, 1.0, 1.0);
 
+   Local_Model : Lui.Models.Object_Model;
+
    ---------------
    -- Cell_Text --
    ---------------
@@ -142,6 +177,32 @@ package body Concorde.Galaxy.Model is
             return Lui.Approximate_Image (E.AI.Minimum_Attack_Factor);
          when 5 =>
             return Lui.Approximate_Image (E.AI.Minimum_Defense_Factor);
+      end case;
+   end Cell_Text;
+
+   ---------------
+   -- Cell_Text --
+   ---------------
+
+   overriding function Cell_Text
+     (Table : Battle_Table;
+      Row   : Positive;
+      Col   : Positive)
+      return String
+   is
+      pragma Unreferenced (Table);
+      Arena : constant Concorde.Combat.Ship_Combat.Combat_Arena :=
+                Get_Battle (Row);
+   begin
+      case Battle_Column (Col) is
+         when 1 =>
+            return Arena.Name;
+         when 2 =>
+            return Arena.Empires (1).Name;
+         when 3 =>
+            return Arena.Empires (2).Name;
+         when 4 =>
+            return Lui.Approximate_Image (Arena.Total_Combatants);
       end case;
    end Cell_Text;
 
@@ -296,24 +357,34 @@ package body Concorde.Galaxy.Model is
    function Galaxy_Model
       return Lui.Models.Object_Model
    is
-      Result : Root_Galaxy_Model;
-      E_Table : Empire_Table;
-      E : Lui.Tables.Model_Table;
+      use Lui.Models;
    begin
-      E_Table.Initialise
-        ("Empires", Concorde.Empires.Empire_Count, Empire_Column'Last);
-      E := new Empire_Table'(E_Table);
-      if True then
-         Result.Initialise ("Galaxy", (1 => E));
-      else
-         Result.Initialise ("Galaxy");
+      if Local_Model = null then
+         declare
+            Result  : Root_Galaxy_Model;
+            E_Table : Empire_Table;
+            B_Table : Battle_Table;
+            E, B    : Lui.Tables.Model_Table;
+         begin
+            E_Table.Initialise
+              ("Empires", Concorde.Empires.Empire_Count, Empire_Column'Last);
+            E := new Empire_Table'(E_Table);
+            B_Table.Initialise
+              ("Battles", 0, Battle_Column'Last);
+            B := new Battle_Table'(B_Table);
+
+            Result.Battles := B;
+            Result.Initialise ("Galaxy", (E, B));
+
+            Result.Set_Eye_Position (0.0, 0.0, 2.2);
+            Result.Show_Capital_Names :=
+              Concorde.Options.Show_Capital_Names;
+            Result.Show_System_Names :=
+              Concorde.Options.Show_System_Names;
+            Local_Model := new Root_Galaxy_Model'(Result);
+         end;
       end if;
-      Result.Set_Eye_Position (0.0, 0.0, 2.2);
-      Result.Show_Capital_Names :=
-        Concorde.Options.Show_Capital_Names;
-      Result.Show_System_Names :=
-        Concorde.Options.Show_System_Names;
-      return new Root_Galaxy_Model'(Result);
+      return Local_Model;
    end Galaxy_Model;
 
    -----------------

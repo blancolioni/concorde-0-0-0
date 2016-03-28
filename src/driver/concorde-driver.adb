@@ -3,6 +3,9 @@ with WL.Random.Names;
 
 with Concorde.Paths;
 
+with Concorde.Components.Configure;
+with Concorde.Ships.Designs;
+
 with Concorde.Empires.Configure;
 with Concorde.Galaxy.Create;
 
@@ -34,6 +37,9 @@ begin
       WL.Random.Randomise;
    end if;
 
+   Concorde.Components.Configure.Configure_Components;
+   Concorde.Ships.Designs.Configure_Designs;
+
    Concorde.AI.Configure.Register;
 
    Concorde.Galaxy.Create.Create_Galaxy
@@ -62,7 +68,8 @@ begin
          Concorde.Galaxy.Locking.Init_Locking;
 
          for I in 1 .. Concorde.Options.Number_Of_Updates loop
-            Concorde.Updates.Perform_Update;
+            Concorde.Updates.Perform_Update
+              (Execute_Battles => True);
             Process.Tick;
          end loop;
          Process.Finish;

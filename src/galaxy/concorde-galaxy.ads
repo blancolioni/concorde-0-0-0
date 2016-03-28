@@ -1,5 +1,6 @@
 private with Ada.Containers.Vectors;
 
+with Concorde.Combat.Ship_Combat;
 with Concorde.Systems.Graphs;
 
 package Concorde.Galaxy is
@@ -96,6 +97,17 @@ package Concorde.Galaxy is
      (To           : in out Star_System_Set;
       Start        : Concorde.Systems.Star_System_Type;
       Max_Distance : Non_Negative_Real);
+
+   procedure Clear_Battles;
+
+   procedure Add_Battle
+     (Arena : Concorde.Combat.Ship_Combat.Combat_Arena);
+
+   function Battle_Count return Natural;
+
+   function Get_Battle
+     (Index : Positive)
+      return Concorde.Combat.Ship_Combat.Combat_Arena;
 
 private
 

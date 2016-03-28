@@ -8,7 +8,8 @@ package Concorde.Updates is
    procedure Set_Update_Speed
      (Speed : Update_Speed);
 
-   procedure Perform_Update;
+   procedure Perform_Update
+     (Execute_Battles : Boolean);
 
    procedure Begin_Render;
    procedure Finish_Render;

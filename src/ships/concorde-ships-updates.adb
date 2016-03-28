@@ -68,13 +68,13 @@ package body Concorde.Ships.Updates is
          end if;
       end if;
 
-      if Ship.HP > 0
-        and then Ship.Owner.Maximum_Supported_Ships < Ship.Owner.Current_Ships
-        and then WL.Random.Random_Number (1, 100)
-        > Ship.Owner.Maximum_Supported_Ships * 100 / Ship.Owner.Current_Ships
-      then
-         Ship.HP := Ship.HP - 1;
-      end if;
+--        if Ship.HP > 0
+--       and then Ship.Owner.Maximum_Supported_Ships < Ship.Owner.Current_Ships
+--       and then WL.Random.Random_Number (1, 100)
+--       > Ship.Owner.Maximum_Supported_Ships * 100 / Ship.Owner.Current_Ships
+--        then
+--           Ship.HP := Ship.HP - 1;
+--        end if;
 
       Ship.Owner.AI.Order_Ship (Ship);
 
@@ -91,10 +91,10 @@ package body Concorde.Ships.Updates is
             & ")");
 
          Concorde.Galaxy.Ships.Move_Ship (Ship);
-      elsif Ship.HP < Ship.Max_HP
-        and then Ship.Owner.Available_Ship_Capacity >= 0
-      then
-         Ship.HP := Ship.HP + 1;
+--        elsif Ship.HP < Ship.Max_HP
+--          and then Ship.Owner.Available_Ship_Capacity >= 0
+--        then
+--           Ship.HP := Ship.HP + 1;
       end if;
    end Update_Ship;
 
@@ -105,7 +105,7 @@ package body Concorde.Ships.Updates is
    procedure Update_Ship_Movement is
    begin
       for Ship of Ship_Vector loop
-         if Ship.HP > 0 then
+         if Ship.Damage < 1.0 then
             Update_Ship (Ship);
          end if;
       end loop;

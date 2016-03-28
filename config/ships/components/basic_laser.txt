@@ -1,0 +1,10 @@
+weapon
+mass = 100
+size = 10
+power = 1
+energy = 100
+heat = 1
+range = 100000
+damage = { 10 5 1 }
+hp = 4
+explode = { 50 20 10 5 }

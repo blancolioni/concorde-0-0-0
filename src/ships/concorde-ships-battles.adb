@@ -1,59 +1,129 @@
-with Ada.Text_IO;
-
-with WL.Random;
-
-with Concorde.Dates;
+with Ada.Numerics;
 
 with Concorde.Empires;
 with Concorde.Empires.Logging;
 with Concorde.Empires.Relations;
 
-with Concorde.AI;
-
-with Concorde.Options;
-with Concorde.Paths;
-
 package body Concorde.Ships.Battles is
 
-   type Team_Info is
+   Arena_Radius    : constant := 1.0E6;
+   Planet_Radius   : constant := 1.0E3;
+   Ship_Separation : constant := 100.0;
+
+   type Ship_Team is
       record
-         Leader : Concorde.Empires.Empire_Type;
-         Ships  : Concorde.Ships.Lists.List;
+         Empire : access Concorde.Empires.Root_Empire_Type'Class;
+         X, Y   : Real;
+         Facing : Radians;
+         Count  : Natural;
       end record;
 
    package Team_Vectors is
-     new Ada.Containers.Vectors (Positive, Team_Info);
+     new Ada.Containers.Vectors (Positive, Ship_Team);
 
-   type Ship_Info is
-      record
-         Team   : Positive;
-         Ship   : Ship_Type;
-         Target : Ship_Type;
-      end record;
-
-   package Ship_Info_Vectors is
-     new Ada.Containers.Vectors (Positive, Ship_Info);
-
-   procedure Attack
-     (Attacker, Defender : Ship_Type;
-      Hit                : out Boolean);
-
-   ------------
-   -- Attack --
-   ------------
-
-   procedure Attack
-     (Attacker, Defender : Ship_Type;
-      Hit                : out Boolean)
+   function Create_Arena
+     (System : Concorde.Systems.Star_System_Access;
+      Ships  : Concorde.Ships.Lists.List)
+     return Concorde.Combat.Ship_Combat.Combat_Arena
    is
-      pragma Unreferenced (Attacker);
+      use Concorde.Empires;
+      Teams         : Team_Vectors.Vector;
+      Min_Team_Size : Natural := Natural'Last;
+
+      Arena         : constant Concorde.Combat.Ship_Combat.Combat_Arena :=
+                        Concorde.Combat.Ship_Combat.New_Arena
+                          (Name          => System.Name,
+                           Radius        => Arena_Radius,
+                           Planet_X      => 0.0,
+                           Planet_Y      => 0.0,
+                           Planet_Radius => Planet_Radius);
    begin
-      Hit := False;
-      if WL.Random.Random_Number (1, 2) = 2 then
-         Defender.HP := Defender.HP - 1;
-         Hit := True;
-      end if;
-   end Attack;
+
+      for Ship of Ships loop
+         declare
+            Pi : constant := Ada.Numerics.Pi;
+            Owner      : constant Empire_Type := Empire_Type (Ship.Owner);
+            New_Team   : Boolean := True;
+            Team_Index : Positive;
+            Team       : Ship_Team;
+         begin
+            for I in 1 .. Teams.Last_Index loop
+               if Teams (I).Empire = Owner then
+                  Team := Teams (I);
+                  Team_Index := I;
+                  New_Team := False;
+               end if;
+            end loop;
+
+            if New_Team then
+               Team :=
+                 (Empire => Ship.Owner,
+                  Count  => 0,
+                  X      =>
+                    (if Teams.Last_Index = 0 then -1000.0 else 1000.0),
+                  Y      => 0.0,
+                  Facing =>
+                    (if Teams.Last_Index = 0 then 0.0 else Pi));
+               Teams.Append (Team);
+               Team_Index := Teams.Last_Index;
+            end if;
+
+            for Module of Ship.Structure loop
+               Module.Initial_State;
+            end loop;
+
+            Arena.Add_Combatant
+              (Combatant => Ship,
+               Team      => Owner,
+               X         => Team.X,
+               Y         => Team.Y + Ship_Separation * Real (Team.Count),
+               Facing    => Team.Facing);
+
+            Teams (Team_Index).Count := Teams (Team_Index).Count + 1;
+         end;
+      end loop;
+
+      pragma Assert (Teams.Last_Index >= 2);
+
+      for Team of Teams loop
+         declare
+            Size : constant Positive := Team.Count;
+         begin
+            Team.Empire.Set_Battle (System);
+            if Size < Min_Team_Size then
+               Min_Team_Size := Size;
+            end if;
+         end;
+      end loop;
+
+      System.Battle (Min_Team_Size);
+
+      for Team of Teams loop
+         if Min_Team_Size > 5 then
+            Concorde.Empires.Logging.Log
+              (Empire  => Team.Empire,
+               Message =>
+                 "The Battle of " & System.Name
+               & (if System.Owned
+                 then ", owned by " & System.Owner.Name
+                 else ", disputed system"));
+         else
+            Concorde.Empires.Logging.Log
+              (Empire  => Team.Empire,
+               Message => "Skirmish at " & System.Name);
+         end if;
+      end loop;
+
+      for Team of Teams loop
+         Concorde.Empires.Logging.Log
+           (Team.Empire,
+            "fleet size:"
+            & Natural'Image (Team.Count));
+      end loop;
+
+      return Arena;
+
+   end Create_Arena;
 
    -----------------------
    -- Empire_Ship_Count --
@@ -104,269 +174,6 @@ package body Concorde.Ships.Battles is
       return Result (1 .. Count);
    end Empires_Present;
 
-   -----------
-   -- Fight --
-   -----------
-
-   procedure Fight
-     (System : Concorde.Systems.Star_System_Access;
-      Ships  : Concorde.Ships.Lists.List)
-   is
-      use Concorde.Empires;
-      Teams         : Team_Vectors.Vector;
-      Info_Vector   : Ship_Info_Vectors.Vector;
-      Min_Team_Size : Natural := Natural'Last;
-      Log_File_Name : constant String :=
-                        Concorde.Paths.Config_Path
-                        & "/../log/battles/"
-                        & System.Name
-                        & " "
-                        & Concorde.Dates.To_String
-                          (Concorde.Dates.Current_Date)
-                        & ".txt";
-      Log_Battle    : constant Boolean :=
-                        Concorde.Options.Enable_Detailed_Battle_Logging;
-      Log_File      : Ada.Text_IO.File_Type;
-   begin
-
-      if Log_Battle then
-         Ada.Text_IO.Create (Log_File, Ada.Text_IO.Out_File,
-                             Log_File_Name);
-         Ada.Text_IO.Put_Line
-           (Log_File,
-            "The Battle of " & System.Name
-            & (if System.Owned then " owned by " & System.Owner.Name
-              else ""));
-
-      end if;
-
-      for Ship of Ships loop
-         declare
-            Owner      : constant Empire_Type := Empire_Type (Ship.Owner);
-            New_Team   : Boolean := True;
-            Team_Index : Positive;
-         begin
-            for I in 1 .. Teams.Last_Index loop
-               if Teams (I).Leader = Owner then
-                  Teams (I).Ships.Append (Ship);
-                  Team_Index := I;
-                  New_Team := False;
-                  exit;
-               end if;
-            end loop;
-
-            if New_Team then
-               declare
-                  List : Lists.List;
-               begin
-                  List.Append (Ship);
-                  Teams.Append ((Owner, List));
-                  Team_Index := Teams.Last_Index;
-                  Owner.AI.Wake;
-               end;
-            end if;
-
-            Info_Vector.Append ((Team_Index, Ship, null));
-         end;
-      end loop;
-
-      pragma Assert (Teams.Last_Index >= 2);
-
-      for Team of Teams loop
-         declare
-            Size : constant Positive := Positive (Team.Ships.Length);
-         begin
-            Team.Leader.Set_Battle (System);
-            if Size < Min_Team_Size then
-               Min_Team_Size := Size;
-            end if;
-            if Log_Battle then
-               Ada.Text_IO.Put_Line
-                 (Log_File,
-                  Team.Leader.Name
-                  & ": ship count" & Positive'Image (Size));
-               for Ship of Team.Ships loop
-                  Ada.Text_IO.Put_Line
-                    (Log_File,
-                     "    " & Ship.Short_Description);
-               end loop;
-            end if;
-         end;
-      end loop;
-
-      System.Battle (Min_Team_Size);
-
-      if Min_Team_Size > 5 then
-         Concorde.Empires.Logging.Log
-           (Empire  => Teams.First_Element.Leader,
-            Message =>
-              "The Battle of " & System.Name
-            & (if System.Owned
-              then ", owned by " & System.Owner.Name
-              else ", disputed system"));
-      else
-         Concorde.Empires.Logging.Log
-           (Empire  => Teams.First_Element.Leader,
-            Message => "Skirmish at " & System.Name);
-      end if;
-
-      for Team of Teams loop
-         Concorde.Empires.Logging.Log
-           (Team.Leader,
-            "fleet size:"
-            & Natural'Image (Natural (Team.Ships.Length)));
-      end loop;
-
-      for Round_Index in 1 .. 10 loop
-         declare
-            Continue : Boolean := False;
-            Count    : constant Natural := Info_Vector.Last_Index;
-            Order    : array (1 .. Count) of Positive;
-         begin
-            if Log_Battle then
-               Ada.Text_IO.Put_Line
-                 (Log_File, "-- Round" & Round_Index'Img & " --");
-            end if;
-
-            for I in Order'Range loop
-               Order (I) := I;
-            end loop;
-            for I in Order'Range loop
-               declare
-                  New_Index : constant Positive :=
-                                WL.Random.Random_Number (1, Count);
-                  T         : constant Positive := Order (New_Index);
-               begin
-                  Order (New_Index) := Order (I);
-                  Order (I) := T;
-               end;
-            end loop;
-
-            for Ship_Info_Index of Order loop
-               declare
-                  Info : Ship_Info renames Info_Vector (Ship_Info_Index);
-               begin
-                  if not Info.Ship.Alive then
-                     Info.Target := null;
-                  elsif Info.Target = null
-                    or else Info.Target.HP = 0
-                  then
-                     Info.Target := null;
-                     for I in 1 .. Teams.Last_Index loop
-                        if I /= Info.Team
-                          and then Concorde.Empires.Relations.At_War
-                            (Info.Ship.Owner, Teams (I).Leader)
-                        then
-                           declare
-                              Most_Damage : Ship_Type;
-                              Least_HP    : Natural := Natural'Last;
-                           begin
-                              for Ship of Teams (I).Ships loop
-                                 if Ship.HP > 0
-                                   and then Ship.HP < Least_HP
-                                 then
-                                    Most_Damage := Ship;
-                                    Least_HP := Ship.HP;
-                                 end if;
-                              end loop;
-
-                              Info.Target := Most_Damage;
-                           end;
-                        end if;
-                     end loop;
-                  end if;
-
-                  if Info.Target /= null then
-                     Continue := True;
-                     Info.Target.Owner.Set_Relationship
-                       (Info.Ship.Owner, -100);
-                     declare
-                        Hit : Boolean;
-                     begin
-                        Attack (Info.Ship, Info.Target, Hit);
-                        if Log_Battle then
-                           Ada.Text_IO.Put_Line
-                             (Log_File,
-                              Info.Ship.Short_Description
-                              & " attacks "
-                              & Info.Target.Short_Description
-                              & ": "
-                              & (if Hit then "Hit" else "Miss"));
-                        end if;
-                     end;
-                  end if;
-               end;
-            end loop;
-
-            for Ship of Ships loop
-               if Ship.Alive then
-                  if Ship.HP = 0 then
-                     Ship.Alive := False;
-                     Ship.Owner.Remove_Ship;
-                     System.Remove_Ship (Ship);
-                     Empires.Logging.Log
-                       (Ship.Owner, Ship.Name & " destroyed");
-                     if Log_Battle then
-                        Ada.Text_IO.Put_Line
-                          (Log_File,
-                           Ship.Short_Description & ": destroyed");
-                     end if;
-                  end if;
-               end if;
-            end loop;
-
-            exit when not Continue;
-         end;
-      end loop;
-
-      declare
-         Remaining_Teams : Natural := 0;
-         Victor          : Concorde.Empires.Empire_Type := null;
-      begin
-         for Team of Teams loop
-            declare
-               Team_Remaining : Natural := 0;
-            begin
-               for Ship of Team.Ships loop
-                  if Ship.Alive then
-                     Team_Remaining := Team_Remaining + 1;
-                  end if;
-               end loop;
-
-               Concorde.Empires.Logging.Log
-                 (Team.Leader,
-                  "ships remaining:" & Team_Remaining'Img);
-               if Team_Remaining > 0 then
-                  Remaining_Teams := Remaining_Teams + 1;
-                  if Remaining_Teams = 1 then
-                     Victor := Team.Leader;
-                  else
-                     Victor := null;
-                  end if;
-               end if;
-            end;
-         end loop;
-
-         if Remaining_Teams = 0 then
-            Empires.Logging.Log
-              (Teams.First_Element.Leader,
-               "mutual annihilation");
-         elsif Remaining_Teams = 1 then
-            Empires.Logging.Log
-              (Victor, "victory!");
-         else
-            Empires.Logging.Log
-              (Teams.First_Element.Leader,
-               "the battle continues");
-         end if;
-      end;
-
-      if Log_Battle then
-         Ada.Text_IO.Close (Log_File);
-      end if;
-
-   end Fight;
-
    ------------------
    -- Has_Conflict --
    ------------------
@@ -381,5 +188,28 @@ package body Concorde.Ships.Battles is
    begin
       return Concorde.Empires.Relations.Has_Conflict (Es);
    end Has_Conflict;
+
+   ---------
+   -- Hit --
+   ---------
+
+--     overriding procedure Hit
+--       (Combatant : in out Fighting_Ship;
+--        Damage    : Positive)
+--     is
+--        Ship : Ship_Type renames Combatant.Ship;
+--     begin
+--        for I in 1 .. Damage loop
+--           declare
+--              Module_Index : constant Positive :=
+--                               WL.Random.Random_Number
+--                                 (1, Ship.Structure.Last_Index);
+--              Module       : Concorde.Modules.Module_Type renames
+--                               Ship.Structure (Module_Index);
+--           begin
+--              Module.Hit;
+--           end;
+--        end loop;
+--     end Hit;
 
 end Concorde.Ships.Battles;
