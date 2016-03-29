@@ -108,9 +108,7 @@ package body Concorde.Combat.Ship_Combat is
       case Event.Event is
          when Weapon_Fired =>
             Model.Ships (Event.Target).Ship.Hit
-              (Event.Weapon.Ranged_Damage
-                 (Model.Ship_Range (Event.Attacker, Event.Target),
-                  Event.Effectiveness));
+              (Natural (2.0 * Event.Effectiveness));
       end case;
    end Commit_Event;
 
@@ -177,15 +175,12 @@ package body Concorde.Combat.Ship_Combat is
       Ship   : in out Ship_Record;
       Module : Concorde.Modules.Module_Type)
    is
-      use Concorde.Components.Weapons;
-      Weapon : constant Weapon_Component :=
-                 Weapon_Component (Module.Component);
    begin
       Model.Events.Insert
         (Model.Events.First,
          (Weapon_Fired, Model.Turns, Ship.Index, Ship.Target,
-          Module, Weapon, Module.Stored_Energy,
-          1.0 - Module.Damage));
+          Module, Module.Component, Module.Stored_Energy,
+          Module.Effectiveness));
       Module.Execute;
    end Fire_Weapon;
 
@@ -238,18 +233,19 @@ package body Concorde.Combat.Ship_Combat is
      (Model    : in out Root_Combat_Arena;
       Renderer : in out Lui.Rendering.Root_Renderer'Class)
    is
-      Health_Bar_Width : constant := 10;
-      Health_Bar_Height : constant := 4;
+      Health_Bar_Width : constant := 20;
+      Health_Bar_Height : constant := 8;
    begin
       for Combat_Ship of Model.Ships loop
          declare
+            use Concorde.Ships;
             Outline : constant Lui.Rendering.Buffer_Points :=
                         Model.Ship_Outline (Combat_Ship);
             Colour  : Lui.Colours.Colour_Type :=
                         Combat_Ship.Ship.Owner.Colour;
             X, Y    : Integer;
             W       : constant Natural :=
-                        Natural (Combat_Ship.Ship.Damage
+                        Natural ((1.0 - Combat_Ship.Ship.Damage)
                                  * Real (Health_Bar_Width));
          begin
             if not Combat_Ship.Ship.Alive then
@@ -261,22 +257,46 @@ package body Concorde.Combat.Ship_Combat is
                Filled   => True);
             Model.Ship_Centre (Combat_Ship, X, Y);
             Renderer.Draw_Rectangle
-              (X - Health_Bar_Width / 2,
-               Y + Combat_Ship.Ship.Size, W, Health_Bar_Height,
-               (0.8, 0.0, 0.0, 1.0), True);
+              (X - Health_Bar_Width / 2, Y - Health_Bar_Height / 2,
+               W, Health_Bar_Height,
+               (0.0, 0.6, 0.0, 1.0), True);
             Renderer.Draw_Rectangle
-              (X - Health_Bar_Width / 2 + W,
-               Y + Combat_Ship.Ship.Size,
+              (X - Health_Bar_Width / 2 + W, Y - Health_Bar_Height / 2,
                Health_Bar_Width - W, Health_Bar_Height,
-               (0.0, 0.8, 0.0, 1.0), True);
+               (0.7, 0.0, 0.0, 1.0), True);
 
+            declare
+               Damaged_Mounts : constant Array_Of_Mounted_Modules :=
+                                  Combat_Ship.Ship.Get_Damaged_Mounts;
+            begin
+               for Mount of Damaged_Mounts loop
+                  declare
+                     Module : constant Concorde.Modules.Module_Type :=
+                                Combat_Ship.Ship.Get_Module (Mount);
+                  begin
+                     if Module.Exploding then
+                        if Module.Explosion_Timer in -9 .. 0 then
+                           Renderer.Draw_Circle
+                             (X          => X,
+                              Y          => Y,
+                              Radius     =>
+                                (10 + Module.Explosion_Timer)
+                              * Module.Explosion_Size / 5,
+                              Colour     => (0.89, 0.34, 0.13, 0.7),
+                              Filled     => True,
+                              Line_Width => 1);
+                        end if;
+                     end if;
+                  end;
+               end loop;
+            end;
          end;
       end loop;
 
       for Event of Model.Events loop
          case Event.Event is
             when Weapon_Fired =>
-               if Model.Turns - Event.Turn < 5 then
+               if Model.Turns - Event.Turn < 1 then
                   declare
                      Attacker : Ship_Record renames
                                   Model.Ships (Event.Attacker);
@@ -363,8 +383,8 @@ package body Concorde.Combat.Ship_Combat is
          begin
             P.X := P.X * Cos (Ship.Facing) - P.Y * Sin (Ship.Facing);
             P.Y := P.X * Sin (Ship.Facing) + P.Y * Cos (Ship.Facing);
-            P.X := P.X * Real (Ship.Ship.Size) / 2.0;
-            P.Y := P.Y * Real (Ship.Ship.Size) / 2.0;
+            P.X := P.X * Real (Ship.Ship.Size.X) * 3.0;
+            P.Y := P.Y * Real (Ship.Ship.Size.Z) * 3.0;
             Result (I) :=
               (X => C_X + Integer (P.X),
                Y => C_Y + Integer (P.Y));
@@ -432,6 +452,9 @@ package body Concorde.Combat.Ship_Combat is
       Ship  : in out Ship_Record)
    is
    begin
+
+      Ship.Ship.Update_Damage;
+
       if not Ship.Ship.Alive then
          return;
       end if;
@@ -444,13 +467,21 @@ package body Concorde.Combat.Ship_Combat is
       Ship.Ship.Update_Power;
 
       declare
-         Ws : constant Concorde.Modules.Array_Of_Modules :=
-                Ship.Ship.Get_Weapon_Modules;
+         Ws : constant Concorde.Ships.Array_Of_Mounted_Modules :=
+                Ship.Ship.Get_Weapon_Mounts;
       begin
          for W of Ws loop
-            if Concorde.Random.Unit_Random < W.Charge then
-               Model.Fire_Weapon (Ship, W);
-            end if;
+            declare
+               Weapon : constant Concorde.Modules.Module_Type :=
+                          Ship.Ship.Get_Module (W);
+               Charge : constant Unit_Real := Weapon.Charge;
+            begin
+               if Weapon.Effectiveness > 0.5
+                 and then Concorde.Random.Unit_Random < Charge
+               then
+                  Model.Fire_Weapon (Ship, Weapon);
+               end if;
+            end;
          end loop;
       end;
    end Update_Ship;

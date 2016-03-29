@@ -1,0 +1,4 @@
+class = tank
+density = 2
+colour = { 189 145 116 }
+layout = { 1 1 1 }

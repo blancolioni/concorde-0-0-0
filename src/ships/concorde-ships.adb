@@ -3,6 +3,8 @@ with WL.Random;
 with Concorde.Components;
 with Concorde.Systems;
 
+with Concorde.Random;
+
 package body Concorde.Ships is
 
    -----------
@@ -45,12 +47,23 @@ package body Concorde.Ships is
      (Ship : Root_Ship_Type'Class)
       return Unit_Real
    is
+      use Concorde.Components;
       Total : Non_Negative_Real := 0.0;
+      Count : Non_Negative_Real := 0.0;
    begin
       for Module of Ship.Structure loop
-         Total := Total + Module.Damage;
+         if Module.Module.Component.Class = Strut then
+            null;
+         else
+            Total := Total + Module.Module.Damage;
+            Count := Count + 1.0;
+         end if;
       end loop;
-      return Total / Non_Negative_Real (Ship.Structure.Length);
+      if Count > 0.0 then
+         return Total / Count;
+      else
+         return 1.0;
+      end if;
    end Damage;
 
    -----------------
@@ -66,26 +79,87 @@ package body Concorde.Ships is
    end Destination;
 
    ------------------------
-   -- Get_Weapon_Modules --
+   -- Get_Damaged_Mounts --
    ------------------------
 
-   function Get_Weapon_Modules
+   function Get_Damaged_Mounts
      (Ship : Root_Ship_Type'Class)
-      return Concorde.Modules.Array_Of_Modules
+      return Array_Of_Mounted_Modules
    is
       use Concorde.Components;
-      use Concorde.Modules;
-      Result : Array_Of_Modules (1 .. Ship.Structure.Last_Index);
+      Result : Array_Of_Mounted_Modules
+        (1 .. Natural (Ship.Structure.Last_Index));
       Count  : Natural := 0;
    begin
-      for Module of Ship.Structure loop
-         if Module.Component.Class = Weapon then
+      for I in 1 .. Ship.Structure.Last_Index loop
+         if Ship.Structure (I).Module.Component.Class in Weapon_Class then
             Count := Count + 1;
-            Result (Count) := Module;
+            Result (Count) := Mounted_Module (I);
          end if;
       end loop;
       return Result (1 .. Count);
-   end Get_Weapon_Modules;
+   end Get_Damaged_Mounts;
+
+   ----------------
+   -- Get_Module --
+   ----------------
+
+   function Get_Module
+     (Ship  : Root_Ship_Type'Class;
+      Mount : Mounted_Module)
+      return Concorde.Modules.Module_Type
+   is
+   begin
+      return Ship.Structure (Positive (Mount)).Module;
+   end Get_Module;
+
+   ---------------------
+   -- Get_Orientation --
+   ---------------------
+
+   function Get_Orientation
+     (Ship  : Root_Ship_Type'Class;
+      Mount : Mounted_Module)
+      return Module_Orientation
+   is
+   begin
+      return Ship.Structure (Positive (Mount)).Orientation;
+   end Get_Orientation;
+
+   ------------------
+   -- Get_Position --
+   ------------------
+
+   function Get_Position
+     (Ship  : Root_Ship_Type'Class;
+      Mount : Mounted_Module)
+      return Module_Position
+   is
+   begin
+      return Ship.Structure (Positive (Mount)).Left_Low_Aft;
+   end Get_Position;
+
+   -----------------------
+   -- Get_Weapon_Mounts --
+   -----------------------
+
+   function Get_Weapon_Mounts
+     (Ship : Root_Ship_Type'Class)
+      return Array_Of_Mounted_Modules
+   is
+      use Concorde.Components;
+      Result : Array_Of_Mounted_Modules
+        (1 .. Natural (Ship.Structure.Last_Index));
+      Count  : Natural := 0;
+   begin
+      for I in 1 .. Ship.Structure.Last_Index loop
+         if Ship.Structure (I).Module.Component.Class in Weapon_Class then
+            Count := Count + 1;
+            Result (Count) := Mounted_Module (I);
+         end if;
+      end loop;
+      return Result (1 .. Count);
+   end Get_Weapon_Mounts;
 
    ---------
    -- Hit --
@@ -99,12 +173,26 @@ package body Concorde.Ships is
       for I in 1 .. Damage loop
          declare
             Index : constant Positive :=
-                      WL.Random.Random_Number (1, Ship.Structure.Last_Index);
+                      WL.Random.Random_Number
+                        (1, Ship.Structure.Last_Index);
+            Module : constant Concorde.Modules.Module_Type :=
+                       Ship.Structure.Element (Index).Module;
          begin
-            Ship.Structure.Element (Index).Hit;
+            if not Module.Exploding then
+               Module.Hit;
+               if Concorde.Random.Unit_Random < Module.Explosion_Chance then
+                  Module.Start_Explosion;
+               end if;
+            end if;
          end;
       end loop;
-      Ship.Alive := Ship.Damage < 1.0;
+
+      declare
+         Ship_Damage : constant Unit_Real := Ship.Damage;
+      begin
+         Ship.Alive := Ship_Damage < 0.75;
+      end;
+
    end Hit;
 
    ---------------
@@ -172,7 +260,7 @@ package body Concorde.Ships is
 
    function Size
      (Ship : Root_Ship_Type'Class)
-      return Natural
+      return Size_Type
    is
    begin
       return Ship.Size;
@@ -190,6 +278,33 @@ package body Concorde.Ships is
       return Ship.System;
    end System;
 
+   -------------------
+   -- Update_Damage --
+   -------------------
+
+   procedure Update_Damage
+     (Ship : in out Root_Ship_Type'Class)
+   is
+      New_Hits : Natural := 0;
+   begin
+      for Mount of Ship.Structure loop
+         declare
+            Module : constant Concorde.Modules.Module_Type :=
+                       Mount.Module;
+         begin
+            Module.Update_Damage;
+            if Module.Exploding then
+               if Module.Explosion_Timer = 0 then
+                  New_Hits := New_Hits + Module.Explosion_Size;
+               end if;
+            end if;
+         end;
+      end loop;
+      if New_Hits > 0 then
+         Ship.Hit (New_Hits);
+      end if;
+   end Update_Damage;
+
    ------------------
    -- Update_Power --
    ------------------
@@ -199,7 +314,8 @@ package body Concorde.Ships is
    is
    begin
       for Module of Ship.Structure loop
-         Module.Draw_Power (Module.Component.Max_Power_Draw);
+         Module.Module.Draw_Power
+           (Module.Module.Maximum_Power_Draw);
       end loop;
    end Update_Power;
 

@@ -16,4 +16,9 @@ package Concorde is
          X, Y : Real;
       end record;
 
+   type Size_Type is
+      record
+         X, Y, Z : Positive;
+      end record;
+
 end Concorde;

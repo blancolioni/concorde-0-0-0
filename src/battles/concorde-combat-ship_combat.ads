@@ -8,7 +8,7 @@ with Concorde.Empires;
 with Concorde.Modules;
 with Concorde.Ships;
 
-with Concorde.Components.Weapons;
+with Concorde.Components;
 
 package Concorde.Combat.Ship_Combat is
 
@@ -83,8 +83,8 @@ private
                Attacker      : Positive;
                Target        : Positive;
                Module        : Concorde.Modules.Module_Type;
-               Weapon        : Concorde.Components.Weapons.Weapon_Component;
-               Power         : Natural;
+               Weapon        : Concorde.Components.Component_Type;
+               Power         : Non_Negative_Real;
                Effectiveness : Unit_Real;
          end case;
       end record;

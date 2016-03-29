@@ -1,5 +1,3 @@
-with Concorde.Random;
-
 package body Concorde.Modules is
 
    ------------
@@ -10,13 +8,11 @@ package body Concorde.Modules is
      (Module : Root_Module_Type'Class)
       return Unit_Real
    is
-      Max_Energy : constant Natural := Module.Component.Max_Stored_Energy;
    begin
-      if Max_Energy = 0 then
+      if Module.Max_Stored_Energy = 0.0 then
          return 0.0;
       else
-         return Real (Module.Energy)
-           / Real (Module.Component.Max_Stored_Energy);
+         return Module.Stored_Energy / Module.Max_Stored_Energy;
       end if;
    end Charge;
 
@@ -41,7 +37,7 @@ package body Concorde.Modules is
       return Unit_Real
    is
    begin
-      return 1.0 - Real (Module.HP) / Real (Module.Component.Max_Hits);
+      return Real (Module.Hits) / Real (Module.Max_Hits);
    end Damage;
 
    ----------------
@@ -50,14 +46,26 @@ package body Concorde.Modules is
 
    procedure Draw_Power
      (Module : in out Root_Module_Type'Class;
-      Power  : Natural)
+      Power  : Non_Negative_Real)
    is
    begin
-      if Module.Energy < Module.Component.Max_Stored_Energy then
-         Module.Energy := Module.Energy + 1;
-      end if;
-      Module.Heat := Module.Heat + Power + 1;
+      Module.Stored_Energy :=
+        Non_Negative_Real'Min (Module.Stored_Energy + Power,
+                               Module.Max_Stored_Energy);
+      Module.Heat := Module.Heat + Power;
    end Draw_Power;
+
+   -------------------
+   -- Effectiveness --
+   -------------------
+
+   function Effectiveness
+     (Module : Root_Module_Type'Class)
+      return Unit_Real
+   is
+   begin
+      return 1.0 - Module.Damage ** 2;
+   end Effectiveness;
 
    -------------
    -- Execute --
@@ -67,8 +75,8 @@ package body Concorde.Modules is
      (Module : in out Root_Module_Type'Class)
    is
    begin
-      Module.Heat := Module.Heat + Module.Energy;
-      Module.Energy := 0;
+      Module.Heat := Module.Heat + Module.Stored_Energy;
+      Module.Stored_Energy := 0.0;
    end Execute;
 
    ---------------
@@ -83,6 +91,42 @@ package body Concorde.Modules is
       return Module.Exploding;
    end Exploding;
 
+   ----------------------
+   -- Explosion_Chance --
+   ----------------------
+
+   function Explosion_Chance
+     (Module : Root_Module_Type'Class)
+      return Unit_Real
+   is
+   begin
+      return (1.0 - Module.Component.Explosion_Chance) ** Module.Hits;
+   end Explosion_Chance;
+
+   --------------------
+   -- Explosion_Size --
+   --------------------
+
+   function Explosion_Size
+     (Module : Root_Module_Type'Class)
+      return Natural
+   is
+   begin
+      return Module.Explosion_Size;
+   end Explosion_Size;
+
+   ---------------------
+   -- Explosion_Timer --
+   ---------------------
+
+   function Explosion_Timer
+     (Module : Root_Module_Type'Class)
+      return Integer
+   is
+   begin
+      return Module.Explosion_Timer;
+   end Explosion_Timer;
+
    ---------
    -- Hit --
    ---------
@@ -91,19 +135,9 @@ package body Concorde.Modules is
      (Module         : in out Root_Module_Type'Class)
    is
    begin
-      if Module.HP > 0 then
-         Module.HP := Module.HP - 1;
+      if Module.Hits < Module.Volume then
+         Module.Hits := Module.Hits + 1;
       end if;
-
-      declare
-         Explode : constant Unit_Real :=
-                     Module.Component.Explosion_Chance
-                       (Module.HP);
-      begin
-         if Concorde.Random.Unit_Random < Explode then
-            Module.Exploding := True;
-         end if;
-      end;
    end Hit;
 
    -------------------
@@ -114,9 +148,12 @@ package body Concorde.Modules is
      (Module : in out Root_Module_Type'Class)
    is
    begin
-      Module.Energy := Module.Component.Max_Stored_Energy / 2;
-      Module.Heat := 0;
+      Module.Max_Stored_Energy :=
+        Module.Component.Maximum_Stored_Energy (Module.Volume);
+      Module.Stored_Energy := 0.0;
+      Module.Heat := 0.0;
       Module.Exploding := False;
+      Module.Hits := 0;
    end Initial_State;
 
    ----------
@@ -125,29 +162,53 @@ package body Concorde.Modules is
 
    function Mass
      (Module : Root_Module_Type'Class)
-      return Natural
+      return Non_Negative_Real
    is
    begin
-      return Module.Mass;
+      return Module.Component.Mass (Module.Volume);
    end Mass;
+
+   ------------------------
+   -- Maximum_Power_Draw --
+   ------------------------
+
+   function Maximum_Power_Draw
+     (Module : in out Root_Module_Type'Class)
+      return Non_Negative_Real
+   is
+   begin
+      return Module.Component.Maximum_Power_Draw (Module.Volume);
+   end Maximum_Power_Draw;
 
    ----------------
    -- New_Module --
    ----------------
 
    function New_Module
-     (Component : Concorde.Components.Component_Type)
+     (Name      : String;
+      Component : Concorde.Components.Component_Type;
+      Size      : Size_Type)
       return Module_Type
    is
+      Volume : constant Positive := Size.X * Size.Y * Size.Z;
+      Module : constant Module_Type :=
+                 new Root_Module_Type'
+                   (Concorde.Objects.Root_Named_Object_Type with
+                    Component         => Component,
+                    Size              => Size,
+                    Volume            => Volume,
+                    Max_Stored_Energy =>
+                      Component.Maximum_Stored_Energy (Volume),
+                    Stored_Energy     => 0.0,
+                    Heat              => 0.0,
+                    Hits              => 0,
+                    Max_Hits          => Volume * 10,
+                    Exploding         => False,
+                    Explosion_Timer   => 0,
+                    Explosion_Size    => 0);
    begin
-      return new Root_Module_Type'
-        (Concorde.Objects.Root_Object_Type with
-           Component => Component,
-         Mass      => Component.Mass,
-         HP        => Component.Max_Hits,
-         Energy    => 0,
-         Heat      => 0,
-         Exploding => False);
+      Module.Set_Name (Name);
+      return Module;
    end New_Module;
 
    ----------
@@ -156,11 +217,25 @@ package body Concorde.Modules is
 
    function Size
      (Module : Root_Module_Type'Class)
-      return Natural
+      return Size_Type
    is
    begin
-      return Module.Component.Size;
+      return Module.Size;
    end Size;
+
+   ---------------------
+   -- Start_Explosion --
+   ---------------------
+
+   procedure Start_Explosion
+     (Module : in out Root_Module_Type'Class)
+   is
+   begin
+      Module.Exploding := True;
+      Module.Explosion_Timer :=
+        Module.Max_Hits - Module.Hits;
+      Module.Explosion_Size := Module.Volume * 3;
+   end Start_Explosion;
 
    -------------------
    -- Stored_Energy --
@@ -168,10 +243,26 @@ package body Concorde.Modules is
 
    function Stored_Energy
      (Module : Root_Module_Type'Class)
-      return Natural
+      return Non_Negative_Real
    is
    begin
-      return Module.Energy;
+      return Module.Stored_Energy;
    end Stored_Energy;
+
+   -------------------
+   -- Update_Damage --
+   -------------------
+
+   procedure Update_Damage
+     (Module : in out Root_Module_Type'Class)
+   is
+   begin
+      if Module.Exploding then
+         Module.Explosion_Timer := Module.Explosion_Timer - 1;
+         if Module.Explosion_Timer = 0 then
+            Module.Hits := Module.Max_Hits;
+         end if;
+      end if;
+   end Update_Damage;
 
 end Concorde.Modules;

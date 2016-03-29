@@ -69,7 +69,7 @@ package body Concorde.Ships.Battles is
             end if;
 
             for Module of Ship.Structure loop
-               Module.Initial_State;
+               Module.Module.Initial_State;
             end loop;
 
             Arena.Add_Combatant

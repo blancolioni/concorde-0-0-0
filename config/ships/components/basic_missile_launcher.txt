@@ -1,0 +1,4 @@
+class = launcher
+colour = { 135 206 250 }
+density = 10
+layout = { 1 1 1 }

@@ -1,0 +1,10 @@
+   module = {
+      name = main_strut
+      component = strut
+      length = 10
+      width  = 3
+      height = 3
+      left = -1
+      low = -1
+      aft = -5
+      }

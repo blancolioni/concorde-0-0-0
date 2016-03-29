@@ -1,0 +1,7 @@
+colour = { 209 146 117 }
+class = shield_generator
+density = 50
+nominal_max_output = 1
+output_size_power = 0.9
+input_size_power = 0.6
+layout = { 3 3 1 }

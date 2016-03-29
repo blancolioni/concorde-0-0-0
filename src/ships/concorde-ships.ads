@@ -51,7 +51,7 @@ package Concorde.Ships is
       return Unit_Real;
 
    procedure Hit
-     (Ship : in out Root_Ship_Type'Class;
+     (Ship   : in out Root_Ship_Type'Class;
       Damage : Natural);
 
    function Acceleration
@@ -68,14 +68,54 @@ package Concorde.Ships is
 
    function Size
      (Ship : Root_Ship_Type'Class)
-      return Natural;
+      return Size_Type;
 
    procedure Update_Power
      (Ship : in out Root_Ship_Type'Class);
 
-   function Get_Weapon_Modules
+   procedure Update_Damage
+     (Ship : in out Root_Ship_Type'Class);
+
+   type Module_Position is
+      record
+         X, Y, Z : Integer;
+      end record;
+
+   type Orientation_Axis is (X_Axis, Y_Axis, Z_Axis);
+
+   type Module_Orientation is
+      record
+         Axis    : Orientation_Axis;
+         Forward : Boolean;
+      end record;
+
+   type Mounted_Module is private;
+
+   function Get_Module
+     (Ship  : Root_Ship_Type'Class;
+      Mount : Mounted_Module)
+      return Concorde.Modules.Module_Type;
+
+   function Get_Orientation
+     (Ship  : Root_Ship_Type'Class;
+      Mount : Mounted_Module)
+      return Module_Orientation;
+
+   function Get_Position
+     (Ship  : Root_Ship_Type'Class;
+      Mount : Mounted_Module)
+      return Module_Position;
+
+   type Array_Of_Mounted_Modules is
+     array (Positive range <>) of Mounted_Module;
+
+   function Get_Weapon_Mounts
      (Ship : Root_Ship_Type'Class)
-      return Concorde.Modules.Array_Of_Modules;
+      return Array_Of_Mounted_Modules;
+
+   function Get_Damaged_Mounts
+     (Ship : Root_Ship_Type'Class)
+      return Array_Of_Mounted_Modules;
 
    type Ship_Type is access all Root_Ship_Type'Class;
 
@@ -87,9 +127,18 @@ package Concorde.Ships is
 
 private
 
+   type Mounted_Module is new Positive;
+
+   type Module_Layout_Record is
+      record
+         Module       : Concorde.Modules.Module_Type;
+         Left_Low_Aft : Module_Position;
+         Orientation  : Module_Orientation;
+      end record;
+
    package Module_Vectors is
      new Ada.Containers.Vectors
-       (Positive, Concorde.Modules.Module_Type, Concorde.Modules."=");
+       (Positive, Module_Layout_Record);
 
    type Root_Ship_Type is
      new Concorde.Objects.Root_Named_Object_Type with
@@ -102,7 +151,7 @@ private
            Concorde.Systems.Root_Star_System_Type'Class;
          Alive       : Boolean;
          Structure   : Module_Vectors.Vector;
-         Size        : Natural;
+         Size        : Size_Type;
          Empty_Mass  : Natural;
       end record;
 

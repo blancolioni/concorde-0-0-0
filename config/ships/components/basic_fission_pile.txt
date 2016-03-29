@@ -1,0 +1,11 @@
+class = power_plant
+colour = { 0 255 0 }
+density = 200
+nominal_max_output = 100
+output_size_power = 0.8
+input_size_power = 0.75
+throttle_step = 0.01
+size_throttle_factor = 0.99
+shape = sphere
+explode = 0.1
+layout = { 4 4 4 }

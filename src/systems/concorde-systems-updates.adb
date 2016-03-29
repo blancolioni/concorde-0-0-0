@@ -28,7 +28,7 @@ package body Concorde.Systems.Updates is
                Concorde.Ships.Create.New_Ship
                  (Owner  => Concorde.Empires.Empire_Type (System.Owner),
                   System => System,
-                  Design => "standard");
+                  Design => "defender");
                System.Progress := System.Progress - 1.0;
             else
                System.Progress := 1.0;
