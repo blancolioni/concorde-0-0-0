@@ -236,14 +236,16 @@ package body Concorde.Combat.Ship_Combat is
       for Combat_Ship of Model.Ships loop
          declare
             use Concorde.Ships;
-            Outline : constant Lui.Rendering.Buffer_Points :=
-                        Model.Ship_Outline (Combat_Ship);
-            Colour  : Lui.Colours.Colour_Type :=
-                        Combat_Ship.Ship.Owner.Colour;
-            X, Y    : Integer;
-            W       : constant Natural :=
-                        Natural ((1.0 - Combat_Ship.Ship.Damage)
-                                 * Real (Health_Bar_Width));
+            Outline  : constant Lui.Rendering.Buffer_Points :=
+                         Model.Ship_Outline (Combat_Ship);
+            Colour   : Lui.Colours.Colour_Type :=
+                         Combat_Ship.Ship.Owner.Colour;
+            Pi       : constant := Ada.Numerics.Pi;
+            X, Y     : Integer;
+            Health_X : Integer;
+            W        : constant Natural :=
+                         Natural ((1.0 - Combat_Ship.Ship.Damage)
+                                  * Real (Health_Bar_Width));
          begin
             if not Combat_Ship.Ship.Alive then
                Colour.Alpha := 0.3;
@@ -253,12 +255,17 @@ package body Concorde.Combat.Ship_Combat is
                Colour   => Colour,
                Filled   => True);
             Model.Ship_Centre (Combat_Ship, X, Y);
+            if Combat_Ship.Facing in -Pi / 2.0 .. Pi / 2.0 then
+               Health_X := X - Health_Bar_Width * 2;
+            else
+               Health_X := X + Health_Bar_Width;
+            end if;
             Renderer.Draw_Rectangle
-              (X - Health_Bar_Width / 2, Y - Health_Bar_Height / 2,
+              (Health_X, Y - Health_Bar_Height / 2,
                W, Health_Bar_Height,
                (0.0, 0.6, 0.0, 1.0), True);
             Renderer.Draw_Rectangle
-              (X - Health_Bar_Width / 2 + W, Y - Health_Bar_Height / 2,
+              (Health_X + W, Y - Health_Bar_Height / 2,
                Health_Bar_Width - W, Health_Bar_Height,
                (0.7, 0.0, 0.0, 1.0), True);
 
@@ -381,8 +388,8 @@ package body Concorde.Combat.Ship_Combat is
          begin
             P.X := P.X * Cos (Ship.Facing) - P.Y * Sin (Ship.Facing);
             P.Y := P.X * Sin (Ship.Facing) + P.Y * Cos (Ship.Facing);
-            P.X := P.X * Real (Ship.Ship.Size.X) * 2.0;
-            P.Y := P.Y * Real (Ship.Ship.Size.Z) * 2.0;
+            P.X := P.X * Real (Ship.Ship.Size.X) * 1.0;
+            P.Y := P.Y * Real (Ship.Ship.Size.Z) * 1.0;
             Result (I) :=
               (X => C_X + Integer (P.X),
                Y => C_Y + Integer (P.Y));

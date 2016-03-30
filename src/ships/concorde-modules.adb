@@ -233,8 +233,8 @@ package body Concorde.Modules is
    begin
       Module.Exploding := True;
       Module.Explosion_Timer :=
-        Module.Max_Hits - Module.Hits;
-      Module.Explosion_Size := Module.Volume * 3;
+        (Module.Max_Hits - Module.Hits) / 2;
+      Module.Explosion_Size := Module.Volume * 2;
    end Start_Explosion;
 
    -------------------
