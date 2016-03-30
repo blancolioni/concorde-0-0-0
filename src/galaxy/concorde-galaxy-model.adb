@@ -49,7 +49,7 @@ package body Concorde.Galaxy.Model is
       Col   : Positive)
       return String;
 
-   subtype Battle_Column is Integer range 1 .. 4;
+   subtype Battle_Column is Integer range 1 .. 5;
 
    type Battle_Table is
      new Lui.Tables.Root_Model_Table with null record;
@@ -62,7 +62,8 @@ package body Concorde.Galaxy.Model is
            when 1 => "System",
            when 2 => "Empire 1",
            when 3 => "Empire 2",
-           when 4 => "Size"));
+           when 4 => "Size",
+           when 5 => "Winner"));
 
    overriding function Cell_Text
      (Table : Battle_Table;
@@ -75,11 +76,9 @@ package body Concorde.Galaxy.Model is
       return Natural
    is (Battle_Count);
 
-   overriding function Row_Model
+   overriding procedure Select_Row
      (Table : Battle_Table;
-      Row   : Positive)
-      return access Lui.Models.Root_Object_Model'Class
-   is (Get_Battle (Row));
+      Row   : Positive);
 
    type Root_Galaxy_Model is
      new Lui.Models.Root_Object_Model with
@@ -90,11 +89,13 @@ package body Concorde.Galaxy.Model is
          Show_Capital_Names : Boolean := True;
          Show_System_Names  : Boolean := False;
          Battles            : Lui.Tables.Model_Table;
+         Arena              : access Concorde.Combat.Root_Combat_Arena'Class;
       end record;
 
-   overriding procedure Idle_Update
-     (Model    : in out Root_Galaxy_Model;
-      Updated  : out Boolean);
+   overriding function Handle_Update
+     (Model    : in out Root_Galaxy_Model)
+      return Boolean
+   is (True);
 
    overriding procedure Render
      (Model    : in out Root_Galaxy_Model;
@@ -104,6 +105,14 @@ package body Concorde.Galaxy.Model is
      (Model : Root_Galaxy_Model)
       return Lui.Models.Drag_Behaviour
    is (Lui.Models.Translation);
+
+   overriding procedure On_Model_Removed
+     (Model : Root_Galaxy_Model;
+      Child : not null access Lui.Models.Root_Object_Model'Class);
+
+   overriding procedure Select_XY
+     (Model : in out Root_Galaxy_Model;
+      X, Y  : Natural);
 
    procedure Draw_Connection
      (Model    : in out Root_Galaxy_Model'Class;
@@ -191,7 +200,7 @@ package body Concorde.Galaxy.Model is
       return String
    is
       pragma Unreferenced (Table);
-      Arena : constant Concorde.Combat.Ship_Combat.Combat_Arena :=
+      Arena : constant Concorde.Combat.Ship_Combat.Space_Combat_Arena :=
                 Get_Battle (Row);
    begin
       case Battle_Column (Col) is
@@ -203,6 +212,12 @@ package body Concorde.Galaxy.Model is
             return Arena.Empires (2).Name;
          when 4 =>
             return Lui.Approximate_Image (Arena.Total_Combatants);
+         when 5 =>
+            if Arena.Done then
+               return Arena.Winner.Name;
+            else
+               return "-";
+            end if;
       end case;
    end Cell_Text;
 
@@ -387,18 +402,21 @@ package body Concorde.Galaxy.Model is
       return Local_Model;
    end Galaxy_Model;
 
-   -----------------
-   -- Idle_Update --
-   -----------------
+   ----------------------
+   -- On_Model_Removed --
+   ----------------------
 
-   overriding procedure Idle_Update
-     (Model    : in out Root_Galaxy_Model;
-      Updated  : out Boolean)
+   overriding procedure On_Model_Removed
+     (Model : Root_Galaxy_Model;
+      Child : not null access Lui.Models.Root_Object_Model'Class)
    is
-      pragma Unreferenced (Model);
    begin
-      Updated := True;
-   end Idle_Update;
+      if Child.all in
+        Concorde.Combat.Ship_Combat.Root_Space_Combat_Arena'Class
+      then
+         Complete_Battle (Model.Arena);
+      end if;
+   end On_Model_Removed;
 
    -------------------
    -- Recent_Battle --
@@ -621,6 +639,45 @@ package body Concorde.Galaxy.Model is
       Concorde.Updates.Finish_Render;
 
    end Render;
+
+   ----------------
+   -- Select_Row --
+   ----------------
+
+   overriding procedure Select_Row
+     (Table : Battle_Table;
+      Row   : Positive)
+   is
+      pragma Unreferenced (Table);
+      Battle : constant Concorde.Combat.Ship_Combat.Space_Combat_Arena :=
+                 Get_Battle (Row);
+   begin
+      Root_Galaxy_Model (Local_Model.all).Arena := Battle;
+      Local_Model.Add_Inline_Model
+        (Width         => Local_Model.Width / 2,
+         Height        => Local_Model.Height / 2,
+         Model         => Battle,
+         Attach_Left   => True,
+         Attach_Right  => True,
+         Attach_Top    => True,
+         Attach_Bottom => True);
+   end Select_Row;
+
+   ---------------
+   -- Select_XY --
+   ---------------
+
+   overriding procedure Select_XY
+     (Model : in out Root_Galaxy_Model;
+      X, Y  : Natural)
+   is
+      pragma Unreferenced (X);
+      pragma Unreferenced (Y);
+   begin
+      if Model.Arena /= null then
+         Model.Remove_Inline_Model (Model.Arena);
+      end if;
+   end Select_XY;
 
    ----------------------
    -- Ship_Count_Image --

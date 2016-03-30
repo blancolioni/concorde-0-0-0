@@ -24,13 +24,13 @@ package body Concorde.Ships.Battles is
    function Create_Arena
      (System : Concorde.Systems.Star_System_Access;
       Ships  : Concorde.Ships.Lists.List)
-     return Concorde.Combat.Ship_Combat.Combat_Arena
+     return Concorde.Combat.Ship_Combat.Space_Combat_Arena
    is
       use Concorde.Empires;
       Teams         : Team_Vectors.Vector;
       Min_Team_Size : Natural := Natural'Last;
 
-      Arena         : constant Concorde.Combat.Ship_Combat.Combat_Arena :=
+      Arena         : constant Combat.Ship_Combat.Space_Combat_Arena :=
                         Concorde.Combat.Ship_Combat.New_Arena
                           (Name          => System.Name,
                            Radius        => Arena_Radius,

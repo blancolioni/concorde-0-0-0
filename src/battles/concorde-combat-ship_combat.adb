@@ -22,7 +22,7 @@ package body Concorde.Combat.Ship_Combat is
    -------------------
 
    procedure Add_Combatant
-     (Arena     : in out Root_Combat_Arena'Class;
+     (Arena     : in out Root_Space_Combat_Arena'Class;
       Combatant : not null access Concorde.Ships.Root_Ship_Type'Class;
       Team      : not null access Concorde.Empires.Root_Empire_Type'Class;
       X, Y      : Real;
@@ -61,7 +61,7 @@ package body Concorde.Combat.Ship_Combat is
    -------------------
 
    procedure Choose_Target
-     (Model : in out Root_Combat_Arena;
+     (Model : in out Root_Space_Combat_Arena;
       Ship  : in out Ship_Record)
    is
    begin
@@ -87,11 +87,11 @@ package body Concorde.Combat.Ship_Combat is
    -----------------
 
    procedure Close_Arena
-     (Arena : in out Combat_Arena)
+     (Arena : in out Space_Combat_Arena)
    is
       procedure Free is
         new Ada.Unchecked_Deallocation
-          (Root_Combat_Arena'Class, Combat_Arena);
+          (Root_Space_Combat_Arena'Class, Space_Combat_Arena);
    begin
       Free (Arena);
    end Close_Arena;
@@ -101,7 +101,7 @@ package body Concorde.Combat.Ship_Combat is
    ------------------
 
    procedure Commit_Event
-     (Model  : in out Root_Combat_Arena;
+     (Model  : in out Root_Space_Combat_Arena;
       Event  : Combat_Event)
    is
    begin
@@ -116,8 +116,12 @@ package body Concorde.Combat.Ship_Combat is
    -- Done --
    ----------
 
-   function Done (Arena : Root_Combat_Arena'Class) return Boolean is
+   overriding function Done
+     (Arena : in out Root_Space_Combat_Arena)
+      return Boolean
+   is
       Active_Team : Boolean := False;
+      Winner      : Concorde.Empires.Empire_Type;
    begin
       if Arena.Turns >= Max_Turns then
          return True;
@@ -130,11 +134,14 @@ package body Concorde.Combat.Ship_Combat is
                   return False;
                else
                   Active_Team := True;
+                  Winner := Team.Leader;
                   exit;
                end if;
             end if;
          end loop;
       end loop;
+
+      Arena.Winner := Winner;
       return True;
    end Done;
 
@@ -143,7 +150,7 @@ package body Concorde.Combat.Ship_Combat is
    -------------
 
    function Empires
-     (Arena : Root_Combat_Arena'Class)
+     (Arena : Root_Space_Combat_Arena'Class)
       return Concorde.Empires.Array_Of_Empires
    is
       use Concorde.Empires;
@@ -155,23 +162,12 @@ package body Concorde.Combat.Ship_Combat is
       return Result;
    end Empires;
 
-   -------------
-   -- Execute --
-   -------------
-
-   procedure Execute (Arena : in out Root_Combat_Arena'Class) is
-   begin
-      while not Arena.Done loop
-         Arena.Tick;
-      end loop;
-   end Execute;
-
    -----------------
    -- Fire_Weapon --
    -----------------
 
    procedure Fire_Weapon
-     (Model  : in out Root_Combat_Arena;
+     (Model  : in out Root_Space_Combat_Arena;
       Ship   : in out Ship_Record;
       Module : Concorde.Modules.Module_Type)
    is
@@ -188,14 +184,14 @@ package body Concorde.Combat.Ship_Combat is
    -- Idle_Update --
    -----------------
 
-   overriding procedure Idle_Update
-     (Model    : in out Root_Combat_Arena;
-      Updated  : out Boolean)
+   overriding function Handle_Update
+     (Model    : in out Root_Space_Combat_Arena)
+      return Boolean
    is
    begin
       Model.Tick;
-      Updated := True;
-   end Idle_Update;
+      return True;
+   end Handle_Update;
 
    ---------------
    -- New_Arena --
@@ -206,10 +202,10 @@ package body Concorde.Combat.Ship_Combat is
       Radius             : Non_Negative_Real;
       Planet_X, Planet_Y : Real;
       Planet_Radius      : Non_Negative_Real)
-      return Combat_Arena
+      return Space_Combat_Arena
    is
-      Arena : constant Combat_Arena :=
-                new Root_Combat_Arena'
+      Arena : constant Space_Combat_Arena :=
+                new Root_Space_Combat_Arena'
                   (Lui.Models.Root_Object_Model with
                    Radius        => Radius,
                    Planet_X      => Planet_X,
@@ -218,6 +214,7 @@ package body Concorde.Combat.Ship_Combat is
                    Teams         => Team_Vectors.Empty_Vector,
                    Ships         => Combat_Ship_Vectors.Empty_Vector,
                    Turns         => 0,
+                   Winner        => null,
                    Events        => List_Of_Combat_Events.Empty_List);
    begin
       Arena.Initialise (Name);
@@ -230,7 +227,7 @@ package body Concorde.Combat.Ship_Combat is
    ------------
 
    overriding procedure Render
-     (Model    : in out Root_Combat_Arena;
+     (Model    : in out Root_Space_Combat_Arena;
       Renderer : in out Lui.Rendering.Root_Renderer'Class)
    is
       Health_Bar_Width : constant := 20;
@@ -322,34 +319,35 @@ package body Concorde.Combat.Ship_Combat is
       end loop;
 
       if Model.Done then
-         declare
-            use Concorde.Empires;
-            Winner : Empire_Type := null;
-         begin
-            for Team of Model.Teams loop
-               for Ship_Index of Team.Ships loop
-                  if Model.Ships (Ship_Index).Ship.Alive then
-                     Winner := Team.Leader;
-                     exit;
-                  end if;
-               end loop;
-               exit when Winner /= null;
-            end loop;
-
-            Renderer.Draw_String
-              (10, 10, 16, Lui.Colours.White,
-               "Victory to " & Winner.Name);
-         end;
+         Renderer.Draw_String
+           (10, 10, 16, Lui.Colours.White,
+            "Victory to " & Model.Winner.Name);
       end if;
 
    end Render;
+
+   ---------------
+   -- Select_XY --
+   ---------------
+
+   overriding procedure Select_XY
+     (Model : in out Root_Space_Combat_Arena;
+      X, Y  : Natural)
+   is
+   begin
+      if X in Model.Width - 32 .. Model.Width
+        and then Y in 1 .. 32
+      then
+         Model.Parent_Model.Remove_Inline_Model (Model'Access);
+      end if;
+   end Select_XY;
 
    -----------------
    -- Ship_Centre --
    -----------------
 
    procedure Ship_Centre
-     (Model : Root_Combat_Arena'Class;
+     (Model : Root_Space_Combat_Arena'Class;
       Ship  : Ship_Record;
       X, Y  : out Integer)
    is
@@ -364,7 +362,7 @@ package body Concorde.Combat.Ship_Combat is
    ------------------
 
    function Ship_Outline
-     (Model : Root_Combat_Arena;
+     (Model : Root_Space_Combat_Arena;
       Ship  : Ship_Record)
       return Lui.Rendering.Buffer_Points
    is
@@ -383,8 +381,8 @@ package body Concorde.Combat.Ship_Combat is
          begin
             P.X := P.X * Cos (Ship.Facing) - P.Y * Sin (Ship.Facing);
             P.Y := P.X * Sin (Ship.Facing) + P.Y * Cos (Ship.Facing);
-            P.X := P.X * Real (Ship.Ship.Size.X) * 3.0;
-            P.Y := P.Y * Real (Ship.Ship.Size.Z) * 3.0;
+            P.X := P.X * Real (Ship.Ship.Size.X) * 2.0;
+            P.Y := P.Y * Real (Ship.Ship.Size.Z) * 2.0;
             Result (I) :=
               (X => C_X + Integer (P.X),
                Y => C_Y + Integer (P.Y));
@@ -399,7 +397,7 @@ package body Concorde.Combat.Ship_Combat is
    ----------------
 
    function Ship_Range
-     (Model : Root_Combat_Arena;
+     (Model : Root_Space_Combat_Arena;
       Index_1, Index_2 : Positive)
       return Non_Negative_Real
    is
@@ -413,7 +411,7 @@ package body Concorde.Combat.Ship_Combat is
    -- Tick --
    ----------
 
-   procedure Tick (Arena : in out Root_Combat_Arena'Class) is
+   overriding procedure Tick (Arena : in out Root_Space_Combat_Arena) is
    begin
       Arena.Turns := Arena.Turns + 1;
 
@@ -436,7 +434,7 @@ package body Concorde.Combat.Ship_Combat is
    ----------------------
 
    function Total_Combatants
-     (Arena : Root_Combat_Arena'Class)
+     (Arena : Root_Space_Combat_Arena'Class)
       return Natural
    is
    begin
@@ -448,7 +446,7 @@ package body Concorde.Combat.Ship_Combat is
    -----------------
 
    procedure Update_Ship
-     (Model : in out Root_Combat_Arena;
+     (Model : in out Root_Space_Combat_Arena;
       Ship  : in out Ship_Record)
    is
    begin

@@ -20,6 +20,6 @@ package Concorde.Ships.Battles is
    function Create_Arena
      (System : Concorde.Systems.Star_System_Access;
       Ships  : Concorde.Ships.Lists.List)
-     return Concorde.Combat.Ship_Combat.Combat_Arena;
+     return Concorde.Combat.Ship_Combat.Space_Combat_Arena;
 
 end Concorde.Ships.Battles;

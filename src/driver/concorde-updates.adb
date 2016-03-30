@@ -65,7 +65,7 @@ package body Concorde.Updates is
       if Execute_Battles then
          for Battle_Index in 1 .. Concorde.Galaxy.Battle_Count loop
             declare
-               Arena : constant Concorde.Combat.Ship_Combat.Combat_Arena :=
+               Arena : constant Combat.Ship_Combat.Space_Combat_Arena :=
                          Concorde.Galaxy.Get_Battle (Battle_Index);
             begin
                while not Arena.Done loop
@@ -86,6 +86,7 @@ package body Concorde.Updates is
      (Speed : Update_Speed)
    is
    begin
+      Concorde.Galaxy.Complete_Battles;
       Current_Update_Task.Set_Speed (Speed);
    end Set_Update_Speed;
 

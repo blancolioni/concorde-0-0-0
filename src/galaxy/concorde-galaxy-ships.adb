@@ -40,7 +40,7 @@ package body Concorde.Galaxy.Ships is
             System.Get_Ships (Ship_List);
             if Concorde.Ships.Battles.Has_Conflict (Ship_List) then
                declare
-                  Arena : constant Concorde.Combat.Ship_Combat.Combat_Arena :=
+                  Arena : constant Combat.Ship_Combat.Space_Combat_Arena :=
                             Concorde.Ships.Battles.Create_Arena
                               (System, Ship_List);
                begin

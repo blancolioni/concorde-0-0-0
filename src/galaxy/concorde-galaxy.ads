@@ -101,13 +101,19 @@ package Concorde.Galaxy is
    procedure Clear_Battles;
 
    procedure Add_Battle
-     (Arena : Concorde.Combat.Ship_Combat.Combat_Arena);
+     (Arena : Concorde.Combat.Ship_Combat.Space_Combat_Arena);
 
    function Battle_Count return Natural;
 
    function Get_Battle
      (Index : Positive)
-      return Concorde.Combat.Ship_Combat.Combat_Arena;
+      return Concorde.Combat.Ship_Combat.Space_Combat_Arena;
+
+   procedure Complete_Battle
+     (Arena : not null access
+        Concorde.Combat.Root_Combat_Arena'Class);
+
+   procedure Complete_Battles;
 
 private
 

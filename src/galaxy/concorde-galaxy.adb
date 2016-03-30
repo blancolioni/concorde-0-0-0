@@ -3,7 +3,7 @@ package body Concorde.Galaxy is
    package Battle_Vectors is
      new Ada.Containers.Vectors
        (Positive,
-        Concorde.Combat.Ship_Combat.Combat_Arena,
+        Concorde.Combat.Ship_Combat.Space_Combat_Arena,
         Concorde.Combat.Ship_Combat."=");
 
    Local_Battle_Container : Battle_Vectors.Vector;
@@ -13,7 +13,7 @@ package body Concorde.Galaxy is
    ----------------
 
    procedure Add_Battle
-     (Arena : Concorde.Combat.Ship_Combat.Combat_Arena)
+     (Arena : Concorde.Combat.Ship_Combat.Space_Combat_Arena)
    is
    begin
       Local_Battle_Container.Append (Arena);
@@ -52,7 +52,7 @@ package body Concorde.Galaxy is
    begin
       for Position in Local_Battle_Container.Iterate loop
          declare
-            Arena : Concorde.Combat.Ship_Combat.Combat_Arena :=
+            Arena : Concorde.Combat.Ship_Combat.Space_Combat_Arena :=
                       Battle_Vectors.Element (Position);
          begin
             Concorde.Combat.Ship_Combat.Close_Arena (Arena);
@@ -60,6 +60,32 @@ package body Concorde.Galaxy is
       end loop;
       Local_Battle_Container.Clear;
    end Clear_Battles;
+
+   ---------------------
+   -- Complete_Battle --
+   ---------------------
+
+   procedure Complete_Battle
+     (Arena : not null access
+        Concorde.Combat.Root_Combat_Arena'Class)
+   is
+   begin
+      Arena.Execute;
+   end Complete_Battle;
+
+   ----------------------
+   -- Complete_Battles --
+   ----------------------
+
+   procedure Complete_Battles is
+   begin
+      for Arena of Local_Battle_Container loop
+         if not Arena.Done then
+            Arena.Execute;
+         end if;
+      end loop;
+      Clear_Battles;
+   end Complete_Battles;
 
    -----------------
    -- Find_System --
@@ -91,7 +117,7 @@ package body Concorde.Galaxy is
 
    function Get_Battle
      (Index : Positive)
-      return Concorde.Combat.Ship_Combat.Combat_Arena
+      return Concorde.Combat.Ship_Combat.Space_Combat_Arena
    is
    begin
       return Local_Battle_Container.Element (Index);
