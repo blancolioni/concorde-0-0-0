@@ -44,6 +44,15 @@ package body Concorde.Dates is
       return Calendar.Current_Date;
    end Current_Date;
 
+   ------------------
+   -- Current_Date --
+   ------------------
+
+   function Current_Date_To_String return String is
+   begin
+      return To_String (Current_Date);
+   end Current_Date_To_String;
+
    ----------
    -- Tick --
    ----------

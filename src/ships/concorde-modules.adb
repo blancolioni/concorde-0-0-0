@@ -1,3 +1,5 @@
+with Ada.Text_IO;
+
 package body Concorde.Modules is
 
    ------------
@@ -100,7 +102,7 @@ package body Concorde.Modules is
       return Unit_Real
    is
    begin
-      return (1.0 - Module.Component.Explosion_Chance) ** Module.Hits;
+      return 1.0 - (1.0 - Module.Component.Explosion_Chance) ** Module.Hits;
    end Explosion_Chance;
 
    --------------------
@@ -137,6 +139,7 @@ package body Concorde.Modules is
    begin
       if Module.Hits < Module.Volume then
          Module.Hits := Module.Hits + 1;
+         Ada.Text_IO.Put_Line (Module.Name & " damaged");
       end if;
    end Hit;
 
@@ -234,7 +237,12 @@ package body Concorde.Modules is
       Module.Exploding := True;
       Module.Explosion_Timer :=
         (Module.Max_Hits - Module.Hits) / 2;
-      Module.Explosion_Size := Module.Volume * 2;
+      Module.Explosion_Size := Module.Volume * 8;
+      Ada.Text_IO.Put_Line
+        (Module.Name & " will explode in"
+         & Module.Explosion_Timer'Img
+         & " turns with force"
+         & Module.Explosion_Size'Img);
    end Start_Explosion;
 
    -------------------

@@ -1,3 +1,5 @@
+with Ada.Text_IO;
+
 with WL.Random;
 
 with Concorde.Components;
@@ -180,9 +182,18 @@ package body Concorde.Ships is
          begin
             if not Module.Exploding then
                Module.Hit;
-               if Concorde.Random.Unit_Random < Module.Explosion_Chance then
-                  Module.Start_Explosion;
-               end if;
+               declare
+                  Chance : constant Unit_Real :=
+                             Module.Explosion_Chance;
+               begin
+                  Ada.Text_IO.Put_Line
+                    ("chance of explosion:"
+                     & Natural'Image (Natural (Chance * 100.0))
+                     & "%");
+                  if Concorde.Random.Unit_Random < Chance then
+                     Module.Start_Explosion;
+                  end if;
+               end;
             end if;
          end;
       end loop;
@@ -190,7 +201,7 @@ package body Concorde.Ships is
       declare
          Ship_Damage : constant Unit_Real := Ship.Damage;
       begin
-         Ship.Alive := Ship_Damage < 0.75;
+         Ship.Alive := Ship_Damage < 0.95;
       end;
 
    end Hit;
@@ -295,6 +306,9 @@ package body Concorde.Ships is
             Module.Update_Damage;
             if Module.Exploding then
                if Module.Explosion_Timer = 0 then
+                  Ada.Text_IO.Put_Line
+                    (Ship.Name & ": " & Module.Name
+                     & " explodes");
                   New_Hits := New_Hits + Module.Explosion_Size;
                end if;
             end if;

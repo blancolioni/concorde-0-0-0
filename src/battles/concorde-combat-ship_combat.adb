@@ -1,15 +1,23 @@
+with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 
 with WL.Random;
 
 with Lui.Colours;
 
+with Concorde.Dates;
 with Concorde.Elementary_Functions;
 with Concorde.Random;
 
 with Concorde.Empires.Relations;
 
 package body Concorde.Combat.Ship_Combat is
+
+   Log_File : Ada.Text_IO.File_Type;
+
+   procedure Log
+     (Arena : Root_Space_Combat_Arena'Class;
+      Message : String);
 
    Max_Turns : constant := 1_000;
 
@@ -75,6 +83,9 @@ package body Concorde.Combat.Ship_Combat is
                          WL.Random.Random_Number (1, Team.Ships.Last_Index);
             begin
                Ship.Target := Team.Ships (Index);
+               Log (Model,
+                    Ship.Ship.Name & " targets "
+                    & Model.Ships.Element (Team.Ships (Index)).Ship.Name);
                return;
             end;
          end if;
@@ -94,6 +105,8 @@ package body Concorde.Combat.Ship_Combat is
           (Root_Space_Combat_Arena'Class, Space_Combat_Arena);
    begin
       Free (Arena);
+      Ada.Text_IO.Set_Output (Ada.Text_IO.Standard_Output);
+      Ada.Text_IO.Close (Log_File);
    end Close_Arena;
 
    ------------------
@@ -107,8 +120,16 @@ package body Concorde.Combat.Ship_Combat is
    begin
       case Event.Event is
          when Weapon_Fired =>
-            Model.Ships (Event.Target).Ship.Hit
-              (Natural (2.0 * Event.Effectiveness));
+            declare
+               Damage : constant Natural :=
+                          Natural (2.0 * Event.Effectiveness);
+            begin
+               Log (Model,
+                    Model.Ships (Event.Target).Ship.Name
+                    & " takes" & Damage'Img & " damage");
+
+               Model.Ships (Event.Target).Ship.Hit (Damage);
+            end;
       end case;
    end Commit_Event;
 
@@ -180,9 +201,9 @@ package body Concorde.Combat.Ship_Combat is
       Module.Execute;
    end Fire_Weapon;
 
-   -----------------
-   -- Idle_Update --
-   -----------------
+   -------------------
+   -- Handle_Update --
+   -------------------
 
    overriding function Handle_Update
      (Model    : in out Root_Space_Combat_Arena)
@@ -192,6 +213,20 @@ package body Concorde.Combat.Ship_Combat is
       Model.Tick;
       return True;
    end Handle_Update;
+
+   ---------
+   -- Log --
+   ---------
+
+   procedure Log
+     (Arena : Root_Space_Combat_Arena'Class;
+      Message : String)
+   is
+   begin
+      Ada.Text_IO.Put_Line
+        (Log_File,
+         Arena.Turns'Img & ": " & Message);
+   end Log;
 
    ---------------
    -- New_Arena --
@@ -217,6 +252,12 @@ package body Concorde.Combat.Ship_Combat is
                    Winner        => null,
                    Events        => List_Of_Combat_Events.Empty_List);
    begin
+      Ada.Text_IO.Create (Log_File, Ada.Text_IO.Out_File,
+                          Name & "-"
+                          & Concorde.Dates.Current_Date_To_String
+                          & ".txt");
+      Ada.Text_IO.Set_Output (Log_File);
+
       Arena.Initialise (Name);
       Arena.Set_Eye_Position (0.0, 0.0, 4000.0);
       return Arena;
