@@ -230,9 +230,39 @@ package body Concorde.Combat.Ship_Combat is
      (Model    : in out Root_Space_Combat_Arena;
       Renderer : in out Lui.Rendering.Root_Renderer'Class)
    is
-      Health_Bar_Width : constant := 20;
+      Health_Bar_Width  : constant := 20;
       Health_Bar_Height : constant := 8;
+      Charge_Bar_Width  : constant := 20;
+      Charge_Bar_Height : constant := 4;
    begin
+      for Event of Model.Events loop
+         case Event.Event is
+            when Weapon_Fired =>
+               if Model.Turns - Event.Turn < 1 then
+                  declare
+                     Attacker : Ship_Record renames
+                                  Model.Ships (Event.Attacker);
+                     Target   : Ship_Record renames
+                                  Model.Ships (Event.Target);
+                     X1, X2, Y1, Y2 : Integer;
+                     Z              : Real;
+                     Colour         : Lui.Colours.Colour_Type :=
+                                        Lui.Colours.White;
+                  begin
+                     Model.Get_Screen_Coordinates
+                       (Attacker.X, Attacker.Y, 0.0, X1, Y1, Z);
+                     Model.Get_Screen_Coordinates
+                       (Target.X, Target.Y, 0.0, X2, Y2, Z);
+                     Colour.Alpha := 1.0 -
+                       Real (Model.Turns - Event.Turn) / 8.0
+                       * Event.Effectiveness;
+                     Renderer.Draw_Line
+                       (X1, Y1, X2, Y2, Colour, 1);
+                  end;
+               end if;
+         end case;
+      end loop;
+
       for Combat_Ship of Model.Ships loop
          declare
             use Concorde.Ships;
@@ -294,35 +324,39 @@ package body Concorde.Combat.Ship_Combat is
                   end;
                end loop;
             end;
-         end;
-      end loop;
+            declare
+               Weapon_Mounts : constant Array_Of_Mounted_Modules :=
+                                 Combat_Ship.Ship.Get_Weapon_Mounts;
+               Charge_X      : constant Integer :=
+                                 (if Health_X < X
+                                  then Health_X - Charge_Bar_Width - 8
+                                  else Health_X + Health_Bar_Width + 8);
 
-      for Event of Model.Events loop
-         case Event.Event is
-            when Weapon_Fired =>
-               if Model.Turns - Event.Turn < 1 then
+               Charge_Y      : Integer :=
+                                 Y -
+                                   (Charge_Bar_Height
+                                    * 3 * Weapon_Mounts'Length / 4);
+            begin
+               for Mount of Weapon_Mounts loop
                   declare
-                     Attacker : Ship_Record renames
-                                  Model.Ships (Event.Attacker);
-                     Target   : Ship_Record renames
-                                  Model.Ships (Event.Target);
-                     X1, X2, Y1, Y2 : Integer;
-                     Z              : Real;
-                     Colour         : Lui.Colours.Colour_Type :=
-                                        Lui.Colours.White;
+                     Module : constant Concorde.Modules.Module_Type :=
+                                Combat_Ship.Ship.Get_Module (Mount);
+                     Charge : constant Unit_Real :=
+                                Module.Charge * Module.Effectiveness;
+                     Width  : constant Natural :=
+                                Natural (Real (Charge_Bar_Width) * Charge);
                   begin
-                     Model.Get_Screen_Coordinates
-                       (Attacker.X, Attacker.Y, 0.0, X1, Y1, Z);
-                     Model.Get_Screen_Coordinates
-                       (Target.X, Target.Y, 0.0, X2, Y2, Z);
-                     Colour.Alpha := 1.0 -
-                       Real (Model.Turns - Event.Turn) / 8.0
-                       * Event.Effectiveness;
-                     Renderer.Draw_Line
-                       (X1, Y1, X2, Y2, Colour, 1);
+                     Renderer.Draw_Rectangle
+                       (Charge_X, Charge_Y,
+                        Width, Charge_Bar_Height,
+                     Colour => (0.0, 1.0, 1.0, 1.0),
+                        Filled => True);
                   end;
-               end if;
-         end case;
+
+                  Charge_Y := Charge_Y + Charge_Bar_Height * 3 / 2;
+               end loop;
+            end;
+         end;
       end loop;
 
       if Model.Done then
@@ -482,7 +516,7 @@ package body Concorde.Combat.Ship_Combat is
                Charge : constant Unit_Real := Weapon.Charge;
             begin
                if Weapon.Effectiveness > 0.5
-                 and then Concorde.Random.Unit_Random < Charge
+                 and then Concorde.Random.Unit_Random < Charge / 2.0
                then
                   Model.Fire_Weapon (Ship, Weapon);
                end if;
