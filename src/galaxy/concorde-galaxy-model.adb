@@ -81,7 +81,8 @@ package body Concorde.Galaxy.Model is
       Row   : Positive);
 
    type Root_Galaxy_Model is
-     new Lui.Models.Root_Object_Model with
+     new Lui.Models.Root_Object_Model
+     and Battle_Manager_Interface with
       record
          Frames             : Natural := 0;
          Start              : Ada.Calendar.Time;
@@ -107,12 +108,16 @@ package body Concorde.Galaxy.Model is
    is (Lui.Models.Translation);
 
    overriding procedure On_Model_Removed
-     (Model : Root_Galaxy_Model;
+     (Model : in out Root_Galaxy_Model;
       Child : not null access Lui.Models.Root_Object_Model'Class);
 
    overriding procedure Select_XY
      (Model : in out Root_Galaxy_Model;
       X, Y  : Natural);
+
+   overriding procedure On_Battle_End
+     (Model   : in out Root_Galaxy_Model;
+      Battle  : not null access Concorde.Combat.Root_Combat_Arena'Class);
 
    procedure Draw_Connection
      (Model    : in out Root_Galaxy_Model'Class;
@@ -397,24 +402,42 @@ package body Concorde.Galaxy.Model is
             Result.Show_System_Names :=
               Concorde.Options.Show_System_Names;
             Local_Model := new Root_Galaxy_Model'(Result);
+            Set_Battle_Manager (Battle_Manager (Local_Model));
          end;
       end if;
       return Local_Model;
    end Galaxy_Model;
+
+   -------------------
+   -- On_Battle_End --
+   -------------------
+
+   overriding procedure On_Battle_End
+     (Model   : in out Root_Galaxy_Model;
+      Battle  : not null access Concorde.Combat.Root_Combat_Arena'Class)
+   is
+   begin
+      if Model.Arena = Battle then
+         Model.Arena := null;
+         Model.Remove_Inline_Model (Battle);
+      end if;
+   end On_Battle_End;
 
    ----------------------
    -- On_Model_Removed --
    ----------------------
 
    overriding procedure On_Model_Removed
-     (Model : Root_Galaxy_Model;
+     (Model : in out Root_Galaxy_Model;
       Child : not null access Lui.Models.Root_Object_Model'Class)
    is
    begin
       if Child.all in
         Concorde.Combat.Ship_Combat.Root_Space_Combat_Arena'Class
+        and then Model.Arena /= null
       then
          Complete_Battle (Model.Arena);
+         Model.Arena := null;
       end if;
    end On_Model_Removed;
 
@@ -675,7 +698,7 @@ package body Concorde.Galaxy.Model is
       pragma Unreferenced (Y);
    begin
       if Model.Arena /= null then
-         Model.Remove_Inline_Model (Model.Arena);
+         Complete_Battle (Model.Arena);
       end if;
    end Select_XY;
 

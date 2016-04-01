@@ -7,6 +7,7 @@ package body Concorde.Galaxy is
         Concorde.Combat.Ship_Combat."=");
 
    Local_Battle_Container : Battle_Vectors.Vector;
+   Local_Battle_Manager   : Battle_Manager;
 
    ----------------
    -- Add_Battle --
@@ -71,6 +72,7 @@ package body Concorde.Galaxy is
    is
    begin
       Arena.Execute;
+      Local_Battle_Manager.On_Battle_End (Arena);
    end Complete_Battle;
 
    ----------------------
@@ -80,9 +82,8 @@ package body Concorde.Galaxy is
    procedure Complete_Battles is
    begin
       for Arena of Local_Battle_Container loop
-         if not Arena.Done then
-            Arena.Execute;
-         end if;
+         Arena.Execute;
+         Local_Battle_Manager.On_Battle_End (Arena);
       end loop;
       Clear_Battles;
    end Complete_Battles;
@@ -367,6 +368,17 @@ package body Concorde.Galaxy is
    begin
       return Galaxy_Graph.Connected (System_1.Index, System_2.Index);
    end Neighbours;
+
+   ------------------------
+   -- Set_Battle_Manager --
+   ------------------------
+
+   procedure Set_Battle_Manager
+     (Manager : Battle_Manager)
+   is
+   begin
+      Local_Battle_Manager := Manager;
+   end Set_Battle_Manager;
 
    -----------------
    -- Set_Capital --

@@ -115,6 +115,18 @@ package Concorde.Galaxy is
 
    procedure Complete_Battles;
 
+   type Battle_Manager_Interface is interface;
+
+   procedure On_Battle_End
+     (Manager : in out Battle_Manager_Interface;
+      Battle  : not null access Concorde.Combat.Root_Combat_Arena'Class)
+   is abstract;
+
+   type Battle_Manager is access all Battle_Manager_Interface'Class;
+
+   procedure Set_Battle_Manager
+     (Manager : Battle_Manager);
+
 private
 
    package Star_System_Vectors is

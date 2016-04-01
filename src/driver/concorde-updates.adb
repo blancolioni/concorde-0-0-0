@@ -63,14 +63,14 @@ package body Concorde.Updates is
       Concorde.Galaxy.Updates.Update_Galaxy;
 
       if Execute_Battles then
+
          for Battle_Index in 1 .. Concorde.Galaxy.Battle_Count loop
             declare
-               Arena : constant Combat.Ship_Combat.Space_Combat_Arena :=
+               Arena : Combat.Ship_Combat.Space_Combat_Arena :=
                          Concorde.Galaxy.Get_Battle (Battle_Index);
             begin
-               while not Arena.Done loop
-                  Arena.Tick;
-               end loop;
+               Arena.Execute;
+               Concorde.Combat.Ship_Combat.Close_Arena (Arena);
             end;
          end loop;
       end if;

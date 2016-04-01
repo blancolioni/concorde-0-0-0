@@ -1,11 +1,10 @@
-with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 
 with WL.Random;
 
 with Lui.Colours;
 
-with Concorde.Dates;
+--  with Concorde.Dates;
 with Concorde.Elementary_Functions;
 with Concorde.Random;
 
@@ -13,7 +12,7 @@ with Concorde.Empires.Relations;
 
 package body Concorde.Combat.Ship_Combat is
 
-   Log_File : Ada.Text_IO.File_Type;
+--     Log_File : Ada.Text_IO.File_Type;
 
    procedure Log
      (Arena : Root_Space_Combat_Arena'Class;
@@ -69,8 +68,9 @@ package body Concorde.Combat.Ship_Combat is
    -------------------
 
    procedure Choose_Target
-     (Model : in out Root_Space_Combat_Arena;
-      Ship  : in out Ship_Record)
+     (Model      : in out Root_Space_Combat_Arena;
+      Ship       : in out Ship_Record;
+      Target_All : Boolean)
    is
    begin
       for Team of Model.Teams loop
@@ -79,14 +79,32 @@ package body Concorde.Combat.Ship_Combat is
              (Ship.Ship.Owner, Team.Leader)
          then
             declare
-               Index : constant Positive :=
-                         WL.Random.Random_Number (1, Team.Ships.Last_Index);
+               Effective_Ships : array
+                 (1 .. Team.Ships.Last_Index) of Positive;
+               Count           : Natural := 0;
             begin
-               Ship.Target := Team.Ships (Index);
-               Log (Model,
-                    Ship.Ship.Name & " targets "
-                    & Model.Ships.Element (Team.Ships (Index)).Ship.Name);
-               return;
+               for Ship_Index of Team.Ships loop
+                  if Target_All
+                    or else Model.Ships (Ship_Index).Ship.Has_Effective_Weapon
+                  then
+                     Count := Count + 1;
+                     Effective_Ships (Count) := Ship_Index;
+                  end if;
+               end loop;
+
+               if Count > 0 then
+                  declare
+                     Index : constant Positive :=
+                               WL.Random.Random_Number (1, Count);
+                  begin
+                     Ship.Target := Effective_Ships (Index);
+                     Log (Model,
+                          Ship.Ship.Name & " targets "
+                          & Model.Ships.Element
+                            (Team.Ships (Index)).Ship.Name);
+                     return;
+                  end;
+               end if;
             end;
          end if;
       end loop;
@@ -105,8 +123,8 @@ package body Concorde.Combat.Ship_Combat is
           (Root_Space_Combat_Arena'Class, Space_Combat_Arena);
    begin
       Free (Arena);
-      Ada.Text_IO.Set_Output (Ada.Text_IO.Standard_Output);
-      Ada.Text_IO.Close (Log_File);
+--        Ada.Text_IO.Set_Output (Ada.Text_IO.Standard_Output);
+--        Ada.Text_IO.Close (Log_File);
    end Close_Arena;
 
    ------------------
@@ -120,16 +138,28 @@ package body Concorde.Combat.Ship_Combat is
    begin
       case Event.Event is
          when Weapon_Fired =>
-            declare
-               Damage : constant Natural :=
-                          Natural (2.0 * Event.Effectiveness);
-            begin
-               Log (Model,
-                    Model.Ships (Event.Target).Ship.Name
-                    & " takes" & Damage'Img & " damage");
+            case Concorde.Components.Weapon_Class (Event.Weapon.Class) is
+               when Concorde.Components.Energy_Weapon =>
+                  declare
+                     Damage : constant Natural :=
+                                Event.Weapon.Effective_Damage
+                                  (Power         => Event.Power,
+                                   Effectiveness => Event.Effectiveness,
+                                   At_Range      => Event.Distance);
+                  begin
+                     Log (Model,
+                          Model.Ships (Event.Target).Ship.Name
+                          & " takes" & Damage'Img & " damage");
 
-               Model.Ships (Event.Target).Ship.Hit (Damage);
-            end;
+                     Model.Ships (Event.Target).Ship.Hit (Damage);
+                  end;
+
+               when Concorde.Components.Kinetic_Weapon =>
+                  null;
+
+               when Concorde.Components.Launcher =>
+                  null;
+            end case;
       end case;
    end Commit_Event;
 
@@ -193,11 +223,18 @@ package body Concorde.Combat.Ship_Combat is
       Module : Concorde.Modules.Module_Type)
    is
    begin
+      Log (Model,
+           Ship.Ship.Name & " fires " & Module.Name
+           & " with charge "
+           & Lui.Approximate_Image (Module.Stored_Energy)
+           & "/"
+           & Lui.Approximate_Image (Module.Maximum_Stored_Energy));
+
       Model.Events.Insert
         (Model.Events.First,
          (Weapon_Fired, Model.Turns, Ship.Index, Ship.Target,
           Module, Module.Component, Module.Stored_Energy,
-          Module.Effectiveness));
+          Module.Effectiveness, Model.Ship_Range (Ship.Index, Ship.Target)));
       Module.Execute;
    end Fire_Weapon;
 
@@ -223,9 +260,10 @@ package body Concorde.Combat.Ship_Combat is
       Message : String)
    is
    begin
-      Ada.Text_IO.Put_Line
-        (Log_File,
-         Arena.Turns'Img & ": " & Message);
+      null;
+--        Ada.Text_IO.Put_Line
+--          (Log_File,
+--           Arena.Turns'Img & ": " & Message);
    end Log;
 
    ---------------
@@ -252,11 +290,11 @@ package body Concorde.Combat.Ship_Combat is
                    Winner        => null,
                    Events        => List_Of_Combat_Events.Empty_List);
    begin
-      Ada.Text_IO.Create (Log_File, Ada.Text_IO.Out_File,
-                          Name & "-"
-                          & Concorde.Dates.Current_Date_To_String
-                          & ".txt");
-      Ada.Text_IO.Set_Output (Log_File);
+--        Ada.Text_IO.Create (Log_File, Ada.Text_IO.Out_File,
+--                            Name & "-"
+--                            & Concorde.Dates.Current_Date_To_String
+--                            & ".txt");
+--        Ada.Text_IO.Set_Output (Log_File);
 
       Arena.Initialise (Name);
       Arena.Set_Eye_Position (0.0, 0.0, 4000.0);
@@ -401,9 +439,15 @@ package body Concorde.Combat.Ship_Combat is
       end loop;
 
       if Model.Done then
-         Renderer.Draw_String
-           (10, 10, 16, Lui.Colours.White,
-            "Victory to " & Model.Winner.Name);
+         declare
+            use type Concorde.Empires.Empire_Type;
+         begin
+            Renderer.Draw_String
+              (10, 10, 16, Lui.Colours.White,
+               (if Model.Winner /= null
+                then "Victory to " & Model.Winner.Name
+                else "The battle continues"));
+         end;
       end if;
 
    end Render;
@@ -497,6 +541,11 @@ package body Concorde.Combat.Ship_Combat is
    begin
       Arena.Turns := Arena.Turns + 1;
 
+--        Ada.Text_IO.New_Line;
+--        Ada.Text_IO.Put_Line
+--          ("--  Turn" & Arena.Turns'Img);
+--        Ada.Text_IO.New_Line;
+
       if not Arena.Done then
          for I in 1 .. Arena.Ships.Last_Index loop
             Arena.Update_Ship (Arena.Ships (I));
@@ -542,7 +591,19 @@ package body Concorde.Combat.Ship_Combat is
       if Ship.Target = 0
         or else not Model.Ships (Ship.Target).Ship.Alive
       then
-         Model.Choose_Target (Ship);
+         Model.Choose_Target (Ship, Target_All => False);
+         if Ship.Target = 0 then
+            Model.Choose_Target (Ship, Target_All => True);
+         end if;
+      elsif not Model.Ships (Ship.Target).Ship.Has_Effective_Weapon then
+         declare
+            Current_Target : constant Positive := Ship.Target;
+         begin
+            Model.Choose_Target (Ship, Target_All => False);
+            if Ship.Target = 0 then
+               Ship.Target := Current_Target;
+            end if;
+         end;
       end if;
       Ship.Ship.Update_Power;
 
@@ -557,7 +618,8 @@ package body Concorde.Combat.Ship_Combat is
                Charge : constant Unit_Real := Weapon.Charge;
             begin
                if Weapon.Effectiveness > 0.5
-                 and then Concorde.Random.Unit_Random < Charge / 2.0
+                 and then Charge > 0.5
+                 and then Concorde.Random.Unit_Random < Charge * 2.0 - 1.0
                then
                   Model.Fire_Weapon (Ship, Weapon);
                end if;

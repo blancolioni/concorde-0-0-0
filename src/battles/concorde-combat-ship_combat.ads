@@ -80,6 +80,7 @@ private
                Weapon        : Concorde.Components.Component_Type;
                Power         : Non_Negative_Real;
                Effectiveness : Unit_Real;
+               Distance      : Non_Negative_Real;
          end case;
       end record;
 
@@ -142,8 +143,9 @@ private
       Ship  : in out Ship_Record);
 
    procedure Choose_Target
-     (Model : in out Root_Space_Combat_Arena;
-      Ship  : in out Ship_Record);
+     (Model      : in out Root_Space_Combat_Arena;
+      Ship       : in out Ship_Record;
+      Target_All : Boolean);
 
    procedure Fire_Weapon
      (Model  : in out Root_Space_Combat_Arena;

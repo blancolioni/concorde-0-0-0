@@ -57,6 +57,10 @@ package Concorde.Modules is
      (Module : Root_Module_Type'Class)
       return Non_Negative_Real;
 
+   function Maximum_Stored_Energy
+     (Module : Root_Module_Type'Class)
+      return Non_Negative_Real;
+
    procedure Execute
      (Module : in out Root_Module_Type'Class);
 

@@ -106,6 +106,10 @@ package Concorde.Ships is
       Mount : Mounted_Module)
       return Module_Position;
 
+   function Has_Effective_Weapon
+     (Ship : Root_Ship_Type'Class)
+      return Boolean;
+
    type Array_Of_Mounted_Modules is
      array (Positive range <>) of Mounted_Module;
 
@@ -114,6 +118,10 @@ package Concorde.Ships is
       return Array_Of_Mounted_Modules;
 
    function Get_Damaged_Mounts
+     (Ship : Root_Ship_Type'Class)
+      return Array_Of_Mounted_Modules;
+
+   function Get_Effective_Mounts
      (Ship : Root_Ship_Type'Class)
       return Array_Of_Mounted_Modules;
 

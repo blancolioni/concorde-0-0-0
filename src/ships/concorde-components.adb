@@ -13,6 +13,25 @@ package body Concorde.Components is
    end Class;
 
    ----------------------
+   -- Effective_Damage --
+   ----------------------
+
+   function Effective_Damage
+     (Component     : Root_Component_Type'Class;
+      Power         : Non_Negative_Real;
+      Effectiveness : Unit_Real;
+      At_Range      : Non_Negative_Real)
+      return Natural
+   is
+      Damage : Non_Negative_Real := Power * Effectiveness;
+   begin
+      if At_Range > Component.Nominal_Half_Range then
+         Damage := Damage * Component.Nominal_Half_Range / At_Range;
+      end if;
+      return Natural (Damage);
+   end Effective_Damage;
+
+   ----------------------
    -- Explosion_Chance --
    ----------------------
 
@@ -62,6 +81,7 @@ package body Concorde.Components is
    is
    begin
       return Component.Nominal_Charge
+        * Non_Negative_Real (Volume)
         * Component.Charge_Size_Power ** Volume;
    end Maximum_Stored_Energy;
 

@@ -8,14 +8,12 @@ argan = {
    name = Argan
    capital = "Harvest Plains"
    colour = { 255 144 30 }
-   ai = test
 }
 
 byz = {
    name = Byzantium
    capital = Constantinople
    colour = { 102 2 60 }
-   ai = defensive
 }
 
 itc = {

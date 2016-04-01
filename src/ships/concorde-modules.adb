@@ -1,5 +1,3 @@
-with Ada.Text_IO;
-
 package body Concorde.Modules is
 
    ------------
@@ -10,11 +8,14 @@ package body Concorde.Modules is
      (Module : Root_Module_Type'Class)
       return Unit_Real
    is
+      Max : constant Non_Negative_Real := Module.Maximum_Stored_Energy;
    begin
-      if Module.Max_Stored_Energy = 0.0 then
+      if Max = 0.0 then
          return 0.0;
+      elsif Module.Stored_Energy > Max then
+         return 1.0;
       else
-         return Module.Stored_Energy / Module.Max_Stored_Energy;
+         return Module.Stored_Energy / Max;
       end if;
    end Charge;
 
@@ -51,10 +52,17 @@ package body Concorde.Modules is
       Power  : Non_Negative_Real)
    is
    begin
-      Module.Stored_Energy :=
-        Non_Negative_Real'Min (Module.Stored_Energy + Power,
-                               Module.Max_Stored_Energy);
-      Module.Heat := Module.Heat + Power;
+      if Power > 0.0 then
+         Module.Stored_Energy :=
+           Non_Negative_Real'Min (Module.Stored_Energy + Power,
+                                  Module.Max_Stored_Energy);
+         Module.Heat := Module.Heat + Power;
+--           Ada.Text_IO.Put_Line
+--             (Module.Name & " draws "
+--              & Lui.Approximate_Image (Power) & " power; "
+--              & " current charge is "
+--              & Lui.Approximate_Image (Module.Stored_Energy));
+      end if;
    end Draw_Power;
 
    -------------------
@@ -137,9 +145,12 @@ package body Concorde.Modules is
      (Module         : in out Root_Module_Type'Class)
    is
    begin
-      if Module.Hits < Module.Volume then
+      if Module.Hits < Module.Max_Hits then
          Module.Hits := Module.Hits + 1;
-         Ada.Text_IO.Put_Line (Module.Name & " damaged");
+--           Ada.Text_IO.Put_Line (Module.Name & " damage"
+--                                 & Module.Hits'Img
+--                                 & " /"
+--                                 & Natural'Image (Module.Max_Hits));
       end if;
    end Hit;
 
@@ -153,7 +164,7 @@ package body Concorde.Modules is
    begin
       Module.Max_Stored_Energy :=
         Module.Component.Maximum_Stored_Energy (Module.Volume);
-      Module.Stored_Energy := 0.0;
+      Module.Stored_Energy := Module.Max_Stored_Energy / 4.0;
       Module.Heat := 0.0;
       Module.Exploding := False;
       Module.Hits := 0;
@@ -182,6 +193,18 @@ package body Concorde.Modules is
    begin
       return Module.Component.Maximum_Power_Draw (Module.Volume);
    end Maximum_Power_Draw;
+
+   ---------------------------
+   -- Maximum_Stored_Energy --
+   ---------------------------
+
+   function Maximum_Stored_Energy
+     (Module : Root_Module_Type'Class)
+      return Non_Negative_Real
+   is
+   begin
+      return Module.Max_Stored_Energy * Module.Effectiveness;
+   end Maximum_Stored_Energy;
 
    ----------------
    -- New_Module --
@@ -238,11 +261,11 @@ package body Concorde.Modules is
       Module.Explosion_Timer :=
         (Module.Max_Hits - Module.Hits) / 2;
       Module.Explosion_Size := Module.Volume * 8;
-      Ada.Text_IO.Put_Line
-        (Module.Name & " will explode in"
-         & Module.Explosion_Timer'Img
-         & " turns with force"
-         & Module.Explosion_Size'Img);
+--        Ada.Text_IO.Put_Line
+--          (Module.Name & " will explode in"
+--           & Module.Explosion_Timer'Img
+--           & " turns with force"
+--           & Module.Explosion_Size'Img);
    end Start_Explosion;
 
    -------------------

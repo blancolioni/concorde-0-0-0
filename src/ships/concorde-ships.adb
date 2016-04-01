@@ -1,5 +1,3 @@
-with Ada.Text_IO;
-
 with WL.Random;
 
 with Concorde.Components;
@@ -102,6 +100,28 @@ package body Concorde.Ships is
       return Result (1 .. Count);
    end Get_Damaged_Mounts;
 
+   --------------------------
+   -- Get_Effective_Mounts --
+   --------------------------
+
+   function Get_Effective_Mounts
+     (Ship : Root_Ship_Type'Class)
+      return Array_Of_Mounted_Modules
+   is
+      use Concorde.Components;
+      Result : Array_Of_Mounted_Modules
+        (1 .. Natural (Ship.Structure.Last_Index));
+      Count  : Natural := 0;
+   begin
+      for I in 1 .. Ship.Structure.Last_Index loop
+         if Ship.Structure (I).Module.Damage < 1.0 then
+            Count := Count + 1;
+            Result (Count) := Mounted_Module (I);
+         end if;
+      end loop;
+      return Result (1 .. Count);
+   end Get_Effective_Mounts;
+
    ----------------
    -- Get_Module --
    ----------------
@@ -163,6 +183,23 @@ package body Concorde.Ships is
       return Result (1 .. Count);
    end Get_Weapon_Mounts;
 
+   --------------------------
+   -- Has_Effective_Weapon --
+   --------------------------
+
+   function Has_Effective_Weapon
+     (Ship : Root_Ship_Type'Class)
+      return Boolean
+   is
+   begin
+      for Mount of Ship.Structure loop
+         if Mount.Module.Effectiveness > 0.0 then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Has_Effective_Weapon;
+
    ---------
    -- Hit --
    ---------
@@ -173,36 +210,38 @@ package body Concorde.Ships is
    is
    begin
       for I in 1 .. Damage loop
+         exit when not Ship.Alive;
          declare
+            Mounts : constant Array_Of_Mounted_Modules :=
+                       Ship.Get_Effective_Mounts;
             Index : constant Positive :=
-                      WL.Random.Random_Number
-                        (1, Ship.Structure.Last_Index);
+                       WL.Random.Random_Number
+                         (Mounts'First, Mounts'Last);
             Module : constant Concorde.Modules.Module_Type :=
-                       Ship.Structure.Element (Index).Module;
+                       Ship.Structure
+                         (Positive (Mounts (Index))).Module;
          begin
-            if not Module.Exploding then
-               Module.Hit;
-               declare
-                  Chance : constant Unit_Real :=
-                             Module.Explosion_Chance;
-               begin
-                  Ada.Text_IO.Put_Line
-                    ("chance of explosion:"
-                     & Natural'Image (Natural (Chance * 100.0))
-                     & "%");
-                  if Concorde.Random.Unit_Random < Chance then
-                     Module.Start_Explosion;
-                  end if;
-               end;
-            end if;
+            Module.Hit;
+            declare
+               Chance : constant Unit_Real :=
+                          Module.Explosion_Chance;
+            begin
+--                 Ada.Text_IO.Put_Line
+--                   ("chance of explosion:"
+--                    & Natural'Image (Natural (Chance * 100.0))
+--                    & "%");
+               if Concorde.Random.Unit_Random < Chance then
+                  Module.Start_Explosion;
+               end if;
+            end;
+         end;
+
+         declare
+            Ship_Damage : constant Unit_Real := Ship.Damage;
+         begin
+            Ship.Alive := Ship_Damage < 0.95;
          end;
       end loop;
-
-      declare
-         Ship_Damage : constant Unit_Real := Ship.Damage;
-      begin
-         Ship.Alive := Ship_Damage < 0.95;
-      end;
 
    end Hit;
 
@@ -306,9 +345,6 @@ package body Concorde.Ships is
             Module.Update_Damage;
             if Module.Exploding then
                if Module.Explosion_Timer = 0 then
-                  Ada.Text_IO.Put_Line
-                    (Ship.Name & ": " & Module.Name
-                     & " explodes");
                   New_Hits := New_Hits + Module.Explosion_Size;
                end if;
             end if;

@@ -39,6 +39,7 @@ package body Concorde.Components.Configure is
                        Nominal_Charge          => Get ("nominal_charge"),
                        Nominal_Power_Draw      => Get ("nominal_power"),
                        Nominal_Heat_Production => Get ("nominal_heat"),
+                       Nominal_Half_Range      => Get ("nominal_half_range"),
                        Output_Size_Power       => Get ("output_size_power"),
                        Input_Size_Power        => Get ("input_size_power"),
                        Charge_Size_Power       => Get ("charge_size_power"),

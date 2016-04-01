@@ -43,6 +43,13 @@ package Concorde.Components is
       Volume    : Positive)
       return Non_Negative_Real;
 
+   function Effective_Damage
+     (Component     : Root_Component_Type'Class;
+      Power         : Non_Negative_Real;
+      Effectiveness : Unit_Real;
+      At_Range      : Non_Negative_Real)
+      return Natural;
+
    type Component_Type is access constant Root_Component_Type'Class;
 
 private
@@ -62,6 +69,7 @@ private
          Nominal_Charge          : Non_Negative_Real;
          Nominal_Heat_Production : Non_Negative_Real;
          Nominal_Power_Draw      : Non_Negative_Real;
+         Nominal_Half_Range      : Non_Negative_Real;
          Output_Size_Power       : Unit_Real;
          Input_Size_Power        : Unit_Real;
          Charge_Size_Power       : Unit_Real;
