@@ -23,6 +23,8 @@ with Concorde.Options;
 
 with Concorde.AI.Configure;
 
+with Concorde.People.Groups.Configure;
+
 procedure Concorde.Driver is
 
    Name_Generator : WL.Random.Names.Name_Generator;
@@ -37,6 +39,7 @@ begin
       WL.Random.Randomise;
    end if;
 
+   Concorde.People.Groups.Configure.Configure_Pop_Groups;
    Concorde.Components.Configure.Configure_Components;
    Concorde.Ships.Designs.Configure_Designs;
 

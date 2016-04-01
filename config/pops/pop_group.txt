@@ -1,0 +1,66 @@
+poor = {
+   socialist = 10
+   capitalist = 5
+   conservative = 30
+   liberal = 30
+}
+
+middle_class = {
+}
+
+rich = {
+}
+
+socialist = {
+}
+
+capitalist = {
+}
+
+farmer = {
+}
+
+worker = {
+}
+
+conservative = {
+}
+
+liberal = {
+}
+
+parent = {
+}
+
+xenophobe = {
+}
+
+expansionist = {
+}
+
+isolationist = {
+}
+
+artisan = {
+}
+
+state_employee = {
+}
+
+aristocrat = {
+}
+
+retired = {
+}
+
+youth = {
+}
+
+middle_aged = {
+}
+
+citizen = {
+}
+
+military = {
+}
