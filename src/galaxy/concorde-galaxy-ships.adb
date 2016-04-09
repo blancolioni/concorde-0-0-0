@@ -90,7 +90,7 @@ package body Concorde.Galaxy.Ships is
       if Next_Index = 0 then
          Concorde.Empires.Logging.Log
            (Ship.Owner,
-            Ship.Name &
+            Ship.Short_Description &
             ": movement canceled because path from "
             & Ship.System.Name
             & " to "

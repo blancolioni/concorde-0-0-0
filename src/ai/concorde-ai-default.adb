@@ -651,15 +651,12 @@ package body Concorde.AI.Default is
 
    begin
 
-      Empires.Logging.Log
-        (Empire, Ship.Short_Description);
-
       if Empire.Has_Battle (Ship.System) then
          Ship.Clear_Destination;
          Stop := True;
          Empires.Logging.Log
            (Empire,
-            Ship.Name & " fighting at "
+            Ship.Short_Description & " fighting at "
             & AI.Target.Name);
       else
          for Opportunity of AI.Opportunity_Destinations loop
@@ -700,12 +697,12 @@ package body Concorde.AI.Default is
          if AI.Launch_Offensive then
             Empires.Logging.Log
               (Empire,
-               Ship.Name & " delays offensive because "
+               Ship.Short_Description & " delays offensive because "
                & " no attack order was given");
          else
             Empires.Logging.Log
               (Empire,
-               Ship.Name & " waits at "
+               Ship.Short_Description & " waits at "
                & Ship.System.Name
                & " for attack order");
          end if;
@@ -716,7 +713,7 @@ package body Concorde.AI.Default is
          Stop := True;
          Empires.Logging.Log
            (Empire,
-            Ship.Name & " required to remain at "
+            Ship.Short_Description & " required to remain at "
             & Ship.System.Name);
       else
 
@@ -726,7 +723,7 @@ package body Concorde.AI.Default is
          then
             Empires.Logging.Log
               (Empire,
-               Ship.Name & " joins attack on "
+               Ship.Short_Description & " joins attack on "
                & AI.Target.Name);
             Ship.Set_Destination (AI.Target);
             Stop := True;
@@ -737,7 +734,7 @@ package body Concorde.AI.Default is
          then
             Empires.Logging.Log
               (Empire,
-               Ship.Name & " continues the battle at "
+               Ship.Short_Description & " continues the battle at "
                & AI.Target.Name);
             Ship.Clear_Destination;
             Stop := True;
@@ -755,7 +752,7 @@ package body Concorde.AI.Default is
             Choose_Destination (AI.Explore_Destinations, Stop);
          end if;
 
-         if not Stop and then AI.Planned_Offensive then
+         if False and then not Stop and then AI.Planned_Offensive then
             Empires.Logging.Log
               (Empire,
                "checking planned offensive: required ="
@@ -780,7 +777,7 @@ package body Concorde.AI.Default is
                else
                   Empires.Logging.Log
                     (Empire,
-                     Ship.Name & " heads to "
+                     Ship.Short_Description & " heads to "
                      & AI.Attack_From.Name
                      & " for offensive against "
                      & AI.Target.Name);
@@ -797,7 +794,8 @@ package body Concorde.AI.Default is
             Ship.Set_Destination (Empire.Capital);
             Empires.Logging.Log
               (Empire,
-               Ship.Name & " returns to capital " & Empire.Capital.Name);
+               Ship.Short_Description
+               & " returns to capital " & Empire.Capital.Name);
          end if;
 
          if Stop then
@@ -807,11 +805,12 @@ package body Concorde.AI.Default is
          elsif Ship.Damage > 0.0 then
             Empires.Logging.Log
               (Empire,
-               Ship.Name & " making repairs at " & Ship.System.Name);
+               Ship.Short_Description
+               & " making repairs at " & Ship.System.Name);
          else
             Empires.Logging.Log
               (Empire,
-               Ship.Name & " has no orders");
+               Ship.Short_Description & " has no orders");
          end if;
       end if;
    end Order_Ship;
