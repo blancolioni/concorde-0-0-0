@@ -156,7 +156,7 @@ private
    type Root_Ship_Type is
      new Concorde.Objects.Root_Named_Object_Type with
       record
-         Identity              : String (1 .. 5);
+         Identity              : String (1 .. 6);
          Owner                 : access constant
            Concorde.Empires.Root_Empire_Type'Class;
          System_Reference      : Memor.Database_Reference;

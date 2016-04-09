@@ -49,15 +49,10 @@ package body Concorde.Ships.Create is
          Ship.Alive := True;
 
          declare
-            Id : Natural := Db.Count;
+            Id : constant String :=
+                   "00000" & Memor.To_String (Ship.Reference);
          begin
-            Ship.Identity := "10000";
-            for I in reverse Ship.Identity'Range loop
-               exit when Id = 0;
-               Ship.Identity (I) :=
-                 Character'Val (Character'Pos ('0') + Id mod 10);
-               Id := Id / 10;
-            end loop;
+            Ship.Identity := "1" & Id (Id'Last - 4 .. Id'Last);
          end;
 
          declare
