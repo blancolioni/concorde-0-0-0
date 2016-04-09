@@ -78,8 +78,6 @@ package body Concorde.Updates is
          Concorde.Galaxy.Complete_Battles;
       end if;
 
-      Concorde.Empires.Updates.Update_Empire_Ships;
-
       if Check_Invariants then
          Concorde.Empires.Check_Invariants;
       end if;
