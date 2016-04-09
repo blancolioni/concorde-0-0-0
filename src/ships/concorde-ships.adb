@@ -201,7 +201,7 @@ package body Concorde.Ships is
       Count  : Natural := 0;
    begin
       for I in 1 .. Ship.Structure.Last_Index loop
-         if Ship.Structure (I).Module.Component.Class in Weapon_Class then
+         if Ship.Structure (I).Module.Damage > 0.0 then
             Count := Count + 1;
             Result (Count) := Mounted_Module (I);
          end if;
@@ -368,6 +368,49 @@ package body Concorde.Ships is
    begin
       return Ship.Owner;
    end Owner;
+
+   ------------
+   -- Repair --
+   ------------
+
+   procedure Repair
+     (Ship   : in out Root_Ship_Type'Class;
+      Points : Positive)
+   is
+      Mounts : constant Array_Of_Mounted_Modules :=
+                 Ship.Get_Damaged_Mounts;
+
+      Remaining : Natural := Points;
+
+      procedure Update
+        (Module : in out Concorde.Modules.Root_Module_Type'Class);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update
+        (Module : in out Concorde.Modules.Root_Module_Type'Class)
+      is
+      begin
+         Concorde.Empires.Logging.Log
+           (Ship.Owner,
+            Ship.Short_Description
+            & ": repairing" & Remaining'Img
+            & " damage from " & Module.Name
+            & " with damage "
+            & Lui.Approximate_Image (Module.Damage));
+         Module.Repair (Remaining);
+      end Update;
+
+   begin
+      for Mount of Mounts loop
+         Concorde.Modules.Db.Update
+           (Ref     => Ship.Structure (Positive (Mount)).Module.Reference,
+            Updater => Update'Access);
+         exit when Remaining = 0;
+      end loop;
+   end Repair;
 
    ---------------------
    -- Set_Destination --
