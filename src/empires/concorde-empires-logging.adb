@@ -1,9 +1,12 @@
-with Ada.Containers.Vectors;
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Text_IO;
 
+with Memor.Element_Vectors;
+
 with Concorde.Dates;
 with Concorde.Paths;
+
+with Concorde.Empires.Db;
 
 package body Concorde.Empires.Logging is
 
@@ -13,8 +16,10 @@ package body Concorde.Empires.Logging is
      new Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 
    package Empire_Log_Vectors is
-     new Ada.Containers.Vectors (Positive, List_Of_Log_Lines.List,
-                                 List_Of_Log_Lines."=");
+     new Memor.Element_Vectors
+       (Element_Type  => List_Of_Log_Lines.List,
+        Default_Value => List_Of_Log_Lines.Empty_List,
+        "="           => List_Of_Log_Lines."=");
 
    Current_Log_Date : Concorde.Dates.Date_Type := 0;
    Current_Logs     : Empire_Log_Vectors.Vector;
@@ -31,13 +36,16 @@ package body Concorde.Empires.Logging is
    ---------------
 
    procedure Flush_Log is
-   begin
-      if not Started then
-         return;
-      end if;
 
-      for Empire of Vector loop
-         if not Current_Logs.Element (Empire.Index).Is_Empty then
+      procedure Flush (Empire : Empire_Type);
+
+      -----------
+      -- Flush --
+      -----------
+
+      procedure Flush (Empire : Empire_Type) is
+      begin
+         if not Current_Logs.Element (Empire.Reference).Is_Empty then
             declare
                use Ada.Text_IO;
                File : File_Type;
@@ -52,14 +60,23 @@ package body Concorde.Empires.Logging is
                Put_Line (File, "----------------");
                New_Line (File);
 
-               for Line of Current_Logs.Element (Empire.Index) loop
+               for Line of Current_Logs.Element (Empire.Reference) loop
                   Put_Line (File, Line);
                end loop;
                Close (File);
-               Current_Logs (Empire.Index).Clear;
+               Current_Logs.Replace_Element (Empire.Reference,
+                                             List_Of_Log_Lines.Empty_List);
             end;
          end if;
-      end loop;
+      end Flush;
+
+   begin
+      if not Started then
+         return;
+      end if;
+
+      Db.Scan (Flush'Access);
+
    end Flush_Log;
 
    ---------
@@ -98,7 +115,23 @@ package body Concorde.Empires.Logging is
       end if;
 
       Current_Log_Date := Today;
-      Current_Logs (Empire.Index).Append (Message);
+
+      declare
+         procedure Append (List : in out List_Of_Log_Lines.List);
+
+         ------------
+         -- Append --
+         ------------
+
+         procedure Append (List : in out List_Of_Log_Lines.List) is
+         begin
+            List.Append (Message);
+         end Append;
+
+      begin
+
+         Current_Logs.Update_Element (Empire.Reference, Append'Access);
+      end;
 
    end Log;
 
@@ -107,22 +140,41 @@ package body Concorde.Empires.Logging is
    -------------------
 
    procedure Start_Logging is
+
+      Failed : Boolean := False;
+
+      procedure Start_Empire_Logging (Empire : Empire_Type);
+
+      --------------------------
+      -- Start_Empire_Logging --
+      --------------------------
+
+      procedure Start_Empire_Logging (Empire : Empire_Type) is
+         File : Ada.Text_IO.File_Type;
+      begin
+         Ada.Text_IO.Create (File, Ada.Text_IO.Out_File,
+                             Log_File_Path (Empire));
+         Ada.Text_IO.Close (File);
+      exception
+         when Ada.Text_IO.Name_Error =>
+            Failed := True;
+      end Start_Empire_Logging;
+
    begin
       if not Started then
          Current_Logs.Clear;
-         for I in 1 .. Empire_Count loop
-            Current_Logs.Append (List_Of_Log_Lines.Empty_List);
-            declare
-               File : Ada.Text_IO.File_Type;
-            begin
-               Ada.Text_IO.Create (File, Ada.Text_IO.Out_File,
-                                   Log_File_Path (Vector (I)));
-               Ada.Text_IO.Close (File);
-            end;
-         end loop;
 
-         Current_Log_Date := 0;
-         Started := True;
+         Db.Scan (Start_Empire_Logging'Access);
+
+         if Failed then
+            Ada.Text_IO.Put_Line
+              (Ada.Text_IO.Standard_Error,
+               "Unabled to start logging; logging disabled");
+         else
+            Current_Log_Date := 0;
+            Started := True;
+         end if;
+
       end if;
    end Start_Logging;
 

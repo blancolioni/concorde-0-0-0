@@ -1,4 +1,5 @@
 private with Ada.Containers.Doubly_Linked_Lists;
+private with Memor;
 
 limited with Concorde.Empires;
 
@@ -19,7 +20,12 @@ package Concorde.Systems is
 
    function Owner
      (System : Root_Star_System_Type'Class)
-      return access Concorde.Empires.Root_Empire_Type'Class;
+      return access constant Concorde.Empires.Root_Empire_Type'Class;
+
+   function Owned_By
+     (System : Root_Star_System_Type'Class;
+      Empire : Concorde.Empires.Root_Empire_Type'Class)
+      return Boolean;
 
    function Loyalty
      (System : Root_Star_System_Type'Class)
@@ -88,7 +94,7 @@ package Concorde.Systems is
 
    procedure Set_Owner
      (System : in out Root_Star_System_Type'Class;
-      New_Owner : not null access
+      New_Owner : not null access constant
         Concorde.Empires.Root_Empire_Type'Class);
 
    procedure Set_Capital
@@ -120,7 +126,10 @@ package Concorde.Systems is
      (System_1, System_2 : Star_System_Type)
       return Non_Negative_Real;
 
-   type Star_System_Access is access all Root_Star_System_Type'Class;
+   function Get_Index
+     (System : Star_System_Type)
+      return Positive
+   is (System.Index);
 
 private
 
@@ -140,19 +149,24 @@ private
          X, Y           : Real;
          Production     : Non_Negative_Real;
          Capacity       : Non_Negative_Real;
-         Progress       : Non_Negative_Real;
+         Progress       : Non_Negative_Real := 0.0;
          Ships          : Concorde.Ships.Lists.List;
          Arriving       : Concorde.Ships.Lists.List;
          Departing      : Concorde.Ships.Lists.List;
-         Capital        : Boolean;
-         Last_Battle    : Concorde.Dates.Date_Type;
-         Battle_Size    : Natural;
-         Last_Attacker  : Star_System_Type;
-         Owner          : access Concorde.Empires.Root_Empire_Type'Class;
-         Original_Owner : access Concorde.Empires.Root_Empire_Type'Class;
-         Loyalty        : Unit_Real;
+         Capital        : Boolean := False;
+         Last_Battle    : Concorde.Dates.Date_Type := 0;
+         Battle_Size    : Natural := 0;
+         Last_Attacker  : Star_System_Type := null;
+         Owner          : access constant
+           Concorde.Empires.Root_Empire_Type'Class;
+         Original_Owner : access constant
+           Concorde.Empires.Root_Empire_Type'Class;
+         Loyalty        : Unit_Real := 1.0;
          Edges          : Edge_Info_Lists.List;
          Boundary       : access System_Influence_Boundary;
       end record;
 
+   overriding function Object_Database
+     (Star_System : Root_Star_System_Type)
+      return Memor.Root_Database_Type'Class;
 end Concorde.Systems;

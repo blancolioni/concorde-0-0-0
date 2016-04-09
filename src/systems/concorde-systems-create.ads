@@ -7,6 +7,6 @@ package Concorde.Systems.Create is
       Boundary   : System_Influence_Boundary;
       Production : Non_Negative_Real;
       Capacity   : Non_Negative_Real)
-      return Star_System_Access;
+      return Star_System_Type;
 
 end Concorde.Systems.Create;

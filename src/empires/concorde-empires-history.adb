@@ -1,5 +1,9 @@
 with Ada.Containers.Vectors;
 
+with Memor.Element_Vectors;
+
+with Concorde.Empires.Db;
+
 package body Concorde.Empires.History is
 
    use Concorde.Dates;
@@ -8,7 +12,7 @@ package body Concorde.Empires.History is
      array (Historical_Metric) of Real;
 
    package History_Record_Vectors is
-     new Ada.Containers.Vectors (Positive, Metric_Record);
+     new Memor.Element_Vectors (Metric_Record, (others => 0.0));
 
    package History_Vectors is
      new Ada.Containers.Vectors
@@ -28,7 +32,7 @@ package body Concorde.Empires.History is
       return Real
    is
    begin
-      return History.Element (Date).Element (Empire.Index) (Metric);
+      return History.Element (Date).Element (Empire.Reference) (Metric);
    end Get_Metric;
 
    --------------------
@@ -36,20 +40,27 @@ package body Concorde.Empires.History is
    --------------------
 
    procedure Update_History is
-      R : History_Record_Vectors.Vector;
-   begin
-      for Empire of Vector loop
-         declare
-            M : constant Metric_Record :=
-                  (Controlled_Systems => Real (Empire.Current_Systems),
-                   Ship_Count         => Real (Empire.Current_Ships),
-                   Capacity           => Empire.Max_Ships,
-                   Production         => 0.0);
-         begin
-            R.Append (M);
-         end;
-      end loop;
 
+      R : History_Record_Vectors.Vector;
+
+      procedure Update (Empire : Root_Empire_Type'Class);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update (Empire : Root_Empire_Type'Class) is
+         M : constant Metric_Record :=
+               (Controlled_Systems => Real (Empire.Current_Systems),
+                Ship_Count         => Real (Empire.Current_Ships),
+                Capacity           => Empire.Max_Ships,
+                Production         => 0.0);
+      begin
+         R.Replace_Element (Empire.Reference, M);
+      end Update;
+
+   begin
+      Db.Scan (Update'Access);
       History.Append (R);
 
    end Update_History;

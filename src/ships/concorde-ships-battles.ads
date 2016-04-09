@@ -18,7 +18,7 @@ package Concorde.Ships.Battles is
       return Boolean;
 
    function Create_Arena
-     (System : Concorde.Systems.Star_System_Access;
+     (System : in out Concorde.Systems.Root_Star_System_Type'Class;
       Ships  : Concorde.Ships.Lists.List)
      return Concorde.Combat.Ship_Combat.Space_Combat_Arena;
 

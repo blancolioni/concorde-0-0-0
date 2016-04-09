@@ -1,5 +1,12 @@
 with Concorde.Elementary_Functions;
 
+with Concorde.Ships.Db;
+with Concorde.Systems.Db;
+
+with Concorde.Empires;
+with Ada.Text_IO;
+with Ada.Exceptions;
+
 package body Concorde.Systems is
 
    --------------
@@ -114,7 +121,38 @@ package body Concorde.Systems is
       end loop;
       for Ship of System.Arriving loop
          System.Add_Ship (Ship);
-         Ship.Set_System (System);
+
+         declare
+            procedure Update_System
+              (Ship : in out Concorde.Ships.Root_Ship_Type'Class);
+
+            -------------------
+            -- Update_System --
+            -------------------
+
+            procedure Update_System
+              (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
+            is
+            begin
+               Ship.Set_System (System);
+            end Update_System;
+
+         begin
+            Concorde.Ships.Db.Update (Ship.Reference, Update_System'Access);
+         exception
+            when E : others =>
+               Ada.Text_IO.Put_Line
+                 (Ada.Text_IO.Standard_Error,
+                  "while updating system for " & Ship.Short_Description
+                  & " to " & System.Name & ":");
+                  Ada.Text_IO.Put_Line
+                 (Ada.Text_IO.Standard_Error,
+                  Ada.Exceptions.Exception_Name (E)
+                  & ": "
+                  & Ada.Exceptions.Exception_Message (E));
+
+         end;
+
       end loop;
    end Commit_Ship_Movement;
 
@@ -218,13 +256,41 @@ package body Concorde.Systems is
       return System.Loyalty;
    end Loyalty;
 
+   ---------------------
+   -- Object_Database --
+   ---------------------
+
+   overriding function Object_Database
+     (Star_System : Root_Star_System_Type)
+      return Memor.Root_Database_Type'Class
+   is
+      pragma Unreferenced (Star_System);
+   begin
+      return Db.Get_Database;
+   end Object_Database;
+
+   --------------
+   -- Owned_By --
+   --------------
+
+   function Owned_By
+     (System : Root_Star_System_Type'Class;
+      Empire : Concorde.Empires.Root_Empire_Type'Class)
+      return Boolean
+   is
+      use type Memor.Database_Reference;
+   begin
+      return System.Owned
+        and then System.Owner.Reference = Empire.Reference;
+   end Owned_By;
+
    -----------
    -- Owner --
    -----------
 
    function Owner
      (System : Root_Star_System_Type'Class)
-      return access Concorde.Empires.Root_Empire_Type'Class
+      return access constant Concorde.Empires.Root_Empire_Type'Class
    is
    begin
       return System.Owner;
@@ -290,7 +356,7 @@ package body Concorde.Systems is
 
    procedure Set_Owner
      (System : in out Root_Star_System_Type'Class;
-      New_Owner : not null access
+      New_Owner : not null access constant
         Concorde.Empires.Root_Empire_Type'Class)
    is
    begin

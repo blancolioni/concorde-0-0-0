@@ -1,6 +1,8 @@
 with Concorde.Galaxy;
 with Concorde.Systems;
 
+with Concorde.Empires.Db;
+
 package body Concorde.Empires.Create is
 
    ----------------
@@ -13,67 +15,84 @@ package body Concorde.Empires.Create is
       Colour  : Lui.Colours.Colour_Type;
       AI      : Concorde.AI.AI_Type      := null)
    is
-      function OK_For_Start
-        (System : Concorde.Systems.Star_System_Type)
-         return Boolean;
-
-      procedure Choose
-        (System : in out Concorde.Systems.Root_Star_System_Type'Class);
 
       Taken : Concorde.Galaxy.Star_System_Set;
 
-      New_Empire : constant Empire_Type := new Root_Empire_Type;
+      procedure Add_Taken_Systems
+        (Empire : Root_Empire_Type'Class);
 
-      ------------
-      -- Choose --
-      ------------
+      procedure Create
+        (New_Empire : in out Root_Empire_Type'Class);
 
-      procedure Choose
-        (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+      -----------------------
+      -- Add_Taken_Systems --
+      -----------------------
+
+      procedure Add_Taken_Systems
+        (Empire : Root_Empire_Type'Class)
       is
       begin
-         System.Set_Owner (New_Empire);
-         System.Set_Production (System.Production * 4.0);
-         System.Set_Capacity (System.Capacity * 4.0);
-         System.Set_Capital (True);
-         System.Set_Name (Capital);
-      end Choose;
+         Concorde.Galaxy.Add_Systems (Taken, Empire.Capital, 0.4);
+      end Add_Taken_Systems;
 
-      ------------------
-      -- OK_For_Start --
-      ------------------
+      ------------
+      -- Create --
+      ------------
 
-      function OK_For_Start
-        (System : Concorde.Systems.Star_System_Type)
+      procedure Create
+        (New_Empire : in out Root_Empire_Type'Class)
+      is
+
+         procedure Choose
+           (System : in out Concorde.Systems.Root_Star_System_Type'Class);
+
+         function OK_For_Start
+           (System : Concorde.Systems.Star_System_Type)
+            return Boolean;
+
+         ------------
+         -- Choose --
+         ------------
+
+         procedure Choose
+           (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+         is
+         begin
+            System.Set_Owner (Db.Reference (New_Empire));
+            System.Set_Production (System.Production * 4.0);
+            System.Set_Capacity (System.Capacity * 4.0);
+            System.Set_Capital (True);
+            System.Set_Name (Capital);
+         end Choose;
+
+         ------------------
+         -- OK_For_Start --
+         ------------------
+
+         function OK_For_Start
+           (System : Concorde.Systems.Star_System_Type)
          return Boolean
-      is
-         use Concorde.Galaxy;
-         Ns : constant Array_Of_Star_Systems :=
-                Neighbours (System);
-      begin
-         if System.Owner /= null then
-            return False;
-         end if;
-
-         if Concorde.Galaxy.Is_Element (Taken, System) then
-            return False;
-         end if;
-
-         for S of Ns loop
-            if S.Owner /= null then
+         is
+            use Concorde.Galaxy;
+            Ns : constant Array_Of_Star_Systems :=
+                   Neighbours (System);
+         begin
+            if System.Owner /= null then
                return False;
             end if;
-         end loop;
-         return True;
-      end OK_For_Start;
 
-   begin
+            if Concorde.Galaxy.Is_Element (Taken, System) then
+               return False;
+            end if;
 
-      for E of Vector loop
-         Concorde.Galaxy.Add_Systems (Taken, E.Capital, 0.4);
-      end loop;
+            for S of Ns loop
+               if S.Owner /= null then
+                  return False;
+               end if;
+            end loop;
+            return True;
+         end OK_For_Start;
 
-      declare
          Start      : constant Concorde.Systems.Star_System_Type :=
                         Concorde.Galaxy.Find_System
                           (OK_For_Start'Access);
@@ -87,8 +106,11 @@ package body Concorde.Empires.Create is
          New_Empire.AI := AI;
          New_Empire.Current_Systems := 1;
          Concorde.Galaxy.Update_System (Start, Choose'Access);
-         Add_Empire (New_Empire);
-      end;
+      end Create;
+
+   begin
+      Db.Scan (Add_Taken_Systems'Access);
+      Db.Create (Create'Access);
    end New_Empire;
 
 end Concorde.Empires.Create;

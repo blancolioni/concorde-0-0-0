@@ -2,8 +2,8 @@ package Concorde.Ships.Designs is
 
    procedure Configure_Designs;
 
-   function Create_Ship_From_Design
-     (Name : String)
-     return Ship_Type;
+   procedure Create_Ship_From_Design
+     (Design_Name : String;
+      Ship        : in out Root_Ship_Type'Class);
 
 end Concorde.Ships.Designs;

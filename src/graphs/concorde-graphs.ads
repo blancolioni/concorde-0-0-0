@@ -8,6 +8,7 @@ generic
 
    Default_Cost  : Cost_Type := 1.0;
 
+   with function Index_Of (Vertex : Vertex_Type) return Index_Type;
    with function "=" (Left, Right : Vertex_Type) return Boolean is <>;
 package Concorde.Graphs is
 
@@ -65,6 +66,13 @@ package Concorde.Graphs is
       From      : Index_Type;
       Process   : not null access procedure (To : Index_Type;
                                              Cost : Cost_Type));
+
+   procedure Iterate_Edges
+     (Container : Graph;
+      From      : Vertex_Type;
+      Process   : not null access
+        procedure (To : Vertex_Type;
+                   Cost : Cost_Type));
 
    type Sub_Graph is private;
 

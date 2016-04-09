@@ -5,7 +5,7 @@ package body Concorde.Empires.Relations is
    ------------
 
    function At_War
-     (E1, E2 : not null access constant Root_Empire_Type'Class)
+     (E1, E2 : Root_Empire_Type'Class)
       return Boolean
    is
    begin
@@ -24,8 +24,8 @@ package body Concorde.Empires.Relations is
    begin
       for I in 2 .. Es'Last loop
          for J in 1 .. I - 1 loop
-            if Es (I).Relationship (Es (J)) < 0
-              or else Es (J).Relationship (Es (I)) < 0
+            if Es (I).Relationship (Es (J).all) < 0
+              or else Es (J).Relationship (Es (I).all) < 0
             then
                return True;
             end if;

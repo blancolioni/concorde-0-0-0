@@ -345,6 +345,35 @@ package body Concorde.Graphs is
       end loop;
    end Iterate_Edges;
 
+   -------------------
+   -- Iterate_Edges --
+   -------------------
+
+   procedure Iterate_Edges
+     (Container : Graph;
+      From      : Vertex_Type;
+      Process   : not null access
+        procedure (To : Vertex_Type;
+                   Cost : Cost_Type))
+   is
+      procedure Internal (To : Index_Type;
+                          Cost : Cost_Type);
+
+      --------------
+      -- Internal --
+      --------------
+
+      procedure Internal (To   : Index_Type;
+                          Cost : Cost_Type)
+      is
+      begin
+         Process (Container.Vertices.Element (To).Vertex, Cost);
+      end Internal;
+
+   begin
+      Graph'Class (Container).Iterate_Edges (Index_Of (From), Internal'Access);
+   end Iterate_Edges;
+
    -----------------------
    -- Last_Vertex_Index --
    -----------------------

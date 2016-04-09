@@ -1,3 +1,7 @@
+with Ada.Containers.Vectors;
+
+with Concorde.Systems.Db;
+
 package body Concorde.Galaxy is
 
    package Battle_Vectors is
@@ -72,7 +76,9 @@ package body Concorde.Galaxy is
    is
    begin
       Arena.Execute;
-      Local_Battle_Manager.On_Battle_End (Arena);
+      if Local_Battle_Manager /= null then
+         Local_Battle_Manager.On_Battle_End (Arena);
+      end if;
    end Complete_Battle;
 
    ----------------------
@@ -83,7 +89,9 @@ package body Concorde.Galaxy is
    begin
       for Arena of Local_Battle_Container loop
          Arena.Execute;
-         Local_Battle_Manager.On_Battle_End (Arena);
+         if Local_Battle_Manager /= null then
+            Local_Battle_Manager.On_Battle_End (Arena);
+         end if;
       end loop;
       Clear_Battles;
    end Complete_Battles;
@@ -380,32 +388,6 @@ package body Concorde.Galaxy is
       Local_Battle_Manager := Manager;
    end Set_Battle_Manager;
 
-   -----------------
-   -- Set_Capital --
-   -----------------
-
-   procedure Set_Capital
-     (System  : Concorde.Systems.Star_System_Type;
-      Capital : Boolean)
-   is
-      procedure Update
-        (System : in out Systems.Root_Star_System_Type'Class);
-
-      ------------
-      -- Update --
-      ------------
-
-      procedure Update
-        (System : in out Systems.Root_Star_System_Type'Class)
-      is
-      begin
-         System.Set_Capital (Capital);
-      end Update;
-
-   begin
-      Update_System (System, Update'Access);
-   end Set_Capital;
-
    -------------------
    -- Shortest_Path --
    -------------------
@@ -459,9 +441,8 @@ package body Concorde.Galaxy is
       Update : not null access
         procedure (System : in out Systems.Root_Star_System_Type'Class))
    is
-      Index : constant Natural := System.Index;
    begin
-      Update (Galaxy_Vector.Element (Index).all);
+      Concorde.Systems.Db.Update (System.Reference, Update);
    end Update_System;
 
 end Concorde.Galaxy;

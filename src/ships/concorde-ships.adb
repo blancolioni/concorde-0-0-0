@@ -5,7 +5,15 @@ with Concorde.Systems;
 
 with Concorde.Random;
 
+with Concorde.Modules.Db;
+with Concorde.Ships.Db;
+with Concorde.Systems.Db;
+
 package body Concorde.Ships is
+
+   procedure Apply_Hit
+     (Ship   : in out Root_Ship_Type'Class;
+      Damage : Natural);
 
    -----------
    -- Alive --
@@ -19,6 +27,73 @@ package body Concorde.Ships is
       return Ship.Alive;
    end Alive;
 
+   ---------------
+   -- Apply_Hit --
+   ---------------
+
+   procedure Apply_Hit
+     (Ship   : in out Root_Ship_Type'Class;
+      Damage : Natural)
+   is
+   begin
+      for I in 1 .. Damage loop
+         exit when not Ship.Alive;
+         declare
+            Mounts : constant Array_Of_Mounted_Modules :=
+                       Ship.Get_Effective_Mounts;
+            Index  : constant Positive :=
+                       WL.Random.Random_Number
+                         (Mounts'First, Mounts'Last);
+
+            procedure Update
+              (Module : in out Concorde.Modules.Root_Module_Type'Class);
+
+            ------------
+            -- Update --
+            ------------
+
+            procedure Update
+              (Module : in out Concorde.Modules.Root_Module_Type'Class)
+            is
+            begin
+               Module.Hit;
+               declare
+                  Chance : constant Unit_Real :=
+                             Module.Explosion_Chance;
+               begin
+                  if Concorde.Random.Unit_Random < Chance then
+                     Module.Start_Explosion;
+                  end if;
+               end;
+            end Update;
+
+         begin
+
+            Concorde.Modules.Db.Update
+              (Ship.Structure
+                 (Positive (Mounts (Index))).Module.Reference,
+               Update'Access);
+         end;
+
+         declare
+            Ship_Damage : constant Unit_Real := Ship.Damage;
+         begin
+            Ship.Alive := Ship_Damage < 0.95;
+         end;
+      end loop;
+   end Apply_Hit;
+
+   -----------------------
+   -- Clear_Destination --
+   -----------------------
+
+   procedure Clear_Destination
+     (Ship   : in out Root_Ship_Type'Class)
+   is
+   begin
+      Ship.Dest_Reference := Memor.Null_Database_Reference;
+   end Clear_Destination;
+
    -----------------
    -- Count_Ships --
    -----------------
@@ -30,12 +105,22 @@ package body Concorde.Ships is
       return Natural
    is
       Result : Natural := 0;
-   begin
-      for Ship of Ship_Vector loop
+
+      procedure Process (Ship : Ship_Type);
+
+      -------------
+      -- Process --
+      -------------
+
+      procedure Process (Ship : Ship_Type) is
+      begin
          if Test (Ship) then
             Result := Result + 1;
          end if;
-      end loop;
+      end Process;
+
+   begin
+      Db.Scan (Process'Access);
       return Result;
    end Count_Ships;
 
@@ -75,7 +160,7 @@ package body Concorde.Ships is
       return access constant Concorde.Systems.Root_Star_System_Type'Class
    is
    begin
-      return Ship.Destination;
+      return Concorde.Systems.Db.Reference (Ship.Dest_Reference);
    end Destination;
 
    ------------------------
@@ -183,6 +268,19 @@ package body Concorde.Ships is
       return Result (1 .. Count);
    end Get_Weapon_Mounts;
 
+   ---------------------
+   -- Has_Destination --
+   ---------------------
+
+   function Has_Destination
+     (Ship : Root_Ship_Type'Class)
+      return Boolean
+   is
+      use type Memor.Database_Reference;
+   begin
+      return Ship.Dest_Reference /= Memor.Null_Database_Reference;
+   end Has_Destination;
+
    --------------------------
    -- Has_Effective_Weapon --
    --------------------------
@@ -205,44 +303,11 @@ package body Concorde.Ships is
    ---------
 
    procedure Hit
-     (Ship : in out Root_Ship_Type'Class;
+     (Target : in out Root_Ship_Type'Class;
       Damage : Natural)
    is
    begin
-      for I in 1 .. Damage loop
-         exit when not Ship.Alive;
-         declare
-            Mounts : constant Array_Of_Mounted_Modules :=
-                       Ship.Get_Effective_Mounts;
-            Index : constant Positive :=
-                       WL.Random.Random_Number
-                         (Mounts'First, Mounts'Last);
-            Module : constant Concorde.Modules.Module_Type :=
-                       Ship.Structure
-                         (Positive (Mounts (Index))).Module;
-         begin
-            Module.Hit;
-            declare
-               Chance : constant Unit_Real :=
-                          Module.Explosion_Chance;
-            begin
---                 Ada.Text_IO.Put_Line
---                   ("chance of explosion:"
---                    & Natural'Image (Natural (Chance * 100.0))
---                    & "%");
-               if Concorde.Random.Unit_Random < Chance then
-                  Module.Start_Explosion;
-               end if;
-            end;
-         end;
-
-         declare
-            Ship_Damage : constant Unit_Real := Ship.Damage;
-         begin
-            Ship.Alive := Ship_Damage < 0.95;
-         end;
-      end loop;
-
+      Apply_Hit (Target, Damage);
    end Hit;
 
    ---------------
@@ -251,8 +316,22 @@ package body Concorde.Ships is
 
    function Long_Name (Ship : Root_Ship_Type'Class) return String is
    begin
-      return Ship.Identity & " " & Ship.Name & " [" & Ship.System.Name & "]";
+      return Ship.Identity & " " & Ship.Name & " ["
+        & Concorde.Systems.Db.Reference (Ship.System_Reference).Name & "]";
    end Long_Name;
+
+   ---------------------
+   -- Object_Database --
+   ---------------------
+
+   overriding function Object_Database
+     (Ship : Root_Ship_Type)
+      return Memor.Root_Database_Type'Class
+   is
+      pragma Unreferenced (Ship);
+   begin
+      return Db.Get_Database;
+   end Object_Database;
 
    -----------
    -- Owner --
@@ -260,7 +339,7 @@ package body Concorde.Ships is
 
    function Owner
      (Ship : Root_Ship_Type'Class)
-      return access Concorde.Empires.Root_Empire_Type'Class
+      return access constant Concorde.Empires.Root_Empire_Type'Class
    is
    begin
       return Ship.Owner;
@@ -271,11 +350,12 @@ package body Concorde.Ships is
    ---------------------
 
    procedure Set_Destination
-     (Ship : in out Root_Ship_Type'Class;
-      System : access constant Concorde.Systems.Root_Star_System_Type'Class)
+     (Ship   : in out Root_Ship_Type'Class;
+      System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
    is
    begin
-      Ship.Destination := System;
+      Ship.Dest_Reference := System.Reference;
    end Set_Destination;
 
    ----------------
@@ -287,10 +367,11 @@ package body Concorde.Ships is
       System : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
    is
+      use type Memor.Database_Reference;
    begin
-      Ship.System := System;
-      if System = Ship.Destination then
-         Ship.Destination := null;
+      Ship.System_Reference := System.Reference;
+      if Ship.System = Ship.Destination then
+         Ship.Clear_Destination;
       end if;
    end Set_System;
 
@@ -325,7 +406,7 @@ package body Concorde.Ships is
       return access constant Concorde.Systems.Root_Star_System_Type'Class
    is
    begin
-      return Ship.System;
+      return Concorde.Systems.Db.Reference (Ship.System_Reference);
    end System;
 
    -------------------
@@ -333,26 +414,52 @@ package body Concorde.Ships is
    -------------------
 
    procedure Update_Damage
-     (Ship : in out Root_Ship_Type'Class)
+     (Ship : Root_Ship_Type'Class)
    is
-      New_Hits : Natural := 0;
+      procedure Update (Ship : in out Root_Ship_Type'Class);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update (Ship : in out Root_Ship_Type'Class) is
+         New_Hits : Natural := 0;
+      begin
+         for Mount of Ship.Structure loop
+            declare
+               procedure Update_Module
+                 (Module : in out Concorde.Modules.Root_Module_Type'Class);
+
+               -------------------
+               -- Update_Module --
+               -------------------
+
+               procedure Update_Module
+                 (Module : in out Concorde.Modules.Root_Module_Type'Class)
+               is
+               begin
+                  Module.Update_Damage;
+                  if Module.Exploding then
+                     if Module.Explosion_Timer = 0 then
+                        New_Hits := New_Hits + Module.Explosion_Size;
+                     end if;
+                  end if;
+               end Update_Module;
+
+            begin
+               Concorde.Modules.Db.Update
+                 (Mount.Module.Reference, Update_Module'Access);
+            end;
+         end loop;
+
+         if New_Hits > 0 then
+            Ship.Hit (New_Hits);
+         end if;
+
+      end Update;
+
    begin
-      for Mount of Ship.Structure loop
-         declare
-            Module : constant Concorde.Modules.Module_Type :=
-                       Mount.Module;
-         begin
-            Module.Update_Damage;
-            if Module.Exploding then
-               if Module.Explosion_Timer = 0 then
-                  New_Hits := New_Hits + Module.Explosion_Size;
-               end if;
-            end if;
-         end;
-      end loop;
-      if New_Hits > 0 then
-         Ship.Hit (New_Hits);
-      end if;
+      Db.Update (Ship.Reference, Update'Access);
    end Update_Damage;
 
    ------------------
@@ -360,13 +467,43 @@ package body Concorde.Ships is
    ------------------
 
    procedure Update_Power
-     (Ship : in out Root_Ship_Type'Class)
+     (Ship : Root_Ship_Type'Class)
    is
+      procedure Update (Ship : in out Root_Ship_Type'Class);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update (Ship : in out Root_Ship_Type'Class) is
+      begin
+         for Mount of Ship.Structure loop
+            declare
+               procedure Update_Module
+                 (Module : in out Concorde.Modules.Root_Module_Type'Class);
+
+               -------------------
+               -- Update_Module --
+               -------------------
+
+               procedure Update_Module
+                 (Module : in out Concorde.Modules.Root_Module_Type'Class)
+               is
+               begin
+                  Module.Draw_Power
+                    (Module.Maximum_Power_Draw);
+               end Update_Module;
+
+            begin
+               Concorde.Modules.Db.Update
+                 (Mount.Module.Reference, Update_Module'Access);
+            end;
+
+         end loop;
+      end Update;
+
    begin
-      for Module of Ship.Structure loop
-         Module.Module.Draw_Power
-           (Module.Module.Maximum_Power_Draw);
-      end loop;
+      Db.Update (Ship.Reference, Update'Access);
    end Update_Power;
 
 end Concorde.Ships;

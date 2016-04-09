@@ -5,7 +5,7 @@ package Concorde.Empires.Relations is
       return Boolean;
 
    function At_War
-     (E1, E2 : not null access constant Root_Empire_Type'Class)
+     (E1, E2 : Root_Empire_Type'Class)
       return Boolean;
 
 end Concorde.Empires.Relations;

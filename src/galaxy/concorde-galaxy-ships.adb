@@ -8,6 +8,9 @@ with Concorde.Ships.Lists;
 
 with Concorde.AI;
 
+with Concorde.Ships.Db;
+with Concorde.Systems.Db;
+
 package body Concorde.Galaxy.Ships is
 
    -----------------
@@ -15,7 +18,7 @@ package body Concorde.Galaxy.Ships is
    -----------------
 
    function Can_Move_To
-     (Ship : Concorde.Ships.Ship_Type;
+     (Ship : Concorde.Ships.Root_Ship_Type'Class;
       Destination : Concorde.Systems.Star_System_Type)
       return Boolean
    is
@@ -31,8 +34,18 @@ package body Concorde.Galaxy.Ships is
    -----------------------
 
    procedure Commit_Ship_Moves is
-   begin
-      for System of Galaxy_Vector loop
+
+      procedure Update_System
+        (System : in out Concorde.Systems.Root_Star_System_Type'Class);
+
+      -------------------
+      -- Update_System --
+      -------------------
+
+      procedure Update_System
+        (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+      is
+      begin
          System.Commit_Ship_Movement;
          declare
             Ship_List : Concorde.Ships.Lists.List;
@@ -48,7 +61,10 @@ package body Concorde.Galaxy.Ships is
                end;
             end if;
          end;
-      end loop;
+      end Update_System;
+
+   begin
+      Concorde.Systems.Db.Iterate (Update_System'Access);
    end Commit_Ship_Moves;
 
    ---------------
@@ -56,7 +72,7 @@ package body Concorde.Galaxy.Ships is
    ---------------
 
    procedure Move_Ship
-     (Ship : Concorde.Ships.Ship_Type)
+     (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
    is
       use Concorde.Systems.Graphs;
       use Concorde.Systems;
@@ -64,12 +80,11 @@ package body Concorde.Galaxy.Ships is
       Next_Index : constant Natural :=
                      Ship.Owner.Next_Path_Node_Index
                        (Ship.System, Ship.Destination);
-      From : constant Star_System_Access :=
-               Galaxy_Vector.Element (Ship.System.Index);
-      To         : constant Star_System_Access :=
+      From : constant Star_System_Type := Ship.System;
+      To         : constant Star_System_Type :=
                      (if Next_Index = 0
                       then null
-                      else Galaxy_Vector.Element (Next_Index));
+                      else Galaxy_Graph.Vertex (Next_Index));
    begin
 
       if Next_Index = 0 then
@@ -81,28 +96,61 @@ package body Concorde.Galaxy.Ships is
             & " to "
             & Ship.Destination.Name
             & " is blocked");
-         Ship.Set_Destination (null);
+         Ship.Clear_Destination;
          return;
       end if;
 
       if From.Index < To.Index then
-         Locking.Lock_System (From, True);
-         Locking.Lock_System (To, True);
+         Locking.Lock_System (From.all, True);
+         Locking.Lock_System (To.all, True);
       else
-         Locking.Lock_System (To, True);
-         Locking.Lock_System (From, True);
+         Locking.Lock_System (To.all, True);
+         Locking.Lock_System (From.all, True);
       end if;
 
-      From.Departing (Ship);
-      To.Arriving (Ship);
-      From.Add_Traffic (To, 1);
+      declare
+         Reference : constant Concorde.Ships.Ship_Type :=
+                       Concorde.Ships.Db.Reference (Ship);
+
+         procedure Arrive
+           (System : in out Concorde.Systems.Root_Star_System_Type'Class);
+         procedure Depart
+           (System : in out Concorde.Systems.Root_Star_System_Type'Class);
+
+         ------------
+         -- Arrive --
+         ------------
+
+         procedure Arrive
+           (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+         is
+         begin
+            System.Arriving (Reference);
+         end Arrive;
+
+         ------------
+         -- Depart --
+         ------------
+
+         procedure Depart
+           (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+         is
+         begin
+            System.Departing (Reference);
+            System.Add_Traffic (To);
+         end Depart;
+
+      begin
+         Concorde.Systems.Db.Update (From.Reference, Depart'Access);
+         Concorde.Systems.Db.Update (To.Reference, Arrive'Access);
+      end;
 
       if From.Index < To.Index then
-         Locking.Unlock_System (To);
-         Locking.Unlock_System (From);
+         Locking.Unlock_System (To.all);
+         Locking.Unlock_System (From.all);
       else
-         Locking.Unlock_System (From);
-         Locking.Unlock_System (To);
+         Locking.Unlock_System (From.all);
+         Locking.Unlock_System (To.all);
       end if;
 
       if To = Ship.Destination then
@@ -116,12 +164,25 @@ package body Concorde.Galaxy.Ships is
    ----------------------
 
    procedure Start_Ship_Moves is
-   begin
-      for System of Galaxy_Vector loop
+
+      procedure Update
+        (System : in out Concorde.Systems.Root_Star_System_Type'Class);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update
+        (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+      is
+      begin
          Concorde.Galaxy.Locking.Lock_System (System, True);
          System.Clear_Ship_Movement;
          Concorde.Galaxy.Locking.Unlock_System (System);
-      end loop;
+      end Update;
+
+   begin
+      Concorde.Systems.Db.Iterate (Update'Access);
    end Start_Ship_Moves;
 
 end Concorde.Galaxy.Ships;

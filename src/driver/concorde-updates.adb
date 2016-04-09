@@ -2,7 +2,6 @@ with Ada.Unchecked_Deallocation;
 
 with Concorde.Dates;
 
-with Concorde.Combat.Ship_Combat;
 with Concorde.Empires.Updates;
 with Concorde.Galaxy.Updates;
 
@@ -63,16 +62,7 @@ package body Concorde.Updates is
       Concorde.Galaxy.Updates.Update_Galaxy;
 
       if Execute_Battles then
-
-         for Battle_Index in 1 .. Concorde.Galaxy.Battle_Count loop
-            declare
-               Arena : Combat.Ship_Combat.Space_Combat_Arena :=
-                         Concorde.Galaxy.Get_Battle (Battle_Index);
-            begin
-               Arena.Execute;
-               Concorde.Combat.Ship_Combat.Close_Arena (Arena);
-            end;
-         end loop;
+         Concorde.Galaxy.Complete_Battles;
       end if;
 
       Render_Lock.Unlock;

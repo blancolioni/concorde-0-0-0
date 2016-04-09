@@ -1,3 +1,5 @@
+private with Memor;
+
 with Concorde.Components;
 with Concorde.Objects;
 
@@ -78,7 +80,7 @@ package Concorde.Modules is
    procedure Initial_State
      (Module : in out Root_Module_Type'Class);
 
-   type Module_Type is access all Root_Module_Type'Class;
+   type Module_Type is access constant Root_Module_Type'Class;
 
    function New_Module
      (Name      : String;
@@ -98,12 +100,16 @@ private
          Volume            : Positive;
          Max_Stored_Energy : Non_Negative_Real;
          Stored_Energy     : Non_Negative_Real := 0.0;
-         Heat              : Non_Negative_Real;
+         Heat              : Non_Negative_Real := 0.0;
          Max_Hits          : Natural;
-         Hits              : Natural;
-         Exploding         : Boolean;
-         Explosion_Timer   : Integer;
-         Explosion_Size    : Natural;
+         Hits              : Natural := 0;
+         Exploding         : Boolean := False;
+         Explosion_Timer   : Integer := 0;
+         Explosion_Size    : Natural := 0;
       end record;
+
+   overriding function Object_Database
+     (Module : Root_Module_Type)
+      return Memor.Root_Database_Type'Class;
 
 end Concorde.Modules;

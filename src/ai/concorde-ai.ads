@@ -10,22 +10,25 @@ package Concorde.AI is
 
    procedure Start
      (AI     : in out Root_AI_Type;
-      Empire : Concorde.Empires.Empire_Type)
+      Empire : in out Concorde.Empires.Root_Empire_Type'Class)
    is abstract;
 
    procedure Update_Focus
-     (AI : in out Root_AI_Type)
+     (AI     : in out Root_AI_Type;
+      Empire : in out Concorde.Empires.Root_Empire_Type'Class)
    is abstract;
 
    procedure System_Acquired
      (AI           : in out Root_AI_Type;
-      System       : Concorde.Systems.Star_System_Type;
+      Empire       : in out Concorde.Empires.Root_Empire_Type'Class;
+      System       : Concorde.Systems.Root_Star_System_Type'Class;
       Former_Owner : Concorde.Empires.Empire_Type)
    is abstract;
 
    procedure System_Lost
      (AI        : in out Root_AI_Type;
-      System    : Concorde.Systems.Star_System_Type;
+      Empire    : in out Concorde.Empires.Root_Empire_Type'Class;
+      System    : Concorde.Systems.Root_Star_System_Type'Class;
       New_Owner : Concorde.Empires.Empire_Type)
    is abstract;
 
@@ -40,12 +43,14 @@ package Concorde.AI is
    is (1.0);
 
    procedure Allocate_Ships
-     (AI : in out Root_AI_Type)
+     (AI     : in out Root_AI_Type;
+      Empire : in out Concorde.Empires.Root_Empire_Type'Class)
    is abstract;
 
    procedure Order_Ship
-     (AI : in out Root_AI_Type;
-      Ship : not null access Concorde.Ships.Root_Ship_Type'Class)
+     (AI     : in out Root_AI_Type;
+      Empire : in out Concorde.Empires.Root_Empire_Type'Class;
+      Ship   : in out Concorde.Ships.Root_Ship_Type'Class)
    is abstract;
 
    function Awake (AI : Root_AI_Type) return Boolean;
@@ -68,7 +73,6 @@ private
 
    type Root_AI_Type is abstract tagged
       record
-         Empire                  : Concorde.Empires.Empire_Type;
          Current_Attack_Factor   : Non_Negative_Real := 1.2;
          Current_Defense_Factor  : Non_Negative_Real := 1.0;
          Owned_Systems           : Natural := 0;
@@ -102,6 +106,7 @@ private
 
    procedure Update_Attack_Factor
      (AI           : in out Root_AI_Type'Class;
+      Empire       : in out Concorde.Empires.Root_Empire_Type'Class;
       Enemy        : Concorde.Empires.Empire_Type;
       Can_Increase : Boolean := True;
       Can_Decrease : Boolean := True);

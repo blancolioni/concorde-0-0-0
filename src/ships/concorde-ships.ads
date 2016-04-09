@@ -1,4 +1,5 @@
 private with Ada.Containers.Vectors;
+private with Memor;
 
 limited with Concorde.Empires;
 limited with Concorde.Systems;
@@ -22,20 +23,20 @@ package Concorde.Ships is
 
    function Owner
      (Ship : Root_Ship_Type'Class)
-      return access Concorde.Empires.Root_Empire_Type'Class;
+      return access constant Concorde.Empires.Root_Empire_Type'Class;
 
    function System
      (Ship : Root_Ship_Type'Class)
       return access constant Concorde.Systems.Root_Star_System_Type'Class;
 
-   function Destination
-     (Ship : Root_Ship_Type'Class)
-      return access constant Concorde.Systems.Root_Star_System_Type'Class;
-
    function Has_Destination
      (Ship : Root_Ship_Type'Class)
-      return Boolean
-   is (Ship.Destination /= null);
+      return Boolean;
+
+   function Destination
+     (Ship : Root_Ship_Type'Class)
+      return access constant Concorde.Systems.Root_Star_System_Type'Class
+     with Pre => Ship.Has_Destination;
 
    procedure Set_System
      (Ship : in out Root_Ship_Type'Class;
@@ -43,15 +44,19 @@ package Concorde.Ships is
         Concorde.Systems.Root_Star_System_Type'Class);
 
    procedure Set_Destination
-     (Ship : in out Root_Ship_Type'Class;
-      System : access constant Concorde.Systems.Root_Star_System_Type'Class);
+     (Ship   : in out Root_Ship_Type'Class;
+      System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class);
+
+   procedure Clear_Destination
+     (Ship   : in out Root_Ship_Type'Class);
 
    function Damage
      (Ship : Root_Ship_Type'Class)
       return Unit_Real;
 
    procedure Hit
-     (Ship   : in out Root_Ship_Type'Class;
+     (Target : in out Root_Ship_Type'Class;
       Damage : Natural);
 
    function Acceleration
@@ -71,10 +76,10 @@ package Concorde.Ships is
       return Size_Type;
 
    procedure Update_Power
-     (Ship : in out Root_Ship_Type'Class);
+     (Ship : Root_Ship_Type'Class);
 
    procedure Update_Damage
-     (Ship : in out Root_Ship_Type'Class);
+     (Ship : Root_Ship_Type'Class);
 
    type Module_Position is
       record
@@ -125,7 +130,7 @@ package Concorde.Ships is
      (Ship : Root_Ship_Type'Class)
       return Array_Of_Mounted_Modules;
 
-   type Ship_Type is access all Root_Ship_Type'Class;
+   type Ship_Type is access constant Root_Ship_Type'Class;
 
    function Count_Ships
      (Test : not null access function
@@ -151,21 +156,22 @@ private
    type Root_Ship_Type is
      new Concorde.Objects.Root_Named_Object_Type with
       record
-         Identity    : String (1 .. 5);
-         Owner       : access Concorde.Empires.Root_Empire_Type'Class;
-         System      : access constant
-           Concorde.Systems.Root_Star_System_Type'Class;
-         Destination : access constant
-           Concorde.Systems.Root_Star_System_Type'Class;
-         Alive       : Boolean;
-         Structure   : Module_Vectors.Vector;
-         Size        : Size_Type;
-         Empty_Mass  : Natural;
+         Identity              : String (1 .. 5);
+         Owner                 : access constant
+           Concorde.Empires.Root_Empire_Type'Class;
+         System_Reference      : Memor.Database_Reference;
+         Dest_Reference        : Memor.Database_Reference;
+         Alive                 : Boolean;
+         Structure             : Module_Vectors.Vector;
+         Size                  : Size_Type;
+         Empty_Mass            : Natural;
       end record;
 
    package Ship_Vectors is
      new Ada.Containers.Vectors (Positive, Ship_Type);
 
-   Ship_Vector : Ship_Vectors.Vector;
+   overriding function Object_Database
+     (Ship : Root_Ship_Type)
+      return Memor.Root_Database_Type'Class;
 
 end Concorde.Ships;

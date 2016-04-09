@@ -1,3 +1,5 @@
+with Concorde.Components.Db;
+
 package body Concorde.Components is
 
    -----------
@@ -84,5 +86,18 @@ package body Concorde.Components is
         * Non_Negative_Real (Volume)
         * Component.Charge_Size_Power ** Volume;
    end Maximum_Stored_Energy;
+
+   ---------------------
+   -- Object_Database --
+   ---------------------
+
+   overriding function Object_Database
+     (Component : Root_Component_Type)
+      return Memor.Root_Database_Type'Class
+   is
+      pragma Unreferenced (Component);
+   begin
+      return Db.Get_Database;
+   end Object_Database;
 
 end Concorde.Components;

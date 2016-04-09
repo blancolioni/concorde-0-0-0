@@ -1,9 +1,10 @@
 with Memor;
+with Concorde.Objects;
 
 package Concorde.People.Groups is
 
    type Root_Pop_Group is
-     new Memor.Identifier_Record_Type with private;
+     new Concorde.Objects.Root_Named_Object_Type with private;
 
    type Pop_Group is access constant Root_Pop_Group'Class;
 
@@ -12,8 +13,7 @@ package Concorde.People.Groups is
 private
 
    type Root_Pop_Group is
-     new Memor.Root_Record_Type
-     and Memor.Identifier_Record_Type with
+     new Concorde.Objects.Root_Named_Object_Type with
       record
          Pop_Group_Id : access String;
       end record;

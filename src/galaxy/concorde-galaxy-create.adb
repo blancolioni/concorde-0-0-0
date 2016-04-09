@@ -82,7 +82,6 @@ package body Concorde.Galaxy.Create is
          declare
             Boundary : Concorde.Systems.System_Influence_Boundary
               (1 .. Influence.Vertex_Count (I));
-            System   : Star_System_Access;
             Name     : constant String :=
                          WL.Random.Names.Random_Name
                            (Name_Generator);
@@ -92,14 +91,15 @@ package body Concorde.Galaxy.Create is
                  (Influence.Vertex_X (I, J), Influence.Vertex_Y (I, J));
             end loop;
 
-            System :=
-              Concorde.Systems.Create.New_System
-                (I, Name, Xs (I), Ys (I), Boundary,
-                 Production => 0.025,
-                 Capacity   => 2.0);
-
-            Galaxy_Graph.Append (Concorde.Systems.Star_System_Type (System));
-            Galaxy_Vector.Append (System);
+            declare
+               System : constant Concorde.Systems.Star_System_Type :=
+                          Concorde.Systems.Create.New_System
+                            (I, Name, Xs (I), Ys (I), Boundary,
+                             Production => 0.025,
+                             Capacity   => 2.0);
+            begin
+               Galaxy_Graph.Append (System);
+            end;
          end;
       end loop;
 

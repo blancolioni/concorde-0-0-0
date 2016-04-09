@@ -1,8 +1,11 @@
 with Concorde.AI.Default;
 with Concorde.Galaxy;
 
+with Concorde.Empires.Db;
 with Concorde.Empires.History;
 with Concorde.Empires.Logging;
+
+with Concorde.Systems.Db;
 
 package body Concorde.Empires.Updates is
 
@@ -32,7 +35,7 @@ package body Concorde.Empires.Updates is
      with Unreferenced;
 
    procedure Update_Empire
-     (Empire : Empire_Type);
+     (Empire : in out Root_Empire_Type'Class);
 
    ---------------------
    -- Add_Move_Orders --
@@ -107,13 +110,23 @@ package body Concorde.Empires.Updates is
    -----------
 
    procedure Start is
-   begin
-      for Empire of Vector loop
+
+      procedure Do_Start (Empire : in out Root_Empire_Type'Class);
+
+      --------------
+      -- Do_Start --
+      --------------
+
+      procedure Do_Start (Empire : in out Root_Empire_Type'Class) is
+      begin
          if Empire.AI = null then
             Empire.AI := Concorde.AI.Default.Default_AI;
          end if;
          Empire.AI.Start (Empire);
-      end loop;
+      end Do_Start;
+
+   begin
+      Db.Iterate (Do_Start'Access);
    end Start;
 
    -------------------
@@ -121,7 +134,7 @@ package body Concorde.Empires.Updates is
    -------------------
 
    procedure Update_Empire
-     (Empire : Empire_Type)
+     (Empire : in out Root_Empire_Type'Class)
    is
       pragma Unreferenced (Empire);
    begin
@@ -133,11 +146,21 @@ package body Concorde.Empires.Updates is
    ----------------------
 
    procedure Update_Empire_AI is
+
+      procedure Update (Empire : in out Root_Empire_Type'Class);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update (Empire : in out Root_Empire_Type'Class) is
+      begin
+         Empire.AI.Update_Focus (Empire);
+         Empire.AI.Allocate_Ships (Empire);
+      end Update;
+
    begin
-      for Empire of Vector loop
-         Empire.AI.Update_Focus;
-         Empire.AI.Allocate_Ships;
-      end loop;
+      Db.Iterate (Update'Access);
    end Update_Empire_AI;
 
    --------------------
@@ -145,27 +168,53 @@ package body Concorde.Empires.Updates is
    --------------------
 
    procedure Update_Empires is
-   begin
-      for Empire of Vector loop
+
+      procedure On_Update_Start (Empire : in out Root_Empire_Type'Class);
+
+      procedure Update_System_Owner
+        (System : Concorde.Systems.Root_Star_System_Type'Class);
+
+      ---------------------
+      -- On_Update_Start --
+      ---------------------
+
+      procedure On_Update_Start (Empire : in out Root_Empire_Type'Class) is
+      begin
          Empire.Max_Ships := 0.0;
-      end loop;
+      end On_Update_Start;
 
-      for I in 1 .. Concorde.Galaxy.System_Count loop
-         declare
-            System : constant Concorde.Systems.Star_System_Type :=
-                       Concorde.Galaxy.Get_System (I);
-            Empire : constant Empire_Type := System.Owner;
+      -------------------------
+      -- Update_System_Owner --
+      -------------------------
+
+      procedure Update_System_Owner
+        (System : Concorde.Systems.Root_Star_System_Type'Class)
+      is
+
+         procedure Update (Empire : in out Root_Empire_Type'Class);
+
+         ------------
+         -- Update --
+         ------------
+
+         procedure Update (Empire : in out Root_Empire_Type'Class) is
          begin
-            if Empire /= null then
-               Empire.Max_Ships := Empire.Max_Ships
-                 + System.Capacity * System.Loyalty;
-            end if;
-         end;
-      end loop;
+            Empire.Max_Ships := Empire.Max_Ships
+              + System.Capacity * System.Loyalty;
+         end Update;
 
-      for Empire of Vector loop
-         Update_Empire (Empire);
-      end loop;
+      begin
+         Db.Update (System.Owner.Reference, Update'Access);
+      end Update_System_Owner;
+
+   begin
+      Db.Iterate (On_Update_Start'Access);
+
+      Concorde.Systems.Db.Scan
+        (Concorde.Systems.Owned'Access,
+         Update_System_Owner'Access);
+
+      Db.Iterate (Update_Empire'Access);
 
       History.Update_History;
 

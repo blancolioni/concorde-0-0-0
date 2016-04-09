@@ -1,5 +1,7 @@
 with Concorde.Locking;
 
+with Concorde.Systems.Db;
+
 package body Concorde.Galaxy.Locking is
 
    type Array_Of_Locks is array (Positive range <>) of Concorde.Locking.Lock;
@@ -12,7 +14,7 @@ package body Concorde.Galaxy.Locking is
 
    procedure Init_Locking is
    begin
-      System_Locks := new Array_Of_Locks (1 .. Galaxy_Vector.Last_Index);
+      System_Locks := new Array_Of_Locks (1 .. Concorde.Systems.Db.Count);
    end Init_Locking;
 
    -----------------
@@ -20,8 +22,7 @@ package body Concorde.Galaxy.Locking is
    -----------------
 
    procedure Lock_System
-     (System    : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class;
+     (System    : Concorde.Systems.Root_Star_System_Type'Class;
       Exclusive : Boolean)
    is
    begin
@@ -37,8 +38,7 @@ package body Concorde.Galaxy.Locking is
    -------------------
 
    procedure Unlock_System
-     (System    : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
+     (System    : Concorde.Systems.Root_Star_System_Type'Class)
    is
    begin
       System_Locks (System.Index).Unlock;

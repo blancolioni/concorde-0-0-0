@@ -1,6 +1,6 @@
 private with Ada.Containers.Doubly_Linked_Lists;
-private with Ada.Containers.Vectors;
 private with Concorde.Protected_Lists;
+private with Memor.Element_Vectors;
 
 limited with Concorde.AI;
 
@@ -59,17 +59,17 @@ package Concorde.Empires is
 
    function Relationship
      (Empire : Root_Empire_Type'Class;
-      To     : not null access constant Root_Empire_Type'Class)
+      To     : Root_Empire_Type'Class)
       return Empire_Relationship_Range;
 
    procedure Set_Relationship
      (Empire : in out Root_Empire_Type'Class;
-      To     : not null access constant Root_Empire_Type'Class;
+      To     : Root_Empire_Type'Class;
       Value  : Empire_Relationship_Range);
 
    procedure Change_Relationship
      (Empire  : in out Root_Empire_Type'Class;
-      To      : not null access constant Root_Empire_Type'Class;
+      To      : Root_Empire_Type'Class;
       Change  : Empire_Relationship_Range);
 
    function AI
@@ -100,11 +100,11 @@ package Concorde.Empires is
 
    procedure System_Acquired
      (Empire : in out Root_Empire_Type'Class;
-      System : Concorde.Systems.Star_System_Type);
+      System : in out Concorde.Systems.Root_Star_System_Type'Class);
 
    procedure System_Lost
      (Empire : in out Root_Empire_Type'Class;
-      System : Concorde.Systems.Star_System_Type)
+      System : in out Concorde.Systems.Root_Star_System_Type'Class)
      with Pre => System.Owner.Name = Empire.Name
      and then Empire.Current_Systems > 0
      and then (Empire.Current_Systems > 1 or else System.Capital);
@@ -197,15 +197,14 @@ package Concorde.Empires is
    --  owned by another empire
 
    function Is_Attack_Target
-     (Empire   : in out Root_Empire_Type'Class;
+     (Empire   : Root_Empire_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
       return Boolean;
 
    procedure Set_Attack_Target
      (Empire        : in out Root_Empire_Type'Class;
-      System        : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class;
+      System        : Concorde.Systems.Root_Star_System_Type'Class;
       Attack_Target : Boolean);
    --  Attack_Target: Emprie planning an attack on this system
 
@@ -241,13 +240,13 @@ package Concorde.Empires is
       Change   : Integer);
 
    function Next_Path_Node_Index
-     (Empire : in out Root_Empire_Type'Class;
+     (Empire : Root_Empire_Type'Class;
       From, To : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
       return Natural;
 
    function Path_Length
-     (Empire : in out Root_Empire_Type'Class;
+     (Empire : Root_Empire_Type'Class;
       From, To : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
       return Natural;
@@ -265,21 +264,20 @@ package Concorde.Empires is
       return Boolean;
    --  System is a neighbour of a system which is owned by Empire
 
-   type Empire_Type is access all Root_Empire_Type'Class;
-
-   function Empire_Count return Natural;
-   function Get (Index : Positive) return Empire_Type;
+   type Empire_Type is access constant Root_Empire_Type'Class;
 
    type Array_Of_Empires is array (Positive range <>) of Empire_Type;
 
    type Ranking is (Normal, By_Star_Systems, By_Ships);
 
+   function Rank
+     (Rank_Type : Ranking)
+      return Array_Of_Empires;
+
    function Get
      (Rank_Type : Ranking;
       Index     : Positive)
       return Empire_Type;
-
-   procedure Unload;
 
 private
 
@@ -331,8 +329,8 @@ private
          Relationship : Empire_Relationship_Range := 0;
       end record;
 
-   type Empire_Data_Array is
-     array (Positive range <>) of Empire_Data_Record;
+   package Empire_Vectors is
+     new Memor.Element_Vectors (Empire_Data_Record, (Relationship => 0));
 
    package List_Of_Systems is
      new Ada.Containers.Doubly_Linked_Lists
@@ -341,11 +339,10 @@ private
    type Root_Empire_Type is
      new Concorde.Objects.Root_Named_Object_Type with
       record
-         Index           : Positive;
          Colour          : Lui.Colours.Colour_Type;
          Focus_List      : access List_Of_Focus_Systems.List;
          System_Data     : access System_Data_Array;
-         Empire_Data     : access Empire_Data_Array;
+         Empire_Data     : Empire_Vectors.Vector;
          AI              : access Concorde.AI.Root_AI_Type'Class;
          Max_Ships       : Non_Negative_Real := 0.0;
          Current_Ships   : Natural := 0;
@@ -356,14 +353,11 @@ private
          Battles         : List_Of_Systems.List;
       end record;
 
-   package Empire_Vectors is
-     new Ada.Containers.Vectors (Positive, Empire_Type);
+   overriding function Object_Database
+     (Empire : Root_Empire_Type)
+      return Memor.Root_Database_Type'Class;
 
-   Vector : Empire_Vectors.Vector;
-
-   procedure Add_Empire (Empire : Empire_Type);
-
-   procedure Check_Cache (Empire   : in out Root_Empire_Type'Class;
+   procedure Check_Cache (Empire   : Root_Empire_Type'Class;
                           From, To : not null access constant
                             Concorde.Systems.Root_Star_System_Type'Class);
 

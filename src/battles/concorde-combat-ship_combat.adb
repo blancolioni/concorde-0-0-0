@@ -10,6 +10,9 @@ with Concorde.Random;
 
 with Concorde.Empires.Relations;
 
+with Concorde.Modules.Db;
+with Concorde.Ships.Db;
+
 package body Concorde.Combat.Ship_Combat is
 
 --     Log_File : Ada.Text_IO.File_Type;
@@ -30,18 +33,17 @@ package body Concorde.Combat.Ship_Combat is
 
    procedure Add_Combatant
      (Arena     : in out Root_Space_Combat_Arena'Class;
-      Combatant : not null access Concorde.Ships.Root_Ship_Type'Class;
-      Team      : not null access Concorde.Empires.Root_Empire_Type'Class;
+      Combatant : Concorde.Ships.Ship_Type;
+      Empire    : Concorde.Empires.Empire_Type;
       X, Y      : Real;
       Facing    : Radians)
    is
       use Concorde.Empires;
       use Concorde.Ships;
-      Empire : constant Empire_Type := Empire_Type (Team);
       New_Team : Boolean := True;
    begin
       Arena.Ships.Append
-        ((Ship_Type (Combatant), Arena.Ships.Last_Index + 1,
+        ((Combatant, Arena.Ships.Last_Index + 1,
          X, Y, Facing, 0));
 
       for I in 1 .. Arena.Teams.Last_Index loop
@@ -76,7 +78,7 @@ package body Concorde.Combat.Ship_Combat is
       for Team of Model.Teams loop
          if not Team.Ships.Is_Empty
            and then Concorde.Empires.Relations.At_War
-             (Ship.Ship.Owner, Team.Leader)
+             (Ship.Ship.Owner.all, Team.Leader.all)
          then
             declare
                Effective_Ships : array
@@ -146,12 +148,28 @@ package body Concorde.Combat.Ship_Combat is
                                   (Power         => Event.Power,
                                    Effectiveness => Event.Effectiveness,
                                    At_Range      => Event.Distance);
+
+                     procedure Hit
+                       (Ship : in out Concorde.Ships.Root_Ship_Type'Class);
+
+                     ---------
+                     -- Hit --
+                     ---------
+
+                     procedure Hit
+                       (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
+                     is
+                     begin
+                        Ship.Hit (Damage);
+                     end Hit;
+
                   begin
                      Log (Model,
                           Model.Ships (Event.Target).Ship.Name
                           & " takes" & Damage'Img & " damage");
-
-                     Model.Ships (Event.Target).Ship.Hit (Damage);
+                     Concorde.Ships.Db.Update
+                       (Model.Ships (Event.Target).Ship.Reference,
+                        Hit'Access);
                   end;
 
                when Concorde.Components.Kinetic_Weapon =>
@@ -222,6 +240,20 @@ package body Concorde.Combat.Ship_Combat is
       Ship   : in out Ship_Record;
       Module : Concorde.Modules.Module_Type)
    is
+      procedure Update_Module
+        (Module : in out Concorde.Modules.Root_Module_Type'Class);
+
+      -------------------
+      -- Update_Module --
+      -------------------
+
+      procedure Update_Module
+        (Module : in out Concorde.Modules.Root_Module_Type'Class)
+      is
+      begin
+         Module.Execute;
+      end Update_Module;
+
    begin
       Log (Model,
            Ship.Ship.Name & " fires " & Module.Name
@@ -235,7 +267,10 @@ package body Concorde.Combat.Ship_Combat is
          (Weapon_Fired, Model.Turns, Ship.Index, Ship.Target,
           Module, Module.Component, Module.Stored_Energy,
           Module.Effectiveness, Model.Ship_Range (Ship.Index, Ship.Target)));
-      Module.Execute;
+
+      Concorde.Modules.Db.Update
+        (Module.Reference, Update_Module'Access);
+
    end Fire_Weapon;
 
    -------------------

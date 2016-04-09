@@ -1,3 +1,5 @@
+with Concorde.Modules.Db;
+
 package body Concorde.Modules is
 
    ------------
@@ -217,25 +219,39 @@ package body Concorde.Modules is
       return Module_Type
    is
       Volume : constant Positive := Size.X * Size.Y * Size.Z;
-      Module : constant Module_Type :=
-                 new Root_Module_Type'
-                   (Concorde.Objects.Root_Named_Object_Type with
-                    Component         => Component,
-                    Size              => Size,
-                    Volume            => Volume,
-                    Max_Stored_Energy =>
-                      Component.Maximum_Stored_Energy (Volume),
-                    Stored_Energy     => 0.0,
-                    Heat              => 0.0,
-                    Hits              => 0,
-                    Max_Hits          => Volume * 10,
-                    Exploding         => False,
-                    Explosion_Timer   => 0,
-                    Explosion_Size    => 0);
+
+      procedure Create
+        (Module : in out Root_Module_Type'Class);
+
+      procedure Create
+        (Module : in out Root_Module_Type'Class)
+      is
+      begin
+         Module.Set_Name (Name);
+         Module.Component := Component;
+         Module.Size := Size;
+         Module.Volume := Volume;
+         Module.Max_Hits := Volume * 10;
+         Module.Max_Stored_Energy :=
+           Component.Maximum_Stored_Energy (Volume);
+      end Create;
+
    begin
-      Module.Set_Name (Name);
-      return Module;
+      return Db.Create (Create'Access);
    end New_Module;
+
+   ---------------------
+   -- Object_Database --
+   ---------------------
+
+   overriding function Object_Database
+     (Module : Root_Module_Type)
+      return Memor.Root_Database_Type'Class
+   is
+      pragma Unreferenced (Module);
+   begin
+      return Db.Get_Database;
+   end Object_Database;
 
    ----------
    -- Size --

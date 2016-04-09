@@ -1,5 +1,3 @@
-private with Ada.Containers.Vectors;
-
 with Concorde.Combat.Ship_Combat;
 with Concorde.Systems.Graphs;
 
@@ -15,14 +13,6 @@ package Concorde.Galaxy is
      (System : Concorde.Systems.Star_System_Type;
       Update : not null access
         procedure (System : in out Systems.Root_Star_System_Type'Class));
-
-   procedure Set_Capital
-     (System  : Concorde.Systems.Star_System_Type;
-      Capital : Boolean);
-
---     procedure Move_Fleets
---       (From, To : Concorde.Systems.Star_System_Type;
---        Count    : Natural);
 
    type Array_Of_Star_Systems is
      array (Positive range <>) of Concorde.Systems.Star_System_Type;
@@ -129,12 +119,6 @@ package Concorde.Galaxy is
 
 private
 
-   package Star_System_Vectors is
-     new Ada.Containers.Vectors
-       (Positive, Concorde.Systems.Star_System_Access,
-        Concorde.Systems."=");
-
-   Galaxy_Vector  : Star_System_Vectors.Vector;
    Galaxy_Graph   : Concorde.Systems.Graphs.Graph;
 
    type Star_System_Set is

@@ -1,5 +1,7 @@
 with Ada.Calendar;
 
+with Memor.Element_Vectors;
+
 with Lui.Colours;
 with Lui.Rendering;
 with Lui.Tables;
@@ -8,6 +10,7 @@ with Concorde.AI;
 with Concorde.Dates;
 with Concorde.Elementary_Functions;
 with Concorde.Empires;
+with Concorde.Empires.Db;
 with Concorde.Empires.History;
 
 with Concorde.Ships.Battles;
@@ -145,14 +148,14 @@ package body Concorde.Galaxy.Model is
       X, Y     : out Integer);
 
    function Recent_Battle
-     (System : Concorde.Systems.Star_System_Type;
+     (System   : Concorde.Systems.Star_System_Type;
       Max_Days : Natural)
       return Boolean;
 
    Unexplored_Colour : constant Lui.Colours.Colour_Type :=
                          (0.5, 0.5, 0.5, 0.6);
-   Border_Colour : constant Lui.Colours.Colour_Type :=
-                     (1.0, 1.0, 1.0, 1.0);
+   Border_Colour     : constant Lui.Colours.Colour_Type :=
+                         (1.0, 1.0, 1.0, 1.0);
 
    Local_Model : Lui.Models.Object_Model;
 
@@ -272,7 +275,8 @@ package body Concorde.Galaxy.Model is
       use Concorde.Dates;
       Start : Date_Type := 1;
       Width : constant := 100.0;
-      Xs    : array (1 .. Empires.Empire_Count) of Non_Negative_Real;
+      package Relative_Power_Vectors is
+        new Memor.Element_Vectors (Non_Negative_Real, 0.0);
       Total : Non_Negative_Real;
       X     : Integer;
    begin
@@ -280,33 +284,62 @@ package body Concorde.Galaxy.Model is
          Start := Date_Type (Natural (Current_Date) - Model.Height + 1);
       end if;
 
-      for I in Date_Type range Start .. Current_Date - 2 loop
-         Xs := (others => 0.0);
-         Total := 0.0;
-         for E_Index in 1 .. Empires.Empire_Count loop
-            Xs (E_Index) :=
-              Concorde.Empires.History.Get_Metric
-                (I, Concorde.Empires.History.Capacity,
-                 Empires.Get (E_Index));
-            Total := Total + Xs (E_Index);
-         end loop;
+      for Date in Date_Type range Start .. Current_Date - 2 loop
+         declare
+            Xs    : Relative_Power_Vectors.Vector;
 
-         X := Model.Width - Natural (Width);
-         for J in Xs'Range loop
-            declare
+            procedure Draw_Power
+              (Empire : Concorde.Empires.Empire_Type);
+
+            procedure Update_Power
+              (Empire : Concorde.Empires.Empire_Type);
+
+            ----------------
+            -- Draw_Power --
+            ----------------
+
+            procedure Draw_Power
+              (Empire : Concorde.Empires.Empire_Type)
+            is
                New_X : constant Natural :=
-                         X + Natural (Xs (J) / Total * Width);
+                         X +
+                           Natural (Xs.Element (Empire.Reference)
+                                    / Total * Width);
             begin
                Renderer.Draw_Line
                  (X1         => X,
-                  Y1         => Natural (I - Start),
+                  Y1         => Natural (Date - Start),
                   X2         => New_X,
-                  Y2         => Natural (I - Start),
-                  Colour     => Empires.Get (J).Colour,
+                  Y2         => Natural (Date - Start),
+                  Colour     => Empire.Colour,
                   Line_Width => 1);
                X := New_X;
-            end;
-         end loop;
+            end Draw_Power;
+
+            ------------------
+            -- Update_Power --
+            ------------------
+
+            procedure Update_Power
+              (Empire : Concorde.Empires.Empire_Type)
+            is
+               Power : constant Non_Negative_Real :=
+                         Concorde.Empires.History.Get_Metric
+                           (Date, Concorde.Empires.History.Capacity, Empire);
+            begin
+               Xs.Replace_Element
+                 (Empire.Reference, Power);
+               Total := Total + Power;
+            end Update_Power;
+
+         begin
+            Total := 0.0;
+            Concorde.Empires.Db.Scan (Update_Power'Access);
+
+            X := Model.Width - Natural (Width);
+            Concorde.Empires.Db.Scan (Draw_Power'Access);
+
+         end;
       end loop;
    end Draw_History;
 
@@ -321,8 +354,8 @@ package body Concorde.Galaxy.Model is
    is
       Boundary : constant Concorde.Systems.System_Influence_Boundary :=
                    System.Influence_Boundary;
-      Points : Lui.Rendering.Buffer_Points (Boundary'Range);
-      Bg     : Lui.Colours.Colour_Type := System.Owner.Colour;
+      Points   : Lui.Rendering.Buffer_Points (Boundary'Range);
+      Bg       : Lui.Colours.Colour_Type := System.Owner.Colour;
    begin
       for I in Points'Range loop
          declare
@@ -354,8 +387,8 @@ package body Concorde.Galaxy.Model is
       System   : Concorde.Systems.Star_System_Type;
       Ships    : Concorde.Ships.Lists.List)
    is
-      Es : constant Concorde.Empires.Array_Of_Empires :=
-             Concorde.Ships.Battles.Empires_Present (Ships);
+      Es   : constant Concorde.Empires.Array_Of_Empires :=
+               Concorde.Ships.Battles.Empires_Present (Ships);
       X, Y : Integer;
    begin
       Model.Star_System_Screen (System, X, Y);
@@ -375,7 +408,7 @@ package body Concorde.Galaxy.Model is
    ------------------
 
    function Galaxy_Model
-      return Lui.Models.Object_Model
+     return Lui.Models.Object_Model
    is
       use Lui.Models;
    begin
@@ -387,7 +420,7 @@ package body Concorde.Galaxy.Model is
             E, B    : Lui.Tables.Model_Table;
          begin
             E_Table.Initialise
-              ("Empires", Concorde.Empires.Empire_Count, Empire_Column'Last);
+              ("Empires", Concorde.Empires.Db.Count, Empire_Column'Last);
             E := new Empire_Table'(E_Table);
             B_Table.Initialise
               ("Battles", 0, Battle_Column'Last);
@@ -487,7 +520,7 @@ package body Concorde.Galaxy.Model is
          begin
             Model.Get_Location (X, Y);
             Renderer.Draw_String
-              (X, Y, 14, Lui.Colours.White,
+              (X + 4, Y + 20, 14, Lui.Colours.White,
                Lui.Approximate_Image (Model.FPS) & " FPS");
          end;
       end if;
@@ -528,7 +561,8 @@ package body Concorde.Galaxy.Model is
                         Size : constant Positive :=
                                  Positive'Max
                                    (Natural
-                                      (Sqrt (Real (System.Last_Battle_Size))),
+                                      (Sqrt
+                                         (Real (System.Last_Battle_Size))),
                                     10);
                         Days : constant Natural :=
                                  Natural (Concorde.Dates.Current_Date)
@@ -540,7 +574,9 @@ package body Concorde.Galaxy.Model is
                               Y          => Screen_Y,
                               Radius     => Size - Days,
                               Colour     => (1.0, 0.0, 0.0,
-                                             1.0 - Real (Days) / Real (Size)),
+                                             1.0
+                                             - Real (Days)
+                                             / Real (Size)),
                               Filled     => True,
                               Line_Width => 1);
                         end if;
@@ -556,7 +592,8 @@ package body Concorde.Galaxy.Model is
                      Line_Width => 1);
 
                   if Model.Show_System_Names
-                    or else (System.Capital and then Model.Show_Capital_Names)
+                    or else (System.Capital
+                             and then Model.Show_Capital_Names)
                   then
                      Renderer.Draw_String
                        (X      => Screen_X - 20,
@@ -577,24 +614,32 @@ package body Concorde.Galaxy.Model is
 
                   declare
                      Radius : Positive := 8;
+
+                     procedure Draw_Attack_Target
+                       (Empire : Concorde.Empires.Root_Empire_Type'Class);
+
+                     ------------------------
+                     -- Draw_Attack_Target --
+                     ------------------------
+
+                     procedure Draw_Attack_Target
+                       (Empire : Concorde.Empires.Root_Empire_Type'Class)
+                     is
+                     begin
+                        if Empire.Is_Attack_Target (System) then
+                           Renderer.Draw_Circle
+                             (X          => Screen_X,
+                              Y          => Screen_Y,
+                              Radius     => Radius,
+                              Colour     => Empire.Colour,
+                              Filled     => False,
+                              Line_Width => 1);
+                           Radius := Radius + 2;
+                        end if;
+                     end Draw_Attack_Target;
+
                   begin
-                     for Index in 1 .. Empires.Empire_Count loop
-                        declare
-                           E : constant Empires.Empire_Type :=
-                                 Empires.Get (Index);
-                        begin
-                           if E.Is_Attack_Target (System) then
-                              Renderer.Draw_Circle
-                                (X          => Screen_X,
-                                 Y          => Screen_Y,
-                                 Radius     => Radius,
-                                 Colour     => Empires.Get (Index).Colour,
-                                 Filled     => False,
-                                 Line_Width => 1);
-                              Radius := Radius + 2;
-                           end if;
-                        end;
-                     end loop;
+                     Concorde.Empires.Db.Scan (Draw_Attack_Target'Access);
                   end;
 
                   if False and then Owner /= null then
@@ -616,7 +661,7 @@ package body Concorde.Galaxy.Model is
                   declare
 
                      procedure Draw_Connection
-                       (To   : Positive;
+                       (To   : Star_System_Type;
                         Cost : Non_Negative_Real);
 
                      ---------------------
@@ -624,27 +669,28 @@ package body Concorde.Galaxy.Model is
                      ---------------------
 
                      procedure Draw_Connection
-                       (To   : Positive;
+                       (To   : Star_System_Type;
                         Cost : Non_Negative_Real)
                      is
                         pragma Unreferenced (Cost);
                      begin
-                        if To > System.Index then
+                        if To.Index > System.Index then
                            Concorde.Galaxy.Locking.Lock_System
-                             (System, False);
+                             (System.all, False);
                            Concorde.Galaxy.Locking.Lock_System
-                             (Galaxy_Vector (To), False);
+                             (To.all, False);
                            Model.Draw_Connection
-                             (Renderer, System.Index, To);
+                             (Renderer, System.Index, To.Index);
                            Concorde.Galaxy.Locking.Unlock_System
-                             (Galaxy_Vector (To));
+                             (To.all);
                            Concorde.Galaxy.Locking.Unlock_System
-                             (System);
+                             (System.all);
                         end if;
                      end Draw_Connection;
 
                   begin
-                     Galaxy_Graph.Iterate_Edges (I, Draw_Connection'Access);
+                     Galaxy_Graph.Iterate_Edges
+                       (Galaxy_Graph.Vertex (I), Draw_Connection'Access);
                   end;
                end if;
             end;
@@ -708,7 +754,7 @@ package body Concorde.Galaxy.Model is
 
    function Ship_Count_Image
      (Count : Natural)
-      return String
+         return String
    is
    begin
       if Count < 10 then

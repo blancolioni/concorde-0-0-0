@@ -7,15 +7,18 @@ with Concorde.Systems;
 
 with Concorde.Empires.Logging;
 
+with Concorde.Empires.Db;
+with Concorde.Ships.Db;
+
 package body Concorde.Ships.Updates is
 
-   procedure Update_Ship (Ship : Ship_Type);
+   procedure Update_Ship (Ship : in out Root_Ship_Type'Class);
 
    -----------------
    -- Update_Ship --
    -----------------
 
-   procedure Update_Ship (Ship : Ship_Type) is
+   procedure Update_Ship (Ship : in out Root_Ship_Type'Class) is
 
       function System_Priority
         (System : Concorde.Systems.Star_System_Type)
@@ -50,21 +53,23 @@ package body Concorde.Ships.Updates is
               and then N.Owner /= null
               and then N.Owner /= Ship.Owner
             then
-               Ship.Destination := N;
+               Ship.Dest_Reference := N.Reference;
                exit;
             end if;
          end loop;
 
-         if Ship.Destination = null
+         if not Ship.Has_Destination
            and then not Ship.Owner.Has_Focus (Ship.System)
          then
-            Ship.Destination :=
-              Ship.Owner.Minimum_Score_Focus
-                (System_Priority'Access);
+            Ship.Set_Destination
+              (Ship.Owner.Minimum_Score_Focus
+                 (System_Priority'Access));
          end if;
 
-         if Ship.Destination = Ship.System then
-            Ship.Destination := null;
+         if Ship.Has_Destination
+           and then Ship.Destination = Ship.System
+         then
+            Ship.Dest_Reference := Memor.Null_Database_Reference;
          end if;
       end if;
 
@@ -76,9 +81,27 @@ package body Concorde.Ships.Updates is
 --           Ship.HP := Ship.HP - 1;
 --        end if;
 
-      Ship.Owner.AI.Order_Ship (Ship);
+      declare
+         procedure Order
+           (Empire : in out Concorde.Empires.Root_Empire_Type'Class);
 
-      if Ship.Destination /= null then
+         -----------
+         -- Order --
+         -----------
+
+         procedure Order
+           (Empire : in out Concorde.Empires.Root_Empire_Type'Class)
+         is
+         begin
+            Ship.Owner.AI.Order_Ship
+              (Empire, Ship);
+         end Order;
+
+      begin
+         Concorde.Empires.Db.Update (Ship.Owner.Reference, Order'Access);
+      end;
+
+      if Ship.Has_Destination then
          Concorde.Empires.Logging.Log
            (Ship.Owner,
             Ship.Name
@@ -104,11 +127,7 @@ package body Concorde.Ships.Updates is
 
    procedure Update_Ship_Movement is
    begin
-      for Ship of Ship_Vector loop
-         if Ship.Damage < 1.0 then
-            Update_Ship (Ship);
-         end if;
-      end loop;
+      Concorde.Ships.Db.Iterate (Update_Ship'Access);
    end Update_Ship_Movement;
 
 end Concorde.Ships.Updates;

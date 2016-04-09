@@ -4,6 +4,10 @@ with Concorde.Empires;
 with Concorde.Empires.Logging;
 with Concorde.Empires.Relations;
 
+with Concorde.Empires.Db;
+with Concorde.Modules.Db;
+with Concorde.Systems.Db;
+
 package body Concorde.Ships.Battles is
 
    Arena_Radius    : constant := 1.0E6;
@@ -12,7 +16,7 @@ package body Concorde.Ships.Battles is
 
    type Ship_Team is
       record
-         Empire : access Concorde.Empires.Root_Empire_Type'Class;
+         Empire : access constant Concorde.Empires.Root_Empire_Type'Class;
          X, Y   : Real;
          Facing : Radians;
          Count  : Natural;
@@ -22,7 +26,7 @@ package body Concorde.Ships.Battles is
      new Ada.Containers.Vectors (Positive, Ship_Team);
 
    function Create_Arena
-     (System : Concorde.Systems.Star_System_Access;
+     (System : in out Concorde.Systems.Root_Star_System_Type'Class;
       Ships  : Concorde.Ships.Lists.List)
      return Concorde.Combat.Ship_Combat.Space_Combat_Arena
    is
@@ -68,13 +72,17 @@ package body Concorde.Ships.Battles is
                Team_Index := Teams.Last_Index;
             end if;
 
-            for Module of Ship.Structure loop
-               Module.Module.Initial_State;
+            for Mount of Ship.Structure loop
+
+               Concorde.Modules.Db.Update
+                 (Mount.Module.Reference,
+                  Concorde.Modules.Initial_State'Access);
+
             end loop;
 
             Arena.Add_Combatant
               (Combatant => Ship,
-               Team      => Owner,
+               Empire    => Owner,
                X         => Team.X,
                Y         => Team.Y + Ship_Separation * Real (Team.Count),
                Facing    => Team.Facing);
@@ -88,8 +96,25 @@ package body Concorde.Ships.Battles is
       for Team of Teams loop
          declare
             Size : constant Positive := Team.Count;
+
+            procedure Set_Battle
+              (Empire : in out Concorde.Empires.Root_Empire_Type'Class);
+
+            ----------------
+            -- Set_Battle --
+            ----------------
+
+            procedure Set_Battle
+              (Empire : in out Concorde.Empires.Root_Empire_Type'Class)
+            is
+            begin
+               Empire.Set_Battle (Concorde.Systems.Db.Reference (System));
+            end Set_Battle;
+
          begin
-            Team.Empire.Set_Battle (System);
+            Concorde.Empires.Db.Update
+              (Team.Empire.Reference, Set_Battle'Access);
+
             if Size < Min_Team_Size then
                Min_Team_Size := Size;
             end if;

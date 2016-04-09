@@ -3,8 +3,10 @@ with Concorde.Systems;
 
 with Concorde.Roman_Images;
 
+with Concorde.Empires.Db;
 with Concorde.Empires.Logging;
 
+with Concorde.Ships.Db;
 with Concorde.Ships.Designs;
 
 package body Concorde.Ships.Create is
@@ -13,47 +15,76 @@ package body Concorde.Ships.Create is
    -- New_Ship --
    --------------
 
-   procedure New_Ship
-     (Owner  : Concorde.Empires.Empire_Type;
-      System : Concorde.Systems.Star_System_Access;
+   function New_Ship
+     (Owner  : not null access constant
+        Concorde.Empires.Root_Empire_Type'Class;
+      System : in out Concorde.Systems.Root_Star_System_Type'Class;
       Design : String)
+      return Ship_Type
    is
-      use Concorde.Roman_Images;
-      Ship : constant Ship_Type :=
-               Concorde.Ships.Designs.Create_Ship_From_Design
-                 (Design);
-   begin
-      if Owner.Current_Ships = 0 then
-         Ship.Set_Name (Owner.Name);
-      else
-         Ship.Set_Name (Owner.Name & " "
-                        & Roman_Image (Owner.Current_Ships + 1));
-      end if;
-      Ship.Owner := Owner;
-      Ship.System := System;
-      Ship.Destination := null;
-      Ship.Alive := True;
 
-      Ship_Vector.Append (Ship);
+      procedure Create
+        (Ship : in out Root_Ship_Type'Class);
 
-      declare
-         Id : Natural := Ship_Vector.Last_Index;
+      ------------
+      -- Create --
+      ------------
+
+      procedure Create
+        (Ship : in out Root_Ship_Type'Class)
+      is
       begin
-         Ship.Identity := "10000";
-         for I in reverse Ship.Identity'Range loop
-            exit when Id = 0;
-            Ship.Identity (I) :=
-              Character'Val (Character'Pos ('0') + Id mod 10);
-            Id := Id / 10;
-         end loop;
-      end;
+         Concorde.Ships.Designs.Create_Ship_From_Design
+           (Design, Ship);
+         if Owner.Current_Ships = 0 then
+            Ship.Set_Name (Owner.Name);
+         else
+            Ship.Set_Name
+              (Owner.Name & " "
+               & Concorde.Roman_Images.Roman_Image (Owner.Current_Ships + 1));
+         end if;
+         Ship.Owner := Owner;
+         Ship.System_Reference := System.Reference;
+         Ship.Dest_Reference := Memor.Null_Database_Reference;
+         Ship.Alive := True;
 
-      Owner.New_Ship;
-      System.Add_Ship (Ship);
+         declare
+            Id : Natural := Db.Count;
+         begin
+            Ship.Identity := "10000";
+            for I in reverse Ship.Identity'Range loop
+               exit when Id = 0;
+               Ship.Identity (I) :=
+                 Character'Val (Character'Pos ('0') + Id mod 10);
+               Id := Id / 10;
+            end loop;
+         end;
 
-      Concorde.Empires.Logging.Log
-        (Owner, System.Name & ": new ship: " & Ship.Name);
+         declare
+            procedure Set_New_Ship
+              (Empire : in out Concorde.Empires.Root_Empire_Type'Class);
 
+            ------------------
+            -- Set_New_Ship --
+            ------------------
+
+            procedure Set_New_Ship
+              (Empire : in out Concorde.Empires.Root_Empire_Type'Class)
+            is
+            begin
+               Empire.New_Ship;
+            end Set_New_Ship;
+
+         begin
+            Concorde.Empires.Db.Update (Owner.Reference, Set_New_Ship'Access);
+         end;
+
+         Concorde.Empires.Logging.Log
+           (Owner, System.Name & ": new ship: " & Ship.Name);
+      end Create;
+
+   begin
+      return Db.Create (Create'Access);
    end New_Ship;
 
 end Concorde.Ships.Create;

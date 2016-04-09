@@ -115,14 +115,14 @@ package body Concorde.Ships.Designs is
    -- Create_Ship_From_Design --
    -----------------------------
 
-   function Create_Ship_From_Design
-     (Name : String)
-      return Ship_Type
+   procedure Create_Ship_From_Design
+     (Design_Name : String;
+      Ship        : in out Root_Ship_Type'Class)
    is
-      Design : Ship_Design renames Designs.Element (Name);
-      Ship   : constant Ship_Type := new Root_Ship_Type;
+      Design : Ship_Design renames Designs.Element (Design_Name);
       Min_W, Min_H, Min_L : Integer := Integer'Last;
       Max_W, Max_H, Max_L : Integer := Integer'First;
+
    begin
       for Component of Design.Components loop
          declare
@@ -143,8 +143,8 @@ package body Concorde.Ships.Designs is
             Max_L := Integer'Max (Max_L, Component.Left_Low_Aft.Z);
          end;
       end loop;
-      Ship.Size := (Max_W - Min_W + 1, Max_H - Min_H + 1, Max_L - Min_L + 1);
-      return Ship;
+      Ship.Size :=
+        (Max_W - Min_W + 1, Max_H - Min_H + 1, Max_L - Min_L + 1);
    end Create_Ship_From_Design;
 
 end Concorde.Ships.Designs;

@@ -16,8 +16,8 @@ package Concorde.Combat.Ship_Combat is
 
    procedure Add_Combatant
      (Arena     : in out Root_Space_Combat_Arena'Class;
-      Combatant : not null access Concorde.Ships.Root_Ship_Type'Class;
-      Team      : not null access Concorde.Empires.Root_Empire_Type'Class;
+      Combatant : Concorde.Ships.Ship_Type;
+      Empire    : Concorde.Empires.Empire_Type;
       X, Y      : Real;
       Facing    : Radians);
 

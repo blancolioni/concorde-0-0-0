@@ -1,3 +1,5 @@
+private with Memor;
+
 with Concorde.Objects;
 
 package Concorde.Components is
@@ -81,5 +83,9 @@ private
          Explosion_Chance        : Unit_Real;
          Layout                  : Size_Type := (1, 1, 1);
       end record;
+
+   overriding function Object_Database
+     (Component : Root_Component_Type)
+      return Memor.Root_Database_Type'Class;
 
 end Concorde.Components;

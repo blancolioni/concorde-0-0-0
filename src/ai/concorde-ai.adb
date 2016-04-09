@@ -15,22 +15,23 @@ package body Concorde.AI is
 
    procedure Update_Attack_Factor
      (AI           : in out Root_AI_Type'Class;
+      Empire       : in out Concorde.Empires.Root_Empire_Type'Class;
       Enemy        : Concorde.Empires.Empire_Type;
       Can_Increase : Boolean := True;
       Can_Decrease : Boolean := True)
    is
       AF : Non_Negative_Real;
    begin
-      if AI.Empire.Current_Ships > Enemy.Current_Ships then
+      if Empire.Current_Ships > Enemy.Current_Ships then
          AF := 1.2;
-      elsif AI.Empire.Current_Ships = 0
-        or else AI.Empire.Current_Ships * 4 < Enemy.Current_Ships
+      elsif Empire.Current_Ships = 0
+        or else Empire.Current_Ships * 4 < Enemy.Current_Ships
       then
          AF := 4.0;
       else
          AF :=
            Real (Enemy.Current_Ships) * 1.3
-           / Real (AI.Empire.Current_Ships);
+           / Real (Empire.Current_Ships);
       end if;
 
       if (AF < AI.Current_Attack_Factor and then Can_Decrease)

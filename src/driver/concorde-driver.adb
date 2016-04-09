@@ -94,8 +94,6 @@ begin
       Concorde.Empires.Logging.Stop_Logging;
    end if;
 
-   Concorde.Empires.Unload;
-
 exception
 
    when others =>
