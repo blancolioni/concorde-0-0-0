@@ -5,6 +5,7 @@ with Concorde.Systems;
 
 with Concorde.Random;
 
+with Concorde.Empires.Db;
 with Concorde.Modules.Db;
 with Concorde.Ships.Db;
 with Concorde.Systems.Db;
@@ -35,6 +36,7 @@ package body Concorde.Ships is
      (Ship   : in out Root_Ship_Type'Class;
       Damage : Natural)
    is
+      Was_Alive : constant Boolean := Ship.Alive;
    begin
       for I in 1 .. Damage loop
          exit when not Ship.Alive;
@@ -81,6 +83,28 @@ package body Concorde.Ships is
             Ship.Alive := Ship_Damage < 0.95;
          end;
       end loop;
+
+      if Was_Alive and then not Ship.Alive then
+         declare
+            procedure Remove
+              (Empire : in out Concorde.Empires.Root_Empire_Type'Class);
+
+            ------------
+            -- Remove --
+            ------------
+
+            procedure Remove
+              (Empire : in out Concorde.Empires.Root_Empire_Type'Class)
+            is
+            begin
+               Empire.Remove_Ship;
+            end Remove;
+
+         begin
+            Concorde.Empires.Db.Update
+              (Ship.Owner.Reference, Remove'Access);
+         end;
+      end if;
    end Apply_Hit;
 
    -----------------------
