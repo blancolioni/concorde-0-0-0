@@ -44,8 +44,10 @@ package body Concorde.Empires.Logging is
       -----------
 
       procedure Flush (Empire : Empire_Type) is
+         Lines : constant List_Of_Log_Lines.List :=
+                   Current_Logs.Element (Empire.Reference);
       begin
-         if not Current_Logs.Element (Empire.Reference).Is_Empty then
+         if not Lines.Is_Empty then
             declare
                use Ada.Text_IO;
                File : File_Type;
@@ -60,7 +62,7 @@ package body Concorde.Empires.Logging is
                Put_Line (File, "----------------");
                New_Line (File);
 
-               for Line of Current_Logs.Element (Empire.Reference) loop
+               for Line of Lines loop
                   Put_Line (File, Line);
                end loop;
                Close (File);
