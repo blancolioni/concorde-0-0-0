@@ -9,6 +9,18 @@ package body Concorde.AI is
       return AI.Awake;
    end Awake;
 
+   ----------------------------
+   -- Minimum_Defense_Factor --
+   ----------------------------
+
+   function Minimum_Defense_Factor
+     (AI : Root_AI_Type)
+      return Non_Negative_Real
+   is
+   begin
+      return AI.Current_Defense_Factor;
+   end Minimum_Defense_Factor;
+
    --------------------------
    -- Update_Defensiveness --
    --------------------------

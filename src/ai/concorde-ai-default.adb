@@ -10,6 +10,8 @@ with Concorde.Galaxy;
 with Concorde.Ships.Db;
 with Concorde.Ships.Lists;
 
+with Concorde.Random;
+
 package body Concorde.AI.Default is
 
    Max_Battle_Damage : constant := 0.1;
@@ -225,7 +227,9 @@ package body Concorde.AI.Default is
 
       AI.Nominal_Defense_Ships := AI.Enemy_Strength;
       AI.Defense_Ships :=
-        Natural'Min (AI.Enemy_Strength * 4 / 3, Total_Ships);
+        Natural (Real (AI.Enemy_Strength) * AI.Minimum_Defense_Factor);
+      AI.Defense_Ships :=
+        Natural'Min (AI.Defense_Ships, Total_Ships);
 
       if AI.Nominal_Defense_Ships = 0 then
          AI.Defense_Destinations.Clear;
@@ -872,6 +876,8 @@ package body Concorde.AI.Default is
 
    begin
       Concorde.Galaxy.Iterate (Owner'Access, Start_System'Access);
+      AI.Current_Defense_Factor :=
+        0.5 + Concorde.Random.Unit_Random;
    end Start;
 
    ---------------------
@@ -1107,6 +1113,10 @@ package body Concorde.AI.Default is
       Galaxy.Iterate (Outnumbered_Defenders'Access, Add_Focus'Access);
       Galaxy.Iterate (Unexplored'Access, Add_Focus'Access);
    end Update_Focus;
+
+   -----------------------------
+   -- Update_Ship_Destination --
+   -----------------------------
 
    procedure Update_Ship_Destination
      (Ship        : Concorde.Ships.Ship_Type;

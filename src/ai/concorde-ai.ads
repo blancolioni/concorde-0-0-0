@@ -39,8 +39,7 @@ package Concorde.AI is
 
    function Minimum_Defense_Factor
      (AI : Root_AI_Type)
-      return Non_Negative_Real
-   is (1.0);
+      return Non_Negative_Real;
 
    procedure Allocate_Ships
      (AI     : in out Root_AI_Type;
