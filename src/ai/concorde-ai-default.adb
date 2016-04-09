@@ -791,11 +791,23 @@ package body Concorde.AI.Default is
            and then Ship.System /= Empire.Capital
          then
             Stop := True;
-            Ship.Set_Destination (Empire.Capital);
-            Empires.Logging.Log
-              (Empire,
-               Ship.Short_Description
-               & " returns to capital " & Empire.Capital.Name);
+            declare
+               use Concorde.Systems;
+            begin
+               if Empire.Capital = null then
+                  Empires.Logging.Log
+                    (Empire,
+                     "no capital (current systems ="
+                     & Natural'Image (Empire.Current_Systems)
+                     & ")");
+               else
+                  Ship.Set_Destination (Empire.Capital);
+                  Empires.Logging.Log
+                    (Empire,
+                     Ship.Short_Description
+                     & " returns to capital " & Empire.Capital.Name);
+               end if;
+            end;
          end if;
 
          if Stop then
