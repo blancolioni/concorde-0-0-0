@@ -1,3 +1,5 @@
+with Ada.Containers.Doubly_Linked_Lists;
+
 with WL.Random;
 
 with Concorde.AI;
@@ -12,7 +14,42 @@ with Concorde.Ships.Db;
 
 package body Concorde.Ships.Updates is
 
-   procedure Update_Ship (Ship : in out Root_Ship_Type'Class);
+   package List_Of_References is
+     new Ada.Containers.Doubly_Linked_Lists
+       (Memor.Database_Reference, Memor."=");
+
+   procedure Update_Ship (Ship : in out Root_Ship_Type'Class)
+     with Pre => Ship.Alive;
+
+   -----------------------
+   -- Delete_Dead_Ships --
+   -----------------------
+
+   procedure Delete_Dead_Ships is
+      List : List_Of_References.List;
+
+      procedure Add_Dead_Ship
+        (Ship : Root_Ship_Type'Class);
+
+      procedure Add_Dead_Ship
+        (Ship : Root_Ship_Type'Class)
+      is
+      begin
+         if not Ship.Alive then
+            Concorde.Empires.Logging.Log
+              (Ship.Owner,
+               Ship.Short_Description & " destroyed");
+            List.Append (Ship.Reference);
+         end if;
+      end Add_Dead_Ship;
+
+   begin
+      Concorde.Ships.Db.Scan (Add_Dead_Ship'Access);
+
+      for Reference of List loop
+         Concorde.Ships.Db.Delete (Reference);
+      end loop;
+   end Delete_Dead_Ships;
 
    -----------------
    -- Update_Ship --
@@ -104,8 +141,7 @@ package body Concorde.Ships.Updates is
       if Ship.Has_Destination then
          Concorde.Empires.Logging.Log
            (Ship.Owner,
-            Ship.Name
-            & " at " & Ship.System.Name
+            Ship.Short_Description
             & " on its way to "
             & Ship.Destination.Name
             & " (distance"
@@ -126,8 +162,10 @@ package body Concorde.Ships.Updates is
    ------------------
 
    procedure Update_Ship_Movement is
+      function Is_Alive (Ship : Root_Ship_Type'Class) return Boolean
+      is (Ship.Alive);
    begin
-      Concorde.Ships.Db.Iterate (Update_Ship'Access);
+      Concorde.Ships.Db.Iterate (Is_Alive'Access, Update_Ship'Access);
    end Update_Ship_Movement;
 
 end Concorde.Ships.Updates;
