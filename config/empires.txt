@@ -31,7 +31,7 @@ cal = {
 mac = {
    name = Macedonia
    capital = Alexandria
-   colour = { 106 74 60 }
+   colour = { 205 127 50 }
 }
 
 rome = {
