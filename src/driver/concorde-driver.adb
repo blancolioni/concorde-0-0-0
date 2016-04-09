@@ -28,6 +28,9 @@ with Concorde.People.Groups.Configure;
 procedure Concorde.Driver is
 
    Name_Generator : WL.Random.Names.Name_Generator;
+
+   Check_Invariants : constant Boolean :=
+                        Concorde.Options.Check_Invariants;
 begin
 
    WL.Random.Names.Load_Lexicon
@@ -72,7 +75,8 @@ begin
 
          for I in 1 .. Concorde.Options.Number_Of_Updates loop
             Concorde.Updates.Perform_Update
-              (Execute_Battles => True);
+              (Execute_Battles  => True,
+               Check_Invariants => Check_Invariants);
             Process.Tick;
          end loop;
          Process.Finish;

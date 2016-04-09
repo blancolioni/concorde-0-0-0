@@ -9,7 +9,8 @@ package Concorde.Updates is
      (Speed : Update_Speed);
 
    procedure Perform_Update
-     (Execute_Battles : Boolean);
+     (Execute_Battles  : Boolean;
+      Check_Invariants : Boolean);
 
    procedure Begin_Render;
    procedure Finish_Render;

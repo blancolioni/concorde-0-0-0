@@ -17,6 +17,8 @@ with Concorde.Galaxy.Model;
 with Concorde.Paths;
 with Concorde.Updates;
 
+with Concorde.Options;
+
 with Lui.Models;
 
 with Lui.Gtk_UI;
@@ -191,7 +193,8 @@ package body Concorde.Gtk_UI is
    is
       pragma Unreferenced (Button);
    begin
-      Concorde.Updates.Perform_Update (False);
+      Concorde.Updates.Perform_Update
+        (False, Concorde.Options.Check_Invariants);
    end On_Step_Button_Clicked;
 
    -----------

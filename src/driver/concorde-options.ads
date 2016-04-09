@@ -1,6 +1,7 @@
 package Concorde.Options is
 
    function Average_Connections return Positive;
+   function Check_Invariants return Boolean;
    function Console return Boolean;
    function Enable_Detailed_Battle_Logging return Boolean;
    function Enable_Empire_Logging return Boolean;

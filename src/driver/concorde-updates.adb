@@ -8,6 +8,7 @@ with Concorde.Galaxy.Updates;
 with Concorde.Galaxy.Locking;
 
 with Concorde.Locking;
+with Concorde.Options;
 
 package body Concorde.Updates is
 
@@ -27,6 +28,8 @@ package body Concorde.Updates is
    Current_Update_Task : Update_Task_Access;
 
    Render_Lock : Concorde.Locking.Lock;
+
+   Check_Invariants : Boolean := False;
 
    ------------------
    -- Begin_Render --
@@ -51,11 +54,17 @@ package body Concorde.Updates is
    --------------------
 
    procedure Perform_Update
-     (Execute_Battles : Boolean)
+     (Execute_Battles  : Boolean;
+      Check_Invariants : Boolean)
    is
    begin
       Render_Lock.Exclusive;
       Concorde.Dates.Tick;
+
+      if Check_Invariants then
+         Concorde.Empires.Check_Invariants;
+      end if;
+
       Concorde.Galaxy.Updates.Update_System_Flags;
       Concorde.Empires.Updates.Update_Empire_AI;
       Concorde.Empires.Updates.Update_Empires;
@@ -63,6 +72,10 @@ package body Concorde.Updates is
 
       if Execute_Battles then
          Concorde.Galaxy.Complete_Battles;
+      end if;
+
+      if Check_Invariants then
+         Concorde.Empires.Check_Invariants;
       end if;
 
       Render_Lock.Unlock;
@@ -86,6 +99,7 @@ package body Concorde.Updates is
 
    procedure Start_Updates is
    begin
+      Check_Invariants := Concorde.Options.Check_Invariants;
       Concorde.Galaxy.Locking.Init_Locking;
       Current_Update_Task := new Update_Task;
    end Start_Updates;
@@ -118,7 +132,7 @@ package body Concorde.Updates is
          else
             delay Update_Delay (Speed);
             if Speed > 0 then
-               Perform_Update (False);
+               Perform_Update (False, Check_Invariants);
                if Concorde.Galaxy.Battle_Count > 0 then
                   Speed := 0;
                end if;

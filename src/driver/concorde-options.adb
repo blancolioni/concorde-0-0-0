@@ -87,6 +87,15 @@ package body Concorde.Options is
 
    end Boolean_Value;
 
+   ----------------------
+   -- Check_Invariants --
+   ----------------------
+
+   function Check_Invariants return Boolean is
+   begin
+      return Boolean_Value ("check-invariants");
+   end Check_Invariants;
+
    -------------
    -- Console --
    -------------

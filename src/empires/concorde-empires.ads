@@ -279,6 +279,8 @@ package Concorde.Empires is
       Index     : Positive)
       return Empire_Type;
 
+   procedure Check_Invariants;
+
 private
 
    package List_Of_Focus_Systems is

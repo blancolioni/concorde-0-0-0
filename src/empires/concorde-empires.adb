@@ -206,6 +206,32 @@ package body Concorde.Empires is
       end if;
    end Check_Cache;
 
+   ----------------------
+   -- Check_Invariants --
+   ----------------------
+
+   procedure Check_Invariants is
+
+      procedure Check (Empire : Root_Empire_Type'Class);
+
+      -----------
+      -- Check --
+      -----------
+
+      procedure Check (Empire : Root_Empire_Type'Class) is
+      begin
+         if Empire.Current_Systems > 0 then
+            pragma Assert (Empire.Owned_System (Empire.Capital),
+                           Empire.Name & " does not own capital system "
+                           & Empire.Capital.Name);
+            pragma Assert (Empire.Capital.Capital,
+                           Empire.Name & ": capital system is not a capital");
+         end if;
+      end Check;
+   begin
+      Db.Scan (Check'Access);
+   end Check_Invariants;
+
    -------------------
    -- Clear_Battles --
    -------------------
@@ -933,26 +959,27 @@ package body Concorde.Empires is
                return Natural
             is
                use type Memor.Database_Reference;
-               Result : Natural := 100;
+               Result : Natural := 0;
             begin
                if Empire.Owned_System (Test)
                  and then Test.Reference /= System.Reference
                then
-                  Result := Result + 10 + Test.Ships;
-               end if;
-               for N of Concorde.Galaxy.Neighbours (Test.Index) loop
-                  if Empire.Owned_System (N) then
-                     Result := Result + 5;
-                  elsif N.Owned then
-                     if Concorde.Empires.Relations.At_War
-                       (Empire, N.Owner.all)
-                     then
-                        Result := Result - 10;
-                     else
-                        Result := Result - 2;
+                  Result := 100 + Test.Ships;
+
+                  for N of Concorde.Galaxy.Neighbours (Test.Index) loop
+                     if Empire.Owned_System (N) then
+                        Result := Result + 5;
+                     elsif N.Owned then
+                        if Concorde.Empires.Relations.At_War
+                          (Empire, N.Owner.all)
+                        then
+                           Result := Result - 10;
+                        else
+                           Result := Result - 2;
+                        end if;
                      end if;
-                  end if;
-               end loop;
+                  end loop;
+               end if;
 
                return Result;
             end Score;
