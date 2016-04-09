@@ -25,6 +25,11 @@ package Concorde.Combat.Ship_Combat is
      (Arena : Root_Space_Combat_Arena'Class)
       return Concorde.Empires.Array_Of_Empires;
 
+   function Fleet_Size
+     (Arena : Root_Space_Combat_Arena'Class;
+      Empire : Concorde.Empires.Empire_Type)
+      return Natural;
+
    function Total_Combatants
      (Arena : Root_Space_Combat_Arena'Class)
       return Natural;

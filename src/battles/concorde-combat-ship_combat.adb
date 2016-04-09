@@ -273,6 +273,25 @@ package body Concorde.Combat.Ship_Combat is
 
    end Fire_Weapon;
 
+   ----------------
+   -- Fleet_Size --
+   ----------------
+
+   function Fleet_Size
+     (Arena  : Root_Space_Combat_Arena'Class;
+      Empire : Concorde.Empires.Empire_Type)
+      return Natural
+   is
+      use type Concorde.Empires.Empire_Type;
+   begin
+      for Team of Arena.Teams loop
+         if Team.Leader = Empire then
+            return Team.Ships.Last_Index;
+         end if;
+      end loop;
+      return 0;
+   end Fleet_Size;
+
    -------------------
    -- Handle_Update --
    -------------------

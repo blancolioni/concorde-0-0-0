@@ -52,7 +52,7 @@ package body Concorde.Galaxy.Model is
       Col   : Positive)
       return String;
 
-   subtype Battle_Column is Integer range 1 .. 5;
+   subtype Battle_Column is Integer range 1 .. 6;
 
    type Battle_Table is
      new Lui.Tables.Root_Model_Table with null record;
@@ -64,9 +64,10 @@ package body Concorde.Galaxy.Model is
    is ((case Battle_Column (Col) is
            when 1 => "System",
            when 2 => "Empire 1",
-           when 3 => "Empire 2",
-           when 4 => "Size",
-           when 5 => "Winner"));
+           when 3 => "Fleet 1",
+           when 4 => "Empire 2",
+           when 5 => "Fleet 2",
+           when 6 => "Winner"));
 
    overriding function Cell_Text
      (Table : Battle_Table;
@@ -217,10 +218,14 @@ package body Concorde.Galaxy.Model is
          when 2 =>
             return Arena.Empires (1).Name;
          when 3 =>
-            return Arena.Empires (2).Name;
+            return Lui.Approximate_Image
+              (Arena.Fleet_Size (Arena.Empires (1)));
          when 4 =>
-            return Lui.Approximate_Image (Arena.Total_Combatants);
+            return Arena.Empires (2).Name;
          when 5 =>
+            return Lui.Approximate_Image
+              (Arena.Fleet_Size (Arena.Empires (2)));
+         when 6 =>
             if Arena.Done then
                return Arena.Winner.Name;
             else
@@ -420,7 +425,10 @@ package body Concorde.Galaxy.Model is
             E, B    : Lui.Tables.Model_Table;
          begin
             E_Table.Initialise
-              ("Empires", Concorde.Empires.Db.Count, Empire_Column'Last);
+              (Name     => "Empires",
+               Num_Rows => Concorde.Empires.Db.Active_Count,
+               Num_Cols => Empire_Column'Last);
+
             E := new Empire_Table'(E_Table);
             B_Table.Initialise
               ("Battles", 0, Battle_Column'Last);
