@@ -265,11 +265,8 @@ package body Concorde.Modules is
          Module.Hits := Module.Hits - Points * 10;
          Points := 0;
       else
-         Points := Points - Module.Hits / 10 + 1;
+         Points := Points - Module.Hits / 10 - 1;
          Module.Hits := 0;
-      end if;
-      if Module.Hits > 0 then
-         Module.Hits := Module.Hits - 1;
       end if;
    end Repair;
 
