@@ -57,6 +57,9 @@ package Concorde.Systems is
      (System : in out Root_Star_System_Type'Class;
       Ship   : Concorde.Ships.Ship_Type);
 
+   procedure Remove_Dead_Ships
+     (System : in out Root_Star_System_Type'Class);
+
    procedure Arriving
      (System : in out Root_Star_System_Type'Class;
       Ship   : Concorde.Ships.Ship_Type);

@@ -307,6 +307,28 @@ package body Concorde.Systems is
       return System.Production;
    end Production;
 
+   -----------------------
+   -- Remove_Dead_Ships --
+   -----------------------
+
+   procedure Remove_Dead_Ships
+     (System : in out Root_Star_System_Type'Class)
+   is
+      Found    : Boolean := False;
+      New_List : Concorde.Ships.Lists.List;
+   begin
+      for Ship of System.Ships loop
+         if Ship.Alive then
+            New_List.Append (Ship);
+         else
+            Found := True;
+         end if;
+      end loop;
+      if Found then
+         System.Ships := New_List;
+      end if;
+   end Remove_Dead_Ships;
+
    -----------------
    -- Remove_Ship --
    -----------------
