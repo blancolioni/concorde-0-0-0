@@ -200,6 +200,15 @@ package body Concorde.Options is
    end Randomise;
 
    ------------------------
+   -- Show_Battle_Screen --
+   ------------------------
+
+   function Show_Battle_Screen return Boolean is
+   begin
+      return Boolean_Value ("show-battle-screen");
+   end Show_Battle_Screen;
+
+   ------------------------
    -- Show_Capital_Names --
    ------------------------
 

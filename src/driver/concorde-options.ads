@@ -10,6 +10,7 @@ package Concorde.Options is
    function Number_Of_Systems return Positive;
    function Number_Of_Updates return Natural;
    function Randomise return Boolean;
+   function Show_Battle_Screen return Boolean;
    function Show_Capital_Names return Boolean;
    function Show_System_Names return Boolean;
 
