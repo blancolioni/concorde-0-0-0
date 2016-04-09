@@ -14,7 +14,8 @@ package body Concorde.Galaxy.Locking is
 
    procedure Init_Locking is
    begin
-      System_Locks := new Array_Of_Locks (1 .. Concorde.Systems.Db.Count);
+      System_Locks :=
+        new Array_Of_Locks (1 .. Concorde.Systems.Db.Active_Count);
    end Init_Locking;
 
    -----------------
