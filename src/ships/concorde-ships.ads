@@ -59,6 +59,10 @@ package Concorde.Ships is
      (Target : in out Root_Ship_Type'Class;
       Damage : Natural);
 
+   procedure Repair
+     (Ship   : in out Root_Ship_Type'Class;
+      Points : Positive);
+
    function Acceleration
      (Ship : Root_Ship_Type'Class)
       return Non_Negative_Real

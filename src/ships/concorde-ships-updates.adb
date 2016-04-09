@@ -11,6 +11,7 @@ with Concorde.Empires.Logging;
 
 with Concorde.Empires.Db;
 with Concorde.Ships.Db;
+with Concorde.Systems.Db;
 
 package body Concorde.Ships.Updates is
 
@@ -31,6 +32,13 @@ package body Concorde.Ships.Updates is
       procedure Add_Dead_Ship
         (Ship : Root_Ship_Type'Class);
 
+      procedure Remove_Dead_Ships
+        (System : in out Concorde.Systems.Root_Star_System_Type'Class);
+
+      -------------------
+      -- Add_Dead_Ship --
+      -------------------
+
       procedure Add_Dead_Ship
         (Ship : Root_Ship_Type'Class)
       is
@@ -43,7 +51,21 @@ package body Concorde.Ships.Updates is
          end if;
       end Add_Dead_Ship;
 
+      -----------------------
+      -- Remove_Dead_Ships --
+      -----------------------
+
+      procedure Remove_Dead_Ships
+        (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+      is
+      begin
+         System.Remove_Dead_Ships;
+      end Remove_Dead_Ships;
+
    begin
+
+      Concorde.Systems.Db.Iterate (Remove_Dead_Ships'Access);
+
       Concorde.Ships.Db.Scan (Add_Dead_Ship'Access);
 
       for Reference of List loop
@@ -150,10 +172,6 @@ package body Concorde.Ships.Updates is
             & ")");
 
          Concorde.Galaxy.Ships.Move_Ship (Ship);
---        elsif Ship.HP < Ship.Max_HP
---          and then Ship.Owner.Available_Ship_Capacity >= 0
---        then
---           Ship.HP := Ship.HP + 1;
       end if;
    end Update_Ship;
 

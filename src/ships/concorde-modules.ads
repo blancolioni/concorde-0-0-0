@@ -36,6 +36,10 @@ package Concorde.Modules is
    procedure Hit
      (Module : in out Root_Module_Type'Class);
 
+   procedure Repair
+     (Module : in out Root_Module_Type'Class;
+      Points : in out Natural);
+
    function Exploding
      (Module : Root_Module_Type'Class)
       return Boolean;

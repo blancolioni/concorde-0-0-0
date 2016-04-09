@@ -10,6 +10,8 @@ with Concorde.Modules.Db;
 with Concorde.Ships.Db;
 with Concorde.Systems.Db;
 
+with Concorde.Empires.Logging;
+
 package body Concorde.Ships is
 
    procedure Apply_Hit

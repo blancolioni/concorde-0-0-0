@@ -149,10 +149,6 @@ package body Concorde.Modules is
    begin
       if Module.Hits < Module.Max_Hits then
          Module.Hits := Module.Hits + 1;
---           Ada.Text_IO.Put_Line (Module.Name & " damage"
---                                 & Module.Hits'Img
---                                 & " /"
---                                 & Natural'Image (Module.Max_Hits));
       end if;
    end Hit;
 
@@ -252,6 +248,30 @@ package body Concorde.Modules is
    begin
       return Db.Get_Database;
    end Object_Database;
+
+   ------------
+   -- Repair --
+   ------------
+
+   procedure Repair
+     (Module : in out Root_Module_Type'Class;
+      Points : in out Natural)
+   is
+      Max : constant Natural := Module.Hits;
+   begin
+      if Points = 0 then
+         Module.Hits := Module.Hits - Natural'Min (5, Module.Hits);
+      elsif Points * 10 <= Max then
+         Module.Hits := Module.Hits - Points * 10;
+         Points := 0;
+      else
+         Points := Points - Module.Hits / 10 + 1;
+         Module.Hits := 0;
+      end if;
+      if Module.Hits > 0 then
+         Module.Hits := Module.Hits - 1;
+      end if;
+   end Repair;
 
    ----------
    -- Size --
