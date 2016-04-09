@@ -6,7 +6,7 @@ system_count = 400
 average_connections = 4
 detailed_battle_logging = no
 empire_logging = yes
-minimum_battle_size = 10
+minimum_battle_size = 6
 
 console = no
 update_count = 500

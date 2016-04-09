@@ -9,11 +9,15 @@ with Concorde.Empires.Db;
 with Concorde.Modules.Db;
 with Concorde.Systems.Db;
 
+with Concorde.Options;
+
 package body Concorde.Ships.Battles is
 
    Arena_Radius    : constant := 1.0E6;
    Planet_Radius   : constant := 1.0E3;
    Ship_Separation : constant := 100.0;
+
+   Minimum_Battle_Size : Natural := 0;
 
    type Ship_Team is
       record
@@ -26,6 +30,10 @@ package body Concorde.Ships.Battles is
    package Team_Vectors is
      new Ada.Containers.Vectors (Positive, Ship_Team);
 
+   ------------------
+   -- Create_Arena --
+   ------------------
+
    function Create_Arena
      (System : in out Concorde.Systems.Root_Star_System_Type'Class;
       Ships  : Concorde.Ships.Lists.List)
@@ -35,7 +43,7 @@ package body Concorde.Ships.Battles is
       Teams         : Team_Vectors.Vector;
       Min_Team_Size : Natural := Natural'Last;
 
-      Arena         : constant Combat.Ship_Combat.Space_Combat_Arena :=
+      Arena         : Combat.Ship_Combat.Space_Combat_Arena :=
                         Concorde.Combat.Ship_Combat.New_Arena
                           (Name          => System.Name,
                            Radius        => Arena_Radius,
@@ -43,6 +51,10 @@ package body Concorde.Ships.Battles is
                            Planet_Y      => 0.0,
                            Planet_Radius => Planet_Radius);
    begin
+
+      if Minimum_Battle_Size = 0 then
+         Minimum_Battle_Size := Concorde.Options.Minimum_Size_For_Battle;
+      end if;
 
       for Ship of Ships loop
          declare
@@ -161,7 +173,13 @@ package body Concorde.Ships.Battles is
          end loop;
       end loop;
 
-      return Arena;
+      if Min_Team_Size < Minimum_Battle_Size then
+         Arena.Execute;
+         Concorde.Combat.Ship_Combat.Close_Arena (Arena);
+         return null;
+      else
+         return Arena;
+      end if;
 
    end Create_Arena;
 
