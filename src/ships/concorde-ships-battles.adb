@@ -1,4 +1,5 @@
 with Ada.Numerics;
+with Ada.Strings.Unbounded;
 
 with Concorde.Empires;
 with Concorde.Empires.Logging;
@@ -123,27 +124,41 @@ package body Concorde.Ships.Battles is
 
       System.Battle (Min_Team_Size);
 
-      for Team of Teams loop
-         if Min_Team_Size > 5 then
-            Concorde.Empires.Logging.Log
-              (Empire  => Team.Empire,
-               Message =>
-                 "The Battle of " & System.Name
-               & (if System.Owned
-                 then ", owned by " & System.Owner.Name
-                 else ", disputed system"));
-         else
-            Concorde.Empires.Logging.Log
-              (Empire  => Team.Empire,
-               Message => "Skirmish at " & System.Name);
-         end if;
-      end loop;
+      declare
+         use Ada.Strings.Unbounded;
+         Ts : Unbounded_String;
+      begin
+         for Team of Teams loop
+            Ts := Ts & " " & Team.Empire.Name;
+         end loop;
+
+         for Team of Teams loop
+            if Min_Team_Size > 5 then
+               Concorde.Empires.Logging.Log
+                 (Empire  => Team.Empire,
+                  Message =>
+                    "The Battle of " & System.Name
+                  & (if System.Owned
+                    then ", owned by " & System.Owner.Name
+                    else ", disputed system")
+                  & " involving" & To_String (Ts));
+            else
+               Concorde.Empires.Logging.Log
+                 (Empire  => Team.Empire,
+                  Message => "Skirmish at " & System.Name & " involving"
+                  & To_String (Ts));
+            end if;
+         end loop;
+      end;
 
       for Team of Teams loop
-         Concorde.Empires.Logging.Log
-           (Team.Empire,
-            "fleet size:"
-            & Natural'Image (Team.Count));
+         for Log_Team of Teams loop
+            Concorde.Empires.Logging.Log
+              (Log_Team.Empire,
+               Team.Empire.Name
+               & " fleet size:"
+               & Natural'Image (Team.Count));
+         end loop;
       end loop;
 
       return Arena;
