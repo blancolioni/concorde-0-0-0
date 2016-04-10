@@ -205,7 +205,7 @@ package body Concorde.Options is
 
    function Show_Battle_Screen return Boolean is
    begin
-      return Boolean_Value ("show-battle-screen");
+      return Boolean_Value ("battle-screen");
    end Show_Battle_Screen;
 
    ------------------------

@@ -14,5 +14,5 @@ update_count = 500
 show_capital_names = yes
 show_system_names = no
 
-check_invariants = no
-show_battle_screen = yes
+check_invariants = yes
+battle_screen = yes
