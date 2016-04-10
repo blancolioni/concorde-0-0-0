@@ -796,27 +796,30 @@ package body Concorde.Combat.Ship_Combat is
             end if;
          end;
       end if;
+
       Ship.Ship.Update_Power;
 
-      declare
-         Ws : constant Concorde.Ships.Array_Of_Mounted_Modules :=
-                Ship.Ship.Get_Weapon_Mounts;
-      begin
-         for W of Ws loop
-            declare
-               Weapon : constant Concorde.Modules.Module_Type :=
-                          Ship.Ship.Get_Module (W);
-               Charge : constant Unit_Real := Weapon.Charge;
-            begin
-               if Weapon.Effectiveness > 0.5
-                 and then Charge > 0.5
-                 and then Concorde.Random.Unit_Random < Charge * 2.0 - 1.0
-               then
-                  Model.Fire_Weapon (Ship, Weapon);
-               end if;
-            end;
-         end loop;
-      end;
+      if Ship.Target /= 0 then
+         declare
+            Ws : constant Concorde.Ships.Array_Of_Mounted_Modules :=
+                   Ship.Ship.Get_Weapon_Mounts;
+         begin
+            for W of Ws loop
+               declare
+                  Weapon : constant Concorde.Modules.Module_Type :=
+                             Ship.Ship.Get_Module (W);
+                  Charge : constant Unit_Real := Weapon.Charge;
+               begin
+                  if Weapon.Effectiveness > 0.5
+                    and then Charge > 0.5
+                    and then Concorde.Random.Unit_Random < Charge * 2.0 - 1.0
+                  then
+                     Model.Fire_Weapon (Ship, Weapon);
+                  end if;
+               end;
+            end loop;
+         end;
+      end if;
    end Update_Ship;
 
 end Concorde.Combat.Ship_Combat;
