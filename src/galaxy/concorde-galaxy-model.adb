@@ -52,7 +52,7 @@ package body Concorde.Galaxy.Model is
       Col   : Positive)
       return String;
 
-   subtype Battle_Column is Integer range 1 .. 6;
+   subtype Battle_Column is Integer range 1 .. 5;
 
    type Battle_Table is
      new Lui.Tables.Root_Model_Table with null record;
@@ -66,8 +66,7 @@ package body Concorde.Galaxy.Model is
            when 2 => "Empire 1",
            when 3 => "Fleet 1",
            when 4 => "Empire 2",
-           when 5 => "Fleet 2",
-           when 6 => "Winner"));
+           when 5 => "Fleet 2"));
 
    overriding function Cell_Text
      (Table : Battle_Table;
@@ -225,12 +224,6 @@ package body Concorde.Galaxy.Model is
          when 5 =>
             return Lui.Approximate_Image
               (Arena.Fleet_Size (Arena.Empires (2)));
-         when 6 =>
-            if Arena.Done then
-               return Arena.Winner.Name;
-            else
-               return "-";
-            end if;
       end case;
    end Cell_Text;
 
