@@ -27,7 +27,11 @@ package body Concorde.Empires.Reports is
          Set_Col (40);
          Put (Lui.Approximate_Image (Empire.Built_Ships));
          Set_Col (48);
+         Put (Lui.Approximate_Image (Empire.Captured_Ships));
+         Set_Col (56);
          Put (Lui.Approximate_Image (Empire.Lost_Ships));
+         Set_Col (64);
+         Put (Lui.Approximate_Image (Empire.Destroyed_Ships));
          New_Line;
       end Report;
 
@@ -40,7 +44,11 @@ package body Concorde.Empires.Reports is
       Set_Col (40);
       Put ("Built");
       Set_Col (48);
+      Put ("Captured");
+      Set_Col (56);
       Put ("Lost");
+      Set_Col (64);
+      Put ("Destroyed");
       New_Line;
 
       Db.Scan (Report'Access);

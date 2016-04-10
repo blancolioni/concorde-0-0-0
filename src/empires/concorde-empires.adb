@@ -146,6 +146,23 @@ package body Concorde.Empires is
       R := R + Change;
    end Change_Required;
 
+   ------------------
+   -- Change_Ships --
+   ------------------
+
+   procedure Change_Ships
+     (Empire : in out Root_Empire_Type'Class;
+      Change : Integer)
+   is
+   begin
+      Empire.Current_Ships := Empire.Current_Ships + Change;
+      if Change < 0 then
+         Empire.Lost_Ships := Empire.Lost_Ships - Change;
+      else
+         Empire.Captured_Ships := Empire.Captured_Ships + Change;
+      end if;
+   end Change_Ships;
+
    -----------------
    -- Check_Cache --
    -----------------
@@ -728,7 +745,7 @@ package body Concorde.Empires is
    is
    begin
       Empire.Current_Ships := Empire.Current_Ships - 1;
-      Empire.Lost_Ships := Empire.Lost_Ships + 1;
+      Empire.Destroyed_Ships := Empire.Destroyed_Ships + 1;
    end Remove_Ship;
 
    --------------

@@ -94,6 +94,10 @@ package Concorde.Empires is
    procedure Remove_Ship
      (Empire : in out Root_Empire_Type'Class);
 
+   procedure Change_Ships
+     (Empire : in out Root_Empire_Type'Class;
+      Change : Integer);
+
    function Current_Systems
      (Empire : Root_Empire_Type'Class)
       return Natural;
@@ -350,7 +354,9 @@ private
          Current_Ships   : Natural := 0;
          Current_Systems : Natural := 0;
          Built_Ships     : Natural := 0;
+         Captured_Ships  : Natural := 0;
          Lost_Ships      : Natural := 0;
+         Destroyed_Ships : Natural := 0;
          Capital         : Concorde.Systems.Star_System_Type;
          Battles         : List_Of_Systems.List;
       end record;
