@@ -80,8 +80,6 @@ begin
             Process.Tick;
          end loop;
          Process.Finish;
-         Concorde.Empires.Reports.Report_Empires;
-
       end;
 
    else
@@ -93,6 +91,8 @@ begin
       Concorde.Updates.Stop_Updates;
 
    end if;
+
+   Concorde.Empires.Reports.Report_Empires;
 
    if Concorde.Options.Enable_Empire_Logging then
       Concorde.Empires.Logging.Stop_Logging;
