@@ -18,6 +18,9 @@ package body Concorde.Ships is
      (Ship   : in out Root_Ship_Type'Class;
       Damage : Natural);
 
+   procedure Calculate_Damage
+     (Ship : in out Root_Ship_Type'Class);
+
    -----------
    -- Alive --
    -----------
@@ -79,11 +82,9 @@ package body Concorde.Ships is
                Update'Access);
          end;
 
-         declare
-            Ship_Damage : constant Unit_Real := Ship.Damage;
-         begin
-            Ship.Alive := Ship_Damage < 0.95;
-         end;
+         Calculate_Damage (Ship);
+         Ship.Alive := Ship.Current_Damage < 0.95;
+
       end loop;
 
       if Was_Alive and then not Ship.Alive then
@@ -108,6 +109,32 @@ package body Concorde.Ships is
          end;
       end if;
    end Apply_Hit;
+
+   ----------------------
+   -- Calculate_Damage --
+   ----------------------
+
+   procedure Calculate_Damage
+     (Ship : in out Root_Ship_Type'Class)
+   is
+      use Concorde.Components;
+      Total : Non_Negative_Real := 0.0;
+      Count : Non_Negative_Real := 0.0;
+   begin
+      for Module of Ship.Structure loop
+         if Module.Module.Component.Class = Strut then
+            null;
+         else
+            Total := Total + Module.Module.Damage;
+            Count := Count + 1.0;
+         end if;
+      end loop;
+      if Count > 0.0 then
+         Ship.Current_Damage := Total / Count;
+      else
+         Ship.Current_Damage := 0.0;
+      end if;
+   end Calculate_Damage;
 
    -----------------------
    -- Clear_Destination --
@@ -158,23 +185,8 @@ package body Concorde.Ships is
      (Ship : Root_Ship_Type'Class)
       return Unit_Real
    is
-      use Concorde.Components;
-      Total : Non_Negative_Real := 0.0;
-      Count : Non_Negative_Real := 0.0;
    begin
-      for Module of Ship.Structure loop
-         if Module.Module.Component.Class = Strut then
-            null;
-         else
-            Total := Total + Module.Module.Damage;
-            Count := Count + 1.0;
-         end if;
-      end loop;
-      if Count > 0.0 then
-         return Total / Count;
-      else
-         return 1.0;
-      end if;
+      return Ship.Current_Damage;
    end Damage;
 
    -----------------
@@ -315,9 +327,12 @@ package body Concorde.Ships is
      (Ship : Root_Ship_Type'Class)
       return Boolean
    is
+      use Concorde.Components;
    begin
       for Mount of Ship.Structure loop
-         if Mount.Module.Effectiveness > 0.0 then
+         if Mount.Module.Effectiveness > 0.0
+           and then Mount.Module.Component.Class in Weapon_Class
+         then
             return True;
          end if;
       end loop;
@@ -412,6 +427,7 @@ package body Concorde.Ships is
             Updater => Update'Access);
          exit when Remaining = 0;
       end loop;
+      Calculate_Damage (Ship);
    end Repair;
 
    ---------------------
@@ -426,6 +442,19 @@ package body Concorde.Ships is
    begin
       Ship.Dest_Reference := System.Reference;
    end Set_Destination;
+
+   ---------------
+   -- Set_Owner --
+   ---------------
+
+   procedure Set_Owner
+     (Ship      : in out Root_Ship_Type'Class;
+      New_Owner : not null access constant
+        Concorde.Empires.Root_Empire_Type'Class)
+   is
+   begin
+      Ship.Owner := New_Owner;
+   end Set_Owner;
 
    ----------------
    -- Set_System --

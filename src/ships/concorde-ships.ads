@@ -43,6 +43,11 @@ package Concorde.Ships is
       System : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class);
 
+   procedure Set_Owner
+     (Ship   : in out Root_Ship_Type'Class;
+      New_Owner : not null access constant
+        Concorde.Empires.Root_Empire_Type'Class);
+
    procedure Set_Destination
      (Ship   : in out Root_Ship_Type'Class;
       System : not null access constant
@@ -53,7 +58,8 @@ package Concorde.Ships is
 
    function Damage
      (Ship : Root_Ship_Type'Class)
-      return Unit_Real;
+      return Unit_Real
+     with Inline;
 
    procedure Hit
      (Target : in out Root_Ship_Type'Class;
@@ -169,6 +175,7 @@ private
          Structure             : Module_Vectors.Vector;
          Size                  : Size_Type;
          Empty_Mass            : Natural;
+         Current_Damage        : Unit_Real := 0.0;
       end record;
 
    package Ship_Vectors is
