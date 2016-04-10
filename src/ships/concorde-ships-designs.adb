@@ -1,5 +1,4 @@
 with Ada.Strings.Unbounded;
-with Ada.Text_IO;
 
 with Tropos.Reader;
 
@@ -46,8 +45,6 @@ package body Concorde.Ships.Designs is
    is
       Design : Ship_Design;
    begin
-      Ada.Text_IO.Put_Line ("Configuring: " & Config.Config_Name);
-
       for Cfg of Config loop
          declare
             Component_Name : constant String :=
@@ -68,7 +65,6 @@ package body Concorde.Ships.Designs is
             Orientation    : Module_Orientation :=
                                (Axis => Z_Axis, Forward => True);
          begin
-            Ada.Text_IO.Put_Line (" -- " & Module_Name);
             if Cfg.Contains ("orientation") then
                declare
                   Orn : constant Tropos.Configuration :=
