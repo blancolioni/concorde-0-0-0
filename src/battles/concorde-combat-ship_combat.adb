@@ -8,8 +8,10 @@ with Lui.Colours;
 with Concorde.Elementary_Functions;
 with Concorde.Random;
 
+with Concorde.Empires.Logging;
 with Concorde.Empires.Relations;
 
+with Concorde.Empires.Db;
 with Concorde.Modules.Db;
 with Concorde.Ships.Db;
 
@@ -64,6 +66,164 @@ package body Concorde.Combat.Ship_Combat is
       end if;
 
    end Add_Combatant;
+
+   --------------------
+   -- Check_Finished --
+   --------------------
+
+   procedure Check_Finished
+     (Arena : in out Root_Space_Combat_Arena'Class)
+   is
+      Active_Team : Boolean := False;
+      Winner      : Concorde.Empires.Empire_Type;
+   begin
+      if Arena.Finished then
+         return;
+      end if;
+
+      if Arena.Turns >= Max_Turns then
+         Arena.Finished := True;
+         Arena.Winner := null;
+         for Team of Arena.Teams loop
+            Concorde.Empires.Logging.Log
+              (Team.Leader,
+               "The battle continues");
+         end loop;
+
+         return;
+      end if;
+
+      for Team of Arena.Teams loop
+         for Ship_Index of Team.Ships loop
+            declare
+               use Concorde.Ships;
+               Ship           : constant Concorde.Ships.Ship_Type :=
+                                  Arena.Ships (Ship_Index).Ship;
+               Damaged_Mounts : constant Array_Of_Mounted_Modules :=
+                                  Ship.Get_Damaged_Mounts;
+            begin
+               for Mount of Damaged_Mounts loop
+                  declare
+                     Module : constant Concorde.Modules.Module_Type :=
+                                Ship.Get_Module (Mount);
+                  begin
+                     if Module.Exploding then
+                        if Module.Explosion_Timer > -10 then
+                           Arena.Finished := False;
+                           return;
+                        end if;
+                     end if;
+                  end;
+               end loop;
+            end;
+         end loop;
+      end loop;
+
+      for Team of Arena.Teams loop
+         for Ship_Index of Team.Ships loop
+            if Arena.Ships (Ship_Index).Ship.Alive
+              and then Arena.Ships (Ship_Index).Ship.Has_Effective_Weapon
+            then
+               if Active_Team then
+                  Arena.Finished := False;
+                  return;
+               else
+                  Active_Team := True;
+                  Winner := Team.Leader;
+                  exit;
+               end if;
+            end if;
+         end loop;
+      end loop;
+
+      Arena.Finished := True;
+      Arena.Winner := Winner;
+
+      if not Active_Team then
+         for Team of Arena.Teams loop
+            Concorde.Empires.Logging.Log
+              (Team.Leader,
+               "Mutual annihilation");
+         end loop;
+         return;
+      end if;
+
+      for Team of Arena.Teams loop
+         Concorde.Empires.Logging.Log
+           (Team.Leader,
+            "Victory to " & Arena.Winner.Name);
+      end loop;
+
+      declare
+         use type Concorde.Empires.Empire_Type;
+
+         Captured_Ships : Natural := 0;
+
+         procedure Update_Owner
+           (Ship : in out Concorde.Ships.Root_Ship_Type'Class);
+
+         procedure Update_Ship_Count
+           (Empire : in out Concorde.Empires.Root_Empire_Type'Class;
+            Change : Integer);
+
+         procedure Update_Empire is
+           new Concorde.Empires.Db.Generic_Update (Integer);
+
+         ------------------
+         -- Update_Owner --
+         ------------------
+
+         procedure Update_Owner
+           (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
+         is
+         begin
+            Concorde.Empires.Logging.Log
+              (Ship.Owner,
+               Ship.Short_Description & " captured by " & Winner.Name);
+            Concorde.Empires.Logging.Log
+              (Winner,
+               Ship.Short_Description & " captured from "
+               & Ship.Owner.Name);
+            Ship.Set_Owner (Winner);
+         end Update_Owner;
+
+         -----------------------
+         -- Update_Ship_Count --
+         -----------------------
+
+         procedure Update_Ship_Count
+           (Empire : in out Concorde.Empires.Root_Empire_Type'Class;
+            Change : Integer)
+         is
+         begin
+            Empire.Change_Ships (Change);
+         end Update_Ship_Count;
+
+      begin
+         if Winner /= null then
+            for Team of Arena.Teams loop
+               if Team.Leader /= Winner then
+                  Captured_Ships := 0;
+                  for Ship_Index of Team.Ships loop
+                     if Arena.Ships (Ship_Index).Ship.Alive then
+                        Concorde.Ships.Db.Update
+                          (Arena.Ships (Ship_Index).Ship.Reference,
+                           Update_Owner'Access);
+                        Captured_Ships := Captured_Ships + 1;
+                     end if;
+                  end loop;
+                  if Captured_Ships > 0 then
+                     Update_Empire (Winner.Reference, Captured_Ships,
+                                    Update_Ship_Count'Access);
+                     Update_Empire (Team.Leader.Reference, -Captured_Ships,
+                                    Update_Ship_Count'Access);
+                  end if;
+               end if;
+            end loop;
+         end if;
+      end;
+
+   end Check_Finished;
 
    -------------------
    -- Choose_Target --
@@ -180,39 +340,6 @@ package body Concorde.Combat.Ship_Combat is
             end case;
       end case;
    end Commit_Event;
-
-   ----------
-   -- Done --
-   ----------
-
-   overriding function Done
-     (Arena : in out Root_Space_Combat_Arena)
-      return Boolean
-   is
-      Active_Team : Boolean := False;
-      Winner      : Concorde.Empires.Empire_Type;
-   begin
-      if Arena.Turns >= Max_Turns then
-         return True;
-      end if;
-
-      for Team of Arena.Teams loop
-         for Ship_Index of Team.Ships loop
-            if Arena.Ships (Ship_Index).Ship.Alive then
-               if Active_Team then
-                  return False;
-               else
-                  Active_Team := True;
-                  Winner := Team.Leader;
-                  exit;
-               end if;
-            end if;
-         end loop;
-      end loop;
-
-      Arena.Winner := Winner;
-      return True;
-   end Done;
 
    -------------
    -- Empires --
@@ -341,6 +468,7 @@ package body Concorde.Combat.Ship_Combat is
                    Teams         => Team_Vectors.Empty_Vector,
                    Ships         => Combat_Ship_Vectors.Empty_Vector,
                    Turns         => 0,
+                   Finished      => False,
                    Winner        => null,
                    Events        => List_Of_Combat_Events.Empty_List);
    begin
@@ -443,15 +571,22 @@ package body Concorde.Combat.Ship_Combat is
                   begin
                      if Module.Exploding then
                         if Module.Explosion_Timer in -9 .. 0 then
-                           Renderer.Draw_Circle
-                             (X          => X,
-                              Y          => Y,
-                              Radius     =>
-                                (10 + Module.Explosion_Timer)
-                              * Module.Explosion_Size / 5,
-                              Colour     => (0.89, 0.34, 0.13, 0.7),
-                              Filled     => True,
-                              Line_Width => 1);
+                           declare
+                              Radius : constant Natural :=
+                                         (8 - abs (Module.Explosion_Timer + 5))
+                                         * Module.Explosion_Size / 10;
+                              Alpha  : constant Unit_Real :=
+                                         Real (10 + Module.Explosion_Timer)
+                                         / 10.0 * 0.5 + 0.2;
+                           begin
+                              Renderer.Draw_Circle
+                                (X          => X,
+                                 Y          => Y,
+                                 Radius     => Radius,
+                                 Colour     => (0.89, 0.34, 0.13, Alpha),
+                                 Filled     => True,
+                                 Line_Width => 1);
+                           end;
                         end if;
                      end if;
                   end;
@@ -611,6 +746,8 @@ package body Concorde.Combat.Ship_Combat is
 
          Arena.Commit_Event (Event);
       end loop;
+
+      Arena.Check_Finished;
 
    end Tick;
 

@@ -107,10 +107,6 @@ private
    overriding procedure Tick
      (Arena : in out Root_Space_Combat_Arena);
 
-   overriding function Done
-     (Arena : in out Root_Space_Combat_Arena)
-      return Boolean;
-
    overriding function Handle_Update
      (Model    : in out Root_Space_Combat_Arena)
       return Boolean;
@@ -127,6 +123,9 @@ private
    overriding procedure Select_XY
      (Model : in out Root_Space_Combat_Arena;
       X, Y  : Natural);
+
+   procedure Check_Finished
+     (Arena : in out Root_Space_Combat_Arena'Class);
 
    function Ship_Outline
      (Model : Root_Space_Combat_Arena;

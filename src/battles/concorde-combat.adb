@@ -1,5 +1,14 @@
 package body Concorde.Combat is
 
+   ----------
+   -- Done --
+   ----------
+
+   function Done (Arena : in out Root_Combat_Arena'Class) return Boolean is
+   begin
+      return Arena.Finished;
+   end Done;
+
    -------------
    -- Execute --
    -------------

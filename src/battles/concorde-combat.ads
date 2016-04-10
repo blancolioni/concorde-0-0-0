@@ -12,8 +12,7 @@ package Concorde.Combat is
    procedure Tick (Arena : in out Root_Combat_Arena)
    is abstract;
 
-   function Done (Arena : in out Root_Combat_Arena) return Boolean
-                  is abstract;
+   function Done (Arena : in out Root_Combat_Arena'Class) return Boolean;
 
    function Winner
      (Arena : Root_Combat_Arena)
@@ -24,7 +23,8 @@ private
    type Root_Combat_Arena is
      abstract new Lui.Models.Root_Object_Model with
       record
-         Winner : Concorde.Empires.Empire_Type;
+         Finished : Boolean := False;
+         Winner   : Concorde.Empires.Empire_Type;
       end record;
 
 end Concorde.Combat;
