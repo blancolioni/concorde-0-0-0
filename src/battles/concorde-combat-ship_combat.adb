@@ -232,12 +232,20 @@ package body Concorde.Combat.Ship_Combat is
                if Team.Leader /= Winner then
                   Captured_Ships := 0;
                   for Ship_Index of Team.Ships loop
-                     if Arena.Ships (Ship_Index).Ship.Alive then
-                        Concorde.Ships.Db.Update
-                          (Arena.Ships (Ship_Index).Ship.Reference,
-                           Update_Owner'Access);
-                        Captured_Ships := Captured_Ships + 1;
-                     end if;
+                     declare
+                        use Concorde.Ships;
+                        Ship : constant Ship_Type :=
+                                 Arena.Ships (Ship_Index).Ship;
+                     begin
+                        if Ship.Alive
+                          and then not Ship.Has_Effective_Engine
+                        then
+                           Concorde.Ships.Db.Update
+                             (Ship.Reference,
+                              Update_Owner'Access);
+                           Captured_Ships := Captured_Ships + 1;
+                        end if;
+                     end;
                   end loop;
                   if Captured_Ships > 0 then
                      Update_Empire (Winner.Reference, Captured_Ships,
