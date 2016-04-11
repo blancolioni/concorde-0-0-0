@@ -642,11 +642,12 @@ package body Concorde.Combat.Ship_Combat is
                end loop;
 
                declare
-                  Colour : Lui.Colours.Colour_Type := Lui.Colours.White;
+                  Base   : constant Unit_Real := 0.1 + Shields * 0.8;
+                  Colour : Lui.Colours.Colour_Type :=
+                             (Base, Base, Base, 1.0);
                begin
-                  Colour.Alpha := (0.4 + Shields * 0.5);
                   if Combat_Ship.Hit then
-                     Colour.Alpha := 1.0;
+                     Colour := (1.0, 1.0, 1.0, 1.0);
                   end if;
                   Renderer.Draw_Ellipse
                     (X          => X,
