@@ -91,6 +91,19 @@ package body Concorde.Modules is
       Module.Stored_Energy := 0.0;
    end Execute;
 
+   -------------
+   -- Execute --
+   -------------
+
+   procedure Execute
+     (Module : in out Root_Module_Type'Class;
+      Charge : Non_Negative_Real)
+   is
+   begin
+      Module.Heat := Module.Heat + Charge;
+      Module.Stored_Energy := Module.Stored_Energy - Charge;
+   end Execute;
+
    ---------------
    -- Exploding --
    ---------------
@@ -144,12 +157,11 @@ package body Concorde.Modules is
    ---------
 
    procedure Hit
-     (Module         : in out Root_Module_Type'Class)
+     (Module : in out Root_Module_Type'Class;
+      Damage : Positive)
    is
    begin
-      if Module.Hits < Module.Max_Hits then
-         Module.Hits := Module.Hits + 1;
-      end if;
+      Module.Hits := Natural'Min (Module.Hits + Damage, Module.Max_Hits);
    end Hit;
 
    -------------------

@@ -29,6 +29,19 @@ package body Concorde.Combat.Ship_Combat is
    is (Concorde.Elementary_Functions.Sqrt
        ((X1 - X2) ** 2 + (Y1 - Y2) ** 2));
 
+   function Make_Combat_Ship
+     (Ship   : Concorde.Ships.Ship_Type;
+      Index  : Positive;
+      X, Y   : Real;
+      Facing : Radians)
+      return Ship_Record
+   is ((Ship   => Ship,
+        Index   => Index,
+        X       => X,
+        Y       => Y,
+        Facing  => Facing,
+        Target  => 0));
+
    -------------------
    -- Add_Combatant --
    -------------------
@@ -45,8 +58,12 @@ package body Concorde.Combat.Ship_Combat is
       New_Team : Boolean := True;
    begin
       Arena.Ships.Append
-        ((Combatant, Arena.Ships.Last_Index + 1,
-         X, Y, Facing, 0));
+        (Make_Combat_Ship
+           (Ship   => Combatant,
+            Index  => Arena.Ships.Last_Index + 1,
+            X      => X,
+            Y      => Y,
+            Facing => Facing));
 
       for I in 1 .. Arena.Teams.Last_Index loop
          if Arena.Teams (I).Leader = Empire then
@@ -537,6 +554,8 @@ package body Concorde.Combat.Ship_Combat is
             W        : constant Natural :=
                          Natural ((1.0 - Combat_Ship.Ship.Damage)
                                   * Real (Health_Bar_Width));
+            Shields  : constant Unit_Real := Combat_Ship.Ship.Shields;
+            Shield_R : Natural := 0;
          begin
             if not Combat_Ship.Ship.Alive then
                Colour.Alpha := 0.3;
@@ -545,7 +564,33 @@ package body Concorde.Combat.Ship_Combat is
               (Vertices => Outline,
                Colour   => Colour,
                Filled   => True);
+
             Model.Ship_Centre (Combat_Ship, X, Y);
+
+            if Shields > 0.0 then
+               for P of Outline loop
+                  Shield_R :=
+                    Natural'Max
+                      (Natural'Max
+                         (abs (P.X - X),
+                          abs (P.Y - Y)),
+                       Shield_R);
+               end loop;
+
+               declare
+                  Colour : Lui.Colours.Colour_Type := Lui.Colours.White;
+               begin
+                  Colour.Alpha := Shields;
+                  Renderer.Draw_Circle
+                    (X          => X,
+                     Y          => Y,
+                     Radius     => Shield_R + 2,
+                     Colour     => Colour,
+                     Filled     => False,
+                     Line_Width => 1);
+               end;
+            end if;
+
             if Combat_Ship.Facing in -Pi / 2.0 .. Pi / 2.0 then
                Health_X := X - Health_Bar_Width * 2;
             else

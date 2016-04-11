@@ -34,7 +34,8 @@ package Concorde.Modules is
       return Unit_Real;
 
    procedure Hit
-     (Module : in out Root_Module_Type'Class);
+     (Module : in out Root_Module_Type'Class;
+      Damage : Positive);
 
    procedure Repair
      (Module : in out Root_Module_Type'Class;
@@ -70,6 +71,11 @@ package Concorde.Modules is
    procedure Execute
      (Module : in out Root_Module_Type'Class);
 
+   procedure Execute
+     (Module : in out Root_Module_Type'Class;
+      Charge : Non_Negative_Real)
+     with Pre => Charge <= Module.Stored_Energy;
+
    procedure Update_Damage
      (Module : in out Root_Module_Type'Class);
 
@@ -83,6 +89,12 @@ package Concorde.Modules is
 
    procedure Initial_State
      (Module : in out Root_Module_Type'Class);
+
+   function Is_Shield
+     (Module : Root_Module_Type'Class)
+      return Boolean
+   is (Concorde.Components."=" (Module.Component.Class,
+                                Concorde.Components.Shield_Generator));
 
    type Module_Type is access constant Root_Module_Type'Class;
 
