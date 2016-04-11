@@ -50,11 +50,14 @@ private
 
    type Ship_Record is
       record
-         Ship     : Concorde.Ships.Ship_Type;
-         Index    : Positive;
-         X, Y     : Real;
-         Facing   : Radians;
-         Target   : Natural;
+         Ship      : Concorde.Ships.Ship_Type;
+         Index     : Positive;
+         X, Y      : Real;
+         Facing    : Radians;
+         Target    : Natural;
+         Hit       : Boolean;
+         Shield_R1 : Natural;
+         Shield_R2 : Natural;
       end record;
 
    package Combat_Ship_Vectors is
@@ -92,6 +95,24 @@ private
    package List_Of_Combat_Events is
      new Ada.Containers.Doubly_Linked_Lists (Combat_Event);
 
+   type Projectile_Type is (Beam, Kinetic, Missile);
+
+   type Projectile_Record is
+      record
+         Projectile : Projectile_Type;
+         Size       : Positive;
+         X1, Y1     : Real;
+         Distance   : Non_Negative_Real;
+         DX, DY     : Real;
+         Velocity   : Unit_Real;
+         Progress   : Unit_Real;
+         Event      : List_Of_Combat_Events.Cursor;
+         Active     : Boolean;
+      end record;
+
+   package List_Of_Projectiles is
+     new Ada.Containers.Doubly_Linked_Lists (Projectile_Record);
+
    type Root_Space_Combat_Arena is
      new Root_Combat_Arena with
       record
@@ -102,6 +123,7 @@ private
          Ships              : Combat_Ship_Vectors.Vector;
          Turns              : Natural;
          Events             : List_Of_Combat_Events.List;
+         Projectiles        : List_Of_Projectiles.List;
       end record;
 
    overriding procedure Tick
@@ -155,6 +177,10 @@ private
      (Model  : in out Root_Space_Combat_Arena;
       Ship   : in out Ship_Record;
       Module : Concorde.Modules.Module_Type);
+
+   procedure Start_Event
+     (Model    : in out Root_Space_Combat_Arena;
+      Position : List_Of_Combat_Events.Cursor);
 
    procedure Commit_Event
      (Model  : in out Root_Space_Combat_Arena;
