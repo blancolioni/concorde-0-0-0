@@ -1,0 +1,212 @@
+module = {
+  name = main_strut
+  component = strut
+  length = 10
+  width  = 3
+  height = 3
+  left = -1
+  low = -1
+  aft = -5
+  }
+module = {
+  name = "Tank 1"
+  component = tank
+  length = 5
+  width = 1
+  height = 1
+  left = -2
+  low = 0
+  aft = -5
+  }
+
+module = {
+  name = "Tank 2"
+  component = tank
+  length = 5
+  width = 1
+  height = 1
+  left = 2
+  low = 0
+  aft = -5
+  }
+
+module = {
+  name = "Shield"
+  component = basic_shield
+  length = 3
+  width = 1
+  height = 3
+  left = -2
+  low = -1
+  aft = 0
+  }
+
+module = {
+  name = "Power"
+  component = basic_fission_pile
+  length = 3
+  width = 1
+  height = 3
+  left = 2
+  low = -1
+  aft = 0
+  }
+  
+module = {
+  name = "Laser 1"
+  component = basic_laser
+  length = 3
+  width = 1
+  height = 1
+  left = 02
+  low = -1
+  aft = 1
+  }
+
+module = {
+  name = "Laser 2"
+  component = basic_laser
+  length = 3
+  width = 1
+  height = 1
+  left = -2
+  low = -1
+  aft = 1
+  }
+
+module = {
+  name = "Laser 3"
+  component = basic_laser
+  length = 3
+  width = 1
+  height = 1
+  left = 02
+  low = -1
+  aft = 1
+  }
+
+module = {
+  name = "Laser 4"
+  component = basic_laser
+  length = 3
+  width = 1
+  height = 1
+  left = -2
+  low = -1
+  aft = 1
+  }
+
+module = {
+  name = "Engine 1"
+  component = basic_chemical_drive
+  length = 5
+  width = 1
+  height = 1
+  left = -2
+  low = 1
+  aft = -5
+  }
+
+module = {
+  name = "Engine 2"
+  component = basic_chemical_drive
+  length = 5
+  width = 1
+  height = 1
+  left = 2
+  low = 1
+  aft = -5
+  }
+
+module = {
+  name = "Engine 3"
+  component = basic_chemical_drive
+  length = 5
+  width = 1
+  height = 1
+  left = -2
+  low = -1
+  aft = -5
+  }
+
+module = {
+  name = "Engine 4"
+  component = basic_chemical_drive
+  length = 5
+  width = 1
+  height = 1
+  left = 2
+  low = -1
+  aft = -5
+  }
+module = {
+  name = "Thruster 1"
+  component = basic_chemical_thruster
+  length = 1
+  width = 1
+  height = 1
+  left = 2
+  low = 2
+  aft = -5
+  orientation = { 0 -1 0 }
+  }
+
+module = {
+  name = "Thruster 2"
+  component = basic_chemical_thruster
+  length = 1
+  width = 1
+  height = 1
+  left = -2
+  low = 2
+  aft = -5
+  orientation = { 0 -1 0 }
+  }
+
+module = {
+  name = "Thruster 3"
+  component = basic_chemical_thruster
+  length = 1
+  width = 1
+  height = 1
+  left = 2
+  low = -2
+  aft = -5
+  orientation = { 0 1 0 }
+  }
+
+module = {
+  name = "Thruster 4"
+  component = basic_chemical_thruster
+  length = 1
+  width = 1
+  height = 1
+  left = -2
+  low = -2
+  aft = -5
+  orientation = { 0 1 0 }
+  }
+
+module = {
+  name = "Thruster 5"
+  component = basic_chemical_thruster
+  length = 1
+  width = 1
+  height = 1
+  left = 3
+  low = 0
+  aft = -5
+  orientation = { 1 0 0 }
+  }
+
+module = {
+  name = "Thruster 6"
+  component = basic_chemical_thruster
+  length = 1
+  width = 1
+  height = 1
+  left = -3
+  low = 0
+  aft = -5
+  orientation = { -1 0 0 }
+  }

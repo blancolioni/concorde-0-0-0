@@ -1,6 +1,8 @@
 with Concorde.Galaxy;
 with Concorde.Systems;
 
+with Concorde.People.Pops.Configure;
+
 with Concorde.Empires.Db;
 
 package body Concorde.Empires.Create is
@@ -10,10 +12,11 @@ package body Concorde.Empires.Create is
    ----------------
 
    procedure New_Empire
-     (Name    : String;
-      Capital : String;
-      Colour  : Lui.Colours.Colour_Type;
-      AI      : Concorde.AI.AI_Type      := null)
+     (Name                : String;
+      Capital             : String;
+      Colour              : Lui.Colours.Colour_Type;
+      Default_Ship_Design : String;
+      AI                  : Concorde.AI.AI_Type      := null)
    is
 
       Taken : Concorde.Galaxy.Star_System_Set;
@@ -63,6 +66,10 @@ package body Concorde.Empires.Create is
             System.Set_Capacity (System.Capacity * 4.0);
             System.Set_Capital (True);
             System.Set_Name (Capital);
+
+            Concorde.People.Pops.Configure.Create_Colony
+              (System, "initial");
+
          end Choose;
 
          ------------------
@@ -97,6 +104,8 @@ package body Concorde.Empires.Create is
                         Concorde.Galaxy.Find_System
                           (OK_For_Start'Access);
       begin
+         New_Empire.Identifier :=
+           Ada.Strings.Unbounded.To_Unbounded_String (Name);
          New_Empire.Set_Name (Name);
          New_Empire.Focus_List := new List_Of_Focus_Systems.List;
          New_Empire.System_Data :=
@@ -105,6 +114,7 @@ package body Concorde.Empires.Create is
          New_Empire.Capital := Start;
          New_Empire.AI := AI;
          New_Empire.Current_Systems := 1;
+         New_Empire.Default_Ship := new String'(Default_Ship_Design);
          Concorde.Galaxy.Update_System (Start, Choose'Access);
       end Create;
 

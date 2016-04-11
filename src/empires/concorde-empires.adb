@@ -338,6 +338,18 @@ package body Concorde.Empires is
       return Empire.Current_Systems;
    end Current_Systems;
 
+   -------------------------
+   -- Default_Ship_Design --
+   -------------------------
+
+   function Default_Ship_Design
+     (Empire : Root_Empire_Type'Class)
+      return String
+   is
+   begin
+      return Empire.Default_Ship.all;
+   end Default_Ship_Design;
+
    ---------
    -- Get --
    ---------
@@ -846,6 +858,19 @@ package body Concorde.Empires is
    begin
       Empire.System_Data (System.Index).Internal := Internal;
    end Set_Internal;
+
+   --------------
+   -- Set_Name --
+   --------------
+
+   overriding procedure Set_Name
+     (Empire : in out Root_Empire_Type;
+      Name   : String)
+   is
+   begin
+      Empire.Empire_Name :=
+        Ada.Strings.Unbounded.To_Unbounded_String (Name);
+   end Set_Name;
 
    -------------------
    -- Set_Neighbour --

@@ -11,6 +11,18 @@ package body Concorde.People.Groups is
       return Db.Get (Name);
    end Get;
 
+   -------------------------
+   -- Initial_Cash_Factor --
+   -------------------------
+
+   function Initial_Cash_Factor
+     (Group : Root_Pop_Group'Class)
+      return Natural
+   is
+   begin
+      return Group.Initial_Cash;
+   end Initial_Cash_Factor;
+
    ---------------------
    -- Object_Database --
    ---------------------

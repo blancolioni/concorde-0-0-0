@@ -1,6 +1,8 @@
 with WL.Processes;
 with WL.Random.Names;
 
+with Memor;
+
 with Concorde.Paths;
 
 with Concorde.Components.Configure;
@@ -32,6 +34,8 @@ procedure Concorde.Driver is
    Check_Invariants : constant Boolean :=
                         Concorde.Options.Check_Invariants;
 begin
+
+   Memor.Locking (True);
 
    WL.Random.Names.Load_Lexicon
      (Name_Generator,

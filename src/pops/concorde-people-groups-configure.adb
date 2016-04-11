@@ -59,6 +59,7 @@ package body Concorde.People.Groups.Configure is
       procedure Create (Group : in out Root_Pop_Group'Class) is
       begin
          Group.Pop_Group_Id := new String'(Name);
+         Group.Initial_Cash := Config.Get ("initial_cash", 0);
       end Create;
 
    begin

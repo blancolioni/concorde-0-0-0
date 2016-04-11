@@ -43,7 +43,9 @@ package body Concorde.Empires.Configure is
                    (Lui.Colours.Colour_Byte (Red),
                     Lui.Colours.Colour_Byte (Green),
                     Lui.Colours.Colour_Byte (Blue)),
-               AI      => AI);
+               Default_Ship_Design =>
+                 Config.Get ("design", "defender"),
+               AI                  => AI);
          end;
 
          Current := Current + 1;

@@ -1,4 +1,5 @@
 poor = {
+   initial_cash = 10
    socialist = 10
    capitalist = 5
    conservative = 30
@@ -6,9 +7,11 @@ poor = {
 }
 
 middle_class = {
+   initial_cash = 200
 }
 
 rich = {
+   initial_cash = 10000
 }
 
 socialist = {
@@ -21,6 +24,9 @@ farmer = {
 }
 
 worker = {
+}
+
+colonist = {
 }
 
 conservative = {

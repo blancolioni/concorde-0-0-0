@@ -89,7 +89,7 @@ package body Concorde.Systems.Updates is
                            Concorde.Ships.Create.New_Ship
                              (Owner  => System.Owner,
                               System => System,
-                              Design => "defender");
+                              Design => System.Owner.Default_Ship_Design);
                begin
                   System.Ships.Append (Ship);
                end;

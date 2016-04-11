@@ -13,15 +13,17 @@ package body Concorde.Options is
 
    procedure Load_Options;
 
-   function String_Value (Long_Name  : String;
-                          Short_Name : Character;
-                          Default    : String := "")
-                          return String;
+   function String_Value
+     (Long_Name  : String;
+      Short_Name : Character := Character'Val (0);
+      Default    : String := "")
+      return String;
 
-   function Integer_Value (Long_Name  : String;
-                           Short_Name : Character;
-                           Default    : Integer := 0)
-                          return Integer;
+   function Integer_Value
+     (Long_Name  : String;
+      Short_Name : Character := Character'Val (0);
+      Default    : Integer := 0)
+      return Integer;
 
    -------------------------
    -- Average_Connections --
@@ -127,10 +129,11 @@ package body Concorde.Options is
    -- Integer_Value --
    -------------------
 
-   function Integer_Value (Long_Name  : String;
-                           Short_Name : Character;
-                           Default    : Integer := 0)
-                           return Integer
+   function Integer_Value
+     (Long_Name  : String;
+      Short_Name : Character := Character'Val (0);
+      Default    : Integer := 0)
+      return Integer
    is
    begin
       return Integer'Value (String_Value (Long_Name, Short_Name,
@@ -199,6 +202,15 @@ package body Concorde.Options is
       return Boolean_Value ("randomise", 'R');
    end Randomise;
 
+   --------------
+   -- Scenario --
+   --------------
+
+   function Scenario return String is
+   begin
+      return String_Value ("scenario", 'S');
+   end Scenario;
+
    ------------------------
    -- Show_Battle_Screen --
    ------------------------
@@ -230,10 +242,11 @@ package body Concorde.Options is
    -- String_Value --
    ------------------
 
-   function String_Value (Long_Name  : String;
-                          Short_Name : Character;
-                          Default    : String := "")
-                          return String
+   function String_Value
+     (Long_Name  : String;
+      Short_Name : Character := Character'Val (0);
+      Default    : String := "")
+      return String
    is
       use Ada.Strings.Fixed;
    begin
@@ -255,7 +268,8 @@ package body Concorde.Options is
                                       .. Argument'Last);
                   end if;
                end;
-            elsif Argument (1) = '-'
+            elsif Short_Name /= Character'Val (0)
+              and then Argument (1) = '-'
               and then Argument'Length = 2
               and then Argument (2) = Short_Name
               and then I < Ada.Command_Line.Argument_Count

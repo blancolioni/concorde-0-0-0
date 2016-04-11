@@ -9,6 +9,18 @@ with Ada.Exceptions;
 
 package body Concorde.Systems is
 
+   -------------
+   -- Add_Pop --
+   -------------
+
+   procedure Add_Pop
+     (System : in out Root_Star_System_Type'Class;
+      Pop    : Concorde.People.Pops.Pop_Type)
+   is
+   begin
+      System.Pops.Append (Pop);
+   end Add_Pop;
+
    --------------
    -- Add_Ship --
    --------------

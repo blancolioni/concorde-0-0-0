@@ -5,6 +5,7 @@ source_dir = src/battles
 source_dir = src/codes
 source_dir = src/db
 source_dir = src/driver
+source_dir = src/economy
 source_dir = src/empires
 source_dir = src/galaxy
 source_dir = src/graphs

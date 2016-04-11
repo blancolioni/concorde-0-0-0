@@ -9,6 +9,10 @@ with Concorde.Ships;
 
 with Concorde.Ships.Lists;
 
+with Concorde.People.Pops;
+
+private with Concorde.People.Pops.Lists;
+
 package Concorde.Systems is
 
    type Root_Star_System_Type is
@@ -44,6 +48,10 @@ package Concorde.Systems is
 
    function Capital (System : Root_Star_System_Type'Class)
                      return Boolean;
+
+   procedure Add_Pop
+     (System : in out Root_Star_System_Type'Class;
+      Pop    : Concorde.People.Pops.Pop_Type);
 
    function Ships
      (System : Root_Star_System_Type'Class)
@@ -167,6 +175,7 @@ private
          Loyalty        : Unit_Real := 1.0;
          Edges          : Edge_Info_Lists.List;
          Boundary       : access System_Influence_Boundary;
+         Pops           : Concorde.People.Pops.Lists.List;
       end record;
 
    overriding function Object_Database

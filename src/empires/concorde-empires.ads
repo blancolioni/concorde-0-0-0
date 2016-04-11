@@ -1,11 +1,16 @@
 private with Ada.Containers.Doubly_Linked_Lists;
+private with Ada.Strings.Unbounded;
+
 private with Concorde.Protected_Lists;
 private with Memor.Element_Vectors;
+
+with Memor;
 
 limited with Concorde.AI;
 
 with Lui.Colours;
 
+with Concorde.Agents;
 with Concorde.Objects;
 with Concorde.Systems;
 
@@ -18,7 +23,10 @@ package Concorde.Empires is
    range Minimum_Relationship .. Maximum_Relationship;
 
    type Root_Empire_Type is
-     new Concorde.Objects.Root_Named_Object_Type with private;
+     new Concorde.Agents.Root_Agent_Type
+     and Memor.Identifier_Record_Type
+     and Concorde.Objects.Named_Object_Interface
+   with private;
 
    function Colour
      (Empire : Root_Empire_Type'Class)
@@ -268,6 +276,10 @@ package Concorde.Empires is
       return Boolean;
    --  System is a neighbour of a system which is owned by Empire
 
+   function Default_Ship_Design
+     (Empire : Root_Empire_Type'Class)
+      return String;
+
    type Empire_Type is access constant Root_Empire_Type'Class;
 
    type Array_Of_Empires is array (Positive range <>) of Empire_Type;
@@ -343,8 +355,12 @@ private
        (Concorde.Systems.Star_System_Type, Concorde.Systems."=");
 
    type Root_Empire_Type is
-     new Concorde.Objects.Root_Named_Object_Type with
+     new Concorde.Agents.Root_Agent_Type
+     and Memor.Identifier_Record_Type
+     and Concorde.Objects.Named_Object_Interface with
       record
+         Identifier      : Ada.Strings.Unbounded.Unbounded_String;
+         Empire_Name     : Ada.Strings.Unbounded.Unbounded_String;
          Colour          : Lui.Colours.Colour_Type;
          Focus_List      : access List_Of_Focus_Systems.List;
          System_Data     : access System_Data_Array;
@@ -359,11 +375,24 @@ private
          Destroyed_Ships : Natural := 0;
          Capital         : Concorde.Systems.Star_System_Type;
          Battles         : List_Of_Systems.List;
+         Default_Ship    : access String;
       end record;
 
    overriding function Object_Database
      (Empire : Root_Empire_Type)
       return Memor.Root_Database_Type'Class;
+
+   overriding function Identifier
+     (Empire : Root_Empire_Type)
+      return String
+   is (Ada.Strings.Unbounded.To_String (Empire.Identifier));
+
+   overriding function Name (Empire : Root_Empire_Type) return String
+   is (Ada.Strings.Unbounded.To_String (Empire.Empire_Name));
+
+   overriding procedure Set_Name
+     (Empire : in out Root_Empire_Type;
+      Name   : String);
 
    procedure Check_Cache (Empire   : Root_Empire_Type'Class;
                           From, To : not null access constant

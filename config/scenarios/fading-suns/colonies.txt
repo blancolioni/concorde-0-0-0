@@ -1,0 +1,7 @@
+initial = {
+   pops = {
+      poor = 10000
+      middle_class = 1000
+      rich = 100
+   }
+}
