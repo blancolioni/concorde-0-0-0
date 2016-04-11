@@ -130,6 +130,10 @@ package Concorde.Ships is
      (Ship : Root_Ship_Type'Class)
       return Boolean;
 
+   function Has_Effective_Engine
+     (Ship : Root_Ship_Type'Class)
+      return Boolean;
+
    type Array_Of_Mounted_Modules is
      array (Positive range <>) of Mounted_Module;
 

@@ -380,6 +380,26 @@ package body Concorde.Ships is
    end Has_Destination;
 
    --------------------------
+   -- Has_Effective_Engine --
+   --------------------------
+
+   function Has_Effective_Engine
+     (Ship : Root_Ship_Type'Class)
+      return Boolean
+   is
+      use Concorde.Components;
+   begin
+      for Mount of Ship.Structure loop
+         if Mount.Module.Effectiveness > 0.0
+           and then Mount.Module.Component.Class = Drive
+         then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Has_Effective_Engine;
+
+   --------------------------
    -- Has_Effective_Weapon --
    --------------------------
 
