@@ -236,8 +236,11 @@ package body Concorde.Empires is
       -----------
 
       procedure Check (Empire : Root_Empire_Type'Class) is
+         use type Concorde.Systems.Star_System_Type;
       begin
          if Empire.Current_Systems > 0 then
+            pragma Assert (Empire.Capital /= null,
+                           Empire.Name & ": no capital");
             pragma Assert (Empire.Owned_System (Empire.Capital),
                            Empire.Name & " does not own capital system "
                            & Empire.Capital.Name);
@@ -927,7 +930,7 @@ package body Concorde.Empires is
      (Empire : in out Root_Empire_Type'Class;
       System : in out Concorde.Systems.Root_Star_System_Type'Class)
    is
-      pragma Unreferenced (System);
+      use type Concorde.Systems.Star_System_Type;
    begin
       Empire.Current_Systems := Empire.Current_Systems + 1;
       Concorde.Empires.Logging.Log
@@ -935,6 +938,14 @@ package body Concorde.Empires is
          "new system count:"
          & Empire.Current_Systems'Img);
       Empire.Clear_Path_Cache;
+      if Empire.Capital = null then
+         Empire.Capital := Concorde.Systems.Db.Reference (System);
+         System.Set_Capital (True);
+         Concorde.Empires.Logging.Log
+           (Empire,
+            System.Name & " is our new capital");
+      end if;
+
    end System_Acquired;
 
    -----------------
