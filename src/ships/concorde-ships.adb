@@ -41,53 +41,89 @@ package body Concorde.Ships is
      (Ship   : in out Root_Ship_Type'Class;
       Damage : Natural)
    is
-      Was_Alive : constant Boolean := Ship.Alive;
+      Remaining : Non_Negative_Real := Non_Negative_Real (Damage);
    begin
-      for I in 1 .. Damage loop
-         exit when not Ship.Alive;
-         declare
-            Mounts : constant Array_Of_Mounted_Modules :=
-                       Ship.Get_Effective_Mounts;
-            Index  : constant Positive :=
-                       WL.Random.Random_Number
-                         (Mounts'First, Mounts'Last);
 
-            procedure Update
-              (Module : in out Concorde.Modules.Root_Module_Type'Class);
+      if not Ship.Alive then
+         return;
+      end if;
 
-            ------------
-            -- Update --
-            ------------
+      for Mount of Ship.Structure loop
+         if Mount.Module.Is_Shield then
+            declare
+               Shield : constant Non_Negative_Real :=
+                          Mount.Module.Stored_Energy;
+               Blocked : Non_Negative_Real;
 
-            procedure Update
-              (Module : in out Concorde.Modules.Root_Module_Type'Class)
-            is
-            begin
-               Module.Hit;
-               declare
-                  Chance : constant Unit_Real :=
-                             Module.Explosion_Chance;
+               procedure Update
+                 (Module : in out Concorde.Modules.Root_Module_Type'Class);
+
+               ------------
+               -- Update --
+               ------------
+
+               procedure Update
+                 (Module : in out Concorde.Modules.Root_Module_Type'Class)
+               is
                begin
-                  if Concorde.Random.Unit_Random < Chance then
-                     Module.Start_Explosion;
-                  end if;
-               end;
-            end Update;
+                  Module.Execute (Blocked);
+               end Update;
 
-         begin
+            begin
+               if Remaining < Shield / 5.0 then
+                  Blocked := Remaining;
+               else
+                  Blocked := Shield / 5.0;
+               end if;
 
-            Concorde.Modules.Db.Update
-              (Ship.Structure
-                 (Positive (Mounts (Index))).Module.Reference,
-               Update'Access);
-         end;
-
-         Calculate_Damage (Ship);
-         Ship.Alive := Ship.Current_Damage < 0.95;
-
+               Remaining := Remaining - Blocked;
+               Concorde.Modules.Db.Update
+                 (Mount.Module.Reference, Update'Access);
+            end;
+         end if;
       end loop;
 
-      if Was_Alive and then not Ship.Alive then
+      declare
+         Mounts : constant Array_Of_Mounted_Modules :=
+                    Ship.Get_Effective_Mounts;
+         Index  : constant Positive :=
+                    WL.Random.Random_Number
+                      (Mounts'First, Mounts'Last);
+
+         procedure Update
+           (Module : in out Concorde.Modules.Root_Module_Type'Class);
+
+         ------------
+         -- Update --
+         ------------
+
+         procedure Update
+           (Module : in out Concorde.Modules.Root_Module_Type'Class)
+         is
+         begin
+            Module.Hit (Natural (Remaining));
+            declare
+               Chance : constant Unit_Real :=
+                          Module.Explosion_Chance;
+            begin
+               if Concorde.Random.Unit_Random < Chance then
+                  Module.Start_Explosion;
+               end if;
+            end;
+         end Update;
+
+      begin
+
+         Concorde.Modules.Db.Update
+           (Ship.Structure
+              (Positive (Mounts (Index))).Module.Reference,
+            Update'Access);
+      end;
+
+      Calculate_Damage (Ship);
+      Ship.Alive := Ship.Current_Damage < 0.95;
+
+      if not Ship.Alive then
          declare
             procedure Remove
               (Empire : in out Concorde.Empires.Root_Empire_Type'Class);
@@ -118,21 +154,45 @@ package body Concorde.Ships is
      (Ship : in out Root_Ship_Type'Class)
    is
       use Concorde.Components;
-      Total : Non_Negative_Real := 0.0;
-      Count : Non_Negative_Real := 0.0;
+      Total_Damage  : Non_Negative_Real := 0.0;
+      Total_Shields : Non_Negative_Real := 0.0;
+      Shield_Count  : Natural := 0;
+      Module_Count  : Natural := 0;
    begin
-      for Module of Ship.Structure loop
-         if Module.Module.Component.Class = Strut then
-            null;
-         else
-            Total := Total + Module.Module.Damage;
-            Count := Count + 1.0;
-         end if;
+      for Mount of Ship.Structure loop
+         declare
+            Module : constant Concorde.Modules.Module_Type :=
+                       Mount.Module;
+            Is_Strut : constant Boolean :=
+                         Module.Component.Class = Strut;
+            Is_Shield : constant Boolean :=
+                          Module.Component.Class = Shield_Generator;
+         begin
+            if Is_Strut then
+               --  don't include strut damage (for some reason?)
+               null;
+            else
+               Total_Damage := Total_Damage + Module.Damage;
+               Module_Count := Module_Count + 1;
+               if Is_Shield then
+                  Total_Shields := Total_Shields
+                    + Module.Effectiveness * Module.Charge;
+                  Shield_Count := Shield_Count + 1;
+               end if;
+            end if;
+         end;
       end loop;
-      if Count > 0.0 then
-         Ship.Current_Damage := Total / Count;
+
+      if Module_Count > 0 then
+         Ship.Current_Damage :=
+           Total_Damage / Non_Negative_Real (Module_Count);
       else
          Ship.Current_Damage := 0.0;
+      end if;
+      if Shield_Count > 0 then
+         Ship.Current_Shields := Total_Shields / Real (Shield_Count);
+      else
+         Ship.Current_Shields := 0.0;
       end if;
    end Calculate_Damage;
 
@@ -473,6 +533,18 @@ package body Concorde.Ships is
       end if;
    end Set_System;
 
+   -------------
+   -- Shields --
+   -------------
+
+   function Shields
+     (Ship : Root_Ship_Type'Class)
+      return Unit_Real
+   is
+   begin
+      return Ship.Current_Shields;
+   end Shields;
+
    -----------------------
    -- Short_Description --
    -----------------------
@@ -598,6 +670,9 @@ package body Concorde.Ships is
             end;
 
          end loop;
+
+         Calculate_Damage (Ship);
+
       end Update;
 
    begin

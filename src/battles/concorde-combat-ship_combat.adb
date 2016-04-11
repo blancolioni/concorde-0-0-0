@@ -29,6 +29,22 @@ package body Concorde.Combat.Ship_Combat is
    is (Concorde.Elementary_Functions.Sqrt
        ((X1 - X2) ** 2 + (Y1 - Y2) ** 2));
 
+   function Make_Combat_Ship
+     (Ship   : Concorde.Ships.Ship_Type;
+      Index  : Positive;
+      X, Y   : Real;
+      Facing : Radians)
+      return Ship_Record
+   is ((Ship      => Ship,
+        Index     => Index,
+        X         => X,
+        Y         => Y,
+        Facing    => Facing,
+        Target    => 0,
+        Hit       => False,
+        Shield_R1 => 0,
+        Shield_R2 => 0));
+
    -------------------
    -- Add_Combatant --
    -------------------
@@ -45,8 +61,12 @@ package body Concorde.Combat.Ship_Combat is
       New_Team : Boolean := True;
    begin
       Arena.Ships.Append
-        ((Combatant, Arena.Ships.Last_Index + 1,
-         X, Y, Facing, 0));
+        (Make_Combat_Ship
+           (Ship   => Combatant,
+            Index  => Arena.Ships.Last_Index + 1,
+            X      => X,
+            Y      => Y,
+            Facing => Facing));
 
       for I in 1 .. Arena.Teams.Last_Index loop
          if Arena.Teams (I).Leader = Empire then
@@ -92,6 +112,13 @@ package body Concorde.Combat.Ship_Combat is
 
          return;
       end if;
+
+      for Projectile of Arena.Projectiles loop
+         if Projectile.Active then
+            Arena.Finished := False;
+            return;
+         end if;
+      end loop;
 
       for Team of Arena.Teams loop
          for Ship_Index of Team.Ships loop
@@ -330,6 +357,7 @@ package body Concorde.Combat.Ship_Combat is
                      Concorde.Ships.Db.Update
                        (Model.Ships (Event.Target).Ship.Reference,
                         Hit'Access);
+                     Model.Ships (Event.Target).Hit := True;
                   end;
 
                when Concorde.Components.Kinetic_Weapon =>
@@ -470,7 +498,9 @@ package body Concorde.Combat.Ship_Combat is
                    Turns         => 0,
                    Finished      => False,
                    Winner        => null,
-                   Events        => List_Of_Combat_Events.Empty_List);
+                   Events        => List_Of_Combat_Events.Empty_List,
+                   Projectiles   => List_Of_Projectiles.Empty_List);
+
    begin
 --        Ada.Text_IO.Create (Log_File, Ada.Text_IO.Out_File,
 --                            Name & "-"
@@ -496,32 +526,65 @@ package body Concorde.Combat.Ship_Combat is
       Charge_Bar_Width  : constant := 20;
       Charge_Bar_Height : constant := 4;
    begin
-      for Event of Model.Events loop
-         case Event.Event is
-            when Weapon_Fired =>
-               if Model.Turns - Event.Turn < 1 then
-                  declare
-                     Attacker : Ship_Record renames
-                                  Model.Ships (Event.Attacker);
-                     Target   : Ship_Record renames
-                                  Model.Ships (Event.Target);
-                     X1, X2, Y1, Y2 : Integer;
-                     Z              : Real;
-                     Colour         : Lui.Colours.Colour_Type :=
-                                        Lui.Colours.White;
-                  begin
-                     Model.Get_Screen_Coordinates
-                       (Attacker.X, Attacker.Y, 0.0, X1, Y1, Z);
-                     Model.Get_Screen_Coordinates
-                       (Target.X, Target.Y, 0.0, X2, Y2, Z);
-                     Colour.Alpha := 1.0 -
-                       Real (Model.Turns - Event.Turn) / 8.0
-                       * Event.Effectiveness;
-                     Renderer.Draw_Line
-                       (X1, Y1, X2, Y2, Colour, 1);
-                  end;
+      for Position in Model.Projectiles.Iterate loop
+         if List_Of_Projectiles.Element (Position).Active then
+            declare
+               Projectile : Projectile_Record :=
+                              List_Of_Projectiles.Element (Position);
+               Progress : constant Unit_Real :=
+                            Real'Min (Projectile.Progress
+                                      + Projectile.Velocity,
+                                      1.0);
+               X        : constant Real :=
+                            Projectile.X1 + Projectile.DX * Progress;
+               Y        : constant Real :=
+                            Projectile.Y1 + Projectile.DY * Progress;
+            begin
+               case Projectile.Projectile is
+                  when Beam =>
+                     declare
+                        Beam_DX : constant Real :=
+                                    Real (Projectile.Size)
+                                    * Projectile.DX / Projectile.Distance;
+                        Beam_DY : constant Real :=
+                                    Real (Projectile.Size)
+                                    * Projectile.DY / Projectile.Distance;
+                        Beam_X1, Beam_Y1 : Integer;
+                        Beam_X2, Beam_Y2 : Integer;
+                        Beam_Z           : Real;
+                     begin
+                        Model.Get_Screen_Coordinates
+                          (X - Beam_DX, Y - Beam_DY, 0.0,
+                           Beam_X1, Beam_Y1, Beam_Z);
+                        Model.Get_Screen_Coordinates
+                          (X, Y, 0.0,
+                           Beam_X2, Beam_Y2, Beam_Z);
+                        Renderer.Draw_Line
+                          (X1         => Beam_X1,
+                           Y1         => Beam_Y1,
+                           X2         => Beam_X2,
+                           Y2         => Beam_Y2,
+                           Colour     => (0.2, 0.9, 0.15, 1.0),
+                           Line_Width => 1);
+                     end;
+                  when Kinetic =>
+                     null;
+                  when Missile =>
+                     null;
+               end case;
+
+               if Progress = 1.0 then
+                  Model.Commit_Event
+                    (List_Of_Combat_Events.Element (Projectile.Event));
+                  Projectile.Active := False;
                end if;
-         end case;
+
+               Projectile.Progress := Progress;
+
+               Model.Projectiles.Replace_Element
+                 (Position, Projectile);
+            end;
+         end if;
       end loop;
 
       for Combat_Ship of Model.Ships loop
@@ -537,6 +600,9 @@ package body Concorde.Combat.Ship_Combat is
             W        : constant Natural :=
                          Natural ((1.0 - Combat_Ship.Ship.Damage)
                                   * Real (Health_Bar_Width));
+            Shields  : constant Unit_Real := Combat_Ship.Ship.Shields;
+            Shield_R1 : Natural := 0;
+            Shield_R2 : Natural := 0;
          begin
             if not Combat_Ship.Ship.Alive then
                Colour.Alpha := 0.3;
@@ -545,7 +611,39 @@ package body Concorde.Combat.Ship_Combat is
               (Vertices => Outline,
                Colour   => Colour,
                Filled   => True);
+
             Model.Ship_Centre (Combat_Ship, X, Y);
+
+            if Shields > 0.0 then
+               for P of Outline loop
+                  Shield_R1 :=
+                    Natural'Max
+                      (abs (P.X - X),
+                       Shield_R1);
+                  Shield_R2 :=
+                    Natural'Max
+                      (abs (P.Y - Y),
+                       Shield_R2);
+               end loop;
+
+               declare
+                  Colour : Lui.Colours.Colour_Type := Lui.Colours.White;
+               begin
+                  Colour.Alpha := (0.4 + Shields * 0.5);
+                  if Combat_Ship.Hit then
+                     Colour.Alpha := 1.0;
+                  end if;
+                  Renderer.Draw_Ellipse
+                    (X          => X,
+                     Y          => Y,
+                     R1         => Shield_R1 + 2,
+                     R2         => Shield_R2 + 2,
+                     Colour     => Colour,
+                     Filled     => False,
+                     Line_Width => 1);
+               end;
+            end if;
+
             if Combat_Ship.Facing in -Pi / 2.0 .. Pi / 2.0 then
                Health_X := X - Health_Bar_Width * 2;
             else
@@ -639,6 +737,10 @@ package body Concorde.Combat.Ship_Combat is
          end;
       end if;
 
+      for I in 1 .. Model.Ships.Last_Index loop
+         Model.Ships (I).Hit := False;
+      end loop;
+
    end Render;
 
    ---------------
@@ -722,6 +824,60 @@ package body Concorde.Combat.Ship_Combat is
       return Distance (S1.X, S1.Y, S2.X, S2.Y);
    end Ship_Range;
 
+   -----------------
+   -- Start_Event --
+   -----------------
+
+   procedure Start_Event
+     (Model    : in out Root_Space_Combat_Arena;
+      Position : List_Of_Combat_Events.Cursor)
+   is
+      Event : constant Combat_Event :=
+                List_Of_Combat_Events.Element (Position);
+   begin
+      case Event.Event is
+         when Weapon_Fired =>
+            declare
+               use Concorde.Elementary_Functions;
+               Ship : constant Ship_Record :=
+                        Model.Ships (Event.Attacker);
+               Target : constant Ship_Record :=
+                          Model.Ships (Event.Target);
+               D_D    : constant Real :=
+                          (if Target.Ship.Shields > 0.0
+                           then 0.9
+                           else 1.0);
+               Projectile : constant Projectile_Record :=
+                              (Projectile => Beam,
+                               Size       => 100,
+                               X1         => Ship.X,
+                               Y1         => Ship.Y,
+                               Distance   =>
+                                 Sqrt ((Target.X - Ship.X) ** 2
+                                   + (Target.Y - Ship.Y) ** 2),
+                               DX         => (Target.X - Ship.X) * D_D,
+                               DY         => (Target.Y - Ship.Y) * D_D,
+                               Velocity   => 0.1,
+                               Progress   => 0.0,
+                               Event      => Position,
+                               Active     => True);
+               Placed     : Boolean;
+            begin
+               for Pos in Model.Projectiles.Iterate loop
+                  if not List_Of_Projectiles.Element (Pos).Active then
+                     Model.Projectiles.Replace_Element (Pos, Projectile);
+                     Placed := True;
+                     exit;
+                  end if;
+               end loop;
+
+               if not Placed then
+                  Model.Projectiles.Append (Projectile);
+               end if;
+            end;
+      end case;
+   end Start_Event;
+
    ----------
    -- Tick --
    ----------
@@ -741,10 +897,11 @@ package body Concorde.Combat.Ship_Combat is
          end loop;
       end if;
 
-      for Event of Arena.Events loop
-         exit when Event.Turn < Arena.Turns;
+      for Event_Position in Arena.Events.Iterate loop
+         exit when List_Of_Combat_Events.Element (Event_Position).Turn
+           < Arena.Turns;
 
-         Arena.Commit_Event (Event);
+         Arena.Start_Event (Event_Position);
       end loop;
 
       Arena.Check_Finished;

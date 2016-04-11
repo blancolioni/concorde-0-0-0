@@ -61,6 +61,11 @@ package Concorde.Ships is
       return Unit_Real
      with Inline;
 
+   function Shields
+     (Ship : Root_Ship_Type'Class)
+      return Unit_Real
+     with Inline;
+
    procedure Hit
      (Target : in out Root_Ship_Type'Class;
       Damage : Natural);
@@ -176,6 +181,7 @@ private
          Size                  : Size_Type;
          Empty_Mass            : Natural;
          Current_Damage        : Unit_Real := 0.0;
+         Current_Shields       : Unit_Real := 0.0;
       end record;
 
    package Ship_Vectors is
