@@ -15,7 +15,7 @@ package body Concorde.Ships.Battles is
 
    Arena_Radius    : constant := 1.0E6;
    Planet_Radius   : constant := 1.0E3;
-   Ship_Separation : constant := 100.0;
+   Ship_Separation : constant := 150.0;
 
    Minimum_Battle_Size : Natural := 0;
 
@@ -93,12 +93,18 @@ package body Concorde.Ships.Battles is
 
             end loop;
 
-            Arena.Add_Combatant
-              (Combatant => Ship,
-               Empire    => Owner,
-               X         => Team.X,
-               Y         => Team.Y + Ship_Separation * Real (Team.Count),
-               Facing    => Team.Facing);
+            declare
+               DY : constant Real :=
+                      Ship_Separation * Real (Team.Count / 2 + 1)
+                      * (if Team.Count mod 2 = 0 then 1.0 else -1.0);
+            begin
+               Arena.Add_Combatant
+                 (Combatant => Ship,
+                  Empire    => Owner,
+                  X         => Team.X,
+                  Y         => Team.Y + DY,
+                  Facing    => Team.Facing);
+            end;
 
             Teams (Team_Index).Count := Teams (Team_Index).Count + 1;
          end;
