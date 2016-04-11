@@ -273,12 +273,19 @@ package body Concorde.Combat.Ship_Combat is
                Count           : Natural := 0;
             begin
                for Ship_Index of Team.Ships loop
-                  if Target_All
-                    or else Model.Ships (Ship_Index).Ship.Has_Effective_Weapon
-                  then
-                     Count := Count + 1;
-                     Effective_Ships (Count) := Ship_Index;
-                  end if;
+                  declare
+                     use Concorde.Ships;
+                     Ship : constant Ship_Type :=
+                              Model.Ships (Ship_Index).Ship;
+                  begin
+                     if Ship.Alive
+                       and then (Target_All
+                                 or else Ship.Has_Effective_Weapon)
+                     then
+                        Count := Count + 1;
+                        Effective_Ships (Count) := Ship_Index;
+                     end if;
+                  end;
                end loop;
 
                if Count > 0 then
