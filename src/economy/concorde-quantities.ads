@@ -10,6 +10,7 @@ package Concorde.Quantities is
    function To_Natural (Value : Quantity) return Natural;
 
    function Image (Item : Quantity) return String;
+   function Value (Image : String) return Quantity;
 
    function "*" (Left, Right : Quantity) return Quantity;
    function "/" (Left, Right : Quantity) return Quantity;

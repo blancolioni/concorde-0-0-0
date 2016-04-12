@@ -1,4 +1,4 @@
-hub = { class = ColonyHub
+hub = { class = Colony_Hub
         name = "Colony Hub"
         power = 10
         workers = { exec = 5
@@ -24,7 +24,7 @@ consulate = { class = consulate
                         }
             }
             
-hq = { class = CorporateHq
+hq = { class = Corporate_Hq
        name = "Coporate Headquarters"
        power = 10
        workers = { exec = 5
@@ -35,7 +35,7 @@ hq = { class = CorporateHq
                  }
 
      }
-dock = { class = OrbitalDock
+dock = { class = Orbital_Dock
          name = "Orbital Dock"
          power = 100
          workers = { exec = 5
@@ -307,7 +307,7 @@ shipyard = { class = Factory
              capacity = 500
            }
            
-farm = { class = ResourceGenerator
+farm = { class = Resource_Generator
          name = Farm
          power = 5
          workers = { tech = 1 worker = 9 }
@@ -316,7 +316,7 @@ farm = { class = ResourceGenerator
          organic = true
        }
        
-refinery = { class = ResourceGenerator
+refinery = { class = Resource_Generator
              name = Refinery
              power = 10
              workers = { tech = 5 worker = 15 }
@@ -325,7 +325,7 @@ refinery = { class = ResourceGenerator
              mineral = true
              fuel = true
            }
-mine = { class = ResourceGenerator
+mine = { class = Resource_Generator
          name = Mine
          power = 5
          workers = { tech = 1 worker = 19 }
@@ -334,7 +334,7 @@ mine = { class = ResourceGenerator
          metal = true
          fissile = true
        }
-plant = { class = ResourceGenerator
+plant = { class = Resource_Generator
           name = "Gas Plant"
           power = 10
           workers = { tech = 10 worker = 10 }
@@ -342,7 +342,7 @@ plant = { class = ResourceGenerator
           capacity = 1000
           gas = true
         }
-pump = { class = ResourceGenerator
+pump = { class = Resource_Generator
          name = "Liquid Pump"
          power = 5
          worker = { type = { 1 = tech
@@ -360,7 +360,7 @@ pump = { class = ResourceGenerator
         capacity = 1000
         liquid = true
        }
-hospital = { class = ServiceFacility
+hospital = { class = Service_Facility
              name = Hospital
              power = 10
              worker = { type = { 1 = exec
@@ -386,7 +386,7 @@ hospital = { class = ServiceFacility
              service_charge = 200
              medical = true
            }
-medcenter = { class = ServiceFacility
+medcenter = { class = Service_Facility
               name = "Medical Center"
               power = 5
               worker = { type = { 1 = exec
@@ -412,7 +412,7 @@ medcenter = { class = ServiceFacility
               capacity = 500
               medical = true
             }
-clinic = { class = ServiceFacility
+clinic = { class = Service_Facility
            name = "Health Clinic"
            power = 1
            worker = { type = { 1 = exec
@@ -435,7 +435,7 @@ clinic = { class = ServiceFacility
            capacity = 1000
            medical = true
          }
-academy = { class = ServiceFacility
+academy = { class = Service_Facility
             name = "Sports Academy"
             power = 5
             worker = { type = { 1 = exec
@@ -459,7 +459,7 @@ academy = { class = ServiceFacility
             capacity = 100
             fitness = true
           }
-leisure-complex = { class = ServiceFacility
+leisure-complex = { class = Service_Facility
                     name = "Leisure Complex"
                     power = 2
                     worker = { type = { 1 = exec
@@ -483,7 +483,7 @@ leisure-complex = { class = ServiceFacility
                     capacity = 500
                     fitness = true
                   }
-gym = { class = ServiceFacility
+gym = { class = Service_Facility
         name = Gymnasium
         power = 1
         worker = { type = { 1 = worker
@@ -505,7 +505,7 @@ gym = { class = ServiceFacility
         service_charge = 20
         fitness = true
       }
-mall = { class = ServiceFacility
+mall = { class = Service_Facility
          name = "Opera House"
          power = 15
          worker = { type = { 1 = exec
@@ -529,7 +529,7 @@ mall = { class = ServiceFacility
          capacity = 100
          entertainment = true
        }
-multiplex = { class = ServiceFacility
+multiplex = { class = Service_Facility
               name = Multiplex
               power = 10
               worker = { type = { 1 = exec
@@ -553,7 +553,7 @@ multiplex = { class = ServiceFacility
               capacity = 500
               entertainment = true
             }
-tv-station = { class = ServiceFacility
+tv-station = { class = Service_Facility
                name = "TV Station"
                power = 5
                worker = { type = { 1 = exec
@@ -577,7 +577,7 @@ tv-station = { class = ServiceFacility
                service_charge = 30
                entertainment = true
              }
-university = { class = ServiceFacility
+university = { class = Service_Facility
                name = University
                power = 10
                worker = { type = { 1 = tech
@@ -603,7 +603,7 @@ university = { class = ServiceFacility
                service_charge = 1000
                education = true
              }
-school = { class = ServiceFacility
+school = { class = Service_Facility
            name = School
            power = 5
            worker = { type = { 1 = tech
@@ -626,7 +626,7 @@ school = { class = ServiceFacility
            education = true
          }
          
-terminal = { class = ServiceFacility
+terminal = { class = Service_Facility
              name = "Neural Network Terminal"
              power = 2
              worker = { type = { 1 = tech

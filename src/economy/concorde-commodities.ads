@@ -14,6 +14,8 @@ package Concorde.Commodities is
       Alloy, Ceramic, Electronic, Plastic,
       Virtual, Power, Generator);
 
+   type Array_Of_Flags is array (Commodity_Flag) of Boolean;
+
    type Commodity_Quality is (High, Middle, Low);
 
    type Root_Commodity_Type is
@@ -41,8 +43,6 @@ package Concorde.Commodities is
    function Get (Class : Commodity_Class) return Array_Of_Commodities;
 
 private
-
-   type Array_Of_Flags is array (Commodity_Flag) of Boolean;
 
    type Root_Commodity_Type is
      new Concorde.Objects.Root_Named_Object_Type with

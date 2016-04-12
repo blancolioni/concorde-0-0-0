@@ -141,6 +141,15 @@ package body Concorde.Quantities is
       return 1.0;
    end Unit;
 
+   -----------
+   -- Value --
+   -----------
+
+   function Value (Image : String) return Quantity is
+   begin
+      return Quantity'Value (Image);
+   end Value;
+
    ----------
    -- Zero --
    ----------
