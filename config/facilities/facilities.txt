@@ -1,0 +1,650 @@
+hub = { class = ColonyHub
+        name = "Colony Hub"
+        power = 10
+        workers = { exec = 5
+                    tech = 5
+                    worker = 10
+                  }
+        modules = { commercial = 5
+                    industrial = 5
+                    habitation = 10
+                    military = 5
+                  }
+      }
+
+consulate = { class = consulate
+              name = "Trade Consulate"
+              power = 10
+              workers = { exec = 2
+                          tech = 10
+                          worker = 5
+                        }
+              modules = { commercial = 5
+                          habitation = 5
+                        }
+            }
+            
+hq = { class = CorporateHq
+       name = "Coporate Headquarters"
+       power = 10
+       workers = { exec = 5
+                   tech = 5
+                   worker = 10
+                 }
+       modules = { commercial = 5
+                 }
+
+     }
+dock = { class = OrbitalDock
+         name = "Orbital Dock"
+         power = 100
+         workers = { exec = 5
+                     tech = 5
+                     worker = 10
+                   }
+        modules = { commercial = 10
+                    industrial = 100
+                    habitation = 15
+                    military = 5
+                  }
+       }
+       
+light-factory = { class = Factory
+                  name = "Light Factory"
+                  template-class = yes
+                  power = 10
+                  workers = {
+                     exec = 5
+                     tech = 15
+                     worker = 80
+                     }
+                  modules = {
+                    industrial = 30
+                    habitation = 20
+                    }
+                  capacity = 5000
+                }
+
+heavy-factory = { class = Factory
+                  name = "Heavy Factory"
+                  template-class = yes
+                  power = 20
+                  workers = {
+                     exec = 10
+                     tech = 20
+                     worker = 160
+                   }
+                  modules = { industrial = 60
+                              habitation = 40
+                            }
+                  capacity = 20000
+                }
+                
+super-heavy-factory = { class = Factory
+                        name = "Super-Heavy Factory"
+                        template-class = yes
+                        power = 40
+                        workers = { exec = 20
+                                    tech = 40
+                                    worker = 320
+                                  }
+                        modules = { industrial = 120
+                                    habitation = 80
+                                  }
+                        industrial = true
+                        consumer = true
+                        construction = true
+                        capacity = 50000
+                      }
+
+steel-factory = {
+   template = heavy-factory
+   name = "Steel Foundary"
+   inputs = {
+     iron = 10
+     coal = 10
+     }
+   output = steel
+}
+
+bronze-factory = {
+   template = heavy-factory
+   name = "Bronze Foundary"
+   inputs = {
+     copper = 10
+     coal = 10
+     }
+   output = bronze
+}
+
+glass-factory = {
+   template = heavy-factory
+   name = "Glass Factory"
+   inputs = {
+     silicon = 2
+     coal = 1
+     }
+   output = glass
+}
+
+cement-factory = {
+   template = heavy-factory
+   name = "Cement Factory"
+   inputs = {
+     carbonite = 2
+     coal = 1
+     }
+   output = cement
+}
+
+nylon-factory = {
+   template = light-factory
+   name = "Nylon Factory"
+   inputs = {
+     oil = 2
+     }
+   output = nylon
+}
+
+pvc-factory = {
+   template = light-factory
+   name = "PVC Factory"
+   inputs = {
+     oil = 2
+     }
+   output = pvc
+}
+
+rations-factory = {
+   template = light-factory
+   name = "Rations Factory"
+   inputs = {
+     grains = 9
+     salt = 1
+     }
+   output = rations
+}
+
+ready-meal-factory = {
+   template = light-factory
+   name = "Readymeal Factory"
+   inputs = {
+     grains = 4
+     herb = 1
+     livestock = 4
+     salt = 1
+     vegetables = 3
+     }
+   output = readymeal
+}
+
+luxury-food-factory = {
+   template = light-factory
+   name = "Luxury Food Factory"
+   inputs = {
+     fruit = 2
+     fungi = 1
+     grains = 1
+     herb = 1
+     livestock = 1
+     salt = 1
+     seafood = 2
+     vegetables = 3
+     }
+   output = luxuryfood
+}
+
+ambrosia-factory = {
+   template = light-factory
+   name = "Ambrosia Factory"
+   inputs = {
+      water = 15
+      fruit = 15
+      }
+   output = ambrosia
+}
+
+soda-factory = {
+   template = light-factory
+   name = "Soda Factory"
+   inputs = {
+      water = 15
+      carbonite = 10
+      }
+   output = soda
+}
+
+bottled-factory = {
+   template = light-factory
+   name = "Bottled Water Factory"
+   inputs = {
+      water = 20
+      }
+   output = bottled-water
+}
+
+narcotics-factory = {
+   template = light-factory
+   name = "Narcotics Factory"
+   inputs = {
+      rare-minerals = 4
+      carbonite = 4
+      water = 4
+      }
+   output = narcotics
+}
+
+stimulants-factory = {
+   template = light-factory
+   name = "Stimulants Factory"
+   inputs = {
+      fungi = 4
+      carbonite = 4
+      vegetables = 4
+      }
+   output = stimulants
+}
+
+alcohol-factory = {
+   template = light-factory
+   name = "Brewery"
+   inputs = {
+      grains = 5
+      water = 20
+      vegetables = 2
+      }
+   output = alcohol
+}
+
+luxury-clothes-factory = {
+   template = light-factory
+   name = "Luxury Clothing Factory"
+   inputs = {
+      livestock = 10
+      precious = 10
+      }
+   output = luxuryclothes
+}
+
+regular-clothes-factory = {
+   template = light-factory
+   name = "Clothing Factory"
+   inputs = {
+      livestock = 10
+      bronze = 2
+      nylon = 2
+      }
+   output = regularclothes
+}
+
+bargain-clothes-factory = {
+   template = light-factory
+   name = "Bargain Clothing Factory"
+   inputs = {
+      nylon = 10
+      pvc = 2
+      }
+   output = bargainclothes
+}
+
+shipyard = { class = Factory
+             name = Shipyard
+             power = 50
+             worker = { type = { 1 = exec
+                                 2 = worker
+                                 3 = tech
+                               }
+                        qty = { 1 = 10
+                                2 = 100
+                                3 = 100
+                              }
+                      }
+             modules = { industrial = 100
+                         habitation = 50
+                         military = 50
+                       }
+             shipyard = true
+             capacity = 500
+           }
+           
+farm = { class = ResourceGenerator
+         name = Farm
+         power = 5
+         workers = { tech = 1 worker = 9 }
+         modules = { industrial = 3 habitation = 2 }
+         capacity = 1000
+         organic = true
+       }
+       
+refinery = { class = ResourceGenerator
+             name = Refinery
+             power = 10
+             workers = { tech = 5 worker = 15 }
+             modules = { industrial = 5 habitation = 5 }
+             capacity = 1000
+             mineral = true
+             fuel = true
+           }
+mine = { class = ResourceGenerator
+         name = Mine
+         power = 5
+         workers = { tech = 1 worker = 19 }
+         modules = { industrial = 6 habitation = 4 }
+         capacity = 1000
+         metal = true
+         fissile = true
+       }
+plant = { class = ResourceGenerator
+          name = "Gas Plant"
+          power = 10
+          workers = { tech = 10 worker = 10 }
+          modules = { industrial = 7 habitation = 3 }
+          capacity = 1000
+          gas = true
+        }
+pump = { class = ResourceGenerator
+         name = "Liquid Pump"
+         power = 5
+         worker = { type = { 1 = tech
+                           }
+                    qty = { 1 = 5
+                          }
+                  }
+         module = { type = { 1 = industrial
+                             2 = habitation
+                           }
+                    qty = { 1 = 4
+                            2 = 1
+                          }
+                  }
+        capacity = 1000
+        liquid = true
+       }
+hospital = { class = ServiceFacility
+             name = Hospital
+             power = 10
+             worker = { type = { 1 = exec
+                                 2 = tech
+                                 3 = worker
+                               }
+                        qty = { 1 = 10
+                                2 = 40
+                                3 = 50
+                              }
+                      }
+             module = { type = { 1 = commercial
+                                 2 = industrial
+                                 3 = habitation
+                               }
+                        qty = { 1 = 30
+                                2 = 10
+                                3 = 20
+                              }
+                      }
+             quality = 3
+             capacity = 100
+             service_charge = 200
+             medical = true
+           }
+medcenter = { class = ServiceFacility
+              name = "Medical Center"
+              power = 5
+              worker = { type = { 1 = exec
+                                  2 = worker
+                                  3 = tech
+                                }
+                         qty = { 1 = 10
+                                 2 = 20
+                                 3 = 10
+                               }
+                       }
+              module = { type = { 1 = commercial
+                                  2 = industrial
+                                  3 = habitation
+                                }
+                         qty = { 1 = 10
+                                 2 = 5
+                                 3 = 10
+                               }
+                       }
+              quality = 2
+              service_charge = 300
+              capacity = 500
+              medical = true
+            }
+clinic = { class = ServiceFacility
+           name = "Health Clinic"
+           power = 1
+           worker = { type = { 1 = exec
+                               2 = worker
+                               3 = tech
+                             }
+                      qty = { 1 = 5
+                              2 = 5
+                              3 = 10
+                            }
+                    }
+           module = { type = { 1 = commercial
+                               2 = habitation
+                             }
+                      qty = { 1 = 6
+                              2 = 4
+                            }
+                    }
+           quality = 1
+           capacity = 1000
+           medical = true
+         }
+academy = { class = ServiceFacility
+            name = "Sports Academy"
+            power = 5
+            worker = { type = { 1 = exec
+                                2 = tech
+                                3 = worker
+                              }
+                       qty = { 1 = 15
+                               2 = 15
+                               3 = 50
+                             }
+                     }
+            module = { type = { 1 = commercial
+                                2 = habitation
+                              }
+                       qty = { 1 = 40
+                               2 = 15
+                             }
+                     }
+            quality = 3
+            service_charge = 200
+            capacity = 100
+            fitness = true
+          }
+leisure-complex = { class = ServiceFacility
+                    name = "Leisure Complex"
+                    power = 2
+                    worker = { type = { 1 = exec
+                                        2 = tech
+                                        3 = worker
+                                      }
+                               qty = { 1 = 10
+                                       2 = 20
+                                       3 = 40
+                                     }
+                             }
+                    module = { type = { 1 = commercial
+                                        2 = habitation
+                                      }
+                               qty = { 1 = 30
+                                       2 = 10
+                                     }
+                             }
+                    quality = 2
+                    service_charge = 500
+                    capacity = 500
+                    fitness = true
+                  }
+gym = { class = ServiceFacility
+        name = Gymnasium
+        power = 1
+        worker = { type = { 1 = worker
+                            2 = tech
+                          }
+                   qty = { 1 = 10
+                           2 = 5
+                         }
+                 }
+        module = { type = { 1 = commercial
+                            2 = habitation
+                          }
+                   qty = { 1 = 1
+                           2 = 1
+                         }
+                 }
+        quality = 1
+        capacity = 1000
+        service_charge = 20
+        fitness = true
+      }
+mall = { class = ServiceFacility
+         name = "Opera House"
+         power = 15
+         worker = { type = { 1 = exec
+                             2 = tech
+                             3 = worker
+                           }
+                    qty = { 1 = 10
+                            2 = 25
+                            3 = 100
+                          }
+                  }
+         module = { type = { 1 = commercial
+                             2 = habitation
+                           }
+                    qty = { 1 = 100
+                            2 = 25
+                          }
+                  }
+         quality = 3
+         service_charge = 200
+         capacity = 100
+         entertainment = true
+       }
+multiplex = { class = ServiceFacility
+              name = Multiplex
+              power = 10
+              worker = { type = { 1 = exec
+                                  2 = tech
+                                  3 = worker
+                                }
+                         qty = { 1 = 5
+                                 2 = 10
+                                 3 = 30
+                               }
+                       }
+              module = { type = { 1 = commercial
+                                  2 = habitation
+                                }
+                         qty = { 1 = 50
+                                 2 = 15
+                               }
+                       }
+              quality = 2
+              service_charge = 300
+              capacity = 500
+              entertainment = true
+            }
+tv-station = { class = ServiceFacility
+               name = "TV Station"
+               power = 5
+               worker = { type = { 1 = exec
+                                   2 = tech
+                                   3 = worker
+                                 }
+                          qty = { 1 = 1
+                                  2 = 5
+                                  3 = 5
+                                }
+                        }
+               module = { type = { 1 = commercial
+                                   2 = habitation
+                                 }
+                          qty = { 1 = 25
+                                  2 = 15
+                                }
+                        }
+               quality = 1
+               capacity = 1000
+               service_charge = 30
+               entertainment = true
+             }
+university = { class = ServiceFacility
+               name = University
+               power = 10
+               worker = { type = { 1 = tech
+                                   2 = exec
+                                   3 = worker
+                                 }
+                          qty = { 1 = 20
+                                  2 = 8
+                                  3 = 100
+                                }
+                        }
+               module = { type = { 1 = commercial
+                                   2 = industrial
+                                   3 = habitation
+                                 }
+                          qty = { 1 = 40
+                                  2 = 20
+                                  3 = 50
+                                }
+                        }
+               quality = 3
+               capacity = 100
+               service_charge = 1000
+               education = true
+             }
+school = { class = ServiceFacility
+           name = School
+           power = 5
+           worker = { type = { 1 = tech
+                               2 = worker
+                             }
+                      qty = { 1 = 10
+                              2 = 30
+                            }
+                    }
+           module = { type = { 1 = commercial
+                               2 = habitation
+                             }
+                      qty = { 1 = 20
+                              2 = 10
+                            }
+                    }
+           quality = 2
+           capacity = 500
+           service_charge = 150
+           education = true
+         }
+         
+terminal = { class = ServiceFacility
+             name = "Neural Network Terminal"
+             power = 2
+             worker = { type = { 1 = tech
+                                 2 = worker
+                               }
+                        qty = { 1 = 5
+                                2 = 5
+                              }
+                      }
+             module = { type = { 1 = commercial
+                                 2 = habitation
+                               }
+                        qty = { 1 = 1
+                                2 = 1
+                              }
+                      }
+             quality = 1
+             service_charge = 20
+             capacity = 1000
+             education = true
+           }

@@ -201,6 +201,24 @@ package body Concorde.Money is
       return Money_Type (To_Real (To_Quantity (Real (Price)) * Quantity));
    end Total;
 
+   -----------
+   -- Value --
+   -----------
+
+   function Value (Image : String) return Money_Type is
+   begin
+      return To_Money (Real'Value (Image));
+   end Value;
+
+   -----------
+   -- Value --
+   -----------
+
+   function Value (Image : String) return Price_Type is
+   begin
+      return To_Price (Real'Value (Image));
+   end Value;
+
    ----------
    -- Zero --
    ----------

@@ -66,6 +66,9 @@ package Concorde.Money is
    function Image (Item : Money_Type) return String;
    function Image (Item : Price_Type) return String;
 
+   function Value (Image : String) return Money_Type;
+   function Value (Image : String) return Price_Type;
+
    function Split (Amount  : Money_Type;
                    Portion : Real)
                   return Money_Type;

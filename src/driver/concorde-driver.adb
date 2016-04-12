@@ -23,6 +23,7 @@ with Concorde.Empires.Logging;
 
 with Concorde.Options;
 
+with Concorde.Commodities.Configure;
 with Concorde.People.Groups.Configure;
 
 with Concorde.Players.Registry;
@@ -48,6 +49,7 @@ begin
 
    Concorde.Players.Registry.Register_Players;
 
+   Concorde.Commodities.Configure.Configure_Commodities;
    Concorde.People.Groups.Configure.Configure_Pop_Groups;
    Concorde.Components.Configure.Configure_Components;
    Concorde.Ships.Designs.Configure_Designs;
