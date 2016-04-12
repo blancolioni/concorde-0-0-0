@@ -1,7 +1,7 @@
 with Tropos.Reader;
 with Concorde.Paths;
 
-with Concorde.AI.Configure;
+with Concorde.Players.Registry;
 
 with Concorde.Empires.Create;
 
@@ -31,9 +31,7 @@ package body Concorde.Empires.Configure is
             Red     : constant Natural := Colour.Get (1);
             Green   : constant Natural := Colour.Get (2);
             Blue    : constant Natural := Colour.Get (3);
-            AI_Name : constant String := Config.Get ("ai", "default");
-            AI      : constant Concorde.AI.AI_Type :=
-                        Concorde.AI.Configure.Get_AI (AI_Name);
+            Player  : constant String := Config.Get ("player", "null");
          begin
             Concorde.Empires.Create.New_Empire
               (Name    => Name,
@@ -45,7 +43,8 @@ package body Concorde.Empires.Configure is
                     Lui.Colours.Colour_Byte (Blue)),
                Default_Ship_Design =>
                  Config.Get ("design", "defender"),
-               AI                  => AI);
+               Player              =>
+                 Concorde.Players.Registry.Get (Player));
          end;
 
          Current := Current + 1;

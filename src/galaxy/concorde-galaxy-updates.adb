@@ -3,7 +3,6 @@ with Concorde.Systems.Updates;
 
 with Concorde.Galaxy.Ships;
 
-with Concorde.AI;
 with Concorde.Empires;
 with Concorde.Empires.Db;
 with Concorde.Empires.Logging;
@@ -14,6 +13,8 @@ with Concorde.Ships.Lists;
 
 with Concorde.Systems.Db;
 
+with Concorde.Players;
+
 package body Concorde.Galaxy.Updates is
 
    -------------------
@@ -21,7 +22,6 @@ package body Concorde.Galaxy.Updates is
    -------------------
 
    procedure Update_Galaxy is
-      Changed_Owners : Boolean := False;
 
       procedure Update_System
         (System : in out Concorde.Systems.Root_Star_System_Type'Class);
@@ -33,8 +33,6 @@ package body Concorde.Galaxy.Updates is
       procedure Update_System
         (System : in out Concorde.Systems.Root_Star_System_Type'Class)
       is
-         Reference : constant Concorde.Systems.Star_System_Type :=
-                       Concorde.Systems.Db.Reference (System);
       begin
          Concorde.Systems.Updates.Update_System (System);
          declare
@@ -65,12 +63,11 @@ package body Concorde.Galaxy.Updates is
                            is
                            begin
                               Empire.System_Acquired (System);
-                              Empire.AI.System_Acquired
-                                (Empire, Reference, null);
+                              Empire.Player.On_System_Colonised
+                                (Empire, System);
                            end Update_Owner;
 
                         begin
-                           Changed_Owners := True;
                            Concorde.Empires.Logging.Log
                              (New_Owner,
                               "colonises " & System.Name);
@@ -98,7 +95,6 @@ package body Concorde.Galaxy.Updates is
                         end loop;
 
                         if New_Owner /= null then
-                           Changed_Owners := True;
 
                            declare
                               procedure Update_System_Acquired
@@ -116,8 +112,8 @@ package body Concorde.Galaxy.Updates is
                               is
                               begin
                                  Empire.System_Acquired (System);
-                                 Empire.AI.System_Acquired
-                                   (Empire, Reference, Current_Owner);
+                                 Empire.Player.On_System_Captured
+                                   (Empire, System, Current_Owner);
                               end Update_System_Acquired;
 
                               ------------------------
@@ -129,8 +125,8 @@ package body Concorde.Galaxy.Updates is
                               is
                               begin
                                  Empire.System_Lost (System);
-                                 Empire.AI.System_Lost
-                                   (Empire, Reference, New_Owner);
+                                 Empire.Player.On_System_Lost
+                                   (Empire, System, New_Owner);
                               end Update_System_Lost;
 
                            begin
@@ -167,10 +163,6 @@ package body Concorde.Galaxy.Updates is
 
       Concorde.Systems.Db.Iterate (Update_System'Access);
 
-      if Changed_Owners then
-         Update_System_Flags;
-      end if;
-
       Concorde.Galaxy.Ships.Start_Ship_Moves;
       Concorde.Ships.Updates.Update_Ship_Movement;
       Concorde.Galaxy.Ships.Commit_Ship_Moves;
@@ -179,64 +171,5 @@ package body Concorde.Galaxy.Updates is
         (Concorde.Systems.Updates.Update_System'Access);
 
    end Update_Galaxy;
-
-   -------------------------
-   -- Update_System_Flags --
-   -------------------------
-
-   procedure Update_System_Flags is
-
-      procedure Process
-        (System : Concorde.Systems.Star_System_Type);
-
-      -------------
-      -- Process --
-      -------------
-
-      procedure Process
-        (System : Concorde.Systems.Star_System_Type)
-      is
-         procedure Update_Owner
-           (Owner : in out Concorde.Empires.Root_Empire_Type'Class);
-
-         procedure Update_Owner
-           (Owner : in out Concorde.Empires.Root_Empire_Type'Class)
-         is
-            Border : Boolean := False;
-         begin
-            Owner.Clear_System_Flags (System);
-
-            for N of Neighbours (System) loop
-               if System.Owner /= N.Owner then
-                  Border := True;
-                  Owner.Set (N, Concorde.Empires.Neighbour);
-                  if N.Owned then
-                     if N.Owner /= System.Owner then
-                        Owner.Set (System, Concorde.Empires.Border);
-                        Owner.Set (N, Concorde.Empires.Neighbour);
-                     end if;
-                  else
-                     Owner.Set (System, Concorde.Empires.Frontier);
-                     Owner.Set (N, Concorde.Empires.Neighbour);
-                  end if;
-               end if;
-            end loop;
-            if not Border then
-               Owner.Set (System, Concorde.Empires.Internal);
-            end if;
-         end Update_Owner;
-
-      begin
-         if System.Owned then
-            Concorde.Empires.Db.Update
-              (System.Owner.Reference, Update_Owner'Access);
-         end if;
-      end Process;
-
-   begin
-
-      Concorde.Systems.Db.Scan (Process'Access);
-
-   end Update_System_Flags;
 
 end Concorde.Galaxy.Updates;

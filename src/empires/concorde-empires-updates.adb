@@ -1,4 +1,3 @@
-with Concorde.AI.Default;
 with Concorde.Galaxy;
 
 with Concorde.Empires.Db;
@@ -6,6 +5,8 @@ with Concorde.Empires.History;
 with Concorde.Empires.Logging;
 
 with Concorde.Systems.Db;
+
+with Concorde.Players;
 
 package body Concorde.Empires.Updates is
 
@@ -36,6 +37,9 @@ package body Concorde.Empires.Updates is
 
    procedure Update_Empire
      (Empire : in out Root_Empire_Type'Class);
+
+   procedure Update_System_Flags
+     (System : Concorde.Systems.Root_Star_System_Type'Class);
 
    ---------------------
    -- Add_Move_Orders --
@@ -111,18 +115,18 @@ package body Concorde.Empires.Updates is
 
    procedure Start is
 
-      procedure Do_Start (Empire : in out Root_Empire_Type'Class);
+      procedure Do_Start
+        (Empire : in out Concorde.Empires.Root_Empire_Type'Class);
 
       --------------
       -- Do_Start --
       --------------
 
-      procedure Do_Start (Empire : in out Root_Empire_Type'Class) is
+      procedure Do_Start
+        (Empire : in out Concorde.Empires.Root_Empire_Type'Class)
+      is
       begin
-         if Empire.AI = null then
-            Empire.AI := Concorde.AI.Default.Default_AI;
-         end if;
-         Empire.AI.Start (Empire);
+         Empire.Player.On_Start (Empire);
       end Do_Start;
 
    begin
@@ -140,27 +144,6 @@ package body Concorde.Empires.Updates is
    begin
       null;
    end Update_Empire;
-
-   ----------------------
-   -- Update_Empire_AI --
-   ----------------------
-
-   procedure Update_Empire_AI is
-
-      procedure Update (Empire : in out Root_Empire_Type'Class);
-
-      ------------
-      -- Update --
-      ------------
-
-      procedure Update (Empire : in out Root_Empire_Type'Class) is
-      begin
-         Empire.AI.Allocate_Ships (Empire);
-      end Update;
-
-   begin
-      Db.Iterate (Update'Access);
-   end Update_Empire_AI;
 
    --------------------
    -- Update_Empires --
@@ -180,6 +163,8 @@ package body Concorde.Empires.Updates is
       procedure On_Update_Start (Empire : in out Root_Empire_Type'Class) is
       begin
          Empire.Max_Ships := 0.0;
+         Empire.Border_Change := False;
+         Empire.Player.Execute_Orders;
       end On_Update_Start;
 
       -------------------------
@@ -213,10 +198,54 @@ package body Concorde.Empires.Updates is
         (Concorde.Systems.Owned'Access,
          Update_System_Owner'Access);
 
+      Concorde.Systems.Db.Scan
+        (Update_System_Flags'Access);
+
       Db.Iterate (Update_Empire'Access);
 
       History.Update_History;
 
    end Update_Empires;
+
+   procedure Update_System_Flags
+     (System : Concorde.Systems.Root_Star_System_Type'Class)
+   is
+
+      procedure Clear_System_Flags
+        (Empire : in out Root_Empire_Type'Class);
+
+      procedure Update_Owner
+        (Owner : in out Root_Empire_Type'Class);
+
+      ------------------------
+      -- Clear_System_Flags --
+      ------------------------
+
+      procedure Clear_System_Flags
+        (Empire : in out Root_Empire_Type'Class)
+      is
+      begin
+         Empire.Clear_System_Flags (System);
+      end Clear_System_Flags;
+
+      ------------------
+      -- Update_Owner --
+      ------------------
+
+      procedure Update_Owner
+        (Owner : in out Root_Empire_Type'Class)
+      is
+      begin
+         Owner.Update_System_Owner (System);
+      end Update_Owner;
+
+   begin
+      Db.Iterate (Clear_System_Flags'Access);
+
+      if System.Owned then
+         Db.Update (System.Owner.Reference, Update_Owner'Access);
+      end if;
+
+   end Update_System_Flags;
 
 end Concorde.Empires.Updates;

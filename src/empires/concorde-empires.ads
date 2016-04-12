@@ -6,7 +6,7 @@ private with Memor.Element_Vectors;
 
 with Memor;
 
-limited with Concorde.AI;
+limited with Concorde.Players;
 
 with Lui.Colours;
 
@@ -51,9 +51,9 @@ package Concorde.Empires is
       To      : Root_Empire_Type'Class;
       Change  : Empire_Relationship_Range);
 
-   function AI
+   function Player
      (Empire : Root_Empire_Type'Class)
-      return access Concorde.AI.Root_AI_Type'Class;
+      return access Concorde.Players.Root_Player_Type'Class;
 
    function Maximum_Supported_Ships
      (Empire : Root_Empire_Type'Class)
@@ -112,8 +112,7 @@ package Concorde.Empires is
 
    procedure Clear_System_Flags
      (Empire   : in out Root_Empire_Type'Class;
-      System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class);
+      System   : Concorde.Systems.Root_Star_System_Type'Class);
    --  Clear all flags apart from Focus
 
    function Is_Set
@@ -134,6 +133,11 @@ package Concorde.Empires is
      (Empire   : in out Root_Empire_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
+      Flag     : Star_System_Flag);
+
+   procedure Set
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : Concorde.Systems.Root_Star_System_Type'Class;
       Flag     : Star_System_Flag);
 
    procedure Clear
@@ -257,6 +261,11 @@ package Concorde.Empires is
 
    procedure Clear_Battles;
 
+   procedure Update_System_Owner
+     (Owner  : in out Root_Empire_Type'Class;
+      System : Concorde.Systems.Root_Star_System_Type'Class)
+     with Pre => Owner.Identifier = System.Owner.Identifier;
+
 private
 
    package List_Of_Focus_Systems is
@@ -320,7 +329,7 @@ private
          Colour          : Lui.Colours.Colour_Type;
          System_Data     : access System_Data_Array;
          Empire_Data     : Empire_Vectors.Vector;
-         AI              : access Concorde.AI.Root_AI_Type'Class;
+         Player          : access Concorde.Players.Root_Player_Type'Class;
          Max_Ships       : Non_Negative_Real := 0.0;
          Current_Ships   : Natural := 0;
          Current_Systems : Natural := 0;
@@ -328,6 +337,7 @@ private
          Captured_Ships  : Natural := 0;
          Lost_Ships      : Natural := 0;
          Destroyed_Ships : Natural := 0;
+         Border_Change   : Boolean;
          Capital         : Concorde.Systems.Star_System_Type;
          Battles         : List_Of_Systems.List;
          Default_Ship    : access String;

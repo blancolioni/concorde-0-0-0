@@ -16,7 +16,7 @@ package body Concorde.Empires.Create is
       Capital             : String;
       Colour              : Lui.Colours.Colour_Type;
       Default_Ship_Design : String;
-      AI                  : Concorde.AI.AI_Type      := null)
+      Player              : Concorde.Players.Player_Type)
    is
 
       Taken : Concorde.Galaxy.Star_System_Set;
@@ -111,7 +111,7 @@ package body Concorde.Empires.Create is
            new System_Data_Array (1 .. Galaxy.System_Count);
          New_Empire.Colour := Colour;
          New_Empire.Capital := Start;
-         New_Empire.AI := AI;
+         New_Empire.Player := Player;
          New_Empire.Current_Systems := 1;
          New_Empire.Default_Ship := new String'(Default_Ship_Design);
          Concorde.Galaxy.Update_System (Start, Choose'Access);

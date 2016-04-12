@@ -15,6 +15,7 @@ byz = {
    capital = Constantinople
    colour = { 102 2 60 }
    design = dromon
+   player = simple
 }
 
 itc = {

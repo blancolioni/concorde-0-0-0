@@ -6,7 +6,6 @@ with Lui.Colours;
 with Lui.Rendering;
 with Lui.Tables;
 
-with Concorde.AI;
 with Concorde.Dates;
 with Concorde.Elementary_Functions;
 with Concorde.Empires;
@@ -30,7 +29,7 @@ package body Concorde.Galaxy.Model is
      (Count : Natural)
       return String;
 
-   subtype Empire_Column is Integer range 1 .. 5;
+   subtype Empire_Column is Integer range 1 .. 3;
 
    type Empire_Table is
      new Lui.Tables.Root_Model_Table with null record;
@@ -42,9 +41,7 @@ package body Concorde.Galaxy.Model is
    is ((case Empire_Column (Col) is
            when 1 => "Name",
            when 2 => "Systems",
-           when 3 => "Ships",
-           when 4 => "Attack",
-           when 5 => "Defence"));
+           when 3 => "Ships"));
 
    overriding function Cell_Text
      (Table : Empire_Table;
@@ -190,10 +187,6 @@ package body Concorde.Galaxy.Model is
             end;
          when 3 =>
             return Lui.Approximate_Image (E.Current_Ships);
-         when 4 =>
-            return Lui.Approximate_Image (E.AI.Minimum_Attack_Factor);
-         when 5 =>
-            return Lui.Approximate_Image (E.AI.Minimum_Defense_Factor);
       end case;
    end Cell_Text;
 

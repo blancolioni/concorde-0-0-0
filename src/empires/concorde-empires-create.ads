@@ -1,4 +1,4 @@
-with Concorde.AI;
+with Concorde.Players;
 
 package Concorde.Empires.Create is
 
@@ -7,6 +7,6 @@ package Concorde.Empires.Create is
       Capital             : String;
       Colour              : Lui.Colours.Colour_Type;
       Default_Ship_Design : String;
-      AI                  : Concorde.AI.AI_Type      := null);
+      Player              : Concorde.Players.Player_Type);
 
 end Concorde.Empires.Create;

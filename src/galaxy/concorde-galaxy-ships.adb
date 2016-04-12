@@ -6,10 +6,10 @@ with Concorde.Empires.Logging;
 with Concorde.Ships.Battles;
 with Concorde.Ships.Lists;
 
-with Concorde.AI;
-
 with Concorde.Ships.Db;
 with Concorde.Systems.Db;
+
+with Concorde.Players;
 
 package body Concorde.Galaxy.Ships is
 
@@ -157,7 +157,8 @@ package body Concorde.Galaxy.Ships is
       end if;
 
       if To = Ship.Destination then
-         Ship.Owner.AI.Wake;
+         Ship.Owner.Player.On_Ship_Arrived
+           (Ship.Owner, Ship);
       end if;
 
    end Move_Ship;

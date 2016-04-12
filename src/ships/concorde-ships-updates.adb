@@ -1,13 +1,11 @@
 with Ada.Containers.Doubly_Linked_Lists;
 
-with Concorde.AI;
 with Concorde.Galaxy.Ships;
 with Concorde.Empires;
 with Concorde.Systems;
 
 with Concorde.Empires.Logging;
 
-with Concorde.Empires.Db;
 with Concorde.Ships.Db;
 with Concorde.Systems.Db;
 
@@ -78,26 +76,6 @@ package body Concorde.Ships.Updates is
    procedure Update_Ship (Ship : in out Root_Ship_Type'Class) is
 
    begin
-
-      declare
-         procedure Order
-           (Empire : in out Concorde.Empires.Root_Empire_Type'Class);
-
-         -----------
-         -- Order --
-         -----------
-
-         procedure Order
-           (Empire : in out Concorde.Empires.Root_Empire_Type'Class)
-         is
-         begin
-            Ship.Owner.AI.Order_Ship
-              (Empire, Ship);
-         end Order;
-
-      begin
-         Concorde.Empires.Db.Update (Ship.Owner.Reference, Order'Access);
-      end;
 
       if Ship.Has_Destination then
          Concorde.Empires.Logging.Log

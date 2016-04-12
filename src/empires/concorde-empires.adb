@@ -16,18 +16,6 @@ package body Concorde.Empires is
 
    function All_Empires return Array_Of_Empires;
 
-   --------
-   -- AI --
-   --------
-
-   function AI
-     (Empire : Root_Empire_Type'Class)
-      return access Concorde.AI.Root_AI_Type'Class
-   is
-   begin
-      return Empire.AI;
-   end AI;
-
    -----------------
    -- All_Empires --
    -----------------
@@ -286,8 +274,7 @@ package body Concorde.Empires is
 
    procedure Clear_System_Flags
      (Empire   : in out Root_Empire_Type'Class;
-      System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
+      System   : Concorde.Systems.Root_Star_System_Type'Class)
    is
       System_Data : Empire_Star_System_Record renames
                       Empire.System_Data (System.Index);
@@ -498,6 +485,18 @@ package body Concorde.Empires is
       return Data.Next_Node (To.Index).Path_Length;
    end Path_Length;
 
+   ------------
+   -- Player --
+   ------------
+
+   function Player
+     (Empire : Root_Empire_Type'Class)
+      return access Concorde.Players.Root_Player_Type'Class
+   is
+   begin
+      return Empire.Player;
+   end Player;
+
    ----------
    -- Rank --
    ----------
@@ -589,12 +588,25 @@ package body Concorde.Empires is
 
    procedure Set
      (Empire   : in out Root_Empire_Type'Class;
+      System   : Concorde.Systems.Root_Star_System_Type'Class;
+      Flag     : Star_System_Flag)
+   is
+   begin
+      Empire.System_Data (System.Index).Flags (Flag) := True;
+   end Set;
+
+   ---------
+   -- Set --
+   ---------
+
+   procedure Set
+     (Empire   : in out Root_Empire_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
       Flag     : Star_System_Flag)
    is
    begin
-      Empire.System_Data (System.Index).Flags (Flag) := True;
+      Empire.Set (System.all, Flag);
    end Set;
 
    --------------
@@ -691,6 +703,7 @@ package body Concorde.Empires is
    begin
       Empire.Current_Systems := Empire.Current_Systems - 1;
       Empire.Clear_Path_Cache;
+
       Concorde.Empires.Logging.Log
         (Empire,
          "new system count:"
@@ -773,5 +786,36 @@ package body Concorde.Empires is
          end;
       end if;
    end System_Lost;
+
+   -------------------------
+   -- Update_System_Owner --
+   -------------------------
+
+   procedure Update_System_Owner
+     (Owner  : in out Root_Empire_Type'Class;
+      System : Concorde.Systems.Root_Star_System_Type'Class)
+   is
+      use Concorde.Galaxy;
+      Border : Boolean := False;
+   begin
+      for N of Neighbours (System.Index) loop
+         if System.Owner /= N.Owner then
+            Border := True;
+            Owner.Set (N, Concorde.Empires.Neighbour);
+            if N.Owned then
+               if N.Owner /= System.Owner then
+                  Owner.Set (System, Concorde.Empires.Border);
+                  Owner.Set (N, Concorde.Empires.Neighbour);
+               end if;
+            else
+               Owner.Set (System, Concorde.Empires.Frontier);
+               Owner.Set (N, Concorde.Empires.Neighbour);
+            end if;
+         end if;
+      end loop;
+      if not Border then
+         Owner.Set (System, Concorde.Empires.Internal);
+      end if;
+   end Update_System_Owner;
 
 end Concorde.Empires;

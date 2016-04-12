@@ -1,8 +1,11 @@
 with Concorde.Empires;
+with Concorde.Empires.Db;
 with Concorde.Empires.Logging;
 
 with Concorde.Ships.Create;
 with Concorde.Ships.Db;
+
+with Concorde.Players;
 
 package body Concorde.Systems.Updates is
 
@@ -90,8 +93,26 @@ package body Concorde.Systems.Updates is
                              (Owner  => System.Owner,
                               System => System,
                               Design => System.Owner.Default_Ship_Design);
+
+                  procedure Notify
+                    (Empire : in out Concorde.Empires.Root_Empire_Type'Class);
+
+                  ------------
+                  -- Notify --
+                  ------------
+
+                  procedure Notify
+                    (Empire : in out Concorde.Empires.Root_Empire_Type'Class)
+                  is
+                  begin
+                     Empire.Player.On_Ship_Completed
+                       (Empire, Ship);
+                  end Notify;
+
                begin
                   System.Ships.Append (Ship);
+                  Concorde.Empires.Db.Update
+                    (System.Owner.Reference, Notify'Access);
                end;
 
                System.Progress := System.Progress - 1.0;

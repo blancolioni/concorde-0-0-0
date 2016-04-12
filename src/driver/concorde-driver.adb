@@ -23,9 +23,9 @@ with Concorde.Empires.Logging;
 
 with Concorde.Options;
 
-with Concorde.AI.Configure;
-
 with Concorde.People.Groups.Configure;
+
+with Concorde.Players.Registry;
 
 procedure Concorde.Driver is
 
@@ -46,11 +46,11 @@ begin
       WL.Random.Randomise;
    end if;
 
+   Concorde.Players.Registry.Register_Players;
+
    Concorde.People.Groups.Configure.Configure_Pop_Groups;
    Concorde.Components.Configure.Configure_Components;
    Concorde.Ships.Designs.Configure_Designs;
-
-   Concorde.AI.Configure.Register;
 
    Concorde.Galaxy.Create.Create_Galaxy
      (System_Count        => Concorde.Options.Number_Of_Systems,

@@ -71,8 +71,6 @@ package body Concorde.Updates is
 
       Concorde.Ships.Updates.Delete_Dead_Ships;
 
-      Concorde.Galaxy.Updates.Update_System_Flags;
-      Concorde.Empires.Updates.Update_Empire_AI;
       Concorde.Empires.Updates.Update_Empires;
       Concorde.Galaxy.Updates.Update_Galaxy;
 
