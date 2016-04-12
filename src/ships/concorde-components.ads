@@ -8,7 +8,7 @@ package Concorde.Components is
      (Bridge, Flag_Bridge, Crew_Quarters, Engineering,
       Tank, Hold, Fighter_Bay,
       Strut,
-      Drive,
+      Drive, Jump_Drive,
       Power_Plant,
       Sensor,
       Energy_Weapon, Kinetic_Weapon, Launcher,
