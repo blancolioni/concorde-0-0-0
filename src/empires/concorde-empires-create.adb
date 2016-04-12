@@ -107,7 +107,6 @@ package body Concorde.Empires.Create is
          New_Empire.Identifier :=
            Ada.Strings.Unbounded.To_Unbounded_String (Name);
          New_Empire.Set_Name (Name);
-         New_Empire.Focus_List := new List_Of_Focus_Systems.List;
          New_Empire.System_Data :=
            new System_Data_Array (1 .. Galaxy.System_Count);
          New_Empire.Colour := Colour;

@@ -48,18 +48,16 @@ package body Concorde.AI.Default is
    overriding procedure System_Acquired
      (AI           : in out Root_Default_AI_Type;
       Empire       : in out Concorde.Empires.Root_Empire_Type'Class;
-      System       : Concorde.Systems.Root_Star_System_Type'Class;
+      System       : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
       Former_Owner : Concorde.Empires.Empire_Type);
 
    overriding procedure System_Lost
      (AI        : in out Root_Default_AI_Type;
       Empire    : in out Concorde.Empires.Root_Empire_Type'Class;
-      System    : Concorde.Systems.Root_Star_System_Type'Class;
+      System    : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
       New_Owner : Concorde.Empires.Empire_Type);
-
-   overriding procedure Update_Focus
-     (AI     : in out Root_Default_AI_Type;
-      Empire : in out Concorde.Empires.Root_Empire_Type'Class);
 
    overriding procedure Wake (AI : in out Root_Default_AI_Type);
 
@@ -175,7 +173,7 @@ package body Concorde.AI.Default is
                   AI.Unexplored_Systems := AI.Unexplored_Systems + 1;
                   AI.Explore_Destinations.Append (System);
                   Empire.Change_Required (System, 1);
-                  Empire.Set_Claim (System, True);
+                  Empire.Set (System, Concorde.Empires.Claim);
                end if;
             elsif Empire.Is_Border (System) then
                AI.Border_Systems := AI.Border_Systems + 1;
@@ -344,7 +342,7 @@ package body Concorde.AI.Default is
                    "unknown reason for canceling offensive"));
             AI.Planned_Offensive := False;
             AI.Launch_Offensive := False;
-            Empire.Set_Attack_Target (AI.Target.all, False);
+            Empire.Clear (AI.Target, Concorde.Empires.Attack_Target);
          end if;
       end if;
 
@@ -461,7 +459,7 @@ package body Concorde.AI.Default is
                  (Empire.Path_Length (AI.Attack_From, AI.Target))
                & ")");
 
-            Empire.Set_Attack_Target (AI.Target.all, True);
+            Empire.Set (AI.Target, Concorde.Empires.Attack_Target);
          end if;
       end if;
 
@@ -666,7 +664,8 @@ package body Concorde.AI.Default is
               and then not Empire.Is_Opportunity_Target (Opportunity)
               and then not Ship.Has_Destination
             then
-               Empire.Set_Opportunity_Target (Opportunity, True);
+               Empire.Set
+                 (AI.Target, Concorde.Empires.Opportunity_Target);
                Ship.Set_Destination (Opportunity);
                Opportunity_Attack := True;
                Empires.Logging.Log
@@ -859,34 +858,8 @@ package body Concorde.AI.Default is
      (AI     : in out Root_Default_AI_Type;
       Empire : in out Concorde.Empires.Root_Empire_Type'Class)
    is
-      pragma Unreferenced (AI);
-
-      function Owner
-        (System : Concorde.Systems.Star_System_Type)
-         return Boolean
-      is (System.Owner /= null
-          and then System.Owner.Name = Empire.Name);
-
-      procedure Start_System
-        (System : Concorde.Systems.Star_System_Type);
-
-      ------------------
-      -- Start_System --
-      ------------------
-
-      procedure Start_System
-        (System : Concorde.Systems.Star_System_Type)
-      is
-         Ns : constant Concorde.Galaxy.Array_Of_Star_Systems :=
-                Concorde.Galaxy.Neighbours (System);
-      begin
-         for N of Ns loop
-            Empire.Add_Focus (N);
-         end loop;
-      end Start_System;
-
+      pragma Unreferenced (Empire);
    begin
-      Concorde.Galaxy.Iterate (Owner'Access, Start_System'Access);
       AI.Current_Defense_Factor :=
         0.5 + Concorde.Random.Unit_Random;
    end Start;
@@ -898,7 +871,8 @@ package body Concorde.AI.Default is
    overriding procedure System_Acquired
      (AI           : in out Root_Default_AI_Type;
       Empire       : in out Concorde.Empires.Root_Empire_Type'Class;
-      System       : Concorde.Systems.Root_Star_System_Type'Class;
+      System       : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
       Former_Owner : Concorde.Empires.Empire_Type)
    is
       use Concorde.Empires;
@@ -914,7 +888,7 @@ package body Concorde.AI.Default is
          AI.Launch_Offensive := False;
       end if;
 
-      Empire.Set_Attack_Target (System, False);
+      Empire.Clear (System, Concorde.Empires.Attack_Target);
       AI.Awake := True;
 
    end System_Acquired;
@@ -926,7 +900,8 @@ package body Concorde.AI.Default is
    overriding procedure System_Lost
      (AI        : in out Root_Default_AI_Type;
       Empire    : in out Concorde.Empires.Root_Empire_Type'Class;
-      System    : Concorde.Systems.Root_Star_System_Type'Class;
+      System    : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
       New_Owner : Concorde.Empires.Empire_Type)
    is
    begin
@@ -937,193 +912,12 @@ package body Concorde.AI.Default is
       then
          AI.Planned_Offensive := False;
          AI.Launch_Offensive := False;
-         Empire.Set_Attack_Target (System, False);
+         Empire.Clear (System, Concorde.Empires.Attack_Target);
       end if;
 
       AI.Awake := True;
 
    end System_Lost;
-
-   ------------------
-   -- Update_Focus --
-   ------------------
-
-   overriding procedure Update_Focus
-     (AI     : in out Root_Default_AI_Type;
-      Empire : in out Concorde.Empires.Root_Empire_Type'Class)
-   is
-      use type Memor.Database_Reference;
-      use type Concorde.Empires.Empire_Type;
-
-      function Other_Owner
-        (System : Concorde.Systems.Star_System_Type)
-         return Boolean
-      is (System.Owner /= null
-          and then System.Owner.Reference /= Empire.Reference);
-
-      procedure Add_Focus
-        (System : Concorde.Systems.Star_System_Type);
-
-      function Border_System
-        (System : Concorde.Systems.Star_System_Type)
-         return Boolean;
-
-      function Interior
-        (System : Concorde.Systems.Star_System_Type)
-         return Boolean;
-
-      function Outnumbered_Defenders
-        (System : Concorde.Systems.Star_System_Type)
-         return Boolean;
-
-      function Unexplored
-        (System : Concorde.Systems.Star_System_Type)
-         return Boolean;
-
-      ---------------
-      -- Add_Focus --
-      ---------------
-
-      procedure Add_Focus
-        (System : Concorde.Systems.Star_System_Type)
-      is
-      begin
-         Empire.Add_Focus (System);
-      end Add_Focus;
-
-      -------------------
-      -- Border_System --
-      -------------------
-
-      function Border_System
-        (System : Concorde.Systems.Star_System_Type)
-         return Boolean
-      is
-         use Concorde.Galaxy;
-         Ns : constant Array_Of_Star_Systems :=
-                Galaxy.Neighbours (System);
-      begin
-         if not System.Owned_By (Empire) then
-            return False;
-         end if;
-
-         for N of Ns loop
-            if System.Owned and then not System.Owned_By (Empire) then
-               return True;
-            end if;
-         end loop;
-         return False;
-      end Border_System;
-
-      --------------
-      -- Interior --
-      --------------
-
-      function Interior
-        (System : Concorde.Systems.Star_System_Type)
-         return Boolean
-      is
-         use Concorde.Galaxy;
-         Ns : constant Array_Of_Star_Systems :=
-                Galaxy.Neighbours (System);
-      begin
-         if not System.Owned_By (Empire) then
-            return False;
-         end if;
-
-         for N of Ns loop
-            if N.Owned and then not N.Owned_By (Empire) then
-               return False;
-            end if;
-         end loop;
-         return True;
-      end Interior;
-
-      ---------------------------
-      -- Outnumbered_Defenders --
-      ---------------------------
-
-      function Outnumbered_Defenders
-        (System : Concorde.Systems.Star_System_Type)
-         return Boolean
-      is
-         use Concorde.Galaxy;
-         Ns : constant Array_Of_Star_Systems :=
-                Galaxy.Neighbours (System);
-         Defenders : Natural := 0;
-         Attackers : Natural := 0;
-      begin
-         if not System.Owned or else System.Owned_By (Empire) then
-            return False;
-         end if;
-
-         Defenders := System.Ships;
-         for N of Ns loop
-            if N.Owned_By (Empire) then
-               Attackers := Attackers + N.Ships;
-            elsif N.Owner = System.Owner then
-               Defenders := Defenders + N.Ships / 2;
-            end if;
-         end loop;
-
-         if Attackers /= 0 and then Defenders /= 0 then
-            declare
-               Ratio : constant Real :=
-                         Real (Attackers) / Real (Defenders);
-               Min   : constant Real :=
-                         Root_Default_AI_Type'Class (AI).Minimum_Attack_Factor;
-            begin
-               if Ratio > Min then
---                    Concorde.Empires.Logging.Log
---                      (Empire,
---                       "ordering attack on " & System.Name
---                       & "; attackers" & Attackers'Img
---                       & "; defenders" & Defenders'Img
---                       & "; ratio = "
---                       & Lui.Approximate_Image (Ratio)
---                       & "; minimum = "
---                       & Lui.Approximate_Image (Min));
-                  return True;
-               else
-                  return False;
-               end if;
-            end;
-         else
-            return False;
-         end if;
-      end Outnumbered_Defenders;
-
-      ----------------
-      -- Unexplored --
-      ----------------
-
-      function Unexplored
-        (System : Concorde.Systems.Star_System_Type)
-         return Boolean
-      is
-      begin
-         if System.Owner /= null then
-            return False;
-         end if;
-
-         for N of Galaxy.Neighbours (System) loop
-            if N.Owned_By (Empire) then
-               return True;
-            end if;
-         end loop;
-
-         return False;
-
-      end Unexplored;
-
-   begin
-      Empire.Remove_Focus (Other_Owner'Access);
-      Empire.Remove_Focus (Interior'Access);
-
-      Galaxy.Iterate (Border_System'Access, Add_Focus'Access);
-      Galaxy.Iterate (Outnumbered_Defenders'Access, Add_Focus'Access);
-      Galaxy.Iterate (Unexplored'Access, Add_Focus'Access);
-   end Update_Focus;
 
    -----------------------------
    -- Update_Ship_Destination --

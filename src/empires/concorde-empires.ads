@@ -36,35 +36,6 @@ package Concorde.Empires is
      (Empire : Root_Empire_Type'Class)
       return Concorde.Systems.Star_System_Type;
 
-   procedure Add_Focus
-     (Empire   : in out Root_Empire_Type'Class;
-      Focus    : Concorde.Systems.Star_System_Type;
-      Priority : Non_Negative_Real := 1.0);
-
-   procedure Remove_Focus
-     (Empire : in out Root_Empire_Type'Class;
-      Focus  : Concorde.Systems.Star_System_Type);
-
-   procedure Remove_Focus
-     (Empire : in out Root_Empire_Type'Class;
-      Matching : not null access
-        function (System : Concorde.Systems.Star_System_Type)
-      return Boolean);
-
-   function Has_Focus
-     (Empire : Root_Empire_Type'Class;
-      Focus  : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
-      return Boolean;
-
-   function Minimum_Score_Focus
-     (Empire : Root_Empire_Type'Class;
-      Score  : not null access
-        function (System : Concorde.Systems.Star_System_Type)
-      return Natural)
-      return Concorde.Systems.Star_System_Type;
-   --  focus system which minimised Score is returned
-
    function Relationship
      (Empire : Root_Empire_Type'Class;
       To     : Root_Empire_Type'Class)
@@ -121,117 +92,111 @@ package Concorde.Empires is
      and then Empire.Current_Systems > 0
      and then (Empire.Current_Systems > 1 or else System.Capital);
 
+   type Star_System_Flag is
+     (Discovered, Visible,
+      Active_Battle, Claim, Focus,
+      Attack_Target, Opportunity_Target,
+      Internal, Frontier, Neighbour, Border);
+
+   --  Discovered: we know that this star system exists
+   --  Visible: we can currently see what's in this star system
+   --  Active_Battle: we are currently fighting a battle in this system
+   --  Claim: we have a claim to this system
+   --  Focus: we are keeping tabs on this system
+   --  Attack_Target: we are planning to attack this system
+   --  Opportunity_Target: we will attack this system if weakly garrisoned
+   --  Internal: all neighbours of this system are owned by us
+   --  Frontier: at least one neighbour of this system is owned by nobody
+   --  Neighbour: this system is not owned by us, but a neighbour is
+   --  Border: system has at least one neighbour owned by a different empire
+
    procedure Clear_System_Flags
      (Empire   : in out Root_Empire_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class);
    --  Clear all flags apart from Focus
 
-   function Is_Internal
-     (Empire   : in out Root_Empire_Type'Class;
+   function Is_Set
+     (Empire   : Root_Empire_Type'Class;
       System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Flag     : Star_System_Flag)
       return Boolean;
 
-   procedure Set_Internal
+   function Is_Clear
+     (Empire   : Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Flag     : Star_System_Flag)
+      return Boolean;
+
+   procedure Set
      (Empire   : in out Root_Empire_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
-      Internal : Boolean);
-   --  Internal: this system is has connections only to other systems
-   --  owned by Empire
+      Flag     : Star_System_Flag);
+
+   procedure Clear
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Flag     : Star_System_Flag);
+
+   function Is_Internal
+     (Empire   : Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Boolean
+   is (Empire.Is_Set (System, Internal));
 
    function Has_Battle
-     (Empire   : in out Root_Empire_Type'Class;
+     (Empire   : Root_Empire_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
-      return Boolean;
-
-   procedure Set_Battle
-     (Empire   : in out Root_Empire_Type'Class;
-      System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class);
-   --  Battle: we are currently fighting in this system
-
-   procedure Clear_Battles;
+      return Boolean
+   is (Empire.Is_Set (System, Active_Battle));
 
    function Has_Claim
-     (Empire   : in out Root_Empire_Type'Class;
+     (Empire   : Root_Empire_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
-      return Boolean;
-
-   procedure Set_Claim
-     (Empire   : in out Root_Empire_Type'Class;
-      System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class;
-      Claim    : Boolean);
-   --  Claim: Empire has cause to own this system
+      return Boolean
+   is (Empire.Is_Set (System, Claim));
 
    function Is_Frontier
-     (Empire   : in out Root_Empire_Type'Class;
+     (Empire   : Root_Empire_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
-      return Boolean;
-
-   procedure Set_Frontier
-     (Empire   : in out Root_Empire_Type'Class;
-      System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class;
-      Frontier : Boolean);
-   --  Frontier: this system has at least one connection to an unowned system
+      return Boolean
+   is (Empire.Is_Set (System, Frontier));
 
    function Is_Neighbour
-     (Empire   : in out Root_Empire_Type'Class;
+     (Empire   : Root_Empire_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
-      return Boolean;
-
-   procedure Set_Neighbour
-     (Empire    : in out Root_Empire_Type'Class;
-      System    : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class;
-      Neighbour : Boolean);
-   --  Neighbour: this system has a neighbour which is owned by Empire
+      return Boolean
+   is (Empire.Is_Set (System, Neighbour));
 
    function Is_Border
-     (Empire   : in out Root_Empire_Type'Class;
+     (Empire   : Root_Empire_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
-      return Boolean;
-
-   procedure Set_Border
-     (Empire  : in out Root_Empire_Type'Class;
-      System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class;
-      Border  : Boolean);
-   --  Border: this system has at least one connection to a system
-   --  owned by another empire
+      return Boolean
+   is (Empire.Is_Set (System, Border));
 
    function Is_Attack_Target
      (Empire   : Root_Empire_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
-      return Boolean;
-
-   procedure Set_Attack_Target
-     (Empire        : in out Root_Empire_Type'Class;
-      System        : Concorde.Systems.Root_Star_System_Type'Class;
-      Attack_Target : Boolean);
-   --  Attack_Target: Emprie planning an attack on this system
+      return Boolean
+   is (Empire.Is_Set (System, Attack_Target));
 
    function Is_Opportunity_Target
-     (Empire   : in out Root_Empire_Type'Class;
+     (Empire   : Root_Empire_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
-      return Boolean;
-
-   procedure Set_Opportunity_Target
-     (Empire             : in out Root_Empire_Type'Class;
-      System             : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class;
-      Opportunity_Target : Boolean);
-   --  Opportunity target: undefended system we can attack
+      return Boolean
+   is (Empire.Is_Set (System, Opportunity_Target));
 
    function Required
      (Empire : Root_Empire_Type'Class;
@@ -269,13 +234,6 @@ package Concorde.Empires is
         Concorde.Systems.Root_Star_System_Type'Class)
       return Boolean;
 
-   function Neighbour_System
-     (Empire : Root_Empire_Type'Class;
-      System : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
-      return Boolean;
-   --  System is a neighbour of a system which is owned by Empire
-
    function Default_Ship_Design
      (Empire : Root_Empire_Type'Class)
       return String;
@@ -296,6 +254,8 @@ package Concorde.Empires is
       return Empire_Type;
 
    procedure Check_Invariants;
+
+   procedure Clear_Battles;
 
 private
 
@@ -322,19 +282,15 @@ private
    type Destination_Next_Access is
      access Destination_Next_Index;
 
+   type Star_System_Flag_Values is
+     array (Star_System_Flag) of Boolean
+     with Pack;
+
    type Empire_Star_System_Record is
       record
-         Focus       : Boolean := False;
-         Internal    : Boolean := False;
-         Frontier    : Boolean := False;
-         Border      : Boolean := False;
-         Neighbour   : Boolean := False;
-         Attack      : Boolean := False;
-         Opportunity : Boolean := False;
-         Claim       : Boolean := False;
-         Battle      : Boolean := False;
-         Required    : Integer := 0;
-         Next_Node   : Destination_Next_Access := null;
+         Flags     : Star_System_Flag_Values := (others => False);
+         Required  : Integer := 0;
+         Next_Node : Destination_Next_Access := null;
       end record
      with Pack;
 
@@ -362,7 +318,6 @@ private
          Identifier      : Ada.Strings.Unbounded.Unbounded_String;
          Empire_Name     : Ada.Strings.Unbounded.Unbounded_String;
          Colour          : Lui.Colours.Colour_Type;
-         Focus_List      : access List_Of_Focus_Systems.List;
          System_Data     : access System_Data_Array;
          Empire_Data     : Empire_Vectors.Vector;
          AI              : access Concorde.AI.Root_AI_Type'Class;

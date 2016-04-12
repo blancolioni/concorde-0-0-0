@@ -1,7 +1,5 @@
 with Ada.Containers.Doubly_Linked_Lists;
 
-with WL.Random;
-
 with Concorde.AI;
 with Concorde.Galaxy.Ships;
 with Concorde.Empires;
@@ -79,66 +77,7 @@ package body Concorde.Ships.Updates is
 
    procedure Update_Ship (Ship : in out Root_Ship_Type'Class) is
 
-      function System_Priority
-        (System : Concorde.Systems.Star_System_Type)
-         return Natural;
-
-      ---------------------
-      -- System_Priority --
-      ---------------------
-
-      function System_Priority
-        (System : Concorde.Systems.Star_System_Type)
-         return Natural
-      is
-         Salt : constant Natural := WL.Random.Random_Number (1, 100);
-      begin
-         if not Concorde.Galaxy.Ships.Can_Move_To (Ship, System) then
-            return Natural'Last;
-         elsif System.Owner = Ship.Owner then
-            return System.Ships * 10
-              + Ship.Owner.Path_Length (Ship.System, System)
-              + Salt;
-         else
-            return Salt + Ship.Owner.Path_Length (Ship.System, System);
-         end if;
-      end System_Priority;
-
    begin
-
-      if False then
-         for N of Concorde.Galaxy.Neighbours (Ship.System) loop
-            if Ship.Owner.Has_Focus (N)
-              and then N.Owner /= null
-              and then N.Owner /= Ship.Owner
-            then
-               Ship.Dest_Reference := N.Reference;
-               exit;
-            end if;
-         end loop;
-
-         if not Ship.Has_Destination
-           and then not Ship.Owner.Has_Focus (Ship.System)
-         then
-            Ship.Set_Destination
-              (Ship.Owner.Minimum_Score_Focus
-                 (System_Priority'Access));
-         end if;
-
-         if Ship.Has_Destination
-           and then Ship.Destination = Ship.System
-         then
-            Ship.Dest_Reference := Memor.Null_Database_Reference;
-         end if;
-      end if;
-
---        if Ship.HP > 0
---       and then Ship.Owner.Maximum_Supported_Ships < Ship.Owner.Current_Ships
---       and then WL.Random.Random_Number (1, 100)
---       > Ship.Owner.Maximum_Supported_Ships * 100 / Ship.Owner.Current_Ships
---        then
---           Ship.HP := Ship.HP - 1;
---        end if;
 
       declare
          procedure Order

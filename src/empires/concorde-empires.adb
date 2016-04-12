@@ -16,27 +16,6 @@ package body Concorde.Empires is
 
    function All_Empires return Array_Of_Empires;
 
-   ---------------
-   -- Add_Focus --
-   ---------------
-
-   procedure Add_Focus
-     (Empire   : in out Root_Empire_Type'Class;
-      Focus    : Concorde.Systems.Star_System_Type;
-      Priority : Non_Negative_Real := 1.0)
-   is
-      pragma Unreferenced (Priority);
-      Added : Boolean;
-   begin
-      Empire.System_Data (Focus.Index).Focus := True;
-      Empire.Focus_List.Add_If_Missing (Focus, Added);
-      if Added then
-         Concorde.Empires.Logging.Log
-           (Empire'Unchecked_Access,
-            "add focus: " & Focus.Name);
-      end if;
-   end Add_Focus;
-
    --------
    -- AI --
    --------
@@ -252,6 +231,20 @@ package body Concorde.Empires is
       Db.Scan (Check'Access);
    end Check_Invariants;
 
+   -----------
+   -- Clear --
+   -----------
+
+   procedure Clear
+     (Empire   : in out Root_Empire_Type'Class;
+      System   : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Flag     : Star_System_Flag)
+   is
+   begin
+      Empire.System_Data (System.Index).Flags (Flag) := False;
+   end Clear;
+
    -------------------
    -- Clear_Battles --
    -------------------
@@ -296,13 +289,13 @@ package body Concorde.Empires is
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
    is
-      Flags : Empire_Star_System_Record renames
-                Empire.System_Data (System.Index);
+      System_Data : Empire_Star_System_Record renames
+                      Empire.System_Data (System.Index);
    begin
-      Flags.Internal := False;
-      Flags.Frontier := False;
-      Flags.Border   := False;
-      Flags.Neighbour := False;
+      System_Data.Flags (Internal) := False;
+      System_Data.Flags (Frontier) := False;
+      System_Data.Flags (Border) := False;
+      System_Data.Flags (Neighbour) := False;
    end Clear_System_Flags;
 
    ------------
@@ -368,50 +361,6 @@ package body Concorde.Empires is
       return Ranked_Empires (Index);
    end Get;
 
-   ----------------
-   -- Has_Battle --
-   ----------------
-
-   function Has_Battle
-     (Empire   : in out Root_Empire_Type'Class;
-      System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
-      return Boolean
-   is
-   begin
-      return List_Of_Systems.Has_Element
-        (Empire.Battles.Find
-           (Concorde.Systems.Star_System_Type (System)));
-   end Has_Battle;
-
-   ---------------
-   -- Has_Claim --
-   ---------------
-
-   function Has_Claim
-     (Empire   : in out Root_Empire_Type'Class;
-      System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
-      return Boolean
-   is
-   begin
-      return Empire.System_Data (System.Index).Claim;
-   end Has_Claim;
-
-   ---------------
-   -- Has_Focus --
-   ---------------
-
-   function Has_Focus
-     (Empire : Root_Empire_Type'Class;
-      Focus  : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
-      return Boolean
-   is
-   begin
-      return Empire.System_Data (Focus.Index).Focus;
-   end Has_Focus;
-
    -----------
    -- Image --
    -----------
@@ -431,89 +380,35 @@ package body Concorde.Empires is
       end if;
    end Image;
 
-   ----------------------
-   -- Is_Attack_Target --
-   ----------------------
+   --------------
+   -- Is_Clear --
+   --------------
 
-   function Is_Attack_Target
+   function Is_Clear
      (Empire   : Root_Empire_Type'Class;
       System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Flag     : Star_System_Flag)
       return Boolean
    is
    begin
-      return Empire.System_Data (System.Index).Attack;
-   end Is_Attack_Target;
+      return not Empire.Is_Set (System, Flag);
+   end Is_Clear;
 
-   ---------------
-   -- Is_Border --
-   ---------------
+   ------------
+   -- Is_Set --
+   ------------
 
-   function Is_Border
-     (Empire   : in out Root_Empire_Type'Class;
+   function Is_Set
+     (Empire   : Root_Empire_Type'Class;
       System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Flag     : Star_System_Flag)
       return Boolean
    is
    begin
-      return Empire.System_Data (System.Index).Border;
-   end Is_Border;
-
-   -----------------
-   -- Is_Frontier --
-   -----------------
-
-   function Is_Frontier
-     (Empire   : in out Root_Empire_Type'Class;
-      System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
-      return Boolean
-   is
-   begin
-      return Empire.System_Data (System.Index).Frontier;
-   end Is_Frontier;
-
-   -----------------
-   -- Is_Internal --
-   -----------------
-
-   function Is_Internal
-     (Empire   : in out Root_Empire_Type'Class;
-      System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
-      return Boolean
-   is
-   begin
-      return Empire.System_Data (System.Index).Internal;
-   end Is_Internal;
-
-   ------------------
-   -- Is_Neighbour --
-   ------------------
-
-   function Is_Neighbour
-     (Empire   : in out Root_Empire_Type'Class;
-      System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
-      return Boolean
-   is
-   begin
-      return Empire.System_Data (System.Index).Neighbour;
-   end Is_Neighbour;
-
-   ---------------------------
-   -- Is_Opportunity_Target --
-   ---------------------------
-
-   function Is_Opportunity_Target
-     (Empire   : in out Root_Empire_Type'Class;
-      System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
-      return Boolean
-   is
-   begin
-      return Empire.System_Data (System.Index).Opportunity;
-   end Is_Opportunity_Target;
+      return Empire.System_Data (System.Index).Flags (Flag);
+   end Is_Set;
 
    ------------------------------
    -- Maximum_Supported_Ships --
@@ -526,56 +421,6 @@ package body Concorde.Empires is
    begin
       return Natural (Empire.Max_Ships);
    end Maximum_Supported_Ships;
-
-   -------------------------
-   -- Minimum_Score_Focus --
-   -------------------------
-
-   function Minimum_Score_Focus
-     (Empire : Root_Empire_Type'Class;
-      Score  : not null access
-        function (System : Concorde.Systems.Star_System_Type)
-      return Natural)
-      return Concorde.Systems.Star_System_Type
-   is
-      Min_Score  : Natural := Natural'Last;
-      Min_System : Concorde.Systems.Star_System_Type := null;
-
-      procedure Update (System : Concorde.Systems.Star_System_Type);
-
-      ------------
-      -- Update --
-      ------------
-
-      procedure Update (System : Concorde.Systems.Star_System_Type) is
-         This_Score : constant Natural := Score (System);
-      begin
-         if This_Score < Min_Score then
-            Min_Score := This_Score;
-            Min_System := System;
-         end if;
-      end Update;
-
-   begin
-
-      Empire.Focus_List.Iterate (Update'Access);
-      return Min_System;
-
-   end Minimum_Score_Focus;
-
-   ----------------------
-   -- Neighbour_System --
-   ----------------------
-
-   function Neighbour_System
-     (Empire : Root_Empire_Type'Class;
-      System : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
-      return Boolean
-   is
-   begin
-      return Empire.System_Data (System.Index).Neighbour;
-   end Neighbour_System;
 
    ----------------
    -- New_Ships --
@@ -712,45 +557,6 @@ package body Concorde.Empires is
       return Empire.Empire_Data.Element (To.Reference).Relationship;
    end Relationship;
 
-   ------------------
-   -- Remove_Focus --
-   ------------------
-
-   procedure Remove_Focus
-     (Empire : in out Root_Empire_Type'Class;
-      Focus  : Concorde.Systems.Star_System_Type)
-   is
-      Deleted : Boolean;
-   begin
-      Empire.System_Data (Focus.Index).Focus := False;
-      Empire.Focus_List.Delete_If_Present (Focus, Deleted);
-      if Deleted then
-         Concorde.Empires.Logging.Log
-           (Empire'Unchecked_Access,
-            "remove focus: " & Focus.Name);
-      end if;
-   end Remove_Focus;
-
-   ------------------
-   -- Remove_Focus --
-   ------------------
-
-   procedure Remove_Focus
-     (Empire : in out Root_Empire_Type'Class;
-      Matching : not null access
-        function (System : Concorde.Systems.Star_System_Type)
-      return Boolean)
-   is
-      Systems : constant Concorde.Galaxy.Array_Of_Star_Systems :=
-                  Concorde.Galaxy.Get_Systems
-                    (Matching);
-   begin
-      for System of Systems loop
-         Empire.System_Data (System.Index).Focus := False;
-      end loop;
-      Empire.Focus_List.Delete_Matching (Matching);
-   end Remove_Focus;
-
    -----------------
    -- Remove_Ship --
    -----------------
@@ -777,90 +583,19 @@ package body Concorde.Empires is
       return Empire.System_Data (System.Index).Required;
    end Required;
 
-   -----------------------
-   -- Set_Attack_Target --
-   -----------------------
+   ---------
+   -- Set --
+   ---------
 
-   procedure Set_Attack_Target
-     (Empire        : in out Root_Empire_Type'Class;
-      System        : Concorde.Systems.Root_Star_System_Type'Class;
-      Attack_Target : Boolean)
-   is
-   begin
-      Empire.System_Data (System.Index).Attack := Attack_Target;
-   end Set_Attack_Target;
-
-   ----------------
-   -- Set_Battle --
-   ----------------
-
-   procedure Set_Battle
-     (Empire   : in out Root_Empire_Type'Class;
-      System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
-   is
-   begin
-      if not Empire.Has_Battle (System) then
-         Empire.Battles.Append
-           (Concorde.Systems.Star_System_Type (System));
-      end if;
-   end Set_Battle;
-
-   ----------------
-   -- Set_Border --
-   ----------------
-
-   procedure Set_Border
-     (Empire  : in out Root_Empire_Type'Class;
-      System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class;
-      Border   : Boolean)
-   is
-   begin
-      Empire.System_Data (System.Index).Border := Border;
-   end Set_Border;
-
-   ---------------
-   -- Set_Claim --
-   ---------------
-
-   procedure Set_Claim
+   procedure Set
      (Empire   : in out Root_Empire_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
-      Claim    : Boolean)
+      Flag     : Star_System_Flag)
    is
    begin
-      Empire.System_Data (System.Index).Claim := Claim;
-   end Set_Claim;
-
-   ------------------
-   -- Set_Frontier --
-   ------------------
-
-   procedure Set_Frontier
-     (Empire   : in out Root_Empire_Type'Class;
-      System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class;
-      Frontier : Boolean)
-   is
-   begin
-      Empire.System_Data (System.Index).Frontier := Frontier;
-   end Set_Frontier;
-
-   ------------------
-   -- Set_Internal --
-   ------------------
-
-   procedure Set_Internal
-     (Empire   : in out Root_Empire_Type'Class;
-      System   : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class;
-      Internal : Boolean)
-   is
-   begin
-      Empire.System_Data (System.Index).Internal := Internal;
-   end Set_Internal;
+      Empire.System_Data (System.Index).Flags (Flag) := True;
+   end Set;
 
    --------------
    -- Set_Name --
@@ -874,34 +609,6 @@ package body Concorde.Empires is
       Empire.Empire_Name :=
         Ada.Strings.Unbounded.To_Unbounded_String (Name);
    end Set_Name;
-
-   -------------------
-   -- Set_Neighbour --
-   -------------------
-
-   procedure Set_Neighbour
-     (Empire    : in out Root_Empire_Type'Class;
-      System    : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class;
-      Neighbour : Boolean)
-   is
-   begin
-      Empire.System_Data (System.Index).Neighbour := Neighbour;
-   end Set_Neighbour;
-
-   ----------------------------
-   -- Set_Opportunity_Target --
-   ----------------------------
-
-   procedure Set_Opportunity_Target
-     (Empire        : in out Root_Empire_Type'Class;
-      System        : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class;
-      Opportunity_Target : Boolean)
-   is
-   begin
-      Empire.System_Data (System.Index).Opportunity := Opportunity_Target;
-   end Set_Opportunity_Target;
 
    ----------------------
    -- Set_Relationship --

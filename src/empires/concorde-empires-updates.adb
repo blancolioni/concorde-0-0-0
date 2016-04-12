@@ -155,7 +155,6 @@ package body Concorde.Empires.Updates is
 
       procedure Update (Empire : in out Root_Empire_Type'Class) is
       begin
-         Empire.AI.Update_Focus (Empire);
          Empire.AI.Allocate_Ships (Empire);
       end Update;
 

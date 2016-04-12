@@ -127,7 +127,8 @@ package body Concorde.Ships.Battles is
               (Empire : in out Concorde.Empires.Root_Empire_Type'Class)
             is
             begin
-               Empire.Set_Battle (Concorde.Systems.Db.Reference (System));
+               Empire.Set (Concorde.Systems.Db.Reference (System),
+                           Concorde.Empires.Active_Battle);
             end Set_Battle;
 
          begin

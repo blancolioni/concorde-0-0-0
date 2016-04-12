@@ -13,22 +13,19 @@ package Concorde.AI is
       Empire : in out Concorde.Empires.Root_Empire_Type'Class)
    is abstract;
 
-   procedure Update_Focus
-     (AI     : in out Root_AI_Type;
-      Empire : in out Concorde.Empires.Root_Empire_Type'Class)
-   is abstract;
-
    procedure System_Acquired
      (AI           : in out Root_AI_Type;
       Empire       : in out Concorde.Empires.Root_Empire_Type'Class;
-      System       : Concorde.Systems.Root_Star_System_Type'Class;
+      System       : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
       Former_Owner : Concorde.Empires.Empire_Type)
    is abstract;
 
    procedure System_Lost
      (AI        : in out Root_AI_Type;
       Empire    : in out Concorde.Empires.Root_Empire_Type'Class;
-      System    : Concorde.Systems.Root_Star_System_Type'Class;
+      System    : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
       New_Owner : Concorde.Empires.Empire_Type)
    is abstract;
 

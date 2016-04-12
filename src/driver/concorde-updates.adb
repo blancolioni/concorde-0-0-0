@@ -11,6 +11,8 @@ with Concorde.Galaxy.Locking;
 with Concorde.Locking;
 with Concorde.Options;
 
+with Concorde.Empires.Logging;
+
 package body Concorde.Updates is
 
    Update_Delay : constant array (Update_Speed) of Duration :=
@@ -77,6 +79,8 @@ package body Concorde.Updates is
       if Execute_Battles then
          Concorde.Galaxy.Complete_Battles;
       end if;
+
+      Concorde.Empires.Logging.Flush_Log;
 
       if Check_Invariants then
          Concorde.Empires.Check_Invariants;

@@ -33,6 +33,8 @@ package body Concorde.Galaxy.Updates is
       procedure Update_System
         (System : in out Concorde.Systems.Root_Star_System_Type'Class)
       is
+         Reference : constant Concorde.Systems.Star_System_Type :=
+                       Concorde.Systems.Db.Reference (System);
       begin
          Concorde.Systems.Updates.Update_System (System);
          declare
@@ -64,7 +66,7 @@ package body Concorde.Galaxy.Updates is
                            begin
                               Empire.System_Acquired (System);
                               Empire.AI.System_Acquired
-                                (Empire, System, null);
+                                (Empire, Reference, null);
                            end Update_Owner;
 
                         begin
@@ -115,7 +117,7 @@ package body Concorde.Galaxy.Updates is
                               begin
                                  Empire.System_Acquired (System);
                                  Empire.AI.System_Acquired
-                                   (Empire, System, Current_Owner);
+                                   (Empire, Reference, Current_Owner);
                               end Update_System_Acquired;
 
                               ------------------------
@@ -128,7 +130,7 @@ package body Concorde.Galaxy.Updates is
                               begin
                                  Empire.System_Lost (System);
                                  Empire.AI.System_Lost
-                                   (Empire, System, New_Owner);
+                                   (Empire, Reference, New_Owner);
                               end Update_System_Lost;
 
                            begin
@@ -207,20 +209,20 @@ package body Concorde.Galaxy.Updates is
             for N of Neighbours (System) loop
                if System.Owner /= N.Owner then
                   Border := True;
-                  Owner.Set_Neighbour (N, True);
+                  Owner.Set (N, Concorde.Empires.Neighbour);
                   if N.Owned then
                      if N.Owner /= System.Owner then
-                        Owner.Set_Border (System, True);
-                        Owner.Set_Neighbour (N, True);
+                        Owner.Set (System, Concorde.Empires.Border);
+                        Owner.Set (N, Concorde.Empires.Neighbour);
                      end if;
                   else
-                     Owner.Set_Frontier (System, True);
-                     Owner.Set_Neighbour (N, True);
+                     Owner.Set (System, Concorde.Empires.Frontier);
+                     Owner.Set (N, Concorde.Empires.Neighbour);
                   end if;
                end if;
             end loop;
             if not Border then
-               Owner.Set_Internal (System, True);
+               Owner.Set (System, Concorde.Empires.Internal);
             end if;
          end Update_Owner;
 
