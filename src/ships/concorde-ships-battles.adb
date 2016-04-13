@@ -1,5 +1,6 @@
-with Ada.Numerics;
 with Ada.Strings.Unbounded;
+
+with Concorde.Geometry;
 
 with Concorde.Empires;
 with Concorde.Empires.Logging;
@@ -23,7 +24,7 @@ package body Concorde.Ships.Battles is
       record
          Empire : access constant Concorde.Empires.Root_Empire_Type'Class;
          X, Y   : Real;
-         Facing : Radians;
+         Facing : Concorde.Geometry.Radians;
          Count  : Natural;
       end record;
 
@@ -58,7 +59,6 @@ package body Concorde.Ships.Battles is
 
       for Ship of Ships loop
          declare
-            Pi : constant := Ada.Numerics.Pi;
             Owner      : constant Empire_Type := Empire_Type (Ship.Owner);
             New_Team   : Boolean := True;
             Team_Index : Positive;
@@ -80,7 +80,9 @@ package body Concorde.Ships.Battles is
                     (if Teams.Last_Index = 0 then -1000.0 else 1000.0),
                   Y      => 0.0,
                   Facing =>
-                    (if Teams.Last_Index = 0 then 0.0 else Pi));
+                    Concorde.Geometry.Degrees_To_Radians
+                      ((if Teams.Last_Index = 0
+                       then 0.0 else 180.0)));
                Teams.Append (Team);
                Team_Index := Teams.Last_Index;
             end if;

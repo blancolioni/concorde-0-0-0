@@ -1,11 +1,10 @@
 with Ada.Unchecked_Deallocation;
 
-with WL.Random;
-
 with Lui.Colours;
 
 --  with Concorde.Dates;
 with Concorde.Elementary_Functions;
+
 with Concorde.Random;
 
 with Concorde.Empires.Logging;
@@ -29,16 +28,18 @@ package body Concorde.Combat.Ship_Combat is
    is (Concorde.Elementary_Functions.Sqrt
        ((X1 - X2) ** 2 + (Y1 - Y2) ** 2));
 
+   function Distance (P1, P2 : Point_Type) return Non_Negative_Real
+   is (Distance (P1.X, P1.Y, P2.X, P2.Y));
+
    function Make_Combat_Ship
      (Ship   : Concorde.Ships.Ship_Type;
       Index  : Positive;
       X, Y   : Real;
-      Facing : Radians)
+      Facing : Concorde.Geometry.Radians)
       return Ship_Record
    is ((Ship      => Ship,
         Index     => Index,
-        X         => X,
-        Y         => Y,
+        Location  => (X, Y),
         Facing    => Facing,
         Target    => 0,
         Hit       => False,
@@ -54,7 +55,7 @@ package body Concorde.Combat.Ship_Combat is
       Combatant : Concorde.Ships.Ship_Type;
       Empire    : Concorde.Empires.Empire_Type;
       X, Y      : Real;
-      Facing    : Radians)
+      Facing    : Concorde.Geometry.Radians)
    is
       use Concorde.Empires;
       use Concorde.Ships;
@@ -276,38 +277,43 @@ package body Concorde.Combat.Ship_Combat is
              (Ship.Ship.Owner.all, Team.Leader.all)
          then
             declare
-               Effective_Ships : array
-                 (1 .. Team.Ships.Last_Index) of Positive;
-               Count           : Natural := 0;
+               use Concorde.Geometry;
+               Best_Angle  : Radians := Degrees_To_Radians (0.0);
+               Best_Target : Natural := 0;
             begin
                for Ship_Index of Team.Ships loop
                   declare
                      use Concorde.Ships;
-                     Ship : constant Ship_Type :=
-                              Model.Ships (Ship_Index).Ship;
+                     Target : Ship_Record renames
+                                Model.Ships (Ship_Index);
                   begin
-                     if Ship.Alive
+                     if Target.Ship.Alive
                        and then (Target_All
-                                 or else Ship.Has_Effective_Weapon)
+                                 or else Target.Ship.Has_Effective_Weapon)
                      then
-                        Count := Count + 1;
-                        Effective_Ships (Count) := Ship_Index;
+                        declare
+                           Bearing : constant Radians :=
+                                       Concorde.Geometry.Angular_Distance
+                                         (Ship.Location, Ship.Facing,
+                                          Target.Location);
+                        begin
+                           if Best_Target = 0
+                             or else Bearing < Best_Angle
+                           then
+                              Best_Angle := Bearing;
+                              Best_Target := Ship_Index;
+                           end if;
+                        end;
                      end if;
                   end;
                end loop;
 
-               if Count > 0 then
-                  declare
-                     Index : constant Positive :=
-                               WL.Random.Random_Number (1, Count);
-                  begin
-                     Ship.Target := Effective_Ships (Index);
-                     Log (Model,
-                          Ship.Ship.Name & " targets "
-                          & Model.Ships.Element
-                            (Team.Ships (Index)).Ship.Name);
-                     return;
-                  end;
+               if Best_Target /= 0 then
+                  Ship.Target := Best_Target;
+                  Log (Model,
+                       Ship.Ship.Name & " targets "
+                       & Model.Ships.Element (Best_Target).Ship.Name);
+                  return;
                end if;
             end;
          end if;
@@ -550,10 +556,11 @@ package body Concorde.Combat.Ship_Combat is
                             Real'Min (Projectile.Progress
                                       + Projectile.Velocity,
                                       1.0);
-               X        : constant Real :=
-                            Projectile.X1 + Projectile.DX * Progress;
+               X          : constant Real :=
+
+                            Projectile.Start.X + Projectile.DX * Progress;
                Y        : constant Real :=
-                            Projectile.Y1 + Projectile.DY * Progress;
+                            Projectile.Start.Y + Projectile.DY * Progress;
             begin
                case Projectile.Projectile is
                   when Beam =>
@@ -609,7 +616,6 @@ package body Concorde.Combat.Ship_Combat is
                          Model.Ship_Outline (Combat_Ship);
             Colour   : Lui.Colours.Colour_Type :=
                          Combat_Ship.Ship.Owner.Colour;
-            Pi       : constant := Ada.Numerics.Pi;
             X, Y     : Integer;
             Health_X : Integer;
             W        : constant Natural :=
@@ -660,11 +666,18 @@ package body Concorde.Combat.Ship_Combat is
                end;
             end if;
 
-            if Combat_Ship.Facing in -Pi / 2.0 .. Pi / 2.0 then
-               Health_X := X - Health_Bar_Width * 2;
-            else
-               Health_X := X + Health_Bar_Width;
-            end if;
+            declare
+               use Concorde.Geometry;
+               East_Facing_Arc : constant Arc_Type :=
+                                   Degree_Arc (-90.0, 90.0);
+            begin
+               if Contains (East_Facing_Arc, Combat_Ship.Facing) then
+                  Health_X := X - Health_Bar_Width * 2;
+               else
+                  Health_X := X + Health_Bar_Width;
+               end if;
+            end;
+
             Renderer.Draw_Rectangle
               (Health_X, Y - Health_Bar_Height / 2,
                W, Health_Bar_Height,
@@ -786,7 +799,7 @@ package body Concorde.Combat.Ship_Combat is
    is
       Z : Real;
    begin
-      Model.Get_Screen_Coordinates (Ship.X, Ship.Y, 0.0,
+      Model.Get_Screen_Coordinates (Ship.Location.X, Ship.Location.Y, 0.0,
                                     X, Y, Z);
    end Ship_Centre;
 
@@ -799,14 +812,14 @@ package body Concorde.Combat.Ship_Combat is
       Ship  : Ship_Record)
       return Lui.Rendering.Buffer_Points
    is
-      use Concorde.Elementary_Functions;
+      use Concorde.Geometry;
       Raw : constant array (Positive range <>) of Point_Type :=
               ((1.0, 0.0), (-0.5, -1.0), (0.0, 0.0), (-0.5, 1.0));
       Result : Lui.Rendering.Buffer_Points (Raw'Range);
       C_X, C_Y : Integer;
       C_Z      : Real;
    begin
-      Model.Get_Screen_Coordinates (Ship.X, Ship.Y, 0.0,
+      Model.Get_Screen_Coordinates (Ship.Location.X, Ship.Location.Y, 0.0,
                                     C_X, C_Y, C_Z);
       for I in Raw'Range loop
          declare
@@ -837,7 +850,8 @@ package body Concorde.Combat.Ship_Combat is
       S1 : Ship_Record renames Model.Ships (Index_1);
       S2 : Ship_Record renames Model.Ships (Index_2);
    begin
-      return Distance (S1.X, S1.Y, S2.X, S2.Y);
+      return Distance
+        (S1.Location.X, S1.Location.Y, S2.Location.X, S2.Location.Y);
    end Ship_Range;
 
    -----------------
@@ -863,16 +877,16 @@ package body Concorde.Combat.Ship_Combat is
                           (if Target.Ship.Shields > 0.0
                            then 0.9
                            else 1.0);
+               DX     : constant Real := Target.Location.X - Ship.Location.X;
+               DY     : constant Real := Target.Location.Y - Ship.Location.Y;
                Projectile : constant Projectile_Record :=
                               (Projectile => Beam,
                                Size       => 100,
-                               X1         => Ship.X,
-                               Y1         => Ship.Y,
+                               Start => Ship.Location,
                                Distance   =>
-                                 Sqrt ((Target.X - Ship.X) ** 2
-                                   + (Target.Y - Ship.Y) ** 2),
-                               DX         => (Target.X - Ship.X) * D_D,
-                               DY         => (Target.Y - Ship.Y) * D_D,
+                                 Distance (Ship.Location, Target.Location),
+                               DX         => DX * D_D,
+                               DY         => DY * D_D,
                                Velocity   => 0.1,
                                Progress   => 0.0,
                                Event      => Position,
@@ -944,6 +958,7 @@ package body Concorde.Combat.Ship_Combat is
      (Model : in out Root_Space_Combat_Arena;
       Ship  : in out Ship_Record)
    is
+      use Concorde.Geometry;
    begin
 
       Ship.Ship.Update_Damage;
@@ -973,25 +988,47 @@ package body Concorde.Combat.Ship_Combat is
       Ship.Ship.Update_Power;
 
       if Ship.Target /= 0 then
-         declare
-            Ws : constant Concorde.Ships.Array_Of_Mounted_Modules :=
-                   Ship.Ship.Get_Weapon_Mounts;
-         begin
-            for W of Ws loop
-               declare
-                  Weapon : constant Concorde.Modules.Module_Type :=
-                             Ship.Ship.Get_Module (W);
-                  Charge : constant Unit_Real := Weapon.Charge;
-               begin
-                  if Weapon.Effectiveness > 0.5
-                    and then Charge > 0.5
-                    and then Concorde.Random.Unit_Random < Charge * 2.0 - 1.0
-                  then
-                     Model.Fire_Weapon (Ship, Weapon);
-                  end if;
-               end;
-            end loop;
-         end;
+         if Angular_Distance (Ship.Location, Ship.Facing,
+                              Model.Ships (Ship.Target).Location)
+           < Degrees_To_Radians (1.0)
+         then
+            declare
+               Ws : constant Concorde.Ships.Array_Of_Mounted_Modules :=
+                      Ship.Ship.Get_Weapon_Mounts;
+            begin
+               for W of Ws loop
+                  declare
+                     Weapon : constant Concorde.Modules.Module_Type :=
+                                Ship.Ship.Get_Module (W);
+                     Charge : constant Unit_Real := Weapon.Charge;
+                  begin
+                     if Weapon.Effectiveness > 0.5
+                       and then Charge > 0.5
+                       and then Concorde.Random.Unit_Random
+                         < Charge * 2.0 - 1.0
+                     then
+                        Model.Fire_Weapon (Ship, Weapon);
+                     end if;
+                  end;
+               end loop;
+            end;
+         else
+            declare
+               Target_Location : constant Point_Type :=
+                                   Model.Ships (Ship.Target).Location;
+               Target_Heading  : constant Radians :=
+                                   Bearing (Ship.Location, Target_Location);
+               Current_Heading : constant Radians := Ship.Facing;
+               Max_Turn        : constant Radians :=
+                                   Degrees_To_Radians (Ship.Ship.Turn);
+            begin
+               if Target_Heading - Current_Heading < Max_Turn then
+                  Ship.Facing := Target_Heading;
+               else
+                  Ship.Facing := Turn (Ship.Facing, Max_Turn, Target_Heading);
+               end if;
+            end;
+         end if;
       end if;
    end Update_Ship;
 
