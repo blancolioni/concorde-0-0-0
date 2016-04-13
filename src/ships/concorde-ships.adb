@@ -520,7 +520,10 @@ package body Concorde.Ships is
         Concorde.Systems.Root_Star_System_Type'Class)
    is
    begin
+      pragma Assert (Ship.System.Index /= System.Index);
       Ship.Dest_Reference := System.Reference;
+      pragma Assert (Ship.Has_Destination
+                     and then Ship.Destination.Index = System.Index);
    end Set_Destination;
 
    ---------------
@@ -548,9 +551,6 @@ package body Concorde.Ships is
       use type Memor.Database_Reference;
    begin
       Ship.System_Reference := System.Reference;
-      if Ship.System = Ship.Destination then
-         Ship.Clear_Destination;
-      end if;
    end Set_System;
 
    -------------
