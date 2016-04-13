@@ -14,6 +14,7 @@ package Concorde.Options is
    function Show_Battle_Screen return Boolean;
    function Show_Capital_Names return Boolean;
    function Show_System_Names return Boolean;
+   function Test_Battle return Boolean;
 
    function Boolean_Value
      (Long_Name  : String;

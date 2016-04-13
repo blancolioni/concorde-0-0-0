@@ -1,6 +1,8 @@
 with Tropos.Reader;
 with Concorde.Paths;
 
+with Concorde.Options;
+
 with Concorde.Players.Registry;
 
 with Concorde.Empires.Create;
@@ -66,7 +68,9 @@ package body Concorde.Empires.Configure is
          Current := Current + 1;
       end loop;
 
-      Create_Test_Battle (E1, E2);
+      if Concorde.Options.Test_Battle then
+         Create_Test_Battle (E1, E2);
+      end if;
 
    end Create_Empires;
 

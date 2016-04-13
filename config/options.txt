@@ -18,3 +18,5 @@ show_system_names = no
 
 check_invariants = yes
 battle_screen = yes
+
+test_battle = no
