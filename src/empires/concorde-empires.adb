@@ -690,6 +690,8 @@ package body Concorde.Empires is
             System.Name & " is our new capital");
       end if;
 
+      Empire.Update_System_Owner (System);
+
    end System_Acquired;
 
    -----------------
