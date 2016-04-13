@@ -9,8 +9,6 @@ with Concorde.Ships.Lists;
 with Concorde.Ships.Db;
 with Concorde.Systems.Db;
 
-with Concorde.Players;
-
 package body Concorde.Galaxy.Ships is
 
    -----------------
@@ -154,11 +152,6 @@ package body Concorde.Galaxy.Ships is
       else
          Locking.Unlock_System (From.all);
          Locking.Unlock_System (To.all);
-      end if;
-
-      if To = Ship.Destination then
-         Ship.Owner.Player.On_Ship_Arrived
-           (Ship.Owner, Concorde.Ships.Db.Reference (Ship));
       end if;
 
    end Move_Ship;

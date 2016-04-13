@@ -4,6 +4,8 @@ with Concorde.Ships.Db;
 with Concorde.Systems.Db;
 
 with Concorde.Empires;
+with Concorde.Players;
+
 with Ada.Text_IO;
 with Ada.Exceptions;
 
@@ -159,6 +161,12 @@ package body Concorde.Systems is
             is
             begin
                Ship.Set_System (System);
+               if Ship.System = Ship.Destination then
+                  Ship.Clear_Destination;
+                  Ship.Owner.Player.On_Ship_Arrived
+                    (Ship.Owner, Concorde.Ships.Db.Reference (Ship));
+               end if;
+
             end Update_System;
 
          begin
