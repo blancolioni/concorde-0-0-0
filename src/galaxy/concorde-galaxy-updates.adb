@@ -64,7 +64,7 @@ package body Concorde.Galaxy.Updates is
                            begin
                               Empire.System_Acquired (System);
                               Empire.Player.On_System_Colonised
-                                (Empire, System);
+                                (Empire, System, List.First_Element);
                            end Update_Owner;
 
                         begin
