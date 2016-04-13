@@ -6,6 +6,8 @@ with Concorde.Empires.Updates;
 with Concorde.Galaxy.Updates;
 with Concorde.Ships.Updates;
 
+with Concorde.Ships.Invariants;
+
 with Concorde.Galaxy.Locking;
 
 with Concorde.Locking;
@@ -67,6 +69,7 @@ package body Concorde.Updates is
 
       if Check_Invariants then
          Concorde.Empires.Check_Invariants;
+         Concorde.Ships.Invariants.Check_Invariants;
       end if;
 
       Concorde.Ships.Updates.Delete_Dead_Ships;
@@ -82,6 +85,7 @@ package body Concorde.Updates is
 
       if Check_Invariants then
          Concorde.Empires.Check_Invariants;
+         Concorde.Ships.Invariants.Check_Invariants;
       end if;
 
       Render_Lock.Unlock;
