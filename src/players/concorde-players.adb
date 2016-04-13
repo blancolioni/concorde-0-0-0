@@ -13,6 +13,7 @@ package body Concorde.Players is
       for Order of Player.Orders loop
          Order.Execute;
       end loop;
+      Player.Orders.Clear;
    end Execute_Orders;
 
    ---------------------
