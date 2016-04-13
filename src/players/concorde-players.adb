@@ -16,6 +16,22 @@ package body Concorde.Players is
       Player.Orders.Clear;
    end Execute_Orders;
 
+   ------------------------
+   -- Order_Colonisation --
+   ------------------------
+
+   procedure Order_Colonisation
+     (Player      : in out Root_Player_Type'Class;
+      Empire      : not null access constant
+        Concorde.Empires.Root_Empire_Type'Class;
+      Ship        : Concorde.Ships.Ship_Type)
+   is
+   begin
+      Player.Orders.Append
+        (Concorde.Orders.Ships.Colonise_Order
+           (Concorde.Empires.Empire_Type (Empire), Ship));
+   end Order_Colonisation;
+
    ---------------------
    -- Order_Move_Ship --
    ---------------------
