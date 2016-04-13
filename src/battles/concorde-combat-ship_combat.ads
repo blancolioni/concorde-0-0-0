@@ -3,6 +3,8 @@ private with Ada.Containers.Vectors;
 
 private with Lui.Rendering;
 
+with Concorde.Geometry;
+
 with Concorde.Empires;
 with Concorde.Modules;
 with Concorde.Ships;
@@ -19,7 +21,7 @@ package Concorde.Combat.Ship_Combat is
       Combatant : Concorde.Ships.Ship_Type;
       Empire    : Concorde.Empires.Empire_Type;
       X, Y      : Real;
-      Facing    : Radians);
+      Facing    : Concorde.Geometry.Radians);
 
    function Empires
      (Arena : Root_Space_Combat_Arena'Class)
@@ -52,8 +54,8 @@ private
       record
          Ship      : Concorde.Ships.Ship_Type;
          Index     : Positive;
-         X, Y      : Real;
-         Facing    : Radians;
+         Location  : Point_Type;
+         Facing    : Concorde.Geometry.Radians;
          Target    : Natural;
          Hit       : Boolean;
          Shield_R1 : Natural;
@@ -101,7 +103,7 @@ private
       record
          Projectile : Projectile_Type;
          Size       : Positive;
-         X1, Y1     : Real;
+         Start      : Point_Type;
          Distance   : Non_Negative_Real;
          DX, DY     : Real;
          Velocity   : Unit_Real;

@@ -11,12 +11,13 @@ package body Concorde.Empires.Create is
    -- New_Empire --
    ----------------
 
-   procedure New_Empire
+   function New_Empire
      (Name                : String;
       Capital             : String;
       Colour              : Lui.Colours.Colour_Type;
       Default_Ship_Design : String;
       Player              : Concorde.Players.Player_Type)
+      return Empire_Type
    is
 
       Taken : Concorde.Galaxy.Star_System_Set;
@@ -119,7 +120,7 @@ package body Concorde.Empires.Create is
 
    begin
       Db.Scan (Add_Taken_Systems'Access);
-      Db.Create (Create'Access);
+      return Db.Create (Create'Access);
    end New_Empire;
 
 end Concorde.Empires.Create;

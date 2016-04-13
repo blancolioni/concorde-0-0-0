@@ -291,6 +291,15 @@ package body Concorde.Options is
 
    end String_Value;
 
+   -----------------
+   -- Test_Battle --
+   -----------------
+
+   function Test_Battle return Boolean is
+   begin
+      return Boolean_Value ("test-battle", 'B', Default => False);
+   end Test_Battle;
+
    ----------------------
    -- With_Underscores --
    ----------------------

@@ -609,18 +609,19 @@ package body Concorde.Galaxy.Model is
                   declare
                      Radius : Positive := 8;
 
-                     procedure Draw_Attack_Target
+                     procedure Draw_Claims
                        (Empire : Concorde.Empires.Root_Empire_Type'Class);
 
-                     ------------------------
-                     -- Draw_Attack_Target --
-                     ------------------------
+                     -----------------
+                     -- Draw_Claims --
+                     -----------------
 
-                     procedure Draw_Attack_Target
+                     procedure Draw_Claims
                        (Empire : Concorde.Empires.Root_Empire_Type'Class)
                      is
+                        use Concorde.Empires;
                      begin
-                        if Empire.Is_Attack_Target (System) then
+                        if Empire.Is_Set (System, Claim) then
                            Renderer.Draw_Circle
                              (X          => Screen_X,
                               Y          => Screen_Y,
@@ -630,10 +631,10 @@ package body Concorde.Galaxy.Model is
                               Line_Width => 1);
                            Radius := Radius + 2;
                         end if;
-                     end Draw_Attack_Target;
+                     end Draw_Claims;
 
                   begin
-                     Concorde.Empires.Db.Scan (Draw_Attack_Target'Access);
+                     Concorde.Empires.Db.Scan (Draw_Claims'Access);
                   end;
 
                   if False and then Owner /= null then

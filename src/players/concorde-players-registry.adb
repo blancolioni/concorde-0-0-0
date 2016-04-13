@@ -5,8 +5,11 @@ with Concorde.Players.Simple_Player;
 
 package body Concorde.Players.Registry is
 
+   type Player_Create_Function is access
+     function return Player_Type;
+
    package Player_Table is
-     new Concorde.Hash_Table (Player_Type);
+     new Concorde.Hash_Table (Player_Create_Function);
 
    Players : Player_Table.Map;
 
@@ -16,7 +19,7 @@ package body Concorde.Players.Registry is
 
    function Get (Name : String) return Player_Type is
    begin
-      return Players.Element (Name);
+      return Players.Element (Name).all;
    end Get;
 
    ----------------------
@@ -26,9 +29,9 @@ package body Concorde.Players.Registry is
    procedure Register_Players is
    begin
       Players.Insert
-        ("null", Null_Player.Get_Null_Player);
+        ("null", Null_Player.Create'Access);
       Players.Insert
-        ("simple", Simple_Player.Get_Simple_Player);
+        ("simple", Simple_Player.Create'Access);
    end Register_Players;
 
 end Concorde.Players.Registry;

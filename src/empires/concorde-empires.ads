@@ -93,13 +93,14 @@ package Concorde.Empires is
      and then (Empire.Current_Systems > 1 or else System.Capital);
 
    type Star_System_Flag is
-     (Discovered, Visible,
+     (Discovered, Visible, Owned,
       Active_Battle, Claim, Focus,
       Attack_Target, Opportunity_Target,
       Internal, Frontier, Neighbour, Border);
 
    --  Discovered: we know that this star system exists
    --  Visible: we can currently see what's in this star system
+   --  Owned: we own the system
    --  Active_Battle: we are currently fighting a battle in this system
    --  Claim: we have a claim to this system
    --  Focus: we are keeping tabs on this system
