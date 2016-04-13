@@ -42,7 +42,7 @@ package body Concorde.Empires.Configure is
             Red     : constant Natural := Colour.Get (1);
             Green   : constant Natural := Colour.Get (2);
             Blue    : constant Natural := Colour.Get (3);
-            Player  : constant String := Config.Get ("player", "null");
+            Player  : constant String := Config.Get ("player", "simple");
             E       : Empire_Type;
          begin
             E :=
