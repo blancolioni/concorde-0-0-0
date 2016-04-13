@@ -9,6 +9,18 @@ with Ada.Exceptions;
 
 package body Concorde.Systems is
 
+   ----------------------
+   -- Add_Installation --
+   ----------------------
+
+   procedure Add_Installation
+     (System       : in out Root_Star_System_Type'Class;
+      Installation : Concorde.Installations.Installation_Type)
+   is
+   begin
+      System.Installations.Append (Installation);
+   end Add_Installation;
+
    -------------
    -- Add_Pop --
    -------------
@@ -357,6 +369,54 @@ package body Concorde.Systems is
                      & " at " & System.Name);
       System.Ships.Delete (Position);
    end Remove_Ship;
+
+   --------------
+   -- Resource --
+   --------------
+
+   function Resource
+     (System : Root_Star_System_Type'Class)
+      return Concorde.Commodities.Commodity_Type
+   is
+   begin
+      return System.Deposit.Resource;
+   end Resource;
+
+   ----------------------------
+   -- Resource_Accessibility --
+   ----------------------------
+
+   function Resource_Accessibility
+     (System : Root_Star_System_Type'Class)
+      return Unit_Real
+   is
+   begin
+      return System.Deposit.Accessibility;
+   end Resource_Accessibility;
+
+   ----------------------------
+   -- Resource_Concentration --
+   ----------------------------
+
+   function Resource_Concentration
+     (System : Root_Star_System_Type'Class)
+      return Unit_Real
+   is
+   begin
+      return System.Deposit.Concentration;
+   end Resource_Concentration;
+
+   -------------------
+   -- Resource_Size --
+   -------------------
+
+   function Resource_Size
+     (System : Root_Star_System_Type'Class)
+      return Concorde.Quantities.Quantity
+   is
+   begin
+      return System.Deposit.Size;
+   end Resource_Size;
 
    ------------------
    -- Set_Capacity --

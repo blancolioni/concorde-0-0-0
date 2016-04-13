@@ -1,7 +1,7 @@
 with Concorde.Galaxy;
 with Concorde.Systems;
 
-with Concorde.People.Pops.Configure;
+with Concorde.Colonies.Configure;
 
 with Concorde.Empires.Db;
 
@@ -67,7 +67,7 @@ package body Concorde.Empires.Create is
             System.Set_Capital (True);
             System.Set_Name (Capital);
 
-            Concorde.People.Pops.Configure.Create_Colony
+            Concorde.Colonies.Configure.Create_Colony_From_Template
               (System, "initial");
 
          end Choose;

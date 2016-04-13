@@ -2,6 +2,11 @@ with Concorde.Facilities.Db;
 
 package body Concorde.Facilities is
 
+   function Get_By_Match
+     (Match : not null access
+        function (Facility : Facility_Type) return Boolean)
+      return Array_Of_Facilities;
+
    -------------------------
    -- Base_Service_Charge --
    -------------------------
@@ -13,6 +18,26 @@ package body Concorde.Facilities is
    begin
       return Facility.Base_Service_Charge;
    end Base_Service_Charge;
+
+   -----------------
+   -- Can_Produce --
+   -----------------
+
+   function Can_Produce
+     (Facility  : Root_Facility_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Boolean
+   is
+   begin
+      for Flag in Facility.Commodity_Flags'Range loop
+         if Facility.Commodity_Flags (Flag)
+           and then Commodity.Is_Set (Flag)
+         then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Can_Produce;
 
    --------------
    -- Capacity --
@@ -46,6 +71,69 @@ package body Concorde.Facilities is
    begin
       return Db.Get (Name);
    end Get;
+
+   ------------------
+   -- Get_By_Class --
+   ------------------
+
+   function Get_By_Class
+     (Class : Facility_Class)
+      return Array_Of_Facilities
+   is
+      function Match (Facility : Facility_Type) return Boolean
+      is (Facility.Class = Class);
+
+   begin
+      return Get_By_Match (Match'Access);
+   end Get_By_Class;
+
+   ------------------
+   -- Get_By_Match --
+   ------------------
+
+   function Get_By_Match
+     (Match : not null access
+        function (Facility : Facility_Type) return Boolean)
+      return Array_Of_Facilities
+   is
+      use type Concorde.Commodities.Commodity_Type;
+
+      Result : Array_Of_Facilities (1 .. Db.Upper_Bound);
+      Count  : Natural := 0;
+
+      procedure Update (Facility : Facility_Type);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update (Facility : Facility_Type) is
+      begin
+         Count := Count + 1;
+         Result (Count) := Facility;
+      end Update;
+
+   begin
+      Db.Scan (Match, Update'Access);
+      return Result (1 .. Count);
+   end Get_By_Match;
+
+   -----------------------
+   -- Get_By_Production --
+   -----------------------
+
+   function Get_By_Production
+     (Output : Concorde.Commodities.Commodity_Type)
+      return Array_Of_Facilities
+   is
+      use type Concorde.Commodities.Commodity_Type;
+
+      function Match (Facility : Facility_Type) return Boolean
+      is (Facility.Has_Output and then Facility.Output = Output);
+
+   begin
+      return Get_By_Match (Match'Access);
+   end Get_By_Production;
 
    ----------------
    -- Has_Output --
@@ -115,19 +203,6 @@ package body Concorde.Facilities is
       return Facility.Flags (Flag);
    end Is_Set;
 
-   ------------
-   -- Is_Set --
-   ------------
-
-   function Is_Set
-     (Facility : Root_Facility_Type'Class;
-      Flag     : Concorde.Commodities.Commodity_Flag)
-      return Boolean
-   is
-   begin
-      return Facility.Commodity_Flags (Flag);
-   end Is_Set;
-
    ---------------------
    -- Object_Database --
    ---------------------
@@ -164,5 +239,23 @@ package body Concorde.Facilities is
    begin
       return Facility.Quality;
    end Quality;
+
+   ------------------------
+   -- Resource_Generator --
+   ------------------------
+
+   function Resource_Generator
+     (Resource : Concorde.Commodities.Commodity_Type)
+      return Facility_Type
+   is
+      use type Concorde.Commodities.Commodity_Type;
+
+      function Match (Facility : Root_Facility_Type'Class) return Boolean
+      is (Facility.Class = Resource_Generator
+          and then Facility.Output = Resource);
+
+   begin
+      return Db.Reference (Db.Search (Match'Access));
+   end Resource_Generator;
 
 end Concorde.Facilities;

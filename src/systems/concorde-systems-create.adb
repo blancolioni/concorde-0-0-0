@@ -1,3 +1,9 @@
+with WL.Random;
+
+with Concorde.Random;
+
+with Concorde.Commodities;
+
 with Concorde.Systems.Db;
 
 package body Concorde.Systems.Create is
@@ -16,6 +22,10 @@ package body Concorde.Systems.Create is
       return Star_System_Type
    is
 
+      Resources : constant Concorde.Commodities.Array_Of_Commodities :=
+                    Concorde.Commodities.Get
+                      (Concorde.Commodities.Resource);
+
       procedure Create (System : in out Root_Star_System_Type'Class);
 
       ------------
@@ -23,6 +33,10 @@ package body Concorde.Systems.Create is
       ------------
 
       procedure Create (System : in out Root_Star_System_Type'Class) is
+         Resource : constant Concorde.Commodities.Commodity_Type :=
+                      Resources
+                        (WL.Random.Random_Number
+                           (Resources'First, Resources'Last));
       begin
          System.Set_Name (Name);
          System.Index := Index;
@@ -32,6 +46,13 @@ package body Concorde.Systems.Create is
          System.Capacity := Capacity;
          System.Boundary :=
            new System_Influence_Boundary'(Boundary);
+         System.Deposit :=
+           (Resource => Resource,
+            Accessibility => Concorde.Random.Unit_Random,
+            Concentration => Concorde.Random.Unit_Random,
+            Size          =>
+              Concorde.Quantities.Around
+                (Concorde.Quantities.To_Quantity (1.0E6)));
       end Create;
 
    begin

@@ -4,4 +4,6 @@ initial = {
       middle_class = 1000
       rich = 100
    }
+   
+   resource_generator = 10
 }

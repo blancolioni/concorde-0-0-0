@@ -3,15 +3,21 @@ private with Memor;
 
 limited with Concorde.Empires;
 
+with Concorde.Quantities;
+
 with Concorde.Dates;
 with Concorde.Objects;
 with Concorde.Ships;
 
 with Concorde.Ships.Lists;
 
+with Concorde.Installations;
 with Concorde.People.Pops;
 
+with Concorde.Commodities;
+
 private with Concorde.People.Pops.Lists;
+private with Concorde.Installations.Lists;
 
 package Concorde.Systems is
 
@@ -30,6 +36,22 @@ package Concorde.Systems is
      (System : Root_Star_System_Type'Class;
       Empire : Concorde.Empires.Root_Empire_Type'Class)
       return Boolean;
+
+   function Resource
+     (System : Root_Star_System_Type'Class)
+      return Concorde.Commodities.Commodity_Type;
+
+   function Resource_Accessibility
+     (System : Root_Star_System_Type'Class)
+      return Unit_Real;
+
+   function Resource_Concentration
+     (System : Root_Star_System_Type'Class)
+      return Unit_Real;
+
+   function Resource_Size
+     (System : Root_Star_System_Type'Class)
+      return Concorde.Quantities.Quantity;
 
    function Loyalty
      (System : Root_Star_System_Type'Class)
@@ -52,6 +74,10 @@ package Concorde.Systems is
    procedure Add_Pop
      (System : in out Root_Star_System_Type'Class;
       Pop    : Concorde.People.Pops.Pop_Type);
+
+   procedure Add_Installation
+     (System       : in out Root_Star_System_Type'Class;
+      Installation : Concorde.Installations.Installation_Type);
 
    function Ships
      (System : Root_Star_System_Type'Class)
@@ -153,6 +179,14 @@ private
    package Edge_Info_Lists is
       new Ada.Containers.Doubly_Linked_Lists (Edge_Info);
 
+   type Deposit_Record is
+      record
+         Resource      : Concorde.Commodities.Commodity_Type;
+         Accessibility : Unit_Real;
+         Concentration : Unit_Real;
+         Size          : Concorde.Quantities.Quantity;
+      end record;
+
    type Root_Star_System_Type is
      new Concorde.Objects.Root_Named_Object_Type with
       record
@@ -176,6 +210,8 @@ private
          Edges          : Edge_Info_Lists.List;
          Boundary       : access System_Influence_Boundary;
          Pops           : Concorde.People.Pops.Lists.List;
+         Installations  : Concorde.Installations.Lists.List;
+         Deposit        : Deposit_Record;
       end record;
 
    overriding function Object_Database

@@ -2,6 +2,20 @@ with Concorde.Commodities.Db;
 
 package body Concorde.Commodities is
 
+   ------------------
+   -- Add_Quantity --
+   ------------------
+
+   procedure Add_Quantity
+     (Stock    : in out Stock_Interface'Class;
+      Item     : Commodity_Type;
+      Quantity : Concorde.Quantities.Quantity)
+   is
+      use type Concorde.Quantities.Quantity;
+   begin
+      Stock.Set_Quantity (Item, Stock.Get_Quantity (Item) + Quantity);
+   end Add_Quantity;
+
    -----------
    -- Class --
    -----------
@@ -29,7 +43,7 @@ package body Concorde.Commodities is
 
    function Get (Class : Commodity_Class) return Array_Of_Commodities is
       Result : Array_Of_Commodities (1 .. Db.Upper_Bound);
-      Count  : Natural;
+      Count  : Natural := 0;
 
       function Match (Commodity : Commodity_Type) return Boolean
       is (Commodity.Class = Class);
@@ -88,5 +102,59 @@ package body Concorde.Commodities is
    begin
       return Commodity.Quality;
    end Quality;
+
+   ---------------------
+   -- Remove_Quantity --
+   ---------------------
+
+   procedure Remove_Quantity
+     (Stock    : in out Stock_Interface'Class;
+      Item     : Commodity_Type;
+      Quantity : Concorde.Quantities.Quantity)
+   is
+      use type Concorde.Quantities.Quantity;
+   begin
+      Stock.Set_Quantity (Item, Stock.Get_Quantity (Item) - Quantity);
+   end Remove_Quantity;
+
+   ------------------
+   -- Set_Quantity --
+   ------------------
+
+   overriding procedure Set_Quantity
+     (Stock    : in out Root_Stock_Type;
+      Item     : Commodity_Type;
+      Quantity : Concorde.Quantities.Quantity)
+   is
+   begin
+      Stock.Vector.Replace_Element (Item.Reference, Quantity);
+   end Set_Quantity;
+
+   --------------------
+   -- Total_Quantity --
+   --------------------
+
+   function Total_Quantity
+     (Stock    : in out Stock_Interface'Class)
+      return Concorde.Quantities.Quantity
+   is
+      Result : Quantities.Quantity := Quantities.Zero;
+
+      procedure Update (Commodity : Commodity_Type);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update (Commodity : Commodity_Type) is
+         use type Concorde.Quantities.Quantity;
+      begin
+         Result := Result + Stock.Get_Quantity (Commodity);
+      end Update;
+
+   begin
+      Db.Scan (Update'Access);
+      return Result;
+   end Total_Quantity;
 
 end Concorde.Commodities;

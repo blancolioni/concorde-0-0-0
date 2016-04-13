@@ -36,11 +36,6 @@ package Concorde.Facilities is
       Flag     : Facility_Flag)
       return Boolean;
 
-   function Is_Set
-     (Facility : Root_Facility_Type'Class;
-      Flag     : Concorde.Commodities.Commodity_Flag)
-      return Boolean;
-
    function Base_Service_Charge
      (Facility : Root_Facility_Type'Class)
       return Concorde.Money.Price_Type;
@@ -74,9 +69,31 @@ package Concorde.Facilities is
       return Concorde.Commodities.Commodity_Type
      with Pre => Facility.Has_Output;
 
+   function Can_Produce
+     (Facility  : Root_Facility_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Boolean;
+
    type Facility_Type is access constant Root_Facility_Type'Class;
 
    function Get (Name : String) return Facility_Type;
+
+   type Array_Of_Facilities is
+     array (Positive range <>) of Facility_Type;
+
+   function Get_By_Production
+     (Output : Concorde.Commodities.Commodity_Type)
+      return Array_Of_Facilities;
+
+   function Get_By_Class
+     (Class : Facility_Class)
+      return Array_Of_Facilities;
+
+   function Resource_Generator
+     (Resource : Concorde.Commodities.Commodity_Type)
+      return Facility_Type
+     with Pre => Concorde.Commodities."="
+       (Resource.Class, Concorde.Commodities.Resource);
 
 private
 
