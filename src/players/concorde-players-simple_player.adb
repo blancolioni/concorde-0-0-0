@@ -6,6 +6,8 @@ with Concorde.Systems.Db;
 with Concorde.Ships.Lists;
 with Concorde.Systems.Lists;
 
+with Concorde.Empires.Logging;
+
 package body Concorde.Players.Simple_Player is
 
    type Root_Simple_Player_Type is new Root_Player_Type with
@@ -33,7 +35,9 @@ package body Concorde.Players.Simple_Player is
    overriding procedure On_System_Colonised
      (Player : in out Root_Simple_Player_Type;
       Empire : in out Concorde.Empires.Root_Empire_Type'Class;
-      System : Concorde.Systems.Root_Star_System_Type'Class);
+      System : Concorde.Systems.Root_Star_System_Type'Class;
+      Ship   : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class);
 
    procedure Check_Idle_Ships
      (Player : in out Root_Simple_Player_Type'Class;
@@ -57,32 +61,61 @@ package body Concorde.Players.Simple_Player is
             Least_Steps  : Natural := Natural'Last;
             Destination  : constant Concorde.Systems.Star_System_Type :=
                              Player.Unexplored_Targets.First_Element;
+            Skip         : Boolean := False;
          begin
-            for Position in Player.Idle_Ships.Iterate loop
-               declare
-                  use Concorde.Ships;
-                  Ship : constant Ship_Type := Element (Position);
-                  D    : constant Natural :=
-                           Empire.Path_Length
-                             (Ship.System, Destination);
-               begin
-                  if D < Least_Steps then
-                     Least_Steps := D;
-                     Closest_Ship := Position;
-                  end if;
-               end;
-            end loop;
+            if Destination.Owned then
+               Concorde.Empires.Logging.Log
+                 (Empire,
+                  "deleting " & Destination.Name
+                  & " from unexplored because it is owned by "
+                  & Destination.Owner.Name);
+               Skip := True;
+            else
+               for Position in Player.Idle_Ships.Iterate loop
+                  declare
+                     use Concorde.Ships;
+                     Ship : constant Ship_Type := Element (Position);
+                     D    : constant Natural :=
+                              Empire.Path_Length
+                                (Ship.System, Destination);
+                  begin
+                     if Ship.System = Destination then
+                        Concorde.Empires.Logging.Log
+                          (Empire,
+                           "deleting " & Destination.Name
+                           & " from unexplored because of "
+                           & Ship.Short_Description);
+                        Skip := True;
+                        exit;
+                     elsif D < Least_Steps then
+                        Least_Steps := D;
+                        Closest_Ship := Position;
+                     end if;
+                  end;
+               end loop;
+            end if;
 
-            pragma Assert (Has_Element (Closest_Ship));
+            pragma Assert (Skip or else Has_Element (Closest_Ship));
 
-            Player.Order_Move_Ship
-              (Concorde.Empires.Db.Reference (Empire),
-               Element (Closest_Ship),
-               Destination);
-            Player.Idle_Ships.Delete (Closest_Ship);
+            if not Skip then
+               Player.Order_Move_Ship
+                 (Concorde.Empires.Db.Reference (Empire),
+                  Element (Closest_Ship),
+                  Destination);
+               Player.Idle_Ships.Delete (Closest_Ship);
+            end if;
+
             Player.Unexplored_Targets.Delete_First;
          end;
       end loop;
+
+      for Unexplored of Player.Unexplored_Targets loop
+         Concorde.Empires.Logging.Log
+           (Empire,
+            "no spare ships to explore "
+            & Unexplored.Name);
+      end loop;
+
    end Check_Idle_Ships;
 
    ------------
@@ -107,8 +140,20 @@ package body Concorde.Players.Simple_Player is
       Ship   : Concorde.Ships.Ship_Type)
    is
    begin
-      Player.Idle_Ships.Append (Ship);
-      Player.Check_Idle_Ships (Empire.all);
+      if not Ship.System.Owned then
+         Concorde.Empires.Logging.Log
+           (Empire,
+            Ship.Short_Description
+            & ": start colonisation");
+         Player.Order_Colonisation (Empire, Ship);
+      else
+         Concorde.Empires.Logging.Log
+           (Empire,
+            Ship.Short_Description
+            & ": arrived");
+         Player.Idle_Ships.Append (Ship);
+         Player.Check_Idle_Ships (Empire.all);
+      end if;
    end On_Ship_Arrived;
 
    -----------------------
@@ -155,11 +200,15 @@ package body Concorde.Players.Simple_Player is
    overriding procedure On_System_Colonised
      (Player : in out Root_Simple_Player_Type;
       Empire : in out Concorde.Empires.Root_Empire_Type'Class;
-      System : Concorde.Systems.Root_Star_System_Type'Class)
+      System : Concorde.Systems.Root_Star_System_Type'Class;
+      Ship   : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
    is
    begin
       Player.Owned_Systems.Append
         (Concorde.Systems.Db.Reference (System));
+
+      Player.Idle_Ships.Append (Ship);
 
       for N of Concorde.Galaxy.Neighbours (System) loop
          if not N.Owned
