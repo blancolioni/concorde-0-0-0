@@ -158,7 +158,7 @@ package body Concorde.Galaxy.Ships is
 
       if To = Ship.Destination then
          Ship.Owner.Player.On_Ship_Arrived
-           (Ship.Owner, Ship);
+           (Ship.Owner, Concorde.Ships.Db.Reference (Ship));
       end if;
 
    end Move_Ship;

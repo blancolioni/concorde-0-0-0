@@ -15,11 +15,6 @@ package Concorde.Players is
       Empire : in out Concorde.Empires.Root_Empire_Type'Class)
    is abstract;
 
-   procedure On_Border_Changed
-     (Player : in out Root_Player_Type;
-      Empire : in out Concorde.Empires.Root_Empire_Type'Class)
-   is abstract;
-
    procedure On_System_Colonised
      (Player : in out Root_Player_Type;
       Empire : in out Concorde.Empires.Root_Empire_Type'Class;
@@ -50,7 +45,7 @@ package Concorde.Players is
      (Player : in out Root_Player_Type;
       Empire : not null access constant
         Concorde.Empires.Root_Empire_Type'Class;
-      Ship   : Concorde.Ships.Root_Ship_Type'Class)
+      Ship   : Concorde.Ships.Ship_Type)
    is abstract;
 
    procedure On_Ship_Destroyed
