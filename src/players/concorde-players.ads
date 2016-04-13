@@ -18,7 +18,9 @@ package Concorde.Players is
    procedure On_System_Colonised
      (Player : in out Root_Player_Type;
       Empire : in out Concorde.Empires.Root_Empire_Type'Class;
-      System : Concorde.Systems.Root_Star_System_Type'Class)
+      System : Concorde.Systems.Root_Star_System_Type'Class;
+      Ship   : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
    is null;
 
    procedure On_System_Captured
@@ -46,7 +48,8 @@ package Concorde.Players is
       Empire : not null access constant
         Concorde.Empires.Root_Empire_Type'Class;
       Ship   : Concorde.Ships.Ship_Type)
-   is abstract;
+   is abstract
+     with Pre'Class => not Ship.Has_Destination;
 
    procedure On_Ship_Destroyed
      (Player : in out Root_Player_Type;
@@ -59,6 +62,12 @@ package Concorde.Players is
       Empire      : Concorde.Empires.Empire_Type;
       Ship        : Concorde.Ships.Ship_Type;
       Destination : Concorde.Systems.Star_System_Type);
+
+   procedure Order_Colonisation
+     (Player      : in out Root_Player_Type'Class;
+      Empire      : not null access constant
+        Concorde.Empires.Root_Empire_Type'Class;
+      Ship        : Concorde.Ships.Ship_Type);
 
    procedure Execute_Orders
      (Player : in out Root_Player_Type'Class);
