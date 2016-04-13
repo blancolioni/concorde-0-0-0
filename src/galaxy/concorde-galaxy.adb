@@ -332,6 +332,18 @@ package body Concorde.Galaxy is
    ----------------
 
    function Neighbours
+     (System : Concorde.Systems.Root_Star_System_Type'Class)
+      return Array_Of_Star_Systems
+   is
+   begin
+      return Neighbours (System.Index);
+   end Neighbours;
+
+   ----------------
+   -- Neighbours --
+   ----------------
+
+   function Neighbours
      (System_Index : Positive)
       return Array_Of_Star_Systems
 

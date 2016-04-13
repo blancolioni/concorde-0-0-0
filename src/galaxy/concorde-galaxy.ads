@@ -45,6 +45,10 @@ package Concorde.Galaxy is
       return Array_Of_Star_Systems;
 
    function Neighbours
+     (System : Concorde.Systems.Root_Star_System_Type'Class)
+      return Array_Of_Star_Systems;
+
+   function Neighbours
      (System_Index : Positive)
       return Array_Of_Star_Systems;
 
