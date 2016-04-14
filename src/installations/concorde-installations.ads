@@ -10,6 +10,14 @@ package Concorde.Installations is
      new Concorde.Agents.Root_Agent_Type
    with private;
 
+   function Facility
+     (Installation : Root_Installation_Type'Class)
+      return Concorde.Facilities.Facility_Type;
+
+   function Owner
+     (Installation : Root_Installation_Type'Class)
+      return access constant Concorde.Agents.Root_Agent_Type'Class;
+
    type Installation_Type is access constant Root_Installation_Type'Class;
 
 private

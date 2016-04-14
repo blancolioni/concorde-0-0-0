@@ -4,11 +4,70 @@ with Lui.Tables;
 with Concorde.Hash_Table;
 with Concorde.Watchers;
 
+with Concorde.Money;
+
 with Concorde.Empires;
 
 with Concorde.Systems.Db;
 
+with Concorde.People.Pops.Lists;
+
 package body Concorde.Systems.Models is
+
+   subtype Pop_Column is Integer range 1 .. 3;
+
+   type Pop_Table is
+     new Lui.Tables.Root_Model_Table with
+      record
+         System : Star_System_Type;
+      end record;
+
+   overriding function Heading_Column_Text
+     (Table : Pop_Table;
+      Col   : Positive)
+      return String
+   is ((case Pop_Column (Col) is
+           when 1 => "Group",
+           when 2 => "Size",
+           when 3 => "Cash"));
+
+   overriding function Cell_Text
+     (Table : Pop_Table;
+      Row   : Positive;
+      Col   : Positive)
+      return String;
+
+   overriding function Row_Count
+     (Table : Pop_Table)
+      return Natural
+   is (Natural (Table.System.Pops.Length));
+
+   subtype Installation_Column is Integer range 1 .. 2;
+
+   type Installation_Table is
+     new Lui.Tables.Root_Model_Table with
+      record
+         System : Star_System_Type;
+      end record;
+
+   overriding function Heading_Column_Text
+     (Table : Installation_Table;
+      Col   : Positive)
+      return String
+   is ((case Installation_Column (Col) is
+           when 1 => "Facility",
+           when 2 => "Cash"));
+
+   overriding function Cell_Text
+     (Table : Installation_Table;
+      Row   : Positive;
+      Col   : Positive)
+      return String;
+
+   overriding function Row_Count
+     (Table : Installation_Table)
+      return Natural
+   is (Natural (Table.System.Installations.Length));
 
    subtype Ship_Column is Integer range 1 .. 4;
 
@@ -67,6 +126,70 @@ package body Concorde.Systems.Models is
      new Concorde.Hash_Table (Star_System_Model_Access);
 
    System_Models : Model_Table.Map;
+
+   ---------------
+   -- Cell_Text --
+   ---------------
+
+   overriding function Cell_Text
+     (Table : Pop_Table;
+      Row   : Positive;
+      Col   : Positive)
+      return String
+   is
+      use Concorde.People.Pops.Lists;
+      Position : Cursor := Table.System.Pops.First;
+   begin
+      for I in 2 .. Row loop
+         Next (Position);
+      end loop;
+
+      declare
+         Pop : constant Concorde.People.Pops.Pop_Type :=
+                  Element (Position);
+      begin
+         case Pop_Column (Col) is
+            when 1 =>
+               return (if Pop.Rich then "Rich"
+                       elsif Pop.Middle_Class then "Middle Class"
+                       else "Poor");
+            when 2 =>
+               return Lui.Approximate_Image (Natural (Pop.Size));
+            when 3 =>
+               return Concorde.Money.Image (Pop.Cash);
+         end case;
+      end;
+   end Cell_Text;
+
+   ---------------
+   -- Cell_Text --
+   ---------------
+
+   overriding function Cell_Text
+     (Table : Installation_Table;
+      Row   : Positive;
+      Col   : Positive)
+      return String
+   is
+      use Concorde.Installations.Lists;
+      Position : Cursor := Table.System.Installations.First;
+   begin
+      for I in 2 .. Row loop
+         Next (Position);
+      end loop;
+
+      declare
+         Installation : constant Concorde.Installations.Installation_Type :=
+                          Element (Position);
+      begin
+         case Installation_Column (Col) is
+            when 1 =>
+               return Installation.Facility.Name;
+            when 2 =>
+               return Concorde.Money.Image (Installation.Cash);
+         end case;
+      end;
+   end Cell_Text;
 
    ---------------
    -- Cell_Text --
@@ -158,16 +281,39 @@ package body Concorde.Systems.Models is
    begin
       if not System_Models.Contains (System.Name) then
          declare
+            P_Table : Pop_Table;
+            P       : Lui.Tables.Model_Table;
+            I_Table : Installation_Table;
+            I       : Lui.Tables.Model_Table;
             S_Table : Ship_Table;
             S       : Lui.Tables.Model_Table;
          begin
+            P_Table.System := System;
+            P_Table.Initialise ("Population", 0, Pop_Column'Last);
+            P := new Pop_Table'(P_Table);
+
+            I_Table.System := System;
+            I_Table.Initialise ("Installations", 0, Installation_Column'Last);
+            I := new Installation_Table'(I_Table);
+
             S_Table.System := System;
             S_Table.Initialise ("Ships", 0, Ship_Column'Last);
             S := new Ship_Table'(S_Table);
+
             Result := new Root_Star_System_Model;
-            Result.Initialise (System.Name, Tables => (1 => S));
+            Result.Initialise (System.Name, Tables => (P, I, S));
             Db.Update (System.Reference, Watch'Access);
          end;
+
+         Result.Add_Property ("Resource", System.Deposit.Resource.Name);
+         Result.Add_Property ("Size",
+                              Concorde.Quantities.Image (System.Deposit.Size));
+         Result.Add_Property ("Accessibility",
+                              Lui.Approximate_Image
+                                (System.Deposit.Accessibility));
+         Result.Add_Property ("Concentration",
+                              Lui.Approximate_Image
+                                (System.Deposit.Concentration));
 
          System_Models.Insert (System.Name, Result);
       else

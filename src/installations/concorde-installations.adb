@@ -2,6 +2,18 @@ with Concorde.Installations.Db;
 
 package body Concorde.Installations is
 
+   --------------
+   -- Facility --
+   --------------
+
+   function Facility
+     (Installation : Root_Installation_Type'Class)
+      return Concorde.Facilities.Facility_Type
+   is
+   begin
+      return Installation.Facility;
+   end Facility;
+
    ---------------------
    -- Object_Database --
    ---------------------
@@ -14,5 +26,17 @@ package body Concorde.Installations is
    begin
       return Db.Get_Database;
    end Object_Database;
+
+   -----------
+   -- Owner --
+   -----------
+
+   function Owner
+     (Installation : Root_Installation_Type'Class)
+      return access constant Concorde.Agents.Root_Agent_Type'Class
+   is
+   begin
+      return Installation.Owner;
+   end Owner;
 
 end Concorde.Installations;
