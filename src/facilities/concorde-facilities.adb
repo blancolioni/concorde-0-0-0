@@ -250,12 +250,14 @@ package body Concorde.Facilities is
    is
       use type Concorde.Commodities.Commodity_Type;
 
-      function Match (Facility : Root_Facility_Type'Class) return Boolean
+      function Match (Facility : Facility_Type) return Boolean
       is (Facility.Class = Resource_Generator
-          and then Facility.Output = Resource);
+          and then Facility.Can_Produce (Resource));
 
+      Matches : constant Array_Of_Facilities :=
+                  Get_By_Match (Match'Access);
    begin
-      return Db.Reference (Db.Search (Match'Access));
+      return Matches (Matches'First);
    end Resource_Generator;
 
 end Concorde.Facilities;
