@@ -22,6 +22,7 @@ with Concorde.Updates;
 with Concorde.Options;
 
 with Lui.Models;
+with Lui.Rendering;
 
 with Lui.Gtk_UI;
 
@@ -210,6 +211,9 @@ package body Concorde.Gtk_UI is
       UI_Path : constant String :=
                   Concorde.Paths.Config_Path & "/concorde.ui";
    begin
+
+      Lui.Rendering.Set_Image_Path
+        (Concorde.Paths.Config_Path & "/images");
 
       Gtk.Main.Init;
 
