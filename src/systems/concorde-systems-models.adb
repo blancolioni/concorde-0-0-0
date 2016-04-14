@@ -8,6 +8,7 @@ with Concorde.Money;
 
 with Concorde.Empires;
 
+with Concorde.Commodities.Db;
 with Concorde.Systems.Db;
 
 with Concorde.People.Pops.Lists;
@@ -69,6 +70,30 @@ package body Concorde.Systems.Models is
       return Natural
    is (Natural (Table.System.Installations.Length));
 
+   subtype Market_Column is Integer range 1 .. 4;
+
+   type Market_Table is
+     new Lui.Tables.Root_Model_Table with
+      record
+         System : Star_System_Type;
+      end record;
+
+   overriding function Heading_Column_Text
+     (Table : Market_Table;
+      Col   : Positive)
+      return String
+   is ((case Market_Column (Col) is
+           when 1 => "Commodity",
+           when 2 => "Price",
+           when 3 => "Supply",
+           when 4 => "Demand"));
+
+   overriding function Cell_Text
+     (Table : Market_Table;
+      Row   : Positive;
+      Col   : Positive)
+      return String;
+
    subtype Ship_Column is Integer range 1 .. 4;
 
    type Ship_Table is
@@ -126,6 +151,36 @@ package body Concorde.Systems.Models is
      new Concorde.Hash_Table (Star_System_Model_Access);
 
    System_Models : Model_Table.Map;
+
+   ---------------
+   -- Cell_Text --
+   ---------------
+
+   overriding function Cell_Text
+     (Table : Market_Table;
+      Row   : Positive;
+      Col   : Positive)
+      return String
+   is
+      use Concorde.Commodities;
+      Commodity : constant Commodity_Type :=
+                    Concorde.Commodities.Db.Reference
+                      (Concorde.Commodities.Db.To_Reference (Row));
+   begin
+      case Market_Column (Col) is
+         when 1 =>
+            return Commodity.Name;
+         when 2 =>
+            return Concorde.Money.Image
+              (Table.System.Market.Current_Price (Commodity));
+         when 3 =>
+            return Concorde.Quantities.Image
+              (Table.System.Market.Last_Supply (Commodity));
+         when 4 =>
+            return Concorde.Quantities.Image
+              (Table.System.Market.Last_Demand (Commodity));
+      end case;
+   end Cell_Text;
 
    ---------------
    -- Cell_Text --
@@ -281,6 +336,8 @@ package body Concorde.Systems.Models is
    begin
       if not System_Models.Contains (System.Name) then
          declare
+            M_Table : Market_Table;
+            M       : Lui.Tables.Model_Table;
             P_Table : Pop_Table;
             P       : Lui.Tables.Model_Table;
             I_Table : Installation_Table;
@@ -288,6 +345,12 @@ package body Concorde.Systems.Models is
             S_Table : Ship_Table;
             S       : Lui.Tables.Model_Table;
          begin
+            M_Table.System := System;
+            M_Table.Initialise
+              ("Market", Concorde.Commodities.Db.Upper_Bound,
+               Market_Column'Last);
+            M := new Market_Table'(M_Table);
+
             P_Table.System := System;
             P_Table.Initialise ("Population", 0, Pop_Column'Last);
             P := new Pop_Table'(P_Table);
@@ -301,7 +364,7 @@ package body Concorde.Systems.Models is
             S := new Ship_Table'(S_Table);
 
             Result := new Root_Star_System_Model;
-            Result.Initialise (System.Name, Tables => (P, I, S));
+            Result.Initialise (System.Name, Tables => (M, P, I, S));
             Db.Update (System.Reference, Watch'Access);
          end;
 
