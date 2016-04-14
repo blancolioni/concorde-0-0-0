@@ -21,6 +21,21 @@ package Concorde.People.Pops is
       Group : Concorde.People.Groups.Pop_Group)
       return Affiliation_Range;
 
+   function Affiliated
+     (Pop   : Root_Pop_Type'Class;
+      Group : Concorde.People.Groups.Pop_Group)
+      return Boolean
+   is (Pop.Affiliation (Group) > 0.0);
+
+   function Poor (Pop : Root_Pop_Type'Class) return Boolean
+   is (Pop.Affiliated (Groups.Poor));
+
+   function Middle_Class (Pop : Root_Pop_Type'Class) return Boolean
+   is (Pop.Affiliated (Groups.Middle_Class));
+
+   function Rich (Pop : Root_Pop_Type'Class) return Boolean
+   is (Pop.Affiliated (Groups.Rich));
+
    type Pop_Type is access constant Root_Pop_Type'Class;
 
 private
