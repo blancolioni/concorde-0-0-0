@@ -16,6 +16,7 @@ with Concorde.Ships.Battles;
 with Concorde.Ships.Lists;
 
 with Concorde.Systems.Db;
+with Concorde.Systems.Models;
 
 with Concorde.Galaxy.Locking;
 
@@ -122,9 +123,10 @@ package body Concorde.Galaxy.Model is
      (Model : in out Root_Galaxy_Model;
       Child : not null access Lui.Models.Root_Object_Model'Class);
 
-   overriding procedure Select_XY
-     (Model : in out Root_Galaxy_Model;
-      X, Y  : Natural);
+   overriding function Select_XY
+     (Model : Root_Galaxy_Model;
+      X, Y  : Natural)
+      return Lui.Models.Object_Model;
 
    overriding function Tooltip
      (Model : Root_Galaxy_Model;
@@ -159,6 +161,12 @@ package body Concorde.Galaxy.Model is
      (Model    : in out Root_Galaxy_Model'Class;
       System   : Concorde.Systems.Star_System_Type;
       X, Y     : out Integer);
+
+   function Closest_System
+     (Model        : Root_Galaxy_Model'Class;
+      X, Y         : Integer;
+      Max_Distance : Natural)
+      return Concorde.Systems.Star_System_Type;
 
    function Recent_Battle
      (System   : Concorde.Systems.Star_System_Type;
@@ -235,6 +243,46 @@ package body Concorde.Galaxy.Model is
               (Arena.Fleet_Size (Arena.Empires (2)));
       end case;
    end Cell_Text;
+
+   function Closest_System
+     (Model        : Root_Galaxy_Model'Class;
+      X, Y         : Integer;
+      Max_Distance : Natural)
+      return Concorde.Systems.Star_System_Type
+   is
+      Shortest_Distance : Natural := Natural'Last;
+      Closest_Reference : Memor.Database_Reference;
+
+      procedure Update
+        (Reference : Memor.Database_Reference;
+         System    : Rendered_System);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update
+        (Reference : Memor.Database_Reference;
+         System    : Rendered_System)
+      is
+         D : constant Natural :=
+               (X - System.X) ** 2 + (Y - System.Y) ** 2;
+      begin
+         if D < Shortest_Distance then
+            Shortest_Distance := D;
+            Closest_Reference := Reference;
+         end if;
+      end Update;
+
+   begin
+      Model.Rendered_Systems.Iterate (Update'Access);
+
+      if Max_Distance ** 2 >= Shortest_Distance then
+         return Concorde.Systems.Db.Element (Closest_Reference);
+      else
+         return null;
+      end if;
+   end Closest_System;
 
    ---------------------
    -- Draw_Connection --
@@ -752,16 +800,25 @@ package body Concorde.Galaxy.Model is
    -- Select_XY --
    ---------------
 
-   overriding procedure Select_XY
-     (Model : in out Root_Galaxy_Model;
+   overriding function Select_XY
+     (Model : Root_Galaxy_Model;
       X, Y  : Natural)
+      return Lui.Models.Object_Model
    is
-      pragma Unreferenced (X);
-      pragma Unreferenced (Y);
+      use type Concorde.Systems.Star_System_Type;
+      System : constant Concorde.Systems.Star_System_Type :=
+                 Model.Closest_System (X, Y, 10);
    begin
       if Model.Arena /= null then
          Complete_Battle (Model.Arena);
       end if;
+
+      if System /= null then
+         return Concorde.Systems.Models.System_Model (System);
+      else
+         return null;
+      end if;
+
    end Select_XY;
 
    ----------------------
@@ -816,35 +873,12 @@ package body Concorde.Galaxy.Model is
       X, Y  : Natural)
       return String
    is
-      Shortest_Distance : Natural := Natural'Last;
-      Closest_Reference : Memor.Database_Reference;
-
-      procedure Update
-        (Reference : Memor.Database_Reference;
-         System    : Rendered_System);
-
-      ------------
-      -- Update --
-      ------------
-
-      procedure Update
-        (Reference : Memor.Database_Reference;
-         System    : Rendered_System)
-      is
-         D : constant Natural :=
-               (X - System.X) ** 2 + (Y - System.Y) ** 2;
-      begin
-         if D < Shortest_Distance then
-            Shortest_Distance := D;
-            Closest_Reference := Reference;
-         end if;
-      end Update;
-
+      use type Concorde.Systems.Star_System_Type;
+      System : constant Concorde.Systems.Star_System_Type :=
+                 Model.Closest_System (X, Y, 10);
    begin
-      Model.Rendered_Systems.Iterate (Update'Access);
-
-      if Shortest_Distance < 100 then
-         return Concorde.Systems.Db.Element (Closest_Reference).Name;
+      if System /= null then
+         return System.Name;
       else
          return "";
       end if;
