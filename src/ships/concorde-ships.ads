@@ -149,6 +149,10 @@ package Concorde.Ships is
      (Ship : Root_Ship_Type'Class)
       return Array_Of_Mounted_Modules;
 
+   function Current_Mass
+     (Ship : Root_Ship_Type'Class)
+      return Non_Negative_Real;
+
    type Ship_Type is access constant Root_Ship_Type'Class;
 
    function Count_Ships
@@ -183,7 +187,7 @@ private
          Alive                 : Boolean;
          Structure             : Module_Vectors.Vector;
          Size                  : Size_Type;
-         Empty_Mass            : Natural;
+         Empty_Mass            : Non_Negative_Real;
          Current_Damage        : Unit_Real := 0.0;
          Current_Shields       : Unit_Real := 0.0;
       end record;

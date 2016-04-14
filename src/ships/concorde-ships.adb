@@ -237,6 +237,18 @@ package body Concorde.Ships is
       return Result;
    end Count_Ships;
 
+   ------------------
+   -- Current_Mass --
+   ------------------
+
+   function Current_Mass
+     (Ship : Root_Ship_Type'Class)
+      return Non_Negative_Real
+   is
+   begin
+      return Ship.Empty_Mass;
+   end Current_Mass;
+
    ------------
    -- Damage --
    ------------
