@@ -1,5 +1,29 @@
 package body Concorde.Objects is
 
+   -----------------
+   -- Add_Watcher --
+   -----------------
+
+   overriding procedure Add_Watcher
+     (Object  : in out Root_Object_Type;
+      Watcher : not null access Concorde.Watchers.Watcher_Interface'Class)
+   is
+   begin
+      Concorde.Watchers.Add_Watcher
+        (Object.Watchers, Watcher);
+   end Add_Watcher;
+
+   ------------------
+   -- After_Change --
+   ------------------
+
+   overriding procedure After_Change
+     (Object : Root_Object_Type)
+   is
+   begin
+      Concorde.Watchers.Send_Changed (Object.Watchers, Object);
+   end After_Change;
+
    ----------------
    -- Identifier --
    ----------------

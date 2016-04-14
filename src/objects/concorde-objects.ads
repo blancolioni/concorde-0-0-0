@@ -2,9 +2,18 @@ private with Ada.Strings.Unbounded;
 
 with Memor;
 
+with Concorde.Watchers;
+
 package Concorde.Objects is
 
-   type Root_Object_Type is abstract new Memor.Root_Record_Type with private;
+   type Root_Object_Type is
+     abstract new Memor.Root_Record_Type
+     and Concorde.Watchers.Watched_Object_Interface
+   with private;
+
+   overriding procedure Add_Watcher
+     (Object  : in out Root_Object_Type;
+      Watcher : not null access Concorde.Watchers.Watcher_Interface'Class);
 
    type Object_Type is access constant Root_Object_Type'Class;
 
@@ -35,8 +44,15 @@ package Concorde.Objects is
 
 private
 
-   type Root_Object_Type is abstract new Memor.Root_Record_Type
-   with null record;
+   type Root_Object_Type is
+     abstract new Memor.Root_Record_Type
+     and Concorde.Watchers.Watched_Object_Interface with
+      record
+         Watchers : Concorde.Watchers.Watcher_List;
+      end record;
+
+   overriding procedure After_Change
+     (Object : Root_Object_Type);
 
    type Root_Named_Object_Type is
      abstract new Root_Object_Type
