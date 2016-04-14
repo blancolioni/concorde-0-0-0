@@ -15,6 +15,8 @@ with Concorde.Empires.History;
 with Concorde.Ships.Battles;
 with Concorde.Ships.Lists;
 
+with Concorde.Systems.Db;
+
 with Concorde.Galaxy.Locking;
 
 with Concorde.Updates;
@@ -80,6 +82,14 @@ package body Concorde.Galaxy.Model is
      (Table : Battle_Table;
       Row   : Positive);
 
+   type Rendered_System is
+      record
+         X, Y : Integer;
+      end record;
+
+   package Rendered_System_Vectors is
+     new Memor.Element_Vectors (Rendered_System, (0, 0));
+
    type Root_Galaxy_Model is
      new Lui.Models.Root_Object_Model
      and Battle_Manager_Interface with
@@ -89,6 +99,7 @@ package body Concorde.Galaxy.Model is
          FPS                : Real;
          Show_Capital_Names : Boolean := True;
          Show_System_Names  : Boolean := False;
+         Rendered_Systems   : Rendered_System_Vectors.Vector;
          Battles            : Lui.Tables.Model_Table;
          Arena              : access Concorde.Combat.Root_Combat_Arena'Class;
       end record;
@@ -114,6 +125,11 @@ package body Concorde.Galaxy.Model is
    overriding procedure Select_XY
      (Model : in out Root_Galaxy_Model;
       X, Y  : Natural);
+
+   overriding function Tooltip
+     (Model : Root_Galaxy_Model;
+      X, Y  : Natural)
+      return String;
 
    overriding procedure On_Battle_End
      (Model   : in out Root_Galaxy_Model;
@@ -544,6 +560,9 @@ package body Concorde.Galaxy.Model is
                  (X, Y, 0.0, Screen_X, Screen_Y, Screen_Z);
                if Star_Pass then
 
+                  Model.Rendered_Systems.Replace_Element
+                    (System.Reference, (Screen_X, Screen_Y));
+
                   if System.Owned then
                      Draw_Influence
                        (Model, Renderer, System);
@@ -787,5 +806,48 @@ package body Concorde.Galaxy.Model is
       Model.Get_Screen_Coordinates (System.X, System.Y, 0.0,
                                     X, Y, Screen_Z);
    end Star_System_Screen;
+
+   -------------
+   -- Tooltip --
+   -------------
+
+   overriding function Tooltip
+     (Model : Root_Galaxy_Model;
+      X, Y  : Natural)
+      return String
+   is
+      Shortest_Distance : Natural := Natural'Last;
+      Closest_Reference : Memor.Database_Reference;
+
+      procedure Update
+        (Reference : Memor.Database_Reference;
+         System    : Rendered_System);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update
+        (Reference : Memor.Database_Reference;
+         System    : Rendered_System)
+      is
+         D : constant Natural :=
+               (X - System.X) ** 2 + (Y - System.Y) ** 2;
+      begin
+         if D < Shortest_Distance then
+            Shortest_Distance := D;
+            Closest_Reference := Reference;
+         end if;
+      end Update;
+
+   begin
+      Model.Rendered_Systems.Iterate (Update'Access);
+
+      if Shortest_Distance < 100 then
+         return Concorde.Systems.Db.Element (Closest_Reference).Name;
+      else
+         return "";
+      end if;
+   end Tooltip;
 
 end Concorde.Galaxy.Model;
