@@ -1,0 +1,11 @@
+tech = {
+  base_pay = 50
+}
+
+unskilled = {
+  base_pay = 10
+}
+
+executive = {
+   base_pay = 200
+}
