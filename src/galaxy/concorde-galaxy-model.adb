@@ -6,6 +6,8 @@ with Lui.Colours;
 with Lui.Rendering;
 with Lui.Tables;
 
+with Concorde.Watchers;
+
 with Concorde.Dates;
 with Concorde.Elementary_Functions;
 with Concorde.Empires;
@@ -93,7 +95,8 @@ package body Concorde.Galaxy.Model is
 
    type Root_Galaxy_Model is
      new Lui.Models.Root_Object_Model
-     and Battle_Manager_Interface with
+     and Battle_Manager_Interface
+     and Concorde.Watchers.Watcher_Interface with
       record
          Frames             : Natural := 0;
          Start              : Ada.Calendar.Time;
@@ -103,12 +106,17 @@ package body Concorde.Galaxy.Model is
          Rendered_Systems   : Rendered_System_Vectors.Vector;
          Battles            : Lui.Tables.Model_Table;
          Arena              : access Concorde.Combat.Root_Combat_Arena'Class;
+         Needs_Render       : Boolean := True;
       end record;
+
+   overriding procedure On_Object_Changed
+     (Model  : in out Root_Galaxy_Model;
+      Object : Concorde.Watchers.Watched_Object_Interface'Class);
 
    overriding function Handle_Update
      (Model    : in out Root_Galaxy_Model)
       return Boolean
-   is (True);
+   is (Model.Needs_Render);
 
    overriding procedure Render
      (Model    : in out Root_Galaxy_Model;
@@ -178,7 +186,9 @@ package body Concorde.Galaxy.Model is
    Border_Colour     : constant Lui.Colours.Colour_Type :=
                          (1.0, 1.0, 1.0, 1.0);
 
-   Local_Model : Lui.Models.Object_Model;
+   type Galaxy_Model_Access is access all Root_Galaxy_Model'Class;
+
+   Local_Model : Galaxy_Model_Access;
 
    ---------------
    -- Cell_Text --
@@ -243,6 +253,10 @@ package body Concorde.Galaxy.Model is
               (Arena.Fleet_Size (Arena.Empires (2)));
       end case;
    end Cell_Text;
+
+   --------------------
+   -- Closest_System --
+   --------------------
 
    function Closest_System
      (Model        : Root_Galaxy_Model'Class;
@@ -466,6 +480,7 @@ package body Concorde.Galaxy.Model is
      return Lui.Models.Object_Model
    is
       use Lui.Models;
+
    begin
       if Local_Model = null then
          declare
@@ -473,6 +488,21 @@ package body Concorde.Galaxy.Model is
             E_Table : Empire_Table;
             B_Table : Battle_Table;
             E, B    : Lui.Tables.Model_Table;
+
+            procedure Watch_System
+              (System : in out Concorde.Systems.Root_Star_System_Type'Class);
+
+            ------------------
+            -- Watch_System --
+            ------------------
+
+            procedure Watch_System
+              (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+            is
+            begin
+               System.Add_Watcher (Local_Model);
+            end Watch_System;
+
          begin
             E_Table.Initialise
               (Name     => "Empires",
@@ -494,9 +524,12 @@ package body Concorde.Galaxy.Model is
               Concorde.Options.Show_System_Names;
             Local_Model := new Root_Galaxy_Model'(Result);
             Set_Battle_Manager (Battle_Manager (Local_Model));
+
+            Concorde.Systems.Db.Iterate (Watch_System'Access);
+
          end;
       end if;
-      return Local_Model;
+      return Lui.Models.Object_Model (Local_Model);
    end Galaxy_Model;
 
    -------------------
@@ -531,6 +564,19 @@ package body Concorde.Galaxy.Model is
          Model.Arena := null;
       end if;
    end On_Model_Removed;
+
+   -----------------------
+   -- On_Object_Changed --
+   -----------------------
+
+   overriding procedure On_Object_Changed
+     (Model  : in out Root_Galaxy_Model;
+      Object : Concorde.Watchers.Watched_Object_Interface'Class)
+   is
+      pragma Unreferenced (Object);
+   begin
+      Model.Needs_Render := True;
+   end On_Object_Changed;
 
    -------------------
    -- Recent_Battle --
@@ -768,6 +814,8 @@ package body Concorde.Galaxy.Model is
             Model.Draw_History (Renderer);
          end if;
       end;
+
+      Model.Needs_Render := False;
 
       Concorde.Updates.Finish_Render;
 
