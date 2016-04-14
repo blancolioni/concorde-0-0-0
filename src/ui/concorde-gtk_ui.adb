@@ -8,10 +8,15 @@ with Glib.Object;
 with Gtk.Box;
 with Gtk.Builder;
 with Gtk.Button;
+with Gtk.Cell_Renderer_Text;
 with Gtk.Label;
 with Gtk.Main;
 with Gtk.Notebook;
 with Gtk.Status_Bar;
+with Gtk.Tree_Model;
+with Gtk.Tree_Store;
+with Gtk.Tree_View;
+with Gtk.Tree_View_Column;
 with Gtk.Widget;
 with Gtk.Window;
 
@@ -36,6 +41,7 @@ package body Concorde.Gtk_UI is
          Models         : Lui.Models.Active_Model_List;
          Notebook       : Gtk.Notebook.Gtk_Notebook;
          Info_Boxes     : Gtk.Box.Gtk_Box;
+         Property_List  : Gtk.Tree_View.Gtk_Tree_View;
          Date_Label     : Gtk.Label.Gtk_Label;
          Status_Bar     : Gtk.Status_Bar.Gtk_Status_Bar;
          Status_Context : Gtk.Status_Bar.Context_Id;
@@ -68,6 +74,13 @@ package body Concorde.Gtk_UI is
 
    overriding procedure On_Idle
      (State : in out Concorde_UI);
+
+   procedure Create_Property_List
+     (Tree_View : Gtk.Tree_View.Gtk_Tree_View);
+
+   procedure Show_Properties
+     (UI      : Concorde_UI'Class;
+      Model   : Lui.Models.Object_Model);
 
    procedure Destroy_Handler (W : access Gtk.Widget.Gtk_Widget_Record'Class);
 
@@ -117,6 +130,7 @@ package body Concorde.Gtk_UI is
 
                To.Notebook.Set_Current_Page
                  (To.Notebook.Get_N_Pages - 1);
+               To.Show_Properties (Model);
             end;
          when UI_Table =>
             To.Info_Boxes.Add (Top);
@@ -145,6 +159,45 @@ package body Concorde.Gtk_UI is
             end loop;
       end case;
    end Clear_Features;
+
+   --------------------------
+   -- Create_Property_List --
+   --------------------------
+
+   procedure Create_Property_List
+     (Tree_View : Gtk.Tree_View.Gtk_Tree_View)
+   is
+      Model       : Gtk.Tree_Store.Gtk_Tree_Store;
+      Text_Render : Gtk.Cell_Renderer_Text.Gtk_Cell_Renderer_Text;
+      Text_Column : Gtk.Tree_View_Column.Gtk_Tree_View_Column;
+      Num         : Glib.Gint;
+      pragma Unreferenced (Num);
+   begin
+      Gtk.Tree_Store.Gtk_New
+        (Model,
+         (0     => Glib.GType_String,
+          1     => Glib.GType_String));
+
+      Gtk.Cell_Renderer_Text.Gtk_New (Text_Render);
+      Gtk.Tree_View_Column.Gtk_New (Text_Column);
+      Num := Tree_View.Append_Column (Text_Column);
+      Text_Column.Pack_Start (Text_Render, True);
+      Text_Column.Set_Sizing
+        (Gtk.Tree_View_Column.Tree_View_Column_Autosize);
+      Text_Column.Add_Attribute (Text_Render, "text", 0);
+
+      Gtk.Cell_Renderer_Text.Gtk_New (Text_Render);
+      Gtk.Tree_View_Column.Gtk_New (Text_Column);
+      Num := Tree_View.Append_Column (Text_Column);
+      Text_Column.Pack_Start (Text_Render, True);
+      Text_Column.Set_Sizing
+        (Gtk.Tree_View_Column.Tree_View_Column_Autosize);
+      Text_Column.Add_Attribute (Text_Render, "text", 1);
+
+      Tree_View.Set_Model
+        (Gtk.Tree_Model.Gtk_Tree_Model (Model.To_Interface));
+
+   end Create_Property_List;
 
    ---------------------
    -- Destroy_Handler --
@@ -236,7 +289,38 @@ package body Concorde.Gtk_UI is
                 UI.Models.Model (Natural (Page_Num) + 1);
    begin
       Lui.Gtk_UI.On_Model_Activation (Model);
+      UI.Show_Properties (Model);
    end On_Switch_Page;
+
+   ---------------------
+   -- Show_Properties --
+   ---------------------
+
+   procedure Show_Properties
+     (UI      : Concorde_UI'Class;
+      Model   : Lui.Models.Object_Model)
+   is
+      Count : constant Natural :=
+                Model.Property_Count;
+      Store : constant Gtk.Tree_Store.Gtk_Tree_Store :=
+                Gtk.Tree_Store.Gtk_Tree_Store
+                  (Gtk.Tree_Model."-" (UI.Property_List.Get_Model));
+   begin
+      Store.Clear;
+      for I in 1 .. Count loop
+         declare
+            Result : Gtk.Tree_Model.Gtk_Tree_Iter;
+            Name   : constant String :=
+                       Model.Property_Name (I);
+            Value  : constant String :=
+                       Model.Property_Value (I);
+         begin
+            Store.Append (Result, Gtk.Tree_Model.Null_Iter);
+            Store.Set (Result, 0, Name);
+            Store.Set (Result, 1, Value);
+         end;
+      end loop;
+   end Show_Properties;
 
    -----------
    -- Start --
@@ -297,6 +381,9 @@ package body Concorde.Gtk_UI is
          Date_Label : constant Gtk.Label.Gtk_Label :=
                         Gtk.Label.Gtk_Label
                           (Builder.Get_Object ("Date_Label"));
+         Property_List : constant Gtk.Tree_View.Gtk_Tree_View :=
+                           Gtk.Tree_View.Gtk_Tree_View
+                             (Builder.Get_Object ("Property_View"));
          Status_Bar : constant Gtk.Status_Bar.Gtk_Status_Bar :=
                         Gtk.Status_Bar.Gtk_Status_Bar
                           (Builder.Get_Object ("Status_Bar"));
@@ -307,6 +394,7 @@ package body Concorde.Gtk_UI is
                            Models         => Models,
                            Notebook       => Main_Tab,
                            Info_Boxes     => Info_Boxes,
+                           Property_List  => Property_List,
                            Date_Label     => Date_Label,
                            Last_Date      => 0,
                            Status_Bar     => Status_Bar,
@@ -317,6 +405,9 @@ package body Concorde.Gtk_UI is
       begin
          UI.Initialize;
          Main_Tab.Remove_Page (0);
+
+         Create_Property_List (UI.Property_List);
+
          Lui.Gtk_UI.Start
            (Main => UI,
             Top  => Concorde.Galaxy.Model.Galaxy_Model);
