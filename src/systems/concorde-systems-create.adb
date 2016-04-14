@@ -53,6 +53,8 @@ package body Concorde.Systems.Create is
             Size          =>
               Concorde.Quantities.Around
                 (Concorde.Quantities.To_Quantity (1.0E6)));
+         System.Market :=
+           Concorde.Markets.Create_Market;
       end Create;
 
    begin
