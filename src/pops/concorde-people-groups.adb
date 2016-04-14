@@ -23,6 +23,15 @@ package body Concorde.People.Groups is
       return Group.Initial_Cash;
    end Initial_Cash_Factor;
 
+   ------------------
+   -- Middle_Class --
+   ------------------
+
+   function Middle_Class return Pop_Group is
+   begin
+      return Get ("middle_class");
+   end Middle_Class;
+
    ---------------------
    -- Object_Database --
    ---------------------
@@ -35,5 +44,23 @@ package body Concorde.People.Groups is
    begin
       return Db.Get_Database;
    end Object_Database;
+
+   ----------
+   -- Poor --
+   ----------
+
+   function Poor return Pop_Group is
+   begin
+      return Get ("poor");
+   end Poor;
+
+   ----------
+   -- Rich --
+   ----------
+
+   function Rich return Pop_Group is
+   begin
+      return Get ("rich");
+   end Rich;
 
 end Concorde.People.Groups;

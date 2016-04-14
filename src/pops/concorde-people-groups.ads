@@ -14,6 +14,10 @@ package Concorde.People.Groups is
 
    function Get (Name : String) return Pop_Group;
 
+   function Poor return Pop_Group;
+   function Middle_Class return Pop_Group;
+   function Rich return Pop_Group;
+
 private
 
    type Root_Pop_Group is
