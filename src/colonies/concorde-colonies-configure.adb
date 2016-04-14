@@ -2,11 +2,18 @@ with Tropos.Reader;
 
 with Concorde.Options;
 with Concorde.Paths;
+
+with Concorde.Money;
+
 with Concorde.Empires;
 with Concorde.Facilities;
 with Concorde.Installations;
 
+with Concorde.People.Groups;
+with Concorde.People.Skills;
+
 with Concorde.Installations.Create;
+with Concorde.People.Pops.Create;
 
 package body Concorde.Colonies.Configure is
 
@@ -46,6 +53,9 @@ package body Concorde.Colonies.Configure is
       Template : Tropos.Configuration)
    is
 
+      procedure Create_Pop
+        (Config : Tropos.Configuration);
+
       procedure Create_Installation
         (Facility : Concorde.Facilities.Facility_Type);
 
@@ -65,6 +75,30 @@ package body Concorde.Colonies.Configure is
          System.Add_Installation (Installation);
       end Create_Installation;
 
+      ----------------
+      -- Create_Pop --
+      ----------------
+
+      procedure Create_Pop
+        (Config : Tropos.Configuration)
+      is
+         use Concorde.People.Groups;
+         use Concorde.People.Skills;
+         use Concorde.People.Pops;
+         Group : constant Pop_Group := Get (Config.Config_Name);
+         Size  : constant Natural := Config.Get ("size");
+         Cash  : constant Non_Negative_Real :=
+                   Real (Size) * Real (Group.Initial_Cash_Factor);
+         Pop : constant Concorde.People.Pops.Pop_Type :=
+                   Concorde.People.Pops.Create.New_Pop
+                     (Wealth_Group => Group,
+                      Skill        => Get (Config.Get ("skill", "unskilled")),
+                      Size         => Pop_Size (Size),
+                      Cash         => Concorde.Money.To_Money (Cash));
+      begin
+         System.Add_Pop (Pop);
+      end Create_Pop;
+
    begin
 
       declare
@@ -74,6 +108,10 @@ package body Concorde.Colonies.Configure is
       begin
          Create_Installation (Hubs (Hubs'First));
       end;
+
+      for Pop_Config of Template.Child ("pops") loop
+         Create_Pop (Pop_Config);
+      end loop;
 
       for I in 1 .. Template.Get ("resource_generator") loop
          Create_Installation
