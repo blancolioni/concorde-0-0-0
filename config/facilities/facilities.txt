@@ -1,9 +1,9 @@
 hub = { class = Colony_Hub
         name = "Colony Hub"
         power = 10
-        workers = { exec = 5
+        unskilleds = { executive = 5
                     tech = 5
-                    worker = 10
+                    unskilled = 10
                   }
         modules = { commercial = 5
                     industrial = 5
@@ -15,9 +15,9 @@ hub = { class = Colony_Hub
 consulate = { class = consulate
               name = "Trade Consulate"
               power = 10
-              workers = { exec = 2
+              unskilleds = { executive = 2
                           tech = 10
-                          worker = 5
+                          unskilled = 5
                         }
               modules = { commercial = 5
                           habitation = 5
@@ -27,9 +27,9 @@ consulate = { class = consulate
 hq = { class = Corporate_Hq
        name = "Coporate Headquarters"
        power = 10
-       workers = { exec = 5
+       unskilleds = { executive = 5
                    tech = 5
-                   worker = 10
+                   unskilled = 10
                  }
        modules = { commercial = 5
                  }
@@ -38,9 +38,9 @@ hq = { class = Corporate_Hq
 dock = { class = Orbital_Dock
          name = "Orbital Dock"
          power = 100
-         workers = { exec = 5
+         unskilleds = { executive = 5
                      tech = 5
-                     worker = 10
+                     unskilled = 10
                    }
         modules = { commercial = 10
                     industrial = 100
@@ -53,10 +53,10 @@ light-factory = { class = Factory
                   name = "Light Factory"
                   template-class = yes
                   power = 10
-                  workers = {
-                     exec = 5
+                  unskilleds = {
+                     executive = 5
                      tech = 15
-                     worker = 80
+                     unskilled = 80
                      }
                   modules = {
                     industrial = 30
@@ -69,10 +69,10 @@ heavy-factory = { class = Factory
                   name = "Heavy Factory"
                   template-class = yes
                   power = 20
-                  workers = {
-                     exec = 10
+                  unskilleds = {
+                     executive = 10
                      tech = 20
-                     worker = 160
+                     unskilled = 160
                    }
                   modules = { industrial = 60
                               habitation = 40
@@ -84,9 +84,9 @@ super-heavy-factory = { class = Factory
                         name = "Super-Heavy Factory"
                         template-class = yes
                         power = 40
-                        workers = { exec = 20
+                        unskilleds = { executive = 20
                                     tech = 40
-                                    worker = 320
+                                    unskilled = 320
                                   }
                         modules = { industrial = 120
                                     habitation = 80
@@ -290,8 +290,8 @@ bargain-clothes-factory = {
 shipyard = { class = Factory
              name = Shipyard
              power = 50
-             worker = { type = { 1 = exec
-                                 2 = worker
+             unskilled = { type = { 1 = executive
+                                 2 = unskilled
                                  3 = tech
                                }
                         qty = { 1 = 10
@@ -310,7 +310,7 @@ shipyard = { class = Factory
 farm = { class = Resource_Generator
          name = Farm
          power = 5
-         workers = { tech = 1 worker = 9 }
+         unskilleds = { tech = 1 unskilled = 9 }
          modules = { industrial = 3 habitation = 2 }
          capacity = 1000
          organic = true
@@ -319,7 +319,7 @@ farm = { class = Resource_Generator
 refinery = { class = Resource_Generator
              name = Refinery
              power = 10
-             workers = { tech = 5 worker = 15 }
+             unskilleds = { tech = 5 unskilled = 15 }
              modules = { industrial = 5 habitation = 5 }
              capacity = 1000
              metal = true
@@ -328,7 +328,7 @@ refinery = { class = Resource_Generator
 mine = { class = Resource_Generator
          name = Mine
          power = 5
-         workers = { tech = 1 worker = 19 }
+         unskilleds = { tech = 1 unskilled = 19 }
          modules = { industrial = 6 habitation = 4 }
          capacity = 1000
          mineral = true
@@ -337,7 +337,7 @@ mine = { class = Resource_Generator
 plant = { class = Resource_Generator
           name = "Gas Plant"
           power = 10
-          workers = { tech = 10 worker = 10 }
+          unskilleds = { tech = 10 unskilled = 10 }
           modules = { industrial = 7 habitation = 3 }
           capacity = 1000
           gas = true
@@ -345,7 +345,7 @@ plant = { class = Resource_Generator
 pump = { class = Resource_Generator
          name = "Liquid Pump"
          power = 5
-         worker = { type = { 1 = tech
+         unskilled = { type = { 1 = tech
                            }
                     qty = { 1 = 5
                           }
@@ -363,9 +363,9 @@ pump = { class = Resource_Generator
 hospital = { class = Service_Facility
              name = Hospital
              power = 10
-             worker = { type = { 1 = exec
+             unskilled = { type = { 1 = executive
                                  2 = tech
-                                 3 = worker
+                                 3 = unskilled
                                }
                         qty = { 1 = 10
                                 2 = 40
@@ -389,8 +389,8 @@ hospital = { class = Service_Facility
 medcenter = { class = Service_Facility
               name = "Medical Center"
               power = 5
-              worker = { type = { 1 = exec
-                                  2 = worker
+              unskilled = { type = { 1 = executive
+                                  2 = unskilled
                                   3 = tech
                                 }
                          qty = { 1 = 10
@@ -415,8 +415,8 @@ medcenter = { class = Service_Facility
 clinic = { class = Service_Facility
            name = "Health Clinic"
            power = 1
-           worker = { type = { 1 = exec
-                               2 = worker
+           unskilled = { type = { 1 = executive
+                               2 = unskilled
                                3 = tech
                              }
                       qty = { 1 = 5
@@ -434,13 +434,14 @@ clinic = { class = Service_Facility
            quality = 1
            capacity = 1000
            medical = true
+           service_charge = 50
          }
 academy = { class = Service_Facility
             name = "Sports Academy"
             power = 5
-            worker = { type = { 1 = exec
+            unskilled = { type = { 1 = executive
                                 2 = tech
-                                3 = worker
+                                3 = unskilled
                               }
                        qty = { 1 = 15
                                2 = 15
@@ -462,9 +463,9 @@ academy = { class = Service_Facility
 leisure-complex = { class = Service_Facility
                     name = "Leisure Complex"
                     power = 2
-                    worker = { type = { 1 = exec
+                    unskilled = { type = { 1 = executive
                                         2 = tech
-                                        3 = worker
+                                        3 = unskilled
                                       }
                                qty = { 1 = 10
                                        2 = 20
@@ -486,7 +487,7 @@ leisure-complex = { class = Service_Facility
 gym = { class = Service_Facility
         name = Gymnasium
         power = 1
-        worker = { type = { 1 = worker
+        unskilled = { type = { 1 = unskilled
                             2 = tech
                           }
                    qty = { 1 = 10
@@ -508,9 +509,9 @@ gym = { class = Service_Facility
 mall = { class = Service_Facility
          name = "Opera House"
          power = 15
-         worker = { type = { 1 = exec
+         unskilled = { type = { 1 = executive
                              2 = tech
-                             3 = worker
+                             3 = unskilled
                            }
                     qty = { 1 = 10
                             2 = 25
@@ -532,9 +533,9 @@ mall = { class = Service_Facility
 multiplex = { class = Service_Facility
               name = Multiplex
               power = 10
-              worker = { type = { 1 = exec
+              unskilled = { type = { 1 = executive
                                   2 = tech
-                                  3 = worker
+                                  3 = unskilled
                                 }
                          qty = { 1 = 5
                                  2 = 10
@@ -556,9 +557,9 @@ multiplex = { class = Service_Facility
 tv-station = { class = Service_Facility
                name = "TV Station"
                power = 5
-               worker = { type = { 1 = exec
+               unskilled = { type = { 1 = executive
                                    2 = tech
-                                   3 = worker
+                                   3 = unskilled
                                  }
                           qty = { 1 = 1
                                   2 = 5
@@ -580,9 +581,9 @@ tv-station = { class = Service_Facility
 university = { class = Service_Facility
                name = University
                power = 10
-               worker = { type = { 1 = tech
-                                   2 = exec
-                                   3 = worker
+               unskilled = { type = { 1 = tech
+                                   2 = executive
+                                   3 = unskilled
                                  }
                           qty = { 1 = 20
                                   2 = 8
@@ -606,8 +607,8 @@ university = { class = Service_Facility
 school = { class = Service_Facility
            name = School
            power = 5
-           worker = { type = { 1 = tech
-                               2 = worker
+           unskilled = { type = { 1 = tech
+                               2 = unskilled
                              }
                       qty = { 1 = 10
                               2 = 30
@@ -629,8 +630,8 @@ school = { class = Service_Facility
 terminal = { class = Service_Facility
              name = "Neural Network Terminal"
              power = 2
-             worker = { type = { 1 = tech
-                                 2 = worker
+             unskilled = { type = { 1 = tech
+                                 2 = unskilled
                                }
                         qty = { 1 = 5
                                 2 = 5

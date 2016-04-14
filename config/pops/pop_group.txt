@@ -4,14 +4,17 @@ poor = {
    capitalist = 5
    conservative = 30
    liberal = 30
+   quality = 1
 }
 
 middle_class = {
    initial_cash = 200
+   quality = 2
 }
 
 rich = {
    initial_cash = 10000
+   quality = 3
 }
 
 socialist = {

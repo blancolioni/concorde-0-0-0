@@ -1,11 +1,11 @@
 tech = {
-  base_pay = 50
+  base_pay = 1200
 }
 
 unskilled = {
-  base_pay = 10
+  base_pay = 350
 }
 
 executive = {
-   base_pay = 200
+   base_pay = 3000
 }
