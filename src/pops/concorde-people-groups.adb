@@ -20,7 +20,7 @@ package body Concorde.People.Groups is
       return Natural
    is
    begin
-      return Group.Initial_Cash;
+      return Group.Initial_Cash_Factor;
    end Initial_Cash_Factor;
 
    ------------------

@@ -1,4 +1,5 @@
 with Memor;
+
 with Concorde.Objects;
 
 package Concorde.People.Groups is
@@ -23,8 +24,8 @@ private
    type Root_Pop_Group is
      new Concorde.Objects.Root_Named_Object_Type with
       record
-         Pop_Group_Id : access String;
-         Initial_Cash : Natural;
+         Pop_Group_Id        : access String;
+         Initial_Cash_Factor : Natural;
       end record;
 
    overriding function Object_Database
