@@ -135,6 +135,22 @@ package body Concorde.Facilities is
       return Get_By_Match (Match'Access);
    end Get_By_Production;
 
+   -----------------------
+   -- Get_By_Production --
+   -----------------------
+
+   function Get_By_Production
+     (Output : Concorde.Commodities.Root_Commodity_Type'Class)
+      return Array_Of_Facilities
+   is
+      function Match (Facility : Facility_Type) return Boolean
+      is (Facility.Has_Output
+          and then Facility.Output.Identifier = Output.Identifier);
+
+   begin
+      return Get_By_Match (Match'Access);
+   end Get_By_Production;
+
    ----------------
    -- Has_Output --
    ----------------
@@ -259,5 +275,47 @@ package body Concorde.Facilities is
    begin
       return Matches (Matches'First);
    end Resource_Generator;
+
+   ------------------
+   -- Worker_Count --
+   ------------------
+
+   function Worker_Count
+     (Facility : Root_Facility_Type'Class)
+      return Natural
+   is
+   begin
+      if Facility.Workers = null then
+         return 0;
+      else
+         return Facility.Workers'Length;
+      end if;
+   end Worker_Count;
+
+   ---------------------
+   -- Worker_Quantity --
+   ---------------------
+
+   function Worker_Quantity
+     (Facility : Root_Facility_Type'Class;
+      Index    : Positive)
+      return Concorde.Quantities.Quantity
+   is
+   begin
+      return Facility.Workers (Index).Quantity;
+   end Worker_Quantity;
+
+   ------------------
+   -- Worker_Skill --
+   ------------------
+
+   function Worker_Skill
+     (Facility : Root_Facility_Type'Class;
+      Index    : Positive)
+      return Concorde.Commodities.Commodity_Type
+   is
+   begin
+      return Facility.Workers (Index).Commodity;
+   end Worker_Skill;
 
 end Concorde.Facilities;

@@ -97,6 +97,26 @@ package body Concorde.Facilities.Configure is
          Facility.Quality :=
            Commodity_Quality'Val (Config.Get ("quality", 2) - 1);
 
+         if Template /= null then
+            Facility.Workers := Template.Workers;
+         elsif Config.Contains ("workers") then
+            declare
+               Worker_Config : constant Tropos.Configuration :=
+                                 Config.Child ("workers");
+               Worker_Array  : Array_Of_Inputs
+                 (1 .. Worker_Config.Child_Count);
+               Count        : Natural := 0;
+            begin
+               for Cfg of Worker_Config loop
+                  Count := Count + 1;
+                  Worker_Array (Count).Commodity := Get (Cfg.Config_Name);
+                  Worker_Array (Count).Quantity :=
+                    Concorde.Quantities.Value (Cfg.Value);
+               end loop;
+               Facility.Workers := new Array_Of_Inputs'(Worker_Array);
+            end;
+         end if;
+
          if Config.Contains ("inputs") then
             declare
                Input_Config : constant Tropos.Configuration :=

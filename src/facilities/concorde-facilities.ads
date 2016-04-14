@@ -60,6 +60,22 @@ package Concorde.Facilities is
       return Concorde.Quantities.Quantity
      with Pre => Index <= Facility.Input_Count;
 
+   function Worker_Count
+     (Facility : Root_Facility_Type'Class)
+      return Natural;
+
+   function Worker_Skill
+     (Facility : Root_Facility_Type'Class;
+      Index    : Positive)
+      return Concorde.Commodities.Commodity_Type
+     with Pre => Index <= Facility.Worker_Count;
+
+   function Worker_Quantity
+     (Facility : Root_Facility_Type'Class;
+      Index    : Positive)
+      return Concorde.Quantities.Quantity
+     with Pre => Index <= Facility.Worker_Count;
+
    function Has_Output
      (Facility : Root_Facility_Type'Class)
       return Boolean;
@@ -83,6 +99,10 @@ package Concorde.Facilities is
 
    function Get_By_Production
      (Output : Concorde.Commodities.Commodity_Type)
+      return Array_Of_Facilities;
+
+   function Get_By_Production
+     (Output : Concorde.Commodities.Root_Commodity_Type'Class)
       return Array_Of_Facilities;
 
    function Get_By_Class
@@ -119,6 +139,7 @@ private
          Capacity            : Facility_Capacity;
          Commodity_Flags     : Concorde.Commodities.Array_Of_Flags;
          Inputs              : access Array_Of_Inputs;
+         Workers             : access Array_Of_Inputs;
          Output              : Concorde.Commodities.Commodity_Type;
          Base_Service_Charge : Concorde.Money.Price_Type;
       end record;
