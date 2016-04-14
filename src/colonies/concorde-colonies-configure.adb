@@ -70,7 +70,9 @@ package body Concorde.Colonies.Configure is
       is
          Installation : constant Concorde.Installations.Installation_Type :=
                           Concorde.Installations.Create.Create
-                            (Facility, System.Owner);
+                            (Facility => Facility,
+                             Cash     => Concorde.Money.To_Money (1.0E3),
+                             Owner    => System.Owner);
       begin
          System.Add_Installation (Installation);
       end Create_Installation;
