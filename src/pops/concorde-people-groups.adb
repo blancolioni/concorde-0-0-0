@@ -54,6 +54,18 @@ package body Concorde.People.Groups is
       return Get ("poor");
    end Poor;
 
+   -----------------------
+   -- Preferred_Quality --
+   -----------------------
+
+   function Preferred_Quality
+     (Group : Root_Pop_Group'Class)
+      return Concorde.Commodities.Commodity_Quality
+   is
+   begin
+      return Group.Preferred_Quality;
+   end Preferred_Quality;
+
    ----------
    -- Rich --
    ----------

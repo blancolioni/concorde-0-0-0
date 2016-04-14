@@ -1,5 +1,6 @@
 with Memor;
 
+with Concorde.Commodities;
 with Concorde.Objects;
 
 package Concorde.People.Groups is
@@ -10,6 +11,10 @@ package Concorde.People.Groups is
    function Initial_Cash_Factor
      (Group : Root_Pop_Group'Class)
       return Natural;
+
+   function Preferred_Quality
+     (Group : Root_Pop_Group'Class)
+      return Concorde.Commodities.Commodity_Quality;
 
    type Pop_Group is access constant Root_Pop_Group'Class;
 
@@ -26,6 +31,7 @@ private
       record
          Pop_Group_Id        : access String;
          Initial_Cash_Factor : Natural;
+         Preferred_Quality   : Concorde.Commodities.Commodity_Quality;
       end record;
 
    overriding function Object_Database

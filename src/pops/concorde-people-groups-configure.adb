@@ -60,6 +60,9 @@ package body Concorde.People.Groups.Configure is
       begin
          Group.Pop_Group_Id := new String'(Name);
          Group.Initial_Cash_Factor := Config.Get ("initial_cash", 0);
+         Group.Preferred_Quality :=
+           Concorde.Commodities.Commodity_Quality'Val
+             (Config.Get ("quality", 2) - 1);
       end Create;
 
    begin
