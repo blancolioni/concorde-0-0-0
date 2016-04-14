@@ -45,6 +45,7 @@ package body Concorde.People.Skills.Configure is
          Base_Pay : constant Real := Config.Get ("base_pay");
       begin
          Skill.Pop_Skill_Id := new String'(Name);
+         Skill.Set_Name (Config.Get ("name", Name));
          Skill.Base_Pay := Concorde.Money.To_Price (Base_Pay);
       end Create;
 
