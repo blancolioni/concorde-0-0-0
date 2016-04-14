@@ -1,5 +1,6 @@
 private with Memor;
 private with Memor.Element_Vectors;
+private with Concorde.People.Skills.Lists;
 
 with Concorde.Agents;
 
@@ -48,6 +49,7 @@ private
       record
          Size   : Pop_Size;
          Groups : Group_Affiliation_Vectors.Vector;
+         Skills : Concorde.People.Skills.Lists.List;
       end record;
 
    overriding function Object_Database
