@@ -15,6 +15,7 @@ with Concorde.Installations;
 with Concorde.People.Pops;
 
 with Concorde.Commodities;
+with Concorde.Markets;
 
 private with Concorde.People.Pops.Lists;
 private with Concorde.Installations.Lists;
@@ -212,6 +213,7 @@ private
          Pops           : Concorde.People.Pops.Lists.List;
          Installations  : Concorde.Installations.Lists.List;
          Deposit        : Deposit_Record;
+         Market         : Concorde.Markets.Market_Type;
       end record;
 
    overriding function Object_Database
