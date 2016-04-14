@@ -1,8 +1,27 @@
 initial = {
    pops = {
-      poor = 10000
-      middle_class = 1000
-      rich = 100
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+
+      middle_class = { size = 100 skill = tech }
+      middle_class = { size = 100 skill = tech }
+      middle_class = { size = 100 skill = tech }
+      middle_class = { size = 100 skill = tech }
+      middle_class = { size = 100 skill = tech }
+      middle_class = { size = 100 skill = tech }
+      middle_class = { size = 100 skill = tech }
+      middle_class = { size = 100 skill = tech }
+      middle_class = { size = 100 skill = tech }
+      middle_class = { size = 100 skill = tech }
+	  
+      rich = { size = 100 skill = executive }
    }
    
    resource_generator = 10
