@@ -9,7 +9,7 @@ with Concorde.Objects;
 package Concorde.Commodities is
 
    type Commodity_Class is
-     (Resource, Consumer, Industrial, Building_Component, Skill);
+     (Resource, Consumer, Industrial, Building_Component, Skill, Service);
 
    type Commodity_Flag is
      (Organic, Mineral, Metal, Fissile, Fuel, Gas, Liquid,

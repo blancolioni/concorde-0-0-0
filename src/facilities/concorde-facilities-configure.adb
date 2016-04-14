@@ -6,6 +6,8 @@ with Concorde.Paths;
 
 with Concorde.Facilities.Db;
 
+with Concorde.Commodities.Configure;
+
 package body Concorde.Facilities.Configure is
 
    procedure Configure_Facility
@@ -117,8 +119,14 @@ package body Concorde.Facilities.Configure is
          end if;
 
       end Create;
+
+      Facility : constant Facility_Type :=
+                   Concorde.Facilities.Db.Create (Create'Access);
    begin
-      Concorde.Facilities.Db.Create (Create'Access);
+      if Facility.Class = Service_Facility then
+         Concorde.Commodities.Configure.Create_From_Service
+           (Facility);
+      end if;
    end Configure_Facility;
 
 end Concorde.Facilities.Configure;

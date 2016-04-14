@@ -100,6 +100,24 @@ package body Concorde.Commodities.Configure is
       Concorde.Commodities.Db.Create (Create'Access);
    end Create;
 
+   -------------------------
+   -- Create_From_Service --
+   -------------------------
+
+   procedure Create_From_Service
+     (Service_Facility : Concorde.Facilities.Facility_Type)
+   is
+   begin
+      Create
+        (Tag        => Service_Facility.Identifier,
+         Name       => Service_Facility.Name,
+         Class      => Concorde.Commodities.Service,
+         Mass       => 0.0,
+         Base_Price => Service_Facility.Base_Service_Charge,
+         Quality    => Service_Facility.Quality,
+         Flags      => (Virtual => True, others => False));
+   end Create_From_Service;
+
    -----------------------
    -- Create_From_Skill --
    -----------------------
