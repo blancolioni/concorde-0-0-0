@@ -1,3 +1,4 @@
+with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 
 with Glib;
@@ -9,6 +10,7 @@ with Gtk.Button;
 with Gtk.Label;
 with Gtk.Main;
 with Gtk.Notebook;
+with Gtk.Status_Bar;
 with Gtk.Widget;
 with Gtk.Window;
 
@@ -27,11 +29,14 @@ package body Concorde.Gtk_UI is
 
    type Concorde_UI is new Lui.Gtk_UI.Lui_Gtk_Interface with
       record
-         Models     : Lui.Models.Active_Model_List;
-         Notebook   : Gtk.Notebook.Gtk_Notebook;
-         Info_Boxes : Gtk.Box.Gtk_Box;
-         Date_Label : Gtk.Label.Gtk_Label;
-         Last_Date  : Concorde.Dates.Date_Type;
+         Models         : Lui.Models.Active_Model_List;
+         Notebook       : Gtk.Notebook.Gtk_Notebook;
+         Info_Boxes     : Gtk.Box.Gtk_Box;
+         Date_Label     : Gtk.Label.Gtk_Label;
+         Status_Bar     : Gtk.Status_Bar.Gtk_Status_Bar;
+         Status_Context : Gtk.Status_Bar.Context_Id;
+         Current_Status : Ada.Strings.Unbounded.Unbounded_String;
+         Last_Date      : Concorde.Dates.Date_Type;
       end record;
 
    overriding procedure Append_Feature
@@ -53,8 +58,7 @@ package body Concorde.Gtk_UI is
 
    overriding procedure Status_Message
      (To      : in out Concorde_UI;
-      Message : String)
-   is null;
+      Message : String);
 
    overriding procedure On_Idle
      (State : in out Concorde_UI);
@@ -253,14 +257,22 @@ package body Concorde.Gtk_UI is
          Date_Label : constant Gtk.Label.Gtk_Label :=
                         Gtk.Label.Gtk_Label
                           (Builder.Get_Object ("Date_Label"));
+         Status_Bar : constant Gtk.Status_Bar.Gtk_Status_Bar :=
+                        Gtk.Status_Bar.Gtk_Status_Bar
+                          (Builder.Get_Object ("Status_Bar"));
          Models   : Lui.Models.Active_Model_List;
-         UI       : constant Lui.Gtk_UI.Lui_Gtk :=
-                      new Concorde_UI'
-                        (Models => Models,
-                         Notebook => Main_Tab,
-                         Info_Boxes => Info_Boxes,
-                         Date_Label => Date_Label,
-                         Last_Date  => 0);
+         UI         : constant Lui.Gtk_UI.Lui_Gtk :=
+                        new Concorde_UI'
+                          (Models         => Models,
+                           Notebook       => Main_Tab,
+                           Info_Boxes     => Info_Boxes,
+                           Date_Label     => Date_Label,
+                           Last_Date      => 0,
+                           Status_Bar     => Status_Bar,
+                           Status_Context =>
+                             Status_Bar.Get_Context_Id ("star mouseover"),
+                           Current_Status =>
+                             Ada.Strings.Unbounded.Null_Unbounded_String);
       begin
          Main_Tab.Remove_Page (0);
          Lui.Gtk_UI.Start
@@ -291,5 +303,32 @@ package body Concorde.Gtk_UI is
       Gtk.Main.Main;
 
    end Start;
+
+   --------------------
+   -- Status_Message --
+   --------------------
+
+   overriding procedure Status_Message
+     (To      : in out Concorde_UI;
+      Message : String)
+   is
+      use Ada.Strings.Unbounded;
+   begin
+      if Message /= To.Current_Status then
+         To.Current_Status := To_Unbounded_String (Message);
+         declare
+            Id      : Gtk.Status_Bar.Message_Id;
+            pragma Unreferenced (Id);
+         begin
+            To.Status_Bar.Pop (To.Status_Context);
+
+            if Message /= "" then
+               Id :=
+                 To.Status_Bar.Push
+                   (To.Status_Context, Message);
+            end if;
+         end;
+      end if;
+   end Status_Message;
 
 end Concorde.Gtk_UI;
