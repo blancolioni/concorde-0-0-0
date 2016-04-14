@@ -322,7 +322,7 @@ refinery = { class = Resource_Generator
              workers = { tech = 5 worker = 15 }
              modules = { industrial = 5 habitation = 5 }
              capacity = 1000
-             mineral = true
+             metal = true
              fuel = true
            }
 mine = { class = Resource_Generator
@@ -331,7 +331,7 @@ mine = { class = Resource_Generator
          workers = { tech = 1 worker = 19 }
          modules = { industrial = 6 habitation = 4 }
          capacity = 1000
-         metal = true
+         mineral = true
          fissile = true
        }
 plant = { class = Resource_Generator
