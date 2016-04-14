@@ -3,6 +3,7 @@ with Ada.Text_IO;
 
 with Glib;
 with Glib.Error;
+with Glib.Object;
 
 with Gtk.Box;
 with Gtk.Builder;
@@ -28,7 +29,9 @@ with Lui.Gtk_UI;
 
 package body Concorde.Gtk_UI is
 
-   type Concorde_UI is new Lui.Gtk_UI.Lui_Gtk_Interface with
+   type Concorde_UI is
+     new Glib.Object.GObject_Record
+     and Lui.Gtk_UI.Lui_Gtk_Interface with
       record
          Models         : Lui.Models.Active_Model_List;
          Notebook       : Gtk.Notebook.Gtk_Notebook;
@@ -39,6 +42,8 @@ package body Concorde.Gtk_UI is
          Current_Status : Ada.Strings.Unbounded.Unbounded_String;
          Last_Date      : Concorde.Dates.Date_Type;
       end record;
+
+   type Concorde_UI_Access is access all Concorde_UI'Class;
 
    overriding procedure Append_Feature
      (To      : in out Concorde_UI;
@@ -78,6 +83,11 @@ package body Concorde.Gtk_UI is
    procedure On_Play_2_Button_Clicked
      (Button : access Gtk.Button.Gtk_Button_Record'Class);
 
+   procedure On_Switch_Page
+     (Self     : access Glib.Object.GObject_Record'Class;
+      Page     : not null access Gtk.Widget.Gtk_Widget_Record'Class;
+      Page_Num : Glib.Guint);
+
    --------------------
    -- Append_Feature --
    --------------------
@@ -95,10 +105,19 @@ package body Concorde.Gtk_UI is
          when UI_Gadget =>
             null;
          when UI_Model =>
-            To.Models.Append (Lui.Models.Object_Model (Element));
-            To.Notebook.Append_Page (Top);
-            To.Notebook.Set_Current_Page
-              (To.Notebook.Get_N_Pages - 1);
+            declare
+               Model : constant Lui.Models.Object_Model :=
+                         Lui.Models.Object_Model (Element);
+               Label : Gtk.Label.Gtk_Label;
+            begin
+               To.Models.Append (Model);
+               Gtk.Label.Gtk_New (Label, Model.Name);
+               Label.Show;
+               To.Notebook.Append_Page (Top, Label);
+
+               To.Notebook.Set_Current_Page
+                 (To.Notebook.Get_N_Pages - 1);
+            end;
          when UI_Table =>
             To.Info_Boxes.Add (Top);
       end case;
@@ -202,6 +221,23 @@ package body Concorde.Gtk_UI is
         (False, Concorde.Options.Check_Invariants);
    end On_Step_Button_Clicked;
 
+   --------------------
+   -- On_Switch_Page --
+   --------------------
+
+   procedure On_Switch_Page
+     (Self     : access Glib.Object.GObject_Record'Class;
+      Page     : not null access Gtk.Widget.Gtk_Widget_Record'Class;
+      Page_Num : Glib.Guint)
+   is
+      pragma Unreferenced (Page);
+      UI : Concorde_UI renames Concorde_UI (Self.all);
+      Model : constant Lui.Models.Object_Model :=
+                UI.Models.Model (Natural (Page_Num) + 1);
+   begin
+      Lui.Gtk_UI.On_Model_Activation (Model);
+   end On_Switch_Page;
+
    -----------
    -- Start --
    -----------
@@ -265,9 +301,10 @@ package body Concorde.Gtk_UI is
                         Gtk.Status_Bar.Gtk_Status_Bar
                           (Builder.Get_Object ("Status_Bar"));
          Models   : Lui.Models.Active_Model_List;
-         UI         : constant Lui.Gtk_UI.Lui_Gtk :=
+         UI         : constant Concorde_UI_Access :=
                         new Concorde_UI'
-                          (Models         => Models,
+                          (Glib.Object.GObject_Record with
+                           Models         => Models,
                            Notebook       => Main_Tab,
                            Info_Boxes     => Info_Boxes,
                            Date_Label     => Date_Label,
@@ -278,10 +315,13 @@ package body Concorde.Gtk_UI is
                            Current_Status =>
                              Ada.Strings.Unbounded.Null_Unbounded_String);
       begin
+         UI.Initialize;
          Main_Tab.Remove_Page (0);
          Lui.Gtk_UI.Start
            (Main => UI,
             Top  => Concorde.Galaxy.Model.Galaxy_Model);
+         Main_Tab.On_Switch_Page
+           (On_Switch_Page'Access, UI);
       end;
 
       declare
