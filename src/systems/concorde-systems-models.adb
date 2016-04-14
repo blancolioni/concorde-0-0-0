@@ -305,6 +305,17 @@ package body Concorde.Systems.Models is
             Db.Update (System.Reference, Watch'Access);
          end;
 
+         declare
+            Total_Pop : Real := 0.0;
+         begin
+            for Pop of System.Pops loop
+               Total_Pop := Total_Pop + Real (Pop.Size);
+            end loop;
+            Result.Add_Property
+              ("Population",
+               Lui.Approximate_Image (Total_Pop));
+         end;
+
          Result.Add_Property ("Resource", System.Deposit.Resource.Name);
          Result.Add_Property ("Size",
                               Concorde.Quantities.Image (System.Deposit.Size));
