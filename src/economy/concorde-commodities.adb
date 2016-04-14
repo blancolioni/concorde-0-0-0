@@ -16,6 +16,18 @@ package body Concorde.Commodities is
       Stock.Set_Quantity (Item, Stock.Get_Quantity (Item) + Quantity);
    end Add_Quantity;
 
+   ----------------
+   -- Base_Price --
+   ----------------
+
+   function Base_Price
+     (Commodity : Root_Commodity_Type'Class)
+      return Concorde.Money.Price_Type
+   is
+   begin
+      return Commodity.Base_Price;
+   end Base_Price;
+
    -----------
    -- Class --
    -----------

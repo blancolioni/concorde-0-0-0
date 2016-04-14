@@ -32,6 +32,10 @@ package Concorde.Commodities is
      (Commodity : Root_Commodity_Type'Class)
       return Commodity_Quality;
 
+   function Base_Price
+     (Commodity : Root_Commodity_Type'Class)
+      return Concorde.Money.Price_Type;
+
    function Is_Set
      (Commodity : Root_Commodity_Type'Class;
       Flag      : Commodity_Flag)
