@@ -1,6 +1,6 @@
 with Memor.Database;
 
-private package Concorde.Commodities.Db is
+package Concorde.Commodities.Db is
   new Memor.Database
     (Class_Name        => "commodity",
      Element_Type      => Root_Commodity_Type,
