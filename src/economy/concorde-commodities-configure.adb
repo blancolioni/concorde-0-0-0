@@ -21,6 +21,84 @@ package body Concorde.Commodities.Configure is
       Flags      : Array_Of_Flags);
 
    ---------------------------
+   -- Calculate_Base_Prices --
+   ---------------------------
+
+   procedure Calculate_Base_Prices is
+      use Concorde.Money;
+      Finished : Boolean := False;
+
+      function Not_Priced
+        (Commodity : Root_Commodity_Type'Class)
+         return Boolean
+      is (Commodity.Base_Price = Zero);
+
+      procedure Check_Price
+        (Commodity : in out Root_Commodity_Type'Class);
+
+      -----------------
+      -- Check_Price --
+      -----------------
+
+      procedure Check_Price
+        (Commodity : in out Root_Commodity_Type'Class)
+      is
+         use Concorde.Facilities;
+         Fs        : constant Array_Of_Facilities :=
+                       Get_By_Production (Commodity);
+         pragma Assert (Fs'Length >= 1,
+                        Commodity.Name
+                        & " has no base price and cannot be produced");
+         Facility  : constant Facility_Type := Fs (Fs'First);
+         Has_Price : Boolean := True;
+         Cost      : Real := 0.0;
+      begin
+         for I in 1 .. Facility.Input_Count loop
+            declare
+               Input : constant Commodity_Type :=
+                         Facility.Input_Commodity (I);
+               Quant : constant Quantities.Quantity :=
+                         Facility.Input_Quantity (I);
+            begin
+               if Not_Priced (Input.all) then
+                  Has_Price := False;
+                  exit;
+               else
+                  Cost := Cost
+                    + To_Real (Input.Base_Price) * Quantities.To_Real (Quant);
+               end if;
+            end;
+         end loop;
+
+         if Has_Price then
+            Cost := Cost * Real (Facility.Capacity);
+
+            for I in 1 .. Facility.Worker_Count loop
+               Cost := Cost
+                 + To_Real (Facility.Worker_Skill (I).Base_Price)
+                 * Quantities.To_Real (Facility.Worker_Quantity (I));
+            end loop;
+
+            Cost := Cost / Real (Facility.Capacity) * 1.1;
+
+            Commodity.Base_Price := To_Price (Cost);
+
+         else
+            Finished := False;
+         end if;
+
+      end Check_Price;
+
+   begin
+      while not Finished loop
+         Finished := True;
+
+         Concorde.Commodities.Db.Iterate
+           (Not_Priced'Access, Check_Price'Access);
+      end loop;
+   end Calculate_Base_Prices;
+
+   ---------------------------
    -- Configure_Commodities --
    ---------------------------
 

@@ -22,6 +22,8 @@ package body Concorde.Configure is
       Concorde.Facilities.Configure.Configure_Facilities;
       Concorde.Ships.Designs.Configure_Designs;
 
+      Concorde.Commodities.Configure.Calculate_Base_Prices;
+
    end Load_Configuration;
 
 end Concorde.Configure;

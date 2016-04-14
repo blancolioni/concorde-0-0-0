@@ -11,4 +11,6 @@ package Concorde.Commodities.Configure is
    procedure Create_From_Service
      (Service_Facility : Concorde.Facilities.Facility_Type);
 
+   procedure Calculate_Base_Prices;
+
 end Concorde.Commodities.Configure;
