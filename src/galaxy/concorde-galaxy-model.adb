@@ -621,7 +621,9 @@ package body Concorde.Galaxy.Model is
                      is
                         use Concorde.Empires;
                      begin
-                        if Empire.Is_Set (System, Claim) then
+                        if Empire.Is_Set (System, Claim)
+                          and then not Empire.Owned_System (System)
+                        then
                            Renderer.Draw_Circle
                              (X          => Screen_X,
                               Y          => Screen_Y,
