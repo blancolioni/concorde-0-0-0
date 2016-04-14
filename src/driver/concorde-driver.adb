@@ -5,9 +5,6 @@ with Memor;
 
 with Concorde.Paths;
 
-with Concorde.Components.Configure;
-with Concorde.Ships.Designs;
-
 with Concorde.Empires.Configure;
 with Concorde.Galaxy.Create;
 
@@ -23,11 +20,9 @@ with Concorde.Empires.Logging;
 
 with Concorde.Options;
 
-with Concorde.Commodities.Configure;
-with Concorde.Facilities.Configure;
-with Concorde.People.Groups.Configure;
-
 with Concorde.Players.Registry;
+
+with Concorde.Configure;
 
 procedure Concorde.Driver is
 
@@ -50,11 +45,7 @@ begin
 
    Concorde.Players.Registry.Register_Players;
 
-   Concorde.Commodities.Configure.Configure_Commodities;
-   Concorde.People.Groups.Configure.Configure_Pop_Groups;
-   Concorde.Components.Configure.Configure_Components;
-   Concorde.Facilities.Configure.Configure_Facilities;
-   Concorde.Ships.Designs.Configure_Designs;
+   Concorde.Configure.Load_Configuration;
 
    Concorde.Galaxy.Create.Create_Galaxy
      (System_Count        => Concorde.Options.Number_Of_Systems,
