@@ -58,6 +58,19 @@ package body Concorde.Quantities is
       return Quantity'Min (Left, Right);
    end Min;
 
+   -----------
+   -- Scale --
+   -----------
+
+   function Scale
+     (X      : Quantity;
+      Factor : Unit_Real)
+      return Quantity
+   is
+   begin
+      return Quantity (Real (X) * Factor);
+   end Scale;
+
    ------------------------------
    -- Significant_Digits_Image --
    ------------------------------

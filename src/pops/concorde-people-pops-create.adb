@@ -21,6 +21,7 @@ package body Concorde.People.Pops.Create is
 
       procedure Create (Pop : in out Root_Pop_Type'Class) is
       begin
+         Pop.New_Agent;
          Pop.Groups.Replace_Element (Wealth_Group.Reference, 1.0);
          Pop.Skills.Append (Skill);
          Pop.Size := Size;

@@ -54,7 +54,9 @@ package body Concorde.Systems.Create is
               Concorde.Quantities.Around
                 (Concorde.Quantities.To_Quantity (1.0E6)));
          System.Market :=
-           Concorde.Markets.Create_Market;
+           Concorde.Markets.Create_Market
+             ("Market-" & System.Name,
+              Enable_Logging => False);
       end Create;
 
    begin

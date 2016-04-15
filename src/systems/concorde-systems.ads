@@ -212,6 +212,7 @@ private
          Boundary       : access System_Influence_Boundary;
          Pops           : Concorde.People.Pops.Lists.List;
          Installations  : Concorde.Installations.Lists.List;
+         Hub            : Concorde.Installations.Installation_Type;
          Deposit        : Deposit_Record;
          Market         : Concorde.Markets.Market_Type;
       end record;

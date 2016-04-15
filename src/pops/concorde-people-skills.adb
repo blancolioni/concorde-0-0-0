@@ -14,6 +14,18 @@ package body Concorde.People.Skills is
       return Skill.Base_Pay;
    end Base_Pay;
 
+   ---------------
+   -- Commodity --
+   ---------------
+
+   function Commodity
+     (Skill : Root_Pop_Skill'Class)
+      return Concorde.Commodities.Commodity_Type
+   is
+   begin
+      return Skill.Commodity;
+   end Commodity;
+
    ---------
    -- Get --
    ---------

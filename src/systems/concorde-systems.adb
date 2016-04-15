@@ -20,6 +20,10 @@ package body Concorde.Systems is
       Installation : Concorde.Installations.Installation_Type)
    is
    begin
+      if Installation.Is_Colony_Hub then
+         System.Hub := Installation;
+      end if;
+
       System.Installations.Append (Installation);
    end Add_Installation;
 

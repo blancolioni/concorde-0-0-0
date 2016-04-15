@@ -1,12 +1,14 @@
 with Concorde.Facilities;
-with Concorde.People.Skills;
 
 package Concorde.Commodities.Configure is
 
    procedure Configure_Commodities;
 
-   procedure Create_From_Skill
-     (Skill : Concorde.People.Skills.Pop_Skill);
+   function Create_From_Skill
+     (Tag      : String;
+      Name     : String;
+      Base_Pay : Concorde.Money.Price_Type)
+      return Commodity_Type;
 
    procedure Create_From_Service
      (Service_Facility : Concorde.Facilities.Facility_Type);

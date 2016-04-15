@@ -109,6 +109,8 @@ package Concorde.Facilities is
      (Class : Facility_Class)
       return Array_Of_Facilities;
 
+   function Colony_Hub return Facility_Type;
+
    function Resource_Generator
      (Resource : Concorde.Commodities.Commodity_Type)
       return Facility_Type

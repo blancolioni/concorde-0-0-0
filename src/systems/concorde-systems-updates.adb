@@ -11,6 +11,35 @@ package body Concorde.Systems.Updates is
 
    Base_Loyalty_Change : constant := 0.002;
 
+   --------------------
+   -- Execute_Trades --
+   --------------------
+
+   procedure Execute_Trades (System : Root_Star_System_Type'Class) is
+   begin
+      System.Market.Execute;
+   end Execute_Trades;
+
+   -------------------
+   -- Update_Market --
+   -------------------
+
+   procedure Update_Market (System : Root_Star_System_Type'Class) is
+      use type Concorde.Installations.Installation_Type;
+   begin
+      for Pop of System.Pops loop
+         Pop.Add_Trade_Offers (System.Market.all);
+      end loop;
+      for Installation of System.Installations loop
+         if not Installation.Is_Colony_Hub then
+            Installation.Add_Trade_Offers (System.Market.all);
+         end if;
+      end loop;
+      if System.Hub /= null then
+         System.Hub.Add_Trade_Offers (System.Market.all);
+      end if;
+   end Update_Market;
+
    -------------------
    -- Update_System --
    -------------------

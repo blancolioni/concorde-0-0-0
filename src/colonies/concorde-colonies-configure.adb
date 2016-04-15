@@ -4,7 +4,9 @@ with Concorde.Options;
 with Concorde.Paths;
 
 with Concorde.Money;
+with Concorde.Quantities;
 
+with Concorde.Commodities;
 with Concorde.Empires;
 with Concorde.Facilities;
 with Concorde.Installations;
@@ -14,6 +16,8 @@ with Concorde.People.Skills;
 
 with Concorde.Installations.Create;
 with Concorde.People.Pops.Create;
+
+with Concorde.Installations.Db;
 
 package body Concorde.Colonies.Configure is
 
@@ -53,6 +57,14 @@ package body Concorde.Colonies.Configure is
       Template : Tropos.Configuration)
    is
 
+      Hub : constant Concorde.Installations.Installation_Type :=
+              Concorde.Installations.Create.Create
+                (Facility => Concorde.Facilities.Colony_Hub,
+                 Cash     =>
+                   Concorde.Money.To_Money
+                     (Template.Get ("cash", 10_000.0)),
+                 Owner    => System.Owner);
+
       procedure Create_Pop
         (Config : Tropos.Configuration);
 
@@ -84,6 +96,7 @@ package body Concorde.Colonies.Configure is
       procedure Create_Pop
         (Config : Tropos.Configuration)
       is
+         use Concorde.Commodities;
          use Concorde.People.Groups;
          use Concorde.People.Skills;
          use Concorde.People.Pops;
@@ -97,19 +110,43 @@ package body Concorde.Colonies.Configure is
                       Skill        => Get (Config.Get ("skill", "unskilled")),
                       Size         => Pop_Size (Size),
                       Cash         => Concorde.Money.To_Money (Cash));
+         Needs : constant Array_Of_Commodities :=
+                   Concorde.Commodities.Get
+                     (Consumer, Group.Preferred_Quality);
+
       begin
          System.Add_Pop (Pop);
+         System.Add_Installation (Hub);
+
+         for Need of Needs loop
+            declare
+               procedure Add_Hub_Stock
+                 (Installation : in out
+                    Concorde.Installations.Root_Installation_Type'Class);
+
+               -------------------
+               -- Add_Hub_Stock --
+               -------------------
+
+               procedure Add_Hub_Stock
+                 (Installation : in out
+                    Concorde.Installations.Root_Installation_Type'Class)
+               is
+               begin
+                  Installation.Add_Quantity
+                    (Need,
+                     Concorde.Quantities.To_Quantity (Real (Pop.Size) * 30.0));
+               end Add_Hub_Stock;
+
+            begin
+               Concorde.Installations.Db.Update
+                 (Hub.Reference, Add_Hub_Stock'Access);
+            end;
+         end loop;
+
       end Create_Pop;
 
    begin
-
-      declare
-         Hubs : constant Concorde.Facilities.Array_Of_Facilities :=
-                  Concorde.Facilities.Get_By_Class
-                    (Concorde.Facilities.Colony_Hub);
-      begin
-         Create_Installation (Hubs (Hubs'First));
-      end;
 
       for Pop_Config of Template.Child ("pops") loop
          Create_Pop (Pop_Config);

@@ -77,6 +77,26 @@ package body Concorde.Commodities is
       return Result (1 .. Count);
    end Get;
 
+   ---------
+   -- Get --
+   ---------
+
+   function Get (Class   : Commodity_Class;
+                 Quality : Commodity_Quality)
+                 return Array_Of_Commodities
+   is
+      Result : Array_Of_Commodities := Get (Class);
+      Count  : Natural := 0;
+   begin
+      for I in Result'Range loop
+         if Result (I).Quality = Quality then
+            Count := Count + 1;
+            Result (Count) := Result (I);
+         end if;
+      end loop;
+      return Result;
+   end Get;
+
    ------------
    -- Is_Set --
    ------------

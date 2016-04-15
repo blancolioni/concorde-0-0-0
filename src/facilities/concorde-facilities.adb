@@ -2,6 +2,8 @@ with Concorde.Facilities.Db;
 
 package body Concorde.Facilities is
 
+   Local_Colony_Hub : Facility_Type := null;
+
    function Get_By_Match
      (Match : not null access
         function (Facility : Facility_Type) return Boolean)
@@ -62,6 +64,23 @@ package body Concorde.Facilities is
    begin
       return Facility.Class;
    end Class;
+
+   ----------------
+   -- Colony_Hub --
+   ----------------
+
+   function Colony_Hub return Facility_Type is
+   begin
+      if Local_Colony_Hub = null then
+         declare
+            Arr : constant Array_Of_Facilities :=
+                    Get_By_Class (Colony_Hub);
+         begin
+            Local_Colony_Hub := Arr (Arr'First);
+         end;
+      end if;
+      return Local_Colony_Hub;
+   end Colony_Hub;
 
    ---------
    -- Get --

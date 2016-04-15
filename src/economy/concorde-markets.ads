@@ -4,58 +4,67 @@ private with Memor.Element_Vectors;
 with Concorde.Money;
 with Concorde.Quantities;
 
-with Concorde.Agents;
+with Concorde.Trades;
+
 with Concorde.Commodities;
 
 package Concorde.Markets is
 
-   type Root_Market_Type is tagged private;
+   type Root_Market_Type is new Trades.Trade_Interface with private;
 
-   function Current_Price
-     (Market    : Root_Market_Type'Class;
+   overriding function Current_Price
+     (Market    : Root_Market_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Money.Price_Type;
 
-   function Current_Demand
-     (Market   : Root_Market_Type'Class;
+   overriding function Current_Demand
+     (Market   : Root_Market_Type;
       Item     : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity;
 
-   function Current_Supply
-     (Market   : Root_Market_Type'Class;
+   overriding function Current_Supply
+     (Market   : Root_Market_Type;
       Item     : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity;
 
-   function Last_Demand
-     (Market   : Root_Market_Type'Class;
+   overriding function Last_Demand
+     (Market   : Root_Market_Type;
       Item     : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity;
 
-   function Last_Supply
-     (Market   : Root_Market_Type'Class;
+   overriding function Last_Supply
+     (Market   : Root_Market_Type;
       Item     : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity;
 
-   function Historical_Mean_Price
-     (Market    : Root_Market_Type'Class;
+   overriding function Historical_Mean_Price
+     (Market    : Root_Market_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Money.Price_Type;
 
-   type Offer_Type is (Buy, Sell);
-
-   procedure Create_Offer
-     (Market    : in out Root_Market_Type'Class;
-      Offer     : Offer_Type;
+   overriding procedure Create_Offer
+     (Market    : in out Root_Market_Type;
+      Offer     : Concorde.Trades.Offer_Type;
       Agent     : not null access constant
-        Concorde.Agents.Root_Agent_Type'Class;
+        Concorde.Trades.Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity;
       Price     : Concorde.Money.Price_Type;
       Limit     : Concorde.Money.Price_Type);
 
-   type Market_Type is access constant Root_Market_Type'Class;
+   overriding procedure Log
+     (Market  : Root_Market_Type;
+      Message : String);
 
-   function Create_Market return Market_Type;
+   procedure Execute
+     (Market : in out Root_Market_Type'Class);
+
+   type Market_Type is access Root_Market_Type'Class;
+
+   function Create_Market
+     (Name           : String;
+      Enable_Logging : Boolean)
+      return Market_Type;
 
 private
 
@@ -69,7 +78,7 @@ private
    type Offer_Info is
       record
          Agent              : access constant
-           Concorde.Agents.Root_Agent_Type'Class;
+           Concorde.Trades.Trader_Interface'Class;
          Offered_Quantity   : Concorde.Quantities.Quantity;
          Remaining_Quantity : Concorde.Quantities.Quantity;
          Closed_At_Price    : Concorde.Quantities.Quantity;
@@ -91,7 +100,7 @@ private
 
    function Make_Offer
      (Agent    : not null access constant
-        Concorde.Agents.Root_Agent_Type'Class;
+        Concorde.Trades.Trader_Interface'Class;
       Quantity : Concorde.Quantities.Quantity;
       Price    : Concorde.Money.Price_Type;
       Limit    : Concorde.Money.Price_Type)
@@ -101,20 +110,20 @@ private
 
    function Calculate_Quantity
      (Agreed_Price : Concorde.Money.Price_Type;
-      Buy_Or_Sell  : Offer_Type;
+      Buy_Or_Sell  : Concorde.Trades.Offer_Type;
       Offer        : Offer_Info)
       return Concorde.Quantities.Quantity;
 
    protected type Commodity_Offers is
       procedure Add_Buy_Offer
         (Agent     : not null access constant
-           Concorde.Agents.Root_Agent_Type'Class;
+           Concorde.Trades.Trader_Interface'Class;
          Quantity  : Concorde.Quantities.Quantity;
          Price     : Concorde.Money.Price_Type;
          Limit     : Concorde.Money.Price_Type);
       procedure Add_Sell_Offer
         (Agent     : not null access constant
-           Concorde.Agents.Root_Agent_Type'Class;
+           Concorde.Trades.Trader_Interface'Class;
          Quantity  : Concorde.Quantities.Quantity;
          Price     : Concorde.Money.Price_Type;
          Limit     : Concorde.Money.Price_Type);
@@ -144,9 +153,11 @@ private
    package Cached_Commodity_Vectors is
      new Memor.Element_Vectors (Cached_Commodity, null);
 
-   type Root_Market_Type is tagged
+   type Root_Market_Type is new Trades.Trade_Interface with
       record
-         Commodities : access Cached_Commodity_Vectors.Vector;
+         Name           : access String;
+         Enable_Logging : Boolean;
+         Commodities    : access Cached_Commodity_Vectors.Vector;
       end record;
 
    procedure Check_Commodity
@@ -157,5 +168,9 @@ private
      (Market : Root_Market_Type'Class;
       Commodity : Commodities.Commodity_Type)
       return Cached_Commodity;
+
+   procedure Execute_Commodity_Trades
+     (Market    : in out Root_Market_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type);
 
 end Concorde.Markets;

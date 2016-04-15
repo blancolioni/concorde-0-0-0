@@ -2,6 +2,7 @@ with Ada.Unchecked_Deallocation;
 
 with Concorde.Dates;
 
+with Concorde.Economy.Updates;
 with Concorde.Empires.Updates;
 with Concorde.Galaxy.Updates;
 with Concorde.Ships.Updates;
@@ -76,6 +77,8 @@ package body Concorde.Updates is
 
       Concorde.Empires.Updates.Update_Empires;
       Concorde.Galaxy.Updates.Update_Galaxy;
+
+      Concorde.Economy.Updates.Daily_Update;
 
       if Execute_Battles then
          Concorde.Galaxy.Complete_Battles;

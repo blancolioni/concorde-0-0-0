@@ -11,6 +11,7 @@ limited with Concorde.Players;
 with Lui.Colours;
 
 with Concorde.Agents;
+with Concorde.Trades;
 with Concorde.Objects;
 with Concorde.Systems;
 
@@ -359,6 +360,11 @@ private
    overriding procedure Set_Name
      (Empire : in out Root_Empire_Type;
       Name   : String);
+
+   overriding procedure Add_Trade_Offers
+     (Empire : not null access constant Root_Empire_Type;
+      Market : in out Concorde.Trades.Trade_Interface'Class)
+   is null;
 
    procedure Check_Cache (Empire   : Root_Empire_Type'Class;
                           From, To : not null access constant

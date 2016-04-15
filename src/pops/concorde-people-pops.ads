@@ -3,8 +3,10 @@ private with Memor.Element_Vectors;
 private with Concorde.People.Skills.Lists;
 
 with Concorde.Agents;
+with Concorde.Trades;
 
 with Concorde.People.Groups;
+with Concorde.Quantities;
 
 package Concorde.People.Pops is
 
@@ -16,6 +18,14 @@ package Concorde.People.Pops is
      new Concorde.Agents.Root_Agent_Type with private;
 
    function Size (Pop : Root_Pop_Type'Class) return Pop_Size;
+
+   function Size_Quantity
+     (Pop : Root_Pop_Type'Class)
+      return Concorde.Quantities.Quantity;
+
+   function Wealth_Group
+     (Pop : Root_Pop_Type'Class)
+      return Concorde.People.Groups.Pop_Group;
 
    function Affiliation
      (Pop   : Root_Pop_Type'Class;
@@ -55,5 +65,9 @@ private
    overriding function Object_Database
      (Item : Root_Pop_Type)
       return Memor.Root_Database_Type'Class;
+
+   overriding procedure Add_Trade_Offers
+     (Item   : not null access constant Root_Pop_Type;
+      Market : in out Concorde.Trades.Trade_Interface'Class);
 
 end Concorde.People.Pops;

@@ -1,6 +1,7 @@
 private with Memor;
 
 with Concorde.Agents;
+with Concorde.Trades;
 
 with Concorde.Facilities;
 
@@ -9,6 +10,10 @@ package Concorde.Installations is
    type Root_Installation_Type is
      new Concorde.Agents.Root_Agent_Type
    with private;
+
+   function Is_Colony_Hub
+     (Installation : Root_Installation_Type'Class)
+      return Boolean;
 
    function Facility
      (Installation : Root_Installation_Type'Class)
@@ -32,5 +37,9 @@ private
    overriding function Object_Database
      (Item : Root_Installation_Type)
       return Memor.Root_Database_Type'Class;
+
+   overriding procedure Add_Trade_Offers
+     (Item   : not null access constant Root_Installation_Type;
+      Market : in out Concorde.Trades.Trade_Interface'Class);
 
 end Concorde.Installations;

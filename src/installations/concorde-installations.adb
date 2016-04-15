@@ -1,6 +1,60 @@
+with Concorde.Money;
+with Concorde.Quantities;
+
+with Concorde.Commodities.Db;
 with Concorde.Installations.Db;
 
 package body Concorde.Installations is
+
+   ----------------------
+   -- Add_Trade_Offers --
+   ----------------------
+
+   overriding procedure Add_Trade_Offers
+     (Item   : not null access constant Root_Installation_Type;
+      Market : in out Concorde.Trades.Trade_Interface'Class)
+   is
+      use Concorde.Quantities;
+
+      procedure Add_Hub_Trade_Offer
+        (Commodity : Concorde.Commodities.Commodity_Type);
+
+      -------------------------
+      -- Add_Hub_Trade_Offer --
+      -------------------------
+
+      procedure Add_Hub_Trade_Offer
+        (Commodity : Concorde.Commodities.Commodity_Type)
+      is
+         Demand : constant Quantity := Market.Current_Demand (Commodity);
+         Supply : constant Quantity := Market.Current_Supply (Commodity);
+      begin
+         if Demand > Supply then
+            declare
+               Sell_Quantity : constant Quantity :=
+                                 Min (Item.Get_Quantity (Commodity),
+                                      Demand - Supply);
+            begin
+               Item.Create_Sell_Offer
+                 (Market, Commodity, Sell_Quantity, Concorde.Money.Zero);
+            end;
+         end if;
+      end Add_Hub_Trade_Offer;
+
+   begin
+      if Item.Is_Colony_Hub then
+         Concorde.Commodities.Db.Scan (Add_Hub_Trade_Offer'Access);
+      else
+         if Item.Facility.Has_Output
+           and then Item.Get_Quantity (Item.Facility.Output) > Zero
+         then
+            Item.Create_Sell_Offer
+              (Market, Item.Facility.Output,
+               Item.Get_Quantity (Item.Facility.Output),
+               Concorde.Money.Zero);
+         end if;
+      end if;
+   end Add_Trade_Offers;
 
    --------------
    -- Facility --
@@ -13,6 +67,23 @@ package body Concorde.Installations is
    begin
       return Installation.Facility;
    end Facility;
+
+   -------------------
+   -- Is_Colony_Hub --
+   -------------------
+
+   function Is_Colony_Hub
+     (Installation : Root_Installation_Type'Class)
+      return Boolean
+   is
+   begin
+      case Installation.Facility.Class is
+         when Concorde.Facilities.Colony_Hub =>
+            return True;
+         when others =>
+            return False;
+      end case;
+   end Is_Colony_Hub;
 
    ---------------------
    -- Object_Database --

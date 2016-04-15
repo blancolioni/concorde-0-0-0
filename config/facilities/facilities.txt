@@ -383,7 +383,7 @@ hospital = { class = Service_Facility
                       }
              quality = 3
              capacity = 100
-             service_charge = 200
+             service_charge = 20
              medical = true
            }
 medcenter = { class = Service_Facility
@@ -408,7 +408,7 @@ medcenter = { class = Service_Facility
                                }
                        }
               quality = 2
-              service_charge = 300
+              service_charge = 10
               capacity = 500
               medical = true
             }
@@ -434,7 +434,7 @@ clinic = { class = Service_Facility
            quality = 1
            capacity = 1000
            medical = true
-           service_charge = 50
+           service_charge = 5
          }
 academy = { class = Service_Facility
             name = "Sports Academy"
@@ -456,7 +456,7 @@ academy = { class = Service_Facility
                              }
                      }
             quality = 3
-            service_charge = 200
+            service_charge = 20
             capacity = 100
             fitness = true
           }
@@ -480,7 +480,7 @@ leisure-complex = { class = Service_Facility
                                      }
                              }
                     quality = 2
-                    service_charge = 500
+                    service_charge = 10
                     capacity = 500
                     fitness = true
                   }
@@ -503,7 +503,7 @@ gym = { class = Service_Facility
                  }
         quality = 1
         capacity = 1000
-        service_charge = 20
+        service_charge = 2
         fitness = true
       }
 mall = { class = Service_Facility
@@ -526,7 +526,7 @@ mall = { class = Service_Facility
                           }
                   }
          quality = 3
-         service_charge = 200
+         service_charge = 20
          capacity = 100
          entertainment = true
        }
@@ -550,7 +550,7 @@ multiplex = { class = Service_Facility
                                }
                        }
               quality = 2
-              service_charge = 300
+              service_charge = 10
               capacity = 500
               entertainment = true
             }
@@ -575,7 +575,7 @@ tv-station = { class = Service_Facility
                         }
                quality = 1
                capacity = 1000
-               service_charge = 30
+               service_charge = 3
                entertainment = true
              }
 university = { class = Service_Facility
@@ -601,7 +601,7 @@ university = { class = Service_Facility
                         }
                quality = 3
                capacity = 100
-               service_charge = 1000
+               service_charge = 100
                education = true
              }
 school = { class = Service_Facility
@@ -623,7 +623,7 @@ school = { class = Service_Facility
                     }
            quality = 2
            capacity = 500
-           service_charge = 150
+           service_charge = 15
            education = true
          }
          
@@ -645,7 +645,7 @@ terminal = { class = Service_Facility
                               }
                       }
              quality = 1
-             service_charge = 20
+             service_charge = 2
              capacity = 1000
              education = true
            }

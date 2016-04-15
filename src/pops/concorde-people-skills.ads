@@ -3,6 +3,8 @@ with Memor;
 with Concorde.Money;
 with Concorde.Objects;
 
+with Concorde.Commodities;
+
 package Concorde.People.Skills is
 
    type Root_Pop_Skill is
@@ -11,6 +13,10 @@ package Concorde.People.Skills is
    function Base_Pay
      (Skill : Root_Pop_Skill'Class)
       return Concorde.Money.Price_Type;
+
+   function Commodity
+     (Skill : Root_Pop_Skill'Class)
+      return Concorde.Commodities.Commodity_Type;
 
    type Pop_Skill is access constant Root_Pop_Skill'Class;
 
@@ -23,6 +29,7 @@ private
       record
          Pop_Skill_Id : access String;
          Base_Pay     : Concorde.Money.Price_Type;
+         Commodity    : Concorde.Commodities.Commodity_Type;
       end record;
 
    overriding function Object_Database

@@ -29,6 +29,11 @@ package Concorde.Quantities is
    function Around (X : Quantity) return Quantity;
    --  X +/- 10%
 
+   function Scale
+     (X : Quantity;
+      Factor : Unit_Real)
+      return Quantity;
+
 private
 
    type Quantity is new Real;

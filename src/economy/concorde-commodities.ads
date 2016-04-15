@@ -49,6 +49,10 @@ package Concorde.Commodities is
 
    function Get (Class : Commodity_Class) return Array_Of_Commodities;
 
+   function Get (Class   : Commodity_Class;
+                 Quality : Commodity_Quality)
+                 return Array_Of_Commodities;
+
    type Stock_Interface is limited interface;
 
    function Get_Quantity

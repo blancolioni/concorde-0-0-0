@@ -105,6 +105,7 @@ package body Concorde.Empires.Create is
                         Concorde.Galaxy.Find_System
                           (OK_For_Start'Access);
       begin
+         New_Empire.New_Agent;
          New_Empire.Identifier :=
            Ada.Strings.Unbounded.To_Unbounded_String (Name);
          New_Empire.Set_Name (Name);

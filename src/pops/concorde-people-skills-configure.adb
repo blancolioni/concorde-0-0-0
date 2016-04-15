@@ -47,12 +47,13 @@ package body Concorde.People.Skills.Configure is
          Skill.Pop_Skill_Id := new String'(Name);
          Skill.Set_Name (Config.Get ("name", Name));
          Skill.Base_Pay := Concorde.Money.To_Price (Base_Pay);
+         Skill.Commodity :=
+           Concorde.Commodities.Configure.Create_From_Skill
+             (Name, Name, Skill.Base_Pay);
       end Create;
 
-      New_Skill : constant Pop_Skill :=
-                    Db.Create (Create'Access);
    begin
-      Concorde.Commodities.Configure.Create_From_Skill (New_Skill);
+      Db.Create (Create'Access);
    end Create_Pop_Skill;
 
 end Concorde.People.Skills.Configure;

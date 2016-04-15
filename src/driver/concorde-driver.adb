@@ -24,6 +24,8 @@ with Concorde.Players.Registry;
 
 with Concorde.Configure;
 
+with Concorde.Agents;
+
 procedure Concorde.Driver is
 
    Name_Generator : WL.Random.Names.Name_Generator;
@@ -59,6 +61,8 @@ begin
    if Concorde.Options.Enable_Empire_Logging then
       Concorde.Empires.Logging.Start_Logging;
    end if;
+
+   Concorde.Agents.Enable_Offer_Logging (Enabled => False);
 
    Concorde.Empires.Updates.Start;
 

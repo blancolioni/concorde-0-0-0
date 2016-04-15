@@ -25,6 +25,7 @@ package body Concorde.Installations.Create is
         (Installation : in out Root_Installation_Type'Class)
       is
       begin
+         Installation.New_Agent;
          Installation.Facility := Facility;
          Installation.Owner := Owner;
          Installation.Set_Cash (Cash);

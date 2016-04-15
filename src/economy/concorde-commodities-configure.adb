@@ -11,14 +11,15 @@ package body Concorde.Commodities.Configure is
    procedure Configure_Commodity
      (Config : Tropos.Configuration);
 
-   procedure Create
+   function Create
      (Tag        : String;
       Name       : String;
       Class      : Commodity_Class;
       Mass       : Non_Negative_Real;
       Base_Price : Concorde.Money.Price_Type;
       Quality    : Commodity_Quality;
-      Flags      : Array_Of_Flags);
+      Flags      : Array_Of_Flags)
+      return Commodity_Type;
 
    ---------------------------
    -- Calculate_Base_Prices --
@@ -131,23 +132,36 @@ package body Concorde.Commodities.Configure is
                 (Commodity_Flag'Image (Flag)));
       end loop;
 
-      Create
-        (Tag        => Config.Config_Name,
-         Name       => Config.Get ("name", Config.Config_Name),
-         Class      => Commodity_Class'Value (Config.Get ("class")),
-         Mass       => Non_Negative_Real (Float'(Config.Get ("mass"))),
-         Base_Price =>
-           Concorde.Money.Value (Config.Get ("base_price", "0")),
-         Quality    =>
-           Commodity_Quality'Val (Config.Get ("quality", 2) - 1),
-         Flags      => Flags);
+      declare
+         New_Commodity : constant Commodity_Type :=
+                           Create
+                             (Tag        => Config.Config_Name,
+                              Name       =>
+                                Config.Get ("name", Config.Config_Name),
+                              Class      =>
+                                Commodity_Class'Value (Config.Get ("class")),
+                              Mass       =>
+                                Non_Negative_Real
+                                  (Float'(Config.Get ("mass"))),
+                              Base_Price =>
+                                Concorde.Money.Value
+                                  (Config.Get ("base_price", "0")),
+                              Quality    =>
+                                Commodity_Quality'Val
+                                  (Config.Get ("quality", 2) - 1),
+                              Flags      => Flags);
+         pragma Unreferenced (New_Commodity);
+      begin
+         null;
+      end;
+
    end Configure_Commodity;
 
    ------------
    -- Create --
    ------------
 
-   procedure Create
+   function Create
      (Tag        : String;
       Name       : String;
       Class      : Commodity_Class;
@@ -155,6 +169,7 @@ package body Concorde.Commodities.Configure is
       Base_Price : Concorde.Money.Price_Type;
       Quality    : Commodity_Quality;
       Flags      : Array_Of_Flags)
+     return Commodity_Type
    is
 
       procedure Create (Commodity : in out Root_Commodity_Type'Class);
@@ -175,7 +190,7 @@ package body Concorde.Commodities.Configure is
       end Create;
 
    begin
-      Concorde.Commodities.Db.Create (Create'Access);
+      return Concorde.Commodities.Db.Create (Create'Access);
    end Create;
 
    -------------------------
@@ -185,31 +200,37 @@ package body Concorde.Commodities.Configure is
    procedure Create_From_Service
      (Service_Facility : Concorde.Facilities.Facility_Type)
    is
+      Service : constant Commodity_Type :=
+                  Create
+                    (Tag        => Service_Facility.Identifier,
+                     Name       => Service_Facility.Name,
+                     Class      => Concorde.Commodities.Service,
+                     Mass       => 0.0,
+                     Base_Price => Service_Facility.Base_Service_Charge,
+                     Quality    => Service_Facility.Quality,
+                     Flags      => (Virtual => True, others => False));
+      pragma Unreferenced (Service);
    begin
-      Create
-        (Tag        => Service_Facility.Identifier,
-         Name       => Service_Facility.Name,
-         Class      => Concorde.Commodities.Service,
-         Mass       => 0.0,
-         Base_Price => Service_Facility.Base_Service_Charge,
-         Quality    => Service_Facility.Quality,
-         Flags      => (Virtual => True, others => False));
+      null;
    end Create_From_Service;
 
    -----------------------
    -- Create_From_Skill --
    -----------------------
 
-   procedure Create_From_Skill
-     (Skill : Concorde.People.Skills.Pop_Skill)
+   function Create_From_Skill
+     (Tag      : String;
+      Name     : String;
+      Base_Pay : Concorde.Money.Price_Type)
+      return Commodity_Type
    is
    begin
-      Create
-        (Tag        => Skill.Identifier,
-         Name       => Skill.Name,
+      return Create
+        (Tag        => Tag,
+         Name       => Name,
          Class      => Concorde.Commodities.Skill,
          Mass       => 0.0,
-         Base_Price => Skill.Base_Pay,
+         Base_Price => Base_Pay,
          Quality    => Middle,
          Flags      => (Virtual => True, others => False));
    end Create_From_Skill;
