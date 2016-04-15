@@ -1,3 +1,5 @@
+with Ada.Containers.Vectors;
+
 with Lui.Rendering;
 with Lui.Tables;
 
@@ -72,10 +74,17 @@ package body Concorde.Systems.Models is
 
    subtype Market_Column is Integer range 1 .. 4;
 
+   package Row_Map_Vectors is
+     new Ada.Containers.Vectors
+       (Positive,
+        Concorde.Commodities.Commodity_Type,
+        Concorde.Commodities."=");
+
    type Market_Table is
      new Lui.Tables.Root_Model_Table with
       record
-         System : Star_System_Type;
+         System  : Star_System_Type;
+         Row_Map : Row_Map_Vectors.Vector;
       end record;
 
    overriding function Heading_Column_Text
@@ -163,9 +172,7 @@ package body Concorde.Systems.Models is
       return String
    is
       use Concorde.Commodities;
-      Commodity : constant Commodity_Type :=
-                    Concorde.Commodities.Db.Reference
-                      (Concorde.Commodities.Db.To_Reference (Row));
+      Commodity : constant Commodity_Type := Table.Row_Map (Row);
    begin
       case Market_Column (Col) is
          when 1 =>
@@ -344,11 +351,30 @@ package body Concorde.Systems.Models is
             I       : Lui.Tables.Model_Table;
             S_Table : Ship_Table;
             S       : Lui.Tables.Model_Table;
+
+            procedure Add_Market_Row
+              (Commodity : Concorde.Commodities.Commodity_Type);
+
+            --------------------
+            -- Add_Market_Row --
+            --------------------
+
+            procedure Add_Market_Row
+              (Commodity : Concorde.Commodities.Commodity_Type)
+            is
+            begin
+               M_Table.Row_Map.Append (Commodity);
+            end Add_Market_Row;
+
          begin
             M_Table.System := System;
+
+            Concorde.Commodities.Db.Scan (Add_Market_Row'Access);
+
             M_Table.Initialise
-              ("Market", Concorde.Commodities.Db.Upper_Bound,
+              ("Market", M_Table.Row_Map.Last_Index,
                Market_Column'Last);
+
             M := new Market_Table'(M_Table);
 
             P_Table.System := System;
