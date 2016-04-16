@@ -7,7 +7,9 @@ package body Concorde.People.Pops.Create is
    -------------
 
    function New_Pop
-     (Wealth_Group : Concorde.People.Groups.Pop_Group;
+     (Location     : not null access
+        Concorde.Agents.Agent_Location_Interface'Class;
+      Wealth_Group : Concorde.People.Groups.Pop_Group;
       Skill        : Concorde.People.Skills.Pop_Skill;
       Size         : Pop_Size;
       Cash         : Concorde.Money.Money_Type)
@@ -21,7 +23,7 @@ package body Concorde.People.Pops.Create is
 
       procedure Create (Pop : in out Root_Pop_Type'Class) is
       begin
-         Pop.New_Agent;
+         Pop.New_Agent (Location);
          Pop.Groups.Replace_Element (Wealth_Group.Reference, 1.0);
          Pop.Skills.Append (Skill);
          Pop.Size := Size;

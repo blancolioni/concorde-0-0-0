@@ -1,9 +1,14 @@
+with Concorde.Agents;
+
 with Concorde.Empires;
 with Concorde.Empires.Db;
 with Concorde.Empires.Logging;
 
 with Concorde.Ships.Create;
 with Concorde.Ships.Db;
+
+with Concorde.Installations.Db;
+with Concorde.People.Pops.Db;
 
 with Concorde.Players;
 
@@ -26,11 +31,39 @@ package body Concorde.Systems.Updates is
 
    procedure Update_Market (System : Root_Star_System_Type'Class) is
       use type Concorde.Installations.Installation_Type;
+
+      Virtual : constant Concorde.Commodities.Array_Of_Commodities :=
+                  Concorde.Commodities.Get
+                    (Concorde.Commodities.Virtual);
+
+      procedure Clear_Virtual_Stock
+        (Rec : in out Memor.Root_Record_Type'Class);
+
+      -------------------------
+      -- Clear_Virtual_Stock --
+      -------------------------
+
+      procedure Clear_Virtual_Stock
+        (Rec : in out Memor.Root_Record_Type'Class)
+      is
+         Agent : Concorde.Agents.Root_Agent_Type'Class renames
+                   Concorde.Agents.Root_Agent_Type'Class (Rec);
+      begin
+         for Commodity of Virtual loop
+            Agent.Set_Quantity (Commodity, Quantities.Zero);
+         end loop;
+      end Clear_Virtual_Stock;
+
    begin
       for Pop of System.Pops loop
+         Concorde.People.Pops.Db.Update
+           (Pop.Reference, Clear_Virtual_Stock'Access);
          Pop.Add_Trade_Offers (System.Market.all);
       end loop;
+
       for Installation of System.Installations loop
+         Concorde.Installations.Db.Update
+           (Installation.Reference, Clear_Virtual_Stock'Access);
          if not Installation.Is_Colony_Hub then
             Installation.Add_Trade_Offers (System.Market.all);
          end if;

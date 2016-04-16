@@ -48,4 +48,16 @@ package body Concorde.People.Skills is
       return Db.Get_Database;
    end Object_Database;
 
+   ------------------
+   -- Wealth_Group --
+   ------------------
+
+   function Wealth_Group
+     (Skill : Root_Pop_Skill'Class)
+      return Concorde.People.Groups.Pop_Group
+   is
+   begin
+      return Skill.Wealth_Group;
+   end Wealth_Group;
+
 end Concorde.People.Skills;

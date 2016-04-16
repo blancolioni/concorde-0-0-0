@@ -11,12 +11,21 @@ with Concorde.Trades;
 
 package Concorde.Agents is
 
+   type Agent_Location_Interface is limited interface;
+
+   function Agent_Location_Name
+     (Agent_Location : Agent_Location_Interface)
+      return String
+      is abstract;
+
    type Root_Agent_Type is
      abstract new Concorde.Objects.Root_Object_Type
      and Concorde.Commodities.Stock_Interface
      and Concorde.Trades.Trader_Interface with private;
 
-   procedure New_Agent (Agent : in out Root_Agent_Type'Class);
+   procedure New_Agent
+     (Agent    : in out Root_Agent_Type'Class;
+      Location : not null access constant Agent_Location_Interface'Class);
 
    overriding function Get_Quantity
      (Agent : Root_Agent_Type;
@@ -27,6 +36,13 @@ package Concorde.Agents is
      (Agent    : in out Root_Agent_Type;
       Item     : Concorde.Commodities.Commodity_Type;
       Quantity : Concorde.Quantities.Quantity);
+
+   overriding procedure Execute_Trade
+     (Agent     : Root_Agent_Type;
+      Offer     : Concorde.Trades.Offer_Type;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity;
+      Cost      : Concorde.Money.Money_Type);
 
    function Cash
      (Agent : Root_Agent_Type'Class)
@@ -65,6 +81,14 @@ package Concorde.Agents is
 
    procedure Enable_Offer_Logging (Enabled : Boolean := True);
 
+   function Location
+     (Agent : Root_Agent_Type'Class)
+      return access constant Agent_Location_Interface'Class;
+
+   procedure Set_Location
+     (Agent    : in out Root_Agent_Type'Class;
+      Location : not null access constant Agent_Location_Interface'Class);
+
 private
 
    type Agent_Price_Belief_Record is
@@ -83,10 +107,11 @@ private
      and Concorde.Commodities.Stock_Interface
      and Concorde.Trades.Trader_Interface with
       record
-         Stock  : Concorde.Commodities.Root_Stock_Type;
-         Cash   : Concorde.Money.Money_Type;
-         Belief : access Price_Belief_Vectors.Vector;
-         Age    : Natural := 0;
+         Stock    : Concorde.Commodities.Root_Stock_Type;
+         Cash     : Concorde.Money.Money_Type;
+         Belief   : access Price_Belief_Vectors.Vector;
+         Location : access constant Agent_Location_Interface'Class;
+         Age      : Natural := 0;
       end record;
 
    function Get_Price_Belief

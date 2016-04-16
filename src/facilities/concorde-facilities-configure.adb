@@ -103,17 +103,18 @@ package body Concorde.Facilities.Configure is
             declare
                Worker_Config : constant Tropos.Configuration :=
                                  Config.Child ("workers");
-               Worker_Array  : Array_Of_Inputs
+               Worker_Array  : Array_Of_Workers
                  (1 .. Worker_Config.Child_Count);
                Count        : Natural := 0;
             begin
                for Cfg of Worker_Config loop
                   Count := Count + 1;
-                  Worker_Array (Count).Commodity := Get (Cfg.Config_Name);
+                  Worker_Array (Count).Skill :=
+                    Concorde.People.Skills.Get (Cfg.Config_Name);
                   Worker_Array (Count).Quantity :=
                     Concorde.Quantities.Value (Cfg.Value);
                end loop;
-               Facility.Workers := new Array_Of_Inputs'(Worker_Array);
+               Facility.Workers := new Array_Of_Workers'(Worker_Array);
             end;
          end if;
 

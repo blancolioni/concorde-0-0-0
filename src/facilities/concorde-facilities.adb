@@ -331,10 +331,10 @@ package body Concorde.Facilities is
    function Worker_Skill
      (Facility : Root_Facility_Type'Class;
       Index    : Positive)
-      return Concorde.Commodities.Commodity_Type
+      return Concorde.People.Skills.Pop_Skill
    is
    begin
-      return Facility.Workers (Index).Commodity;
+      return Facility.Workers (Index).Skill;
    end Worker_Skill;
 
 end Concorde.Facilities;

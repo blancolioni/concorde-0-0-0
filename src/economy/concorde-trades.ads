@@ -51,6 +51,11 @@ package Concorde.Trades is
 
    type Trader_Interface is limited interface;
 
+   function Short_Name
+     (Trader : Trader_Interface)
+      return String
+      is abstract;
+
    procedure Create_Offer
      (Trade     : in out Trade_Interface;
       Offer     : Offer_Type;
@@ -59,6 +64,14 @@ package Concorde.Trades is
       Quantity  : Concorde.Quantities.Quantity;
       Price     : Concorde.Money.Price_Type;
       Limit     : Concorde.Money.Price_Type)
+   is abstract;
+
+   procedure Execute_Trade
+     (Trader    : Trader_Interface;
+      Offer     : Offer_Type;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity;
+      Cost      : Concorde.Money.Money_Type)
    is abstract;
 
 end Concorde.Trades;

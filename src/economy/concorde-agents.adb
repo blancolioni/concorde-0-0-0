@@ -259,6 +259,47 @@ package body Concorde.Agents is
       Log_Offers := Enabled;
    end Enable_Offer_Logging;
 
+   -------------------
+   -- Execute_Trade --
+   -------------------
+
+   overriding procedure Execute_Trade
+     (Agent     : Root_Agent_Type;
+      Offer     : Concorde.Trades.Offer_Type;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity;
+      Cost      : Concorde.Money.Money_Type)
+   is
+      procedure Update
+        (Object : in out Memor.Root_Record_Type'Class);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update
+        (Object : in out Memor.Root_Record_Type'Class)
+      is
+         Agent : Root_Agent_Type'Class renames
+                   Root_Agent_Type'Class (Object);
+      begin
+         case Offer is
+         when Concorde.Trades.Buy =>
+            Agent.Add_Quantity (Commodity, Quantity);
+            Agent.Remove_Cash (Cost);
+         when Concorde.Trades.Sell =>
+            Agent.Remove_Quantity (Commodity, Quantity);
+            Agent.Add_Cash (Cost);
+         end case;
+      end Update;
+
+   begin
+
+      Root_Agent_Type'Class (Agent).Object_Database.Update
+        (Agent.Reference, Update'Access);
+
+   end Execute_Trade;
+
    ----------------------
    -- Get_Price_Belief --
    ----------------------
@@ -292,13 +333,29 @@ package body Concorde.Agents is
       return Agent.Stock.Get_Quantity (Item);
    end Get_Quantity;
 
+   --------------
+   -- Location --
+   --------------
+
+   function Location
+     (Agent : Root_Agent_Type'Class)
+      return access constant Agent_Location_Interface'Class
+   is
+   begin
+      return Agent.Location;
+   end Location;
+
    ---------------
    -- New_Agent --
    ---------------
 
-   procedure New_Agent (Agent : in out Root_Agent_Type'Class) is
+   procedure New_Agent
+     (Agent    : in out Root_Agent_Type'Class;
+      Location : not null access constant Agent_Location_Interface'Class)
+   is
    begin
       Agent.Belief := new Price_Belief_Vectors.Vector;
+      Agent.Location := Location;
    end New_Agent;
 
    -----------------------------
@@ -344,6 +401,18 @@ package body Concorde.Agents is
    begin
       Agent.Cash := Amount;
    end Set_Cash;
+
+   ------------------
+   -- Set_Location --
+   ------------------
+
+   procedure Set_Location
+     (Agent    : in out Root_Agent_Type'Class;
+      Location : not null access constant Agent_Location_Interface'Class)
+   is
+   begin
+      Agent.Location := Location;
+   end Set_Location;
 
    ------------------
    -- Set_Quantity --

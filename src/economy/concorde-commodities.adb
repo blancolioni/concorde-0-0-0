@@ -94,7 +94,35 @@ package body Concorde.Commodities is
             Result (Count) := Result (I);
          end if;
       end loop;
-      return Result;
+      return Result (1 .. Count);
+   end Get;
+
+   ---------
+   -- Get --
+   ---------
+
+   function Get (Flag : Commodity_Flag) return Array_Of_Commodities is
+      Result : Array_Of_Commodities (1 .. Db.Upper_Bound);
+      Count  : Natural := 0;
+
+      function Match (Commodity : Commodity_Type) return Boolean
+      is (Commodity.Is_Set (Flag));
+
+      procedure Add (Commodity : Commodity_Type);
+
+      ---------
+      -- Add --
+      ---------
+
+      procedure Add (Commodity : Commodity_Type) is
+      begin
+         Count := Count + 1;
+         Result (Count) := Commodity;
+      end Add;
+
+   begin
+      Db.Scan (Match'Access, Add'Access);
+      return Result (1 .. Count);
    end Get;
 
    ------------

@@ -11,6 +11,7 @@ with Concorde.Ships;
 
 with Concorde.Ships.Lists;
 
+with Concorde.Agents;
 with Concorde.Installations;
 with Concorde.People.Pops;
 
@@ -23,7 +24,9 @@ private with Concorde.Installations.Lists;
 package Concorde.Systems is
 
    type Root_Star_System_Type is
-     new Concorde.Objects.Root_Named_Object_Type with private;
+     new Concorde.Objects.Root_Named_Object_Type
+     and Concorde.Agents.Agent_Location_Interface
+   with private;
 
    function Index (System : Root_Star_System_Type'Class) return Positive;
    function X (System : Root_Star_System_Type'Class) return Real;
@@ -189,7 +192,8 @@ private
       end record;
 
    type Root_Star_System_Type is
-     new Concorde.Objects.Root_Named_Object_Type with
+     new Concorde.Objects.Root_Named_Object_Type
+     and Concorde.Agents.Agent_Location_Interface with
       record
          Index          : Positive;
          X, Y           : Real;
@@ -220,4 +224,10 @@ private
    overriding function Object_Database
      (Star_System : Root_Star_System_Type)
       return Memor.Root_Database_Type'Class;
+
+   overriding function Agent_Location_Name
+     (System : Root_Star_System_Type)
+      return String
+   is (System.Name);
+
 end Concorde.Systems;

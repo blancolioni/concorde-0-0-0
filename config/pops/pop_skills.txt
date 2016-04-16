@@ -1,11 +1,14 @@
 tech = {
   base_pay = 1200
+  wealth_group = middle_class
 }
 
 unskilled = {
   base_pay = 350
+  wealth_group = poor
 }
 
 executive = {
-   base_pay = 3000
+  base_pay = 3000
+  wealth_group = rich
 }

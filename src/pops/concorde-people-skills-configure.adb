@@ -50,6 +50,9 @@ package body Concorde.People.Skills.Configure is
          Skill.Commodity :=
            Concorde.Commodities.Configure.Create_From_Skill
              (Name, Name, Skill.Base_Pay);
+         Skill.Wealth_Group :=
+           Concorde.People.Groups.Get
+             (Config.Get ("wealth_group", "poor"));
       end Create;
 
    begin

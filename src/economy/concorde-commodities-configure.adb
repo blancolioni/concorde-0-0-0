@@ -76,7 +76,7 @@ package body Concorde.Commodities.Configure is
 
             for I in 1 .. Facility.Worker_Count loop
                Cost := Cost
-                 + To_Real (Facility.Worker_Skill (I).Base_Price)
+                 + To_Real (Facility.Worker_Skill (I).Base_Pay)
                  * Quantities.To_Real (Facility.Worker_Quantity (I));
             end loop;
 

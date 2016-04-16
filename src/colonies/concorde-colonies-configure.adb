@@ -1,5 +1,7 @@
 with Tropos.Reader;
 
+with Memor.Element_Vectors;
+
 with Concorde.Options;
 with Concorde.Paths;
 
@@ -17,7 +19,10 @@ with Concorde.People.Skills;
 with Concorde.Installations.Create;
 with Concorde.People.Pops.Create;
 
+with Concorde.People.Skills.Db;
 with Concorde.Installations.Db;
+
+with Concorde.Systems.Db;
 
 package body Concorde.Colonies.Configure is
 
@@ -57,21 +62,65 @@ package body Concorde.Colonies.Configure is
       Template : Tropos.Configuration)
    is
 
+      use Concorde.Quantities;
+
+      package Skilled_Pop_Vectors is
+        new Memor.Element_Vectors (Quantity, Zero);
+
+      Skilled_Pop : Skilled_Pop_Vectors.Vector;
+
       Hub : constant Concorde.Installations.Installation_Type :=
               Concorde.Installations.Create.Create
-                (Facility => Concorde.Facilities.Colony_Hub,
+                (Location =>
+                           Concorde.Systems.Db.Reference (System),
+                 Facility => Concorde.Facilities.Colony_Hub,
                  Cash     =>
                    Concorde.Money.To_Money
                      (Template.Get ("cash", 10_000.0)),
                  Owner    => System.Owner);
 
-      procedure Create_Pop
+      procedure Create_Pop_From_Config
         (Config : Tropos.Configuration);
+
+      procedure Create_Pop_From_Skill
+        (Reference : Memor.Database_Reference;
+         Element   : Quantity);
+
+      procedure Create_Pop
+        (Group : Concorde.People.Groups.Pop_Group;
+         Skill : Concorde.People.Skills.Pop_Skill;
+         Size  : Concorde.People.Pops.Pop_Size);
 
       procedure Create_Installation
         (Facility : Concorde.Facilities.Facility_Type);
 
+      procedure Add_Population
+        (Installation : Concorde.Installations.Installation_Type);
+
       procedure Create_Service_Facilities is null;
+
+      --------------------
+      -- Add_Population --
+      --------------------
+
+      procedure Add_Population
+        (Installation : Concorde.Installations.Installation_Type)
+      is
+      begin
+         for I in 1 .. Installation.Facility.Worker_Count loop
+            declare
+               Skill : constant Concorde.People.Skills.Pop_Skill :=
+                         Installation.Facility.Worker_Skill (I);
+               Quant : constant Quantity :=
+                         Installation.Facility.Worker_Quantity (I);
+               Current : constant Quantity  :=
+                           Skilled_Pop.Element (Skill.Reference);
+            begin
+               Skilled_Pop.Replace_Element
+                 (Skill.Reference, Current + Quant);
+            end;
+         end loop;
+      end Add_Population;
 
       -------------------------
       -- Create_Installation --
@@ -82,11 +131,14 @@ package body Concorde.Colonies.Configure is
       is
          Installation : constant Concorde.Installations.Installation_Type :=
                           Concorde.Installations.Create.Create
-                            (Facility => Facility,
-                             Cash     => Concorde.Money.To_Money (1.0E3),
+                            (Location =>
+                                 Concorde.Systems.Db.Reference (System),
+                             Facility => Facility,
+                             Cash     => Concorde.Money.To_Money (1.0E5),
                              Owner    => System.Owner);
       begin
          System.Add_Installation (Installation);
+         Add_Population (Installation);
       end Create_Installation;
 
       ----------------
@@ -94,21 +146,19 @@ package body Concorde.Colonies.Configure is
       ----------------
 
       procedure Create_Pop
-        (Config : Tropos.Configuration)
+        (Group : Concorde.People.Groups.Pop_Group;
+         Skill : Concorde.People.Skills.Pop_Skill;
+         Size  : Concorde.People.Pops.Pop_Size)
       is
          use Concorde.Commodities;
-         use Concorde.People.Groups;
-         use Concorde.People.Skills;
-         use Concorde.People.Pops;
-         Group : constant Pop_Group := Get (Config.Config_Name);
-         Size  : constant Natural := Config.Get ("size");
          Cash  : constant Non_Negative_Real :=
                    Real (Size) * Real (Group.Initial_Cash_Factor);
-         Pop : constant Concorde.People.Pops.Pop_Type :=
+         Pop   : constant Concorde.People.Pops.Pop_Type :=
                    Concorde.People.Pops.Create.New_Pop
-                     (Wealth_Group => Group,
-                      Skill        => Get (Config.Get ("skill", "unskilled")),
-                      Size         => Pop_Size (Size),
+                     (Location => Concorde.Systems.Db.Reference (System),
+                      Wealth_Group => Group,
+                      Skill        => Skill,
+                      Size         => Size,
                       Cash         => Concorde.Money.To_Money (Cash));
          Needs : constant Array_Of_Commodities :=
                    Concorde.Commodities.Get
@@ -116,7 +166,6 @@ package body Concorde.Colonies.Configure is
 
       begin
          System.Add_Pop (Pop);
-         System.Add_Installation (Hub);
 
          for Need of Needs loop
             declare
@@ -146,11 +195,51 @@ package body Concorde.Colonies.Configure is
 
       end Create_Pop;
 
+      ----------------------------
+      -- Create_Pop_From_Config --
+      ----------------------------
+
+      procedure Create_Pop_From_Config
+        (Config : Tropos.Configuration)
+      is
+--           use Concorde.Commodities;
+         use Concorde.People.Groups;
+         use Concorde.People.Skills;
+         Group : constant Pop_Group := Get (Config.Config_Name);
+         Skill : constant Pop_Skill := Get (Config.Get ("skill", "unskilled"));
+         Size  : constant Natural := Config.Get ("size");
+      begin
+         Create_Pop
+           (Group, Skill,
+            Concorde.People.Pops.Pop_Size (Size));
+      end Create_Pop_From_Config;
+
+      ---------------------------
+      -- Create_Pop_From_Skill --
+      ---------------------------
+
+      procedure Create_Pop_From_Skill
+        (Reference : Memor.Database_Reference;
+         Element   : Quantity)
+      is
+         Skill : constant Concorde.People.Skills.Pop_Skill :=
+                   Concorde.People.Skills.Db.Element (Reference);
+      begin
+         Create_Pop (Skill.Wealth_Group, Skill,
+                     Concorde.People.Pops.Pop_Size
+                       (Quantities.To_Real (Element)));
+      end Create_Pop_From_Skill;
+
    begin
 
-      for Pop_Config of Template.Child ("pops") loop
-         Create_Pop (Pop_Config);
-      end loop;
+      System.Add_Installation (Hub);
+      Add_Population (Hub);
+
+      if False then
+         for Pop_Config of Template.Child ("pops") loop
+            Create_Pop_From_Config (Pop_Config);
+         end loop;
+      end if;
 
       for I in 1 .. Template.Get ("resource_generator") loop
          Create_Installation
@@ -159,6 +248,8 @@ package body Concorde.Colonies.Configure is
       end loop;
 
       Create_Service_Facilities;
+
+      Skilled_Pop.Iterate (Create_Pop_From_Skill'Access);
 
    end Create_Colony_From_Template;
 

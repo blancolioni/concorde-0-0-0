@@ -66,6 +66,16 @@ private
      (Item : Root_Pop_Type)
       return Memor.Root_Database_Type'Class;
 
+   overriding function Short_Name
+     (Item : Root_Pop_Type)
+      return String
+   is ("[" & Memor.To_String (Item.Reference) & "]"
+       & (if Item.Skills.Is_Empty
+          then ""
+          else " " & Item.Skills.First_Element.Name)
+       & " "
+       & Item.Wealth_Group.Name);
+
    overriding procedure Add_Trade_Offers
      (Item   : not null access constant Root_Pop_Type;
       Market : in out Concorde.Trades.Trade_Interface'Class);

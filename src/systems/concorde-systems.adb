@@ -37,6 +37,7 @@ package body Concorde.Systems is
    is
    begin
       System.Pops.Append (Pop);
+      System.Market.Enable_Logging;
    end Add_Pop;
 
    --------------

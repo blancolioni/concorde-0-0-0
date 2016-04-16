@@ -34,6 +34,12 @@ private
          Owner    : access constant Concorde.Agents.Root_Agent_Type'Class;
       end record;
 
+   overriding function Short_Name
+     (Installation : Root_Installation_Type)
+      return String
+   is ("[" & Memor.To_String (Installation.Reference) & "]"
+       & " " & Installation.Facility.Name);
+
    overriding function Object_Database
      (Item : Root_Installation_Type)
       return Memor.Root_Database_Type'Class;

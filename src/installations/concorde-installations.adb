@@ -42,6 +42,19 @@ package body Concorde.Installations is
       end Add_Hub_Trade_Offer;
 
    begin
+
+      for I in 1 .. Item.Facility.Worker_Count loop
+         declare
+            Commodity : constant Concorde.Commodities.Commodity_Type :=
+                          Item.Facility.Worker_Skill (I).Commodity;
+            Required  : constant Quantity :=
+                          Item.Facility.Worker_Quantity (I);
+         begin
+            Item.Create_Buy_Offer
+              (Market, Commodity, Required, Required);
+         end;
+      end loop;
+
       if Item.Is_Colony_Hub then
          Concorde.Commodities.Db.Scan (Add_Hub_Trade_Offer'Access);
       else

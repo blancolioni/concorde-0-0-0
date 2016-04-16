@@ -1,5 +1,9 @@
 with Ada.Text_IO;
 
+with Concorde.Paths;
+
+with Concorde.Dates;
+
 with Concorde.Commodities.Db;
 
 package body Concorde.Markets is
@@ -88,14 +92,15 @@ package body Concorde.Markets is
    -------------------
 
    function Create_Market
-     (Name           : String;
+     (Owner  : not null access constant
+        Concorde.Objects.Named_Object_Interface'Class;
       Enable_Logging : Boolean)
       return Market_Type
    is
    begin
       return new Root_Market_Type'
-        (Name        => new String'(Name),
-         Commodities => new Cached_Commodity_Vectors.Vector,
+        (Owner          => Owner,
+         Commodities    => new Cached_Commodity_Vectors.Vector,
          Enable_Logging => Enable_Logging);
    end Create_Market;
 
@@ -163,6 +168,18 @@ package body Concorde.Markets is
       return Market.Get_Commodity (Item).Offers.Total_Supply;
    end Current_Supply;
 
+   --------------------
+   -- Enable_Logging --
+   --------------------
+
+   procedure Enable_Logging
+     (Market  : in out Root_Market_Type'Class;
+      Enabled : Boolean := True)
+   is
+   begin
+      Market.Enable_Logging := Enabled;
+   end Enable_Logging;
+
    -------------
    -- Execute --
    -------------
@@ -185,8 +202,28 @@ package body Concorde.Markets is
          Market.Execute_Commodity_Trades (Commodity);
       end Update_Commodity;
 
+      File : Ada.Text_IO.File_Type;
+
    begin
+      if Market.Enable_Logging then
+         Ada.Text_IO.Create
+           (File, Ada.Text_IO.Out_File,
+            Concorde.Paths.Config_Path
+            & "/../log/markets/"
+            & Market.Name
+            & "-"
+            & Concorde.Dates.Current_Date_To_String
+            & ".txt");
+         Ada.Text_IO.Set_Output (File);
+      end if;
+
       Concorde.Commodities.Db.Scan (Update_Commodity'Access);
+
+      if Market.Enable_Logging then
+         Ada.Text_IO.Set_Output
+           (Ada.Text_IO.Standard_Output);
+         Ada.Text_IO.Close (File);
+      end if;
    end Execute;
 
    ------------------------------
@@ -207,6 +244,7 @@ package body Concorde.Markets is
       Supply         : constant Quantity := Info.Offers.Total_Supply;
       Demand         : constant Quantity := Info.Offers.Total_Demand;
       Total_Money    : Money_Type := Zero;
+
    begin
 
       if Bids.Is_Empty or else Asks.Is_Empty then
@@ -250,9 +288,12 @@ package body Concorde.Markets is
                Market.Log
                  (Commodity.Name
                   & ": "
-                  & " Ask "
+                  & Ask.Agent.Short_Name
+                  & " asks "
                   & Image (Ask.Current_Price)
-                  & "; Bid "
+                  & "; "
+                  & Bid.Agent.Short_Name
+                  & " bids "
                   & Image (Bid.Current_Price)
                   & (if Traded_Quantity > Zero
                     then "; final contract "
@@ -283,11 +324,15 @@ package body Concorde.Markets is
                        Bid.Closed_At_Limit + Traded_Quantity;
                   end if;
 
-                  Ask.Total_Cost := Ask.Total_Cost
-                    + Total (Price, Traded_Quantity);
+                  Ask.Total_Cost := Ask.Total_Cost + Money;
+                  Bid.Total_Cost := Bid.Total_Cost + Money;
 
-                  Bid.Total_Cost := Bid.Total_Cost
-                    + Total (Price, Traded_Quantity);
+                  Ask.Agent.Execute_Trade
+                    (Concorde.Trades.Sell, Commodity,
+                     Traded_Quantity, Money);
+                  Bid.Agent.Execute_Trade
+                    (Concorde.Trades.Buy, Commodity,
+                     Traded_Quantity, Money);
 
                   Bids.Replace_Element (Next_Bid, Bid);
                   Asks.Replace_Element (Next_Ask, Ask);
@@ -497,6 +542,18 @@ package body Concorde.Markets is
          Ada.Text_IO.Put_Line (Message);
       end if;
    end Log;
+
+   ----------
+   -- Name --
+   ----------
+
+   function Name
+     (Market : Root_Market_Type'Class)
+      return String
+   is
+   begin
+      return Market.Owner.Name;
+   end Name;
 
    ----------------------
    -- Commodity_Offers --

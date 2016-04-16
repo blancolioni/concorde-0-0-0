@@ -6,6 +6,8 @@ with Concorde.Quantities;
 with Concorde.Commodities;
 with Concorde.Objects;
 
+with Concorde.People.Skills;
+
 package Concorde.Facilities is
 
    type Facility_Class is
@@ -67,8 +69,15 @@ package Concorde.Facilities is
    function Worker_Skill
      (Facility : Root_Facility_Type'Class;
       Index    : Positive)
-      return Concorde.Commodities.Commodity_Type
+      return Concorde.People.Skills.Pop_Skill
      with Pre => Index <= Facility.Worker_Count;
+
+--     function Worker_Skill
+--       (Facility : Root_Facility_Type'Class;
+--        Index    : Positive)
+--        return Concorde.Commodities.Commodity_Type
+--     is (Facility.Worker_Skill (Index).Commodity)
+--     with Pre => Index <= Facility.Worker_Count;
 
    function Worker_Quantity
      (Facility : Root_Facility_Type'Class;
@@ -129,6 +138,15 @@ private
 
    type Array_Of_Inputs is array (Positive range <>) of Input_Record;
 
+   type Worker_Record is
+      record
+         Skill     : Concorde.People.Skills.Pop_Skill;
+         Quantity  : Concorde.Quantities.Quantity;
+      end record;
+
+   type Array_Of_Workers is
+     array (Positive range <>) of Worker_Record;
+
    type Root_Facility_Type is
      new Concorde.Objects.Root_Named_Object_Type with
       record
@@ -141,7 +159,7 @@ private
          Capacity            : Facility_Capacity;
          Commodity_Flags     : Concorde.Commodities.Array_Of_Flags;
          Inputs              : access Array_Of_Inputs;
-         Workers             : access Array_Of_Inputs;
+         Workers             : access Array_Of_Workers;
          Output              : Concorde.Commodities.Commodity_Type;
          Base_Service_Charge : Concorde.Money.Price_Type;
       end record;

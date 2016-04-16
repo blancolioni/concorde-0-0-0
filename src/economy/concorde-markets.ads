@@ -1,6 +1,8 @@
 private with Ada.Containers.Vectors;
 private with Memor.Element_Vectors;
 
+with Concorde.Objects;
+
 with Concorde.Money;
 with Concorde.Quantities;
 
@@ -52,9 +54,17 @@ package Concorde.Markets is
       Price     : Concorde.Money.Price_Type;
       Limit     : Concorde.Money.Price_Type);
 
+   procedure Enable_Logging
+     (Market  : in out Root_Market_Type'Class;
+      Enabled : Boolean := True);
+
    overriding procedure Log
      (Market  : Root_Market_Type;
       Message : String);
+
+   function Name
+     (Market : Root_Market_Type'Class)
+      return String;
 
    procedure Execute
      (Market : in out Root_Market_Type'Class);
@@ -62,7 +72,8 @@ package Concorde.Markets is
    type Market_Type is access Root_Market_Type'Class;
 
    function Create_Market
-     (Name           : String;
+     (Owner  : not null access constant
+        Concorde.Objects.Named_Object_Interface'Class;
       Enable_Logging : Boolean)
       return Market_Type;
 
@@ -155,7 +166,8 @@ private
 
    type Root_Market_Type is new Trades.Trade_Interface with
       record
-         Name           : access String;
+         Owner          : access constant
+           Concorde.Objects.Named_Object_Interface'Class;
          Enable_Logging : Boolean;
          Commodities    : access Cached_Commodity_Vectors.Vector;
       end record;

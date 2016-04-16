@@ -357,6 +357,9 @@ private
    overriding function Name (Empire : Root_Empire_Type) return String
    is (Ada.Strings.Unbounded.To_String (Empire.Empire_Name));
 
+   overriding function Short_Name (Empire : Root_Empire_Type) return String
+   is (Identifier (Empire));
+
    overriding procedure Set_Name
      (Empire : in out Root_Empire_Type;
       Name   : String);

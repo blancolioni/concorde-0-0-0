@@ -49,6 +49,8 @@ package Concorde.Commodities is
 
    function Get (Class : Commodity_Class) return Array_Of_Commodities;
 
+   function Get (Flag : Commodity_Flag) return Array_Of_Commodities;
+
    function Get (Class   : Commodity_Class;
                  Quality : Commodity_Quality)
                  return Array_Of_Commodities;

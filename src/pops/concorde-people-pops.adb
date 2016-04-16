@@ -1,4 +1,5 @@
 with Concorde.Commodities;
+with Concorde.Money;
 
 with Concorde.People.Pops.Db;
 
@@ -14,14 +15,21 @@ package body Concorde.People.Pops is
    is
       use Concorde.Commodities;
       use type Concorde.Quantities.Quantity;
+      Group : constant Concorde.People.Groups.Pop_Group :=
+                Item.Wealth_Group;
+      Quality : constant Commodity_Quality := Group.Preferred_Quality;
       Needs : constant Array_Of_Commodities :=
                 Concorde.Commodities.Get
-                  (Consumer, Item.Wealth_Group.Preferred_Quality);
+                  (Consumer, Quality);
       Minimum : constant Concorde.Quantities.Quantity :=
                   Item.Size_Quantity;
       Desired : constant Concorde.Quantities.Quantity :=
                   Minimum * Quantities.To_Quantity (7.0);
    begin
+      for Skill of Item.Skills loop
+         Item.Create_Sell_Offer
+           (Market, Skill.Commodity, Item.Size_Quantity, Concorde.Money.Zero);
+      end loop;
       for Need of Needs loop
          Item.Create_Buy_Offer (Market, Need, Desired, Minimum);
       end loop;
