@@ -6,4 +6,6 @@ package Concorde.Systems.Updates is
 
    procedure Execute_Trades (System : Root_Star_System_Type'Class);
 
+   procedure Execute_Production (System : Root_Star_System_Type'Class);
+
 end Concorde.Systems.Updates;

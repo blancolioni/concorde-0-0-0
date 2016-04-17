@@ -7,7 +7,9 @@ with Concorde.Empires.Logging;
 with Concorde.Ships.Create;
 with Concorde.Ships.Db;
 
+with Concorde.Installations.Production;
 with Concorde.Installations.Db;
+
 with Concorde.People.Pops.Db;
 
 with Concorde.Players;
@@ -15,6 +17,36 @@ with Concorde.Players;
 package body Concorde.Systems.Updates is
 
    Base_Loyalty_Change : constant := 0.002;
+
+   ------------------------
+   -- Execute_Production --
+   ------------------------
+
+   procedure Execute_Production (System : Root_Star_System_Type'Class) is
+
+      procedure Execute
+        (Installation : in out
+           Concorde.Installations.Root_Installation_Type'Class);
+
+      -------------
+      -- Execute --
+      -------------
+
+      procedure Execute
+        (Installation : in out
+           Concorde.Installations.Root_Installation_Type'Class)
+      is
+      begin
+         Concorde.Installations.Production.Execute_Production
+           (System, Installation);
+      end Execute;
+
+   begin
+      for Installation of System.Installations loop
+         Concorde.Installations.Db.Update
+           (Installation.Reference, Execute'Access);
+      end loop;
+   end Execute_Production;
 
    --------------------
    -- Execute_Trades --

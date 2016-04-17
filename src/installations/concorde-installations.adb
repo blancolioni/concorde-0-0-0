@@ -19,6 +19,9 @@ package body Concorde.Installations is
       procedure Add_Hub_Trade_Offer
         (Commodity : Concorde.Commodities.Commodity_Type);
 
+      procedure Add_Sell_Offer
+        (Commodity : Concorde.Commodities.Commodity_Type);
+
       -------------------------
       -- Add_Hub_Trade_Offer --
       -------------------------
@@ -38,8 +41,28 @@ package body Concorde.Installations is
                Item.Create_Sell_Offer
                  (Market, Commodity, Sell_Quantity, Concorde.Money.Zero);
             end;
+         elsif Supply > Demand then
+            declare
+               Buy_Quantity : constant Quantity := Supply - Demand;
+            begin
+               Item.Create_Buy_Offer
+                 (Market, Commodity, Buy_Quantity, Buy_Quantity);
+            end;
          end if;
       end Add_Hub_Trade_Offer;
+
+      --------------------
+      -- Add_Sell_Offer --
+      --------------------
+
+      procedure Add_Sell_Offer
+        (Commodity : Concorde.Commodities.Commodity_Type)
+      is
+      begin
+         Item.Create_Sell_Offer
+           (Market, Commodity, Item.Get_Quantity (Commodity),
+            Concorde.Money.Zero);
+      end Add_Sell_Offer;
 
    begin
 
@@ -65,6 +88,18 @@ package body Concorde.Installations is
               (Market, Item.Facility.Output,
                Item.Get_Quantity (Item.Facility.Output),
                Concorde.Money.Zero);
+         elsif Item.Facility.Is_Resource_Generator then
+            declare
+               function Match
+                 (Commodity : Concorde.Commodities.Commodity_Type)
+                  return Boolean
+               is (Item.Facility.Can_Produce (Commodity)
+                   and then Item.Get_Quantity (Commodity) > Zero);
+            begin
+               Concorde.Commodities.Db.Scan
+                 (Match'Access,
+                  Add_Sell_Offer'Access);
+            end;
          end if;
       end if;
    end Add_Trade_Offers;

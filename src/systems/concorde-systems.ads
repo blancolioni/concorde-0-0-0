@@ -189,6 +189,7 @@ private
          Accessibility : Unit_Real;
          Concentration : Unit_Real;
          Size          : Concorde.Quantities.Quantity;
+         Original_Size : Concorde.Quantities.Quantity;
       end record;
 
    type Root_Star_System_Type is

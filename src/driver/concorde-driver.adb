@@ -5,6 +5,8 @@ with Memor;
 
 with Concorde.Paths;
 
+with Concorde.Logging;
+
 with Concorde.Empires.Configure;
 with Concorde.Galaxy.Create;
 
@@ -62,7 +64,8 @@ begin
       Concorde.Empires.Logging.Start_Logging;
    end if;
 
-   Concorde.Agents.Enable_Offer_Logging (Enabled => False);
+   Concorde.Agents.Enable_Offer_Logging (Enabled => True);
+   Concorde.Logging.Start_Logging;
 
    Concorde.Empires.Updates.Start;
 
@@ -97,6 +100,8 @@ begin
 
    Concorde.Empires.Reports.Report_Empires;
 
+   Concorde.Logging.Stop_Logging;
+
    if Concorde.Options.Enable_Empire_Logging then
       Concorde.Empires.Logging.Stop_Logging;
    end if;
@@ -107,6 +112,7 @@ exception
       if Concorde.Options.Enable_Empire_Logging then
          Concorde.Empires.Logging.Stop_Logging;
       end if;
+      Concorde.Logging.Stop_Logging;
       raise;
 
 end Concorde.Driver;

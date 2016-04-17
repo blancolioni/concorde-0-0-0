@@ -46,13 +46,20 @@ package body Concorde.Systems.Create is
          System.Capacity := Capacity;
          System.Boundary :=
            new System_Influence_Boundary'(Boundary);
-         System.Deposit :=
-           (Resource => Resource,
-            Accessibility => Concorde.Random.Unit_Random,
-            Concentration => Concorde.Random.Unit_Random,
-            Size          =>
-              Concorde.Quantities.Around
-                (Concorde.Quantities.To_Quantity (1.0E6)));
+
+         declare
+            Deposit_Size : constant Concorde.Quantities.Quantity :=
+                             Concorde.Quantities.Around
+                               (Concorde.Quantities.To_Quantity (1.0E6));
+         begin
+            System.Deposit :=
+              (Resource => Resource,
+               Accessibility => Concorde.Random.Unit_Random,
+               Concentration => Concorde.Random.Unit_Random,
+               Size          => Deposit_Size,
+               Original_Size => Deposit_Size);
+         end;
+
          System.Market :=
            Concorde.Markets.Create_Market
              (Concorde.Systems.Db.Reference (System.Reference),

@@ -1,5 +1,6 @@
 with Ada.Exceptions;
 
+with Concorde.Logging;
 with Concorde.Random;
 
 package body Concorde.Agents is
@@ -132,9 +133,8 @@ package body Concorde.Agents is
                         Min (Favoured, Possible);
    begin
       if Log_Offers then
-         Market.Log
-           ("Agent" & Memor.To_String (Agent.Reference) & ": "
-            & Commodity.Name
+         Agent.Log_Trade
+           (Commodity.Name
             & ": desire "
             & Image (Desired)
             & ": minimum "
@@ -172,9 +172,8 @@ package body Concorde.Agents is
       end if;
    exception
       when E : others =>
-         Market.Log
-           ("Agent " & Memor.To_String (Agent.Reference) & ": "
-            & "while creating bid for " & Commodity.Name
+         Agent.Log_Trade
+           ("while creating bid for " & Commodity.Name
             & ": "
             & Ada.Exceptions.Exception_Message (E));
    end Create_Buy_Offer;
@@ -209,9 +208,8 @@ package body Concorde.Agents is
       Sell_Quantity : constant Quantity := Available;
    begin
       if Log_Offers then
-         Market.Log
-           ("Agent " & Memor.To_String (Agent.Reference) & ": "
-            & Commodity.Name
+         Agent.Log_Trade
+           (Commodity.Name
             & ": have "
             & Image (Available)
             & "; price belief "
@@ -243,9 +241,8 @@ package body Concorde.Agents is
       end if;
    exception
       when E : others =>
-         Market.Log
-           ("Agent" & Memor.To_String (Agent.Reference) & ": "
-            & "while creating bid for " & Commodity.Name
+         Agent.Log_Trade
+           ("while creating bid for " & Commodity.Name
             & ": "
             & Ada.Exceptions.Exception_Message (E));
    end Create_Sell_Offer;
@@ -344,6 +341,45 @@ package body Concorde.Agents is
    begin
       return Agent.Location;
    end Location;
+
+   ---------
+   -- Log --
+   ---------
+
+   procedure Log
+     (Agent    : Root_Agent_Type'Class;
+      Category : String;
+      Message  : String)
+   is
+   begin
+      Concorde.Logging.Log
+        (Agent.Short_Name, Agent.Location.Agent_Location_Name,
+         Category, Message);
+   end Log;
+
+   --------------------
+   -- Log_Production --
+   --------------------
+
+   procedure Log_Production
+     (Agent   : Root_Agent_Type'Class;
+      Message : String)
+   is
+   begin
+      Agent.Log ("production", Message);
+   end Log_Production;
+
+   ---------------
+   -- Log_Trade --
+   ---------------
+
+   procedure Log_Trade
+     (Agent   : Root_Agent_Type'Class;
+      Message : String)
+   is
+   begin
+      Agent.Log ("trade", Message);
+   end Log_Trade;
 
    ---------------
    -- New_Agent --

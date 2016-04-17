@@ -79,6 +79,19 @@ package Concorde.Agents is
       Market : in out Concorde.Trades.Trade_Interface'Class)
    is abstract;
 
+   procedure Log
+     (Agent    : Root_Agent_Type'Class;
+      Category : String;
+      Message  : String);
+
+   procedure Log_Production
+     (Agent   : Root_Agent_Type'Class;
+      Message : String);
+
+   procedure Log_Trade
+     (Agent   : Root_Agent_Type'Class;
+      Message : String);
+
    procedure Enable_Offer_Logging (Enabled : Boolean := True);
 
    function Location

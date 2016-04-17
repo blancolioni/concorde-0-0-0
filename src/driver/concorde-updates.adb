@@ -1,6 +1,7 @@
 with Ada.Unchecked_Deallocation;
 
 with Concorde.Dates;
+with Concorde.Logging;
 
 with Concorde.Economy.Updates;
 with Concorde.Empires.Updates;
@@ -68,6 +69,8 @@ package body Concorde.Updates is
       Render_Lock.Exclusive;
       Concorde.Dates.Tick;
 
+      Concorde.Logging.Start_Update;
+
       if Check_Invariants then
          Concorde.Empires.Check_Invariants;
          Concorde.Ships.Invariants.Check_Invariants;
@@ -90,6 +93,8 @@ package body Concorde.Updates is
          Concorde.Empires.Check_Invariants;
          Concorde.Ships.Invariants.Check_Invariants;
       end if;
+
+      Concorde.Logging.Finish_Update;
 
       Render_Lock.Unlock;
    end Perform_Update;

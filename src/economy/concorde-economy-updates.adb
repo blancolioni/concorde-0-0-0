@@ -13,6 +13,8 @@ package body Concorde.Economy.Updates is
         (Concorde.Systems.Updates.Update_Market'Access);
       Concorde.Systems.Db.Scan
         (Concorde.Systems.Updates.Execute_Trades'Access);
+      Concorde.Systems.Db.Scan
+        (Concorde.Systems.Updates.Execute_Production'Access);
    end Daily_Update;
 
 end Concorde.Economy.Updates;

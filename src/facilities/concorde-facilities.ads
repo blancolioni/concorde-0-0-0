@@ -46,6 +46,11 @@ package Concorde.Facilities is
      (Facility : Root_Facility_Type'Class)
       return Facility_Capacity;
 
+   function Capacity_Quantity
+     (Facility : Root_Facility_Type'Class)
+      return Concorde.Quantities.Quantity
+   is (Quantities.To_Quantity (Real (Facility.Capacity)));
+
    function Input_Count
      (Facility : Root_Facility_Type'Class)
       return Natural;
@@ -84,6 +89,11 @@ package Concorde.Facilities is
       Index    : Positive)
       return Concorde.Quantities.Quantity
      with Pre => Index <= Facility.Worker_Count;
+
+   function Is_Resource_Generator
+     (Facility : Root_Facility_Type'Class)
+      return Boolean
+   is (Facility.Class = Resource_Generator);
 
    function Has_Output
      (Facility : Root_Facility_Type'Class)

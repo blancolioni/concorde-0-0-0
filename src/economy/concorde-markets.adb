@@ -303,6 +303,7 @@ package body Concorde.Markets is
                     else "; no sale"));
 
                if Traded_Quantity > Zero then
+
                   Ask.Remaining_Quantity :=
                     Ask.Remaining_Quantity - Traded_Quantity;
                   Bid.Remaining_Quantity :=
