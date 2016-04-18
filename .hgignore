@@ -24,3 +24,4 @@ config/voronoi.txt
 empire-log.txt
 concorde.gpr
 log/*
+concorde.log
