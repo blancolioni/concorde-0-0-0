@@ -10,6 +10,8 @@ with Concorde.Systems.Create;
 
 package body Concorde.Galaxy.Create is
 
+   Imperial_Centre : constant Boolean := True;
+
    -------------------
    -- Create_Galaxy --
    -------------------
@@ -38,30 +40,40 @@ package body Concorde.Galaxy.Create is
       Ada.Text_IO.Put ("Minimum distance: ");
       Ada.Float_Text_IO.Put (Float (Min_Distance), 1, 8, 0);
       Ada.Text_IO.New_Line;
+      Ada.Text_IO.Put_Line ("Imperial centre: "
+                            & (if Imperial_Centre then "yes" else "no"));
 
       for I in 1 .. System_Count loop
          declare
             D : Non_Negative_Real := 0.0;
-            X, Y : Real;
+            X, Y : Real := 0.0;
          begin
             Xs (I) := 0.0;
             Ys (I) := 0.0;
-            while D < Min_Distance loop
-               Retries := Retries + 1;
-               D :=  Non_Negative_Real'Last;
-               X := Real (Random (Gen) * 2.0 - 1.0);
-               Y := Real (Random (Gen) * 2.0 - 1.0);
-               for J in 1 .. I - 1 loop
-                  declare
-                     Test_D : constant Real :=
-                                (X - Xs (J)) ** 2 + (Y - Ys (J)) ** 2;
-                  begin
-                     if Test_D < D then
-                        D := Test_D;
-                     end if;
-                  end;
+            if I > 1 or else not Imperial_Centre then
+               while D < Min_Distance loop
+                  Retries := Retries + 1;
+                  D :=  Non_Negative_Real'Last;
+                  X := Real (Random (Gen) * 2.0 - 1.0);
+                  Y := Real (Random (Gen) * 2.0 - 1.0);
+                  for J in 1 .. I - 1 loop
+                     declare
+                        Test_D : constant Real :=
+                                   (X - Xs (J)) ** 2 + (Y - Ys (J)) ** 2;
+                     begin
+                        if J = 1 then
+                           if Test_D / 2.0 < D then
+                              D := Test_D / 2.0;
+                           end if;
+                        else
+                           if Test_D < D then
+                              D := Test_D;
+                           end if;
+                        end if;
+                     end;
+                  end loop;
                end loop;
-            end loop;
+            end if;
 
             Xs (I) := X;
             Ys (I) := Y;
@@ -105,6 +117,53 @@ package body Concorde.Galaxy.Create is
 
       Ada.Text_IO.Put_Line ("created" & System_Count'Img & " systems");
 
+      if Imperial_Centre then
+         declare
+            type Best_Connection is
+               record
+                  DX, DY : Real;
+                  D      : Non_Negative_Real;
+                  Index  : Natural;
+               end record;
+
+            function Direction_Index (DX, DY : Real) return Positive
+            is (if abs DX > 3.0 * abs DY
+                then (if DX < 0.0 then 1 else 5)
+                elsif abs DY > 3.0 * abs DX
+                then (if DY < 0.0 then 3 else 7)
+                elsif DX > 0.0
+                then (if DY > 0.0 then 8 else 2)
+                elsif DY > 0.0 then 6 else 4);
+
+            Best : array (1 .. 8) of Best_Connection :=
+                     (others => (0.0, 0.0, 0.0, 0));
+         begin
+            for J in 2 .. System_Count loop
+               declare
+                  DX : constant Real := Xs (J) - Xs (1);
+                  DY : constant Real := Ys (J) - Ys (1);
+                  Direction : constant Positive := Direction_Index (DX, DY);
+                  Distance  : constant Non_Negative_Real :=
+                                DX ** 2 + DY ** 2;
+               begin
+                  if Best (Direction).Index = 0
+                    or else Best (Direction).D > Distance
+                  then
+                     Best (Direction) := (DX, DY, Distance, J);
+                  end if;
+               end;
+            end loop;
+
+            for J in Best'Range loop
+               Galaxy_Graph.Connect
+                 (1, Best (J).Index, Best (J).D);
+               Galaxy_Graph.Connect
+                 (Best (J).Index, 1, Best (J).D);
+               Total_Connections := Total_Connections + 1;
+            end loop;
+         end;
+      end if;
+
       for I in 1 .. System_Count loop
          declare
             function Sqrt (X : Non_Negative_Real) return Non_Negative_Real
@@ -113,12 +172,20 @@ package body Concorde.Galaxy.Create is
                        Galaxy_Graph.Vertex (I);
             X      : constant Real := System.X;
             Y      : constant Real := System.Y;
-            Ds     : array (1 .. Average_Connections) of Non_Negative_Real :=
-                       (others => Real'Last);
-            To     : array (1 .. Average_Connections) of Natural :=
-                       (others => 0);
+            Max_Connections : constant Natural :=
+                                (if Imperial_Centre
+                                 then Natural'Max (10, Average_Connections)
+                                 else Average_Connections);
+            Ds     : array (1 .. Max_Connections) of Non_Negative_Real :=
+                                (others => Real'Last);
+            To              : array (1 .. Max_Connections) of Natural :=
+                                (others => 0);
             Count  : Natural := Average_Connections;
          begin
+            if I = 1 and then Imperial_Centre then
+               Count := 0;
+            end if;
+
             for J in 1 .. System_Count loop
                exit when Count = 0;
                if I /= J then

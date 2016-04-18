@@ -8,6 +8,8 @@ with Concorde.Empires.Db;
 
 package body Concorde.Empires.Create is
 
+   Imperial_Centre : constant Boolean := True;
+
    ----------------
    -- New_Empire --
    ----------------
@@ -64,13 +66,20 @@ package body Concorde.Empires.Create is
          is
          begin
             System.Set_Owner (Db.Reference (New_Empire));
-            System.Set_Production (System.Production * 4.0);
-            System.Set_Capacity (System.Capacity * 4.0);
             System.Set_Capital (True);
             System.Set_Name (Capital);
 
-            Concorde.Colonies.Configure.Create_Colony_From_Template
-              (System, "initial");
+            if Imperial_Centre and then System.Index = 1 then
+               System.Set_Production (System.Production * 4.0);
+               System.Set_Capacity (System.Capacity * 4.0);
+               Concorde.Colonies.Configure.Create_Colony_From_Template
+                 (System, "imperial_capital");
+            else
+               System.Set_Production (System.Production * 20.0);
+               System.Set_Capacity (System.Capacity * 20.0);
+               Concorde.Colonies.Configure.Create_Colony_From_Template
+                 (System, "initial");
+            end if;
 
             for I in 1 .. 2 loop
                declare
@@ -100,6 +109,10 @@ package body Concorde.Empires.Create is
             Ns : constant Array_Of_Star_Systems :=
                    Neighbours (System);
          begin
+--              if Imperial_Centre and then System.Index = 1 then
+--                 return False;
+--              end if;
+
             if System.Owner /= null then
                return False;
             end if;
@@ -132,6 +145,14 @@ package body Concorde.Empires.Create is
          New_Empire.Current_Systems := 1;
          New_Empire.Default_Ship := new String'(Default_Ship_Design);
          Concorde.Galaxy.Update_System (Start, Choose'Access);
+
+         if False
+           and then Imperial_Centre
+           and then not Concorde.Galaxy.Neighbours (1, Start.Index)
+         then
+            Concorde.Galaxy.Connect (1, Start.Index);
+         end if;
+
       end Create;
 
    begin
