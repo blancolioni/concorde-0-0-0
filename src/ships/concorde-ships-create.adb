@@ -18,6 +18,7 @@ package body Concorde.Ships.Create is
    function New_Ship
      (Owner  : not null access constant
         Concorde.Empires.Root_Empire_Type'Class;
+      Name   : String;
       System : in out Concorde.Systems.Root_Star_System_Type'Class;
       Design : String)
       return Ship_Type
@@ -36,12 +37,17 @@ package body Concorde.Ships.Create is
       begin
          Concorde.Ships.Designs.Create_Ship_From_Design
            (Design, Ship);
-         if Owner.Current_Ships = 0 then
-            Ship.Set_Name (Owner.Name);
+         if Name = "" then
+            if Owner.Current_Ships = 0 then
+               Ship.Set_Name (Owner.Name);
+            else
+               Ship.Set_Name
+                 (Owner.Name & " "
+                  & Concorde.Roman_Images.Roman_Image
+                    (Owner.Current_Ships + 1));
+            end if;
          else
-            Ship.Set_Name
-              (Owner.Name & " "
-               & Concorde.Roman_Images.Roman_Image (Owner.Current_Ships + 1));
+            Ship.Set_Name (Name);
          end if;
          Ship.Owner := Owner;
          Ship.System_Reference := System.Reference;

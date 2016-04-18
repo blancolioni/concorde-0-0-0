@@ -192,6 +192,18 @@ package body Concorde.Modules is
       return Module.Component.Mass (Module.Volume);
    end Mass;
 
+   --------------------
+   -- Maximum_Output --
+   --------------------
+
+   function Maximum_Output
+     (Module : Root_Module_Type'Class)
+      return Non_Negative_Real
+   is
+   begin
+      return Module.Component.Maximum_Output (Module.Volume);
+   end Maximum_Output;
+
    ------------------------
    -- Maximum_Power_Draw --
    ------------------------
@@ -340,5 +352,17 @@ package body Concorde.Modules is
          end if;
       end if;
    end Update_Damage;
+
+   ------------
+   -- Volume --
+   ------------
+
+   function Volume
+     (Module : Root_Module_Type'Class)
+      return Positive
+   is
+   begin
+      return Module.Volume;
+   end Volume;
 
 end Concorde.Modules;

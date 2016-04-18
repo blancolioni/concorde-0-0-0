@@ -1,4 +1,5 @@
 with Concorde.Galaxy;
+with Concorde.Ships.Create;
 with Concorde.Systems;
 
 with Concorde.Colonies.Configure;
@@ -71,6 +72,20 @@ package body Concorde.Empires.Create is
             Concorde.Colonies.Configure.Create_Colony_From_Template
               (System, "initial");
 
+            for I in 1 .. 2 loop
+               declare
+                  Ship : constant Concorde.Ships.Ship_Type :=
+                           Concorde.Ships.Create.New_Ship
+                             (Owner  => System.Owner,
+                              Name   =>
+                                System.Owner.Name
+                              & " Trader" & I'Img,
+                              System => System,
+                              Design => "trader");
+               begin
+                  System.Add_Ship (Ship);
+               end;
+            end loop;
          end Choose;
 
          ------------------

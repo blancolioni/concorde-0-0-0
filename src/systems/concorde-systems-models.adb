@@ -15,6 +15,8 @@ with Concorde.Systems.Db;
 
 with Concorde.People.Pops.Lists;
 
+with Concorde.Ships.Models;
+
 package body Concorde.Systems.Models is
 
    subtype Pop_Column is Integer range 1 .. 3;
@@ -131,6 +133,11 @@ package body Concorde.Systems.Models is
      (Table : Ship_Table)
       return Natural
    is (Natural (Table.System.Ships.Length));
+
+   overriding function Row_Model
+     (Table : Ship_Table;
+      Row   : Positive)
+      return access Lui.Models.Root_Object_Model'Class;
 
    type Root_Star_System_Model is
      new Lui.Models.Root_Object_Model
@@ -329,6 +336,28 @@ package body Concorde.Systems.Models is
          "planets/terrestrial-planet");
       Model.Needs_Render := False;
    end Render;
+
+   overriding function Row_Model
+     (Table : Ship_Table;
+      Row   : Positive)
+      return access Lui.Models.Root_Object_Model'Class
+   is
+      use Concorde.Ships.Lists;
+      Position : Cursor := Table.System.Ships.First;
+   begin
+      for I in 2 .. Row loop
+         Next (Position);
+      end loop;
+
+      declare
+         Ship : constant Concorde.Ships.Ship_Type :=
+                  Element (Position);
+      begin
+         return Concorde.Ships.Models.Create_Ship_Model
+           (Ship);
+      end;
+
+   end Row_Model;
 
    ------------------
    -- System_Model --

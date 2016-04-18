@@ -1,8 +1,14 @@
 private with Memor;
 
+with Lui.Colours;
+
 with Concorde.Objects;
 
 package Concorde.Components is
+
+   type Component_Shape is
+     (Rectangular_Prism, Hexagonal_Prism, Cylinder,
+      Cone, Sphere, Cube, Conical_Frustum);
 
    type Component_Class is
      (Bridge, Flag_Bridge, Crew_Quarters, Engineering,
@@ -26,6 +32,18 @@ package Concorde.Components is
      (Component : Root_Component_Type'Class)
       return Component_Class;
 
+   function Shape
+     (Component : Root_Component_Type'Class)
+      return Component_Shape;
+
+   function Colour
+     (Component : Root_Component_Type'Class)
+      return Lui.Colours.Colour_Type;
+
+   function Throttle_Step
+     (Component : Root_Component_Type'Class)
+      return Unit_Real;
+
    function Explosion_Chance
      (Component    : Root_Component_Type'Class)
       return Unit_Real;
@@ -36,6 +54,11 @@ package Concorde.Components is
       return Non_Negative_Real;
 
    function Maximum_Power_Draw
+     (Component : Root_Component_Type'Class;
+      Volume    : Positive)
+      return Non_Negative_Real;
+
+   function Maximum_Output
      (Component : Root_Component_Type'Class;
       Volume    : Positive)
       return Non_Negative_Real;
@@ -56,15 +79,12 @@ package Concorde.Components is
 
 private
 
-   type Component_Shape is
-     (Rectangular_Prism, Hexagonal_Prism, Cylinder,
-      Cone, Sphere, Cube, Conical_Frustum);
-
    type Root_Component_Type is
      new Concorde.Objects.Root_Named_Object_Type with
       record
          Class                   : Component_Class;
          Shape                   : Component_Shape;
+         Colour                  : Lui.Colours.Colour_Type;
          Density                 : Non_Negative_Real;
          Crew                    : Natural;
          Nominal_Max_Output      : Non_Negative_Real;

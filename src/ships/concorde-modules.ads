@@ -17,6 +17,10 @@ package Concorde.Modules is
      (Module : Root_Module_Type'Class)
       return Size_Type;
 
+   function Volume
+     (Module : Root_Module_Type'Class)
+      return Positive;
+
    function Mass
      (Module : Root_Module_Type'Class)
       return Non_Negative_Real;
@@ -65,6 +69,10 @@ package Concorde.Modules is
       return Non_Negative_Real;
 
    function Maximum_Stored_Energy
+     (Module : Root_Module_Type'Class)
+      return Non_Negative_Real;
+
+   function Maximum_Output
      (Module : Root_Module_Type'Class)
       return Non_Negative_Real;
 

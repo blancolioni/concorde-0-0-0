@@ -1,5 +1,7 @@
 with Tropos.Reader;
 
+with Lui.Colours.Config;
+
 with Concorde.Paths;
 
 with Concorde.Components.Manager;
@@ -33,6 +35,9 @@ package body Concorde.Components.Configure is
                       (Concorde.Objects.Root_Named_Object_Type with
                        Class                   => Class,
                        Shape                   => Shape,
+                       Colour                  =>
+                         Lui.Colours.Config.Configure_Colour
+                           (Config, "colour"),
                        Density                 => Get ("density"),
                        Crew                    => Config.Get ("crew", 1),
                        Nominal_Max_Output      => Get ("nominal_max_output"),

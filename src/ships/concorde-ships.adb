@@ -1,6 +1,5 @@
 with WL.Random;
 
-with Concorde.Components;
 with Concorde.Systems;
 
 with Concorde.Random;
@@ -273,6 +272,39 @@ package body Concorde.Ships is
       return Concorde.Systems.Db.Reference (Ship.Dest_Reference);
    end Destination;
 
+   ----------------
+   -- Empty_Mass --
+   ----------------
+
+   function Empty_Mass
+     (Ship : Root_Ship_Type'Class)
+      return Non_Negative_Real
+   is
+      Result : Non_Negative_Real := 0.0;
+   begin
+      for Mount of Ship.Structure loop
+         Result := Result + Mount.Module.Mass;
+      end loop;
+      return Result;
+   end Empty_Mass;
+
+   ----------------------
+   -- Get_Class_Mounts --
+   ----------------------
+
+   function Get_Class_Mounts
+     (Ship  : Root_Ship_Type'Class;
+      Class : Concorde.Components.Component_Class)
+      return Array_Of_Mounted_Modules
+   is
+      use type Concorde.Components.Component_Class;
+      function Is_Of_Class (Module : Concorde.Modules.Module_Type)
+                            return Boolean
+      is (Module.Component.Class = Class);
+   begin
+      return Ship.Get_Matching_Mounts (Is_Of_Class'Access);
+   end Get_Class_Mounts;
+
    ------------------------
    -- Get_Damaged_Mounts --
    ------------------------
@@ -316,6 +348,31 @@ package body Concorde.Ships is
       end loop;
       return Result (1 .. Count);
    end Get_Effective_Mounts;
+
+   -------------------------
+   -- Get_Matching_Mounts --
+   -------------------------
+
+   function Get_Matching_Mounts
+     (Ship  : Root_Ship_Type'Class;
+      Match : not null access
+        function (Module : Concorde.Modules.Module_Type)
+      return Boolean)
+      return Array_Of_Mounted_Modules
+   is
+      use Concorde.Components;
+      Result : Array_Of_Mounted_Modules
+        (1 .. Natural (Ship.Structure.Last_Index));
+      Count  : Natural := 0;
+   begin
+      for I in 1 .. Ship.Structure.Last_Index loop
+         if Match (Ship.Structure.Element (I).Module) then
+            Count := Count + 1;
+            Result (Count) := Mounted_Module (I);
+         end if;
+      end loop;
+      return Result (1 .. Count);
+   end Get_Matching_Mounts;
 
    ----------------
    -- Get_Module --
@@ -444,6 +501,24 @@ package body Concorde.Ships is
    end Hit;
 
    ---------------
+   -- Hold_Size --
+   ---------------
+
+   function Hold_Size
+     (Ship : Root_Ship_Type'Class)
+      return Non_Negative_Real
+   is
+      Holds  : constant Array_Of_Mounted_Modules :=
+                 Ship.Get_Class_Mounts (Concorde.Components.Hold);
+      Result : Non_Negative_Real := 0.0;
+   begin
+      for Hold of Holds loop
+         Result := Result + Real (Ship.Get_Module (Hold).Volume);
+      end loop;
+      return Result;
+   end Hold_Size;
+
+   ---------------
    -- Long_Name --
    ---------------
 
@@ -452,6 +527,33 @@ package body Concorde.Ships is
       return Ship.Identity & " " & Ship.Name & " ["
         & Concorde.Systems.Db.Reference (Ship.System_Reference).Name & "]";
    end Long_Name;
+
+   --------------------
+   -- Maximum_Thrust --
+   --------------------
+
+   function Maximum_Thrust
+     (Ship : Root_Ship_Type'Class)
+      return Non_Negative_Real
+   is
+      Drives : constant Array_Of_Mounted_Modules :=
+                 Ship.Get_Drive_Mounts;
+      Result : Non_Negative_Real := 0.0;
+   begin
+      for Mount_Index of Drives loop
+         declare
+            Mount : Module_Layout_Record renames
+                      Ship.Structure (Positive (Mount_Index));
+         begin
+            if Mount.Orientation.Axis = Z_Axis
+              and then Mount.Orientation.Forward
+            then
+               Result := Result + Mount.Module.Maximum_Output;
+            end if;
+         end;
+      end loop;
+      return Result;
+   end Maximum_Thrust;
 
    ---------------------
    -- Object_Database --
@@ -599,6 +701,33 @@ package body Concorde.Ships is
       return Ship.Size;
    end Size;
 
+   ------------------------
+   -- Standard_Full_Mass --
+   ------------------------
+
+   function Standard_Full_Mass
+     (Ship : Root_Ship_Type'Class)
+      return Non_Negative_Real
+   is
+      Holds : constant Array_Of_Mounted_Modules :=
+                Ship.Get_Class_Mounts (Concorde.Components.Hold);
+      Tanks : constant Array_Of_Mounted_Modules :=
+                Ship.Get_Class_Mounts (Concorde.Components.Hold);
+      Result : Non_Negative_Real := Ship.Empty_Mass;
+   begin
+      --  assume tanks and holds full of water (1_000 kg / m3)
+      for Hold_Index of Holds loop
+         Result := Result
+           + 1000.0 * 1000.0 * Real (Ship.Get_Module (Hold_Index).Volume);
+      end loop;
+
+      for Tank_Index of Tanks loop
+         Result := Result
+           + 1000.0 * 1000.0 * Real (Ship.Get_Module (Tank_Index).Volume);
+      end loop;
+      return Result;
+   end Standard_Full_Mass;
+
    ------------
    -- System --
    ------------
@@ -610,6 +739,24 @@ package body Concorde.Ships is
    begin
       return Concorde.Systems.Db.Reference (Ship.System_Reference);
    end System;
+
+   ---------------
+   -- Tank_Size --
+   ---------------
+
+   function Tank_Size
+     (Ship : Root_Ship_Type'Class)
+      return Non_Negative_Real
+   is
+      Tanks : constant Array_Of_Mounted_Modules :=
+                Ship.Get_Class_Mounts (Concorde.Components.Tank);
+      Result : Non_Negative_Real := 0.0;
+   begin
+      for Tank of Tanks loop
+         Result := Result + Real (Ship.Get_Module (Tank).Volume);
+      end loop;
+      return Result;
+   end Tank_Size;
 
    -------------------
    -- Update_Damage --

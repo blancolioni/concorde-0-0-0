@@ -187,6 +187,7 @@ package body Concorde.Systems.Updates is
                   Ship : constant Concorde.Ships.Ship_Type :=
                            Concorde.Ships.Create.New_Ship
                              (Owner  => System.Owner,
+                              Name   => "",
                               System => System,
                               Design => System.Owner.Default_Ship_Design);
 

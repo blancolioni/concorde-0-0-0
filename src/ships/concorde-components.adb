@@ -14,6 +14,18 @@ package body Concorde.Components is
       return Component.Class;
    end Class;
 
+   ------------
+   -- Colour --
+   ------------
+
+   function Colour
+     (Component : Root_Component_Type'Class)
+      return Lui.Colours.Colour_Type
+   is
+   begin
+      return Component.Colour;
+   end Colour;
+
    ----------------------
    -- Effective_Damage --
    ----------------------
@@ -55,8 +67,23 @@ package body Concorde.Components is
       return Non_Negative_Real
    is
    begin
-      return Real (Volume) * Component.Density;
+      return Real (Volume) * Component.Density * 1000.0;
    end Mass;
+
+   --------------------
+   -- Maximum_Output --
+   --------------------
+
+   function Maximum_Output
+     (Component : Root_Component_Type'Class;
+      Volume    : Positive)
+      return Non_Negative_Real
+   is
+   begin
+      return Component.Nominal_Max_Output
+        * Non_Negative_Real (Volume)
+        * Component.Output_Size_Power ** Volume;
+   end Maximum_Output;
 
    ------------------------
    -- Maximum_Power_Draw --
@@ -99,5 +126,29 @@ package body Concorde.Components is
    begin
       return Db.Get_Database;
    end Object_Database;
+
+   -----------
+   -- Shape --
+   -----------
+
+   function Shape
+     (Component : Root_Component_Type'Class)
+      return Component_Shape
+   is
+   begin
+      return Component.Shape;
+   end Shape;
+
+   -------------------
+   -- Throttle_Step --
+   -------------------
+
+   function Throttle_Step
+     (Component : Root_Component_Type'Class)
+      return Unit_Real
+   is
+   begin
+      return Component.Throttle_Step;
+   end Throttle_Step;
 
 end Concorde.Components;

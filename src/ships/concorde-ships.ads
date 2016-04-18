@@ -4,9 +4,11 @@ private with Memor;
 limited with Concorde.Empires;
 limited with Concorde.Systems;
 
---  with Concorde.Components;
+with Concorde.Components;
 with Concorde.Modules;
 with Concorde.Objects;
+
+private with Newton.Flight;
 
 package Concorde.Ships is
 
@@ -74,11 +76,10 @@ package Concorde.Ships is
      (Ship   : in out Root_Ship_Type'Class;
       Points : Positive);
 
-   function Acceleration
+   function Maximum_Thrust
      (Ship : Root_Ship_Type'Class)
-      return Non_Negative_Real
-   is (5.0);
-   --  m/s/s
+      return Non_Negative_Real;
+   --  Newtons
 
    function Turn
      (Ship : Root_Ship_Type'Class)
@@ -137,6 +138,23 @@ package Concorde.Ships is
    type Array_Of_Mounted_Modules is
      array (Positive range <>) of Mounted_Module;
 
+   function Get_Class_Mounts
+     (Ship  : Root_Ship_Type'Class;
+      Class : Concorde.Components.Component_Class)
+      return Array_Of_Mounted_Modules;
+
+   function Get_Matching_Mounts
+     (Ship  : Root_Ship_Type'Class;
+      Match : not null access
+        function (Module : Concorde.Modules.Module_Type)
+      return Boolean)
+      return Array_Of_Mounted_Modules;
+
+   function Get_Drive_Mounts
+     (Ship : Root_Ship_Type'Class)
+      return Array_Of_Mounted_Modules
+   is (Ship.Get_Class_Mounts (Concorde.Components.Drive));
+
    function Get_Weapon_Mounts
      (Ship : Root_Ship_Type'Class)
       return Array_Of_Mounted_Modules;
@@ -149,7 +167,23 @@ package Concorde.Ships is
      (Ship : Root_Ship_Type'Class)
       return Array_Of_Mounted_Modules;
 
+   function Empty_Mass
+     (Ship : Root_Ship_Type'Class)
+      return Non_Negative_Real;
+
    function Current_Mass
+     (Ship : Root_Ship_Type'Class)
+      return Non_Negative_Real;
+
+   function Standard_Full_Mass
+     (Ship : Root_Ship_Type'Class)
+      return Non_Negative_Real;
+
+   function Tank_Size
+     (Ship : Root_Ship_Type'Class)
+      return Non_Negative_Real;
+
+   function Hold_Size
      (Ship : Root_Ship_Type'Class)
       return Non_Negative_Real;
 
@@ -187,9 +221,12 @@ private
          Alive                 : Boolean;
          Structure             : Module_Vectors.Vector;
          Size                  : Size_Type;
-         Empty_Mass            : Non_Negative_Real;
+--         Empty_Mass            : Non_Negative_Real;
          Current_Damage        : Unit_Real := 0.0;
          Current_Shields       : Unit_Real := 0.0;
+         Location              : Newton.Flight.Vector_3;
+         Velocity              : Newton.Flight.Vector_3;
+         Orientation           : Newton.Flight.Matrix_3;
       end record;
 
    package Ship_Vectors is
