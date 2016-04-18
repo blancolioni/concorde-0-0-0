@@ -181,10 +181,14 @@ package body Concorde.Colonies.Configure is
                  (Installation : in out
                     Concorde.Installations.Root_Installation_Type'Class)
                is
+                  Quantity : constant Concorde.Quantities.Quantity :=
+                               Concorde.Quantities.To_Quantity
+                                 (Real (Pop.Size) * 30.0);
+                  Value    : constant Concorde.Money.Money_Type :=
+                               Concorde.Money.Total
+                                 (Need.Base_Price, Quantity);
                begin
-                  Installation.Add_Quantity
-                    (Need,
-                     Concorde.Quantities.To_Quantity (Real (Pop.Size) * 30.0));
+                  Installation.Add_Quantity (Need, Quantity, Value);
                end Add_Hub_Stock;
 
             begin

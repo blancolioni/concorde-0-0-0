@@ -32,10 +32,16 @@ package Concorde.Agents is
       Item  : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity;
 
+   overriding function Get_Value
+     (Agent : Root_Agent_Type;
+      Item  : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Money_Type;
+
    overriding procedure Set_Quantity
      (Agent    : in out Root_Agent_Type;
       Item     : Concorde.Commodities.Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity);
+      Quantity : Concorde.Quantities.Quantity;
+      Value    : Concorde.Money.Money_Type);
 
    overriding procedure Execute_Trade
      (Agent     : Root_Agent_Type;

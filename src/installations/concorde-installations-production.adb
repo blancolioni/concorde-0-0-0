@@ -1,4 +1,4 @@
---  with Concorde.Money;
+with Concorde.Money;
 with Concorde.Quantities;
 
 with Concorde.Commodities;
@@ -17,25 +17,24 @@ package body Concorde.Installations.Production is
       use Concorde.Commodities;
       Facility : constant Concorde.Facilities.Facility_Type :=
                    Installation.Facility;
+      Production_Cost : Concorde.Money.Money_Type :=
+                          Money.Zero;
    begin
-
-      Installation.Log_Production
-        ("Executing production");
 
       if Facility.Has_Output
         and then Facility.Output.Is_Set (Virtual)
       then
-         Installation.Set_Quantity (Facility.Output, Quantities.Zero);
+         Installation.Set_Quantity
+           (Facility.Output, Quantities.Zero, Money.Zero);
       end if;
 
       declare
---           use Concorde.Money;
+         use Concorde.Money;
          use Concorde.Quantities;
          Raw_Capacity       : constant Quantity :=
                                 Facility.Capacity_Quantity;
          Throughput         : Unit_Real := 1.0;
          Effective_Capacity : Quantity := Raw_Capacity;
---           Production_Cost    : Money_Type := Zero;
       begin
          for I in 1 .. Facility.Worker_Count loop
             declare
@@ -45,10 +44,10 @@ package body Concorde.Installations.Production is
                              Installation.Get_Quantity (Commodity);
                Required  : constant Quantity :=
                              Facility.Worker_Quantity (I);
---                 Cost      : constant Money_Type :=
---                               Conflict.Commodities.Value
---                                 (Installation.Reference, Commodity);
             begin
+               Production_Cost :=
+                 Production_Cost + Installation.Get_Value (Commodity);
+
                if Available < Required then
                   Throughput :=
                     Unit_Real'Min
@@ -119,6 +118,10 @@ package body Concorde.Installations.Production is
                                 Facility.Input_Quantity (Input_Index)
                                 * Effective_Capacity;
                begin
+                  Production_Cost := Production_Cost
+                    + Money.Total
+                    (Installation.Get_Average_Price (Commodity),
+                     Required);
                   Installation.Remove_Quantity (Commodity, Required);
                end;
             end loop;
@@ -128,28 +131,38 @@ package body Concorde.Installations.Production is
                  ("produces "
                   & Image (Effective_Capacity)
                   & " "
-                  & Facility.Output.Name);
+                  & Facility.Output.Name
+                  & " for "
+                  & Image (Production_Cost));
 
                Installation.Add_Quantity
                  (Facility.Output,
-                  Effective_Capacity);
+                  Effective_Capacity,
+                  Production_Cost);
 
             elsif Facility.Is_Resource_Generator then
 
-               Effective_Capacity :=
-                 Scale (Effective_Capacity, System.Resource_Accessibility);
-               Effective_Capacity :=
-                 Scale (Effective_Capacity, System.Resource_Concentration);
+               declare
+                  Factor : constant Unit_Real :=
+                             (System.Resource_Accessibility
+                              + System.Resource_Concentration)
+                             / 2.0;
+               begin
+                  Effective_Capacity :=
+                    Scale (Effective_Capacity, Factor);
+               end;
 
                Installation.Log_Production
                  ("generates "
                   & Image (Effective_Capacity)
                   & " "
-                  & System.Resource.Name);
+                  & System.Resource.Name
+                  & " for "
+                  & Image (Production_Cost));
 
                Installation.Add_Quantity
                  (System.Resource,
-                  Effective_Capacity);
+                  Effective_Capacity, Production_Cost);
 
             end if;
          end if;

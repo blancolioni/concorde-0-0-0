@@ -281,12 +281,12 @@ package body Concorde.Agents is
                    Root_Agent_Type'Class (Object);
       begin
          case Offer is
-         when Concorde.Trades.Buy =>
-            Agent.Add_Quantity (Commodity, Quantity);
-            Agent.Remove_Cash (Cost);
-         when Concorde.Trades.Sell =>
-            Agent.Remove_Quantity (Commodity, Quantity);
-            Agent.Add_Cash (Cost);
+            when Concorde.Trades.Buy =>
+               Agent.Add_Quantity (Commodity, Quantity, Cost);
+               Agent.Remove_Cash (Cost);
+            when Concorde.Trades.Sell =>
+               Agent.Remove_Quantity (Commodity, Quantity, Cost);
+               Agent.Add_Cash (Cost);
          end case;
       end Update;
 
@@ -329,6 +329,19 @@ package body Concorde.Agents is
    begin
       return Agent.Stock.Get_Quantity (Item);
    end Get_Quantity;
+
+   ---------------
+   -- Get_Value --
+   ---------------
+
+   overriding function Get_Value
+     (Agent : Root_Agent_Type;
+      Item  : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Money_Type
+   is
+   begin
+      return Agent.Stock.Get_Value (Item);
+   end Get_Value;
 
    --------------
    -- Location --
@@ -457,10 +470,11 @@ package body Concorde.Agents is
    overriding procedure Set_Quantity
      (Agent    : in out Root_Agent_Type;
       Item     : Concorde.Commodities.Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity)
+      Quantity : Concorde.Quantities.Quantity;
+      Value    : Concorde.Money.Money_Type)
    is
    begin
-      Agent.Stock.Set_Quantity (Item, Quantity);
+      Agent.Stock.Set_Quantity (Item, Quantity, Value);
    end Set_Quantity;
 
 end Concorde.Agents;

@@ -9,11 +9,17 @@ package body Concorde.Commodities is
    procedure Add_Quantity
      (Stock    : in out Stock_Interface'Class;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity)
+      Quantity : Concorde.Quantities.Quantity;
+      Value    : Concorde.Money.Money_Type)
    is
       use type Concorde.Quantities.Quantity;
+      use type Concorde.Money.Money_Type;
+
    begin
-      Stock.Set_Quantity (Item, Stock.Get_Quantity (Item) + Quantity);
+      Stock.Set_Quantity
+        (Item,
+         Stock.Get_Quantity (Item) + Quantity,
+         Stock.Get_Value (Item) + Value);
    end Add_Quantity;
 
    ----------------
@@ -170,11 +176,36 @@ package body Concorde.Commodities is
    procedure Remove_Quantity
      (Stock    : in out Stock_Interface'Class;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity)
+      Quantity : Concorde.Quantities.Quantity;
+      Earn     : Concorde.Money.Money_Type)
    is
       use type Concorde.Quantities.Quantity;
+      use type Concorde.Money.Money_Type;
    begin
-      Stock.Set_Quantity (Item, Stock.Get_Quantity (Item) - Quantity);
+      Stock.Set_Quantity
+        (Item,
+         Stock.Get_Quantity (Item) - Quantity,
+         Money.Max (Stock.Get_Value (Item) - Earn, Money.Zero));
+   end Remove_Quantity;
+
+   ---------------------
+   -- Remove_Quantity --
+   ---------------------
+
+   procedure Remove_Quantity
+     (Stock    : in out Stock_Interface'Class;
+      Item     : Commodity_Type;
+      Quantity : Concorde.Quantities.Quantity)
+   is
+      use type Concorde.Money.Money_Type;
+      use type Concorde.Quantities.Quantity;
+      New_Quantity : constant Concorde.Quantities.Quantity :=
+                       Stock.Get_Quantity (Item) - Quantity;
+      New_Value : constant Money.Money_Type :=
+                    Money.Total (Stock.Get_Average_Price (Item), New_Quantity);
+   begin
+      Stock.Set_Quantity
+        (Item, New_Quantity, New_Value);
    end Remove_Quantity;
 
    ------------------
@@ -184,10 +215,11 @@ package body Concorde.Commodities is
    overriding procedure Set_Quantity
      (Stock    : in out Root_Stock_Type;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity)
+      Quantity : Concorde.Quantities.Quantity;
+      Value    : Concorde.Money.Money_Type)
    is
    begin
-      Stock.Vector.Replace_Element (Item.Reference, Quantity);
+      Stock.Vector.Replace_Element (Item.Reference, (Quantity, Value));
    end Set_Quantity;
 
    --------------------
@@ -216,5 +248,32 @@ package body Concorde.Commodities is
       Db.Scan (Update'Access);
       return Result;
    end Total_Quantity;
+
+   -----------------
+   -- Total_Value --
+   -----------------
+
+   function Total_Value
+     (Stock    : in out Stock_Interface'Class)
+      return Concorde.Money.Money_Type
+   is
+      Result : Money.Money_Type := Money.Zero;
+
+      procedure Update (Commodity : Commodity_Type);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update (Commodity : Commodity_Type) is
+         use type Concorde.Money.Money_Type;
+      begin
+         Result := Result + Stock.Get_Value (Commodity);
+      end Update;
+
+   begin
+      Db.Scan (Update'Access);
+      return Result;
+   end Total_Value;
 
 end Concorde.Commodities;

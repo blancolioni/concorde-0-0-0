@@ -63,16 +63,37 @@ package Concorde.Commodities is
       return Concorde.Quantities.Quantity
       is abstract;
 
+   function Get_Value
+     (Stock : Stock_Interface;
+      Item  : Commodity_Type)
+      return Concorde.Money.Money_Type
+      is abstract;
+
+   function Get_Average_Price
+     (Stock : Stock_Interface'Class;
+      Item  : Commodity_Type)
+      return Concorde.Money.Price_Type
+   is (Concorde.Money.Price
+       (Stock.Get_Value (Item), Stock.Get_Quantity (Item)));
+
    procedure Set_Quantity
      (Stock    : in out Stock_Interface;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity)
+      Quantity : Concorde.Quantities.Quantity;
+      Value    : Concorde.Money.Money_Type)
    is abstract;
 
    procedure Add_Quantity
      (Stock    : in out Stock_Interface'Class;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity);
+      Quantity : Concorde.Quantities.Quantity;
+      Value    : Concorde.Money.Money_Type);
+
+   procedure Remove_Quantity
+     (Stock    : in out Stock_Interface'Class;
+      Item     : Commodity_Type;
+      Quantity : Concorde.Quantities.Quantity;
+      Earn     : Concorde.Money.Money_Type);
 
    procedure Remove_Quantity
      (Stock    : in out Stock_Interface'Class;
@@ -82,6 +103,10 @@ package Concorde.Commodities is
    function Total_Quantity
      (Stock    : in out Stock_Interface'Class)
       return Concorde.Quantities.Quantity;
+
+   function Total_Value
+     (Stock    : in out Stock_Interface'Class)
+      return Concorde.Money.Money_Type;
 
    type Root_Stock_Type is new Stock_Interface with private;
 
@@ -107,10 +132,16 @@ private
       return String
    is (Item.Tag.all);
 
+   type Stock_Entry is
+      record
+         Quantity : Concorde.Quantities.Quantity;
+         Value    : Concorde.Money.Money_Type;
+      end record;
+
    package Stock_Vectors is
-     new Memor.Element_Vectors (Concorde.Quantities.Quantity,
-                                Concorde.Quantities.Zero,
-                                Concorde.Quantities."=");
+     new Memor.Element_Vectors
+       (Stock_Entry,
+        (Concorde.Quantities.Zero, Concorde.Money.Zero));
 
    type Root_Stock_Type is new Stock_Interface with
       record
@@ -121,11 +152,18 @@ private
      (Stock : Root_Stock_Type;
       Item  : Commodity_Type)
       return Concorde.Quantities.Quantity
-   is (Stock.Vector.Element (Item.Reference));
+   is (Stock.Vector.Element (Item.Reference).Quantity);
+
+   overriding function Get_Value
+     (Stock : Root_Stock_Type;
+      Item  : Commodity_Type)
+      return Concorde.Money.Money_Type
+   is (Stock.Vector.Element (Item.Reference).Value);
 
    overriding procedure Set_Quantity
      (Stock    : in out Root_Stock_Type;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity);
+      Quantity : Concorde.Quantities.Quantity;
+      Value    : Concorde.Money.Money_Type);
 
 end Concorde.Commodities;

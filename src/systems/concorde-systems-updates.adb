@@ -14,6 +14,8 @@ with Concorde.People.Pops.Db;
 
 with Concorde.Players;
 
+with Concorde.Money;
+
 package body Concorde.Systems.Updates is
 
    Base_Loyalty_Change : constant := 0.002;
@@ -82,7 +84,7 @@ package body Concorde.Systems.Updates is
                    Concorde.Agents.Root_Agent_Type'Class (Rec);
       begin
          for Commodity of Virtual loop
-            Agent.Set_Quantity (Commodity, Quantities.Zero);
+            Agent.Set_Quantity (Commodity, Quantities.Zero, Money.Zero);
          end loop;
       end Clear_Virtual_Stock;
 
