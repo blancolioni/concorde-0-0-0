@@ -153,6 +153,11 @@ package body Concorde.Systems.Models is
      (Model    : in out Root_Star_System_Model;
       Renderer : in out Lui.Rendering.Root_Renderer'Class);
 
+   overriding function Get_Drag_Behaviour
+     (Model : Root_Star_System_Model)
+      return Lui.Models.Drag_Behaviour
+   is (Lui.Models.Translation);
+
    type Star_System_Model_Access is
      access all Root_Star_System_Model'Class;
 
@@ -312,9 +317,15 @@ package body Concorde.Systems.Models is
      (Model    : in out Root_Star_System_Model;
       Renderer : in out Lui.Rendering.Root_Renderer'Class)
    is
+      Planet_Width  : constant Natural :=
+                        Natural (100.0 / Model.Eye_Z);
+      Planet_Height : constant Natural :=
+                        Natural (100.0 / Model.Eye_Z);
    begin
       Renderer.Draw_Image
-        (Model.Width / 2 - 50, Model.Height / 2 - 50, 100, 100,
+        (Model.Width / 2 - Planet_Width / 2,
+         Model.Height / 2 - Planet_Width / 2,
+         Planet_Width, Planet_Height,
          "planets/terrestrial-planet");
       Model.Needs_Render := False;
    end Render;
