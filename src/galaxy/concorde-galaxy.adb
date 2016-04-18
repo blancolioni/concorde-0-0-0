@@ -96,6 +96,18 @@ package body Concorde.Galaxy is
       Clear_Battles;
    end Complete_Battles;
 
+   -------------
+   -- Connect --
+   -------------
+
+   procedure Connect
+     (System_1, System_2 : Positive)
+   is
+   begin
+      Galaxy_Graph.Connect (System_1, System_2, 1.0);
+      Galaxy_Graph.Connect (System_2, System_1, 1.0);
+   end Connect;
+
    -----------------
    -- Find_System --
    -----------------
@@ -349,7 +361,7 @@ package body Concorde.Galaxy is
 
    is
       use Concorde.Systems;
-      Result : Array_Of_Star_Systems (1 .. 20);
+      Result : Array_Of_Star_Systems (1 .. 40);
       Count  : Natural := 0;
 
       procedure Add_System
@@ -387,6 +399,18 @@ package body Concorde.Galaxy is
    is
    begin
       return Galaxy_Graph.Connected (System_1.Index, System_2.Index);
+   end Neighbours;
+
+   ----------------
+   -- Neighbours --
+   ----------------
+
+   function Neighbours
+     (System_1, System_2 : Positive)
+      return Boolean
+   is
+   begin
+      return Galaxy_Graph.Connected (System_1, System_2);
    end Neighbours;
 
    ------------------------
