@@ -318,7 +318,7 @@ refinery = { class = Resource_Generator
              power = 10
              workers = { tech = 5 unskilled = 15 }
              modules = { industrial = 5 habitation = 5 }
-             capacity = 10000
+             capacity = 100000
              metal = true
              fuel = true
            }
@@ -327,7 +327,7 @@ mine = { class = Resource_Generator
          power = 5
          workers = { tech = 1 unskilled = 19 }
          modules = { industrial = 6 habitation = 4 }
-         capacity = 10000
+         capacity = 100000
          mineral = true
          fissile = true
        }
@@ -336,7 +336,7 @@ plant = { class = Resource_Generator
           power = 10
           workers = { tech = 10 unskilled = 10 }
           modules = { industrial = 7 habitation = 3 }
-          capacity = 10000
+          capacity = 100000
           gas = true
         }
 pump = { class = Resource_Generator
@@ -353,7 +353,7 @@ pump = { class = Resource_Generator
                             2 = 1
                           }
                   }
-        capacity = 10000
+        capacity = 100000
         liquid = true
        }
 hospital = { class = Service_Facility

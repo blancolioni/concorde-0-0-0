@@ -20,7 +20,7 @@ package Concorde.Facilities is
       Entertainment,
       Education);
 
-   type Facility_Capacity is range 0 .. 99_999;
+   type Facility_Capacity is range 0 .. 9_999_999;
 
    type Root_Facility_Type is
      new Concorde.Objects.Root_Named_Object_Type with private;
