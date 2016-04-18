@@ -9,8 +9,19 @@
       aft = -5
       }
    module = {
-      name = "Engine 1"
+      name = "Main Engine"
       component = basic_chemical_drive
+      length = 3
+      width = 3
+      height = 3
+      left = -1
+      low = -1
+      aft = -8
+      orientation = { 0 0 1 }
+      }
+   module = {
+      name = "Tank A"
+      component = tank
       length = 5
       width = 1
       height = 1
@@ -21,8 +32,8 @@
       }
 
    module = {
-      name = "Engine 2"
-      component = basic_chemical_drive
+      name = "Tank B"
+      component = tank
       length = 5
       width = 1
       height = 1
