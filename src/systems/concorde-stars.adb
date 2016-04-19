@@ -78,4 +78,16 @@ package body Concorde.Stars is
         & Character'Val (Star.Subclass + Character'Pos ('0'));
    end Stellar_Class;
 
+   -------------------
+   -- Stellar_Class --
+   -------------------
+
+   function Stellar_Class
+     (Star : Root_Star_Type'Class)
+      return Stellar_Class_Type
+   is
+   begin
+      return Star.Class;
+   end Stellar_Class;
+
 end Concorde.Stars;

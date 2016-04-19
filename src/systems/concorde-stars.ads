@@ -23,6 +23,10 @@ package Concorde.Stars is
      (Star : Root_Star_Type'Class)
       return String;
 
+   function Stellar_Class
+     (Star : Root_Star_Type'Class)
+      return Stellar_Class_Type;
+
    function Solar_Masses
      (Star : Root_Star_Type'Class)
       return Non_Negative_Real;
