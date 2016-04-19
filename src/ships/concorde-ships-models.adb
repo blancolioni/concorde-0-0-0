@@ -8,6 +8,8 @@ with Lui.Tables;
 
 with Lui.Rendering;
 
+with Concorde.Elementary_Functions;
+
 with Concorde.Components;
 
 with Concorde.Ships.Flight;
@@ -814,6 +816,7 @@ package body Concorde.Ships.Models is
          "g");
 
       declare
+         use Concorde.Elementary_Functions;
          Acceleration  : constant Non_Negative_Real :=
                            Ship.Maximum_Thrust
                              / Ship.Standard_Full_Mass;
@@ -833,7 +836,17 @@ package body Concorde.Ships.Models is
                                  384_400_000.0;
          Earth_Mars_Min_Distance : constant Real := 5.6E10;
          Moon_Coast_Distance     : constant Real :=
-                                  Earth_Moon_Distance - Powered_Range * 2.0;
+                                     Real'Max
+                                       (0.0,
+                                        Earth_Moon_Distance
+                                        - Powered_Range * 2.0);
+         Moon_Accel_Distance     : constant Non_Negative_Real :=
+                                     (if Powered_Range < Earth_Moon_Distance
+                                      then Powered_Range / 2.0
+                                      else Earth_Moon_Distance / 2.0);
+         Moon_Accel_Time         : constant Non_Negative_Real :=
+                                     Sqrt (2.0 * Moon_Accel_Distance
+                                           / Acceleration);
          Mars_Coast_Distance     : constant Real :=
                                      Earth_Mars_Min_Distance
                                        - Powered_Range * 2.0;
@@ -851,7 +864,7 @@ package body Concorde.Ships.Models is
          if Coast_Velocity > 0.0 then
             Model.Add_Property
               ("Earth-Moon journey",
-               (Moon_Coast_Time + Powered_Time) / 3600.0, "hours");
+               (Moon_Coast_Time + 2.0 * Moon_Accel_Time) / 3600.0, "hours");
             Model.Add_Property
               ("Quickest Earth-Mars",
                (Mars_Coast_Time + Powered_Time) / 3600.0 / 24.0, "days");
