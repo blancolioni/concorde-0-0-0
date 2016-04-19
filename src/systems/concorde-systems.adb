@@ -27,6 +27,22 @@ package body Concorde.Systems is
       System.Installations.Append (Installation);
    end Add_Installation;
 
+   ----------------
+   -- Add_Object --
+   ----------------
+
+   procedure Add_Object
+     (System   : in out Root_Star_System_Type'Class;
+      Object   : not null access Star_System_Object_Interface'Class;
+      Primary  : access Star_System_Object_Interface'Class;
+      Orbit    : Non_Negative_Real;
+      Position : Concorde.Geometry.Radians)
+   is
+   begin
+      System.Objects.Append
+        ((Object, Primary, Orbit, Position));
+   end Add_Object;
+
    -------------
    -- Add_Pop --
    -------------
@@ -292,6 +308,18 @@ package body Concorde.Systems is
    begin
       return System.Loyalty;
    end Loyalty;
+
+   -----------------
+   -- Main_Object --
+   -----------------
+
+   function Main_Object
+     (System : Root_Star_System_Type'Class)
+      return access Star_System_Object_Interface'Class
+   is
+   begin
+      return System.Objects.First_Element.Object;
+   end Main_Object;
 
    ---------------------
    -- Object_Database --

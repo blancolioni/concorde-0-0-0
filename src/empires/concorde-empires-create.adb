@@ -1,5 +1,6 @@
 with Concorde.Galaxy;
 with Concorde.Ships.Create;
+with Concorde.Stars;
 with Concorde.Systems;
 
 with Concorde.Colonies.Configure;
@@ -126,7 +127,13 @@ package body Concorde.Empires.Create is
                   return False;
                end if;
             end loop;
-            return True;
+
+            case Concorde.Stars.Star_Type (System.Main_Object).Stellar_Class is
+               when Concorde.Stars.G =>
+                  return True;
+               when others =>
+                  return False;
+            end case;
          end OK_For_Start;
 
          Start      : constant Concorde.Systems.Star_System_Type :=

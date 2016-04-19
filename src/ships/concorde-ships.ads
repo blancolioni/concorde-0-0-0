@@ -221,7 +221,6 @@ private
          Alive                 : Boolean;
          Structure             : Module_Vectors.Vector;
          Size                  : Size_Type;
---         Empty_Mass            : Non_Negative_Real;
          Current_Damage        : Unit_Real := 0.0;
          Current_Shields       : Unit_Real := 0.0;
          Location              : Newton.Flight.Vector_3;

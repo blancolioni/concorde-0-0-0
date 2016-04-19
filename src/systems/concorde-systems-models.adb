@@ -13,6 +13,8 @@ with Concorde.Empires;
 with Concorde.Commodities.Db;
 with Concorde.Systems.Db;
 
+with Concorde.Stars;
+
 with Concorde.People.Pops.Lists;
 
 with Concorde.Ships.Models;
@@ -443,6 +445,15 @@ package body Concorde.Systems.Models is
             Result.Add_Property
               ("Population",
                Lui.Approximate_Image (Total_Pop));
+         end;
+
+         declare
+            Star : constant Concorde.Stars.Star_Type :=
+                     Concorde.Stars.Star_Type (System.Main_Object);
+         begin
+            Result.Add_Property ("Primary", Star.Stellar_Class);
+            Result.Add_Property ("Solar masses",
+                                 Lui.Approximate_Image (Star.Solar_Masses));
          end;
 
          Result.Add_Property ("Resource", System.Deposit.Resource.Name);
