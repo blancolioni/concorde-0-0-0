@@ -1,8 +1,11 @@
 private with Ada.Containers.Doubly_Linked_Lists;
 private with Memor;
 
+with Lui.Colours;
+
 limited with Concorde.Empires;
 
+with Concorde.Geometry;
 with Concorde.Quantities;
 
 with Concorde.Dates;
@@ -23,6 +26,20 @@ private with Concorde.Installations.Lists;
 
 package Concorde.Systems is
 
+   type Star_System_Object_Interface is limited interface;
+
+   function Mass (Object : Star_System_Object_Interface)
+                  return Non_Negative_Real
+                  is abstract;
+
+   function Radius (Object : Star_System_Object_Interface)
+                    return Non_Negative_Real
+                    is abstract;
+
+   function Colour (Object : Star_System_Object_Interface)
+                    return Lui.Colours.Colour_Type
+                    is abstract;
+
    type Root_Star_System_Type is
      new Concorde.Objects.Root_Named_Object_Type
      and Concorde.Agents.Agent_Location_Interface
@@ -31,6 +48,17 @@ package Concorde.Systems is
    function Index (System : Root_Star_System_Type'Class) return Positive;
    function X (System : Root_Star_System_Type'Class) return Real;
    function Y (System : Root_Star_System_Type'Class) return Real;
+
+   procedure Add_Object
+     (System   : in out Root_Star_System_Type'Class;
+      Object   : not null access Star_System_Object_Interface'Class;
+      Primary  : access Star_System_Object_Interface'Class;
+      Orbit    : Non_Negative_Real;
+      Position : Concorde.Geometry.Radians);
+
+   function Main_Object
+     (System : Root_Star_System_Type'Class)
+      return access Star_System_Object_Interface'Class;
 
    function Owner
      (System : Root_Star_System_Type'Class)
@@ -192,6 +220,17 @@ private
          Original_Size : Concorde.Quantities.Quantity;
       end record;
 
+   type System_Object_Record is
+      record
+         Object  : access Star_System_Object_Interface'Class;
+         Primary : access Star_System_Object_Interface'Class;
+         Orbit   : Non_Negative_Real;
+         Start   : Concorde.Geometry.Radians;
+      end record;
+
+   package System_Object_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (System_Object_Record);
+
    type Root_Star_System_Type is
      new Concorde.Objects.Root_Named_Object_Type
      and Concorde.Agents.Agent_Location_Interface with
@@ -201,6 +240,7 @@ private
          Production     : Non_Negative_Real;
          Capacity       : Non_Negative_Real;
          Progress       : Non_Negative_Real := 0.0;
+         Objects        : System_Object_Lists.List;
          Ships          : Concorde.Ships.Lists.List;
          Arriving       : Concorde.Ships.Lists.List;
          Departing      : Concorde.Ships.Lists.List;

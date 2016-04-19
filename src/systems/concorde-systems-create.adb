@@ -3,10 +3,13 @@ with WL.Random;
 with Concorde.Random;
 
 with Concorde.Commodities;
+with Concorde.Stars.Create;
 
 with Concorde.Systems.Db;
 
 package body Concorde.Systems.Create is
+
+   function Random_Star_Mass return Non_Negative_Real;
 
    ----------------
    -- New_System --
@@ -48,6 +51,18 @@ package body Concorde.Systems.Create is
            new System_Influence_Boundary'(Boundary);
 
          declare
+            Main_Star : constant Concorde.Stars.Star_Type :=
+                          Concorde.Stars.Create.New_Main_Sequence_Star
+                            (Name, Random_Star_Mass);
+         begin
+            System.Add_Object
+              (Object   => Main_Star,
+               Primary  => null,
+               Orbit    => 0.0,
+               Position => Concorde.Geometry.Degrees_To_Radians (0.0));
+         end;
+
+         declare
             Deposit_Size : constant Concorde.Quantities.Quantity :=
                              Concorde.Quantities.Around
                                (Concorde.Quantities.To_Quantity (1.0E6));
@@ -69,5 +84,30 @@ package body Concorde.Systems.Create is
    begin
       return Concorde.Systems.Db.Create (Create'Access);
    end New_System;
+
+   ----------------------
+   -- Random_Star_Mass --
+   ----------------------
+
+   function Random_Star_Mass return Non_Negative_Real is
+      Seed : constant Unit_Real := Concorde.Random.Unit_Random;
+      Solar_Mass_Count : Real;
+   begin
+      if Seed <= 0.99 then
+         Solar_Mass_Count :=
+           0.1 + 6.0 * Seed - 15.0 * Seed ** 2
+             + 11.0 * Seed ** 3;
+      else
+         declare
+            X : constant Real := (Seed - 0.99) * 1.0E4;
+            A : constant Real := 0.110833;
+            B : constant Real := -14.0358;
+            C : constant Real := 445.25;
+         begin
+            Solar_Mass_Count := A * X ** 2 + B * X + C;
+         end;
+      end if;
+      return Solar_Mass_Count;
+   end Random_Star_Mass;
 
 end Concorde.Systems.Create;

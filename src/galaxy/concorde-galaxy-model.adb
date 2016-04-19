@@ -1,5 +1,3 @@
-with Ada.Calendar;
-
 with Memor.Element_Vectors;
 
 with Lui.Colours;
@@ -27,8 +25,6 @@ with Concorde.Updates;
 with Concorde.Options;
 
 package body Concorde.Galaxy.Model is
-
-   System_Radius : constant := 5;
 
    function Ship_Count_Image
      (Count : Natural)
@@ -87,20 +83,20 @@ package body Concorde.Galaxy.Model is
 
    type Rendered_System is
       record
-         X, Y : Integer;
+         X, Y   : Integer;
+         Radius : Positive;
+         Colour : Lui.Colours.Colour_Type;
       end record;
 
    package Rendered_System_Vectors is
-     new Memor.Element_Vectors (Rendered_System, (0, 0));
+     new Memor.Element_Vectors
+       (Rendered_System, (0, 0, 1, Lui.Colours.Black));
 
    type Root_Galaxy_Model is
      new Lui.Models.Root_Object_Model
      and Battle_Manager_Interface
      and Concorde.Watchers.Watcher_Interface with
       record
-         Frames             : Natural := 0;
-         Start              : Ada.Calendar.Time;
-         FPS                : Real;
          Show_Capital_Names : Boolean := True;
          Show_System_Names  : Boolean := False;
          Rendered_Systems   : Rendered_System_Vectors.Vector;
@@ -156,10 +152,11 @@ package body Concorde.Galaxy.Model is
       System   : Concorde.Systems.Star_System_Type);
 
    procedure Draw_Ships
-     (Model    : in out Root_Galaxy_Model'Class;
-      Renderer : in out Lui.Rendering.Root_Renderer'Class;
-      System   : Concorde.Systems.Star_System_Type;
-      Ships    : Concorde.Ships.Lists.List);
+     (Model         : in out Root_Galaxy_Model'Class;
+      Renderer      : in out Lui.Rendering.Root_Renderer'Class;
+      System        : Concorde.Systems.Star_System_Type;
+      System_Radius : Positive;
+      Ships         : Concorde.Ships.Lists.List);
 
    procedure Draw_History
      (Model    : in out Root_Galaxy_Model'Class;
@@ -451,10 +448,11 @@ package body Concorde.Galaxy.Model is
    ----------------
 
    procedure Draw_Ships
-     (Model    : in out Root_Galaxy_Model'Class;
-      Renderer : in out Lui.Rendering.Root_Renderer'Class;
-      System   : Concorde.Systems.Star_System_Type;
-      Ships    : Concorde.Ships.Lists.List)
+     (Model         : in out Root_Galaxy_Model'Class;
+      Renderer      : in out Lui.Rendering.Root_Renderer'Class;
+      System        : Concorde.Systems.Star_System_Type;
+      System_Radius : Positive;
+      Ships         : Concorde.Ships.Lists.List)
    is
       Es   : constant Concorde.Empires.Array_Of_Empires :=
                Concorde.Ships.Battles.Empires_Present (Ships);
@@ -602,33 +600,6 @@ package body Concorde.Galaxy.Model is
       Renderer : in out Lui.Rendering.Root_Renderer'Class)
    is
    begin
-      if Model.Frames = 0 then
-         Model.Start := Ada.Calendar.Clock;
-      end if;
-
-      Model.Frames := Model.Frames + 1;
-
-      if Model.Frames > 40 then
-         if Model.Frames mod 100 = 0 then
-            declare
-               use Ada.Calendar;
-               Now : constant Time := Clock;
-               D   : constant Duration := Now - Model.Start;
-            begin
-               Model.FPS := Real (Model.Frames) / Real (D);
-            end;
-         end if;
-
-         declare
-            X, Y : Integer;
-         begin
-            Model.Get_Location (X, Y);
-            Renderer.Draw_String
-              (X + 4, Y + 20, 14, Lui.Colours.White,
-               Lui.Approximate_Image (Model.FPS) & " FPS");
-         end;
-      end if;
-
       Concorde.Updates.Begin_Render;
 
       for Star_Pass in Boolean loop
@@ -640,6 +611,12 @@ package body Concorde.Galaxy.Model is
                           Galaxy_Graph.Vertex (I);
                X      : constant Real := System.X;
                Y      : constant Real := System.Y;
+               Radius : constant Non_Negative_Real :=
+                          Concorde.Elementary_Functions.Sqrt
+                            (System.Main_Object.Radius)
+                            * 6.0 / Model.Eye_Z;
+               System_Radius : constant Positive :=
+                                 Natural'Max (1, Natural (Radius));
                Screen_X : Integer;
                Screen_Y : Integer;
                Screen_Z : Real;
@@ -648,14 +625,15 @@ package body Concorde.Galaxy.Model is
                Colour   : constant Lui.Colours.Colour_Type :=
                             (if Owner /= null
                              then Owner.Colour
-                             else Lui.Colours.White);
+                             else System.Main_Object.Colour);
             begin
                Model.Get_Screen_Coordinates
                  (X, Y, 0.0, Screen_X, Screen_Y, Screen_Z);
                if Star_Pass then
 
                   Model.Rendered_Systems.Replace_Element
-                    (System.Reference, (Screen_X, Screen_Y));
+                    (System.Reference,
+                     (Screen_X, Screen_Y, System_Radius, Colour));
 
                   if System.Owned then
                      Draw_Influence
@@ -693,7 +671,7 @@ package body Concorde.Galaxy.Model is
                   Renderer.Draw_Circle
                     (X          => Screen_X,
                      Y          => Screen_Y,
-                     Radius     => System_Radius,
+                     Radius     => Positive (Radius),
                      Colour     => Colour,
                      Filled     => True,
                      Line_Width => 1);
@@ -715,7 +693,8 @@ package body Concorde.Galaxy.Model is
                         Ships : Concorde.Ships.Lists.List;
                      begin
                         System.Get_Ships (Ships);
-                        Model.Draw_Ships (Renderer, System, Ships);
+                        Model.Draw_Ships (Renderer, System,
+                                          System_Radius, Ships);
                      end;
                   end if;
 
