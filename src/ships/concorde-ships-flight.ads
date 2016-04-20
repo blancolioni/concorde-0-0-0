@@ -24,6 +24,15 @@ package Concorde.Ships.Flight is
       Engine_Index : Positive)
       return Mounted_Module;
 
+   function Selected_Component_Index
+     (Ship : Root_Newtonian_Ship'Class)
+      return Natural;
+
+   procedure Select_Component
+     (Ship   : in out Root_Newtonian_Ship'Class;
+      Index  : Natural;
+      Toggle : Boolean := False);
+
    type Newtonian_Ship is access all Root_Newtonian_Ship'Class;
 
    function Create_Newtonian_Ship
@@ -107,6 +116,7 @@ private
      new Newton.Flight.Flight_Model with
       record
          Ship            : Concorde.Ships.Ship_Type;
+         Selected_Index  : Natural := 0;
          Mass            : Non_Negative_Real;
          Engines         : Engine_Vectors.Vector;
          Location        : Newton.Flight.Vector_3 := (0.0, 0.0, 0.0);

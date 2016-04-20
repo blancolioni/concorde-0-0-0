@@ -48,6 +48,10 @@ package body Concorde.Ships.Models is
            when 3 => "Volume",
            when 4 => "Mass"));
 
+   overriding procedure Select_Row
+     (Table : Ship_Module_Table;
+      Row   : Positive);
+
    Ship_Engine_Column_Count : constant := 4;
    subtype Ship_Engine_Column is Integer range 1 .. Ship_Engine_Column_Count;
 
@@ -104,14 +108,15 @@ package body Concorde.Ships.Models is
 
    type Ship_Component is
       record
-         Module       : Concorde.Modules.Module_Type;
-         Colour       : Lui.Colours.Colour_Type;
-         Mass         : Non_Negative_Real;
-         Orientation  : Lui.Models.Model_3D.Matrix_4;
-         Position     : Lui.Models.Model_3D.Vector_3;
-         Size         : Lui.Models.Model_3D.Vector_3;
-         Shape        : Concorde.Components.Component_Shape;
-         Engine_Index : Natural;
+         Module          : Concorde.Modules.Module_Type;
+         Colour          : Lui.Colours.Colour_Type;
+         Mass            : Non_Negative_Real;
+         Orientation     : Lui.Models.Model_3D.Matrix_4;
+         Position        : Lui.Models.Model_3D.Vector_3;
+         Size            : Lui.Models.Model_3D.Vector_3;
+         Shape           : Concorde.Components.Component_Shape;
+         Structure_Index : Positive;
+         Engine_Index    : Natural;
       end record;
 
    function To_Orientation_Matrix
@@ -119,7 +124,8 @@ package body Concorde.Ships.Models is
       return Newton.Flight.Matrix_4;
 
    function Get_Component
-     (Mount : Module_Layout_Record)
+     (Mount : Module_Layout_Record;
+      Index : Positive)
       return Ship_Component
    is ((Module => Mount.Module,
         Colour => Mount.Module.Component.Colour,
@@ -132,6 +138,7 @@ package body Concorde.Ships.Models is
                         Real (Mount.Module.Size.Y),
                         Real (Mount.Module.Size.Z)),
         Shape       => Mount.Module.Component.Shape,
+        Structure_Index => Index,
         Engine_Index => 0));
 
    package Component_Vectors is
@@ -166,6 +173,10 @@ package body Concorde.Ships.Models is
    function Select_XY (Model : Ship_Model;
                        X, Y  : Natural)
                        return Lui.Models.Object_Model;
+
+   overriding procedure Select_XY
+     (Model : in out Ship_Model;
+      X, Y  : Natural);
 
    overriding procedure Create_Scene
      (Model  : in out Ship_Model);
@@ -346,7 +357,7 @@ package body Concorde.Ships.Models is
             if Mount.Module.Component.Class = Drive then
                declare
                   Component : constant Ship_Component :=
-                                Get_Component (Mount);
+                                Get_Component (Mount, Mount_Index);
                   O_4 : constant Lui.Models.Model_3D.Matrix_4 :=
                           To_Orientation_Matrix
                             (Mount.Orientation);
@@ -466,7 +477,13 @@ package body Concorde.Ships.Models is
                  Model.Explode * (Item.Position (3) + DZ);
    begin
 
-      if Item.Engine_Index /= 0
+      Model.Begin_Object (Item.Structure_Index);
+
+      if Model.Newton_Ship.Selected_Component_Index
+        = Item.Structure_Index
+      then
+         Colour := (0.8, 0.6, 0.0, 1.0);
+      elsif Item.Engine_Index /= 0
         and then Model.Newton_Ship.Engine (Item.Engine_Index).Throttle > 0.0
       then
          declare
@@ -598,6 +615,8 @@ package body Concorde.Ships.Models is
       end case;
 
       Model.Pop_Matrix;
+
+      Model.End_Object;
 
    end Draw_Component;
 
@@ -776,7 +795,7 @@ package body Concorde.Ships.Models is
                Mount : Module_Layout_Record renames
                          Ship.Structure (Mount_Index);
                Item  : Ship_Component :=
-                         Get_Component (Mount);
+                         Get_Component (Mount, Mount_Index);
             begin
                if Mount.Module.Component.Class = Drive then
                   Engine_Count := Engine_Count + 1;
@@ -962,6 +981,18 @@ package body Concorde.Ships.Models is
       end loop;
    end Render;
 
+   ----------------
+   -- Select_Row --
+   ----------------
+
+   overriding procedure Select_Row
+     (Table : Ship_Module_Table;
+      Row   : Positive)
+   is
+   begin
+      Table.Newton_Ship.Select_Component (Row, True);
+   end Select_Row;
+
    ---------------
    -- Select_XY --
    ---------------
@@ -977,6 +1008,29 @@ package body Concorde.Ships.Models is
    begin
       return null;
    end Select_XY;
+
+   ---------------
+   -- Select_XY --
+   ---------------
+
+   overriding procedure Select_XY
+     (Model : in out Ship_Model;
+      X, Y  : Natural)
+   is
+      Object_Id : constant Natural := Model.Get_Object_Id (X, Y);
+   begin
+      if Object_Id = 0
+        or else Model.Newton_Ship.Selected_Component_Index = Object_Id
+      then
+         Model.Newton_Ship.Select_Component (0);
+      else
+         Model.Newton_Ship.Select_Component (Object_Id);
+      end if;
+   end Select_XY;
+
+   ---------------------------
+   -- To_Orientation_Matrix --
+   ---------------------------
 
    function To_Orientation_Matrix
      (Orientation : Module_Orientation)

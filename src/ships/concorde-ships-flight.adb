@@ -101,6 +101,35 @@ package body Concorde.Ships.Flight is
       return Ship.Orientation;
    end Orientation;
 
+   ----------------------
+   -- Select_Component --
+   ----------------------
+
+   procedure Select_Component
+     (Ship   : in out Root_Newtonian_Ship'Class;
+      Index  : Natural;
+      Toggle : Boolean := False)
+   is
+   begin
+      if Ship.Selected_Index = Index and then Toggle then
+         Ship.Selected_Index := 0;
+      else
+         Ship.Selected_Index := Index;
+      end if;
+   end Select_Component;
+
+   ------------------------------
+   -- Selected_Component_Index --
+   ------------------------------
+
+   function Selected_Component_Index
+     (Ship : Root_Newtonian_Ship'Class)
+      return Natural
+   is
+   begin
+      return Ship.Selected_Index;
+   end Selected_Component_Index;
+
    ------------------------------
    -- Set_Centre_Of_Mass_Force --
    ------------------------------
