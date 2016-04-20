@@ -1,7 +1,7 @@
 class = drive
-colour = { 220 12 1 }
+colour = { 100 100 100 }
 density = 100
-nominal_max_output = 122790000
+nominal_max_output = 22790000
 output_size_power = 0.95
 input_size_power = 0.75
 throttle_step = 0.01
