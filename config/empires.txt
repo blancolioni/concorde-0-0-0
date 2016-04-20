@@ -19,7 +19,7 @@ atreides = {
 harkonnen = {
    name = Harkonnen
    capital = "Geidi Prime"
-   colour = { 102 2 60 }
+   colour = { 102 102 20 }
 }
 
 corrino = {
@@ -31,13 +31,13 @@ corrino = {
 paleologos = {
    name = Paleologos
    capital = Constantinople
-   colour = { 0 160 0 }
+   colour = { 0 120 0 }
 }
 
 komnenos = {
    name = Komnenos
    capital = Antioch
-   colour = { 205 127 50 }
+   colour = { 135 206 250 }
 }
 
 hapsburg = {
