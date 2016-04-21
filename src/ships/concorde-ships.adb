@@ -718,12 +718,12 @@ package body Concorde.Ships is
       --  assume tanks and holds full of water (1_000 kg / m3)
       for Hold_Index of Holds loop
          Result := Result
-           + 1000.0 * 1000.0 * Real (Ship.Get_Module (Hold_Index).Volume);
+           + 1000.0 * Real (Ship.Get_Module (Hold_Index).Volume);
       end loop;
 
       for Tank_Index of Tanks loop
          Result := Result
-           + 1000.0 * 1000.0 * Real (Ship.Get_Module (Tank_Index).Volume);
+           + 1000.0 * Real (Ship.Get_Module (Tank_Index).Volume);
       end loop;
       return Result;
    end Standard_Full_Mass;

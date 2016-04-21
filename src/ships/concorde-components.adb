@@ -67,7 +67,7 @@ package body Concorde.Components is
       return Non_Negative_Real
    is
    begin
-      return Real (Volume) * Component.Density * 1000.0;
+      return Real (Volume) * Component.Density;
    end Mass;
 
    --------------------

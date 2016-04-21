@@ -840,12 +840,12 @@ package body Concorde.Ships.Models is
                            Ship.Maximum_Thrust
                              / Ship.Standard_Full_Mass;
          Powered_Time  : constant Non_Negative_Real :=
-                           Ship.Tank_Size * 100.0 * 1000.0;
+                           Ship.Tank_Size * 4.0;
          Final_Velocity : constant Real :=
                            Acceleration * Powered_Time;
          Powered_Range : constant Real :=
                            Acceleration
-                              * (Powered_Time / 2.0) ** 2 / 1000.0;
+                              * (Powered_Time / 2.0) ** 2;
          Coast_Velocity : constant Real :=
                             Acceleration * Powered_Time / 2.0;
          Max_Powered_Range : constant Real :=
@@ -875,6 +875,8 @@ package body Concorde.Ships.Models is
                                      Mars_Coast_Distance / Coast_Velocity;
       begin
          Model.Add_Property
+           ("Powered flight time", Powered_Time, "s");
+         Model.Add_Property
            ("Max. Delta-V", Final_Velocity, "m/s");
          Model.Add_Property
            ("Cruise velocity", Coast_Velocity, "m/s");
@@ -891,10 +893,10 @@ package body Concorde.Ships.Models is
       end;
 
       Model.Add_Property
-        ("Tank", Ship.Tank_Size * 1000.0,
+        ("Tank", Ship.Tank_Size,
          "m" & Character'Val (16#C2#) & Character'Val (16#B3#));
       Model.Add_Property
-        ("Hold", Ship.Hold_Size * 1000.0,
+        ("Hold", Ship.Hold_Size,
          "m" & Character'Val (16#C2#) & Character'Val (16#B3#));
 
 --        Newton_Ship.Throttle_Engine (1, 0.01);
