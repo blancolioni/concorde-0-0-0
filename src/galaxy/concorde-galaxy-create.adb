@@ -8,9 +8,9 @@ with Concorde.Voronoi_Diagrams;
 
 with Concorde.Systems.Create;
 
-package body Concorde.Galaxy.Create is
+with Concorde.Scenarios;
 
-   Imperial_Centre : constant Boolean := True;
+package body Concorde.Galaxy.Create is
 
    -------------------
    -- Create_Galaxy --
@@ -41,7 +41,9 @@ package body Concorde.Galaxy.Create is
       Ada.Float_Text_IO.Put (Float (Min_Distance), 1, 8, 0);
       Ada.Text_IO.New_Line;
       Ada.Text_IO.Put_Line ("Imperial centre: "
-                            & (if Imperial_Centre then "yes" else "no"));
+                            & (if Concorde.Scenarios.Imperial_Centre
+                              then "yes"
+                              else "no"));
 
       for I in 1 .. System_Count loop
          declare
@@ -50,7 +52,7 @@ package body Concorde.Galaxy.Create is
          begin
             Xs (I) := 0.0;
             Ys (I) := 0.0;
-            if I > 1 or else not Imperial_Centre then
+            if I > 1 or else not Concorde.Scenarios.Imperial_Centre then
                while D < Min_Distance loop
                   Retries := Retries + 1;
                   D :=  Non_Negative_Real'Last;
@@ -117,7 +119,7 @@ package body Concorde.Galaxy.Create is
 
       Ada.Text_IO.Put_Line ("created" & System_Count'Img & " systems");
 
-      if Imperial_Centre then
+      if Concorde.Scenarios.Imperial_Centre then
          declare
             type Best_Connection is
                record
@@ -173,7 +175,7 @@ package body Concorde.Galaxy.Create is
             X      : constant Real := System.X;
             Y      : constant Real := System.Y;
             Max_Connections : constant Natural :=
-                                (if Imperial_Centre
+                                (if Concorde.Scenarios.Imperial_Centre
                                  then Natural'Max (10, Average_Connections)
                                  else Average_Connections);
             Ds     : array (1 .. Max_Connections) of Non_Negative_Real :=
@@ -182,7 +184,7 @@ package body Concorde.Galaxy.Create is
                                 (others => 0);
             Count  : Natural := Average_Connections;
          begin
-            if I = 1 and then Imperial_Centre then
+            if I = 1 and then Concorde.Scenarios.Imperial_Centre then
                Count := 0;
             end if;
 

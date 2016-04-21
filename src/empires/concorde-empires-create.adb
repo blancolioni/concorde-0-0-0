@@ -3,13 +3,13 @@ with Concorde.Ships.Create;
 with Concorde.Stars;
 with Concorde.Systems;
 
+with Concorde.Scenarios;
+
 with Concorde.Colonies.Configure;
 
 with Concorde.Empires.Db;
 
 package body Concorde.Empires.Create is
-
-   Imperial_Centre : constant Boolean := True;
 
    ----------------
    -- New_Empire --
@@ -70,7 +70,9 @@ package body Concorde.Empires.Create is
             System.Set_Capital (True);
             System.Set_Name (Capital);
 
-            if Imperial_Centre and then System.Index = 1 then
+            if Concorde.Scenarios.Imperial_Centre
+              and then System.Index = 1
+            then
                System.Set_Production (System.Production * 4.0);
                System.Set_Capacity (System.Capacity * 4.0);
                Concorde.Colonies.Configure.Create_Colony_From_Template
@@ -154,7 +156,7 @@ package body Concorde.Empires.Create is
          Concorde.Galaxy.Update_System (Start, Choose'Access);
 
          if False
-           and then Imperial_Centre
+           and then Concorde.Scenarios.Imperial_Centre
            and then not Concorde.Galaxy.Neighbours (1, Start.Index)
          then
             Concorde.Galaxy.Connect (1, Start.Index);

@@ -1,6 +1,7 @@
 with WL.Random;
 
 with Concorde.Random;
+with Concorde.Scenarios;
 
 with Concorde.Commodities;
 with Concorde.Stars.Create;
@@ -8,8 +9,6 @@ with Concorde.Stars.Create;
 with Concorde.Systems.Db;
 
 package body Concorde.Systems.Create is
-
-   Imperial_Centre : constant Boolean := True;
 
    function Random_Star_Mass return Non_Negative_Real;
 
@@ -56,7 +55,8 @@ package body Concorde.Systems.Create is
             Main_Star : constant Concorde.Stars.Star_Type :=
                           Concorde.Stars.Create.New_Main_Sequence_Star
                             (Name,
-                             (if Imperial_Centre and then System.Index = 1
+                             (if Concorde.Scenarios.Imperial_Centre
+                              and then System.Index = 1
                               then 1.0
                               else Random_Star_Mass));
          begin

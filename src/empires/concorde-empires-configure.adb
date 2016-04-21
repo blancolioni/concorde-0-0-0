@@ -2,6 +2,7 @@ with Tropos.Reader;
 with Concorde.Paths;
 
 with Concorde.Options;
+with Concorde.Scenarios;
 
 with Concorde.Players.Registry;
 
@@ -15,8 +16,6 @@ with Concorde.Empires.Db;
 with Concorde.Systems.Db;
 
 package body Concorde.Empires.Configure is
-
-   Imperial_Centre : constant Boolean := True;
 
    procedure Create_Test_Battle
      (Attacker, Defender : Empire_Type);
@@ -45,7 +44,7 @@ package body Concorde.Empires.Configure is
             Green   : constant Natural := Colour.Get (2);
             Blue    : constant Natural := Colour.Get (3);
             Player  : constant String :=
-                        (if Imperial_Centre
+                        (if Concorde.Scenarios.Imperial_Centre
                          and then Current = 0
                          then "null"
                          else Config.Get ("player", "simple"));
