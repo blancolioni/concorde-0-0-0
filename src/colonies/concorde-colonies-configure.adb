@@ -1,3 +1,5 @@
+with Ada.Text_IO;
+
 with Tropos.Reader;
 
 with Memor.Element_Vectors;
@@ -18,6 +20,8 @@ with Concorde.People.Skills;
 
 with Concorde.Installations.Create;
 with Concorde.People.Pops.Create;
+
+with Concorde.Facilities.Db;
 
 with Concorde.People.Skills.Db;
 with Concorde.Installations.Db;
@@ -245,11 +249,42 @@ package body Concorde.Colonies.Configure is
          end loop;
       end if;
 
-      for I in 1 .. Template.Get ("resource_generator") loop
-         Create_Installation
-           (Concorde.Facilities.Resource_Generator
-              (System.Resource));
-      end loop;
+      declare
+         Install_Config : constant Tropos.Configuration :=
+                            Template.Child ("installations");
+
+         procedure Configure_Installation
+           (Facility : Concorde.Facilities.Facility_Type);
+
+         ----------------------------
+         -- Configure_Installation --
+         ----------------------------
+
+         procedure Configure_Installation
+           (Facility : Concorde.Facilities.Facility_Type)
+         is
+            Id : constant String := Facility.Identifier;
+         begin
+            if Install_Config.Contains (Id) then
+               Ada.Text_IO.Put_Line
+                 (Install_Config.Get (Id) & " x " & Id);
+            end if;
+
+            for I in 1 .. Install_Config.Get (Facility.Identifier, 0) loop
+               Create_Installation (Facility);
+            end loop;
+         end Configure_Installation;
+
+      begin
+         for I in 1 .. Install_Config.Get ("resource_generator", 0) loop
+            Create_Installation
+              (Concorde.Facilities.Resource_Generator
+                 (System.Resource));
+         end loop;
+
+         Concorde.Facilities.Db.Scan (Configure_Installation'Access);
+
+      end;
 
       Create_Service_Facilities;
 
