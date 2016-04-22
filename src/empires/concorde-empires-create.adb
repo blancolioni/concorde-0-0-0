@@ -8,6 +8,8 @@ with Concorde.Scenarios;
 with Concorde.Colonies.Configure;
 
 with Concorde.Empires.Db;
+with Concorde.Ships.Db;
+with Concorde.Systems.Db;
 
 package body Concorde.Empires.Create is
 
@@ -73,8 +75,8 @@ package body Concorde.Empires.Create is
             if Concorde.Scenarios.Imperial_Centre
               and then System.Index = 1
             then
-               System.Set_Production (System.Production * 4.0);
-               System.Set_Capacity (System.Capacity * 4.0);
+               System.Set_Production (System.Production * 100.0);
+               System.Set_Capacity (System.Capacity * 100.0);
                Concorde.Colonies.Configure.Create_Colony_From_Template
                  (System, "imperial_capital");
             else
@@ -84,20 +86,50 @@ package body Concorde.Empires.Create is
                  (System, "initial");
             end if;
 
-            for I in 1 .. 2 loop
-               declare
-                  Ship : constant Concorde.Ships.Ship_Type :=
-                           Concorde.Ships.Create.New_Ship
-                             (Owner  => System.Owner,
-                              Name   =>
-                                System.Owner.Name
-                              & " Trader" & I'Img,
-                              System => System,
-                              Design => "trader");
+            declare
+               Trader : constant Concorde.Ships.Ship_Type :=
+                          Concorde.Ships.Create.New_Ship
+                            (Owner  => System.Owner,
+                             Name   =>
+                               System.Owner.Name
+                             & " Trader",
+                             System => System,
+                             Design => "trader");
+               Defender : constant Concorde.Ships.Ship_Type :=
+                            Concorde.Ships.Create.New_Ship
+                              (Owner  => System.Owner,
+                               Name   =>
+                                 System.Owner.Name
+                               & " Defender",
+                               System => System,
+                               Design => "defender");
+
+               procedure Initial_Trade_Route
+                 (Ship : in out Concorde.Ships.Root_Ship_Type'Class);
+
+               -------------------------
+               -- Initial_Trade_Route --
+               -------------------------
+
+               procedure Initial_Trade_Route
+                 (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
+               is
                begin
-                  System.Add_Ship (Ship);
-               end;
-            end loop;
+                  Ship.Add_Buy_Order
+                    (Concorde.Systems.Db.Reference (System),
+                     System.Resource);
+                  Ship.Add_Sell_Order
+                    (Galaxy.Get_System (1), System.Resource);
+               end Initial_Trade_Route;
+
+            begin
+               Concorde.Ships.Db.Update
+                 (Trader.Reference, Initial_Trade_Route'Access);
+
+               System.Add_Ship (Trader);
+               System.Add_Ship (Defender);
+            end;
+
          end Choose;
 
          ------------------

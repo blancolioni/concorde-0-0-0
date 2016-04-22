@@ -1,19 +1,29 @@
 private with Ada.Containers.Vectors;
-private with Memor;
+private with Ada.Containers.Doubly_Linked_Lists;
+private with Ada.Strings.Unbounded;
+
+with Memor;
 
 limited with Concorde.Empires;
 limited with Concorde.Systems;
 
+with Concorde.Commodities;
+
+with Concorde.Agents;
 with Concorde.Components;
 with Concorde.Modules;
 with Concorde.Objects;
+with Concorde.Trades;
 
 private with Newton.Flight;
 
 package Concorde.Ships is
 
    type Root_Ship_Type is
-     new Concorde.Objects.Root_Named_Object_Type with private;
+     new Concorde.Agents.Root_Agent_Type
+     and Memor.Identifier_Record_Type
+     and Concorde.Objects.Named_Object_Interface
+   with private;
 
    function Long_Name (Ship : Root_Ship_Type'Class) return String;
 
@@ -39,6 +49,28 @@ package Concorde.Ships is
      (Ship : Root_Ship_Type'Class)
       return access constant Concorde.Systems.Root_Star_System_Type'Class
      with Pre => Ship.Has_Destination;
+
+   procedure Cycle_Orders
+     (Ship  : in out Root_Ship_Type'Class;
+      Cycle : Boolean);
+
+   procedure Add_Buy_Order
+     (Ship : in out Root_Ship_Type'Class;
+      System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Item : Concorde.Commodities.Commodity_Type);
+
+   procedure Add_Sell_Order
+     (Ship   : in out Root_Ship_Type'Class;
+      System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Item   : Concorde.Commodities.Commodity_Type);
+
+   procedure Clear_Orders
+     (Ship : in out Root_Ship_Type'Class);
+
+   procedure Execute_Arrival_Orders
+     (Ship : in out Root_Ship_Type'Class);
 
    procedure Set_System
      (Ship : in out Root_Ship_Type'Class;
@@ -210,14 +242,31 @@ private
      new Ada.Containers.Vectors
        (Positive, Module_Layout_Record);
 
+   type Ship_Order_Type is (No_Order, Buy, Sell);
+
+   type Ship_Order_Record is
+      record
+         Order            : Ship_Order_Type;
+         System_Reference : Memor.Database_Reference;
+         Commodity        : Concorde.Commodities.Commodity_Type;
+      end record;
+
+   package List_Of_Orders is
+     new Ada.Containers.Doubly_Linked_Lists (Ship_Order_Record);
+
    type Root_Ship_Type is
-     new Concorde.Objects.Root_Named_Object_Type with
+     new Concorde.Agents.Root_Agent_Type
+     and Memor.Identifier_Record_Type
+     and Concorde.Objects.Named_Object_Interface with
       record
          Identity              : String (1 .. 6);
+         Ship_Name             : Ada.Strings.Unbounded.Unbounded_String;
          Owner                 : access constant
            Concorde.Empires.Root_Empire_Type'Class;
          System_Reference      : Memor.Database_Reference;
          Dest_Reference        : Memor.Database_Reference;
+         Orders                : List_Of_Orders.List;
+         Cycle_Orders          : Boolean;
          Alive                 : Boolean;
          Structure             : Module_Vectors.Vector;
          Size                  : Size_Type;
@@ -234,5 +283,29 @@ private
    overriding function Object_Database
      (Ship : Root_Ship_Type)
       return Memor.Root_Database_Type'Class;
+
+   overriding function Name
+     (Ship : Root_Ship_Type)
+      return String
+   is (Ada.Strings.Unbounded.To_String (Ship.Ship_Name));
+
+   overriding procedure Set_Name
+     (Ship : in out Root_Ship_Type;
+      Name : String);
+
+   overriding function Short_Name
+     (Ship : Root_Ship_Type)
+      return String
+   is (Ship.Identity & " " & Ship.Name);
+
+   overriding function Identifier
+     (Ship : Root_Ship_Type)
+      return String
+   is (Ship.Identity);
+
+   overriding procedure Add_Trade_Offers
+     (Ship : not null access constant Root_Ship_Type;
+      Market : in out Concorde.Trades.Trade_Interface'Class)
+   is null;
 
 end Concorde.Ships;

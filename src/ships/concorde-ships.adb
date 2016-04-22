@@ -20,6 +20,36 @@ package body Concorde.Ships is
    procedure Calculate_Damage
      (Ship : in out Root_Ship_Type'Class);
 
+   -------------------
+   -- Add_Buy_Order --
+   -------------------
+
+   procedure Add_Buy_Order
+     (Ship   : in out Root_Ship_Type'Class;
+      System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Item   : Concorde.Commodities.Commodity_Type)
+   is
+   begin
+      Ship.Orders.Append
+        ((Buy, System.Reference, Item));
+   end Add_Buy_Order;
+
+   --------------------
+   -- Add_Sell_Order --
+   --------------------
+
+   procedure Add_Sell_Order
+     (Ship   : in out Root_Ship_Type'Class;
+      System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Item   : Concorde.Commodities.Commodity_Type)
+   is
+   begin
+      Ship.Orders.Append
+        ((Sell, System.Reference, Item));
+   end Add_Sell_Order;
+
    -----------
    -- Alive --
    -----------
@@ -206,6 +236,17 @@ package body Concorde.Ships is
       Ship.Dest_Reference := Memor.Null_Database_Reference;
    end Clear_Destination;
 
+   ------------------
+   -- Clear_Orders --
+   ------------------
+
+   procedure Clear_Orders
+     (Ship : in out Root_Ship_Type'Class)
+   is
+   begin
+      Ship.Orders.Clear;
+   end Clear_Orders;
+
    -----------------
    -- Count_Ships --
    -----------------
@@ -248,6 +289,18 @@ package body Concorde.Ships is
       return Ship.Empty_Mass;
    end Current_Mass;
 
+   ------------------
+   -- Cycle_Orders --
+   ------------------
+
+   procedure Cycle_Orders
+     (Ship  : in out Root_Ship_Type'Class;
+      Cycle : Boolean)
+   is
+   begin
+      Ship.Cycle_Orders := Cycle;
+   end Cycle_Orders;
+
    ------------
    -- Damage --
    ------------
@@ -287,6 +340,18 @@ package body Concorde.Ships is
       end loop;
       return Result;
    end Empty_Mass;
+
+   ----------------------------
+   -- Execute_Arrival_Orders --
+   ----------------------------
+
+   procedure Execute_Arrival_Orders
+     (Ship : in out Root_Ship_Type'Class)
+   is
+      pragma Unreferenced (Ship);
+   begin
+      null;
+   end Execute_Arrival_Orders;
 
    ----------------------
    -- Get_Class_Mounts --
@@ -639,6 +704,19 @@ package body Concorde.Ships is
       pragma Assert (Ship.Has_Destination
                      and then Ship.Destination.Index = System.Index);
    end Set_Destination;
+
+   --------------
+   -- Set_Name --
+   --------------
+
+   overriding procedure Set_Name
+     (Ship : in out Root_Ship_Type;
+      Name : String)
+   is
+   begin
+      Ship.Ship_Name :=
+        Ada.Strings.Unbounded.To_Unbounded_String (Name);
+   end Set_Name;
 
    ---------------
    -- Set_Owner --

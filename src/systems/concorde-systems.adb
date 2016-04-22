@@ -184,6 +184,7 @@ package body Concorde.Systems is
                Ship.Set_System (System);
                if Ship.System = Ship.Destination then
                   Ship.Clear_Destination;
+                  Ship.Execute_Arrival_Orders;
                   Ship.Owner.Player.On_Ship_Arrived
                     (Ship.Owner, Concorde.Ships.Db.Reference (Ship));
                end if;

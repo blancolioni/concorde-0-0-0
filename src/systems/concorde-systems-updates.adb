@@ -102,6 +102,11 @@ package body Concorde.Systems.Updates is
             Installation.Add_Trade_Offers (System.Market.all);
          end if;
       end loop;
+
+      for Ship of System.Ships loop
+         Ship.Add_Trade_Offers (System.Market.all);
+      end loop;
+
       if System.Hub /= null then
          System.Hub.Add_Trade_Offers (System.Market.all);
       end if;
@@ -123,9 +128,9 @@ package body Concorde.Systems.Updates is
             end if;
          end if;
          declare
-            Available : constant Unit_Real :=
+            Available : constant Non_Negative_Real :=
                           System.Production * System.Loyalty;
-            Con       : Unit_Real;
+            Con       : Non_Negative_Real;
             Dmg       : Natural := 0;
             Pts       : Positive;
          begin
