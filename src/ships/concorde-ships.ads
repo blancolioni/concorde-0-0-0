@@ -56,6 +56,10 @@ package Concorde.Ships is
      (Ship  : in out Root_Ship_Type'Class;
       Cycle : Boolean);
 
+   function Has_Orders
+     (Ship : Root_Ship_Type'Class)
+      return Boolean;
+
    procedure Add_Buy_Order
      (Ship : in out Root_Ship_Type'Class;
       System : not null access constant

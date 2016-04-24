@@ -591,6 +591,18 @@ package body Concorde.Ships is
       return False;
    end Has_Effective_Weapon;
 
+   ----------------
+   -- Has_Orders --
+   ----------------
+
+   function Has_Orders
+     (Ship : Root_Ship_Type'Class)
+      return Boolean
+   is
+   begin
+      return not Ship.Orders.Is_Empty;
+   end Has_Orders;
+
    ---------
    -- Hit --
    ---------
