@@ -12,7 +12,6 @@ package body Concorde.Commodities is
       Quantity : Concorde.Quantities.Quantity;
       Value    : Concorde.Money.Money_Type)
    is
-      use type Concorde.Quantities.Quantity;
       use type Concorde.Money.Money_Type;
 
    begin
@@ -45,6 +44,19 @@ package body Concorde.Commodities is
    begin
       return Commodity.Class;
    end Class;
+
+   ------------------
+   -- Create_Stock --
+   ------------------
+
+   procedure Create_Stock
+     (Stock   : in out Root_Stock_Type'Class;
+      Maximum : Concorde.Quantities.Quantity)
+   is
+   begin
+      Stock.Maximum := Maximum;
+      Stock.Vector.Clear;
+   end Create_Stock;
 
    ---------
    -- Get --
@@ -179,7 +191,6 @@ package body Concorde.Commodities is
       Quantity : Concorde.Quantities.Quantity;
       Earn     : Concorde.Money.Money_Type)
    is
-      use type Concorde.Quantities.Quantity;
       use type Concorde.Money.Money_Type;
    begin
       Stock.Set_Quantity
@@ -198,7 +209,6 @@ package body Concorde.Commodities is
       Quantity : Concorde.Quantities.Quantity)
    is
       use type Concorde.Money.Money_Type;
-      use type Concorde.Quantities.Quantity;
       New_Quantity : constant Concorde.Quantities.Quantity :=
                        Stock.Get_Quantity (Item) - Quantity;
       New_Value : constant Money.Money_Type :=
@@ -227,7 +237,7 @@ package body Concorde.Commodities is
    --------------------
 
    function Total_Quantity
-     (Stock    : in out Stock_Interface'Class)
+     (Stock    : Stock_Interface'Class)
       return Concorde.Quantities.Quantity
    is
       Result : Quantities.Quantity := Quantities.Zero;
@@ -239,7 +249,6 @@ package body Concorde.Commodities is
       ------------
 
       procedure Update (Commodity : Commodity_Type) is
-         use type Concorde.Quantities.Quantity;
       begin
          Result := Result + Stock.Get_Quantity (Commodity);
       end Update;

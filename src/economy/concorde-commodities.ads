@@ -8,6 +8,8 @@ with Concorde.Objects;
 
 package Concorde.Commodities is
 
+   use type Concorde.Quantities.Quantity;
+
    type Commodity_Class is
      (Resource, Consumer, Industrial, Building_Component, Skill, Service);
 
@@ -57,6 +59,15 @@ package Concorde.Commodities is
 
    type Stock_Interface is limited interface;
 
+   function Total_Quantity
+     (Stock    : Stock_Interface'Class)
+      return Concorde.Quantities.Quantity;
+
+   function Maximum_Quantity
+     (Stock : Stock_Interface)
+      return Concorde.Quantities.Quantity
+      is abstract;
+
    function Get_Quantity
      (Stock : Stock_Interface;
       Item  : Commodity_Type)
@@ -81,34 +92,42 @@ package Concorde.Commodities is
       Item     : Commodity_Type;
       Quantity : Concorde.Quantities.Quantity;
       Value    : Concorde.Money.Money_Type)
-   is abstract;
+   is abstract
+     with Pre'Class =>
+       Stock.Total_Quantity + Quantity
+         - Stock_Interface'Class (Stock).Get_Quantity (Item)
+     <= Stock.Maximum_Quantity;
 
    procedure Add_Quantity
      (Stock    : in out Stock_Interface'Class;
       Item     : Commodity_Type;
       Quantity : Concorde.Quantities.Quantity;
-      Value    : Concorde.Money.Money_Type);
+      Value    : Concorde.Money.Money_Type)
+     with Pre => Stock.Total_Quantity + Quantity
+       <= Stock.Maximum_Quantity;
 
    procedure Remove_Quantity
      (Stock    : in out Stock_Interface'Class;
       Item     : Commodity_Type;
       Quantity : Concorde.Quantities.Quantity;
-      Earn     : Concorde.Money.Money_Type);
+      Earn     : Concorde.Money.Money_Type)
+     with Pre => Stock.Get_Quantity (Item) >= Quantity;
 
    procedure Remove_Quantity
      (Stock    : in out Stock_Interface'Class;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity);
-
-   function Total_Quantity
-     (Stock    : in out Stock_Interface'Class)
-      return Concorde.Quantities.Quantity;
+      Quantity : Concorde.Quantities.Quantity)
+     with Pre => Stock.Get_Quantity (Item) >= Quantity;
 
    function Total_Value
      (Stock    : in out Stock_Interface'Class)
       return Concorde.Money.Money_Type;
 
    type Root_Stock_Type is new Stock_Interface with private;
+
+   procedure Create_Stock
+     (Stock   : in out Root_Stock_Type'Class;
+      Maximum : Concorde.Quantities.Quantity);
 
 private
 
@@ -145,8 +164,14 @@ private
 
    type Root_Stock_Type is new Stock_Interface with
       record
-         Vector : Stock_Vectors.Vector;
+         Maximum : Quantities.Quantity   := Quantities.Zero;
+         Vector  : Stock_Vectors.Vector;
       end record;
+
+   overriding function Maximum_Quantity
+     (Stock : Root_Stock_Type)
+      return Quantities.Quantity
+   is (Stock.Maximum);
 
    overriding function Get_Quantity
      (Stock : Root_Stock_Type;
