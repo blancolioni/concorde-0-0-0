@@ -34,6 +34,10 @@ package Concorde.Commodities is
      (Commodity : Root_Commodity_Type'Class)
       return Commodity_Quality;
 
+   function Unit_Mass
+     (Commodity : Root_Commodity_Type'Class)
+      return Non_Negative_Real;
+
    function Base_Price
      (Commodity : Root_Commodity_Type'Class)
       return Concorde.Money.Price_Type;
@@ -62,6 +66,10 @@ package Concorde.Commodities is
    function Total_Quantity
      (Stock    : Stock_Interface'Class)
       return Concorde.Quantities.Quantity;
+
+   function Total_Mass
+     (Stock    : Stock_Interface'Class)
+      return Non_Negative_Real;
 
    function Maximum_Quantity
      (Stock : Stock_Interface)

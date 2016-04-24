@@ -232,6 +232,34 @@ package body Concorde.Commodities is
       Stock.Vector.Replace_Element (Item.Reference, (Quantity, Value));
    end Set_Quantity;
 
+   ----------------
+   -- Total_Mass --
+   ----------------
+
+   function Total_Mass
+     (Stock    : Stock_Interface'Class)
+      return Non_Negative_Real
+   is
+      Result : Non_Negative_Real := 0.0;
+
+      procedure Update (Commodity : Commodity_Type);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update (Commodity : Commodity_Type) is
+      begin
+         Result := Result
+           + Quantities.To_Real (Stock.Get_Quantity (Commodity))
+           * Commodity.Mass;
+      end Update;
+
+   begin
+      Db.Scan (Update'Access);
+      return Result;
+   end Total_Mass;
+
    --------------------
    -- Total_Quantity --
    --------------------
@@ -284,5 +312,17 @@ package body Concorde.Commodities is
       Db.Scan (Update'Access);
       return Result;
    end Total_Value;
+
+   ---------------
+   -- Unit_Mass --
+   ---------------
+
+   function Unit_Mass
+     (Commodity : Root_Commodity_Type'Class)
+      return Non_Negative_Real
+   is
+   begin
+      return Commodity.Mass;
+   end Unit_Mass;
 
 end Concorde.Commodities;
