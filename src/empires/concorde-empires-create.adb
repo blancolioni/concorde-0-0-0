@@ -11,9 +11,74 @@ with Concorde.Empires.Db;
 with Concorde.Ships.Db;
 with Concorde.Systems.Db;
 
+with Concorde.Commodities;
+with Concorde.Money;
 with Concorde.Quantities;
 
 package body Concorde.Empires.Create is
+
+   procedure Create_Initial_Ships
+     (System : in out Concorde.Systems.Root_Star_System_Type'Class);
+
+   --------------------------
+   -- Create_Initial_Ships --
+   --------------------------
+
+   procedure Create_Initial_Ships
+     (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+   is
+      Trader   : constant Concorde.Ships.Ship_Type :=
+                   Concorde.Ships.Create.New_Ship
+                     (Owner  => System.Owner,
+                      Name   =>
+                        System.Owner.Name
+                      & " Trader",
+                      System => System,
+                      Design => "trader");
+      Defender : constant Concorde.Ships.Ship_Type :=
+                   Concorde.Ships.Create.New_Ship
+                     (Owner  => System.Owner,
+                      Name   =>
+                        System.Owner.Name
+                      & " Defender",
+                      System => System,
+                      Design => "defender");
+
+      procedure Initial_Trade_Route
+        (Ship : in out Concorde.Ships.Root_Ship_Type'Class);
+
+      -------------------------
+      -- Initial_Trade_Route --
+      -------------------------
+
+      procedure Initial_Trade_Route
+        (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
+      is
+         Start    : constant Concorde.Systems.Star_System_Type :=
+                      Concorde.Systems.Db.Reference (System);
+         Capital  : constant Concorde.Systems.Star_System_Type :=
+                      Galaxy.Get_System (1);
+         Consumer : constant Commodities.Array_Of_Commodities :=
+                      Commodities.Get (Commodities.Consumer);
+      begin
+         for Item of Consumer loop
+            Ship.Add_Sell_Order (Start, Item);
+         end loop;
+         Ship.Add_Buy_Order (Start, System.Resource);
+         Ship.Add_Sell_Order (Capital, System.Resource);
+         for Item of Consumer loop
+            Ship.Add_Buy_Order (Capital, Item);
+         end loop;
+         Ship.Cycle_Orders (True);
+      end Initial_Trade_Route;
+
+   begin
+      Concorde.Ships.Db.Update
+        (Trader.Reference, Initial_Trade_Route'Access);
+
+      System.Add_Ship (Trader);
+      System.Add_Ship (Defender);
+   end Create_Initial_Ships;
 
    ----------------
    -- New_Empire --
@@ -77,60 +142,19 @@ package body Concorde.Empires.Create is
             if Concorde.Scenarios.Imperial_Centre
               and then System.Index = 1
             then
-               System.Set_Production (System.Production * 100.0);
-               System.Set_Capacity (System.Capacity * 100.0);
-               Concorde.Colonies.Configure.Create_Colony_From_Template
-                 (System, "imperial_capital");
-            else
                System.Set_Production (System.Production * 20.0);
                System.Set_Capacity (System.Capacity * 20.0);
                Concorde.Colonies.Configure.Create_Colony_From_Template
+                 (System, "imperial_capital");
+            else
+               System.Set_Production (System.Production * 4.0);
+               System.Set_Capacity (System.Capacity * 4.0);
+               Concorde.Colonies.Configure.Create_Colony_From_Template
                  (System, "initial");
+
+               Create_Initial_Ships (System);
+
             end if;
-
-            declare
-               Trader : constant Concorde.Ships.Ship_Type :=
-                          Concorde.Ships.Create.New_Ship
-                            (Owner  => System.Owner,
-                             Name   =>
-                               System.Owner.Name
-                             & " Trader",
-                             System => System,
-                             Design => "trader");
-               Defender : constant Concorde.Ships.Ship_Type :=
-                            Concorde.Ships.Create.New_Ship
-                              (Owner  => System.Owner,
-                               Name   =>
-                                 System.Owner.Name
-                               & " Defender",
-                               System => System,
-                               Design => "defender");
-
-               procedure Initial_Trade_Route
-                 (Ship : in out Concorde.Ships.Root_Ship_Type'Class);
-
-               -------------------------
-               -- Initial_Trade_Route --
-               -------------------------
-
-               procedure Initial_Trade_Route
-                 (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
-               is
-               begin
-                  Ship.Add_Buy_Order
-                    (Concorde.Systems.Db.Reference (System),
-                     System.Resource);
-                  Ship.Add_Sell_Order
-                    (Galaxy.Get_System (1), System.Resource);
-               end Initial_Trade_Route;
-
-            begin
-               Concorde.Ships.Db.Update
-                 (Trader.Reference, Initial_Trade_Route'Access);
-
-               System.Add_Ship (Trader);
-               System.Add_Ship (Defender);
-            end;
 
          end Choose;
 
@@ -177,6 +201,7 @@ package body Concorde.Empires.Create is
                           (OK_For_Start'Access);
       begin
          New_Empire.New_Agent (Start, Concorde.Quantities.Zero);
+         New_Empire.Set_Cash (Concorde.Money.To_Money (1_000_000.0));
          New_Empire.Identifier :=
            Ada.Strings.Unbounded.To_Unbounded_String (Name);
          New_Empire.Set_Name (Name);
