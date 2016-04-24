@@ -1,6 +1,7 @@
 hub = { class = Colony_Hub
         name = "Colony Hub"
         power = 10
+        capacity = 100000
         workers = { executive = 5
                     tech = 5
                     unskilled = 10

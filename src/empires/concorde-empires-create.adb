@@ -11,6 +11,8 @@ with Concorde.Empires.Db;
 with Concorde.Ships.Db;
 with Concorde.Systems.Db;
 
+with Concorde.Quantities;
+
 package body Concorde.Empires.Create is
 
    ----------------
@@ -174,7 +176,7 @@ package body Concorde.Empires.Create is
                         Concorde.Galaxy.Find_System
                           (OK_For_Start'Access);
       begin
-         New_Empire.New_Agent (Start);
+         New_Empire.New_Agent (Start, Concorde.Quantities.Zero);
          New_Empire.Identifier :=
            Ada.Strings.Unbounded.To_Unbounded_String (Name);
          New_Empire.Set_Name (Name);

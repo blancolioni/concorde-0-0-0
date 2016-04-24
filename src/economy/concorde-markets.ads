@@ -66,6 +66,12 @@ package Concorde.Markets is
      (Market : Root_Market_Type'Class)
       return String;
 
+   procedure Before_Trading
+     (Market : in out Root_Market_Type'Class);
+
+   procedure After_Trading
+     (Market : in out Root_Market_Type'Class);
+
    procedure Execute
      (Market : in out Root_Market_Type'Class);
 

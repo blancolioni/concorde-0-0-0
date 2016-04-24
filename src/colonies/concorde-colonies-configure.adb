@@ -167,7 +167,6 @@ package body Concorde.Colonies.Configure is
          Needs : constant Array_Of_Commodities :=
                    Concorde.Commodities.Get
                      (Consumer, Group.Preferred_Quality);
-
       begin
          System.Add_Pop (Pop);
 

@@ -118,7 +118,6 @@ package body Concorde.Ships.Designs is
       Design : Ship_Design renames Designs.Element (Design_Name);
       Min_W, Min_H, Min_L : Integer := Integer'Last;
       Max_W, Max_H, Max_L : Integer := Integer'First;
-
    begin
       for Component of Design.Components loop
          declare

@@ -80,4 +80,7 @@ private
      (Item   : not null access constant Root_Pop_Type;
       Market : in out Concorde.Trades.Trade_Interface'Class);
 
+   overriding procedure Before_Market
+     (Pop : in out Root_Pop_Type);
+
 end Concorde.People.Pops;

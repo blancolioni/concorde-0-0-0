@@ -15,6 +15,8 @@ with Concorde.Modules;
 with Concorde.Objects;
 with Concorde.Trades;
 
+with Concorde.Quantities;
+
 private with Newton.Flight;
 
 package Concorde.Ships is
@@ -219,6 +221,11 @@ package Concorde.Ships is
      (Ship : Root_Ship_Type'Class)
       return Non_Negative_Real;
 
+   function Hold_Quantity
+     (Ship : Root_Ship_Type'Class)
+      return Concorde.Quantities.Quantity
+   is (Ship.Maximum_Quantity);
+
    type Ship_Type is access constant Root_Ship_Type'Class;
 
    function Count_Ships
@@ -305,7 +312,6 @@ private
 
    overriding procedure Add_Trade_Offers
      (Ship : not null access constant Root_Ship_Type;
-      Market : in out Concorde.Trades.Trade_Interface'Class)
-   is null;
+      Market : in out Concorde.Trades.Trade_Interface'Class);
 
 end Concorde.Ships;

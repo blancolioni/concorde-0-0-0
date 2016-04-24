@@ -128,7 +128,8 @@ package body Concorde.Agents is
                          else Minimum
                          + Scale (Desired - Minimum, Favourability));
       Possible      : constant Quantity :=
-                        Get_Quantity (Agent.Cash, Buy_Price);
+                        Max (Get_Quantity (Agent.Limit_Cash, Buy_Price),
+                             Zero);
       Final         : constant Quantity :=
                         Min (Favoured, Possible);
    begin
@@ -343,6 +344,23 @@ package body Concorde.Agents is
       return Agent.Stock.Get_Value (Item);
    end Get_Value;
 
+   ----------------
+   -- Limit_Cash --
+   ----------------
+
+   function Limit_Cash
+     (Agent : Root_Agent_Type'Class)
+      return Concorde.Money.Money_Type
+   is
+      use type Concorde.Money.Money_Type;
+   begin
+      if Agent.Guarantor /= null then
+         return Agent.Cash + Agent.Guarantor.Limit_Cash;
+      else
+         return Agent.Cash;
+      end if;
+   end Limit_Cash;
+
    --------------
    -- Location --
    --------------
@@ -394,15 +412,29 @@ package body Concorde.Agents is
       Agent.Log ("trade", Message);
    end Log_Trade;
 
+   ----------------------
+   -- Maximum_Quantity --
+   ----------------------
+
+   overriding function Maximum_Quantity
+     (Agent : Root_Agent_Type)
+      return Concorde.Quantities.Quantity
+   is
+   begin
+      return Agent.Stock.Maximum_Quantity;
+   end Maximum_Quantity;
+
    ---------------
    -- New_Agent --
    ---------------
 
    procedure New_Agent
-     (Agent    : in out Root_Agent_Type'Class;
-      Location : not null access constant Agent_Location_Interface'Class)
+     (Agent          : in out Root_Agent_Type'Class;
+      Location       : not null access constant Agent_Location_Interface'Class;
+      Stock_Capacity : Concorde.Quantities.Quantity)
    is
    begin
+      Agent.Stock.Create_Stock (Stock_Capacity);
       Agent.Belief := new Price_Belief_Vectors.Vector;
       Agent.Location := Location;
    end New_Agent;
@@ -450,6 +482,18 @@ package body Concorde.Agents is
    begin
       Agent.Cash := Amount;
    end Set_Cash;
+
+   -------------------
+   -- Set_Guarantor --
+   -------------------
+
+   procedure Set_Guarantor
+     (Agent     : in out Root_Agent_Type'Class;
+      Guarantor : access constant Root_Agent_Type'Class)
+   is
+   begin
+      Agent.Guarantor := Guarantor;
+   end Set_Guarantor;
 
    ------------------
    -- Set_Location --

@@ -1,4 +1,5 @@
 with Ada.Text_IO;
+with Ada.Exceptions;
 
 with Concorde.Paths;
 
@@ -7,6 +8,46 @@ with Concorde.Dates;
 with Concorde.Commodities.Db;
 
 package body Concorde.Markets is
+
+   -------------------
+   -- After_Trading --
+   -------------------
+
+   procedure After_Trading
+     (Market : in out Root_Market_Type'Class)
+   is
+      procedure Clear_Offers
+        (Commodity : Concorde.Commodities.Commodity_Type);
+
+      ------------------
+      -- Clear_Offers --
+      ------------------
+
+      procedure Clear_Offers
+        (Commodity : Concorde.Commodities.Commodity_Type)
+      is
+         Item : constant Cached_Commodity :=
+                  Market.Commodities.Element (Commodity.Reference);
+      begin
+         if Item /= null then
+            Item.Offers.Clear;
+            Item.Supply := Quantities.Zero;
+            Item.Demand := Quantities.Zero;
+            Item.Traded_Quantity := Quantities.Zero;
+         end if;
+      end Clear_Offers;
+
+   begin
+      Concorde.Commodities.Db.Scan (Clear_Offers'Access);
+   end After_Trading;
+
+   --------------------
+   -- Before_Trading --
+   --------------------
+
+   procedure Before_Trading
+     (Market : in out Root_Market_Type'Class)
+   is null;
 
    ------------------------
    -- Calculate_Quantity --
@@ -224,6 +265,18 @@ package body Concorde.Markets is
            (Ada.Text_IO.Standard_Output);
          Ada.Text_IO.Close (File);
       end if;
+
+   exception
+      when E : others =>
+         Ada.Text_IO.Put_Line
+           ("exception: " & Ada.Exceptions.Exception_Message (E));
+         if Market.Enable_Logging then
+            Ada.Text_IO.Set_Output
+              (Ada.Text_IO.Standard_Output);
+            Ada.Text_IO.Close (File);
+         end if;
+
+         raise;
    end Execute;
 
    ------------------------------
@@ -253,6 +306,15 @@ package body Concorde.Markets is
 
       Offer_Sorting.Sort (Bids);
       Offer_Sorting.Sort (Asks);
+
+      for Bid of Bids loop
+         Ada.Text_IO.Put_Line
+           (Bid.Agent.Short_Name
+            & " bids "
+            & Image (Bid.Current_Price)
+            & " for "
+            & Image (Bid.Remaining_Quantity));
+      end loop;
 
       declare
          use Offer_Vectors;

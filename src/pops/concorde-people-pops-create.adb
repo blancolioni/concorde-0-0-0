@@ -22,12 +22,13 @@ package body Concorde.People.Pops.Create is
       ------------
 
       procedure Create (Pop : in out Root_Pop_Type'Class) is
+         use Concorde.Quantities;
       begin
-         Pop.New_Agent (Location);
          Pop.Groups.Replace_Element (Wealth_Group.Reference, 1.0);
          Pop.Skills.Append (Skill);
          Pop.Size := Size;
          Pop.Set_Cash (Cash);
+         Pop.New_Agent (Location, Pop.Size_Quantity * To_Quantity (70.0));
       end Create;
 
    begin

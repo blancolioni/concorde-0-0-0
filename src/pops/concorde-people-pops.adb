@@ -48,6 +48,20 @@ package body Concorde.People.Pops is
       return Pop.Groups.Element (Group.Reference);
    end Affiliation;
 
+   -------------------
+   -- Before_Market --
+   -------------------
+
+   overriding procedure Before_Market
+     (Pop : in out Root_Pop_Type)
+   is
+   begin
+      for Skill of Pop.Skills loop
+         Pop.Add_Quantity (Skill.Commodity, Pop.Size_Quantity,
+                           Concorde.Money.Zero);
+      end loop;
+   end Before_Market;
+
    ---------------------
    -- Object_Database --
    ---------------------

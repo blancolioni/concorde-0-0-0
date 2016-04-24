@@ -50,6 +50,44 @@ package body Concorde.Ships is
         ((Sell, System.Reference, Item));
    end Add_Sell_Order;
 
+   ----------------------
+   -- Add_Trade_Offers --
+   ----------------------
+
+   overriding procedure Add_Trade_Offers
+     (Ship   : not null access constant Root_Ship_Type;
+      Market : in out Concorde.Trades.Trade_Interface'Class)
+   is
+      use Concorde.Quantities;
+      use type Memor.Database_Reference;
+      Space : constant Quantity := Ship.Hold_Quantity - Ship.Total_Quantity;
+   begin
+      for Current_Order of Ship.Orders loop
+         exit when Current_Order.System_Reference /= Ship.System_Reference;
+         case Current_Order.Order is
+            when No_Order =>
+               null;
+            when Buy =>
+               Ship.Create_Buy_Offer
+                 (Market    => Market,
+                  Commodity => Current_Order.Commodity,
+                  Desired   => Space,
+                  Minimum   => Space);
+            when Sell =>
+               declare
+                  Available : constant Quantity :=
+                                Ship.Get_Quantity (Current_Order.Commodity);
+               begin
+                  if Available > Zero then
+                     Ship.Create_Sell_Offer
+                       (Market, Current_Order.Commodity, Available,
+                        Ship.Get_Value (Current_Order.Commodity));
+                  end if;
+               end;
+         end case;
+      end loop;
+   end Add_Trade_Offers;
+
    -----------
    -- Alive --
    -----------

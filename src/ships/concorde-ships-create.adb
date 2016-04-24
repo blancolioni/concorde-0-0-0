@@ -9,6 +9,11 @@ with Concorde.Empires.Logging;
 with Concorde.Ships.Db;
 with Concorde.Ships.Designs;
 
+with Concorde.Systems.Db;
+
+with Concorde.Money;
+with Concorde.Quantities;
+
 package body Concorde.Ships.Create is
 
    --------------
@@ -34,9 +39,13 @@ package body Concorde.Ships.Create is
       procedure Create
         (Ship : in out Root_Ship_Type'Class)
       is
+         use Concorde.Quantities;
       begin
          Concorde.Ships.Designs.Create_Ship_From_Design
            (Design, Ship);
+         Ship.New_Agent
+           (Concorde.Systems.Db.Reference (System),
+            To_Quantity (Ship.Hold_Size) * To_Quantity (100.0));
          if Name = "" then
             if Owner.Current_Ships = 0 then
                Ship.Set_Name (Owner.Name);
@@ -50,6 +59,8 @@ package body Concorde.Ships.Create is
             Ship.Set_Name (Name);
          end if;
          Ship.Owner := Owner;
+         Ship.Set_Guarantor (Owner);
+         Ship.Set_Cash (Concorde.Money.To_Money (100_000.0));
          Ship.System_Reference := System.Reference;
          Ship.Dest_Reference := Memor.Null_Database_Reference;
          Ship.Alive := True;

@@ -57,6 +57,7 @@ package body Concorde.Systems.Updates is
    procedure Execute_Trades (System : Root_Star_System_Type'Class) is
    begin
       System.Market.Execute;
+      System.Market.After_Trading;
    end Execute_Trades;
 
    -------------------
@@ -70,14 +71,14 @@ package body Concorde.Systems.Updates is
                   Concorde.Commodities.Get
                     (Concorde.Commodities.Virtual);
 
-      procedure Clear_Virtual_Stock
+      procedure Before_Market_Update
         (Rec : in out Memor.Root_Record_Type'Class);
 
-      -------------------------
-      -- Clear_Virtual_Stock --
-      -------------------------
+      --------------------------
+      -- Before_Market_Update --
+      --------------------------
 
-      procedure Clear_Virtual_Stock
+      procedure Before_Market_Update
         (Rec : in out Memor.Root_Record_Type'Class)
       is
          Agent : Concorde.Agents.Root_Agent_Type'Class renames
@@ -86,18 +87,22 @@ package body Concorde.Systems.Updates is
          for Commodity of Virtual loop
             Agent.Set_Quantity (Commodity, Quantities.Zero, Money.Zero);
          end loop;
-      end Clear_Virtual_Stock;
+         Agent.Before_Market;
+      end Before_Market_Update;
 
    begin
+
+      System.Market.Before_Trading;
+
       for Pop of System.Pops loop
          Concorde.People.Pops.Db.Update
-           (Pop.Reference, Clear_Virtual_Stock'Access);
+           (Pop.Reference, Before_Market_Update'Access);
          Pop.Add_Trade_Offers (System.Market.all);
       end loop;
 
       for Installation of System.Installations loop
          Concorde.Installations.Db.Update
-           (Installation.Reference, Clear_Virtual_Stock'Access);
+           (Installation.Reference, Before_Market_Update'Access);
          if not Installation.Is_Colony_Hub then
             Installation.Add_Trade_Offers (System.Market.all);
          end if;

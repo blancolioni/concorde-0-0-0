@@ -32,22 +32,24 @@ package body Concorde.Installations is
          Demand : constant Quantity := Market.Current_Demand (Commodity);
          Supply : constant Quantity := Market.Current_Supply (Commodity);
       begin
-         if Demand > Supply then
-            declare
-               Sell_Quantity : constant Quantity :=
-                                 Min (Item.Get_Quantity (Commodity),
-                                      Demand - Supply);
-            begin
-               Item.Create_Sell_Offer
-                 (Market, Commodity, Sell_Quantity, Concorde.Money.Zero);
-            end;
-         elsif Supply > Demand then
-            declare
-               Buy_Quantity : constant Quantity := Supply - Demand;
-            begin
-               Item.Create_Buy_Offer
-                 (Market, Commodity, Buy_Quantity, Buy_Quantity);
-            end;
+         if not Commodity.Is_Set (Concorde.Commodities.Virtual) then
+            if Demand > Supply then
+               declare
+                  Sell_Quantity : constant Quantity :=
+                                    Min (Item.Get_Quantity (Commodity),
+                                         Demand - Supply);
+               begin
+                  Item.Create_Sell_Offer
+                    (Market, Commodity, Sell_Quantity, Concorde.Money.Zero);
+               end;
+            elsif Supply > Demand then
+               declare
+                  Buy_Quantity : constant Quantity := Supply - Demand;
+               begin
+                  Item.Create_Buy_Offer
+                    (Market, Commodity, Buy_Quantity, Buy_Quantity);
+               end;
+            end if;
          end if;
       end Add_Hub_Trade_Offer;
 

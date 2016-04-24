@@ -1,3 +1,5 @@
+with Concorde.Quantities;
+
 with Concorde.Installations.Db;
 
 package body Concorde.Installations.Create is
@@ -7,11 +9,11 @@ package body Concorde.Installations.Create is
    ------------
 
    function Create
-     (Location : not null access constant
+     (Location      : not null access constant
         Concorde.Agents.Agent_Location_Interface'Class;
-      Facility : Concorde.Facilities.Facility_Type;
-      Cash     : Concorde.Money.Money_Type;
-      Owner    : not null access constant
+      Facility      : Concorde.Facilities.Facility_Type;
+      Cash          : Concorde.Money.Money_Type;
+      Owner         : not null access constant
         Concorde.Agents.Root_Agent_Type'Class)
       return Installation_Type
    is
@@ -26,8 +28,12 @@ package body Concorde.Installations.Create is
       procedure Initialise
         (Installation : in out Root_Installation_Type'Class)
       is
+         use Concorde.Quantities;
+         Storage : constant Quantity :=
+                     Facility.Capacity_Quantity
+                       * To_Quantity (100.0);
       begin
-         Installation.New_Agent (Location);
+         Installation.New_Agent (Location, Storage);
          Installation.Facility := Facility;
          Installation.Owner := Owner;
          Installation.Set_Cash (Cash);
