@@ -140,19 +140,21 @@ package body Concorde.Players.Simple_Player is
       Ship   : Concorde.Ships.Ship_Type)
    is
    begin
-      if not Ship.System.Owned then
-         Concorde.Empires.Logging.Log
-           (Empire,
-            Ship.Short_Description
-            & ": start colonisation");
-         Player.Order_Colonisation (Empire, Ship);
-      else
-         Concorde.Empires.Logging.Log
-           (Empire,
-            Ship.Short_Description
-            & ": arrived");
-         Player.Idle_Ships.Append (Ship);
-         Player.Check_Idle_Ships (Empire.all);
+      if not Ship.Has_Orders then
+         if not Ship.System.Owned then
+            Concorde.Empires.Logging.Log
+              (Empire,
+               Ship.Short_Description
+               & ": start colonisation");
+            Player.Order_Colonisation (Empire, Ship);
+         else
+            Concorde.Empires.Logging.Log
+              (Empire,
+               Ship.Short_Description
+               & ": arrived");
+            Player.Idle_Ships.Append (Ship);
+            Player.Check_Idle_Ships (Empire.all);
+         end if;
       end if;
    end On_Ship_Arrived;
 
