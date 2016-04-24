@@ -16,6 +16,10 @@ with Concorde.Ships.Flight;
 
 with Newton.Flight;
 
+with Concorde.Money;
+
+with Concorde.Commodities.Db;
+
 package body Concorde.Ships.Models is
 
    Show_Cubes : constant Boolean := True;
@@ -51,6 +55,43 @@ package body Concorde.Ships.Models is
    overriding procedure Select_Row
      (Table : Ship_Module_Table;
       Row   : Positive);
+
+   Ship_Cargo_Column_Count : constant := 4;
+   subtype Ship_Cargo_Column is Integer range 1 .. Ship_Cargo_Column_Count;
+
+   package Cargo_Vectors is
+     new Ada.Containers.Vectors
+       (Positive,
+        Concorde.Commodities.Commodity_Type,
+        Concorde.Commodities."=");
+
+   type Ship_Cargo_Table is
+     new Lui.Tables.Root_Model_Table with
+      record
+         Ship  : Ship_Type;
+         Cargo : Cargo_Vectors.Vector;
+      end record;
+
+   overriding function Cell_Text
+     (Table  : Ship_Cargo_Table;
+      Row    : Positive;
+      Column : Positive)
+      return String;
+
+   overriding function Heading_Column_Text
+     (Table  : Ship_Cargo_Table;
+      Column : Positive)
+      return String
+   is ((case Ship_Module_Column (Column) is
+           when 1 => "Commodity",
+           when 2 => "Units",
+           when 3 => "Mass",
+           when 4 => "Value"));
+
+   overriding function Row_Count
+     (Table : Ship_Cargo_Table)
+      return Natural
+   is (Table.Cargo.Last_Index);
 
    Ship_Engine_Column_Count : constant := 4;
    subtype Ship_Engine_Column is Integer range 1 .. Ship_Engine_Column_Count;
@@ -215,6 +256,10 @@ package body Concorde.Ships.Models is
      (Newton_Ship : Concorde.Ships.Flight.Newtonian_Ship)
       return Lui.Tables.Model_Table;
 
+   function Create_Cargo_Table
+     (Ship : Ship_Type)
+      return Lui.Tables.Model_Table;
+
    function Create_Engine_Table
      (Newton_Ship : Concorde.Ships.Flight.Newtonian_Ship)
       return Lui.Tables.Model_Table;
@@ -248,6 +293,36 @@ package body Concorde.Ships.Models is
       end case;
    end Cell_Text;
 
+   overriding function Cell_Text
+     (Table  : Ship_Cargo_Table;
+      Row    : Positive;
+      Column : Positive)
+      return String
+   is
+      Item : constant Concorde.Commodities.Commodity_Type :=
+               Table.Cargo.Element (Row);
+   begin
+      case Ship_Cargo_Column (Column) is
+         when 1 =>
+            --  commodity
+            return Item.Name;
+         when 2 =>
+            --  units
+            return Quantities.Image
+              (Table.Ship.Get_Quantity (Item));
+         when 3 =>
+            --  mass
+            return Lui.Approximate_Image
+              (Quantities.To_Real
+                 (Table.Ship.Get_Quantity (Item))
+               * Item.Unit_Mass / 1000.0) & "kg";
+         when 4 =>
+            --  value
+            return Money.Image
+              (Table.Ship.Get_Value (Item));
+      end case;
+   end Cell_Text;
+
    ---------------
    -- Cell_Text --
    ---------------
@@ -273,6 +348,40 @@ package body Concorde.Ships.Models is
               (Table.Newton_Ship.Engine (Row).Throttle);
       end case;
    end Cell_Text;
+
+   ------------------------
+   -- Create_Cargo_Table --
+   ------------------------
+
+   function Create_Cargo_Table
+     (Ship : Ship_Type)
+      return Lui.Tables.Model_Table
+   is
+      Result : Ship_Cargo_Table;
+
+      procedure Add_Cargo
+        (Commodity : Concorde.Commodities.Commodity_Type);
+
+      ---------------
+      -- Add_Cargo --
+      ---------------
+
+      procedure Add_Cargo
+        (Commodity : Concorde.Commodities.Commodity_Type)
+      is
+         use type Concorde.Quantities.Quantity;
+      begin
+         if Ship.Get_Quantity (Commodity) > Quantities.Zero then
+            Result.Cargo.Append (Commodity);
+         end if;
+      end Add_Cargo;
+
+   begin
+      Result.Initialise ("Cargo", 0, Ship_Cargo_Column_Count);
+      Result.Ship := Ship;
+      Concorde.Commodities.Db.Scan (Add_Cargo'Access);
+      return new Ship_Cargo_Table'(Result);
+   end Create_Cargo_Table;
 
    -------------------------
    -- Create_Engine_Table --
@@ -744,6 +853,8 @@ package body Concorde.Ships.Models is
                       Create_Newton_Ship (Ship);
       Modules     : constant Lui.Tables.Model_Table :=
                       Create_Module_Table (Newton_Ship);
+      Cargo       : constant Lui.Tables.Model_Table :=
+                      Create_Cargo_Table (Ship);
       Engines     : constant Lui.Tables.Model_Table :=
                       Create_Engine_Table (Newton_Ship);
       Engine_Buttons : Lui.Gadgets.Array_Of_Gadgets
@@ -782,7 +893,7 @@ package body Concorde.Ships.Models is
       declare
          use type Lui.Gadgets.Array_Of_Gadgets;
       begin
-         Model.Initialise (Ship.Name, (Modules, Engines),
+         Model.Initialise (Ship.Name, (Modules, Cargo, Engines),
                            Rotation_Buttons & Engine_Buttons);
       end;
 
