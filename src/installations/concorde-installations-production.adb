@@ -146,7 +146,7 @@ package body Concorde.Installations.Production is
                   Factor : constant Unit_Real :=
                              (System.Resource_Accessibility
                               + System.Resource_Concentration)
-                             / 2.0;
+                             / 200.0;
                begin
                   Effective_Capacity :=
                     Scale (Effective_Capacity, Factor);
