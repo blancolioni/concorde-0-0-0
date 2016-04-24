@@ -83,6 +83,8 @@ package body Concorde.Updates is
 
       Concorde.Economy.Updates.Daily_Update;
 
+      Concorde.Ships.Updates.Update_Ship_Orders;
+
       if Execute_Battles then
          Concorde.Galaxy.Complete_Battles;
       end if;
