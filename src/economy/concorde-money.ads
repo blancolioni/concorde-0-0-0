@@ -17,7 +17,7 @@ package Concorde.Money is
    function "abs" (Left : Money_Type) return Money_Type;
 
    function Adjust (Money    : Money_Type;
-                    Factor   : Real)
+                    Factor   : Non_Negative_Real)
                    return Money_Type;
 
    function To_Money (Amount : Real) return Money_Type;
@@ -40,17 +40,17 @@ package Concorde.Money is
    function To_Real (Price : Price_Type) return Real;
 
    function Adjust_Price (Price    : Price_Type;
-                          Factor   : Real)
+                          Factor   : Non_Negative_Real)
                          return Price_Type;
 
    function Tax (Price   : Price_Type;
-                 Tax     : Quantities.Quantity)
+                 Tax     : Unit_Real)
                  return Price_Type;
 
    function Max (X, Y : Price_Type) return Price_Type;
    function Min (X, Y : Price_Type) return Price_Type;
 
-   function Total (Price  : Price_Type;
+   function Total (Price    : Price_Type;
                    Quantity : Quantities.Quantity)
                   return Money_Type;
 
@@ -70,15 +70,15 @@ package Concorde.Money is
    function Value (Image : String) return Price_Type;
 
    function Split (Amount  : Money_Type;
-                   Portion : Real)
+                   Portion : Unit_Real)
                   return Money_Type;
 
    function Zero return Price_Type;
 
 private
 
-   type Money_Type is new Real;
-   type Price_Type is new Real range 0.0 .. Real'Last;
+   type Money_Type is range -2 ** 63 .. 2 ** 63 - 1;
+   type Price_Type is new Money_Type range 0 .. Money_Type'Last;
 
    pragma Import (Intrinsic, "+");
    pragma Import (Intrinsic, "-");

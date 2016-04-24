@@ -13,8 +13,8 @@ package body Concorde.Money is
    ------------
 
    function Adjust (Money    : Money_Type;
-                    Factor   : Real)
-                   return Money_Type
+                    Factor   : Non_Negative_Real)
+                    return Money_Type
    is
    begin
       return Money * Money_Type (Factor);
@@ -25,11 +25,11 @@ package body Concorde.Money is
    ------------------
 
    function Adjust_Price (Price    : Price_Type;
-                          Factor   : Real)
+                          Factor   : Non_Negative_Real)
                          return Price_Type
    is
    begin
-      return Price * Price_Type (Factor);
+      return Price_Type (Real (Price) * Factor);
    end Adjust_Price;
 
    ------------------
@@ -52,7 +52,7 @@ package body Concorde.Money is
 
    function Image (Item : Money_Type) return String is
    begin
-      if Item < 0.0 then
+      if Item < 0 then
          return "(" & Image (Price_Type (abs Item)) & ")";
       else
          return Image (Price_Type (Item));
@@ -63,11 +63,9 @@ package body Concorde.Money is
    -- Image --
    -----------
 
-   function Image (Item : Price_Type) return String is
+   overriding function Image (Item : Price_Type) return String is
       Image : constant String :=
-        Ada.Strings.Fixed.Trim (Long_Integer'Image
-                                  (Long_Integer
-                                     (Price_Type'Floor (Item * 100.0))),
+        Ada.Strings.Fixed.Trim (Price_Type'Image ((Item + 5) / 10),
                                 Ada.Strings.Left);
    begin
       if Image'Length = 1 then
@@ -93,7 +91,7 @@ package body Concorde.Money is
    -- Max --
    ---------
 
-   function Max (X, Y : Price_Type) return Price_Type is
+   overriding function Max (X, Y : Price_Type) return Price_Type is
    begin
       return Price_Type'Max (X, Y);
    end Max;
@@ -111,7 +109,7 @@ package body Concorde.Money is
    -- Min --
    ---------
 
-   function Min (X, Y : Price_Type) return Price_Type is
+   overriding function Min (X, Y : Price_Type) return Price_Type is
    begin
       return Price_Type'Min (X, Y);
    end Min;
@@ -132,12 +130,13 @@ package body Concorde.Money is
    -- Split --
    -----------
 
-   function Split (Amount  : Money_Type;
-                   Portion : Real)
-                  return Money_Type
+   function Split
+     (Amount  : Money_Type;
+      Portion : Unit_Real)
+      return Money_Type
    is
    begin
-      return Amount * Money_Type (Portion);
+      return Money_Type (Real (Amount) * Portion);
    end Split;
 
    ---------
@@ -145,11 +144,11 @@ package body Concorde.Money is
    ---------
 
    function Tax (Price   : Price_Type;
-                 Tax     : Quantities.Quantity)
+                 Tax     : Unit_Real)
                  return Price_Type
    is
    begin
-      return Price_Type (Real (Price) * Quantities.To_Real (Tax));
+      return Price_Type (Real (Price) * Tax);
    end Tax;
 
    --------------
@@ -158,7 +157,7 @@ package body Concorde.Money is
 
    function To_Money (Amount : Real) return Money_Type is
    begin
-      return Money_Type (Amount);
+      return Money_Type (Amount * 1000.0);
    end To_Money;
 
    -------------------
@@ -167,7 +166,7 @@ package body Concorde.Money is
 
    function To_Price (Amount : Real) return Price_Type is
    begin
-      return Price_Type (Amount);
+      return Price_Type (Amount * 1000.0);
    end To_Price;
 
    -------------
@@ -176,16 +175,16 @@ package body Concorde.Money is
 
    function To_Real (Amount : Money_Type) return Real is
    begin
-      return Real (Amount);
+      return Real (Amount) / 1000.0;
    end To_Real;
 
    -------------
    -- To_Real --
    -------------
 
-   function To_Real (Price : Price_Type) return Real is
+   overriding function To_Real (Price : Price_Type) return Real is
    begin
-      return Real (Price);
+      return Real (Price) / 1000.0;
    end To_Real;
 
    -----------
@@ -214,7 +213,7 @@ package body Concorde.Money is
    -- Value --
    -----------
 
-   function Value (Image : String) return Price_Type is
+   overriding function Value (Image : String) return Price_Type is
    begin
       return To_Price (Real'Value (Image));
    end Value;
@@ -225,16 +224,16 @@ package body Concorde.Money is
 
    function Zero return Money_Type is
    begin
-      return Money_Type (0.0);
+      return 0;
    end Zero;
 
    ----------
    -- Zero --
    ----------
 
-   function Zero return Price_Type is
+   overriding function Zero return Price_Type is
    begin
-      return Price_Type (0.0);
+      return 0;
    end Zero;
 
 end Concorde.Money;
