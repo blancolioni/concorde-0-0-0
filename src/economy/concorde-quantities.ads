@@ -36,7 +36,7 @@ package Concorde.Quantities is
 
 private
 
-   type Quantity is new Real;
+   type Quantity is range -2**63 .. 2**63 - 1;
 
    pragma Import (Intrinsic, "*");
    pragma Import (Intrinsic, "/");

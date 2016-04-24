@@ -4,7 +4,7 @@ with Concorde.Random;
 
 package body Concorde.Quantities is
 
-   function Significant_Digits_Image (Item : Quantity;
+   function Significant_Digits_Image (Item : Non_Negative_Real;
                                       Sig  : Positive)
                                      return String;
 
@@ -15,9 +15,9 @@ package body Concorde.Quantities is
    function Around (X : Quantity) return Quantity is
    begin
       return Quantity
-        (Real (X - X / 10.0)
+        (Real (X - X / 10)
          + (Concorde.Random.Unit_Random
-           * Real (X / 5.0)));
+           * Real (X) / 5.0));
    end Around;
 
    -----------
@@ -26,18 +26,18 @@ package body Concorde.Quantities is
 
    function Image (Item : Quantity) return String is
 
-      Factors    : constant array (1 .. 3) of Quantity :=
+      Factors    : constant array (1 .. 3) of Non_Negative_Real :=
         (1.0E9, 1.0E6, 1.0E3);
       Extensions : constant String := "GMK";
    begin
       for I in Factors'Range loop
-         if Item > Factors (I) then
-            return Significant_Digits_Image (Item / Factors (I), 3) &
+         if Real (Item) > Factors (I) then
+            return Significant_Digits_Image (Real (Item) / Factors (I), 3) &
               (1 => Extensions (I));
          end if;
       end loop;
 
-      return Significant_Digits_Image (Item, 3);
+      return Significant_Digits_Image (Real (Item), 3);
    end Image;
 
    ---------
@@ -75,14 +75,14 @@ package body Concorde.Quantities is
    -- Significant_Digits_Image --
    ------------------------------
 
-   function Significant_Digits_Image (Item : Quantity;
+   function Significant_Digits_Image (Item : Non_Negative_Real;
                                       Sig  : Positive)
                                      return String
    is
       Result    : String (1 .. Sig);
       Point     : Natural := 0;
-      Acc       : Quantity := Item;
-      Boundary  : constant Quantity := 10.0**Sig;
+      Acc       : Non_Negative_Real := Item;
+      Boundary  : constant Non_Negative_Real := 10.0**Sig;
    begin
       if Item < 1.0 / Boundary then
          return "0.00";
@@ -151,7 +151,7 @@ package body Concorde.Quantities is
 
    function Unit return Quantity is
    begin
-      return 1.0;
+      return 1;
    end Unit;
 
    -----------
@@ -169,7 +169,7 @@ package body Concorde.Quantities is
 
    function Zero return Quantity is
    begin
-      return 0.0;
+      return 0;
    end Zero;
 
 end Concorde.Quantities;
