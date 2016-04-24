@@ -1,48 +1,48 @@
 livestock = { class = resource
               name = Livestock
-              mass = 1
+              mass = 2000
               organic = yes
               base_price = 3
             }
 seafood = { class = resource
             name = Seafood
-            mass = 1
+            mass = 1500
             organic = yes
             base_price = 5
           }
 fruit = { class = resource
           name = Fruit
-          mass = 1
+          mass = 1200
           organic = yes
           base_price = 2
         }
 vegetables = { class = resource
                name = vegetables
-               mass = 1
+               mass = 1200
                organic = yes
                base_price = 0.5
              }
 grains = { class = resource
            name = Grains
-           mass = 1
+           mass = 1600
            organic = yes
            base_price = 0.2
          }
 herb = { class = resource
          name = Herbs
-         mass = 1
+         mass = 1200
          organic = yes
          base_price = 3
        }
 fungi = { class = resource
            name = fungi
-           mass = 1
+           mass = 1200
            organic = yes
            base_price = 3
          }
 salt = { class = resource
          name = Salt
-         mass = 1
+         mass = 2165
          mineral = yes
          base_price = 0.2
        }
