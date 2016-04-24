@@ -48,7 +48,7 @@ salt = { class = resource
        }
 silicon = { class = resource
             name = Silicon
-            mass = 1
+            mass = 2330
             mineral = yes
             base_price = 0.5
           }
