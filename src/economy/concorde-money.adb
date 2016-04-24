@@ -198,7 +198,7 @@ package body Concorde.Money is
    is
       use Quantities;
    begin
-      return Money_Type (To_Real (To_Quantity (Real (Price)) * Quantity));
+      return Money_Type (Real (Price) * To_Real (Quantity));
    end Total;
 
    -----------
