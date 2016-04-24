@@ -149,7 +149,9 @@ package body Concorde.Empires is
             function OK
               (System : Concorde.Systems.Star_System_Type)
                return Boolean
-            is (Empire.Owned_System (System));
+            is (not System.Owned
+                or else Empire.Owned_System (System)
+                or else not Relations.At_War (Empire, System.Owner.all));
 
             Path : constant Concorde.Systems.Graphs.Array_Of_Vertices :=
                      Concorde.Galaxy.Shortest_Path
