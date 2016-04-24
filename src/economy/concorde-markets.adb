@@ -307,15 +307,6 @@ package body Concorde.Markets is
       Offer_Sorting.Sort (Bids);
       Offer_Sorting.Sort (Asks);
 
-      for Bid of Bids loop
-         Ada.Text_IO.Put_Line
-           (Bid.Agent.Short_Name
-            & " bids "
-            & Image (Bid.Current_Price)
-            & " for "
-            & Image (Bid.Remaining_Quantity));
-      end loop;
-
       declare
          use Offer_Vectors;
          Next_Bid : Cursor := Bids.Last;
@@ -431,6 +422,19 @@ package body Concorde.Markets is
                end if;
             end;
          end loop;
+
+         while Has_Element (Next_Ask) loop
+            Market.Log_Offer
+              ("failed to sell", Commodity, Element (Next_Ask));
+            Next (Next_Ask);
+         end loop;
+
+         while Has_Element (Next_Bid) loop
+            Market.Log_Offer
+              ("failed to buy", Commodity, Element (Next_Bid));
+            Next (Next_Bid);
+         end loop;
+
       end;
 
       if Total_Quantity > Zero then
@@ -605,6 +609,32 @@ package body Concorde.Markets is
          Ada.Text_IO.Put_Line (Message);
       end if;
    end Log;
+
+   ---------------
+   -- Log_Offer --
+   ---------------
+
+   procedure Log_Offer
+     (Market    : Root_Market_Type'Class;
+      Message   : String;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Offer     : Offer_Info)
+   is
+      use Concorde.Money;
+      use Concorde.Quantities;
+   begin
+      Market.Log
+        (Message
+         & ": "
+         & Offer.Agent.Short_Name
+         & ": "
+         & Image (Offer.Remaining_Quantity)
+         & " "
+         & Commodity.Name
+         & " @ "
+         & Image (Offer.Current_Price)
+         & " each");
+   end Log_Offer;
 
    ----------
    -- Name --

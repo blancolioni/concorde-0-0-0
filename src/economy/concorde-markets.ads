@@ -191,4 +191,10 @@ private
      (Market    : in out Root_Market_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type);
 
+   procedure Log_Offer
+     (Market    : Root_Market_Type'Class;
+      Message   : String;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Offer     : Offer_Info);
+
 end Concorde.Markets;
