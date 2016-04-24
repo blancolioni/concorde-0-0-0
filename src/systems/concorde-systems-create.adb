@@ -28,7 +28,7 @@ package body Concorde.Systems.Create is
 
       Resources : constant Concorde.Commodities.Array_Of_Commodities :=
                     Concorde.Commodities.Get
-                      (Concorde.Commodities.Resource);
+                      (Concorde.Commodities.Organic);
 
       procedure Create (System : in out Root_Star_System_Type'Class);
 
