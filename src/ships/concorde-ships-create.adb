@@ -45,7 +45,7 @@ package body Concorde.Ships.Create is
            (Design, Ship);
          Ship.New_Agent
            (Concorde.Systems.Db.Reference (System),
-            To_Quantity (Ship.Hold_Size) * To_Quantity (100.0));
+            To_Quantity (Ship.Hold_Size));
          if Name = "" then
             if Owner.Current_Ships = 0 then
                Ship.Set_Name (Owner.Name);
