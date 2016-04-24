@@ -324,7 +324,7 @@ package body Concorde.Ships is
       return Non_Negative_Real
    is
    begin
-      return Ship.Empty_Mass;
+      return Ship.Empty_Mass + Ship.Total_Mass;
    end Current_Mass;
 
    ------------------
