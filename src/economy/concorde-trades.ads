@@ -74,4 +74,11 @@ package Concorde.Trades is
       Cost      : Concorde.Money.Money_Type)
    is abstract;
 
+   function Maximum_Offer_Quantity
+     (Trader    : Trader_Interface;
+      Offer     : Offer_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity
+      is abstract;
+
 end Concorde.Trades;

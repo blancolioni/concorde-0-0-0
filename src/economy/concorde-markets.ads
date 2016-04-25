@@ -128,6 +128,7 @@ private
    function Calculate_Quantity
      (Agreed_Price : Concorde.Money.Price_Type;
       Buy_Or_Sell  : Concorde.Trades.Offer_Type;
+      Commodity    : Concorde.Commodities.Commodity_Type;
       Offer        : Offer_Info)
       return Concorde.Quantities.Quantity;
 

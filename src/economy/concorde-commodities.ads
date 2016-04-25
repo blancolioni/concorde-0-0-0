@@ -76,6 +76,11 @@ package Concorde.Commodities is
       return Concorde.Quantities.Quantity
       is abstract;
 
+   function Available_Quantity
+     (Stock    : Stock_Interface'Class)
+      return Concorde.Quantities.Quantity
+   is (Stock.Maximum_Quantity - Stock.Total_Quantity);
+
    function Get_Quantity
      (Stock : Stock_Interface;
       Item  : Commodity_Type)

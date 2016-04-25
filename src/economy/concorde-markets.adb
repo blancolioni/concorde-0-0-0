@@ -56,6 +56,7 @@ package body Concorde.Markets is
    function Calculate_Quantity
      (Agreed_Price : Concorde.Money.Price_Type;
       Buy_Or_Sell  : Concorde.Trades.Offer_Type;
+      Commodity    : Concorde.Commodities.Commodity_Type;
       Offer        : Offer_Info)
       return Concorde.Quantities.Quantity
    is
@@ -94,10 +95,13 @@ package body Concorde.Markets is
       end case;
 
       declare
-         Result : constant Quantity :=
-                    Offer.Remaining_Quantity * To_Quantity (Factor);
+         Adjusted_Result : constant Quantity :=
+                             Offer.Remaining_Quantity * To_Quantity (Factor);
+         Maximum_Result  : constant Quantity :=
+                             Offer.Agent.Maximum_Offer_Quantity
+                               (Buy_Or_Sell, Commodity);
       begin
-         return Max (Result, Unit);
+         return Min (Max (Adjusted_Result, Unit), Maximum_Result);
       end;
 
    end Calculate_Quantity;
@@ -325,10 +329,12 @@ package body Concorde.Markets is
                                 Adjust_Price (Ask_Price + Bid_Price, 0.5);
                Ask_Quantity : constant Quantity :=
                                 Calculate_Quantity
-                                  (Price, Concorde.Trades.Sell, Ask);
+                                  (Price, Concorde.Trades.Sell,
+                                   Commodity,  Ask);
                Bid_Quantity : constant Quantity :=
                                 Calculate_Quantity
-                                  (Price, Concorde.Trades.Buy, Bid);
+                                  (Price, Concorde.Trades.Buy,
+                                   Commodity, Bid);
                Traded_Quantity : constant Quantity :=
                                Min (Ask_Quantity, Bid_Quantity);
                Money           : constant Money_Type :=

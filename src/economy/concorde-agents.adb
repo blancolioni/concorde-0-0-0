@@ -412,6 +412,26 @@ package body Concorde.Agents is
       Agent.Log ("trade", Message);
    end Log_Trade;
 
+   ----------------------------
+   -- Maximum_Offer_Quantity --
+   ----------------------------
+
+   overriding function Maximum_Offer_Quantity
+     (Agent  : Root_Agent_Type;
+      Offer  : Concorde.Trades.Offer_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity
+   is
+      use type Concorde.Quantities.Quantity;
+   begin
+      case Offer is
+         when Concorde.Trades.Buy =>
+            return Agent.Maximum_Quantity - Agent.Total_Quantity;
+         when Concorde.Trades.Sell =>
+            return Agent.Get_Quantity (Commodity);
+      end case;
+   end Maximum_Offer_Quantity;
+
    ----------------------
    -- Maximum_Quantity --
    ----------------------

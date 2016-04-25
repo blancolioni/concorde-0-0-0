@@ -55,6 +55,12 @@ package Concorde.Agents is
       Quantity  : Concorde.Quantities.Quantity;
       Cost      : Concorde.Money.Money_Type);
 
+   overriding function Maximum_Offer_Quantity
+     (Agent     : Root_Agent_Type;
+      Offer     : Concorde.Trades.Offer_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity;
+
    function Cash
      (Agent : Root_Agent_Type'Class)
       return Concorde.Money.Money_Type;
