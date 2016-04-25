@@ -3,6 +3,7 @@ with Ada.Unchecked_Deallocation;
 with Concorde.Dates;
 with Concorde.Logging;
 
+with Concorde.Agents.Updates;
 with Concorde.Economy.Updates;
 with Concorde.Empires.Updates;
 with Concorde.Galaxy.Updates;
@@ -78,6 +79,9 @@ package body Concorde.Updates is
 
       Concorde.Ships.Updates.Delete_Dead_Ships;
 
+      Concorde.Agents.Updates.Update_Agents
+        (Concorde.Agents.Updates.Start_Of_Update'Access);
+
       Concorde.Empires.Updates.Update_Empires;
       Concorde.Galaxy.Updates.Update_Galaxy;
 
@@ -88,6 +92,9 @@ package body Concorde.Updates is
       if Execute_Battles then
          Concorde.Galaxy.Complete_Battles;
       end if;
+
+      Concorde.Agents.Updates.Update_Agents
+        (Concorde.Agents.Updates.End_Of_Update'Access);
 
       Concorde.Empires.Logging.Flush_Log;
 
