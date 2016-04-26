@@ -68,9 +68,9 @@ package body Concorde.Markets is
          when Concorde.Trades.Buy =>
             if Agreed_Price > Offer.Limit_Price then
                Factor := 0.0;
-            elsif Agreed_Price > Offer.Offer_Price then
-               Factor := (To_Real (Offer.Limit_Price) - To_Real (Agreed_Price))
-                 / (To_Real (Offer.Limit_Price) - To_Real (Offer.Offer_Price));
+            elsif Agreed_Price > Offer.Offer_Price  then
+               Factor := (To_Real (Offer.Limit_Price - Agreed_Price))
+                 / (To_Real (Offer.Limit_Price - Offer.Offer_Price));
             else
                Factor := 1.0;
             end if;
@@ -78,8 +78,8 @@ package body Concorde.Markets is
             if Agreed_Price < Offer.Limit_Price then
                Factor := 0.0;
             elsif Agreed_Price < Offer.Offer_Price then
-               Factor := (To_Real (Agreed_Price) - To_Real (Offer.Limit_Price))
-                 / (To_Real (Offer.Offer_Price) - To_Real (Offer.Limit_Price));
+               Factor := (To_Real (Agreed_Price - Offer.Limit_Price))
+                 / (To_Real (Offer.Offer_Price - Offer.Limit_Price));
             else
                Factor := 1.0;
             end if;
