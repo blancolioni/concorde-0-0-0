@@ -83,6 +83,11 @@ package Concorde.Markets is
       Enable_Logging : Boolean)
       return Market_Type;
 
+   procedure Initial_Price
+     (Market    : in out Root_Market_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Price     : Concorde.Money.Price_Type);
+
 private
 
    use type Concorde.Money.Price_Type;

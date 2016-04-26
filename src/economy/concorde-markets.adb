@@ -576,6 +576,21 @@ package body Concorde.Markets is
       return Market.Get_Commodity (Commodity).Historical_Mean_Price;
    end Historical_Mean_Price;
 
+   -------------------
+   -- Initial_Price --
+   -------------------
+
+   procedure Initial_Price
+     (Market    : in out Root_Market_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Price     : Concorde.Money.Price_Type)
+   is
+      Info : constant Cached_Commodity := Market.Get_Commodity (Commodity);
+   begin
+      Info.Current_Price := Price;
+      Info.Historical_Mean_Price := Price;
+   end Initial_Price;
+
    -----------------
    -- Last_Demand --
    -----------------
