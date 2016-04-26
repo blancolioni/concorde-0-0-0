@@ -318,9 +318,14 @@ package body Concorde.Agents is
       case Agent.Offer_Strategy (Commodity) is
          when Belief_Based =>
             if Agent.Belief.Element (Commodity.Reference) = null then
-               return (Low => Adjust_Price (Commodity.Base_Price, 0.95),
-                       High => Adjust_Price (Commodity.Base_Price, 1.05),
-                       Strength => 0.5);
+               declare
+                  Base : constant Price_Type :=
+                           Market.Historical_Mean_Price (Commodity);
+               begin
+                  return (Low => Adjust_Price (Base, 0.95),
+                          High => Adjust_Price (Base, 1.05),
+                          Strength => 0.5);
+               end;
             else
                return Agent.Belief.Element (Commodity.Reference).all;
             end if;
