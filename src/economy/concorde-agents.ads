@@ -28,6 +28,12 @@ package Concorde.Agents is
       Location       : not null access constant Agent_Location_Interface'Class;
       Stock_Capacity : Concorde.Quantities.Quantity);
 
+   overriding function Offer_Strategy
+     (Agent     : Root_Agent_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Trades.Offer_Price_Strategy
+   is (Concorde.Trades.Belief_Based);
+
    overriding function Maximum_Quantity
      (Agent : Root_Agent_Type)
       return Concorde.Quantities.Quantity;
@@ -162,7 +168,8 @@ private
       end record;
 
    function Get_Price_Belief
-     (Agent : Root_Agent_Type'Class;
+     (Agent     : Root_Agent_Type'Class;
+      Market    : Concorde.Trades.Trade_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
       return Agent_Price_Belief_Record;
 

@@ -49,11 +49,20 @@ package Concorde.Trades is
 
    type Offer_Type is (Buy, Sell);
 
+   type Offer_Price_Strategy is
+     (Belief_Based, Fixed_Price, Average_Price);
+
    type Trader_Interface is limited interface;
 
    function Short_Name
      (Trader : Trader_Interface)
       return String
+      is abstract;
+
+   function Offer_Strategy
+     (Trader    : Trader_Interface;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Offer_Price_Strategy
       is abstract;
 
    procedure Create_Offer

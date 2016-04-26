@@ -110,10 +110,12 @@ package body Concorde.Agents is
                         Market.Historical_Mean_Price
                           (Commodity);
       Belief        : constant Agent_Price_Belief_Record :=
-                        Agent.Get_Price_Belief (Commodity);
+                        Agent.Get_Price_Belief (Market, Commodity);
       Favourability : constant Unit_Real :=
-                        1.0 - Price_Position_In_Range
-                          (Mean, Belief.Low, Belief.High);
+                        (if Belief.Low = Belief.High
+                         then 1.0
+                         else 1.0 - Price_Position_In_Range
+                           (Mean, Belief.Low, Belief.High));
       Buy_Price     : constant Price_Type :=
                         (if Minimum = Zero
                          then Belief.Low
@@ -198,10 +200,12 @@ package body Concorde.Agents is
                         Market.Historical_Mean_Price
                           (Commodity);
       Belief        : constant Agent_Price_Belief_Record :=
-                        Agent.Get_Price_Belief (Commodity);
+                        Agent.Get_Price_Belief (Market, Commodity);
       Favourability : constant Unit_Real :=
-                        Price_Position_In_Range
-                          (Mean, Belief.Low, Belief.High);
+                        (if Belief.Low = Belief.High
+                         then 1.0
+                         else Price_Position_In_Range
+                           (Mean, Belief.Low, Belief.High));
       Sell_Price    : constant Price_Type :=
                         Create_Ask_Price
                           (Belief.Low, Belief.High, Agent.Age);
@@ -304,18 +308,31 @@ package body Concorde.Agents is
 
    function Get_Price_Belief
      (Agent     : Root_Agent_Type'Class;
+      Market    : Concorde.Trades.Trade_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
       return Agent_Price_Belief_Record
    is
       use Concorde.Money;
+      use all type Concorde.Trades.Offer_Price_Strategy;
    begin
-      if Agent.Belief.Element (Commodity.Reference) = null then
-         return (Low => Adjust_Price (Commodity.Base_Price, 0.95),
-                 High => Adjust_Price (Commodity.Base_Price, 1.05),
-                 Strength => 0.5);
-      else
-         return Agent.Belief.Element (Commodity.Reference).all;
-      end if;
+      case Agent.Offer_Strategy (Commodity) is
+         when Belief_Based =>
+            if Agent.Belief.Element (Commodity.Reference) = null then
+               return (Low => Adjust_Price (Commodity.Base_Price, 0.95),
+                       High => Adjust_Price (Commodity.Base_Price, 1.05),
+                       Strength => 0.5);
+            else
+               return Agent.Belief.Element (Commodity.Reference).all;
+            end if;
+         when Fixed_Price =>
+            return (Low => Commodity.Base_Price,
+                    High => Commodity.Base_Price,
+                    Strength => 1.0);
+         when Average_Price =>
+            return (Low      => Market.Current_Price (Commodity),
+                    High     => Market.Current_Price (Commodity),
+                    Strength => 1.0);
+      end case;
    end Get_Price_Belief;
 
    ------------------
@@ -469,9 +486,9 @@ package body Concorde.Agents is
    is
       use Concorde.Money;
    begin
-      if Value < Low then
+      if Value <= Low then
          return 0.0;
-      elsif Value > High then
+      elsif Value >= High then
          return 1.0;
       else
          return To_Real (Value - Low) / To_Real (High - Low);

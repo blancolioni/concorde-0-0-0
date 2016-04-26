@@ -318,4 +318,10 @@ private
      (Ship : not null access constant Root_Ship_Type;
       Market : in out Concorde.Trades.Trade_Interface'Class);
 
+   overriding function Offer_Strategy
+     (Ship : Root_Ship_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Trades.Offer_Price_Strategy
+   is (Concorde.Trades.Average_Price);
+
 end Concorde.Ships;
