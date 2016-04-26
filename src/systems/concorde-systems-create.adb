@@ -1,5 +1,7 @@
 with WL.Random;
 
+with Concorde.Money;
+
 with Concorde.Random;
 with Concorde.Scenarios;
 
@@ -25,10 +27,15 @@ package body Concorde.Systems.Create is
       Capacity   : Non_Negative_Real)
       return Star_System_Type
    is
+      use Concorde.Commodities;
 
       Resources : constant Concorde.Commodities.Array_Of_Commodities :=
                     Concorde.Commodities.Get
                       (Concorde.Commodities.Organic);
+
+      Imperial_Centre : constant Boolean :=
+                          Concorde.Scenarios.Imperial_Centre
+                              and then Index = 1;
 
       procedure Create (System : in out Root_Star_System_Type'Class);
 
@@ -55,8 +62,7 @@ package body Concorde.Systems.Create is
             Main_Star : constant Concorde.Stars.Star_Type :=
                           Concorde.Stars.Create.New_Main_Sequence_Star
                             (Name,
-                             (if Concorde.Scenarios.Imperial_Centre
-                              and then System.Index = 1
+                             (if Imperial_Centre
                               then 1.0
                               else Random_Star_Mass));
          begin
@@ -67,23 +73,69 @@ package body Concorde.Systems.Create is
                Position => Concorde.Geometry.Degrees_To_Radians (0.0));
          end;
 
-         declare
-            Deposit_Size : constant Concorde.Quantities.Quantity :=
-                             Concorde.Quantities.Around
-                               (Concorde.Quantities.To_Quantity (1.0E6));
-         begin
-            System.Deposit :=
-              (Resource => Resource,
-               Accessibility => Concorde.Random.Unit_Random,
-               Concentration => Concorde.Random.Unit_Random,
-               Size          => Deposit_Size,
-               Original_Size => Deposit_Size);
-         end;
-
          System.Market :=
            Concorde.Markets.Create_Market
              (Concorde.Systems.Db.Reference (System.Reference),
               Enable_Logging => False);
+
+         declare
+            Deposit_Size : constant Concorde.Quantities.Quantity :=
+                             Concorde.Quantities.Around
+                               (Concorde.Quantities.To_Quantity
+                                  ((if Imperial_Centre
+                                   then 1.0e2 else 1.0E6)));
+            Accessibility : constant Unit_Real :=
+                              (if Imperial_Centre
+                               then Concorde.Random.Unit_Random / 10.0
+                               else Concorde.Random.Unit_Random / 2.0 + 0.3);
+            Concentration : constant Unit_Real :=
+                              (if Imperial_Centre
+                               then Concorde.Random.Unit_Random / 10.0
+                               else Concorde.Random.Unit_Random / 2.0 + 0.3);
+         begin
+            System.Deposit :=
+              (Resource      => Resource,
+               Accessibility => Accessibility,
+               Concentration => Concentration,
+               Size          => Deposit_Size,
+               Original_Size => Deposit_Size);
+
+            System.Market.Initial_Price
+              (Resource,
+               Concorde.Money.Adjust_Price
+                 (Resource.Base_Price,
+                  (1.0 - Accessibility) * (1.0 - Concentration)));
+         end;
+
+         for Unavailable of Resources loop
+            if Imperial_Centre then
+               System.Market.Initial_Price
+                 (Unavailable,
+                  Concorde.Money.Adjust_Price
+                    (Unavailable.Base_Price, Factor => 2.0));
+            elsif Unavailable /= Resource then
+               System.Market.Initial_Price
+                 (Unavailable,
+                  Concorde.Money.Adjust_Price
+                    (Unavailable.Base_Price, Factor => 2.0));
+            end if;
+         end loop;
+
+         declare
+            Consumer_Goods : constant Array_Of_Commodities := Get (Consumer);
+         begin
+            for Item of Consumer_Goods loop
+               if Imperial_Centre then
+                  null;
+               else
+                  System.Market.Initial_Price
+                    (Item,
+                     Concorde.Money.Adjust_Price
+                       (Item.Base_Price, Factor => 2.0));
+               end if;
+            end loop;
+         end;
+
       end Create;
 
    begin
