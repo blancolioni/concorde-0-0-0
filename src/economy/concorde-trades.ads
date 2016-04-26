@@ -65,6 +65,12 @@ package Concorde.Trades is
       return Offer_Price_Strategy
       is abstract;
 
+   function Belief_Based_Strategy
+     (Trader : Trader_Interface'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Boolean
+   is (Trader.Offer_Strategy (Commodity) = Belief_Based);
+
    procedure Create_Offer
      (Trade     : in out Trade_Interface;
       Offer     : Offer_Type;
@@ -89,5 +95,21 @@ package Concorde.Trades is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity
       is abstract;
+
+   procedure Update_Price_Belief
+     (Trader            : Trader_Interface;
+      Trade             : Trade_Interface'Class;
+      Offer             : Offer_Type;
+      Commodity         : Concorde.Commodities.Commodity_Type;
+      Total_Traded      : Concorde.Quantities.Quantity;
+      Total_Supply      : Concorde.Quantities.Quantity;
+      Total_Demand      : Concorde.Quantities.Quantity;
+      Average_Price     : Concorde.Money.Price_Type;
+      Historical_Price  : Concorde.Money.Price_Type;
+      Trader_Price      : Concorde.Money.Price_Type;
+      Trader_Offered    : Concorde.Quantities.Quantity;
+      Trader_Traded     : Concorde.Quantities.Quantity;
+      Total_Money       : Concorde.Money.Money_Type)
+   is abstract;
 
 end Concorde.Trades;

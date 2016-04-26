@@ -478,35 +478,41 @@ package body Concorde.Markets is
 --           Supply           => Info.Supply,
 --           Demand           => Info.Demand);
 --
---        for Bid of Bids loop
---           Conflict.Agents.Update_Buyer_Price_Belief
---             (Agent            => Bid.Agent,
---              Commodity        => Commodity,
---              Total_Bought     => Info.Traded_Quantity,
---              Total_Supply     => Info.Supply,
---              Total_Demand     => Info.Demand,
---              Average_Price    => Mean_Price,
---              Historical_Price => Info.Historical_Mean_Price,
---              Agent_Price      => Bid.Offer_Price,
---              Agent_Offered    => Bid.Offered_Quantity,
---              Agent_Bought     => Bid.Closed_At_Price + Bid.Closed_At_Limit,
---              Total_Expense    => Bid.Total_Cost);
---        end loop;
---
---        for Ask of Asks loop
---           Conflict.Agents.Update_Seller_Price_Belief
---             (Agent            => Ask.Agent,
---              Commodity        => Commodity,
---              Total_Sold       => Info.Traded_Quantity,
---              Total_Supply     => Info.Supply,
---              Total_Demand     => Info.Demand,
---              Average_Price    => Mean_Price,
---              Historical_Price => Info.Historical_Mean_Price,
---              Agent_Price      => Ask.Offer_Price,
---              Agent_Offered    => Ask.Offered_Quantity,
---              Agent_Sold       => Ask.Closed_At_Price + Ask.Closed_At_Limit,
---              Total_Income     => Ask.Total_Cost);
---        end loop;
+      for Bid of Bids loop
+         if Bid.Agent.Belief_Based_Strategy (Commodity) then
+            Bid.Agent.Update_Price_Belief
+              (Trade            => Market,
+               Offer            => Concorde.Trades.Buy,
+               Commodity        => Commodity,
+               Total_Traded     => Info.Traded_Quantity,
+               Total_Supply     => Info.Supply,
+               Total_Demand     => Info.Demand,
+               Average_Price    => Mean_Price,
+               Historical_Price => Info.Historical_Mean_Price,
+               Trader_Price     => Bid.Offer_Price,
+               Trader_Offered   => Bid.Offered_Quantity,
+               Trader_Traded    => Bid.Closed_At_Price + Bid.Closed_At_Limit,
+               Total_Money      => Bid.Total_Cost);
+         end if;
+      end loop;
+
+      for Ask of Asks loop
+         if Ask.Agent.Belief_Based_Strategy (Commodity) then
+            Ask.Agent.Update_Price_Belief
+              (Trade            => Market,
+               Offer            => Concorde.Trades.Sell,
+               Commodity        => Commodity,
+               Total_Traded     => Info.Traded_Quantity,
+               Total_Supply     => Info.Supply,
+               Total_Demand     => Info.Demand,
+               Average_Price    => Mean_Price,
+               Historical_Price => Info.Historical_Mean_Price,
+               Trader_Price     => Ask.Offer_Price,
+               Trader_Offered   => Ask.Offered_Quantity,
+               Trader_Traded    => Ask.Closed_At_Price + Ask.Closed_At_Limit,
+               Total_Money      => Ask.Total_Cost);
+         end if;
+      end loop;
 
       Info.Offers.Clear;
 

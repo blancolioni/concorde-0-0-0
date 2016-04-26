@@ -67,6 +67,21 @@ package Concorde.Agents is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity;
 
+   overriding procedure Update_Price_Belief
+     (Agent             : Root_Agent_Type;
+      Market            : Concorde.Trades.Trade_Interface'Class;
+      Offer             : Concorde.Trades.Offer_Type;
+      Commodity         : Concorde.Commodities.Commodity_Type;
+      Total_Traded      : Concorde.Quantities.Quantity;
+      Total_Supply      : Concorde.Quantities.Quantity;
+      Total_Demand      : Concorde.Quantities.Quantity;
+      Average_Price     : Concorde.Money.Price_Type;
+      Historical_Price  : Concorde.Money.Price_Type;
+      Trader_Price      : Concorde.Money.Price_Type;
+      Trader_Offered    : Concorde.Quantities.Quantity;
+      Trader_Traded     : Concorde.Quantities.Quantity;
+      Total_Money       : Concorde.Money.Money_Type);
+
    function Cash
      (Agent : Root_Agent_Type'Class)
       return Concorde.Money.Money_Type;
@@ -127,6 +142,10 @@ package Concorde.Agents is
      (Agent   : Root_Agent_Type'Class;
       Message : String);
 
+   procedure Log_Price
+     (Agent   : Root_Agent_Type'Class;
+      Message : String);
+
    procedure Enable_Offer_Logging (Enabled : Boolean := True);
 
    function Location
@@ -172,5 +191,10 @@ private
       Market    : Concorde.Trades.Trade_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
       return Agent_Price_Belief_Record;
+
+   procedure Update_Price_Belief
+     (Agent     : Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Belief    :  Agent_Price_Belief_Record);
 
 end Concorde.Agents;
