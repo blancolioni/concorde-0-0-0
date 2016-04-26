@@ -61,13 +61,15 @@ package Concorde.Players is
      (Player      : in out Root_Player_Type'Class;
       Empire      : Concorde.Empires.Empire_Type;
       Ship        : Concorde.Ships.Ship_Type;
-      Destination : Concorde.Systems.Star_System_Type);
+      Destination : Concorde.Systems.Star_System_Type)
+     with Pre => not Ship.Has_Orders;
 
    procedure Order_Colonisation
      (Player      : in out Root_Player_Type'Class;
       Empire      : not null access constant
         Concorde.Empires.Root_Empire_Type'Class;
-      Ship        : Concorde.Ships.Ship_Type);
+      Ship        : Concorde.Ships.Ship_Type)
+     with Pre => not Ship.Has_Orders;
 
    procedure Execute_Orders
      (Player : in out Root_Player_Type'Class);

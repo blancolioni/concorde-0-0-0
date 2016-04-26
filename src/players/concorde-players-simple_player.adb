@@ -12,7 +12,7 @@ package body Concorde.Players.Simple_Player is
 
    type Root_Simple_Player_Type is new Root_Player_Type with
       record
-         Idle_Ships : Concorde.Ships.Lists.List;
+         Idle_Ship_List     : Concorde.Ships.Lists.List;
          Owned_Systems      : Concorde.Systems.Lists.List;
          Unexplored_Targets : Concorde.Systems.Lists.List;
       end record;
@@ -43,6 +43,12 @@ package body Concorde.Players.Simple_Player is
      (Player : in out Root_Simple_Player_Type'Class;
       Empire : Concorde.Empires.Root_Empire_Type'Class);
 
+   procedure Idle_Ship
+     (Player : in out Root_Simple_Player_Type'Class;
+      Ship   : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
+       with Pre => not Ship.Has_Orders;
+
    ----------------------
    -- Check_Idle_Ships --
    ----------------------
@@ -52,7 +58,7 @@ package body Concorde.Players.Simple_Player is
       Empire : Concorde.Empires.Root_Empire_Type'Class)
    is
    begin
-      while not Player.Idle_Ships.Is_Empty
+      while not Player.Idle_Ship_List.Is_Empty
         and then not Player.Unexplored_Targets.Is_Empty
       loop
          declare
@@ -71,7 +77,7 @@ package body Concorde.Players.Simple_Player is
                   & Destination.Owner.Name);
                Skip := True;
             else
-               for Position in Player.Idle_Ships.Iterate loop
+               for Position in Player.Idle_Ship_List.Iterate loop
                   declare
                      use Concorde.Ships;
                      Ship : constant Ship_Type := Element (Position);
@@ -102,7 +108,7 @@ package body Concorde.Players.Simple_Player is
                  (Concorde.Empires.Db.Reference (Empire),
                   Element (Closest_Ship),
                   Destination);
-               Player.Idle_Ships.Delete (Closest_Ship);
+               Player.Idle_Ship_List.Delete (Closest_Ship);
             end if;
 
             Player.Unexplored_Targets.Delete_First;
@@ -129,6 +135,20 @@ package body Concorde.Players.Simple_Player is
       end return;
    end Create;
 
+   ---------------
+   -- Idle_Ship --
+   ---------------
+
+   procedure Idle_Ship
+     (Player : in out Root_Simple_Player_Type'Class;
+      Ship   : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
+   is
+   begin
+      Player.Idle_Ship_List.Append
+        (Concorde.Ships.Ship_Type (Ship));
+   end Idle_Ship;
+
    ---------------------
    -- On_Ship_Arrived --
    ---------------------
@@ -152,7 +172,7 @@ package body Concorde.Players.Simple_Player is
               (Empire,
                Ship.Short_Description
                & ": arrived");
-            Player.Idle_Ships.Append (Ship);
+            Player.Idle_Ship (Ship);
             Player.Check_Idle_Ships (Empire.all);
          end if;
       end if;
@@ -168,7 +188,7 @@ package body Concorde.Players.Simple_Player is
       Ship   : Concorde.Ships.Ship_Type)
    is
    begin
-      Player.Idle_Ships.Append (Ship);
+      Player.Idle_Ship (Ship);
       Player.Check_Idle_Ships (Empire);
    end On_Ship_Completed;
 
@@ -210,7 +230,7 @@ package body Concorde.Players.Simple_Player is
       Player.Owned_Systems.Append
         (Concorde.Systems.Db.Reference (System));
 
-      Player.Idle_Ships.Append (Ship);
+      Player.Idle_Ship (Ship);
 
       for N of Concorde.Galaxy.Neighbours (System) loop
          if not N.Owned

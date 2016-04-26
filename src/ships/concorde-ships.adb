@@ -84,6 +84,8 @@ package body Concorde.Ships is
                         Ship.Get_Value (Current_Order.Commodity));
                   end if;
                end;
+            when Colonise =>
+               null;
          end case;
       end loop;
    end Add_Trade_Offers;
@@ -538,6 +540,23 @@ package body Concorde.Ships is
       return Result (1 .. Count);
    end Get_Weapon_Mounts;
 
+   ----------------------------
+   -- Has_Colonisation_Order --
+   ----------------------------
+
+   function Has_Colonisation_Order
+     (Ship : Root_Ship_Type'Class)
+      return Boolean
+   is
+   begin
+      for Order of Ship.Orders loop
+         if Order.Order = Colonise then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Has_Colonisation_Order;
+
    ---------------------
    -- Has_Destination --
    ---------------------
@@ -738,6 +757,17 @@ package body Concorde.Ships is
       end loop;
       Calculate_Damage (Ship);
    end Repair;
+
+   ----------------------------
+   -- Set_Colonisation_Order --
+   ----------------------------
+
+   procedure Set_Colonisation_Order
+     (Ship : in out Root_Ship_Type'Class)
+   is
+   begin
+      Ship.Orders.Append ((Colonise, Ship.System_Reference, null));
+   end Set_Colonisation_Order;
 
    ---------------------
    -- Set_Destination --

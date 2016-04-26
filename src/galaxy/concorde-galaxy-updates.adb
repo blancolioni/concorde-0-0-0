@@ -10,7 +10,7 @@ with Concorde.Empires.Relations;
 
 with Concorde.Ships.Battles;
 with Concorde.Ships.Lists;
-
+with Concorde.Ships.Db;
 with Concorde.Systems.Db;
 
 with Concorde.Players;
@@ -48,6 +48,7 @@ package body Concorde.Galaxy.Updates is
                      if Es'Length = 1 then
                         --  colonise unclaimed world
                         declare
+                           Coloniser : Concorde.Ships.Ship_Type;
                            New_Owner : constant Concorde.Empires.Empire_Type :=
                                          Es (Es'First);
 
@@ -64,17 +65,25 @@ package body Concorde.Galaxy.Updates is
                            begin
                               Empire.System_Acquired (System);
                               Empire.Player.On_System_Colonised
-                                (Empire, System, List.First_Element);
+                                (Empire, System, Coloniser);
                            end Update_Owner;
 
                         begin
-                           Concorde.Empires.Logging.Log
-                             (New_Owner,
-                              "colonises " & System.Name);
-                           System.Set_Owner (New_Owner);
-                           Concorde.Empires.Db.Update
-                             (New_Owner.Reference, Update_Owner'Access);
-
+                           for Ship of List loop
+                              if Ship.Has_Colonisation_Order then
+                                 Concorde.Empires.Logging.Log
+                                   (New_Owner,
+                                    "colonises " & System.Name);
+                                 Coloniser := Ship;
+                                 Concorde.Ships.Db.Update
+                                   (Ship.Reference,
+                                    Concorde.Ships.Clear_Orders'Access);
+                                 System.Set_Owner (New_Owner);
+                                 Concorde.Empires.Db.Update
+                                   (New_Owner.Reference, Update_Owner'Access);
+                                 exit;
+                              end if;
+                           end loop;
                         end;
                      end if;
                   elsif not Concorde.Empires.Relations.Has_Conflict (Es) then

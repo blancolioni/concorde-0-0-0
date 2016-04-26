@@ -75,6 +75,13 @@ package Concorde.Ships is
    procedure Clear_Orders
      (Ship : in out Root_Ship_Type'Class);
 
+   procedure Set_Colonisation_Order
+     (Ship : in out Root_Ship_Type'Class);
+
+   function Has_Colonisation_Order
+     (Ship : Root_Ship_Type'Class)
+      return Boolean;
+
    procedure Execute_Arrival_Orders
      (Ship : in out Root_Ship_Type'Class);
 
@@ -253,7 +260,7 @@ private
      new Ada.Containers.Vectors
        (Positive, Module_Layout_Record);
 
-   type Ship_Order_Type is (No_Order, Buy, Sell);
+   type Ship_Order_Type is (No_Order, Buy, Sell, Colonise);
 
    type Ship_Order_Record is
       record

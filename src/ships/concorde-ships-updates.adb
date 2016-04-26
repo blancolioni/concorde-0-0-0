@@ -164,6 +164,8 @@ package body Concorde.Ships.Updates is
                         else
                            exit;
                         end if;
+                     when Colonise =>
+                        exit;
                   end case;
                else
                   Ship.Log_Trade

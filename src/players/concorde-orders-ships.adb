@@ -84,11 +84,9 @@ package body Concorde.Orders.Ships is
    overriding procedure Execute
      (Order : Colonise_Order_Record)
    is
-      pragma Unreferenced (Order);
    begin
-      --  this happens automatically; the order is just to force
-      --  the ship to do nothing
-      null;
+      Concorde.Ships.Db.Update
+        (Order.Ship.Reference, Concorde.Ships.Set_Colonisation_Order'Access);
    end Execute;
 
    ---------------------
