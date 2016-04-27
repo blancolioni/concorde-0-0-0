@@ -53,6 +53,9 @@ package body Concorde.Installations.Production is
                     Unit_Real'Min
                       (To_Real (Available) / To_Real (Required),
                        Throughput);
+                  Effective_Capacity :=
+                    Min (Effective_Capacity,
+                         Scale_Down (Raw_Capacity, Available, Required));
                   Installation.Log_Production
                     (Image (Available) & " of "
                      & Image (Required)
@@ -75,7 +78,8 @@ package body Concorde.Installations.Production is
                   Commodity : constant Commodity_Type :=
                                 Facility.Input_Commodity (Input_Index);
                   Required : constant Quantity :=
-                                Facility.Input_Quantity (Input_Index);
+                                Facility.Input_Quantity (Input_Index)
+                                * Raw_Capacity;
                   Available : constant Quantity :=
                                 Installation.Get_Quantity (Commodity);
                begin
@@ -84,6 +88,9 @@ package body Concorde.Installations.Production is
                        Unit_Real'Min
                          (To_Real (Available) / To_Real (Required),
                           Throughput);
+                     Effective_Capacity :=
+                       Min (Effective_Capacity,
+                            Scale_Down (Raw_Capacity, Available, Required));
                   end if;
                end;
             end loop;
@@ -94,9 +101,7 @@ package body Concorde.Installations.Production is
             Installation.Log_Production
               ("throughput limited to "
                & Lui.Approximate_Image (Throughput * 100.0)
-               & "%");
-            Effective_Capacity := Scale (Raw_Capacity, Throughput);
-
+               & "%; effective capacity " & Image (Effective_Capacity));
          end if;
 
 --              Conflict.Logging.Log
@@ -117,11 +122,12 @@ package body Concorde.Installations.Production is
                   Required  : constant Quantity :=
                                 Facility.Input_Quantity (Input_Index)
                                 * Effective_Capacity;
+                  Price_Per : constant Price_Type :=
+                                Installation.Get_Average_Price (Commodity);
+                  Cost      : constant Money_Type :=
+                                Money.Total (Price_Per, Required);
                begin
-                  Production_Cost := Production_Cost
-                    + Money.Total
-                    (Installation.Get_Average_Price (Commodity),
-                     Required);
+                  Production_Cost := Production_Cost + Cost;
                   Installation.Remove_Quantity (Commodity, Required);
                end;
             end loop;
