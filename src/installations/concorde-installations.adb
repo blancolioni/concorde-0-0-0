@@ -39,8 +39,10 @@ package body Concorde.Installations is
                                     Min (Item.Get_Quantity (Commodity),
                                          Demand - Supply);
                begin
-                  Item.Create_Sell_Offer
-                    (Market, Commodity, Sell_Quantity, Concorde.Money.Zero);
+                  if Sell_Quantity > Zero then
+                     Item.Create_Sell_Offer
+                       (Market, Commodity, Sell_Quantity, Concorde.Money.Zero);
+                  end if;
                end;
             elsif Supply > Demand then
                declare
