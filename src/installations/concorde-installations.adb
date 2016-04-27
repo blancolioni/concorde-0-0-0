@@ -46,7 +46,9 @@ package body Concorde.Installations is
                end;
             elsif Supply > Demand then
                declare
-                  Buy_Quantity : constant Quantity := Supply - Demand;
+                  Buy_Quantity : constant Quantity :=
+                                   Item.Get_Quantity (Commodity)
+                                   + Supply - Demand;
                begin
                   Item.Create_Buy_Offer
                     (Market, Commodity, Buy_Quantity, Buy_Quantity);
