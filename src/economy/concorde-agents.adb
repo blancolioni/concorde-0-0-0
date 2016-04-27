@@ -207,10 +207,14 @@ package body Concorde.Agents is
                          then 1.0
                          else Price_Position_In_Range
                            (Mean, Belief.Low, Belief.High));
+      Limit_Price   : constant Price_Type :=
+                        Agent.Get_Average_Price (Commodity);
       Sell_Price    : constant Price_Type :=
-                        Create_Ask_Price
-                          (Belief.Low, Belief.High, Agent.Age);
-      Minimum_Ask   : constant Price_Type := Belief.Low;
+                        (if Belief.High < Limit_Price
+                         then Limit_Price
+                         else Create_Ask_Price
+                           (Max (Belief.Low, Limit_Price),
+                            Belief.High, Agent.Age));
       Sell_Quantity : constant Quantity := Available;
    begin
       if Log_Offers then
@@ -226,12 +230,12 @@ package body Concorde.Agents is
             & Image (Mean)
             & "; favourability "
             & Lui.Approximate_Image (Favourability)
-            & "; sell price "
-            & Image (Sell_Price)
             & "; limit price "
-            & Image (Minimum_Ask)
+            & Image (Limit_Price)
             & "; cash "
             & Image (Agent.Cash)
+            & "; sell price "
+            & Image (Sell_Price)
             & "; quantity "
             & Image (Sell_Quantity));
       end if;
@@ -243,7 +247,7 @@ package body Concorde.Agents is
             Commodity => Commodity,
             Quantity  => Sell_Quantity,
             Price     => Sell_Price,
-            Limit     => Minimum_Ask);
+            Limit     => Limit_Price);
       end if;
    exception
       when E : others =>
