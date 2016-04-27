@@ -605,9 +605,9 @@ package body Concorde.Agents is
 
       Price_Belief   : Agent_Price_Belief_Record :=
                          Agent.Get_Price_Belief (Market, Commodity);
-      Low            : Price_Type renames Price_Belief.Low;
-      High           : Price_Type renames Price_Belief.High;
-      Strength       : Unit_Real renames Price_Belief.Strength;
+      Low            : Price_Type := Price_Belief.Low;
+      High           : Price_Type := Price_Belief.High;
+      Strength       : Unit_Real := Price_Belief.Strength;
 
       Mean_Belief    : constant Price_Type :=
                          Adjust_Price (High - Low, 0.5) + Low;
@@ -621,8 +621,11 @@ package body Concorde.Agents is
                                when Sell => Total_Demand);
       Offer_Share    : constant Unit_Real :=
                          To_Real (Trader_Offered) / To_Real (Trade_Offers);
-      Closed_Share   : constant Unit_Real :=
-                         To_Real (Trader_Traded) / To_Real (Total_Traded);
+      Closed_Share     : constant Unit_Real :=
+                           (if Total_Traded = Zero
+                            then 0.0
+                            else To_Real (Trader_Traded)
+                            / To_Real (Total_Traded));
 
       Competing      : constant Boolean :=
                          Trader_Offered < Trade_Offers;
@@ -723,6 +726,7 @@ package body Concorde.Agents is
          end;
       end if;
 
+      Price_Belief := (Low, High, Strength);
       Agent.Update_Price_Belief (Commodity, Price_Belief);
    end Update_Price_Belief;
 
