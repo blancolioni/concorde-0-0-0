@@ -34,6 +34,12 @@ package Concorde.Quantities is
       Factor : Unit_Real)
       return Quantity;
 
+   function Scale_Down
+     (Value       : Quantity;
+      Numerator   : Quantity;
+      Denominator : Quantity)
+      return Quantity;
+
 private
 
    type Quantity is range -2**63 .. 2**63 - 1;

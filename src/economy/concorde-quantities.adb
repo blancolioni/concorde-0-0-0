@@ -71,6 +71,20 @@ package body Concorde.Quantities is
       return Quantity (Real (X) * Factor);
    end Scale;
 
+   ----------------
+   -- Scale_Down --
+   ----------------
+
+   function Scale_Down
+     (Value       : Quantity;
+      Numerator   : Quantity;
+      Denominator : Quantity)
+      return Quantity
+   is
+   begin
+      return Value * Numerator / Denominator;
+   end Scale_Down;
+
    ------------------------------
    -- Significant_Digits_Image --
    ------------------------------
