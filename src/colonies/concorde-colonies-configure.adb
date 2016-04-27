@@ -98,10 +98,54 @@ package body Concorde.Colonies.Configure is
       procedure Create_Installation
         (Facility : Concorde.Facilities.Facility_Type);
 
+      procedure Add_Inputs
+        (Installation : Concorde.Installations.Installation_Type);
+
       procedure Add_Population
         (Installation : Concorde.Installations.Installation_Type);
 
       procedure Create_Service_Facilities is null;
+
+      ----------------
+      -- Add_Inputs --
+      ----------------
+
+      procedure Add_Inputs
+        (Installation : Concorde.Installations.Installation_Type)
+      is
+      begin
+         for I in 1 .. Installation.Facility.Input_Count loop
+            declare
+               Need : constant Concorde.Commodities.Commodity_Type :=
+                        Installation.Facility.Input_Commodity (I);
+               Quant : constant Quantity :=
+                         Installation.Facility.Input_Quantity (I)
+                         * Installation.Facility.Capacity_Quantity
+                         * To_Quantity (5.0);
+               Value    : constant Concorde.Money.Money_Type :=
+                            Concorde.Money.Total
+                              (Need.Base_Price, Quant);
+
+               procedure Add_Stock
+                 (To : in out Installations.Root_Installation_Type'Class);
+
+               ---------------
+               -- Add_Stock --
+               ---------------
+
+               procedure Add_Stock
+                 (To : in out Installations.Root_Installation_Type'Class)
+               is
+               begin
+                  To.Add_Quantity (Need, Quant, Value);
+               end Add_Stock;
+
+            begin
+               Concorde.Installations.Db.Update
+                 (Hub.Reference, Add_Stock'Access);
+            end;
+         end loop;
+      end Add_Inputs;
 
       --------------------
       -- Add_Population --
@@ -143,6 +187,7 @@ package body Concorde.Colonies.Configure is
       begin
          System.Add_Installation (Installation);
          Add_Population (Installation);
+         Add_Inputs (Installation);
       end Create_Installation;
 
       ----------------
