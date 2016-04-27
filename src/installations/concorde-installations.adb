@@ -72,6 +72,19 @@ package body Concorde.Installations is
 
    begin
 
+      for I in 1 .. Item.Facility.Input_Count loop
+         declare
+            Commodity : constant Concorde.Commodities.Commodity_Type :=
+                          Item.Facility.Input_Commodity (I);
+            Required  : constant Quantity :=
+                          Item.Facility.Input_Quantity (I)
+                          * Item.Facility.Capacity_Quantity;
+         begin
+            Item.Create_Buy_Offer
+              (Market, Commodity, Required, Required);
+         end;
+      end loop;
+
       for I in 1 .. Item.Facility.Worker_Count loop
          declare
             Commodity : constant Concorde.Commodities.Commodity_Type :=
