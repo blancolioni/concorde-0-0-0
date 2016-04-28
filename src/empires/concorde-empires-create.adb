@@ -134,6 +134,11 @@ package body Concorde.Empires.Create is
          procedure Choose
            (System : in out Concorde.Systems.Root_Star_System_Type'Class)
          is
+            use Concorde.Commodities;
+            Resources : constant Concorde.Commodities.Array_Of_Commodities :=
+                          Concorde.Commodities.Get
+                            (Concorde.Commodities.Resource);
+
          begin
             System.Set_Owner (Db.Reference (New_Empire));
             System.Set_Capital (True);
@@ -155,6 +160,38 @@ package body Concorde.Empires.Create is
                Create_Initial_Ships (System);
 
             end if;
+
+            for Unavailable of Resources loop
+               if Concorde.Scenarios.Imperial_Centre
+                 and then System.Index = 1
+               then
+                  System.Market.Initial_Price
+                    (Unavailable,
+                     Concorde.Money.Adjust_Price
+                       (Unavailable.Base_Price, Factor => 2.0));
+               elsif Unavailable /= System.Resource then
+                  System.Market.Initial_Price
+                    (Unavailable,
+                     Concorde.Money.Adjust_Price
+                       (Unavailable.Base_Price, Factor => 2.0));
+               end if;
+            end loop;
+
+            declare
+               Consumer_Goods : constant Array_Of_Commodities :=
+                                  Get (Consumer);
+            begin
+               for Item of Consumer_Goods loop
+                  if Concorde.Scenarios.Imperial_Centre then
+                     null;
+                  else
+                     System.Market.Initial_Price
+                       (Item,
+                        Concorde.Money.Adjust_Price
+                          (Item.Base_Price, Factor => 2.0));
+                  end if;
+               end loop;
+            end;
 
          end Choose;
 

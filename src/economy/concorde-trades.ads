@@ -72,6 +72,11 @@ package Concorde.Trades is
       Receipt   : Concorde.Money.Money_Type)
    is abstract;
 
+   function Manager
+     (Trade : Trade_Interface)
+      return access constant Trade_Manager_Interface'Class
+      is abstract;
+
    type Offer_Type is (Buy, Sell);
 
    type Offer_Price_Strategy is

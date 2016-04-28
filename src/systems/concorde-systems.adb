@@ -1,3 +1,6 @@
+with Ada.Text_IO;
+with Ada.Exceptions;
+
 with Concorde.Elementary_Functions;
 
 with Concorde.Ships.Db;
@@ -6,8 +9,7 @@ with Concorde.Systems.Db;
 with Concorde.Empires;
 with Concorde.Players;
 
-with Ada.Text_IO;
-with Ada.Exceptions;
+with Concorde.Money;
 
 package body Concorde.Systems is
 
@@ -266,6 +268,19 @@ package body Concorde.Systems is
       return System.Government /= null;
    end Has_Government;
 
+   ----------------
+   -- Has_Market --
+   ----------------
+
+   function Has_Market
+     (System : Root_Star_System_Type'Class)
+      return Boolean
+   is
+      use type Concorde.Markets.Market_Type;
+   begin
+      return System.Market /= null;
+   end Has_Market;
+
    -----------
    -- Index --
    -----------
@@ -334,6 +349,18 @@ package body Concorde.Systems is
    begin
       return System.Objects.First_Element.Object;
    end Main_Object;
+
+   ------------
+   -- Market --
+   ------------
+
+   function Market
+     (System : Root_Star_System_Type'Class)
+      return Concorde.Markets.Market_Type
+   is
+   begin
+      return System.Market;
+   end Market;
 
    ---------------------
    -- Object_Database --
@@ -509,6 +536,17 @@ package body Concorde.Systems is
    is
    begin
       System.Government := Government;
+      System.Market :=
+        Concorde.Markets.Create_Market
+          (Concorde.Systems.Db.Reference (System.Reference),
+           System.Government,
+           Enable_Logging => False);
+      System.Market.Initial_Price
+        (System.Deposit.Resource,
+         Concorde.Money.Adjust_Price
+           (System.Deposit.Resource.Base_Price,
+            (1.0 - System.Deposit.Accessibility)
+            * (1.0 - System.Deposit.Concentration)));
    end Set_Government;
 
    ---------------

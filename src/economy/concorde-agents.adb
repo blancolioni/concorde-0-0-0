@@ -208,7 +208,10 @@ package body Concorde.Agents is
                          else Price_Position_In_Range
                            (Mean, Belief.Low, Belief.High));
       Limit_Price   : constant Price_Type :=
-                        Agent.Get_Average_Price (Commodity);
+                        Add_Tax (Agent.Get_Average_Price (Commodity),
+                                 Market.Manager.Tax_Rate
+                                   (Concorde.Trades.Sales,
+                                    Commodity));
       Sell_Price    : constant Price_Type :=
                         (if Belief.High < Limit_Price
                          then Limit_Price

@@ -1,7 +1,5 @@
 with WL.Random;
 
-with Concorde.Money;
-
 with Concorde.Random;
 with Concorde.Scenarios;
 
@@ -73,11 +71,6 @@ package body Concorde.Systems.Create is
                Position => Concorde.Geometry.Degrees_To_Radians (0.0));
          end;
 
-         System.Market :=
-           Concorde.Markets.Create_Market
-             (Concorde.Systems.Db.Reference (System.Reference),
-              Enable_Logging => False);
-
          declare
             Deposit_Size : constant Concorde.Quantities.Quantity :=
                              Concorde.Quantities.Around
@@ -99,41 +92,6 @@ package body Concorde.Systems.Create is
                Concentration => Concentration,
                Size          => Deposit_Size,
                Original_Size => Deposit_Size);
-
-            System.Market.Initial_Price
-              (Resource,
-               Concorde.Money.Adjust_Price
-                 (Resource.Base_Price,
-                  (1.0 - Accessibility) * (1.0 - Concentration)));
-         end;
-
-         for Unavailable of Resources loop
-            if Imperial_Centre then
-               System.Market.Initial_Price
-                 (Unavailable,
-                  Concorde.Money.Adjust_Price
-                    (Unavailable.Base_Price, Factor => 2.0));
-            elsif Unavailable /= Resource then
-               System.Market.Initial_Price
-                 (Unavailable,
-                  Concorde.Money.Adjust_Price
-                    (Unavailable.Base_Price, Factor => 2.0));
-            end if;
-         end loop;
-
-         declare
-            Consumer_Goods : constant Array_Of_Commodities := Get (Consumer);
-         begin
-            for Item of Consumer_Goods loop
-               if Imperial_Centre then
-                  null;
-               else
-                  System.Market.Initial_Price
-                    (Item,
-                     Concorde.Money.Adjust_Price
-                       (Item.Base_Price, Factor => 2.0));
-               end if;
-            end loop;
          end;
 
       end Create;

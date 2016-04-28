@@ -81,6 +81,8 @@ package Concorde.Markets is
    function Create_Market
      (Owner  : not null access constant
         Concorde.Objects.Named_Object_Interface'Class;
+      Manager : not null access constant
+        Concorde.Trades.Trade_Manager_Interface'Class;
       Enable_Logging : Boolean)
       return Market_Type;
 
@@ -181,9 +183,16 @@ private
       record
          Owner          : access constant
            Concorde.Objects.Named_Object_Interface'Class;
+         Manager        : access constant
+           Concorde.Trades.Trade_Manager_Interface'Class;
          Enable_Logging : Boolean;
          Commodities    : access Cached_Commodity_Vectors.Vector;
       end record;
+
+   overriding function Manager
+     (Market : Root_Market_Type)
+      return access constant Concorde.Trades.Trade_Manager_Interface'Class
+   is (Market.Manager);
 
    procedure Check_Commodity
      (Market    : Root_Market_Type'Class;

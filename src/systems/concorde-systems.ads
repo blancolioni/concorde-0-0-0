@@ -71,6 +71,14 @@ package Concorde.Systems is
       Empire : Concorde.Empires.Root_Empire_Type'Class)
       return Boolean;
 
+   function Has_Market
+     (System : Root_Star_System_Type'Class)
+      return Boolean;
+
+   function Market
+     (System : Root_Star_System_Type'Class)
+      return Concorde.Markets.Market_Type;
+
    function Resource
      (System : Root_Star_System_Type'Class)
       return Concorde.Commodities.Commodity_Type;

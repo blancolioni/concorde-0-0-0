@@ -8,6 +8,35 @@ package body Concorde.Money is
 
    Currency : constant Character := Dollar;
 
+   -------------
+   -- Add_Tax --
+   -------------
+
+   function Add_Tax (Money    : Money_Type;
+                     Tax_Rate : Non_Negative_Real)
+                     return Money_Type
+   is
+   begin
+      if Money > 0 then
+         return Money + Tax (Money, Tax_Rate);
+      else
+         return Money;
+      end if;
+   end Add_Tax;
+
+   -------------
+   -- Add_Tax --
+   -------------
+
+   overriding function Add_Tax
+     (Price : Price_Type;
+      Tax_Rate : Non_Negative_Real)
+      return Price_Type
+   is
+   begin
+      return Price_Type (Add_Tax (Money_Type (Price), Tax_Rate));
+   end Add_Tax;
+
    ------------
    -- Adjust --
    ------------

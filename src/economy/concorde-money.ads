@@ -34,6 +34,10 @@ package Concorde.Money is
                          Tax   : Non_Negative_Real)
                          return Money_Type;
 
+   function Add_Tax (Money    : Money_Type;
+                     Tax_Rate : Non_Negative_Real)
+                     return Money_Type;
+
    type Price_Type is private;
 
    function "+" (Left, Right : Price_Type) return Price_Type;
@@ -58,6 +62,10 @@ package Concorde.Money is
    function Without_Tax (Price   : Price_Type;
                          Tax     : Non_Negative_Real)
                          return Price_Type;
+
+   function Add_Tax (Price : Price_Type;
+      Tax_Rate : Non_Negative_Real)
+                     return Price_Type;
 
    function Max (X, Y : Price_Type) return Price_Type;
    function Min (X, Y : Price_Type) return Price_Type;

@@ -142,14 +142,17 @@ package body Concorde.Markets is
    -------------------
 
    function Create_Market
-     (Owner          : not null access constant
+     (Owner  : not null access constant
         Concorde.Objects.Named_Object_Interface'Class;
+      Manager : not null access constant
+        Concorde.Trades.Trade_Manager_Interface'Class;
       Enable_Logging : Boolean)
       return Market_Type
    is
    begin
       return new Root_Market_Type'
         (Owner          => Owner,
+         Manager        => Manager,
          Commodities    => new Cached_Commodity_Vectors.Vector,
          Enable_Logging => Enable_Logging);
    end Create_Market;
@@ -344,17 +347,12 @@ package body Concorde.Markets is
                                         (Concorde.Trades.Import, Commodity)
                                       else 0.0);
                Seller_Tax_Rate   : constant Non_Negative_Real :=
-                                     Sales_Tax_Rate
-                                       + Import_Tax_Rate
-                                     + Export_Tax_Rate;
+                                     Sales_Tax_Rate + Import_Tax_Rate
+                                       + Export_Tax_Rate;
                Buyer_Tax_Rate    : constant Non_Negative_Real := 0.0;
                Seller_Price      : constant Price_Type := Ask.Current_Price;
                Buyer_Price       : constant Price_Type := Bid.Current_Price;
-               Ask_Price         : constant Price_Type :=
-                                     Seller_Price +
-                                       Tax (Seller_Price,
-                                            Sales_Tax_Rate
-                                            + Import_Tax_Rate);
+               Ask_Price         : constant Price_Type := Seller_Price;
                Bid_Price         : constant Price_Type := Buyer_Price;
                Price_With_Tax    : constant Price_Type :=
                                      Adjust_Price (Ask_Price + Bid_Price, 0.5);
