@@ -47,6 +47,31 @@ package Concorde.Trades is
       Message : String)
    is null;
 
+   type Market_Tax_Category is (Sales, Export, Import);
+
+   type Trade_Manager_Interface is limited interface;
+
+   function Short_Name
+     (Manager : Trade_Manager_Interface)
+      return String
+      is abstract;
+
+   function Tax_Rate
+     (Manager   : Trade_Manager_Interface;
+      Category  : Market_Tax_Category;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Unit_Real
+      is abstract;
+
+   procedure Tax_Receipt
+     (Manager   : in out Trade_Manager_Interface;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity;
+      Price     : Concorde.Money.Price_Type;
+      Category  : Market_Tax_Category;
+      Receipt   : Concorde.Money.Money_Type)
+   is abstract;
+
    type Offer_Type is (Buy, Sell);
 
    type Offer_Price_Strategy is
@@ -70,6 +95,13 @@ package Concorde.Trades is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Boolean
    is (Trader.Offer_Strategy (Commodity) = Belief_Based);
+
+   function Market_Resident
+     (Trader : Trader_Interface)
+      return Boolean
+      is abstract;
+   --  Return True if the trader is a resident of the area serviced by
+   --  this market.  Return False if the trader is external (e.g. a ship)
 
    procedure Create_Offer
      (Trade     : in out Trade_Interface;

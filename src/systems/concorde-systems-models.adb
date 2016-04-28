@@ -466,6 +466,12 @@ package body Concorde.Systems.Models is
                               Lui.Approximate_Image
                                 (System.Deposit.Concentration));
 
+         if System.Has_Government then
+            Result.Add_Property ("Government cash",
+                                 Concorde.Money.Image
+                                   (System.Government.Cash));
+         end if;
+
          System_Models.Insert (System.Name, Result);
       else
          Result := System_Models.Element (System.Name);

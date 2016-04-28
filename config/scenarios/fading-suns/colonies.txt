@@ -1,29 +1,6 @@
 initial = {
    pops = {
-      poor = { size = 1000 }
-      poor = { size = 1000 }
-      poor = { size = 1000 }
-      poor = { size = 1000 }
-      poor = { size = 1000 }
-      poor = { size = 1000 }
-      poor = { size = 1000 }
-      poor = { size = 1000 }
-      poor = { size = 1000 }
-
-      middle_class = { size = 100 skill = tech }
-      middle_class = { size = 100 skill = tech }
-      middle_class = { size = 100 skill = tech }
-      middle_class = { size = 100 skill = tech }
-      middle_class = { size = 100 skill = tech }
-      middle_class = { size = 100 skill = tech }
-      middle_class = { size = 100 skill = tech }
-      middle_class = { size = 100 skill = tech }
-      middle_class = { size = 100 skill = tech }
-      middle_class = { size = 100 skill = tech }
-	  
-      rich = { size = 100 skill = executive }
    }
-   
    installations = {
       resource_generator = 10
    }
@@ -35,18 +12,7 @@ imperial_capital = {
       poor = { size = 10000 }
       poor = { size = 10000 }
       poor = { size = 10000 }
-      poor = { size = 10000 }
-      poor = { size = 10000 }
-      poor = { size = 10000 }
-      poor = { size = 10000 }
-      poor = { size = 10000 }
 
-      middle_class = { size = 1000 skill = tech }
-      middle_class = { size = 1000 skill = tech }
-      middle_class = { size = 1000 skill = tech }
-      middle_class = { size = 1000 skill = tech }
-      middle_class = { size = 1000 skill = tech }
-      middle_class = { size = 1000 skill = tech }
       middle_class = { size = 1000 skill = tech }
       middle_class = { size = 1000 skill = tech }
       middle_class = { size = 1000 skill = tech }
@@ -56,16 +22,11 @@ imperial_capital = {
    }
    
    installations = {
-	   resource_generator = 10
-	   
-	   steel-factory = 10
-	   bronze-factory = 10
-	   glass-factory = 10
-	   cement-factory = 10
-	   nylon-factory = 10
-	   pvc-factory = 10
-	   rations-factory = 100
-	   ready-meal-factory = 20
-	   luxury-food-factory = 10
+	   rations-factory = 10
+	   ready-meal-factory = 2
+	   luxury-food-factory = 1
    }
+   
+   basic_living_wage = yes
+   
 }

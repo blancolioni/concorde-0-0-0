@@ -73,7 +73,8 @@ package Concorde.Markets is
      (Market : in out Root_Market_Type'Class);
 
    procedure Execute
-     (Market : in out Root_Market_Type'Class);
+     (Market  : in out Root_Market_Type'Class;
+      Manager : in out Concorde.Trades.Trade_Manager_Interface'Class);
 
    type Market_Type is access Root_Market_Type'Class;
 
@@ -195,6 +196,7 @@ private
 
    procedure Execute_Commodity_Trades
      (Market    : in out Root_Market_Type'Class;
+      Manager   : in out Concorde.Trades.Trade_Manager_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type);
 
    procedure Log_Offer

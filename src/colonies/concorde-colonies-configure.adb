@@ -20,6 +20,7 @@ with Concorde.People.Skills;
 
 with Concorde.Installations.Create;
 with Concorde.People.Pops.Create;
+with Concorde.Government.Create;
 
 with Concorde.Facilities.Db;
 
@@ -82,6 +83,18 @@ package body Concorde.Colonies.Configure is
                    Concorde.Money.To_Money
                      (Template.Get ("cash", 10_000.0)),
                  Owner    => System.Owner);
+
+      Government : constant Concorde.Government.Government_Type :=
+                     Concorde.Government.Create.Create_Government
+                       (Governed          =>
+                         Concorde.Systems.Db.Reference (System),
+                        Cash              =>
+                          Concorde.Money.To_Money
+                            (Template.Get ("cash", 10_000.0)),
+                        Owner             => System.Owner,
+                        Headquarters      => Hub,
+                        Basic_Living_Wage =>
+                          Template.Get ("basic_living_wage", False));
 
       procedure Create_Pop_From_Config
         (Config : Tropos.Configuration);
@@ -284,14 +297,13 @@ package body Concorde.Colonies.Configure is
 
    begin
 
+      System.Set_Government (Government);
       System.Add_Installation (Hub);
       Add_Population (Hub);
 
-      if False then
-         for Pop_Config of Template.Child ("pops") loop
-            Create_Pop_From_Config (Pop_Config);
-         end loop;
-      end if;
+      for Pop_Config of Template.Child ("pops") loop
+         Create_Pop_From_Config (Pop_Config);
+      end loop;
 
       declare
          Install_Config : constant Tropos.Configuration :=

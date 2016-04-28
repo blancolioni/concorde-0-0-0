@@ -143,9 +143,25 @@ package body Concorde.Money is
    -- Tax --
    ---------
 
-   function Tax (Price   : Price_Type;
-                 Tax     : Unit_Real)
-                 return Price_Type
+   function Tax (Money : Money_Type;
+                 Tax   : Non_Negative_Real)
+                 return Money_Type
+   is
+   begin
+      if Money < 0 then
+         return 0;
+      else
+         return Money_Type (Real (Money) * Tax);
+      end if;
+   end Tax;
+
+   ---------
+   -- Tax --
+   ---------
+
+   overriding function Tax (Price   : Price_Type;
+                            Tax     : Non_Negative_Real)
+                            return Price_Type
    is
    begin
       return Price_Type (Real (Price) * Tax);
@@ -217,6 +233,36 @@ package body Concorde.Money is
    begin
       return To_Price (Real'Value (Image));
    end Value;
+
+   -----------------
+   -- Without_Tax --
+   -----------------
+
+   function Without_Tax
+     (Money : Money_Type;
+      Tax   : Non_Negative_Real)
+      return Money_Type
+   is
+   begin
+      if Money < 0 then
+         return Money;
+      else
+         return Money_Type (Real (Money) / (1.0 + Tax));
+      end if;
+   end Without_Tax;
+
+   -----------------
+   -- Without_Tax --
+   -----------------
+
+   overriding function Without_Tax
+     (Price   : Price_Type;
+      Tax     : Non_Negative_Real)
+      return Price_Type
+   is
+   begin
+      return Price_Type (Without_Tax (Money_Type (Price), Tax));
+   end Without_Tax;
 
    ----------
    -- Zero --

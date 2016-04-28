@@ -253,6 +253,19 @@ package body Concorde.Systems is
       end loop;
    end Get_Ships;
 
+   --------------------
+   -- Has_Government --
+   --------------------
+
+   function Has_Government
+     (System : Root_Star_System_Type'Class)
+      return Boolean
+   is
+      use type Concorde.Government.Government_Type;
+   begin
+      return System.Government /= null;
+   end Has_Government;
+
    -----------
    -- Index --
    -----------
@@ -485,6 +498,18 @@ package body Concorde.Systems is
       System.Loyalty := 1.0;
       System.Original_Owner := null;
    end Set_Capital;
+
+   --------------------
+   -- Set_Government --
+   --------------------
+
+   procedure Set_Government
+     (System     : in out Root_Star_System_Type'Class;
+      Government : Concorde.Government.Government_Type)
+   is
+   begin
+      System.Government := Government;
+   end Set_Government;
 
    ---------------
    -- Set_Owner --

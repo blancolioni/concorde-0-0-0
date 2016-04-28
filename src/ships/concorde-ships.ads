@@ -321,6 +321,11 @@ private
       return String
    is (Ship.Identity);
 
+   overriding function Market_Resident
+     (Ship : Root_Ship_Type)
+      return Boolean
+   is (False);
+
    overriding procedure Add_Trade_Offers
      (Ship : not null access constant Root_Ship_Type;
       Market : in out Concorde.Trades.Trade_Interface'Class);

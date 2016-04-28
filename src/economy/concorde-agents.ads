@@ -82,6 +82,11 @@ package Concorde.Agents is
       Trader_Traded     : Concorde.Quantities.Quantity;
       Total_Money       : Concorde.Money.Money_Type);
 
+   overriding function Market_Resident
+     (Agent : Root_Agent_Type)
+      return Boolean
+   is (True);
+
    function Cash
      (Agent : Root_Agent_Type'Class)
       return Concorde.Money.Money_Type;

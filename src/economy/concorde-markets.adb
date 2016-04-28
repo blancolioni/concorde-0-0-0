@@ -9,6 +9,11 @@ with Concorde.Commodities.Db;
 
 package body Concorde.Markets is
 
+   function Taxable_Image
+     (Price_With_Tax : Concorde.Money.Price_Type;
+      Tax_Rate       : Non_Negative_Real)
+      return String;
+
    -------------------
    -- After_Trading --
    -------------------
@@ -137,7 +142,7 @@ package body Concorde.Markets is
    -------------------
 
    function Create_Market
-     (Owner  : not null access constant
+     (Owner          : not null access constant
         Concorde.Objects.Named_Object_Interface'Class;
       Enable_Logging : Boolean)
       return Market_Type
@@ -230,7 +235,8 @@ package body Concorde.Markets is
    -------------
 
    procedure Execute
-     (Market : in out Root_Market_Type'Class)
+     (Market  : in out Root_Market_Type'Class;
+      Manager : in out Concorde.Trades.Trade_Manager_Interface'Class)
    is
 
       procedure Update_Commodity
@@ -244,7 +250,7 @@ package body Concorde.Markets is
         (Commodity : Concorde.Commodities.Commodity_Type)
       is
       begin
-         Market.Execute_Commodity_Trades (Commodity);
+         Market.Execute_Commodity_Trades (Manager, Commodity);
       end Update_Commodity;
 
       File : Ada.Text_IO.File_Type;
@@ -289,6 +295,7 @@ package body Concorde.Markets is
 
    procedure Execute_Commodity_Trades
      (Market    : in out Root_Market_Type'Class;
+      Manager   : in out Concorde.Trades.Trade_Manager_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
    is
       use Concorde.Money, Concorde.Quantities;
@@ -323,22 +330,53 @@ package body Concorde.Markets is
          loop
 
             declare
-               Ask_Price    : constant Price_Type := Ask.Current_Price;
-               Bid_Price    : constant Price_Type := Bid.Current_Price;
-               Price        : constant Price_Type :=
-                                Adjust_Price (Ask_Price + Bid_Price, 0.5);
-               Ask_Quantity : constant Quantity :=
-                                Calculate_Quantity
-                                  (Price, Concorde.Trades.Sell,
-                                   Commodity,  Ask);
-               Bid_Quantity : constant Quantity :=
-                                Calculate_Quantity
-                                  (Price, Concorde.Trades.Buy,
-                                   Commodity, Bid);
-               Traded_Quantity : constant Quantity :=
-                               Min (Ask_Quantity, Bid_Quantity);
-               Money           : constant Money_Type :=
-                                   Total (Price, Traded_Quantity);
+               Sales_Tax_Rate    : constant Unit_Real :=
+                                     Manager.Tax_Rate
+                                       (Concorde.Trades.Sales, Commodity);
+               Export_Tax_Rate   : constant Unit_Real :=
+                                     (if not Bid.Agent.Market_Resident
+                                      then Manager.Tax_Rate
+                                        (Concorde.Trades.Export, Commodity)
+                                      else 0.0);
+               Import_Tax_Rate   : constant Unit_Real :=
+                                     (if not Ask.Agent.Market_Resident
+                                      then Manager.Tax_Rate
+                                        (Concorde.Trades.Import, Commodity)
+                                      else 0.0);
+               Seller_Tax_Rate   : constant Non_Negative_Real :=
+                                     Sales_Tax_Rate
+                                       + Import_Tax_Rate
+                                     + Export_Tax_Rate;
+               Buyer_Tax_Rate    : constant Non_Negative_Real := 0.0;
+               Seller_Price      : constant Price_Type := Ask.Current_Price;
+               Buyer_Price       : constant Price_Type := Bid.Current_Price;
+               Ask_Price         : constant Price_Type :=
+                                     Seller_Price +
+                                       Tax (Seller_Price,
+                                            Sales_Tax_Rate
+                                            + Import_Tax_Rate);
+               Bid_Price         : constant Price_Type := Buyer_Price;
+               Price_With_Tax    : constant Price_Type :=
+                                     Adjust_Price (Ask_Price + Bid_Price, 0.5);
+               Price_Without_Tax : constant Price_Type :=
+                                     Without_Tax (Price_With_Tax,
+                                                  Seller_Tax_Rate);
+               Ask_Quantity      : constant Quantity :=
+                                     Calculate_Quantity
+                                       (Price_Without_Tax,
+                                        Concorde.Trades.Sell,
+                                        Commodity,  Ask);
+               Bid_Quantity      : constant Quantity :=
+                                     Calculate_Quantity
+                                       (Price_With_Tax, Concorde.Trades.Buy,
+                                        Commodity, Bid);
+               Traded_Quantity   : constant Quantity :=
+                                     Min (Ask_Quantity, Bid_Quantity);
+               Money_With_Tax    : constant Money_Type :=
+                                     Total (Price_With_Tax, Traded_Quantity);
+               Money_Without_Tax : constant Money_Type :=
+                                     Without_Tax
+                                       (Money_With_Tax, Seller_Tax_Rate);
             begin
 
                Ask.Remaining_Quantity := Ask_Quantity;
@@ -349,16 +387,16 @@ package body Concorde.Markets is
                   & ": "
                   & Ask.Agent.Short_Name
                   & " asks "
-                  & Image (Ask.Current_Price)
+                  & Taxable_Image (Ask_Price, Seller_Tax_Rate)
                   & "; "
                   & Bid.Agent.Short_Name
                   & " bids "
-                  & Image (Bid.Current_Price)
+                  & Taxable_Image (Buyer_Price, Buyer_Tax_Rate)
                   & (if Traded_Quantity > Zero
                     then "; final contract "
                     & Image (Traded_Quantity)
                     & " @ "
-                    & Image (Price)
+                    & Taxable_Image (Price_With_Tax, Seller_Tax_Rate)
                     else "; no sale"));
 
                if Traded_Quantity > Zero then
@@ -384,26 +422,37 @@ package body Concorde.Markets is
                        Bid.Closed_At_Limit + Traded_Quantity;
                   end if;
 
-                  Ask.Total_Cost := Ask.Total_Cost + Money;
-                  Bid.Total_Cost := Bid.Total_Cost + Money;
+                  Ask.Total_Cost := Ask.Total_Cost + Money_Without_Tax;
+                  Bid.Total_Cost := Bid.Total_Cost + Money_With_Tax;
 
                   Ask.Agent.Execute_Trade
                     (Concorde.Trades.Sell, Commodity,
-                     Traded_Quantity, Money);
+                     Traded_Quantity, Money_Without_Tax);
                   Bid.Agent.Execute_Trade
                     (Concorde.Trades.Buy, Commodity,
-                     Traded_Quantity, Money);
+                     Traded_Quantity, Money_With_Tax);
+
+                  Manager.Tax_Receipt
+                    (Commodity => Commodity,
+                     Quantity  => Traded_Quantity,
+                     Price     => Price_With_Tax,
+                     Category  => Concorde.Trades.Sales,
+                     Receipt   => Money_With_Tax - Money_Without_Tax);
+
+                  Market.Log (Commodity.Name
+                              & ": tax is "
+                              & Image (Money_With_Tax - Money_Without_Tax));
 
                   Bids.Replace_Element (Next_Bid, Bid);
                   Asks.Replace_Element (Next_Ask, Ask);
 
                   Total_Quantity := Total_Quantity + Traded_Quantity;
-                  Total_Money    := Total_Money + Money;
+                  Total_Money    := Total_Money + Money_With_Tax;
 
                end if;
 
                if Ask.Remaining_Quantity = Zero
-                 or else Price < Ask.Limit_Price
+                 or else Price_With_Tax < Ask.Limit_Price
                then
                   loop
                      Next (Next_Ask);
@@ -415,7 +464,7 @@ package body Concorde.Markets is
                   end loop;
                end if;
                if Bid.Remaining_Quantity = Zero
-                 or else Price > Bid.Limit_Price
+                 or else Price_With_Tax > Bid.Limit_Price
                then
                   loop
                      Previous (Next_Bid);
@@ -468,16 +517,16 @@ package body Concorde.Markets is
       Info.Demand := Demand;
       Info.Traded_Quantity := Total_Quantity;
 
---        Conflict.Db.Market_Commodity.Create
---          (Market           => Market,
---           Date             => Conflict.Dates.Today,
---           Commodity        => Commodity,
---           Historical_Price => Info.Historical_Mean_Price,
---           Average_Price    => Info.Current_Price,
---           Traded_Quantity  => Info.Traded_Quantity,
---           Supply           => Info.Supply,
---           Demand           => Info.Demand);
---
+      --        Conflict.Db.Market_Commodity.Create
+      --          (Market           => Market,
+      --           Date             => Conflict.Dates.Today,
+      --           Commodity        => Commodity,
+      --           Historical_Price => Info.Historical_Mean_Price,
+      --           Average_Price    => Info.Current_Price,
+      --           Traded_Quantity  => Info.Traded_Quantity,
+      --           Supply           => Info.Supply,
+      --           Demand           => Info.Demand);
+      --
       for Bid of Bids loop
          if Bid.Agent.Belief_Based_Strategy (Commodity) then
             Bid.Agent.Update_Price_Belief
@@ -674,6 +723,27 @@ package body Concorde.Markets is
    begin
       return Market.Owner.Name;
    end Name;
+
+   -------------------
+   -- Taxable_Image --
+   -------------------
+
+   function Taxable_Image
+     (Price_With_Tax : Concorde.Money.Price_Type;
+      Tax_Rate       : Non_Negative_Real)
+      return String
+   is
+      use Concorde.Money;
+      Price_Without_Tax : constant Price_Type :=
+                            Without_Tax (Price_With_Tax, Tax_Rate);
+      Tax               : constant Price_Type :=
+                            Price_With_Tax
+                              - Price_Without_Tax;
+   begin
+      return Image (Price_With_Tax)
+        & " (" & Image (Price_Without_Tax)
+        & " + " & Image (Tax) & ")";
+   end Taxable_Image;
 
    ----------------------
    -- Commodity_Offers --

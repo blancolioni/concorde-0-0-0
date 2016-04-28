@@ -20,6 +20,7 @@ with Concorde.People.Pops;
 
 with Concorde.Commodities;
 with Concorde.Markets;
+with Concorde.Government;
 
 private with Concorde.People.Pops.Lists;
 private with Concorde.Installations.Lists;
@@ -43,6 +44,7 @@ package Concorde.Systems is
    type Root_Star_System_Type is
      new Concorde.Objects.Root_Named_Object_Type
      and Concorde.Agents.Agent_Location_Interface
+     and Concorde.Government.Governed_Interface
    with private;
 
    function Index (System : Root_Star_System_Type'Class) return Positive;
@@ -102,6 +104,14 @@ package Concorde.Systems is
 
    function Capital (System : Root_Star_System_Type'Class)
                      return Boolean;
+
+   procedure Set_Government
+     (System     : in out Root_Star_System_Type'Class;
+      Government : Concorde.Government.Government_Type);
+
+   function Has_Government
+     (System : Root_Star_System_Type'Class)
+      return Boolean;
 
    procedure Add_Pop
      (System : in out Root_Star_System_Type'Class;
@@ -233,7 +243,8 @@ private
 
    type Root_Star_System_Type is
      new Concorde.Objects.Root_Named_Object_Type
-     and Concorde.Agents.Agent_Location_Interface with
+     and Concorde.Agents.Agent_Location_Interface
+     and Concorde.Government.Governed_Interface with
       record
          Index          : Positive;
          X, Y           : Real;
@@ -252,6 +263,7 @@ private
            Concorde.Empires.Root_Empire_Type'Class;
          Original_Owner : access constant
            Concorde.Empires.Root_Empire_Type'Class;
+         Government     : Concorde.Government.Government_Type;
          Loyalty        : Unit_Real := 1.0;
          Edges          : Edge_Info_Lists.List;
          Boundary       : access System_Influence_Boundary;

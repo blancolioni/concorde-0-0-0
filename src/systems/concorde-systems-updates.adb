@@ -4,6 +4,8 @@ with Concorde.Empires;
 with Concorde.Empires.Db;
 with Concorde.Empires.Logging;
 
+with Concorde.Government.Db;
+
 with Concorde.Ships.Create;
 with Concorde.Ships.Db;
 
@@ -55,9 +57,27 @@ package body Concorde.Systems.Updates is
    --------------------
 
    procedure Execute_Trades (System : Root_Star_System_Type'Class) is
+
+      procedure Execute
+        (Government : in out Concorde.Government.Root_Government_Type'Class);
+
+      -------------
+      -- Execute --
+      -------------
+
+      procedure Execute
+        (Government : in out Concorde.Government.Root_Government_Type'Class)
+      is
+      begin
+         System.Market.Execute (Government);
+      end Execute;
+
    begin
-      System.Market.Execute;
-      System.Market.After_Trading;
+      if System.Has_Government then
+         Concorde.Government.Db.Update
+           (System.Government.Reference, Execute'Access);
+         System.Market.After_Trading;
+      end if;
    end Execute_Trades;
 
    -------------------
@@ -229,5 +249,76 @@ package body Concorde.Systems.Updates is
          end if;
       end if;
    end Update_System;
+
+   procedure Update_System_Government
+     (System : Root_Star_System_Type'Class)
+   is
+   begin
+      if System.Government.Basic_Living_Wage then
+         declare
+            use Concorde.Money;
+            Wage : constant Price_Type :=
+                     System.Market.Current_Price
+                       (Concorde.Commodities.Get ("rations"));
+         begin
+            for Pop of System.Pops loop
+               declare
+                  Minimum : constant Money_Type :=
+                              Total (Wage, Pop.Size_Quantity);
+               begin
+                  if Pop.Cash < Minimum then
+                     declare
+                        Payment : constant Money_Type :=
+                                    Minimum - Pop.Cash;
+
+                        procedure Update_Government
+                          (Government : in out
+                             Concorde.Government.Root_Government_Type'Class);
+
+                        procedure Update_Pop
+                          (Pop : in out
+                             Concorde.People.Pops.Root_Pop_Type'Class);
+
+                        -----------------------
+                        -- Update_Government --
+                        -----------------------
+
+                        procedure Update_Government
+                          (Government : in out
+                             Concorde.Government.Root_Government_Type'Class)
+                        is
+                        begin
+                           Government.Remove_Cash (Payment);
+                        end Update_Government;
+
+                        ----------------
+                        -- Update_Pop --
+                        ----------------
+
+                        procedure Update_Pop
+                          (Pop : in out
+                             Concorde.People.Pops.Root_Pop_Type'Class)
+                        is
+                        begin
+                           Pop.Add_Cash (Payment);
+                        end Update_Pop;
+
+                     begin
+                        Pop.Log_Price
+                          ("receive " & Concorde.Money.Image (Payment)
+                           & " dole");
+                        Concorde.People.Pops.Db.Update
+                          (Pop.Reference, Update_Pop'Access);
+                        Concorde.Government.Db.Update
+                          (System.Government.Reference,
+                           Update_Government'Access);
+                     end;
+                  end if;
+               end;
+            end loop;
+         end;
+      end if;
+
+   end Update_System_Government;
 
 end Concorde.Systems.Updates;

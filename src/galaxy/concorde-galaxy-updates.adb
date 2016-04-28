@@ -35,6 +35,11 @@ package body Concorde.Galaxy.Updates is
       is
       begin
          Concorde.Systems.Updates.Update_System (System);
+
+         if System.Has_Government then
+            Concorde.Systems.Updates.Update_System_Government (System);
+         end if;
+
          declare
             List : Concorde.Ships.Lists.List;
          begin
