@@ -2,6 +2,8 @@ with Ada.Containers.Vectors;
 
 with Concorde.Systems.Db;
 
+with Concorde.Scenarios;
+
 package body Concorde.Galaxy is
 
    package Battle_Vectors is
@@ -119,16 +121,34 @@ package body Concorde.Galaxy is
       return Concorde.Systems.Star_System_Type
    is
    begin
-      for I in 1 .. Galaxy_Graph.Last_Vertex_Index loop
-         declare
-            System : constant Concorde.Systems.Star_System_Type :=
-                       Galaxy_Graph.Vertex (I);
-         begin
-            if OK (System) then
-               return System;
-            end if;
-         end;
-      end loop;
+      if Concorde.Scenarios.Imperial_Centre then
+         if OK (Galaxy_Graph.Vertex (1)) then
+            return Galaxy_Graph.Vertex (1);
+         else
+            declare
+               Index : constant Natural :=
+                         Galaxy_Graph.Breadth_First_Search
+                           (1, OK);
+            begin
+               if Index = 0 then
+                  return null;
+               else
+                  return Galaxy_Graph.Vertex (Index);
+               end if;
+            end;
+         end if;
+      else
+         for I in 1 .. Galaxy_Graph.Last_Vertex_Index loop
+            declare
+               System : constant Concorde.Systems.Star_System_Type :=
+                          Galaxy_Graph.Vertex (I);
+            begin
+               if OK (System) then
+                  return System;
+               end if;
+            end;
+         end loop;
+      end if;
       return null;
    end Find_System;
 
