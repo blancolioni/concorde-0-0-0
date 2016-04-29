@@ -45,6 +45,60 @@ package body Concorde.Graphs is
    -- Breadth_First_Search --
    --------------------------
 
+   function Breadth_First_Search
+     (Container : Graph;
+      Start     : Index_Type;
+      Match     : not null access
+        function (V : Vertex_Type) return Boolean)
+      return Extended_Index
+   is
+      type Partial is
+         record
+            Index : Index_Type;
+            Cost  : Cost_Type;
+         end record;
+
+      Visited : Sub_Graph;
+
+      package Queue_Of_Partials is
+        new Ada.Containers.Doubly_Linked_Lists (Partial);
+      Queue : Queue_Of_Partials.List;
+
+   begin
+      Container.Create (Visited);
+      Queue.Append ((Start, 0.0));
+      while not Queue.Is_Empty loop
+         declare
+            P    : constant Partial := Queue.First_Element;
+            Ix   : constant Index_Type := P.Index;
+            Cost : constant Cost_Type := P.Cost;
+         begin
+            if Match (Container.Vertices.Element (Ix).Vertex) then
+               return Ix;
+            end if;
+
+            Queue.Delete_First;
+            if not Contains (Visited, Ix) then
+               Append (Visited, Ix);
+               for Edge of Container.Vertices.Element (Ix).Edges loop
+                  declare
+                     New_Cost : constant Cost_Type := Cost + Edge.Cost;
+                  begin
+                     Queue.Append ((Edge.To, New_Cost));
+                  end;
+               end loop;
+            end if;
+         end;
+      end loop;
+
+      return Extended_Index'First;
+
+   end Breadth_First_Search;
+
+   --------------------------
+   -- Breadth_First_Search --
+   --------------------------
+
    procedure Breadth_First_Search
      (Container : Graph;
       Start     : Index_Type;

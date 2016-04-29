@@ -101,6 +101,13 @@ package Concorde.Graphs is
       Max       : Cost_Type;
       Result    : out Sub_Graph);
 
+   function Breadth_First_Search
+     (Container : Graph;
+      Start     : Index_Type;
+      Match     : not null access
+        function (V : Vertex_Type) return Boolean)
+      return Extended_Index;
+
    type Sub_Graph_Collection is private;
 
    function Contains
