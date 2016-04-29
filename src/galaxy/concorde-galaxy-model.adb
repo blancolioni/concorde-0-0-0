@@ -1,3 +1,5 @@
+with Ada.Containers.Vectors;
+
 with Memor.Element_Vectors;
 
 with Lui.Colours;
@@ -24,6 +26,9 @@ with Concorde.Updates;
 
 with Concorde.Options;
 
+with Concorde.Money;
+with Concorde.Trades;
+
 package body Concorde.Galaxy.Model is
 
    function Ship_Count_Image
@@ -49,6 +54,50 @@ package body Concorde.Galaxy.Model is
       Row   : Positive;
       Col   : Positive)
       return String;
+
+   System_Column_Count : constant := 5;
+
+   subtype System_Column is Integer range 1 .. System_Column_Count;
+
+   package System_Table_Row_Vectors is
+     new Ada.Containers.Vectors
+       (Index_Type   => Positive,
+        Element_Type => Concorde.Systems.Star_System_Type,
+        "="          => Concorde.Systems."=");
+
+   type System_Table is
+     new Lui.Tables.Root_Model_Table
+     and Concorde.Watchers.Watcher_Interface with
+      record
+         Rows : System_Table_Row_Vectors.Vector;
+      end record;
+
+   overriding procedure On_Object_Changed
+     (Table  : in out System_Table;
+      Object : Concorde.Watchers.Watched_Object_Interface'Class)
+   is null;
+
+   overriding function Heading_Column_Text
+     (Table : System_Table;
+      Col   : Positive)
+      return String
+   is ((case System_Column (Col) is
+           when 1 => "System",
+           when 2 => "Owner",
+           when 3 => "Tax Income",
+           when 4 => "Payments",
+           when 5 => "Balance"));
+
+   overriding function Cell_Text
+     (Table : System_Table;
+      Row   : Positive;
+      Col   : Positive)
+      return String;
+
+   overriding function Row_Count
+     (Table : System_Table)
+      return Natural
+   is (Table.Rows.Last_Index);
 
    subtype Battle_Column is Integer range 1 .. 5;
 
@@ -218,6 +267,36 @@ package body Concorde.Galaxy.Model is
             end;
          when 3 =>
             return Lui.Approximate_Image (E.Current_Ships);
+      end case;
+   end Cell_Text;
+
+   ---------------
+   -- Cell_Text --
+   ---------------
+
+   overriding function Cell_Text
+     (Table : System_Table;
+      Row   : Positive;
+      Col   : Positive)
+      return String
+   is
+      System : constant Concorde.Systems.Star_System_Type :=
+                 Table.Rows.Element (Row);
+   begin
+      case System_Column (Col) is
+         when 1 =>
+            return System.Name;
+         when 2 =>
+            return System.Owner.Name;
+         when 3 =>
+            return Concorde.Money.Image
+              (System.Government.Tax_Receipts
+                 (Concorde.Trades.Sales));
+         when 4 =>
+            return "";
+         when 5 =>
+            return Concorde.Money.Image
+              (System.Government.Cash);
       end case;
    end Cell_Text;
 
@@ -474,6 +553,14 @@ package body Concorde.Galaxy.Model is
    -- Galaxy_Model --
    ------------------
 
+   ------------------
+   -- Galaxy_Model --
+   ------------------
+
+   ------------------
+   -- Galaxy_Model --
+   ------------------
+
    function Galaxy_Model
      return Lui.Models.Object_Model
    is
@@ -485,7 +572,8 @@ package body Concorde.Galaxy.Model is
             Result  : Root_Galaxy_Model;
             E_Table : Empire_Table;
             B_Table : Battle_Table;
-            E, B    : Lui.Tables.Model_Table;
+            S_Table : System_Table;
+            E, S, B : Lui.Tables.Model_Table;
 
             procedure Watch_System
               (System : in out Concorde.Systems.Root_Star_System_Type'Class);
@@ -506,14 +594,40 @@ package body Concorde.Galaxy.Model is
               (Name     => "Empires",
                Num_Rows => Concorde.Empires.Db.Active_Count,
                Num_Cols => Empire_Column'Last);
-
             E := new Empire_Table'(E_Table);
+
+            S_Table.Initialise
+              (Name     => "Systems",
+               Num_Rows => Concorde.Empires.Db.Active_Count,
+               Num_Cols => System_Column_Count);
+
+            declare
+               procedure Add_Capital
+                 (Empire : Concorde.Empires.Empire_Type);
+
+               -----------------
+               -- Add_Capital --
+               -----------------
+
+               procedure Add_Capital
+                 (Empire : Concorde.Empires.Empire_Type)
+               is
+               begin
+                  S_Table.Rows.Append (Empire.Capital);
+               end Add_Capital;
+
+            begin
+               Concorde.Empires.Db.Scan (Add_Capital'Access);
+            end;
+
+            S := new System_Table'(S_Table);
+
             B_Table.Initialise
               ("Battles", 0, Battle_Column'Last);
             B := new Battle_Table'(B_Table);
 
             Result.Battles := B;
-            Result.Initialise ("Galaxy", (E, B));
+            Result.Initialise ("Galaxy", (E, S, B));
 
             Result.Set_Eye_Position (0.0, 0.0, 2.2);
             Result.Show_Capital_Names :=

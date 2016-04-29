@@ -255,6 +255,18 @@ package body Concorde.Systems is
       end loop;
    end Get_Ships;
 
+   ----------------
+   -- Government --
+   ----------------
+
+   function Government
+     (System : Root_Star_System_Type'Class)
+      return Concorde.Government.Government_Type
+   is
+   begin
+      return System.Government;
+   end Government;
+
    --------------------
    -- Has_Government --
    --------------------

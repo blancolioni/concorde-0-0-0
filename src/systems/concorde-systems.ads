@@ -121,6 +121,10 @@ package Concorde.Systems is
      (System : Root_Star_System_Type'Class)
       return Boolean;
 
+   function Government
+     (System : Root_Star_System_Type'Class)
+      return Concorde.Government.Government_Type;
+
    procedure Add_Pop
      (System : in out Root_Star_System_Type'Class;
       Pop    : Concorde.People.Pops.Pop_Type);

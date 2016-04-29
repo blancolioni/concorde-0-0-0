@@ -38,6 +38,11 @@ package Concorde.Government is
       Category   : Concorde.Trades.Market_Tax_Category;
       Receipt    : Concorde.Money.Money_Type);
 
+   function Tax_Receipts
+     (Government : Root_Government_Type'Class;
+      Category   : Concorde.Trades.Market_Tax_Category)
+      return Concorde.Money.Money_Type;
+
    function Basic_Living_Wage
      (Government : Root_Government_Type'Class)
       return Boolean;
@@ -54,6 +59,9 @@ private
                           Concorde.Trades.Import => 0.1,
                           Concorde.Trades.Export => 0.1);
 
+   type Array_Of_Tax_Receipts is
+     array (Concorde.Trades.Market_Tax_Category) of Concorde.Money.Money_Type;
+
    package Commodity_Tax_Rates is
      new Memor.Element_Vectors (Array_Of_Tax_Rates, Default_Tax_Rates);
 
@@ -66,6 +74,8 @@ private
            Concorde.Agents.Root_Agent_Type'Class;
          Headquarters      : Concorde.Installations.Installation_Type;
          Tax_Rates         : Commodity_Tax_Rates.Vector;
+         Tax_Receipts      : Array_Of_Tax_Receipts :=
+                               (others => Concorde.Money.Zero);
          Basic_Living_Wage : Boolean := False;
       end record;
 
@@ -81,5 +91,8 @@ private
    overriding procedure Add_Trade_Offers
      (Item   : not null access constant Root_Government_Type;
       Market : in out Concorde.Trades.Trade_Interface'Class);
+
+   overriding procedure On_Update_Start
+     (Government : in out Root_Government_Type);
 
 end Concorde.Government;

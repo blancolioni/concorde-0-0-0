@@ -87,6 +87,14 @@ package Concorde.Agents is
       return Boolean
    is (True);
 
+   procedure On_Update_Start
+     (Agent : in out Root_Agent_Type)
+   is null;
+
+   procedure On_Update_End
+     (Agent : in out Root_Agent_Type)
+   is null;
+
    function Cash
      (Agent : Root_Agent_Type'Class)
       return Concorde.Money.Money_Type;

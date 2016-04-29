@@ -53,6 +53,17 @@ package body Concorde.Government is
       return Db.Get_Database;
    end Object_Database;
 
+   ---------------------
+   -- On_Update_Start --
+   ---------------------
+
+   overriding procedure On_Update_Start
+     (Government : in out Root_Government_Type)
+   is
+   begin
+      Government.Tax_Receipts := (others => Concorde.Money.Zero);
+   end On_Update_Start;
+
    --------------
    -- Tax_Rate --
    --------------
@@ -79,7 +90,7 @@ package body Concorde.Government is
       Category   : Concorde.Trades.Market_Tax_Category;
       Receipt    : Concorde.Money.Money_Type)
    is
-      pragma Unreferenced (Category);
+      use type Concorde.Money.Money_Type;
    begin
       Government.Log_Trade
         ("from sale of "
@@ -91,6 +102,21 @@ package body Concorde.Government is
          & ", tax receipt is "
          & Concorde.Money.Image (Receipt));
       Government.Add_Cash (Receipt);
+      Government.Tax_Receipts (Category) :=
+        Government.Tax_Receipts (Category) + Receipt;
    end Tax_Receipt;
+
+   ------------------
+   -- Tax_Receipts --
+   ------------------
+
+   function Tax_Receipts
+     (Government : Root_Government_Type'Class;
+      Category   : Concorde.Trades.Market_Tax_Category)
+      return Concorde.Money.Money_Type
+   is
+   begin
+      return Government.Tax_Receipts (Category);
+   end Tax_Receipts;
 
 end Concorde.Government;

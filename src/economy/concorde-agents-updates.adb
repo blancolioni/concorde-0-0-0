@@ -13,6 +13,7 @@ package body Concorde.Agents.Updates is
    is
    begin
       Agent.Age := Agent.Age + 1;
+      Agent.On_Update_End;
    end End_Of_Update;
 
    ---------------------
@@ -22,9 +23,8 @@ package body Concorde.Agents.Updates is
    procedure Start_Of_Update
      (Agent : in out Root_Agent_Type'Class)
    is
-      pragma Unreferenced (Agent);
    begin
-      null;
+      Agent.On_Update_Start;
    end Start_Of_Update;
 
    -------------------
