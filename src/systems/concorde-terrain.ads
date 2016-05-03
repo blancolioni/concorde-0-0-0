@@ -1,5 +1,7 @@
 private with Memor;
 
+with Lui.Colours;
+
 with Concorde.Objects;
 
 package Concorde.Terrain is
@@ -9,6 +11,10 @@ package Concorde.Terrain is
    with private;
 
    function Is_Water (Terrain : Root_Terrain_Type'Class) return Boolean;
+
+   function Colour
+     (Terrain : Root_Terrain_Type'Class)
+      return Lui.Colours.Colour_Type;
 
    function Text_Character
      (Terrain : Root_Terrain_Type'Class)
@@ -25,6 +31,7 @@ private
       record
          Is_Water       : Boolean;
          Text_Character : Character;
+         Colour         : Lui.Colours.Colour_Type;
       end record;
 
    overriding function Object_Database

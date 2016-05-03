@@ -6,6 +6,18 @@ package body Concorde.Features is
 
    procedure Scan_Standard_Features;
 
+   ------------
+   -- Colour --
+   ------------
+
+   function Colour
+     (Feature : Root_Feature_Type'Class)
+      return Lui.Colours.Colour_Type
+   is
+   begin
+      return Feature.Colour;
+   end Colour;
+
    ---------
    -- Ice --
    ---------

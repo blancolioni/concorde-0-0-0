@@ -1,5 +1,7 @@
 with Tropos.Reader;
 
+with Lui.Colours.Config;
+
 with Concorde.Paths;
 
 with Concorde.Features.Db;
@@ -27,6 +29,9 @@ package body Concorde.Features.Configure is
       begin
          Feature.Set_Name (Config.Config_Name);
          Feature.Is_Ice := Config.Get ("ice", False);
+         Feature.Colour :=
+           Lui.Colours.Config.Configure_Colour
+             (Config, "colour");
       end Create;
 
    begin

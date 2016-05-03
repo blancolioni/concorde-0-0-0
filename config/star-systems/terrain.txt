@@ -1,5 +1,5 @@
-mountains = { char = M }
-hills = { char = "(" }
-plain = { char = "." }
-ocean = { water = yes char = "~" }
-rocky = { char = "^" }
+mountains = { char = M colour = { 200 200 200 } }
+hills = { char = "(" colour = { 0 255 0 } }
+plain = { char = "." colour = { 0 120 0 } }
+ocean = { water = yes char = "~" colour = { 20 20 100 } }
+rocky = { char = "^" colour = { 40 40 0 } }

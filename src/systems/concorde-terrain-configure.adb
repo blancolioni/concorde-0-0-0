@@ -1,5 +1,7 @@
 with Tropos.Reader;
 
+with Lui.Colours.Config;
+
 with Concorde.Paths;
 
 with Concorde.Terrain.Db;
@@ -44,6 +46,9 @@ package body Concorde.Terrain.Configure is
          Terrain.Set_Name (Config.Config_Name);
          Terrain.Is_Water := Config.Get ("is_water", False);
          Terrain.Text_Character := Ch_Text (Ch_Text'First);
+         Terrain.Colour :=
+           Lui.Colours.Config.Configure_Colour
+             (Config, "colour");
       end Create;
 
    begin

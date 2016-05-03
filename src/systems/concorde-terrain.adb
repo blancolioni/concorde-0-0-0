@@ -2,6 +2,18 @@ with Concorde.Terrain.Db;
 
 package body Concorde.Terrain is
 
+   ------------
+   -- Colour --
+   ------------
+
+   function Colour
+     (Terrain : Root_Terrain_Type'Class)
+      return Lui.Colours.Colour_Type
+   is
+   begin
+      return Terrain.Colour;
+   end Colour;
+
    ---------
    -- Get --
    ---------
