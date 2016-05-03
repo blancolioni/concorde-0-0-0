@@ -24,6 +24,10 @@ package Concorde.Government is
      (Government : Root_Government_Type'Class)
       return access constant Governed_Interface'Class;
 
+   function Headquarters
+     (Government : Root_Government_Type'Class)
+      return Concorde.Installations.Installation_Type;
+
    overriding function Tax_Rate
      (Government : Root_Government_Type;
       Category   : Concorde.Trades.Market_Tax_Category;

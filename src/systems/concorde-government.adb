@@ -40,6 +40,18 @@ package body Concorde.Government is
       return Government.Governed;
    end Governed;
 
+   ------------------
+   -- Headquarters --
+   ------------------
+
+   function Headquarters
+     (Government : Root_Government_Type'Class)
+      return Concorde.Installations.Installation_Type
+   is
+   begin
+      return Government.Headquarters;
+   end Headquarters;
+
    ---------------------
    -- Object_Database --
    ---------------------
