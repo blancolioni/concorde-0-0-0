@@ -53,7 +53,6 @@ private
      array (Positive range <>) of Sector_Record;
 
    World_Sector_Size : constant := 1.0E6;
-   Subsector_Size    : constant := 20;
 
    type Root_World_Type is
      new Concorde.Objects.Root_Named_Object_Type

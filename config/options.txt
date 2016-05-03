@@ -20,3 +20,5 @@ check_invariants = yes
 battle_screen = yes
 
 test_battle = no
+
+world_detail_factor = 2

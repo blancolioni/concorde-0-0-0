@@ -315,4 +315,13 @@ package body Concorde.Options is
       return Result;
    end With_Underscores;
 
+   -------------------------
+   -- World_Detail_Factor --
+   -------------------------
+
+   function World_Detail_Factor return Positive is
+   begin
+      return Integer_Value ("world-detail-factor", Default => 20);
+   end World_Detail_Factor;
+
 end Concorde.Options;

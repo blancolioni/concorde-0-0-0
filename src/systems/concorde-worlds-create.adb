@@ -1,8 +1,11 @@
+with Ada.Characters.Handling;
 with Ada.Numerics;
 with Ada.Text_IO;
 with Ada.Long_Float_Text_IO;
 
 with WL.Random;
+
+with Concorde.Options;
 
 with Concorde.Elementary_Functions;
 with Concorde.Random;
@@ -30,6 +33,8 @@ package body Concorde.Worlds.Create is
 
    Write_World_Bitmaps : constant Boolean := False;
    pragma Unreferenced (Write_World_Bitmaps);
+
+   Subsector_Size : Natural := 0;
 
    type Orbit_Zone is range 1 .. 3;
 
@@ -930,7 +935,12 @@ package body Concorde.Worlds.Create is
       Surface          : Concorde.Generate.Surfaces.Surface_Type;
       Seed             : constant Positive :=
                            WL.Random.Random_Number (1, Positive'Last);
+
    begin
+
+      if Subsector_Size = 0 then
+         Subsector_Size := Concorde.Options.World_Detail_Factor;
+      end if;
 
       pragma Assert (Bounding_Height mod 2 = 1);
       pragma Assert (Bounding_Width mod 2 = 1);
@@ -1297,6 +1307,15 @@ package body Concorde.Worlds.Create is
 
                   World.Category := Category;
 
+                  declare
+                     function To_Lower
+                       (S : String) return String
+                        renames Ada.Characters.Handling.To_Lower;
+                  begin
+                     Ada.Text_IO.Put
+                       (" " & To_Lower (World_Category'Image (Category)));
+                  end;
+
                   if World.Category /= Jovian
                     and then World.Category /= Sub_Jovian
                   then
@@ -1611,7 +1630,7 @@ package body Concorde.Worlds.Create is
          end case;
 
          Result := Proportion * Earth_Masses / Stellar_Mass;
-         Result := Concorde.Random.Unit_Random * 0.2 + 0.1;
+         Result := Result * (Concorde.Random.Unit_Random * 0.2 + 0.1);
          if Greenhouse or else Accreted_Gas then
             return Result;
          else
