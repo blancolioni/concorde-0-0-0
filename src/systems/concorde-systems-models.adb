@@ -326,16 +326,16 @@ package body Concorde.Systems.Models is
      (Model    : in out Root_Star_System_Model;
       Renderer : in out Lui.Rendering.Root_Renderer'Class)
    is
-      Planet_Width  : constant Natural :=
+      Star_Width  : constant Natural :=
                         Natural (100.0 / Model.Eye_Z);
-      Planet_Height : constant Natural :=
+      Star_Height : constant Natural :=
                         Natural (100.0 / Model.Eye_Z);
    begin
       Renderer.Draw_Image
-        (Model.Width / 2 - Planet_Width / 2,
-         Model.Height / 2 - Planet_Width / 2,
-         Planet_Width, Planet_Height,
-         "planets/terrestrial-planet");
+        (Model.Width / 2 - Star_Width / 2,
+         Model.Height / 2 - Star_Width / 2,
+         Star_Width, Star_Height,
+         "stars/sun");
       Model.Needs_Render := False;
    end Render;
 
