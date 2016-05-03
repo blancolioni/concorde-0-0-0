@@ -55,7 +55,7 @@ package body Concorde.Galaxy.Model is
       Col   : Positive)
       return String;
 
-   System_Column_Count : constant := 5;
+   System_Column_Count : constant := 6;
 
    subtype System_Column is Integer range 1 .. System_Column_Count;
 
@@ -85,8 +85,9 @@ package body Concorde.Galaxy.Model is
            when 1 => "System",
            when 2 => "Owner",
            when 3 => "Tax Income",
-           when 4 => "Payments",
-           when 5 => "Balance"));
+           when 4 => "HQ cash",
+           when 5 => "Payments",
+           when 6 => "Balance"));
 
    overriding function Cell_Text
      (Table : System_Table;
@@ -293,8 +294,11 @@ package body Concorde.Galaxy.Model is
               (System.Government.Tax_Receipts
                  (Concorde.Trades.Sales));
          when 4 =>
-            return "";
+            return Concorde.Money.Image
+              (System.Government.Headquarters.Cash);
          when 5 =>
+            return "";
+         when 6 =>
             return Concorde.Money.Image
               (System.Government.Cash);
       end case;
