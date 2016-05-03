@@ -1,0 +1,5 @@
+ice { ice = yes }
+forest
+desert
+jungle
+barren

@@ -1,0 +1,48 @@
+rock = {
+   terrain = { 
+      rocky = 0.3
+	  plain = 0.7
+   }
+}
+
+martian = {
+   terrain = {
+      rocky = 0.1
+	  mountains = 0.1
+	  hills = 0.2
+	  plain = 0.6
+   }
+}
+
+venusian = {
+   terrain = {
+      rocky = 0.1
+	  hills = 0.1
+	  plain = 0.8
+   }
+}
+
+terrestrial = {
+   terrain = {
+      ocean = 0.0
+	  mountains = 0.1
+      rocky = 0.1
+	  hills = 0.1
+	  plain = 0.7
+   }
+}
+
+water = {
+   terrain = {
+     ocean = 0.0
+     hills = 0.1
+	 }
+}
+
+ice = {
+   terrain = {
+     rocky = 0.1
+     hills = 0.1
+     plain = 0.8
+	 }
+}

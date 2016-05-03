@@ -6,6 +6,10 @@ with Concorde.Facilities.Configure;
 with Concorde.People.Groups.Configure;
 with Concorde.People.Skills.Configure;
 
+with Concorde.Atmosphere.Configure;
+with Concorde.Features.Configure;
+with Concorde.Terrain.Configure;
+
 with Concorde.Scenarios;
 
 package body Concorde.Configure is
@@ -17,6 +21,11 @@ package body Concorde.Configure is
    procedure Load_Configuration is
    begin
       Concorde.Scenarios.Load_Scenario ("fading-suns");
+
+      Concorde.Terrain.Configure.Configure_Terrain;
+      Concorde.Features.Configure.Configure_Features;
+
+      Concorde.Atmosphere.Configure.Configure_Atmosphere;
 
       Concorde.Commodities.Configure.Configure_Commodities;
       Concorde.People.Groups.Configure.Configure_Pop_Groups;

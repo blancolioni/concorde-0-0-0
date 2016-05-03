@@ -29,16 +29,30 @@ package body Concorde.Objects is
    ----------------
 
    overriding function Identifier
-     (Item : Root_Named_Object_Type)
+     (Item : Root_Object_Type)
       return String
    is
-      Class_Item : Root_Named_Object_Type'Class renames
-                     Root_Named_Object_Type'Class (Item);
+      Class_Item : Root_Object_Type'Class renames
+                     Root_Object_Type'Class (Item);
       Db : Memor.Root_Database_Type'Class renames
              Class_Item.Object_Database;
    begin
       return Db.Database_Class_Name & "-"
         & Memor.To_String (Class_Item.Reference);
+   end Identifier;
+
+   ----------------
+   -- Identifier --
+   ----------------
+
+   overriding function Identifier
+     (Item : Root_Named_Object_Type)
+      return String
+   is
+      Class_Item : Root_Named_Object_Type'Class renames
+                     Root_Named_Object_Type'Class (Item);
+   begin
+      return Class_Item.Name;
    end Identifier;
 
    ----------

@@ -231,8 +231,9 @@ package body Concorde.Empires is
         Concorde.Systems.Root_Star_System_Type'Class;
       Flag     : Star_System_Flag)
    is
+      Data : System_Data_Array renames Empire.System_Data.all;
    begin
-      Empire.System_Data (System.Index).Flags (Flag) := False;
+      Data (System.Index).Flags (Flag) := False;
    end Clear;
 
    -------------------
@@ -593,8 +594,9 @@ package body Concorde.Empires is
       System   : Concorde.Systems.Root_Star_System_Type'Class;
       Flag     : Star_System_Flag)
    is
+      Data : System_Data_Array renames Empire.System_Data.all;
    begin
-      Empire.System_Data (System.Index).Flags (Flag) := True;
+      Data (System.Index).Flags (Flag) := True;
    end Set;
 
    ---------

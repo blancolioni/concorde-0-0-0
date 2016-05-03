@@ -1,3 +1,5 @@
+with Concorde.Elementary_Functions;
+
 with Concorde.Stars.Db;
 with Concorde.Stars.Tables;
 
@@ -35,6 +37,8 @@ package body Concorde.Stars.Create is
          Star.Colour := Colour;
          Star.Radius := Radius;
          Star.Luminosity := Luminosity;
+         Star.Ecosphere := Concorde.Elementary_Functions.Sqrt (Luminosity);
+         Star.Age := 1.0E10 * Solar_Masses / Luminosity;
       end Create;
 
    begin

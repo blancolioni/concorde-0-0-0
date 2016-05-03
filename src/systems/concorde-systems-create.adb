@@ -1,3 +1,5 @@
+with Ada.Text_IO;
+
 with WL.Random;
 
 with Concorde.Random;
@@ -5,6 +7,7 @@ with Concorde.Scenarios;
 
 with Concorde.Commodities;
 with Concorde.Stars.Create;
+with Concorde.Worlds.Create;
 
 with Concorde.Systems.Db;
 
@@ -60,7 +63,7 @@ package body Concorde.Systems.Create is
             Main_Star : constant Concorde.Stars.Star_Type :=
                           Concorde.Stars.Create.New_Main_Sequence_Star
                             (Name,
-                             (if Imperial_Centre
+                             (if True or else Imperial_Centre
                               then 1.0
                               else Random_Star_Mass));
          begin
@@ -69,6 +72,7 @@ package body Concorde.Systems.Create is
                Primary  => null,
                Orbit    => 0.0,
                Position => Concorde.Geometry.Degrees_To_Radians (0.0));
+            Ada.Text_IO.Put ("Star: " & Main_Star.Name);
          end;
 
          declare
@@ -93,6 +97,9 @@ package body Concorde.Systems.Create is
                Size          => Deposit_Size,
                Original_Size => Deposit_Size);
          end;
+
+         Concorde.Worlds.Create.Create_Worlds
+           (System);
 
       end Create;
 

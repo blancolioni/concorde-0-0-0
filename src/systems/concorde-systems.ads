@@ -37,7 +37,25 @@ package Concorde.Systems is
                     return Non_Negative_Real
                     is abstract;
 
-   function Colour (Object : Star_System_Object_Interface)
+   function Primary (Object : Star_System_Object_Interface)
+                     return access Star_System_Object_Interface'Class
+                     is abstract;
+
+   function Semimajor_Axis (Object : Star_System_Object_Interface)
+                            return Non_Negative_Real
+                            is abstract;
+
+   function Eccentricity (Object : Star_System_Object_Interface)
+                          return Unit_Real
+                          is abstract;
+
+   function Period (Object : Star_System_Object_Interface'Class)
+                    return Non_Negative_Real;
+
+   type Main_Star_System_Object_Interface is limited interface
+     and Star_System_Object_Interface;
+
+   function Colour (Object : Main_Star_System_Object_Interface)
                     return Lui.Colours.Colour_Type
                     is abstract;
 
@@ -60,7 +78,7 @@ package Concorde.Systems is
 
    function Main_Object
      (System : Root_Star_System_Type'Class)
-      return access Star_System_Object_Interface'Class;
+      return access Main_Star_System_Object_Interface'Class;
 
    function Owner
      (System : Root_Star_System_Type'Class)
@@ -263,6 +281,7 @@ private
          Production     : Non_Negative_Real;
          Capacity       : Non_Negative_Real;
          Progress       : Non_Negative_Real := 0.0;
+         Main_Object    : access Main_Star_System_Object_Interface'Class;
          Objects        : System_Object_Lists.List;
          Ships          : Concorde.Ships.Lists.List;
          Arriving       : Concorde.Ships.Lists.List;

@@ -1,6 +1,7 @@
 with Ada.Text_IO;
 with Ada.Exceptions;
 
+with Concorde.Constants;
 with Concorde.Elementary_Functions;
 
 with Concorde.Ships.Db;
@@ -41,6 +42,10 @@ package body Concorde.Systems is
       Position : Concorde.Geometry.Radians)
    is
    begin
+      if System.Objects.Is_Empty then
+         System.Main_Object :=
+           Main_Star_System_Object_Interface'Class (Object.all)'Access;
+      end if;
       System.Objects.Append
         ((Object, Primary, Orbit, Position));
    end Add_Object;
@@ -356,10 +361,10 @@ package body Concorde.Systems is
 
    function Main_Object
      (System : Root_Star_System_Type'Class)
-      return access Star_System_Object_Interface'Class
+      return access Main_Star_System_Object_Interface'Class
    is
    begin
-      return System.Objects.First_Element.Object;
+      return System.Main_Object;
    end Main_Object;
 
    ------------
@@ -413,6 +418,17 @@ package body Concorde.Systems is
    begin
       return System.Owner;
    end Owner;
+
+   function Period (Object : Star_System_Object_Interface'Class)
+                    return Non_Negative_Real
+   is
+      use Concorde.Constants;
+      use Concorde.Elementary_Functions;
+   begin
+      return 2.0 * Pi * Sqrt (Object.Semimajor_Axis ** 3
+                              / (Gravitational_Constant
+                                * Object.Primary.Mass));
+   end Period;
 
    ----------------
    -- Production --

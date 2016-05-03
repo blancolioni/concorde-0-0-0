@@ -1,0 +1,5 @@
+mountains = { char = M }
+hills = { char = "(" }
+plain = { char = "." }
+ocean = { water = yes char = "~" }
+rocky = { char = "^" }

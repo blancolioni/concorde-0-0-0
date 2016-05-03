@@ -4,6 +4,18 @@ with Concorde.Solar_System;
 
 package body Concorde.Stars is
 
+   ---------
+   -- Age --
+   ---------
+
+   function Age
+     (Star : Root_Star_Type'Class)
+      return Non_Negative_Real
+   is
+   begin
+      return Star.Age;
+   end Age;
+
    ------------
    -- Colour --
    ------------
@@ -15,6 +27,30 @@ package body Concorde.Stars is
    begin
       return Star.Colour;
    end Colour;
+
+   ---------------
+   -- Ecosphere --
+   ---------------
+
+   function Ecosphere
+     (Star : Root_Star_Type'Class)
+      return Non_Negative_Real
+   is
+   begin
+      return Star.Ecosphere;
+   end Ecosphere;
+
+   ----------------
+   -- Luminosity --
+   ----------------
+
+   function Luminosity
+     (Star : Root_Star_Type'Class)
+      return Non_Negative_Real
+   is
+   begin
+      return Star.Luminosity;
+   end Luminosity;
 
    ----------
    -- Mass --
