@@ -69,8 +69,6 @@ package body Concorde.Systems.Create is
          begin
             System.Add_Object
               (Object   => Main_Star,
-               Primary  => null,
-               Orbit    => 0.0,
                Position => Concorde.Geometry.Degrees_To_Radians (0.0));
             Ada.Text_IO.Put ("Star: " & Main_Star.Name);
          end;
