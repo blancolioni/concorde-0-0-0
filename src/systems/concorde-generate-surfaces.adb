@@ -181,7 +181,19 @@ package body Concorde.Generate.Surfaces is
          Random          => True,
          Initial_Heights => Initial_Heights);
 
-      Copy_To_Coarse (Surface, Frequency);
+      declare
+         Total : Non_Negative_Real := 0.0;
+         Normalised_Frequency : Surface_Frequency := Frequency;
+      begin
+         for F of Normalised_Frequency loop
+            Total := Total + F;
+         end loop;
+         for I in Normalised_Frequency'Range loop
+            Normalised_Frequency (I) :=
+              Normalised_Frequency (I) / Total;
+         end loop;
+         Copy_To_Coarse (Surface, Normalised_Frequency);
+      end;
 
    end Create_Height_Map;
 
