@@ -8,6 +8,7 @@ with WL.Random;
 with Concorde.Options;
 
 with Concorde.Elementary_Functions;
+with Concorde.Geometry;
 with Concorde.Random;
 with Concorde.Roman_Images;
 
@@ -1332,8 +1333,13 @@ package body Concorde.Worlds.Create is
 
             end Create;
 
+            New_World : constant World_Type :=
+                          Concorde.Worlds.Db.Create (Create'Access);
          begin
-            Concorde.Worlds.Db.Create (Create'Access);
+            System.Add_Object
+              (New_World,
+               Concorde.Geometry.Degrees_To_Radians
+                 (Concorde.Random.Unit_Random * 360.0));
             World_Index := World_Index + 1;
          end;
 
