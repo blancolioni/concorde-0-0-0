@@ -950,6 +950,8 @@ package body Concorde.Worlds.Create is
       World.Great_Circle_Sectors := Bounding_Width;
       World.Half_Circle_Sectors := Bounding_Height;
 
+      World.Row_Length := new Array_Of_Row_Lengths (1 .. Bounding_Height);
+
       Surface.Create
         (Detail_Width  => Bounding_Width * Subsector_Size,
          Detail_Height => Bounding_Height * Subsector_Size,
@@ -986,6 +988,7 @@ package body Concorde.Worlds.Create is
                                          Natural (Real_Length *
                                              Real (Bounding_Width)));
          begin
+            World.Row_Length (I) := Length;
             Latitude_Count (I) := Length;
             Sector_Count := Sector_Count + Length;
          end;

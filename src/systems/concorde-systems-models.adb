@@ -22,6 +22,9 @@ with Concorde.Worlds;
 with Concorde.People.Pops.Lists;
 
 with Concorde.Ships.Models;
+with Concorde.Worlds.Models;
+
+with Concorde.Worlds.Db;
 
 package body Concorde.Systems.Models is
 
@@ -145,12 +148,23 @@ package body Concorde.Systems.Models is
       Row   : Positive)
       return access Lui.Models.Root_Object_Model'Class;
 
+   type Rendered_World is
+      record
+         World : Concorde.Worlds.World_Type;
+         X, Y  : Integer;
+         W, H  : Integer;
+      end record;
+
+   package List_Of_Rendered_Worlds is
+     new Ada.Containers.Doubly_Linked_Lists (Rendered_World);
+
    type Root_Star_System_Model is
      new Lui.Models.Root_Object_Model
      and Concorde.Watchers.Watcher_Interface with
       record
-         System       : Star_System_Type;
-         Needs_Render : Boolean := True;
+         System         : Star_System_Type;
+         Rendered_Words : List_Of_Rendered_Worlds.List;
+         Needs_Render   : Boolean := True;
       end record;
 
    overriding procedure On_Object_Changed
@@ -161,6 +175,11 @@ package body Concorde.Systems.Models is
      (Model    : in out Root_Star_System_Model)
       return Boolean
    is (Model.Needs_Render);
+
+   overriding function Select_XY
+     (Model : Root_Star_System_Model;
+      X, Y  : Natural)
+      return Lui.Models.Object_Model;
 
    overriding procedure Render
      (Model    : in out Root_Star_System_Model;
@@ -404,6 +423,15 @@ package body Concorde.Systems.Models is
                                (World.Category));
          Image_Size   : constant Natural :=
                           Natural (50.0 / Model.Eye_Z);
+         Render       : constant Rendered_World :=
+                          (World => Concorde.Worlds.Db.Reference (World),
+                           X     => Model.Width / 2
+                           + Integer (Scaled_X) - Image_Size / 2,
+                           Y     => Model.Height / 2
+                           + Integer (Scaled_Y) - Image_Size / 2,
+                           W     => Image_Size,
+                           H     => Image_Size);
+
       begin
          Renderer.Draw_Circle
            (X          => Model.Width / 2,
@@ -414,14 +442,17 @@ package body Concorde.Systems.Models is
             Line_Width => 1);
 
          Renderer.Draw_Image
-           (X        => Model.Width / 2 + Integer (Scaled_X) - Image_Size / 2,
-            Y        => Model.Height / 2 + Integer (Scaled_Y) - Image_Size / 2,
-            W        => Image_Size,
-            H        => Image_Size,
+           (X        => Render.X,
+            Y        => Render.Y,
+            W        => Render.W,
+            H        => Render.H,
             Resource => "planets/" & Image_Name & "-planet");
+         Model.Rendered_Words.Append (Render);
+
       end Render_World;
 
    begin
+      Model.Rendered_Words.Clear;
       for Object of Model.System.Objects loop
          Render_System_Object (Object.Object.all, Object.Start);
       end loop;
@@ -454,6 +485,26 @@ package body Concorde.Systems.Models is
       end;
 
    end Row_Model;
+
+   ---------------
+   -- Select_XY --
+   ---------------
+
+   overriding function Select_XY
+     (Model : Root_Star_System_Model;
+      X, Y  : Natural)
+      return Lui.Models.Object_Model
+   is
+   begin
+      for Render of Model.Rendered_Words loop
+         if X in Render.X .. Render.X + Render.W
+           and then Y in Render.Y .. Render.Y + Render.H
+         then
+            return Concorde.Worlds.Models.World_Model (Render.World);
+         end if;
+      end loop;
+      return null;
+   end Select_XY;
 
    ------------------
    -- System_Model --

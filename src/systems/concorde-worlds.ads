@@ -56,6 +56,8 @@ private
    type Array_Of_Sectors is
      array (Positive range <>) of Sector_Record;
 
+   type Array_Of_Row_Lengths is array (Positive range <>) of Positive;
+
    World_Sector_Size : constant := 1.0E6;
 
    type Root_World_Type is
@@ -69,6 +71,7 @@ private
          Category              : World_Category;
          Surface_Seed          : Integer;
          Sectors               : access Array_Of_Sectors;
+         Row_Length            : access Array_Of_Row_Lengths;
          Resonant_Period       : Boolean;
          Greenhouse_Effect     : Boolean;
          Atmosphere            : Atmosphere_Lists.List;
