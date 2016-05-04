@@ -44,7 +44,7 @@ package body Concorde.Terrain.Configure is
          Ch_Text : constant String := Config.Get ("char", "!");
       begin
          Terrain.Set_Name (Config.Config_Name);
-         Terrain.Is_Water := Config.Get ("is_water", False);
+         Terrain.Is_Water := Config.Get ("water", False);
          Terrain.Text_Character := Ch_Text (Ch_Text'First);
          Terrain.Colour :=
            Lui.Colours.Config.Configure_Colour
