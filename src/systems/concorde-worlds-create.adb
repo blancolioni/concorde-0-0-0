@@ -967,9 +967,11 @@ package body Concorde.Worlds.Create is
             Frequency (I) := Surface_Map (I).Frequency;
          end loop;
 
-         if Category = Terrestrial then
+         if Category = Terrestrial
+           or else Category = Martian
+         then
             Surface.Generate_Continental_Surface
-              (Frequency, 4);
+              (Frequency, 2);
          else
             Surface.Generate_Surface
               (Frequency, 3);
@@ -1008,11 +1010,13 @@ package body Concorde.Worlds.Create is
          begin
             for Longitude in 1 .. Length loop
                declare
-                  X        : constant Positive :=
-                               Longitude * Bounding_Width / Length;
+                  X1 : constant Positive :=
+                         (Longitude - 1) * Bounding_Width / Length + 1;
+                  X2 : constant Positive :=
+                         Longitude * Bounding_Width / Length;
                   Y        : constant Positive := I;
                   Height   : constant Positive :=
-                               Surface.Coarse_Height (X, Y);
+                               Surface.Coarse_Height (X1, X2, Y, Y);
                   Terrain  : constant Concorde.Terrain.Terrain_Type :=
                                Surface_Map (Height).Terrain;
                   Feature  : constant Concorde.Features.Feature_Type :=
