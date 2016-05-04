@@ -1,7 +1,10 @@
+with Ada.Characters.Handling;
 with Ada.Containers.Vectors;
 
 with Lui.Rendering;
 with Lui.Tables;
+
+with Concorde.Solar_System;
 
 with Concorde.Hash_Table;
 with Concorde.Watchers;
@@ -14,6 +17,7 @@ with Concorde.Commodities.Db;
 with Concorde.Systems.Db;
 
 with Concorde.Stars;
+with Concorde.Worlds;
 
 with Concorde.People.Pops.Lists;
 
@@ -326,18 +330,108 @@ package body Concorde.Systems.Models is
      (Model    : in out Root_Star_System_Model;
       Renderer : in out Lui.Rendering.Root_Renderer'Class)
    is
-      Star_Width  : constant Natural :=
-                        Natural (100.0 / Model.Eye_Z);
-      Star_Height : constant Natural :=
-                        Natural (100.0 / Model.Eye_Z);
+
+      procedure Render_System_Object
+        (Object : Star_System_Object_Interface'Class;
+         Position : Concorde.Geometry.Radians);
+
+      procedure Render_Star
+        (Star : Concorde.Stars.Root_Star_Type'Class);
+
+      procedure Render_World
+        (World    : Concorde.Worlds.Root_World_Type'Class;
+         Position : Concorde.Geometry.Radians);
+
+      -----------------
+      -- Render_Star --
+      -----------------
+
+      procedure Render_Star
+        (Star : Concorde.Stars.Root_Star_Type'Class)
+      is
+         pragma Unreferenced (Star);
+         Star_Width  : constant Natural :=
+                         Natural (100.0 / Model.Eye_Z);
+         Star_Height : constant Natural :=
+                         Natural (100.0 / Model.Eye_Z);
+      begin
+         Renderer.Draw_Image
+           (Model.Width / 2 - Star_Width / 2,
+            Model.Height / 2 - Star_Width / 2,
+            Star_Width, Star_Height,
+            "stars/sun");
+      end Render_Star;
+
+      --------------------------
+      -- Render_System_Object --
+      --------------------------
+
+      procedure Render_System_Object
+        (Object   : Star_System_Object_Interface'Class;
+         Position : Concorde.Geometry.Radians)
+      is
+      begin
+         if Object in Concorde.Stars.Root_Star_Type'Class then
+            Render_Star
+              (Concorde.Stars.Root_Star_Type'Class (Object));
+         else
+            Render_World
+              (Concorde.Worlds.Root_World_Type'Class (Object), Position);
+         end if;
+      end Render_System_Object;
+
+      ------------------
+      -- Render_World --
+      ------------------
+
+      procedure Render_World
+        (World    : Concorde.Worlds.Root_World_Type'Class;
+         Position : Concorde.Geometry.Radians)
+      is
+         use Concorde.Geometry;
+         X_Offset : constant Real := Cos (Position) * World.Semimajor_Axis;
+         Y_Offset : constant Real := Sin (Position) * World.Semimajor_Axis;
+         Scale_Factor : constant Non_Negative_Real :=
+                          1000.0 / Concorde.Solar_System.Earth_Orbit
+                            / Model.Eye_Z;
+         Scaled_X : constant Real :=
+                      X_Offset * Scale_Factor;
+         Scaled_Y : constant Real :=
+                          Y_Offset * Scale_Factor;
+         Image_Name   : constant String :=
+                          Ada.Characters.Handling.To_Lower
+                            (Concorde.Worlds.World_Category'Image
+                               (World.Category));
+         Image_Size   : constant Natural :=
+                          Natural (50.0 / Model.Eye_Z);
+      begin
+         Renderer.Draw_Circle
+           (X          => Model.Width / 2,
+            Y          => Model.Height / 2,
+            Radius     => Natural (World.Semimajor_Axis * Scale_Factor),
+            Colour     => (0.0, 0.6, 0.0, 1.0),
+            Filled     => False,
+            Line_Width => 1);
+
+         Renderer.Draw_Image
+           (X        => Model.Width / 2 + Integer (Scaled_X) - Image_Size / 2,
+            Y        => Model.Height / 2 + Integer (Scaled_Y) - Image_Size / 2,
+            W        => Image_Size,
+            H        => Image_Size,
+            Resource => "planets/" & Image_Name & "-planet");
+      end Render_World;
+
    begin
-      Renderer.Draw_Image
-        (Model.Width / 2 - Star_Width / 2,
-         Model.Height / 2 - Star_Width / 2,
-         Star_Width, Star_Height,
-         "stars/sun");
+      for Object of Model.System.Objects loop
+         Render_System_Object (Object.Object.all, Object.Start);
+      end loop;
+
       Model.Needs_Render := False;
    end Render;
+
+   ---------------
+   -- Row_Model --
+   ---------------
 
    overriding function Row_Model
      (Table : Ship_Table;
@@ -433,6 +527,8 @@ package body Concorde.Systems.Models is
 
             Result := new Root_Star_System_Model;
             Result.Initialise (System.Name, Tables => (M, P, I, S));
+            Result.System := System;
+
             Db.Update (System.Reference, Watch'Access);
          end;
 
