@@ -37,8 +37,6 @@ package body Concorde.Systems is
    procedure Add_Object
      (System   : in out Root_Star_System_Type'Class;
       Object   : not null access Star_System_Object_Interface'Class;
-      Primary  : access Star_System_Object_Interface'Class;
-      Orbit    : Non_Negative_Real;
       Position : Concorde.Geometry.Radians)
    is
    begin
@@ -47,7 +45,7 @@ package body Concorde.Systems is
            Main_Star_System_Object_Interface'Class (Object.all)'Access;
       end if;
       System.Objects.Append
-        ((Object, Primary, Orbit, Position));
+        ((Object, Position));
    end Add_Object;
 
    -------------
@@ -527,6 +525,21 @@ package body Concorde.Systems is
    begin
       return System.Deposit.Size;
    end Resource_Size;
+
+   -------------------------
+   -- Scan_System_Objects --
+   -------------------------
+
+   procedure Scan_System_Objects
+     (System  : Root_Star_System_Type'Class;
+      Process : not null access
+        procedure (System_Object : Star_System_Object_Interface'Class))
+   is
+   begin
+      for System_Object of System.Objects loop
+         Process (System_Object.Object.all);
+      end loop;
+   end Scan_System_Objects;
 
    ------------------
    -- Set_Capacity --

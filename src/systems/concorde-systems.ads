@@ -72,13 +72,16 @@ package Concorde.Systems is
    procedure Add_Object
      (System   : in out Root_Star_System_Type'Class;
       Object   : not null access Star_System_Object_Interface'Class;
-      Primary  : access Star_System_Object_Interface'Class;
-      Orbit    : Non_Negative_Real;
       Position : Concorde.Geometry.Radians);
 
    function Main_Object
      (System : Root_Star_System_Type'Class)
       return access Main_Star_System_Object_Interface'Class;
+
+   procedure Scan_System_Objects
+     (System : Root_Star_System_Type'Class;
+      Process : not null access
+        procedure (System_Object : Star_System_Object_Interface'Class));
 
    function Owner
      (System : Root_Star_System_Type'Class)
@@ -263,8 +266,6 @@ private
    type System_Object_Record is
       record
          Object  : access Star_System_Object_Interface'Class;
-         Primary : access Star_System_Object_Interface'Class;
-         Orbit   : Non_Negative_Real;
          Start   : Concorde.Geometry.Radians;
       end record;
 
