@@ -2,6 +2,18 @@ with Concorde.Worlds.Db;
 
 package body Concorde.Worlds is
 
+   --------------
+   -- Category --
+   --------------
+
+   function Category
+     (World : Root_World_Type'Class)
+      return World_Category
+   is
+   begin
+      return World.Category;
+   end Category;
+
    ---------------------
    -- Object_Database --
    ---------------------

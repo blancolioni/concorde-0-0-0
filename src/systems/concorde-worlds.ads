@@ -22,6 +22,10 @@ package Concorde.Worlds is
      and Concorde.Systems.Star_System_Object_Interface
    with private;
 
+   function Category
+     (World : Root_World_Type'Class)
+      return World_Category;
+
    type World_Type is access constant Root_World_Type'Class;
 
 private
