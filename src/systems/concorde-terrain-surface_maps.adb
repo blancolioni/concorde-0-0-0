@@ -65,11 +65,26 @@ package body Concorde.Terrain.Surface_Maps is
       return Map : Surface_Map :=
         Local_Surface_Maps (Category).all
       do
-         for I in Map'Range loop
-            if Map (I).Terrain.Is_Water then
-               Map (I).Frequency := Water_Coverage;
-            end if;
-         end loop;
+         if Water_Coverage > 0.0 then
+            declare
+               Total : Non_Negative_Real := 0.0;
+            begin
+               for I in Map'Range loop
+                  if Map (I).Terrain.Is_Water then
+                     Map (I).Frequency := Water_Coverage;
+                  else
+                     Total := Total + Map (I).Frequency;
+                  end if;
+               end loop;
+
+               for I in Map'Range loop
+                  if not Map (I).Terrain.Is_Water then
+                     Map (I).Frequency :=
+                       Map (I).Frequency / (Total + Water_Coverage);
+                  end if;
+               end loop;
+            end;
+         end if;
       end return;
    end Get_Surface_Map;
 
