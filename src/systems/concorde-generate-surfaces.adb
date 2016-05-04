@@ -35,6 +35,27 @@ package body Concorde.Generate.Surfaces is
       return Surface.Coarse (X, Y);
    end Coarse_Height;
 
+   -------------------
+   -- Coarse_Height --
+   -------------------
+
+   function Coarse_Height
+     (Surface : Surface_Type'Class;
+      X1, X2  : Positive;
+      Y1, Y2  : Positive)
+      return Positive
+   is
+      Count : constant Positive := (X2 - X1 + 1) * (Y2 - Y1 + 1);
+      Total : Natural := 0;
+   begin
+      for X in X1 .. X2 loop
+         for Y in Y1 .. Y2 loop
+            Total := Total + Surface.Coarse (X, Y);
+         end loop;
+      end loop;
+      return (Total + Count / 2) / Count;
+   end Coarse_Height;
+
    --------------------
    -- Copy_To_Coarse --
    --------------------

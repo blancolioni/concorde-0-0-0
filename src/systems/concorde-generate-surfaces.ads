@@ -30,6 +30,12 @@ package Concorde.Generate.Surfaces is
       X, Y    : Positive)
       return Positive;
 
+   function Coarse_Height
+     (Surface : Surface_Type'Class;
+      X1, X2  : Positive;
+      Y1, Y2  : Positive)
+      return Positive;
+
    function Map_Height
      (Surface : Surface_Type'Class;
       Height  : Natural)
