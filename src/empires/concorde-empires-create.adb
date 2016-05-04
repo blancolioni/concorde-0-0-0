@@ -1,6 +1,7 @@
 with Concorde.Galaxy;
 with Concorde.Ships.Create;
 with Concorde.Stars;
+with Concorde.Worlds;
 with Concorde.Systems;
 
 with Concorde.Scenarios;
@@ -224,6 +225,42 @@ package body Concorde.Empires.Create is
                   return False;
                end if;
             end loop;
+
+            declare
+               Good_Starting_World : Boolean := False;
+
+               procedure Check_World
+                 (System_Object : Systems.Star_System_Object_Interface'Class);
+
+               -----------------
+               -- Check_World --
+               -----------------
+
+               procedure Check_World
+                 (System_Object : Systems.Star_System_Object_Interface'Class)
+               is
+                  use Concorde.Worlds;
+               begin
+                  if System_Object in Root_World_Type'Class then
+                     declare
+                        W : Root_World_Type'Class renames
+                              Root_World_Type'Class (System_Object);
+                     begin
+                        if W.Category = Terrestrial then
+                           Good_Starting_World := True;
+                        end if;
+                     end;
+                  end if;
+               end Check_World;
+
+            begin
+               System.Scan_System_Objects (Check_World'Access);
+
+               if not Good_Starting_World then
+                  return False;
+               end if;
+
+            end;
 
             case Concorde.Stars.Star_Type (System.Main_Object).Stellar_Class is
                when Concorde.Stars.G =>
