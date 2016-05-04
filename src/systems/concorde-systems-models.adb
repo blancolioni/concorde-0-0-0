@@ -215,14 +215,26 @@ package body Concorde.Systems.Models is
          when 1 =>
             return Commodity.Name;
          when 2 =>
-            return Concorde.Money.Image
-              (Table.System.Market.Current_Price (Commodity));
+            if Table.System.Has_Market then
+               return Concorde.Money.Image
+                 (Table.System.Market.Current_Price (Commodity));
+            else
+               return "-";
+            end if;
          when 3 =>
-            return Concorde.Quantities.Image
-              (Table.System.Market.Last_Supply (Commodity));
+            if Table.System.Has_Market then
+               return Concorde.Quantities.Image
+                 (Table.System.Market.Last_Supply (Commodity));
+            else
+               return "-";
+            end if;
          when 4 =>
-            return Concorde.Quantities.Image
-              (Table.System.Market.Last_Demand (Commodity));
+            if Table.System.Has_Market then
+               return Concorde.Quantities.Image
+                 (Table.System.Market.Last_Demand (Commodity));
+            else
+               return "-";
+            end if;
       end case;
    end Cell_Text;
 
