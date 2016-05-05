@@ -976,7 +976,11 @@ package body Concorde.Worlds.Create is
                            Natural'Max (1, Integer_Equator);
       Bounding_Height  : constant Positive :=
                            Natural'Max (1, Integer_Height);
+      Sector_Map       : array (1 .. Bounding_Height, 1 .. Bounding_Width)
+        of Natural := (others => (others => 0));
       Latitude_Count   : array (1 .. Bounding_Height) of Positive;
+      --  Sector_Length    : array (1 .. Bounding_Height) of Positive;
+      First_Sector     : array (1 .. Bounding_Height) of Positive;
       Sector_Count     : Natural := 0;
       Sector_Index     : Positive;
 
@@ -1058,25 +1062,36 @@ package body Concorde.Worlds.Create is
       World.Sectors := new Array_Of_Sectors (1 .. Sector_Count);
       Sector_Index := 1;
 
+      for Sector_Index in World.Sectors'Range loop
+         World.Graph.Append (Sector_Index);
+      end loop;
+
       Ice_Total :=
         Natural (World.Ice_Cover * Real (Sector_Count)) / 2;
 
-      for I in 1 .. Bounding_Height loop
+      for Latitude in 1 .. Bounding_Height loop
          declare
-            Length     : constant Positive := Latitude_Count (I);
-            Ice_Sector : constant Boolean :=
-                           World.Category = Ice
-                               or else Sector_Index < Ice_Total
-                                   or else Sector_Count - Sector_Index
-                                     < Ice_Total;
+            Previous_Length : constant Natural :=
+                                (if Latitude > 1
+                                 then Latitude_Count (Latitude - 1)
+                                 else 0);
+            Length      : constant Positive := Latitude_Count (Latitude);
+            First_Index : constant Positive := Sector_Index;
+            Ice_Sector  : constant Boolean :=
+                            World.Category = Ice
+                                or else Sector_Index < Ice_Total
+                                    or else Sector_Count - Sector_Index
+                                      < Ice_Total;
          begin
+            First_Sector (Latitude) := First_Index;
+            --  Sector_Length (Latitude) := Length;
             for Longitude in 1 .. Length loop
                declare
                   X1 : constant Positive :=
                          (Longitude - 1) * Bounding_Width / Length + 1;
                   X2 : constant Positive :=
                          Longitude * Bounding_Width / Length;
-                  Y        : constant Positive := I;
+                  Y        : constant Positive := Latitude;
                   Height   : constant Positive :=
                                Surface.Coarse_Height (X1, X2, Y, Y);
                   Terrain  : constant Concorde.Terrain.Terrain_Type :=
@@ -1087,15 +1102,101 @@ package body Concorde.Worlds.Create is
                                 else Terrain_Feature.Element
                                   (Terrain.Reference));
                begin
+                  Sector_Map (Latitude, Longitude) := X1;
                   World.Sectors (Sector_Index) :=
                     (Terrain => Terrain,
                      Feature => Feature,
                      Deposit => (null, 0.0, 0.0));
+                  if Longitude < Length then
+                     World.Graph.Connect (Sector_Index, Sector_Index + 1);
+                     World.Graph.Connect (Sector_Index + 1, Sector_Index);
+                  elsif Sector_Index /= First_Index then
+                     World.Graph.Connect (Sector_Index, First_Index);
+                     World.Graph.Connect (First_Index, Sector_Index);
+                  end if;
+
+                  if Latitude > 1 then
+                     for Prev_Long in 1 .. Previous_Length loop
+                        declare
+                           Start : constant Positive :=
+                                     Sector_Map (Latitude - 1, Prev_Long);
+                           Finish : constant Positive :=
+                                      (if Prev_Long < Previous_Length
+                                       then Sector_Map
+                                         (Latitude - 1,
+                                          Prev_Long + 1)
+                                       else Bounding_Width);
+                           Index  : constant Positive :=
+                                      First_Sector (Latitude - 1)
+                                      + Prev_Long - 1;
+                        begin
+                           exit when Start > X2 + 1;
+
+                           if (Start <= X1 and then Finish >= X1)
+                             or else Start >= X1
+                           then
+                              World.Graph.Connect (Sector_Index, Index, 1.0);
+                              World.Graph.Connect (Index, Sector_Index, 1.0);
+                           end if;
+                        end;
+                     end loop;
+                  end if;
+
                   Sector_Index := Sector_Index + 1;
                end;
             end loop;
          end;
       end loop;
+
+--        for Latitude in 1 .. Bounding_Height loop
+--           declare
+--              Longitude    : Positive := 1;
+--              Start_Index  : Positive := 1;
+--              End_Index    : Positive := 1;
+--              First_Sector : constant Positive := Sector_Map (Latitude, 1);
+--           begin
+--              while Longitude <= Latitude_Count (Latitude) loop
+--                 Sector_Index := Sector_Map (Latitude, Start_Index);
+--                 End_Index := Start_Index;
+--                 while End_Index < Bounding_Width
+--               and then Sector_Map (Latitude, End_Index + 1) = Sector_Index
+--                 loop
+--                    End_Index := End_Index + 1;
+--                 end loop;
+--
+--                 if Longitude < Latitude_Count (Latitude) then
+--                World.Graph.Connect (Sector_Index + 1, Sector_Index, 1.0);
+--                World.Graph.Connect (Sector_Index, Sector_Index + 1, 1.0);
+--                 else
+--                    World.Graph.Connect (First_Sector, Sector_Index, 1.0);
+--                    World.Graph.Connect (Sector_Index, First_Sector, 1.0);
+--                 end if;
+--
+--                 if Latitude > 1 then
+--               for Previous_Index in Start_Index - 1 .. End_Index + 1 loop
+--                       if Previous_Index in 1 .. Bounding_Width then
+--                          declare
+--                             Prev_Sector : constant Positive :=
+--                                             Sector_Map
+--                                          (Latitude - 1, Previous_Index);
+--                          begin
+--                             if not World.Graph.Connected
+--                               (Prev_Sector, Sector_Index)
+--                             then
+--                                World.Graph.Connect
+--                                  (Prev_Sector, Sector_Index, 1.0);
+--                                World.Graph.Connect
+--                                  (Sector_Index, Prev_Sector, 1.0);
+--                             end if;
+--                          end;
+--                       end if;
+--                    end loop;
+--                 end if;
+--                 Longitude := Longitude + 1;
+--                 Start_Index := End_Index + 1;
+--              end loop;
+--           end;
+--        end loop;
 
    end Create_Sector_Layout;
 

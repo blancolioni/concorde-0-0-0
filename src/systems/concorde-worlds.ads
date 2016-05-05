@@ -2,6 +2,8 @@ private with Ada.Containers.Doubly_Linked_Lists;
 
 private with Memor;
 
+private with Concorde.Graphs;
+
 with Concorde.Objects;
 
 with Concorde.Atmosphere;
@@ -64,6 +66,17 @@ private
    type Array_Of_Sectors is
      array (Positive range <>) of Sector_Record;
 
+   function Get_Sector_Index (Index : Positive) return Positive
+   is (Index);
+
+   package Sector_Graphs is
+     new Concorde.Graphs
+       (Index_Type   => Positive,
+        Vertex_Type  => Positive,
+        Cost_Type    => Non_Negative_Real,
+        Default_Cost => 1.0,
+        Index_Of     => Get_Sector_Index);
+
    type Array_Of_Row_Lengths is array (Positive range <>) of Positive;
 
    type Root_World_Type is
@@ -77,6 +90,7 @@ private
          Category              : World_Category;
          Surface_Seed          : Integer;
          Sectors               : access Array_Of_Sectors;
+         Graph                 : Sector_Graphs.Graph;
          Row_Length            : access Array_Of_Row_Lengths;
          Resonant_Period       : Boolean;
          Greenhouse_Effect     : Boolean;
