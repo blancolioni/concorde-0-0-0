@@ -55,6 +55,9 @@ package body Concorde.Worlds.Create is
 
    procedure Configure_Category_Terrain;
 
+   procedure Calculate_Climate
+     (World : in out Root_World_Type'Class);
+
    type Orbit_Zone is range 1 .. 3;
 
    function Get_Orbit_Zone
@@ -266,6 +269,82 @@ package body Concorde.Worlds.Create is
 
       return Cloud_Part + Ice_Part + Water_Part + Rock_Part;
    end Calculate_Albedo;
+
+   -----------------------
+   -- Calculate_Climate --
+   -----------------------
+
+   procedure Calculate_Climate
+     (World : in out Root_World_Type'Class)
+   is
+      use Concorde.Terrain;
+
+      function Tropic_Curve (Latitude : Positive) return Unit_Real;
+
+      ------------------
+      -- Tropic_Curve --
+      ------------------
+
+      function Tropic_Curve (Latitude : Positive) return Unit_Real is
+      begin
+         if Latitude <= World.Half_Circle_Sectors / 4 then
+            return 0.0;
+         elsif Latitude <= World.Half_Circle_Sectors / 2 then
+            return 1.0
+              - Real (abs (Latitude - World.Half_Circle_Sectors / 3))
+              / Real (World.Half_Circle_Sectors / 3);
+         elsif Latitude <= World.Half_Circle_Sectors * 3 / 4 then
+            return 1.0
+              - Real (abs (Latitude - 2 * World.Half_Circle_Sectors / 3))
+              / Real (2 * World.Half_Circle_Sectors / 3);
+         else
+            return 0.0;
+         end if;
+      end Tropic_Curve;
+
+      Last_Water : Natural := 0;
+      Sector_Index : Positive := 1;
+   begin
+      for Latitude in 1 .. World.Half_Circle_Sectors loop
+
+         Last_Water := 0;
+
+         for Longitude in 1 .. World.Row_Length (Latitude) loop
+            declare
+               Terrain : constant Terrain_Type :=
+                           World.Sectors (Sector_Index).Terrain;
+               Tropic_Factor : constant Unit_Real := Tropic_Curve (Latitude);
+            begin
+               if Terrain.Is_Water then
+                  Last_Water := Longitude;
+               else
+                  declare
+                     Water_Sectors    : constant Positive :=
+                                          Longitude - Last_Water;
+                     Ocean_Distance   : constant Unit_Real :=
+                                          World.Hydrosphere ** Water_Sectors;
+                     Desert_Chance    : Unit_Real :=
+                                          (1.0 - Ocean_Distance)
+                                          * Tropic_Factor;
+                  begin
+                     if Longitude < World.Row_Length (Latitude)
+                       and then World.Sectors
+                         (Sector_Index + 1).Terrain.Is_Water
+                     then
+                        Desert_Chance := 0.0;
+                     end if;
+
+                     if Concorde.Random.Unit_Random < Desert_Chance then
+                        World.Sectors (Sector_Index).Feature :=
+                          Concorde.Features.Desert;
+                     end if;
+                  end;
+               end if;
+            end;
+            Sector_Index := Sector_Index + 1;
+         end loop;
+      end loop;
+   end Calculate_Climate;
 
    ------------------------------
    -- Calculate_Cloud_Fraction --
@@ -1147,6 +1226,8 @@ package body Concorde.Worlds.Create is
             end loop;
          end;
       end loop;
+
+      Calculate_Climate (World);
 
 --        for Latitude in 1 .. Bounding_Height loop
 --           declare
