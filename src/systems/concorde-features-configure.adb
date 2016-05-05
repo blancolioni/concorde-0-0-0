@@ -29,6 +29,7 @@ package body Concorde.Features.Configure is
       begin
          Feature.Set_Name (Config.Config_Name);
          Feature.Is_Ice := Config.Get ("ice", False);
+         Feature.Is_Desert := Config.Config_Name = "desert";
          Feature.Colour :=
            Lui.Colours.Config.Configure_Colour
              (Config, "colour");

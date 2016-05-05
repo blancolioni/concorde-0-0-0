@@ -2,7 +2,8 @@ with Concorde.Features.Db;
 
 package body Concorde.Features is
 
-   Local_Ice : Feature_Type := null;
+   Local_Ice    : Feature_Type := null;
+   Local_Desert : Feature_Type := null;
 
    procedure Scan_Standard_Features;
 
@@ -17,6 +18,18 @@ package body Concorde.Features is
    begin
       return Feature.Colour;
    end Colour;
+
+   ------------
+   -- Desert --
+   ------------
+
+   function Desert return Feature_Type is
+   begin
+      if Local_Desert = null then
+         Scan_Standard_Features;
+      end if;
+      return Local_Desert;
+   end Desert;
 
    ---------
    -- Get --
@@ -68,6 +81,8 @@ package body Concorde.Features is
       begin
          if Feature.Is_Ice then
             Local_Ice := Feature;
+         elsif Feature.Is_Desert then
+            Local_Desert := Feature;
          end if;
       end Process;
 
