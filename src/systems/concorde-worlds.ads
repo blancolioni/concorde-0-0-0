@@ -17,6 +17,9 @@ package Concorde.Worlds is
    type World_Category is
      (Rock, Martian, Venusian, Terrestrial, Water, Ice, Sub_Jovian, Jovian);
 
+   subtype Rocky_World is World_Category range Rock .. Ice;
+   subtype Jovian_World is World_Category range Sub_Jovian .. Jovian;
+
    type Root_World_Type is
      new Concorde.Objects.Root_Named_Object_Type
      and Concorde.Systems.Star_System_Object_Interface
@@ -25,6 +28,11 @@ package Concorde.Worlds is
    function Category
      (World : Root_World_Type'Class)
       return World_Category;
+
+   function Gas_Giant
+     (World : Root_World_Type'Class)
+      return Boolean
+   is (World.Category in Jovian_World);
 
    type World_Type is access constant Root_World_Type'Class;
 
@@ -58,7 +66,7 @@ private
 
    type Array_Of_Row_Lengths is array (Positive range <>) of Positive;
 
-   World_Sector_Size : constant := 1.0E6;
+   World_Sector_Size : constant := 1.4E6;
 
    type Root_World_Type is
      new Concorde.Objects.Root_Named_Object_Type
