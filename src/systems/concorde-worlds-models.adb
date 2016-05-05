@@ -10,8 +10,8 @@ with Concorde.Solar_System;
 
 package body Concorde.Worlds.Models is
 
-   Rendered_Sector_Width  : constant := 32;
-   Rendered_Sector_Height : constant := 32;
+   Base_Sector_Width  : constant := 32.0;
+   Base_Sector_Height : constant := 32.0;
 
    type Root_World_Model is
      new Lui.Models.Root_Object_Model
@@ -140,19 +140,33 @@ package body Concorde.Worlds.Models is
       Renderer : in out Lui.Rendering.Root_Renderer'Class)
    is
       Sector_Index  : Positive := 1;
-      Render_Height : constant Positive :=
-                        Model.World.Half_Circle_Sectors
-                          * Rendered_Sector_Height;
+      Sector_Size_Factor : constant Non_Negative_Real :=
+                             1.0 / Model.Eye_Z;
+      Sector_Width       : constant Positive :=
+                             Natural'Max
+                               (Natural
+                                  (Sector_Size_Factor
+                                   * Base_Sector_Width),
+                                1);
+      Sector_Height       : constant Positive :=
+                              Natural'Max
+                                (Natural
+                                   (Sector_Size_Factor
+                                    * Base_Sector_Height),
+                                 1);
+      Render_Height       : constant Positive :=
+                              Model.World.Half_Circle_Sectors
+                                * Sector_Height;
    begin
       for Latitude_Index in Model.World.Row_Length'Range loop
          declare
             Row_Top : constant Integer :=
                         Model.Height / 2 - Render_Height / 2
-                          + (Latitude_Index - 1) * Rendered_Sector_Height;
+                          + (Latitude_Index - 1) * Sector_Height;
             Length    : constant Positive :=
                           Model.World.Row_Length (Latitude_Index);
             Row_Width : constant Positive :=
-                          Length * Rendered_Sector_Width;
+                          Length * Sector_Width;
          begin
             for Longitude_Index in 1 .. Length loop
                declare
@@ -161,7 +175,7 @@ package body Concorde.Worlds.Models is
                                   Model.Width / 2
                                     - Row_Width / 2
                                   + (Longitude_Index - 1)
-                                  * Rendered_Sector_Width;
+                                  * Sector_Width;
                   Sector      : Sector_Record renames
                                   Model.World.Sectors (Sector_Index);
                   Colour      : constant Lui.Colours.Colour_Type :=
@@ -172,17 +186,19 @@ package body Concorde.Worlds.Models is
                   Renderer.Draw_Rectangle
                     (X      => Sector_Left,
                      Y      => Row_Top,
-                     W      => Rendered_Sector_Width,
-                     H      => Rendered_Sector_Height,
+                     W      => Sector_Width,
+                     H      => Sector_Height,
                      Colour => Colour,
                      Filled => True);
-                  Renderer.Draw_Rectangle
-                    (X      => Sector_Left,
-                     Y      => Row_Top,
-                     W      => Rendered_Sector_Width,
-                     H      => Rendered_Sector_Height,
-                     Colour => Lui.Colours.Black,
-                     Filled => False);
+                  if Sector_Width > 8 and then Sector_Height > 8 then
+                     Renderer.Draw_Rectangle
+                       (X      => Sector_Left,
+                        Y      => Row_Top,
+                        W      => Sector_Width,
+                        H      => Sector_Height,
+                        Colour => Lui.Colours.Black,
+                        Filled => False);
+                  end if;
                   Sector_Index := Sector_Index + 1;
                end;
             end loop;
