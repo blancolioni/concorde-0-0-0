@@ -67,7 +67,7 @@ package Concorde.Graphs is
       Process   : not null access procedure (To : Index_Type;
                                              Cost : Cost_Type));
 
-   procedure Iterate_Edges
+   procedure Iterate_Edges_From_Vertex
      (Container : Graph;
       From      : Vertex_Type;
       Process   : not null access
