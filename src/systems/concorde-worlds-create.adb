@@ -277,7 +277,9 @@ package body Concorde.Worlds.Create is
    procedure Calculate_Climate
      (World : in out Root_World_Type'Class)
    is
+      use Concorde.Elementary_Functions;
       use Concorde.Terrain;
+      use type Concorde.Features.Feature_Type;
 
       function Tropic_Curve (Latitude : Positive) return Unit_Real;
 
@@ -289,10 +291,12 @@ package body Concorde.Worlds.Create is
       begin
          if Latitude <= World.Half_Circle_Sectors / 4 then
             return 0.0;
-         elsif Latitude <= World.Half_Circle_Sectors / 2 then
+         elsif Latitude <= World.Half_Circle_Sectors / 2  - 1 then
             return 1.0
               - Real (abs (Latitude - World.Half_Circle_Sectors / 3))
               / Real (World.Half_Circle_Sectors / 3);
+         elsif Latitude <= World.Half_Circle_Sectors / 2 + 2 then
+            return 0.0;
          elsif Latitude <= World.Half_Circle_Sectors * 3 / 4 then
             return 1.0
               - Real (abs (Latitude - 2 * World.Half_Circle_Sectors / 3))
@@ -302,14 +306,16 @@ package body Concorde.Worlds.Create is
          end if;
       end Tropic_Curve;
 
-      Last_Water : Natural := 0;
-      Sector_Index : Positive := 1;
+      Last_Water    : Natural;
+      Last_Mountain : Natural;
+      Sector_Index : Natural := World.Sector_Count;
    begin
-      for Latitude in 1 .. World.Half_Circle_Sectors loop
+      for Latitude in reverse 1 .. World.Half_Circle_Sectors loop
 
-         Last_Water := 0;
+         Last_Water := World.Row_Length (Latitude) + 1;
+         Last_Mountain := World.Row_Length (Latitude) + 2;
 
-         for Longitude in 1 .. World.Row_Length (Latitude) loop
+         for Longitude in reverse 1 .. World.Row_Length (Latitude) loop
             declare
                Terrain : constant Terrain_Type :=
                            World.Sectors (Sector_Index).Terrain;
@@ -317,20 +323,33 @@ package body Concorde.Worlds.Create is
             begin
                if Terrain.Is_Water then
                   Last_Water := Longitude;
+               elsif Terrain = Mountain then
+                  Last_Mountain := Longitude;
                else
                   declare
                      Water_Sectors    : constant Positive :=
-                                          Longitude - Last_Water;
+                                          Last_Water - Longitude;
+                     Mountain_Sectors : constant Positive :=
+                                          Last_Mountain - Longitude;
                      Ocean_Distance   : constant Unit_Real :=
-                                          World.Hydrosphere ** Water_Sectors;
+                                          Sqrt (World.Hydrosphere)
+                                          ** Water_Sectors;
                      Desert_Chance    : Unit_Real :=
                                           (1.0 - Ocean_Distance)
                                           * Tropic_Factor;
                   begin
                      if Longitude < World.Row_Length (Latitude)
                        and then World.Sectors
-                         (Sector_Index + 1).Terrain.Is_Water
+                         (Sector_Index + 1).Feature = Concorde.Features.Desert
                      then
+                        Desert_Chance := Sqrt (Desert_Chance);
+                     end if;
+
+                     if Mountain_Sectors = 1 then
+                        Desert_Chance := Sqrt (Desert_Chance);
+                     end if;
+
+                     if Last_Water = Longitude + 1 then
                         Desert_Chance := 0.0;
                      end if;
 
@@ -341,7 +360,7 @@ package body Concorde.Worlds.Create is
                   end;
                end if;
             end;
-            Sector_Index := Sector_Index + 1;
+            Sector_Index := Sector_Index - 1;
          end loop;
       end loop;
    end Calculate_Climate;
@@ -1138,6 +1157,7 @@ package body Concorde.Worlds.Create is
          end;
       end loop;
 
+      World.Sector_Count := Sector_Count;
       World.Sectors := new Array_Of_Sectors (1 .. Sector_Count);
       Sector_Index := 1;
 
