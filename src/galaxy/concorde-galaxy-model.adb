@@ -896,7 +896,7 @@ package body Concorde.Galaxy.Model is
                      end Draw_Connection;
 
                   begin
-                     Galaxy_Graph.Iterate_Edges
+                     Galaxy_Graph.Iterate_Edges_From_Vertex
                        (Galaxy_Graph.Vertex (I), Draw_Connection'Access);
                   end;
                end if;
