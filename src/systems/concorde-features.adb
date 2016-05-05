@@ -19,6 +19,15 @@ package body Concorde.Features is
    end Colour;
 
    ---------
+   -- Get --
+   ---------
+
+   function Get (Id : String) return Feature_Type is
+   begin
+      return Db.Get (Id);
+   end Get;
+
+   ---------
    -- Ice --
    ---------
 

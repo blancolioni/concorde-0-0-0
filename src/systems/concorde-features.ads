@@ -16,6 +16,7 @@ package Concorde.Features is
 
    type Feature_Type is access constant Root_Feature_Type'Class;
 
+   function Get (Id : String) return Feature_Type;
    function Ice return Feature_Type;
 
 private
