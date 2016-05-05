@@ -4,6 +4,19 @@ package body Concorde.Random is
 
    Gen : Ada.Numerics.Float_Random.Generator;
 
+   -----------
+   -- About --
+   -----------
+
+   function About
+     (Value : Real;
+      Variation : Real)
+      return Real
+   is
+   begin
+      return Value - Variation + Unit_Random * Variation * 2.0;
+   end About;
+
    -----------------
    -- Unit_Random --
    -----------------
