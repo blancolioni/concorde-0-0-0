@@ -2,6 +2,8 @@ with Concorde.Terrain.Db;
 
 package body Concorde.Terrain is
 
+   Local_Mountain : Terrain_Type;
+
    ------------
    -- Colour --
    ------------
@@ -31,6 +33,18 @@ package body Concorde.Terrain is
    begin
       return Terrain.Is_Water;
    end Is_Water;
+
+   --------------
+   -- Mountain --
+   --------------
+
+   function Mountain return Terrain_Type is
+   begin
+      if Local_Mountain = null then
+         Local_Mountain := Db.Get ("mountains");
+      end if;
+      return Local_Mountain;
+   end Mountain;
 
    ---------------------
    -- Object_Database --
