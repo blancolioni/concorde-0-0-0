@@ -13,12 +13,24 @@ package body Concorde.Worlds.Models is
    Base_Sector_Width  : constant := 32.0;
    Base_Sector_Height : constant := 32.0;
 
+   type Rendered_Sector is
+      record
+         X, Y            : Integer;
+         Width, Height   : Natural;
+         Sector_Index    : Positive;
+      end record;
+
+   package Rendered_Sector_Vectors is
+     new Ada.Containers.Vectors (Positive, Rendered_Sector);
+
    type Root_World_Model is
      new Lui.Models.Root_Object_Model
      and Concorde.Watchers.Watcher_Interface with
       record
-         World          : World_Type;
-         Needs_Render   : Boolean := True;
+         World           : World_Type;
+         Sectors         : Rendered_Sector_Vectors.Vector;
+         Needs_Render    : Boolean := True;
+         Selected_Sector : Natural := 0;
       end record;
 
    overriding procedure On_Object_Changed
@@ -38,6 +50,10 @@ package body Concorde.Worlds.Models is
      (Model : Root_World_Model)
       return Lui.Models.Drag_Behaviour
    is (Lui.Models.Translation);
+
+   overriding procedure Select_XY
+     (Model : in out Root_World_Model;
+      X, Y  : Natural);
 
    type World_Model_Access is
      access all Root_World_Model'Class;
@@ -158,6 +174,7 @@ package body Concorde.Worlds.Models is
                               Model.World.Half_Circle_Sectors
                                 * Sector_Height;
    begin
+      Model.Sectors.Clear;
       for Latitude_Index in Model.World.Row_Length'Range loop
          declare
             Row_Top : constant Integer :=
@@ -182,6 +199,8 @@ package body Concorde.Worlds.Models is
                                   (if Sector.Feature /= null
                                    then Sector.Feature.Colour
                                    else Sector.Terrain.Colour);
+                  Border_Colour : constant Lui.Colours.Colour_Type :=
+                                    Lui.Colours.Black;
                begin
                   Renderer.Draw_Rectangle
                     (X      => Sector_Left,
@@ -196,15 +215,88 @@ package body Concorde.Worlds.Models is
                         Y      => Row_Top,
                         W      => Sector_Width,
                         H      => Sector_Height,
-                        Colour => Lui.Colours.Black,
+                        Colour => Border_Colour,
                         Filled => False);
                   end if;
+                  Model.Sectors.Append
+                    ((Sector_Left, Row_Top, Sector_Width, Sector_Height,
+                     Sector_Index));
                   Sector_Index := Sector_Index + 1;
                end;
             end loop;
          end;
       end loop;
+
+      if Model.Selected_Sector /= 0 then
+         declare
+            Highlight : Rendered_Sector renames
+                          Model.Sectors (Model.Selected_Sector);
+         begin
+            Renderer.Draw_Rectangle
+              (X      => Highlight.X,
+               Y      => Highlight.Y,
+               W      => Highlight.Width,
+               H      => Highlight.Height,
+               Colour => (0.6, 0.6, 0.0, 1.0),
+               Filled => False);
+
+            declare
+               procedure Draw_Connection
+                 (To : Positive;
+                  Cost : Non_Negative_Real);
+
+               ---------------------
+               -- Draw_Connection --
+               ---------------------
+
+               procedure Draw_Connection
+                 (To   : Positive;
+                  Cost : Non_Negative_Real)
+               is
+                  pragma Unreferenced (Cost);
+                  Target : Rendered_Sector renames
+                             Model.Sectors (To);
+                  X1     : constant Integer :=
+                             Highlight.X + Highlight.Width / 2;
+                  Y1     : constant Integer :=
+                             Highlight.Y + Highlight.Height / 2;
+                  X2     : constant Integer :=
+                             Target.X + Target.Width / 2;
+                  Y2     : constant Integer :=
+                             Target.Y + Target.Height / 2;
+               begin
+                  Renderer.Draw_Line
+                    (X1, Y1, X2, Y2, Lui.Colours.White, 1);
+               end Draw_Connection;
+
+            begin
+               Model.World.Graph.Iterate_Edges
+                 (Model.Selected_Sector, Draw_Connection'Access);
+            end;
+         end;
+      end if;
+
    end Render;
+
+   ---------------
+   -- Select_XY --
+   ---------------
+
+   overriding procedure Select_XY
+     (Model : in out Root_World_Model;
+      X, Y  : Natural)
+   is
+   begin
+      for Sector of Model.Sectors loop
+         if X in Sector.X .. Sector.X + Sector.Width
+           and then Y in Sector.Y .. Sector.Y + Sector.Height
+         then
+            Model.Selected_Sector := Sector.Sector_Index;
+            Model.Needs_Render := True;
+            return;
+         end if;
+      end loop;
+   end Select_XY;
 
    -----------------
    -- World_Model --
@@ -221,6 +313,7 @@ package body Concorde.Worlds.Models is
          begin
             Result.Initialise (World.Name);
             Result.World := World;
+            Result.Selected_Sector := World.Sectors'Length / 2;
             Add_Properties (Result);
             World_Models.Insert (World.Identifier, Result);
          end;
