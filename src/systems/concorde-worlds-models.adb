@@ -1,13 +1,17 @@
+with Ada.Characters.Handling;
+
 with Lui.Colours;
 with Lui.Rendering;
 
 with Concorde.Hash_Table;
 with Concorde.Watchers;
 
+with Concorde.Solar_System;
+
 package body Concorde.Worlds.Models is
 
-   Rendered_Sector_Width  : constant := 16;
-   Rendered_Sector_Height : constant := 16;
+   Rendered_Sector_Width  : constant := 32;
+   Rendered_Sector_Height : constant := 32;
 
    type Root_World_Model is
      new Lui.Models.Root_Object_Model
@@ -38,10 +42,81 @@ package body Concorde.Worlds.Models is
    type World_Model_Access is
      access all Root_World_Model'Class;
 
+   procedure Add_Properties
+     (Model : World_Model_Access);
+
+   function Category_Name
+     (Category : World_Category)
+      return String
+   is (Ada.Characters.Handling.To_Lower
+       (World_Category'Image (Category)));
+
    package Model_Table is
      new Concorde.Hash_Table (World_Model_Access);
 
    World_Models : Model_Table.Map;
+
+   --------------------
+   -- Add_Properties --
+   --------------------
+
+   procedure Add_Properties
+     (Model : World_Model_Access)
+   is
+      use Concorde.Solar_System;
+      World : constant World_Type := Model.World;
+   begin
+      Model.Add_Property ("Name", World.Name);
+      Model.Add_Property ("Category",
+                          Category_Name (World.Category));
+--        Model.Add_Property ("Habitability",
+--                            Conflict.Planets.Habitability (P) * 100.0,
+--                            "%");
+--        Model.Add_Property ("Population",
+--                            Conflict.Planets.Get_Population (P));
+      Model.Add_Property ("Orbit", World.Semimajor_Axis / Earth_Orbit,
+                          "AU");
+      Model.Add_Property ("Year",
+                          World.Period / 3600.0 / 24.0 / Earth_Sidereal_Year,
+                          "earth years");
+      Model.Add_Property ("Day", World.Day_Length / 3600.0,
+                          "hours");
+      Model.Add_Property ("Radius", World.Radius / Earth_Radius,
+                          "earths");
+      Model.Add_Property ("Mass", World.Mass / Earth_Mass,
+                          "earths");
+      Model.Add_Property ("Surface g", World.Surface_Gravity,
+                          "earth");
+
+      if not World.Gas_Giant then
+         Model.Add_Property ("Surface pressure", World.Surface_Pressure,
+                             "millibar");
+         Model.Add_Property ("Min temperature",
+                             World.Min_Temperature - 273.15,
+                             "℃");
+         Model.Add_Property ("Max temperature",
+                             World.Max_Temperature - 273.15,
+                             "℃");
+         Model.Add_Property ("Nighttime low",
+                             World.Nighttime_Low - 273.15,
+                             "℃");
+         Model.Add_Property ("Daytime high",
+                             World.Daytime_High - 273.15,
+                             "℃");
+         Model.Add_Property ("Greenhouse contribution",
+                             World.Greenhouse_Rise,
+                             "℃");
+         Model.Add_Property ("Water coverage",
+                             World.Hydrosphere * 100.0,
+                             "%");
+         Model.Add_Property ("Ice coverage",
+                             World.Ice_Cover * 100.0,
+                             "%");
+         Model.Add_Property ("Cloud coverage",
+                             World.Cloud_Cover * 100.0,
+                             "%");
+      end if;
+   end Add_Properties;
 
    -----------------------
    -- On_Object_Changed --
@@ -130,6 +205,7 @@ package body Concorde.Worlds.Models is
          begin
             Result.Initialise (World.Name);
             Result.World := World;
+            Add_Properties (Result);
             World_Models.Insert (World.Identifier, Result);
          end;
       end if;
