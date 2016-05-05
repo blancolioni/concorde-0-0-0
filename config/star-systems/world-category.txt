@@ -3,32 +3,35 @@ rock = {
       rocky = 0.3
 	  plain = 0.7
    }
+   feature = {
+      plain = barren
+   }
 }
 
 martian = {
    terrain = {
-      rocky = 0.1
-	  mountains = 0.1
-	  hills = 0.2
 	  plain = 0.6
+      rocky = 0.1
+	  hills = 0.2
+	  mountains = 0.1
    }
 }
 
 venusian = {
    terrain = {
+	  plain = 0.8
       rocky = 0.1
 	  hills = 0.1
-	  plain = 0.8
    }
 }
 
 terrestrial = {
    terrain = {
       ocean = 0.0
-	  mountains = 0.1
+	  plain = 0.7
       rocky = 0.1
 	  hills = 0.1
-	  plain = 0.7
+	  mountains = 0.1
    }
 }
 
@@ -45,4 +48,9 @@ ice = {
      hills = 0.1
      plain = 0.8
 	 }
+   feature = {
+     rocky = ice
+     hills = ice
+     plain = ice
+   }
 }

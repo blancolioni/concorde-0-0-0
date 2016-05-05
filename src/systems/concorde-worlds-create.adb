@@ -5,7 +5,12 @@ with Ada.Long_Float_Text_IO;
 
 with WL.Random;
 
+with Tropos.Reader;
+
+with Memor.Element_Vectors;
+
 with Concorde.Options;
+with Concorde.Paths;
 
 with Concorde.Elementary_Functions;
 with Concorde.Geometry;
@@ -36,6 +41,18 @@ package body Concorde.Worlds.Create is
    pragma Unreferenced (Write_World_Bitmaps);
 
    Subsector_Size : Natural := 0;
+
+   package Terrain_Feature_Vectors is
+     new Memor.Element_Vectors (Concorde.Features.Feature_Type, null,
+                                Concorde.Features."=");
+
+   type Category_Terrain_Feature_Array is
+     array (World_Category) of Terrain_Feature_Vectors.Vector;
+
+   Category_Terrain_Features : Category_Terrain_Feature_Array;
+   Got_Category_Terrain_Features : Boolean := False;
+
+   procedure Configure_Category_Terrain;
 
    type Orbit_Zone is range 1 .. 3;
 
@@ -849,6 +866,40 @@ package body Concorde.Worlds.Create is
            + (1.0 / 373.0));
    end Calculate_Water_Boiling_Point;
 
+   --------------------------------
+   -- Configure_Category_Terrain --
+   --------------------------------
+
+   procedure Configure_Category_Terrain is
+      Main_Config : constant Tropos.Configuration :=
+                      Tropos.Reader.Read_Config
+                        (Concorde.Paths.Config_File
+                           ("star-systems/world-category.txt"));
+   begin
+      for Category_Config of Main_Config loop
+         declare
+            Category : constant World_Category :=
+                         World_Category'Value (Category_Config.Config_Name);
+         begin
+            if Category_Config.Contains ("feature") then
+               for Feature_Config of Category_Config.Child ("feature") loop
+                  declare
+                     Terrain : constant Concorde.Terrain.Terrain_Type :=
+                                 Concorde.Terrain.Get
+                                   (Feature_Config.Config_Name);
+                     Feature : constant Concorde.Features.Feature_Type :=
+                                 Concorde.Features.Get
+                                   (Feature_Config.Value);
+                  begin
+                     Category_Terrain_Features (Category).Replace_Element
+                       (Terrain.Reference, Feature);
+                  end;
+               end loop;
+            end if;
+         end;
+      end loop;
+   end Configure_Category_Terrain;
+
    ----------------------
    -- Create_Resources --
    ----------------------
@@ -937,7 +988,14 @@ package body Concorde.Worlds.Create is
       Seed             : constant Positive :=
                            WL.Random.Random_Number (1, Positive'Last);
 
+      Terrain_Feature : Terrain_Feature_Vectors.Vector renames
+                          Category_Terrain_Features (World.Category);
    begin
+
+      if not Got_Category_Terrain_Features then
+         Configure_Category_Terrain;
+         Got_Category_Terrain_Features := True;
+      end if;
 
       if Subsector_Size = 0 then
          Subsector_Size := Concorde.Options.World_Detail_Factor;
@@ -1004,9 +1062,12 @@ package body Concorde.Worlds.Create is
 
       for I in 1 .. Bounding_Height loop
          declare
-            Length   : constant Positive := Latitude_Count (I);
-            Ice      : constant Boolean :=
-                         Sector_Index < Ice_Total;
+            Length     : constant Positive := Latitude_Count (I);
+            Ice_Sector : constant Boolean :=
+                           World.Category = Ice
+                               or else Sector_Index < Ice_Total
+                                   or else Sector_Count - Sector_Index
+                                     < Ice_Total;
          begin
             for Longitude in 1 .. Length loop
                declare
@@ -1020,7 +1081,10 @@ package body Concorde.Worlds.Create is
                   Terrain  : constant Concorde.Terrain.Terrain_Type :=
                                Surface_Map (Height).Terrain;
                   Feature  : constant Concorde.Features.Feature_Type :=
-                               (if Ice then Concorde.Features.Ice else null);
+                               (if Ice_Sector
+                                then Concorde.Features.Ice
+                                else Terrain_Feature.Element
+                                  (Terrain.Reference));
                begin
                   World.Sectors (Sector_Index) :=
                     (Terrain => Terrain,
