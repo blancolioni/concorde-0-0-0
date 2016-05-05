@@ -324,4 +324,13 @@ package body Concorde.Options is
       return Integer_Value ("world-detail-factor", Default => 20);
    end World_Detail_Factor;
 
+   -----------------------
+   -- World_Sector_Size --
+   -----------------------
+
+   function World_Sector_Size return Positive is
+   begin
+      return Integer_Value ("world-sector-size", Default => 1400);
+   end World_Sector_Size;
+
 end Concorde.Options;

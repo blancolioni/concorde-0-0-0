@@ -16,6 +16,7 @@ package Concorde.Options is
    function Show_System_Names return Boolean;
    function Test_Battle return Boolean;
    function World_Detail_Factor return Positive;
+   function World_Sector_Size return Positive;
 
    function Boolean_Value
      (Long_Name  : String;
