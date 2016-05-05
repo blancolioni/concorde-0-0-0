@@ -1707,7 +1707,7 @@ package body Concorde.Worlds.Create is
          end case;
 
          Result := Proportion * Earth_Masses / Stellar_Mass;
-         Result := Result * (Concorde.Random.Unit_Random * 0.2 + 0.1);
+         Result := Concorde.Random.About (Result, 0.2);
          if Greenhouse or else Accreted_Gas then
             return Result;
          else
