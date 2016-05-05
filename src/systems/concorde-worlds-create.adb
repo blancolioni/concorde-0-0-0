@@ -40,6 +40,7 @@ package body Concorde.Worlds.Create is
    Write_World_Bitmaps : constant Boolean := False;
    pragma Unreferenced (Write_World_Bitmaps);
 
+   Sector_Size    : Non_Negative_Real := 0.0;
    Subsector_Size : Natural := 0;
 
    package Terrain_Feature_Vectors is
@@ -963,7 +964,7 @@ package body Concorde.Worlds.Create is
       use Concorde.Elementary_Functions;
       Radius        : constant Real := World.Radius;
       Circumference : constant Real := 2.0 * Ada.Numerics.Pi * Radius;
-      Equator       : constant Real := Circumference / World_Sector_Size;
+      Equator       : constant Real := Circumference / Sector_Size;
       Integer_Equator : constant Natural :=
                           Natural (Equator)
                           + (if Natural (Equator) mod 2 = 0 then 1 else 0);
@@ -1177,6 +1178,12 @@ package body Concorde.Worlds.Create is
       end Random_Accretion_Width;
 
    begin
+
+      if Sector_Size = 0.0 then
+         Sector_Size :=
+           Non_Negative_Real (Concorde.Options.World_Sector_Size)
+           * 1000.0;
+      end if;
 
       --        Ada.Text_IO.Put ("Rock line: ");
       --        Ada.Float_Text_IO.Put (Float (Rock_Line), 1, 2, 0);

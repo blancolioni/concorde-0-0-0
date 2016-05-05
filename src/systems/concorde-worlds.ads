@@ -66,8 +66,6 @@ private
 
    type Array_Of_Row_Lengths is array (Positive range <>) of Positive;
 
-   World_Sector_Size : constant := 1.4E6;
-
    type Root_World_Type is
      new Concorde.Objects.Root_Named_Object_Type
      and Concorde.Systems.Star_System_Object_Interface with
