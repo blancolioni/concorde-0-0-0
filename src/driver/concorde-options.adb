@@ -315,6 +315,15 @@ package body Concorde.Options is
       return Result;
    end With_Underscores;
 
+   -------------------------------
+   -- World_Continent_Smoothing --
+   -------------------------------
+
+   function World_Continent_Smoothing return Positive is
+   begin
+      return Integer_Value ("world-continent-smoothing", Default => 4);
+   end World_Continent_Smoothing;
+
    -------------------------
    -- World_Detail_Factor --
    -------------------------
@@ -323,6 +332,24 @@ package body Concorde.Options is
    begin
       return Integer_Value ("world-detail-factor", Default => 20);
    end World_Detail_Factor;
+
+   ------------------------------
+   -- World_Fractal_Iterations --
+   ------------------------------
+
+   function World_Fractal_Iterations return Positive is
+   begin
+      return Integer_Value ("world-fractal-iterations", Default => 1000);
+   end World_Fractal_Iterations;
+
+   ----------------------------
+   -- World_Height_Smoothing --
+   ----------------------------
+
+   function World_Height_Smoothing return Positive is
+   begin
+      return Integer_Value ("world-height-smoothing", Default => 4);
+   end World_Height_Smoothing;
 
    -----------------------
    -- World_Sector_Size --

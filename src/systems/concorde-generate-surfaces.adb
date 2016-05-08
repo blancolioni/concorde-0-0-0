@@ -1,8 +1,11 @@
 with Ada.Unchecked_Deallocation;
 
+with WL.Bitmap_IO;
 with WL.Random;
 
 with Concorde.Elementary_Functions;
+with Concorde.Geometry;
+with Concorde.Random;
 
 with Concorde.Generate.Surfaces.Heights;
 
@@ -21,6 +24,32 @@ package body Concorde.Generate.Surfaces is
    procedure Copy_To_Coarse
      (Surface : in out Surface_Type'Class;
       Frequency       : Surface_Frequency);
+
+   Colour_Heights : constant Positive := 49;
+   Ocean_Heights  : constant Positive := 16;
+
+   type Colour_Element_Array is array (1 .. Colour_Heights) of Natural;
+
+   Height_Red     : constant Colour_Element_Array :=
+                      (0, 0, 0, 0, 0, 0, 0, 0, 34, 68,
+                       102, 119, 136, 153, 170, 187, 0, 34, 34, 119,
+                       187, 255, 238, 221, 204, 187, 170, 153, 136, 119,
+                       85, 68, 255, 250, 245, 240, 235, 230, 225, 220,
+                       215, 210, 205, 200, 195, 190, 185, 180, 175);
+
+   Height_Green   : constant Colour_Element_Array :=
+                      (0, 0, 17, 51, 85, 119, 153, 204, 221, 238,
+                       255, 255, 255, 255, 255, 255, 68, 102, 136, 170,
+                       221, 187, 170, 136, 136, 102, 85, 85, 68, 51,
+                       51, 34, 255, 250, 245, 240, 235, 230, 225, 220,
+                       215, 210, 205, 200, 195, 190, 185, 180, 175);
+
+   Height_Blue    : constant Colour_Element_Array :=
+                      (0, 68, 102, 136, 170, 187, 221, 255, 255, 255,
+                       255, 255, 255, 255, 255, 255, 0, 0, 0, 0,
+                       0, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+                       17, 0, 255, 250, 245, 240, 235, 230, 225, 220,
+                       215, 210, 205, 200, 195, 190, 185, 180, 175);
 
    -------------------
    -- Coarse_Height --
@@ -64,51 +93,44 @@ package body Concorde.Generate.Surfaces is
      (Surface : in out Surface_Type'Class;
       Frequency       : Surface_Frequency)
    is
-      Height_Freq : array (Height_Min .. Height_Max) of Natural :=
-                      (others => 0);
+      use Concorde.Elementary_Functions;
+
+      Height_Freq : array (Height_Min .. Height_Max) of Non_Negative_Real :=
+                      (others => 0.0);
    begin
 
-      for X in Surface.Coarse'Range (1) loop
-         for Y in Surface.Coarse'Range (2) loop
-            declare
-               Total : Integer := 0;
-               Count : Natural := 0;
-            begin
-               for DX in 1 .. Surface.KX loop
-                  for DY in 1 .. Surface.KY loop
-                     Total := Total
-                       + Surface.Detail ((X - 1) * Surface.KX + DX,
-                                         (Y - 1) * Surface.KY + DY);
-                     Count := Count + 1;
-                  end loop;
-               end loop;
-               Surface.Coarse (X, Y) := Total / Count;
-            end;
-         end loop;
-      end loop;
-
-      for X in Surface.Coarse'Range (1) loop
-         for Y in Surface.Coarse'Range (2) loop
-            declare
-               F : Natural renames Height_Freq (Surface.Coarse_Height (X, Y));
-            begin
-               F := F + 1;
-            end;
-         end loop;
+      for Y in Surface.Detail'Range (2) loop
+         declare
+            Relative_Latitude : constant Real :=
+                                  Real (Y - 1)
+                                  / Real (Surface.Detail'Length (2))
+                                  * 2.0 - 1.0;
+            Relative_Length   : constant Non_Negative_Real :=
+                                  Sqrt (1.0 - Relative_Latitude ** 2);
+         begin
+            for X in Surface.Detail'Range (1) loop
+               declare
+                  F : Non_Negative_Real renames
+                        Height_Freq (Surface.Detail_Height (X, Y));
+               begin
+                  F := F + Relative_Length;
+               end;
+            end loop;
+         end;
       end loop;
 
       declare
-         Tile_Count : array (Frequency'Range) of Natural :=
-                        (others => 0);
+         Tile_Count : array (Frequency'Range) of Non_Negative_Real :=
+                        (others => 0.0);
          Total_Tiles : constant Real :=
-                         Real (Surface.Coarse'Length (1)
-                               * Surface.Coarse'Length (2));
+                         Real (Surface.Detail'Length (1)
+                               * Surface.Detail'Length (2));
          Step        : Positive := Frequency'First;
-         Current_Count : Natural := 0;
+         Current_Count : Non_Negative_Real := 0.0;
          Map           : Height_Map (Height_Min .. Height_Max);
       begin
          for I in Tile_Count'Range loop
-            Tile_Count (I) := Natural (Frequency (I) * Total_Tiles);
+            Tile_Count (I) := Frequency (I) * Total_Tiles;
          end loop;
 
          for I in Height_Freq'Range loop
@@ -116,22 +138,61 @@ package body Concorde.Generate.Surfaces is
             if Step <= Frequency'Last
               and then Current_Count > Tile_Count (Step)
             then
+               Current_Count := Current_Count - Tile_Count (Step);
                Step := Step + 1;
-               Current_Count := 0;
             end if;
             Map (I) := Step;
          end loop;
 
-         for X in Surface.Coarse'Range (1) loop
-            for Y in Surface.Coarse'Range (2) loop
-               Surface.Coarse (X, Y) :=
-                 Map (Surface.Coarse (X, Y));
+         for X in Surface.Detail'Range (1) loop
+            for Y in Surface.Detail'Range (2) loop
+               Surface.Detail (X, Y) :=
+                 Map (Surface.Detail (X, Y));
             end loop;
          end loop;
 
          Surface.Map := new Height_Map'(Map);
 
       end;
+
+      for X in Surface.Coarse'Range (1) loop
+         for Y in Surface.Coarse'Range (2) loop
+            declare
+               Total       : Integer := 0;
+               Count       : Natural := 0;
+               Land_Count  : Natural := 0;
+               Ocean_Count : Natural := 0;
+               Total_Land  : Integer := 0;
+               Total_Ocean : Integer := 0;
+            begin
+               for DX in 1 .. Surface.KX loop
+                  for DY in 1 .. Surface.KY loop
+                     declare
+                        Height : constant Integer :=
+                                   Surface.Detail ((X - 1) * Surface.KX + DX,
+                                                   (Y - 1) * Surface.KY + DY);
+                     begin
+                        Total := Total + Height;
+                        if Height > Ocean_Heights then
+                           Total_Land := Total_Land + Height;
+                           Land_Count := Land_Count + 1;
+                        else
+                           Total_Ocean := Total_Ocean + Height;
+                           Ocean_Count := Ocean_Count + 1;
+                        end if;
+                     end;
+                     Count := Count + 1;
+                  end loop;
+               end loop;
+
+               if Land_Count > Count / Surface.KX then
+                  Surface.Coarse (X, Y) := Total_Land / Land_Count;
+               else
+                  Surface.Coarse (X, Y) := Total / Count;
+               end if;
+            end;
+         end loop;
+      end loop;
 
    end Copy_To_Coarse;
 
@@ -232,6 +293,26 @@ package body Concorde.Generate.Surfaces is
    is
    begin
       return Surface.Detail (X, Y);
+   end Detail_Height;
+
+   -------------------
+   -- Detail_Height --
+   -------------------
+
+   function Detail_Height
+     (Surface : Surface_Type'Class;
+      X1, X2  : Positive;
+      Y1, Y2  : Positive)
+      return Integer
+   is
+      Total : Integer := 0;
+   begin
+      for X in X1 .. X2 loop
+         for Y in Y1 .. Y2 loop
+            Total := Total + Surface.Detail (X, Y);
+         end loop;
+      end loop;
+      return Total / (X2 - X1 + 1) / (Y2 - Y1 + 1);
    end Detail_Height;
 
    --------------
@@ -404,6 +485,141 @@ package body Concorde.Generate.Surfaces is
                          Continent_Heights'Access);
    end Generate_Continental_Surface;
 
+   ------------------------------
+   -- Generate_Fractal_Surface --
+   ------------------------------
+
+   procedure Generate_Fractal_Surface
+     (Surface        : out Surface_Type;
+      Frequency      : in  Surface_Frequency;
+      Iterations     : in  Positive)
+   is
+
+      use Concorde.Geometry;
+
+      X_Range : constant Natural := Surface.Detail'Length (1);
+      Y_Range : constant Natural := Surface.Detail'Length (2);
+
+      Sin_Iter_Phi :
+        array (0 .. 2 * X_Range - 1) of Signed_Unit_Real;
+
+      procedure Iterate;
+
+      -------------
+      -- Iterate --
+      -------------
+
+      procedure Iterate is
+         Raise_North : constant Boolean :=
+                         WL.Random.Random_Number (1, 2) = 1;
+         Adjust_North : constant Boolean :=
+                          WL.Random.Random_Number (1, 2) = 1;
+         Alpha_Factor : constant Real :=
+                          Concorde.Random.Unit_Random * 2.0 - 1.0;
+         Beta_Factor : constant Real :=
+                          Concorde.Random.Unit_Random * 2.0 - 1.0;
+         Alpha        : constant Radians :=
+                          Degrees_To_Radians (Alpha_Factor * 90.0);
+         Beta         : constant Radians :=
+                          Degrees_To_Radians (Beta_Factor * 90.0);
+
+         Tan_Beta    : constant Real :=
+                         Tan (Arccos (Cos (Alpha) * Cos (Beta)));
+         Xsi         : constant Real :=
+                         Real (X_Range) * Beta_Factor / 2.0;
+         I_Xsi       : constant Integer :=
+                         X_Range / 2
+                           - Integer (Real'Truncation (Xsi));
+      begin
+         for Phi in 1 .. X_Range loop
+            declare
+               Sin_Phi : constant Signed_Unit_Real :=
+                           Sin_Iter_Phi (I_Xsi + X_Range - Phi);
+               Theta : constant Natural :=
+                           Integer (Real (Y_Range)
+                                    * Arctan_Relative (Sin_Phi * Tan_Beta))
+                           + Y_Range / 2;
+            begin
+               if Adjust_North then
+                  for Y in 1 .. Theta loop
+                     declare
+                        Height : Integer renames Surface.Detail (Phi, Y);
+                     begin
+                        if Raise_North then
+                           if Height < Height_Max then
+                              Height := Height + 1;
+                           end if;
+                        else
+                           if Height > Height_Min then
+                              Height := Height - 1;
+                           end if;
+                        end if;
+                     end;
+                  end loop;
+               else
+                  for Y in Theta + 1 .. Y_Range loop
+                     declare
+                        Height : Integer renames Surface.Detail (Phi, Y);
+                     begin
+                        if Raise_North then
+                           if Height > Height_Min then
+                              Height := Height - 1;
+                           end if;
+                        else
+                           if Height < Height_Max then
+                              Height := Height + 1;
+                           end if;
+                        end if;
+                     end;
+                  end loop;
+               end if;
+            end;
+         end loop;
+      end Iterate;
+
+   begin
+      Surface.Detail.all :=
+        (others => (others => (Height_Max + Height_Min) / 2));
+
+      for I in 0 .. X_Range - 1 loop
+         Sin_Iter_Phi (I) :=
+           Sin (Degrees_To_Radians
+                (Real (I * 360) / Real (X_Range)));
+         Sin_Iter_Phi (I + X_Range) := Sin_Iter_Phi (I);
+      end loop;
+
+      for I in 1 .. Iterations loop
+         Iterate;
+      end loop;
+
+--        declare
+--           Histogram  : array (Height_Min .. Height_Max) of Natural :=
+--                          (others => 0);
+--           Threshold  : Integer;
+--           Cumulative : Natural := 0;
+--           Required   : constant Natural :=
+--                          Natural
+--                       (Real (Surface.Detail_Across * Surface.Detail_Down)
+--                             / Ocean_Fraction);
+--        begin
+--           for Y in Surface.Detail'Range (1) loop
+--              for X in Surface.Detail'Range (2) loop
+--                 declare
+--                    Count : Natural renames
+--                              Histogram (Surface.Detail (X, Y));
+--                 begin
+--                    Count := Count + 1;
+--                 end;
+--              end loop;
+--           end loop;
+--
+--           for I in Histogram'Range loop
+--              Cumulative := Cumulative + Histogram (I);
+--              if Cumulative >= Required then
+--
+         Copy_To_Coarse (Surface, Frequency);
+   end Generate_Fractal_Surface;
+
    ----------------------
    -- Generate_Surface --
    ----------------------
@@ -496,5 +712,48 @@ package body Concorde.Generate.Surfaces is
    begin
       return Surface.Map (Height);
    end Map_Height;
+
+   -------------------------
+   -- Write_Detail_Bitmap --
+   -------------------------
+
+   procedure Write_Surface_Bitmap
+     (Surface : Surface_Type;
+      Path    : String;
+      Detail  : Boolean)
+   is
+      use WL.Bitmap_IO;
+      Width : constant Positive :=
+                (if Detail
+                 then Surface.Detail_Across
+                 else Surface.Coarse'Length (1));
+      Height : constant Positive :=
+                (if Detail
+                 then Surface.Detail_Down
+                 else Surface.Coarse'Length (2));
+      BM    : constant Bitmap_Type := New_Bitmap (Width, Height);
+   begin
+      for Y in 1 .. Height loop
+         for X in 1 .. Width loop
+            declare
+               Index : constant Positive := Surface.Detail (X, Y);
+--                           (Surface.Detail (X, Y) - Height_Min)
+--                           * Colour_Heights
+--                           / (Height_Max - Height_Min + 1) + 1;
+               R     : constant Natural := Height_Red (Index);
+               G     : constant Natural := Height_Green (Index);
+               B     : constant Natural := Height_Blue (Index);
+            begin
+               Set_Colour (BM, X - 1, Surface.Detail_Down - Y,
+                           (Colour_Element (B),
+                            Colour_Element (G),
+                            Colour_Element (R),
+                            255));
+            end;
+         end loop;
+      end loop;
+
+      Write (BM, Path);
+   end Write_Surface_Bitmap;
 
 end Concorde.Generate.Surfaces;

@@ -8,10 +8,22 @@ with Concorde.Scenarios;
 with Concorde.Commodities;
 with Concorde.Stars.Create;
 with Concorde.Worlds.Create;
+with Concorde.Worlds.Lists;
 
 with Concorde.Systems.Db;
 
 package body Concorde.Systems.Create is
+
+--     System_Handle : Concorde.Work.Work_Handle;
+--
+--     type System_Create_Job is
+--       new Concorde.Work.Work_Interface with
+--        record
+--           System : Star_System_Type;
+--        end record;
+--
+--     overriding procedure Execute
+--       (Job : in out System_Create_Job);
 
    function Random_Star_Mass return Non_Negative_Real;
 
@@ -96,13 +108,33 @@ package body Concorde.Systems.Create is
                Original_Size => Deposit_Size);
          end;
 
-         Concorde.Worlds.Create.Create_Worlds
-           (System);
+         declare
+            List   : Concorde.Worlds.Lists.List;
+         begin
+
+            Concorde.Worlds.Create.Create_Worlds
+              (Concorde.Stars.Star_Type (System.Main_Object),
+               List);
+
+            for World of List loop
+               System.Add_Object
+                 (World,
+                  Concorde.Geometry.Degrees_To_Radians
+                    (Concorde.Random.Unit_Random * 360.0));
+            end loop;
+         end;
 
       end Create;
 
+      System : constant Star_System_Type :=
+                 Concorde.Systems.Db.Create (Create'Access);
+
+--      Job    : constant System_Create_Job := (System => System);
+
    begin
-      return Concorde.Systems.Db.Create (Create'Access);
+
+      return System;
+
    end New_System;
 
    ----------------------

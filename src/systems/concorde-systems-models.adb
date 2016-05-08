@@ -423,8 +423,9 @@ package body Concorde.Systems.Models is
          X_Offset : constant Real := Cos (Position) * World.Semimajor_Axis;
          Y_Offset : constant Real := Sin (Position) * World.Semimajor_Axis;
          Scale_Factor : constant Non_Negative_Real :=
-                          1000.0 / Concorde.Solar_System.Earth_Orbit
-                            / Model.Eye_Z;
+                          Real'Max (Real (Model.Width / 3), 200.0)
+                          / Concorde.Solar_System.Earth_Orbit
+                          / Model.Eye_Z;
          Scaled_X : constant Real :=
                       X_Offset * Scale_Factor;
          Scaled_Y : constant Real :=

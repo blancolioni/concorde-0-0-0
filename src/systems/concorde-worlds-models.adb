@@ -13,6 +13,36 @@ package body Concorde.Worlds.Models is
    Base_Sector_Width  : constant := 32.0;
    Base_Sector_Height : constant := 32.0;
 
+   type Colour_Element_Array is
+     array (Height_Range) of Lui.Colours.Colour_Byte;
+
+   Height_Red     : constant Colour_Element_Array :=
+                      (0,
+                       0, 0, 0, 0, 0, 0, 0, 34,
+                       68, 102, 119, 136, 153, 170, 187, 0,
+                       34, 34, 119, 187, 255, 238, 221, 204,
+                       187, 170, 153, 136, 119, 85, 68, 255,
+                       250, 245, 240, 235, 230, 225, 220, 215,
+                       210, 205, 200, 195, 190, 185, 180, 175);
+
+   Height_Green   : constant Colour_Element_Array :=
+                      (0,
+                       0, 17, 51, 85, 119, 153, 204, 221,
+                       238, 255, 255, 255, 255, 255, 255, 68,
+                       102, 136, 170, 221, 187, 170, 136, 136,
+                       102, 85, 85, 68, 51, 51, 34, 255,
+                       250, 245, 240, 235, 230, 225, 220, 215,
+                       210, 205, 200, 195, 190, 185, 180, 175);
+
+   Height_Blue    : constant Colour_Element_Array :=
+                      (0,
+                       68, 102, 136, 170, 187, 221, 255, 255,
+                       255, 255, 255, 255, 255, 255, 255, 0,
+                       0, 0, 0, 0, 34, 34, 34, 34,
+                       34, 34, 34, 34, 34, 17, 0, 255,
+                       250, 245, 240, 235, 230, 225, 220, 215,
+                       210, 205, 200, 195, 190, 185, 180, 175);
+
    type Rendered_Sector is
       record
          X, Y            : Integer;
@@ -54,6 +84,11 @@ package body Concorde.Worlds.Models is
    overriding procedure Select_XY
      (Model : in out Root_World_Model;
       X, Y  : Natural);
+
+   overriding function Tooltip
+     (Model : Root_World_Model;
+      X, Y  : Natural)
+      return String;
 
    type World_Model_Access is
      access all Root_World_Model'Class;
@@ -125,6 +160,21 @@ package body Concorde.Worlds.Models is
          Model.Add_Property ("Water coverage",
                              World.Hydrosphere * 100.0,
                              "%");
+         declare
+            Water_Sectors : Natural := 0;
+         begin
+            for Sector of World.Sectors.all loop
+               if Sector.Height < 0 then
+                  Water_Sectors := Water_Sectors + 1;
+               end if;
+            end loop;
+            Model.Add_Property ("Water sectors",
+                                Real (Water_Sectors)
+                                / Real (World.Sector_Count)
+                                * 100.0,
+                                "%");
+         end;
+
          Model.Add_Property ("Ice coverage",
                              World.Ice_Cover * 100.0,
                              "%");
@@ -170,11 +220,52 @@ package body Concorde.Worlds.Models is
                                    (Sector_Size_Factor
                                     * Base_Sector_Height),
                                  1);
+      Detail_Height       : constant Positive :=
+                              Model.World.Height_Row_Length'Length;
       Render_Height       : constant Positive :=
                               Model.World.Half_Circle_Sectors
                                 * Sector_Height;
+      Render_Top          : constant Integer :=
+                              Model.Height / 2 - Render_Height / 2;
    begin
       Model.Sectors.Clear;
+
+      for Bg_Row in 1 .. Render_Height loop
+         declare
+            Y : constant Integer :=
+                  Render_Top + Bg_Row - 1;
+            D_Row : constant Positive :=
+                      (Bg_Row - 1) * Detail_Height / Render_Height + 1;
+            D_Len : constant Natural := Model.World.Height_Row_Length (D_Row);
+            Px_Len : constant Natural :=
+                       D_Len * Render_Height / Detail_Height;
+            D_Start : constant Positive :=
+                        Model.World.Height_Row_Start (D_Row);
+         begin
+            for Bg_Col in 1 .. Px_Len loop
+               declare
+                  X : constant Integer :=
+                        Model.Width / 2 - Px_Len / 2 + Bg_Col - 1;
+                  D_X : constant Positive :=
+                          (Bg_Col - 1) * Detail_Height / Render_Height + 1;
+                  D_Idx : constant Positive :=
+                            D_Start + D_X - 1;
+                  Height      : constant Height_Range :=
+                                  Model.World.Heights (D_Idx);
+                  Colour      : constant Lui.Colours.Colour_Type :=
+                                  Lui.Colours.To_Colour
+                                    (Height_Red (Height),
+                                     Height_Green (Height),
+                                     Height_Blue (Height));
+               begin
+                  Renderer.Draw_Rectangle
+                    (X, Y, 1, 1, Colour, True);
+               end;
+            end loop;
+         end;
+      end loop;
+
+      Sector_Index := 1;
       for Latitude_Index in Model.World.Row_Length'Range loop
          declare
             Row_Top : constant Integer :=
@@ -195,20 +286,26 @@ package body Concorde.Worlds.Models is
                                   * Sector_Width;
                   Sector      : Sector_Record renames
                                   Model.World.Sectors (Sector_Index);
+                  Height      : constant Height_Range :=
+                                  Sector.Height;
                   Colour      : constant Lui.Colours.Colour_Type :=
-                                  (if Sector.Feature /= null
-                                   then Sector.Feature.Colour
-                                   else Sector.Terrain.Colour);
+                                  Lui.Colours.To_Colour
+                                    (Height_Red (Height),
+                                     Height_Green (Height),
+                                     Height_Blue (Height));
                   Border_Colour : constant Lui.Colours.Colour_Type :=
-                                    Lui.Colours.Black;
+                                    (0.6, 0.6, 0.6, 0.5);
                begin
-                  Renderer.Draw_Rectangle
-                    (X      => Sector_Left,
-                     Y      => Row_Top,
-                     W      => Sector_Width,
-                     H      => Sector_Height,
-                     Colour => Colour,
-                     Filled => True);
+                  if False then
+                     Renderer.Draw_Rectangle
+                       (X      => Sector_Left,
+                        Y      => Row_Top,
+                        W      => Sector_Width,
+                        H      => Sector_Height,
+                        Colour => Colour,
+                        Filled => True);
+                  end if;
+
                   if Sector_Width > 8 and then Sector_Height > 8 then
                      Renderer.Draw_Rectangle
                        (X      => Sector_Left,
@@ -276,6 +373,8 @@ package body Concorde.Worlds.Models is
          end;
       end if;
 
+      Model.Needs_Render := False;
+
    end Render;
 
    ---------------
@@ -297,6 +396,37 @@ package body Concorde.Worlds.Models is
          end if;
       end loop;
    end Select_XY;
+
+   -------------
+   -- Tooltip --
+   -------------
+
+   overriding function Tooltip
+     (Model : Root_World_Model;
+      X, Y  : Natural)
+      return String
+   is
+      use type Concorde.Features.Feature_Type;
+   begin
+      for Sector of Model.Sectors loop
+         if X in Sector.X .. Sector.X + Sector.Width
+           and then Y in Sector.Y .. Sector.Y + Sector.Height
+         then
+            declare
+               S : Sector_Record renames
+                     Model.World.Sectors (Sector.Sector_Index);
+            begin
+               return "Altitude:" & S.Height'Img;
+--                 if S.Feature /= null then
+--                    return S.Feature.Name & " " & S.Terrain.Name;
+--                 else
+--                    return S.Terrain.Name;
+--                 end if;
+            end;
+         end if;
+      end loop;
+      return "";
+   end Tooltip;
 
    -----------------
    -- World_Model --

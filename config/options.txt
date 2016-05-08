@@ -2,7 +2,7 @@ scenario = fading-suns
 
 randomise = no
 
-empire_count = 99
+empire_count = 4
 system_count = 40
 
 average_connections = 4
@@ -14,12 +14,15 @@ console = no
 update_count = 500
 
 show_capital_names = yes
-show_system_names = no
+show_system_names = yes
 
 check_invariants = yes
 battle_screen = yes
 
 test_battle = no
 
-world_detail_factor = 5   # ratio of coarse sector size to detail sector size
+world_detail_factor = 20   # ratio of coarse sector size to detail sector size
 world_sector_size = 1200  # size of sector in world map, in kilometres
+world_fractal_iterations = 2000
+world_continent_smoothing = 3
+world_height_smoothing = 4
