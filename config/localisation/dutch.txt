@@ -1,0 +1,11 @@
+legumes = Bonen
+silk = Zijde
+wool = Wol
+cotton = Katoen
+seafood = Zeevruchten
+fruit = Fruit
+vegetables = Groenten
+grains = Granen
+herb = Kruiden
+fungi = Paddestoelen
+salt = Zout

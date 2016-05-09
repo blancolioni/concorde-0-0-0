@@ -9,7 +9,7 @@ with Concorde.People.Groups;
 package Concorde.People.Skills is
 
    type Root_Pop_Skill is
-     new Concorde.Objects.Root_Named_Object_Type with private;
+     new Concorde.Objects.Root_Localised_Object_Type with private;
 
    function Base_Pay
      (Skill : Root_Pop_Skill'Class)
@@ -30,9 +30,8 @@ package Concorde.People.Skills is
 private
 
    type Root_Pop_Skill is
-     new Concorde.Objects.Root_Named_Object_Type with
+     new Concorde.Objects.Root_Localised_Object_Type with
       record
-         Pop_Skill_Id : access String;
          Base_Pay     : Concorde.Money.Price_Type;
          Wealth_Group : Concorde.People.Groups.Pop_Group;
          Commodity    : Concorde.Commodities.Commodity_Type;
@@ -41,10 +40,5 @@ private
    overriding function Object_Database
      (Item : Root_Pop_Skill)
       return Memor.Root_Database_Type'Class;
-
-   overriding function Identifier
-     (Item : Root_Pop_Skill)
-      return String
-   is (Item.Pop_Skill_Id.all);
 
 end Concorde.People.Skills;

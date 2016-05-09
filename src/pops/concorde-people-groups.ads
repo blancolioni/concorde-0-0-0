@@ -6,7 +6,7 @@ with Concorde.Objects;
 package Concorde.People.Groups is
 
    type Root_Pop_Group is
-     new Concorde.Objects.Root_Named_Object_Type with private;
+     new Concorde.Objects.Root_Localised_Object_Type with private;
 
    function Initial_Cash_Factor
      (Group : Root_Pop_Group'Class)
@@ -27,9 +27,8 @@ package Concorde.People.Groups is
 private
 
    type Root_Pop_Group is
-     new Concorde.Objects.Root_Named_Object_Type with
+     new Concorde.Objects.Root_Localised_Object_Type with
       record
-         Pop_Group_Id        : access String;
          Initial_Cash_Factor : Natural;
          Preferred_Quality   : Concorde.Commodities.Commodity_Quality;
       end record;
@@ -37,10 +36,5 @@ private
    overriding function Object_Database
      (Item : Root_Pop_Group)
       return Memor.Root_Database_Type'Class;
-
-   overriding function Identifier
-     (Item : Root_Pop_Group)
-      return String
-   is (Item.Pop_Group_Id.all);
 
 end Concorde.People.Groups;

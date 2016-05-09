@@ -26,7 +26,7 @@ package Concorde.Empires is
    type Root_Empire_Type is
      new Concorde.Agents.Root_Agent_Type
      and Memor.Identifier_Record_Type
-     and Concorde.Objects.Named_Object_Interface
+     and Concorde.Objects.User_Named_Object_Interface
    with private;
 
    function Colour
@@ -324,7 +324,7 @@ private
    type Root_Empire_Type is
      new Concorde.Agents.Root_Agent_Type
      and Memor.Identifier_Record_Type
-     and Concorde.Objects.Named_Object_Interface with
+     and Concorde.Objects.User_Named_Object_Interface with
       record
          Identifier      : Ada.Strings.Unbounded.Unbounded_String;
          Empire_Name     : Ada.Strings.Unbounded.Unbounded_String;

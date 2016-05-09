@@ -32,7 +32,7 @@ package body Concorde.Components.Configure is
 
       Component : constant Component_Access :=
                     new Root_Component_Type'
-                      (Concorde.Objects.Root_Named_Object_Type with
+                      (Concorde.Objects.Root_Localised_Object_Type with
                        Class                   => Class,
                        Shape                   => Shape,
                        Colour                  =>
@@ -58,7 +58,7 @@ package body Concorde.Components.Configure is
                        Layout                  => (1, 1, 1));
 
    begin
-      Component.Set_Name (Config.Get ("name", Config.Config_Name));
+      Component.Set_Local_Tag (Config.Config_Name);
 
       if Config.Contains ("layout") then
          declare

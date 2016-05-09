@@ -1,3 +1,5 @@
+with Ada.Text_IO;
+
 with Concorde.Commodities.Db;
 
 package body Concorde.Commodities is
@@ -65,6 +67,12 @@ package body Concorde.Commodities is
    function Get (Name : String) return Commodity_Type is
    begin
       return Db.Get (Name);
+   exception
+      when others =>
+         Ada.Text_IO.Put_Line
+           (Ada.Text_IO.Standard_Error,
+            "unknown commodity: " & Name);
+         raise;
    end Get;
 
    ---------

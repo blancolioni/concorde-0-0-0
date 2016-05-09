@@ -23,7 +23,7 @@ package Concorde.Facilities is
    type Facility_Capacity is range 0 .. 9_999_999;
 
    type Root_Facility_Type is
-     new Concorde.Objects.Root_Named_Object_Type with private;
+     new Concorde.Objects.Root_Localised_Object_Type with private;
 
    function Class
      (Facility : Root_Facility_Type'Class)
@@ -158,7 +158,7 @@ private
      array (Positive range <>) of Worker_Record;
 
    type Root_Facility_Type is
-     new Concorde.Objects.Root_Named_Object_Type with
+     new Concorde.Objects.Root_Localised_Object_Type with
       record
          Tag                 : access String;
          Class               : Facility_Class;

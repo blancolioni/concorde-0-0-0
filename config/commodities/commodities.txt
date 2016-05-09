@@ -1,9 +1,23 @@
-livestock = { class = resource
-              name = Livestock
-              mass = 2000
-              organic = yes
-              base_price = 3
-            }
+legumes = { class = resource
+            mass = 2000
+            organic = yes
+            base_price = 3
+          }
+wool = { class = resource
+            mass = 2000
+            organic = yes
+            base_price = 3
+          }
+cotton = { class = resource
+            mass = 2000
+            organic = yes
+            base_price = 3
+          }
+silk = { class = resource
+            mass = 2000
+            organic = yes
+            base_price = 20
+          }
 seafood = { class = resource
             name = Seafood
             mass = 1500

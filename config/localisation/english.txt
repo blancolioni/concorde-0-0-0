@@ -1,0 +1,11 @@
+legumes = Legumes
+silk = Silk
+wool = Wool
+cotton = Cotton
+seafood = Seafood
+fruit = Fruit
+vegetables = Vegetables
+grains = Grains
+herb = Herbs
+fungi = Fungi
+salt = Salt

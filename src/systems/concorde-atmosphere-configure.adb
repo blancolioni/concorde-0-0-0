@@ -40,7 +40,7 @@ package body Concorde.Atmosphere.Configure is
 
       procedure Create (Gas : in out Root_Gas_Type'Class) is
       begin
-         Gas.Set_Name (Config.Get ("name", Config.Config_Name));
+         Gas.Set_Local_Tag (Config.Config_Name);
          Gas.Formula :=
            new String'(Config.Get ("formula", Config.Config_Name));
          Gas.Molecular_Weight := Config.Get ("weight");

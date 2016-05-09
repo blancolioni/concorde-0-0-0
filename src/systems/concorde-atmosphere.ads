@@ -5,7 +5,7 @@ with Concorde.Objects;
 package Concorde.Atmosphere is
 
    type Root_Gas_Type is
-     new Concorde.Objects.Root_Named_Object_Type
+     new Concorde.Objects.Root_Localised_Object_Type
    with private;
 
    function Abundance_E
@@ -53,7 +53,7 @@ package Concorde.Atmosphere is
 private
 
    type Root_Gas_Type is
-     new Concorde.Objects.Root_Named_Object_Type with
+     new Concorde.Objects.Root_Localised_Object_Type with
       record
          Formula          : access String;
          Melting_Point    : Non_Negative_Real;

@@ -5,6 +5,7 @@ package Concorde.Options is
    function Console return Boolean;
    function Enable_Detailed_Battle_Logging return Boolean;
    function Enable_Empire_Logging return Boolean;
+   function Display_Language return String;
    function Minimum_Size_For_Battle return Natural;
    function Number_Of_Empires return Positive;
    function Number_Of_Systems return Positive;

@@ -6,7 +6,6 @@ package Concorde.Commodities.Configure is
 
    function Create_From_Skill
      (Tag      : String;
-      Name     : String;
       Base_Pay : Concorde.Money.Price_Type)
       return Commodity_Type;
 

@@ -6,7 +6,7 @@ with Concorde.Objects;
 package Concorde.Modules is
 
    type Root_Module_Type is
-     new Concorde.Objects.Root_Named_Object_Type
+     new Concorde.Objects.Root_Localised_Object_Type
    with private;
 
    function Component
@@ -117,7 +117,7 @@ package Concorde.Modules is
 private
 
    type Root_Module_Type is
-     new Concorde.Objects.Root_Named_Object_Type with
+     new Concorde.Objects.Root_Localised_Object_Type with
       record
          Component         : Concorde.Components.Component_Type;
          Size              : Size_Type;

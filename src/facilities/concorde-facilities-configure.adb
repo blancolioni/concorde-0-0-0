@@ -54,7 +54,7 @@ package body Concorde.Facilities.Configure is
            (if Template /= null
             then Template.Class
             else Facility_Class'Value (Config.Get ("class")));
-         Facility.Set_Name (Config.Get ("name", Config.Config_Name));
+         Facility.Set_Local_Tag (Config.Config_Name);
          Facility.Base_Service_Charge :=
            Concorde.Money.Value (Config.Get ("service_charge", "0"));
          Facility.Power :=

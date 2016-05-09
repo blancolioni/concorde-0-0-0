@@ -60,7 +60,7 @@ package Concorde.Systems is
                     is abstract;
 
    type Root_Star_System_Type is
-     new Concorde.Objects.Root_Named_Object_Type
+     new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Agents.Agent_Location_Interface
      and Concorde.Government.Governed_Interface
    with private;
@@ -273,7 +273,7 @@ private
      new Ada.Containers.Doubly_Linked_Lists (System_Object_Record);
 
    type Root_Star_System_Type is
-     new Concorde.Objects.Root_Named_Object_Type
+     new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Agents.Agent_Location_Interface
      and Concorde.Government.Governed_Interface with
       record

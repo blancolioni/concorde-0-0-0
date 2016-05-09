@@ -24,7 +24,7 @@ package Concorde.Ships is
    type Root_Ship_Type is
      new Concorde.Agents.Root_Agent_Type
      and Memor.Identifier_Record_Type
-     and Concorde.Objects.Named_Object_Interface
+     and Concorde.Objects.User_Named_Object_Interface
    with private;
 
    function Long_Name (Ship : Root_Ship_Type'Class) return String;
@@ -275,7 +275,7 @@ private
    type Root_Ship_Type is
      new Concorde.Agents.Root_Agent_Type
      and Memor.Identifier_Record_Type
-     and Concorde.Objects.Named_Object_Interface with
+     and Concorde.Objects.User_Named_Object_Interface with
       record
          Identity              : String (1 .. 6);
          Ship_Name             : Ada.Strings.Unbounded.Unbounded_String;

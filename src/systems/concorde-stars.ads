@@ -15,7 +15,7 @@ package Concorde.Stars is
    type Stellar_Size_Type is (Brown_Dwarf, Main_Sequence, Giant, Supergiant);
 
    type Root_Star_Type is
-     new Concorde.Objects.Root_Named_Object_Type
+     new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Systems.Main_Star_System_Object_Interface
    with private;
 
@@ -53,7 +53,7 @@ package Concorde.Stars is
 private
 
    type Root_Star_Type is
-     new Concorde.Objects.Root_Named_Object_Type
+     new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Systems.Main_Star_System_Object_Interface with
       record
          Class        : Stellar_Class_Type;

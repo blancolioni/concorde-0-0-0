@@ -7,7 +7,7 @@ with Concorde.Objects;
 package Concorde.Terrain is
 
    type Root_Terrain_Type is
-     new Concorde.Objects.Root_Named_Object_Type
+     new Concorde.Objects.Root_Localised_Object_Type
    with private;
 
    function Is_Water (Terrain : Root_Terrain_Type'Class) return Boolean;
@@ -27,7 +27,7 @@ package Concorde.Terrain is
 private
 
    type Root_Terrain_Type is
-     new Concorde.Objects.Root_Named_Object_Type with
+     new Concorde.Objects.Root_Localised_Object_Type with
       record
          Is_Water       : Boolean;
          Text_Character : Character;

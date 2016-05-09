@@ -13,7 +13,6 @@ package body Concorde.Commodities.Configure is
 
    function Create
      (Tag        : String;
-      Name       : String;
       Class      : Commodity_Class;
       Mass       : Non_Negative_Real;
       Base_Price : Concorde.Money.Price_Type;
@@ -136,8 +135,6 @@ package body Concorde.Commodities.Configure is
          New_Commodity : constant Commodity_Type :=
                            Create
                              (Tag        => Config.Config_Name,
-                              Name       =>
-                                Config.Get ("name", Config.Config_Name),
                               Class      =>
                                 Commodity_Class'Value (Config.Get ("class")),
                               Mass       =>
@@ -163,7 +160,6 @@ package body Concorde.Commodities.Configure is
 
    function Create
      (Tag        : String;
-      Name       : String;
       Class      : Commodity_Class;
       Mass       : Non_Negative_Real;
       Base_Price : Concorde.Money.Price_Type;
@@ -180,9 +176,8 @@ package body Concorde.Commodities.Configure is
 
       procedure Create (Commodity : in out Root_Commodity_Type'Class) is
       begin
-         Commodity.Tag := new String'(Tag);
+         Commodity.Set_Local_Tag (Tag);
          Commodity.Class := Class;
-         Commodity.Set_Name (Name);
          Commodity.Flags := Flags;
          Commodity.Mass := Mass;
          Commodity.Base_Price := Base_Price;
@@ -202,8 +197,7 @@ package body Concorde.Commodities.Configure is
    is
       Service : constant Commodity_Type :=
                   Create
-                    (Tag        => Service_Facility.Identifier,
-                     Name       => Service_Facility.Name,
+                    (Tag        => Service_Facility.Local_Tag,
                      Class      => Concorde.Commodities.Service,
                      Mass       => 0.0,
                      Base_Price => Service_Facility.Base_Service_Charge,
@@ -220,14 +214,12 @@ package body Concorde.Commodities.Configure is
 
    function Create_From_Skill
      (Tag      : String;
-      Name     : String;
       Base_Pay : Concorde.Money.Price_Type)
       return Commodity_Type
    is
    begin
       return Create
         (Tag        => Tag,
-         Name       => Name,
          Class      => Concorde.Commodities.Skill,
          Mass       => 0.0,
          Base_Price => Base_Pay,

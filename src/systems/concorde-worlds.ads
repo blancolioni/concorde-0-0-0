@@ -23,7 +23,7 @@ package Concorde.Worlds is
    subtype Jovian_World is World_Category range Sub_Jovian .. Jovian;
 
    type Root_World_Type is
-     new Concorde.Objects.Root_Named_Object_Type
+     new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Systems.Star_System_Object_Interface
    with private;
 
@@ -80,7 +80,7 @@ private
    type Array_Of_Row_Lengths is array (Positive range <>) of Positive;
 
    type Root_World_Type is
-     new Concorde.Objects.Root_Named_Object_Type
+     new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Systems.Star_System_Object_Interface with
       record
          Primary               : access

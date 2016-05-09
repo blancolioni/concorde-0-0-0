@@ -27,7 +27,7 @@ package body Concorde.Features.Configure is
 
       procedure Create (Feature : in out Root_Feature_Type'Class) is
       begin
-         Feature.Set_Name (Config.Config_Name);
+         Feature.Set_Local_Tag (Config.Config_Name);
          Feature.Is_Ice := Config.Get ("ice", False);
          Feature.Is_Desert := Config.Config_Name = "desert";
          Feature.Colour :=

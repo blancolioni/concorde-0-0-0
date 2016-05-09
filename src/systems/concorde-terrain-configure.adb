@@ -43,7 +43,7 @@ package body Concorde.Terrain.Configure is
       procedure Create (Terrain : in out Root_Terrain_Type'Class) is
          Ch_Text : constant String := Config.Get ("char", "!");
       begin
-         Terrain.Set_Name (Config.Config_Name);
+         Terrain.Set_Local_Tag (Config.Config_Name);
          Terrain.Is_Water := Config.Get ("water", False);
          Terrain.Text_Character := Ch_Text (Ch_Text'First);
          Terrain.Colour :=

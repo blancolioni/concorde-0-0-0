@@ -160,7 +160,7 @@ rations-factory = {
    template = light-factory
    name = "Rations Factory"
    inputs = {
-     grains = 9
+     grains = 5
      salt = 1
      }
    output = rations
@@ -172,9 +172,9 @@ ready-meal-factory = {
    inputs = {
      grains = 4
      herb = 1
-     livestock = 4
+     legumes = 2
      salt = 1
-     vegetables = 3
+     vegetables = 2
      }
    output = readymeal
 }
@@ -187,7 +187,7 @@ luxury-food-factory = {
      fungi = 1
      grains = 1
      herb = 1
-     livestock = 1
+     legumes = 1
      salt = 1
      seafood = 2
      vegetables = 3
@@ -261,8 +261,10 @@ luxury-clothes-factory = {
    template = light-factory
    name = "Luxury Clothing Factory"
    inputs = {
-      livestock = 10
+      silk = 10
       precious = 10
+	  cotton = 5
+	  wool = 5
       }
    output = luxuryclothes
 }
@@ -271,7 +273,8 @@ regular-clothes-factory = {
    template = light-factory
    name = "Clothing Factory"
    inputs = {
-      livestock = 10
+      cotton = 5
+	  wool = 5
       bronze = 2
       nylon = 2
       }

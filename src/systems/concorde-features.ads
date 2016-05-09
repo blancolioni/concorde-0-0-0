@@ -7,7 +7,7 @@ with Concorde.Objects;
 package Concorde.Features is
 
    type Root_Feature_Type is
-     new Concorde.Objects.Root_Named_Object_Type
+     new Concorde.Objects.Root_Localised_Object_Type
    with private;
 
    function Colour
@@ -24,7 +24,7 @@ package Concorde.Features is
 private
 
    type Root_Feature_Type is
-     new Concorde.Objects.Root_Named_Object_Type with
+     new Concorde.Objects.Root_Localised_Object_Type with
       record
          Colour    : Lui.Colours.Colour_Type;
          Is_Ice    : Boolean;

@@ -44,12 +44,11 @@ package body Concorde.People.Skills.Configure is
       procedure Create (Skill : in out Root_Pop_Skill'Class) is
          Base_Pay : constant Real := Config.Get ("base_pay");
       begin
-         Skill.Pop_Skill_Id := new String'(Name);
-         Skill.Set_Name (Config.Get ("name", Name));
+         Skill.Set_Local_Tag (Name);
          Skill.Base_Pay := Concorde.Money.To_Price (Base_Pay);
          Skill.Commodity :=
            Concorde.Commodities.Configure.Create_From_Skill
-             (Name, Name, Skill.Base_Pay);
+             (Name, Skill.Base_Pay);
          Skill.Wealth_Group :=
            Concorde.People.Groups.Get
              (Config.Get ("wealth_group", "poor"));

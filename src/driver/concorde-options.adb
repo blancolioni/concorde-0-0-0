@@ -107,6 +107,15 @@ package body Concorde.Options is
       return Boolean_Value ("console", 'c');
    end Console;
 
+   ----------------------
+   -- Display_Language --
+   ----------------------
+
+   function Display_Language return String is
+   begin
+      return String_Value ("display-language", 'L', "english");
+   end Display_Language;
+
    ------------------------------------
    -- Enable_Detailed_Battle_Logging --
    ------------------------------------

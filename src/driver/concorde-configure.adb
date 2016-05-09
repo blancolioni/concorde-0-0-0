@@ -10,7 +10,10 @@ with Concorde.Atmosphere.Configure;
 with Concorde.Features.Configure;
 with Concorde.Terrain.Configure;
 
+with Concorde.Options;
 with Concorde.Scenarios;
+
+with Concorde.Localisation;
 
 package body Concorde.Configure is
 
@@ -20,7 +23,10 @@ package body Concorde.Configure is
 
    procedure Load_Configuration is
    begin
-      Concorde.Scenarios.Load_Scenario ("fading-suns");
+      Concorde.Localisation.Load_Localisation
+        (Concorde.Options.Display_Language);
+
+      Concorde.Scenarios.Load_Scenario (Concorde.Options.Scenario);
 
       Concorde.Terrain.Configure.Configure_Terrain;
       Concorde.Features.Configure.Configure_Features;

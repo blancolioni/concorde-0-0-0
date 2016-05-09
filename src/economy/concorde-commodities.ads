@@ -24,7 +24,7 @@ package Concorde.Commodities is
    type Commodity_Quality is (High, Middle, Low);
 
    type Root_Commodity_Type is
-     new Concorde.Objects.Root_Named_Object_Type with private;
+     new Concorde.Objects.Root_Localised_Object_Type with private;
 
    function Class
      (Commodity : Root_Commodity_Type'Class)
@@ -145,9 +145,8 @@ package Concorde.Commodities is
 private
 
    type Root_Commodity_Type is
-     new Concorde.Objects.Root_Named_Object_Type with
+     new Concorde.Objects.Root_Localised_Object_Type with
       record
-         Tag        : access String;
          Class      : Commodity_Class;
          Flags      : Array_Of_Flags;
          Base_Price : Concorde.Money.Price_Type;
@@ -158,11 +157,6 @@ private
    overriding function Object_Database
      (Item : Root_Commodity_Type)
       return Memor.Root_Database_Type'Class;
-
-   overriding function Identifier
-     (Item : Root_Commodity_Type)
-      return String
-   is (Item.Tag.all);
 
    type Stock_Entry is
       record

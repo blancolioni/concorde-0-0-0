@@ -247,7 +247,7 @@ package body Concorde.Modules is
         (Module : in out Root_Module_Type'Class)
       is
       begin
-         Module.Set_Name (Name);
+         Module.Set_Local_Tag (Name);
          Module.Component := Component;
          Module.Size := Size;
          Module.Volume := Volume;
