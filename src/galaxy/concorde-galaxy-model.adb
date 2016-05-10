@@ -557,14 +557,6 @@ package body Concorde.Galaxy.Model is
    -- Galaxy_Model --
    ------------------
 
-   ------------------
-   -- Galaxy_Model --
-   ------------------
-
-   ------------------
-   -- Galaxy_Model --
-   ------------------
-
    function Galaxy_Model
      return Lui.Models.Object_Model
    is
@@ -631,7 +623,10 @@ package body Concorde.Galaxy.Model is
             B := new Battle_Table'(B_Table);
 
             Result.Battles := B;
-            Result.Initialise ("Galaxy", (E, S, B));
+            Result.Initialise
+              ("Galaxy",
+               Last_Render_Layer => 3,
+               Tables            => (E, S, B));
 
             Result.Set_Eye_Position (0.0, 0.0, 2.2);
             Result.Show_Capital_Names :=
@@ -717,202 +712,206 @@ package body Concorde.Galaxy.Model is
      (Model    : in out Root_Galaxy_Model;
       Renderer : in out Lui.Rendering.Root_Renderer'Class)
    is
+      use type Lui.Rendering.Render_Layer;
    begin
       Concorde.Updates.Begin_Render;
 
-      for Star_Pass in Boolean loop
-         for I in 1 .. Galaxy_Graph.Last_Vertex_Index loop
-            declare
-               use type Concorde.Empires.Empire_Type;
-               use Concorde.Systems;
-               System : constant Star_System_Type :=
-                          Galaxy_Graph.Vertex (I);
-               X      : constant Real := System.X;
-               Y      : constant Real := System.Y;
-               Radius : constant Non_Negative_Real :=
-                          Concorde.Elementary_Functions.Sqrt
-                            (System.Main_Object.Radius)
-                            * 6.0 / Model.Eye_Z;
-               System_Radius : constant Positive :=
-                                 Natural'Max (1, Natural (Radius));
-               Screen_X : Integer;
-               Screen_Y : Integer;
-               Screen_Z : Real;
-               Owner    : constant Concorde.Empires.Empire_Type :=
-                            System.Owner;
-               Colour   : constant Lui.Colours.Colour_Type :=
-                            (if Owner /= null
-                             then Owner.Colour
-                             else System.Main_Object.Colour);
-            begin
-               Model.Get_Screen_Coordinates
-                 (X, Y, 0.0, Screen_X, Screen_Y, Screen_Z);
-               if Star_Pass then
+      if Renderer.Current_Render_Layer = 1 then
+         for Star_Pass in Boolean loop
+            for I in 1 .. Galaxy_Graph.Last_Vertex_Index loop
+               declare
+                  use type Concorde.Empires.Empire_Type;
+                  use Concorde.Systems;
+                  System : constant Star_System_Type :=
+                             Galaxy_Graph.Vertex (I);
+                  X      : constant Real := System.X;
+                  Y      : constant Real := System.Y;
+                  Radius : constant Non_Negative_Real :=
+                             Concorde.Elementary_Functions.Sqrt
+                               (System.Main_Object.Radius)
+                               * 6.0 / Model.Eye_Z;
+                  System_Radius : constant Positive :=
+                                    Natural'Max (1, Natural (Radius));
+                  Screen_X : Integer;
+                  Screen_Y : Integer;
+                  Screen_Z : Real;
+                  Owner    : constant Concorde.Empires.Empire_Type :=
+                               System.Owner;
+                  Colour   : constant Lui.Colours.Colour_Type :=
+                               (if Owner /= null
+                                then Owner.Colour
+                                else System.Main_Object.Colour);
+               begin
+                  Model.Get_Screen_Coordinates
+                    (X, Y, 0.0, Screen_X, Screen_Y, Screen_Z);
+                  if Star_Pass then
 
-                  Model.Rendered_Systems.Replace_Element
-                    (System.Reference,
-                     (Screen_X, Screen_Y, System_Radius, Colour));
+                     Model.Rendered_Systems.Replace_Element
+                       (System.Reference,
+                        (Screen_X, Screen_Y, System_Radius, Colour));
 
-                  if System.Owned then
-                     Draw_Influence
-                       (Model, Renderer, System);
-                  end if;
+                     if System.Owned then
+                        Draw_Influence
+                          (Model, Renderer, System);
+                     end if;
 
-                  if Recent_Battle (System, 5) then
+                     if Recent_Battle (System, 5) then
+                        declare
+                           use Concorde.Elementary_Functions;
+                           Size : constant Positive :=
+                                    Positive'Max
+                                      (Natural
+                                         (Sqrt
+                                            (Real (System.Last_Battle_Size))),
+                                       10);
+                           Days : constant Natural :=
+                                    Natural (Concorde.Dates.Current_Date)
+                                    - Natural (System.Last_Battle);
+                        begin
+                           if Days < Size then
+                              Renderer.Draw_Circle
+                                (X          => Screen_X,
+                                 Y          => Screen_Y,
+                                 Radius     => Size - Days,
+                                 Colour     => (1.0, 0.0, 0.0,
+                                                1.0
+                                                - Real (Days)
+                                                / Real (Size)),
+                                 Filled     => True,
+                                 Line_Width => 1);
+                           end if;
+                        end;
+                     end if;
+
+                     Renderer.Draw_Circle
+                       (X          => Screen_X,
+                        Y          => Screen_Y,
+                        Radius     => Positive (Radius),
+                        Colour     => Colour,
+                        Filled     => True,
+                        Line_Width => 1);
+
+                     if Model.Show_System_Names
+                       or else (System.Capital
+                                and then Model.Show_Capital_Names)
+                     then
+                        Renderer.Draw_String
+                          (X      => Screen_X - 20,
+                           Y      => Screen_Y - 10,
+                           Size   => 12,
+                           Colour => Lui.Colours.White,
+                           Text   => System.Name);
+                     end if;
+
+                     if System.Ships > 0 then
+                        declare
+                           Ships : Concorde.Ships.Lists.List;
+                        begin
+                           System.Get_Ships (Ships);
+                           Model.Draw_Ships (Renderer, System,
+                                             System_Radius, Ships);
+                        end;
+                     end if;
+
                      declare
-                        use Concorde.Elementary_Functions;
-                        Size : constant Positive :=
-                                 Positive'Max
-                                   (Natural
-                                      (Sqrt
-                                         (Real (System.Last_Battle_Size))),
-                                    10);
-                        Days : constant Natural :=
-                                 Natural (Concorde.Dates.Current_Date)
-                                 - Natural (System.Last_Battle);
+                        Radius : Positive := 8;
+
+                        procedure Draw_Claims
+                          (Empire : Concorde.Empires.Root_Empire_Type'Class);
+
+                        -----------------
+                        -- Draw_Claims --
+                        -----------------
+
+                        procedure Draw_Claims
+                          (Empire : Concorde.Empires.Root_Empire_Type'Class)
+                        is
+                           use Concorde.Empires;
+                        begin
+                           if Empire.Is_Set (System, Claim)
+                             and then not Empire.Owned_System (System)
+                           then
+                              Renderer.Draw_Circle
+                                (X          => Screen_X,
+                                 Y          => Screen_Y,
+                                 Radius     => Radius,
+                                 Colour     => Empire.Colour,
+                                 Filled     => False,
+                                 Line_Width => 1);
+                              Radius := Radius + 2;
+                           end if;
+                        end Draw_Claims;
+
                      begin
-                        if Days < Size then
+                        Concorde.Empires.Db.Scan (Draw_Claims'Access);
+                     end;
+
+                     if False and then Owner /= null then
+                        declare
+                           Colour : Lui.Colours.Colour_Type := Owner.Colour;
+                        begin
+                           Colour.Alpha := 0.4;
                            Renderer.Draw_Circle
                              (X          => Screen_X,
                               Y          => Screen_Y,
-                              Radius     => Size - Days,
-                              Colour     => (1.0, 0.0, 0.0,
-                                             1.0
-                                             - Real (Days)
-                                             / Real (Size)),
+                              Radius     => 30,
+                              Colour     => Colour,
                               Filled     => True,
                               Line_Width => 1);
-                        end if;
-                     end;
-                  end if;
+                        end;
+                     end if;
+                  else
 
-                  Renderer.Draw_Circle
-                    (X          => Screen_X,
-                     Y          => Screen_Y,
-                     Radius     => Positive (Radius),
-                     Colour     => Colour,
-                     Filled     => True,
-                     Line_Width => 1);
-
-                  if Model.Show_System_Names
-                    or else (System.Capital
-                             and then Model.Show_Capital_Names)
-                  then
-                     Renderer.Draw_String
-                       (X      => Screen_X - 20,
-                        Y      => Screen_Y - 10,
-                        Size   => 12,
-                        Colour => Lui.Colours.White,
-                        Text   => System.Name);
-                  end if;
-
-                  if System.Ships > 0 then
                      declare
-                        Ships : Concorde.Ships.Lists.List;
+
+                        procedure Draw_Connection
+                          (To   : Star_System_Type;
+                           Cost : Non_Negative_Real);
+
+                        ---------------------
+                        -- Draw_Connection --
+                        ---------------------
+
+                        procedure Draw_Connection
+                          (To   : Star_System_Type;
+                           Cost : Non_Negative_Real)
+                        is
+                           pragma Unreferenced (Cost);
+                        begin
+                           if To.Index > System.Index then
+                              Concorde.Galaxy.Locking.Lock_System
+                                (System.all, False);
+                              Concorde.Galaxy.Locking.Lock_System
+                                (To.all, False);
+                              Model.Draw_Connection
+                                (Renderer, System.Index, To.Index);
+                              Concorde.Galaxy.Locking.Unlock_System
+                                (To.all);
+                              Concorde.Galaxy.Locking.Unlock_System
+                                (System.all);
+                           end if;
+                        end Draw_Connection;
+
                      begin
-                        System.Get_Ships (Ships);
-                        Model.Draw_Ships (Renderer, System,
-                                          System_Radius, Ships);
+                        Galaxy_Graph.Iterate_Edges_From_Vertex
+                          (Galaxy_Graph.Vertex (I), Draw_Connection'Access);
                      end;
                   end if;
-
-                  declare
-                     Radius : Positive := 8;
-
-                     procedure Draw_Claims
-                       (Empire : Concorde.Empires.Root_Empire_Type'Class);
-
-                     -----------------
-                     -- Draw_Claims --
-                     -----------------
-
-                     procedure Draw_Claims
-                       (Empire : Concorde.Empires.Root_Empire_Type'Class)
-                     is
-                        use Concorde.Empires;
-                     begin
-                        if Empire.Is_Set (System, Claim)
-                          and then not Empire.Owned_System (System)
-                        then
-                           Renderer.Draw_Circle
-                             (X          => Screen_X,
-                              Y          => Screen_Y,
-                              Radius     => Radius,
-                              Colour     => Empire.Colour,
-                              Filled     => False,
-                              Line_Width => 1);
-                           Radius := Radius + 2;
-                        end if;
-                     end Draw_Claims;
-
-                  begin
-                     Concorde.Empires.Db.Scan (Draw_Claims'Access);
-                  end;
-
-                  if False and then Owner /= null then
-                     declare
-                        Colour : Lui.Colours.Colour_Type := Owner.Colour;
-                     begin
-                        Colour.Alpha := 0.4;
-                        Renderer.Draw_Circle
-                          (X          => Screen_X,
-                           Y          => Screen_Y,
-                           Radius     => 30,
-                           Colour     => Colour,
-                           Filled     => True,
-                           Line_Width => 1);
-                     end;
-                  end if;
-               else
-
-                  declare
-
-                     procedure Draw_Connection
-                       (To   : Star_System_Type;
-                        Cost : Non_Negative_Real);
-
-                     ---------------------
-                     -- Draw_Connection --
-                     ---------------------
-
-                     procedure Draw_Connection
-                       (To   : Star_System_Type;
-                        Cost : Non_Negative_Real)
-                     is
-                        pragma Unreferenced (Cost);
-                     begin
-                        if To.Index > System.Index then
-                           Concorde.Galaxy.Locking.Lock_System
-                             (System.all, False);
-                           Concorde.Galaxy.Locking.Lock_System
-                             (To.all, False);
-                           Model.Draw_Connection
-                             (Renderer, System.Index, To.Index);
-                           Concorde.Galaxy.Locking.Unlock_System
-                             (To.all);
-                           Concorde.Galaxy.Locking.Unlock_System
-                             (System.all);
-                        end if;
-                     end Draw_Connection;
-
-                  begin
-                     Galaxy_Graph.Iterate_Edges_From_Vertex
-                       (Galaxy_Graph.Vertex (I), Draw_Connection'Access);
-                  end;
-               end if;
-            end;
+               end;
+            end loop;
          end loop;
-      end loop;
+      elsif Renderer.Current_Render_Layer = 2 then
+         declare
+            use Concorde.Dates;
+         begin
+            if Current_Date > 10 then
+               Model.Draw_History (Renderer);
+            end if;
+         end;
 
-      declare
-         use Concorde.Dates;
-      begin
-         if Current_Date > 10 then
-            Model.Draw_History (Renderer);
-         end if;
-      end;
+         Model.Needs_Render := False;
 
-      Model.Needs_Render := False;
+      end if;
 
       Concorde.Updates.Finish_Render;
 
@@ -972,7 +971,7 @@ package body Concorde.Galaxy.Model is
 
    function Ship_Count_Image
      (Count : Natural)
-         return String
+      return String
    is
    begin
       if Count < 10 then
