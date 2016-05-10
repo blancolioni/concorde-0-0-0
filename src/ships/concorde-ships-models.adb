@@ -893,8 +893,11 @@ package body Concorde.Ships.Models is
       declare
          use type Lui.Gadgets.Array_Of_Gadgets;
       begin
-         Model.Initialise (Ship.Name, (Modules, Cargo, Engines),
-                           Rotation_Buttons & Engine_Buttons);
+         Model.Initialise
+           (Name              => Ship.Name,
+            Last_Render_Layer => 1,
+            Tables            => (Modules, Cargo, Engines),
+            Gadgets           => Rotation_Buttons & Engine_Buttons);
       end;
 
       declare
