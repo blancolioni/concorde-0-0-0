@@ -39,10 +39,10 @@ package body Concorde.People.Pops is
    -- Affiliation --
    -----------------
 
-   function Affiliation
-     (Pop   : Root_Pop_Type'Class;
+   overriding function Affiliation
+     (Pop   : Root_Pop_Type;
       Group : Concorde.People.Groups.Pop_Group)
-      return Affiliation_Range
+      return Concorde.People.Groups.Affiliation_Range
    is
    begin
       return Pop.Groups.Element (Group.Reference);
@@ -95,26 +95,5 @@ package body Concorde.People.Pops is
    begin
       return Concorde.Quantities.To_Quantity (Real (Pop.Size));
    end Size_Quantity;
-
-   ------------------
-   -- Wealth_Group --
-   ------------------
-
-   function Wealth_Group
-     (Pop : Root_Pop_Type'Class)
-      return Concorde.People.Groups.Pop_Group
-   is
-   begin
-      if Pop.Poor then
-         return Groups.Poor;
-      elsif Pop.Middle_Class then
-         return Groups.Middle_Class;
-      elsif Pop.Rich then
-         return Groups.Rich;
-      else
-         raise Constraint_Error with
-           "pop has no wealth group";
-      end if;
-   end Wealth_Group;
 
 end Concorde.People.Pops;

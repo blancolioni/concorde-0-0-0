@@ -75,4 +75,25 @@ package body Concorde.People.Groups is
       return Get ("rich");
    end Rich;
 
+   ------------------
+   -- Wealth_Group --
+   ------------------
+
+   function Wealth_Group
+     (Affiliator : Affiliation_Interface'Class)
+      return Pop_Group
+   is
+   begin
+      if Affiliator.Poor then
+         return Poor;
+      elsif Affiliator.Middle_Class then
+         return Middle_Class;
+      elsif Affiliator.Rich then
+         return Rich;
+      else
+         raise Constraint_Error with
+           "affiliator has no wealth group";
+      end if;
+   end Wealth_Group;
+
 end Concorde.People.Groups;
