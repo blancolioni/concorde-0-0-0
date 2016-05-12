@@ -1,3 +1,5 @@
+with Concorde.Names;
+
 with Concorde.Components.Configure;
 with Concorde.Ships.Designs;
 
@@ -27,6 +29,8 @@ package body Concorde.Configure is
         (Concorde.Options.Display_Language);
 
       Concorde.Scenarios.Load_Scenario (Concorde.Options.Scenario);
+
+      Concorde.Names.Configure_Names;
 
       Concorde.Terrain.Configure.Configure_Terrain;
       Concorde.Features.Configure.Configure_Features;
