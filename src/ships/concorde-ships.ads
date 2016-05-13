@@ -17,7 +17,7 @@ with Concorde.Trades;
 
 with Concorde.Quantities;
 
-private with Newton.Flight;
+private with Newton;
 
 package Concorde.Ships is
 
@@ -290,9 +290,9 @@ private
          Size                  : Size_Type;
          Current_Damage        : Unit_Real := 0.0;
          Current_Shields       : Unit_Real := 0.0;
-         Location              : Newton.Flight.Vector_3;
-         Velocity              : Newton.Flight.Vector_3;
-         Orientation           : Newton.Flight.Matrix_3;
+         Location              : Newton.Vector_3;
+         Velocity              : Newton.Vector_3;
+         Orientation           : Newton.Matrix_3;
       end record;
 
    package Ship_Vectors is

@@ -25,3 +25,4 @@ empire-log.txt
 concorde.gpr
 log/*
 concorde.log
+config/images/planets/original/*

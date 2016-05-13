@@ -134,7 +134,7 @@ package body Concorde.Ships.Models is
      new Lui.Gadgets.Root_Button_Gadget with
       record
          Newton_Ship  : Concorde.Ships.Flight.Newtonian_Ship;
-         Rotation     : Newton.Flight.Vector_3;
+         Rotation     : Newton.Vector_3;
       end record;
 
    overriding procedure On_Click
@@ -143,7 +143,7 @@ package body Concorde.Ships.Models is
 
    function Create_Rotate_Button
      (Newton_Ship  : Concorde.Ships.Flight.Newtonian_Ship;
-      Rotation     : Newton.Flight.Vector_3;
+      Rotation     : Newton.Vector_3;
       Label        : String)
       return Lui.Gadgets.Model_Gadget;
 
@@ -162,7 +162,7 @@ package body Concorde.Ships.Models is
 
    function To_Orientation_Matrix
      (Orientation : Module_Orientation)
-      return Newton.Flight.Matrix_4;
+      return Newton.Matrix_4;
 
    function Get_Component
      (Mount : Module_Layout_Record;
@@ -456,7 +456,7 @@ package body Concorde.Ships.Models is
                     Location    => (0.0, 0.0, 0.0),
                     Velocity    => (0.0, 0.0, 0.0),
                     Orientation =>
-                      Newton.Flight.Matrices.Unit_Matrix (3));
+                      Newton.Matrices.Unit_Matrix (3));
    begin
       for Mount_Index in 1 .. Ship.Structure.Last_Index loop
          declare
@@ -470,7 +470,7 @@ package body Concorde.Ships.Models is
                   O_4 : constant Lui.Models.Model_3D.Matrix_4 :=
                           To_Orientation_Matrix
                             (Mount.Orientation);
-                  O_3 : Newton.Flight.Matrix_3;
+                  O_3 : Newton.Matrix_3;
                begin
                   for I in 1 .. 3 loop
                      for J in 1 .. 3 loop
@@ -498,7 +498,7 @@ package body Concorde.Ships.Models is
 
    function Create_Rotate_Button
      (Newton_Ship  : Concorde.Ships.Flight.Newtonian_Ship;
-      Rotation     : Newton.Flight.Vector_3;
+      Rotation     : Newton.Vector_3;
       Label        : String)
       return Lui.Gadgets.Model_Gadget
    is
@@ -518,9 +518,9 @@ package body Concorde.Ships.Models is
      (Model  : in out Ship_Model)
    is
       Unit_Size  : constant Real := 1.0;
-      Rotate_3   : constant Newton.Flight.Matrix_3 :=
+      Rotate_3   : constant Newton.Matrix_3 :=
                      Model.Newton_Ship.Orientation;
-      Translate_3 : constant Newton.Flight.Vector_3 :=
+      Translate_3 : constant Newton.Vector_3 :=
                       Model.Newton_Ship.Location;
       Rotate_4   : Lui.Models.Model_3D.Matrix_4 :=
                      Lui.Models.Model_3D.Matrices.Unit_Matrix (4);
@@ -1150,11 +1150,11 @@ package body Concorde.Ships.Models is
 
    function To_Orientation_Matrix
      (Orientation : Module_Orientation)
-      return Newton.Flight.Matrix_4
+      return Newton.Matrix_4
    is
       use Concorde.Components;
-      Result : Newton.Flight.Matrix_4 :=
-                 Newton.Flight.Matrices.Unit_Matrix (4);
+      Result : Newton.Matrix_4 :=
+                 Newton.Matrices.Unit_Matrix (4);
    begin
       case Orientation.Axis is
          when X_Axis =>

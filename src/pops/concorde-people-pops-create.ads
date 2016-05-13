@@ -6,12 +6,13 @@ with Concorde.People.Skills;
 package Concorde.People.Pops.Create is
 
    function New_Pop
-     (Location     : not null access
+     (Location       : not null access
         Concorde.Agents.Agent_Location_Interface'Class;
-      Wealth_Group : Concorde.People.Groups.Pop_Group;
-      Skill        : Concorde.People.Skills.Pop_Skill;
-      Size         : Pop_Size;
-      Cash         : Concorde.Money.Money_Type)
+      Location_Index : Natural;
+      Wealth_Group   : Concorde.People.Groups.Pop_Group;
+      Skill          : Concorde.People.Skills.Pop_Skill;
+      Size           : Pop_Size;
+      Cash           : Concorde.Money.Money_Type)
       return Pop_Type;
 
 end Concorde.People.Pops.Create;

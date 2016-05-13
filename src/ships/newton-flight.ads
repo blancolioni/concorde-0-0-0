@@ -1,17 +1,6 @@
 private with Ada.Containers.Vectors;
-with Ada.Numerics.Long_Real_Arrays;
 
 package Newton.Flight is
-
-   package Matrices renames Ada.Numerics.Long_Real_Arrays;
-
-   subtype Vector_3 is Matrices.Real_Vector (1 .. 3);
-
-   subtype Matrix_3 is Matrices.Real_Matrix (1 .. 3, 1 .. 3);
-
-   subtype Vector_4 is Matrices.Real_Vector (1 .. 4);
-
-   subtype Matrix_4 is Matrices.Real_Matrix (1 .. 4, 1 .. 4);
 
    type Massive_Object is interface;
 

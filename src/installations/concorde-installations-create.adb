@@ -33,7 +33,7 @@ package body Concorde.Installations.Create is
                      Facility.Capacity_Quantity
                        * To_Quantity (100.0);
       begin
-         Installation.New_Agent (Location, Storage);
+         Installation.New_Agent (Location, 0, Storage);
          Installation.Facility := Facility;
          Installation.Owner := Owner;
          Installation.Set_Cash (Cash);

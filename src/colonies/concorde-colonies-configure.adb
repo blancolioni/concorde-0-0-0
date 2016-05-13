@@ -218,6 +218,7 @@ package body Concorde.Colonies.Configure is
          Pop   : constant Concorde.People.Pops.Pop_Type :=
                    Concorde.People.Pops.Create.New_Pop
                      (Location => Concorde.Systems.Db.Reference (System),
+                      Location_Index => 0,
                       Wealth_Group => Group,
                       Skill        => Skill,
                       Size         => Size,

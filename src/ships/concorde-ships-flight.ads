@@ -9,11 +9,11 @@ package Concorde.Ships.Flight is
 
    overriding function Location
      (Ship : Root_Newtonian_Ship)
-      return Newton.Flight.Vector_3;
+      return Newton.Vector_3;
 
    overriding function Orientation
      (Ship : Root_Newtonian_Ship)
-      return Newton.Flight.Matrix_3;
+      return Newton.Matrix_3;
 
    function Ship
      (Newton_Ship : Root_Newtonian_Ship'Class)
@@ -37,16 +37,16 @@ package Concorde.Ships.Flight is
 
    function Create_Newtonian_Ship
      (From_Ship   : Concorde.Ships.Ship_Type;
-      Location    : Newton.Flight.Vector_3;
-      Velocity    : Newton.Flight.Vector_3;
-      Orientation : Newton.Flight.Matrix_3)
+      Location    : Newton.Vector_3;
+      Velocity    : Newton.Vector_3;
+      Orientation : Newton.Matrix_3)
       return Newtonian_Ship;
 
    procedure Add_Engine_Mount
      (Ship         : in out Root_Newtonian_Ship'Class;
       Mount        : Mounted_Module;
-      Location     : Newton.Flight.Vector_3;
-      Orientation  : Newton.Flight.Matrix_3;
+      Location     : Newton.Vector_3;
+      Orientation  : Newton.Matrix_3;
       Max_Thrust   : Non_Negative_Real;
       Delta_Thrust : Unit_Real);
 
@@ -55,8 +55,8 @@ private
    type Ship_Engine is new Newton.Flight.Engine_Component with
       record
          Mount        : Mounted_Module;
-         Location     : Newton.Flight.Vector_3;
-         Orientation  : Newton.Flight.Matrix_3;
+         Location     : Newton.Vector_3;
+         Orientation  : Newton.Matrix_3;
          Max_Thrust   : Real;
          Throttle     : Unit_Real := 0.0;
          Power        : Unit_Real := 0.0;
@@ -65,21 +65,21 @@ private
 
    overriding function Location
      (Engine : Ship_Engine)
-      return Newton.Flight.Vector_3
+      return Newton.Vector_3
    is (Engine.Location);
 
    overriding function Orientation
      (Engine : Ship_Engine)
-      return Newton.Flight.Matrix_3
+      return Newton.Matrix_3
    is (Engine.Orientation);
 
    overriding procedure Set_Location
      (Engine   : in out Ship_Engine;
-      Location : Newton.Flight.Vector_3);
+      Location : Newton.Vector_3);
 
    overriding procedure Set_Orientation
      (Engine      : in out Ship_Engine;
-      Orientation : Newton.Flight.Matrix_3);
+      Orientation : Newton.Matrix_3);
 
    overriding function Throttle
      (Engine : Ship_Engine)
@@ -119,13 +119,13 @@ private
          Selected_Index  : Natural := 0;
          Mass            : Non_Negative_Real;
          Engines         : Engine_Vectors.Vector;
-         Location        : Newton.Flight.Vector_3 := (0.0, 0.0, 0.0);
-         Orientation     : Newton.Flight.Matrix_3 :=
-                             Newton.Flight.Matrices.Unit_Matrix (3);
-         Velocity        : Newton.Flight.Vector_3 := (0.0, 0.0, 0.0);
-         CM_Force        : Newton.Flight.Vector_3 := (0.0, 0.0, 0.0);
-         Radial_Velocity : Newton.Flight.Vector_3 := (0.0, 0.0, 0.0);
-         Torque          : Newton.Flight.Vector_3 := (0.0, 0.0, 0.0);
+         Location        : Newton.Vector_3 := (0.0, 0.0, 0.0);
+         Orientation     : Newton.Matrix_3 :=
+                             Newton.Matrices.Unit_Matrix (3);
+         Velocity        : Newton.Vector_3 := (0.0, 0.0, 0.0);
+         CM_Force        : Newton.Vector_3 := (0.0, 0.0, 0.0);
+         Radial_Velocity : Newton.Vector_3 := (0.0, 0.0, 0.0);
+         Torque          : Newton.Vector_3 := (0.0, 0.0, 0.0);
       end record;
 
    overriding function Mass
@@ -135,47 +135,47 @@ private
 
    overriding function Velocity
      (Ship : Root_Newtonian_Ship)
-      return Newton.Flight.Vector_3
+      return Newton.Vector_3
    is (Ship.Velocity);
 
    overriding function Centre_Of_Mass_Force
      (Ship : Root_Newtonian_Ship)
-      return Newton.Flight.Vector_3
+      return Newton.Vector_3
    is (Ship.CM_Force);
 
    overriding function Radial_Velocity
      (Ship : Root_Newtonian_Ship)
-      return Newton.Flight.Vector_3
+      return Newton.Vector_3
    is (Ship.Radial_Velocity);
 
    overriding function Torque
      (Ship : Root_Newtonian_Ship)
-      return Newton.Flight.Vector_3
+      return Newton.Vector_3
    is (Ship.Torque);
 
    overriding procedure Set_Orientation
      (Ship        : in out Root_Newtonian_Ship;
-      Orientation : Newton.Flight.Matrix_3);
+      Orientation : Newton.Matrix_3);
 
    overriding procedure Set_Location
      (Ship     : in out Root_Newtonian_Ship;
-      Location : Newton.Flight.Vector_3);
+      Location : Newton.Vector_3);
 
    overriding procedure Set_Velocity
      (Ship     : in out Root_Newtonian_Ship;
-      Velocity : Newton.Flight.Vector_3);
+      Velocity : Newton.Vector_3);
 
    overriding procedure Set_Centre_Of_Mass_Force
      (Ship  : in out Root_Newtonian_Ship;
-      Force : Newton.Flight.Vector_3);
+      Force : Newton.Vector_3);
 
    overriding procedure Set_Radial_Velocity
      (Ship     : in out Root_Newtonian_Ship;
-      Velocity : Newton.Flight.Vector_3);
+      Velocity : Newton.Vector_3);
 
    overriding procedure Set_Torque
      (Ship   : in out Root_Newtonian_Ship;
-      Torque : Newton.Flight.Vector_3);
+      Torque : Newton.Vector_3);
 
    overriding function Engine_Count
      (Ship : Root_Newtonian_Ship)

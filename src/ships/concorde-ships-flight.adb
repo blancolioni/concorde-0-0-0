@@ -7,8 +7,8 @@ package body Concorde.Ships.Flight is
    procedure Add_Engine_Mount
      (Ship         : in out Root_Newtonian_Ship'Class;
       Mount        : Mounted_Module;
-      Location     : Newton.Flight.Vector_3;
-      Orientation  : Newton.Flight.Matrix_3;
+      Location     : Newton.Vector_3;
+      Orientation  : Newton.Matrix_3;
       Max_Thrust   : Non_Negative_Real;
       Delta_Thrust : Unit_Real)
    is
@@ -23,9 +23,9 @@ package body Concorde.Ships.Flight is
 
    function Create_Newtonian_Ship
      (From_Ship   : Concorde.Ships.Ship_Type;
-      Location    : Newton.Flight.Vector_3;
-      Velocity    : Newton.Flight.Vector_3;
-      Orientation : Newton.Flight.Matrix_3)
+      Location    : Newton.Vector_3;
+      Velocity    : Newton.Vector_3;
+      Orientation : Newton.Matrix_3)
       return Newtonian_Ship
    is
       use type Concorde.Components.Component_Class;
@@ -83,7 +83,7 @@ package body Concorde.Ships.Flight is
 
    overriding function Location
      (Ship : Root_Newtonian_Ship)
-      return Newton.Flight.Vector_3
+      return Newton.Vector_3
    is
    begin
       return Ship.Location;
@@ -95,7 +95,7 @@ package body Concorde.Ships.Flight is
 
    overriding function Orientation
      (Ship : Root_Newtonian_Ship)
-      return Newton.Flight.Matrix_3
+      return Newton.Matrix_3
    is
    begin
       return Ship.Orientation;
@@ -136,7 +136,7 @@ package body Concorde.Ships.Flight is
 
    overriding procedure Set_Centre_Of_Mass_Force
      (Ship  : in out Root_Newtonian_Ship;
-      Force : Newton.Flight.Vector_3)
+      Force : Newton.Vector_3)
    is
    begin
       Ship.CM_Force := Force;
@@ -161,7 +161,7 @@ package body Concorde.Ships.Flight is
 
    overriding procedure Set_Location
      (Ship     : in out Root_Newtonian_Ship;
-      Location : Newton.Flight.Vector_3)
+      Location : Newton.Vector_3)
    is
    begin
       Ship.Location := Location;
@@ -173,7 +173,7 @@ package body Concorde.Ships.Flight is
 
    overriding procedure Set_Location
      (Engine   : in out Ship_Engine;
-      Location : Newton.Flight.Vector_3)
+      Location : Newton.Vector_3)
    is
    begin
       Engine.Location := Location;
@@ -185,7 +185,7 @@ package body Concorde.Ships.Flight is
 
    overriding procedure Set_Orientation
      (Engine      : in out Ship_Engine;
-      Orientation : Newton.Flight.Matrix_3)
+      Orientation : Newton.Matrix_3)
    is
    begin
       Engine.Orientation := Orientation;
@@ -197,7 +197,7 @@ package body Concorde.Ships.Flight is
 
    overriding procedure Set_Orientation
      (Ship        : in out Root_Newtonian_Ship;
-      Orientation : Newton.Flight.Matrix_3)
+      Orientation : Newton.Matrix_3)
    is
    begin
       Ship.Orientation := Orientation;
@@ -221,7 +221,7 @@ package body Concorde.Ships.Flight is
 
    overriding procedure Set_Radial_Velocity
      (Ship     : in out Root_Newtonian_Ship;
-      Velocity : Newton.Flight.Vector_3)
+      Velocity : Newton.Vector_3)
    is
    begin
       Ship.Radial_Velocity := Velocity;
@@ -245,7 +245,7 @@ package body Concorde.Ships.Flight is
 
    overriding procedure Set_Torque
      (Ship   : in out Root_Newtonian_Ship;
-      Torque : Newton.Flight.Vector_3)
+      Torque : Newton.Vector_3)
    is
    begin
       Ship.Torque := Torque;
@@ -257,7 +257,7 @@ package body Concorde.Ships.Flight is
 
    overriding procedure Set_Velocity
      (Ship     : in out Root_Newtonian_Ship;
-      Velocity : Newton.Flight.Vector_3)
+      Velocity : Newton.Vector_3)
    is
    begin
       Ship.Velocity := Velocity;

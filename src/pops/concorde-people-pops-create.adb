@@ -7,9 +7,10 @@ package body Concorde.People.Pops.Create is
    -------------
 
    function New_Pop
-     (Location     : not null access
+     (Location       : not null access
         Concorde.Agents.Agent_Location_Interface'Class;
-      Wealth_Group : Concorde.People.Groups.Pop_Group;
+      Location_Index : Natural;
+      Wealth_Group   : Concorde.People.Groups.Pop_Group;
       Skill        : Concorde.People.Skills.Pop_Skill;
       Size         : Pop_Size;
       Cash         : Concorde.Money.Money_Type)
@@ -28,7 +29,8 @@ package body Concorde.People.Pops.Create is
          Pop.Skills.Append (Skill);
          Pop.Size := Size;
          Pop.Set_Cash (Cash);
-         Pop.New_Agent (Location, Pop.Size_Quantity * To_Quantity (70.0));
+         Pop.New_Agent (Location, Location_Index,
+                        Pop.Size_Quantity * To_Quantity (70.0));
       end Create;
 
    begin

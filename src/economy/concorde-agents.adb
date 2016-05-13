@@ -403,6 +403,18 @@ package body Concorde.Agents is
       return Agent.Location;
    end Location;
 
+   --------------------
+   -- Location_Index --
+   --------------------
+
+   function Location_Index
+     (Agent : Root_Agent_Type'Class)
+      return Natural
+   is
+   begin
+      return Agent.Location_Index;
+   end Location_Index;
+
    ---------
    -- Log --
    ---------
@@ -493,12 +505,14 @@ package body Concorde.Agents is
    procedure New_Agent
      (Agent          : in out Root_Agent_Type'Class;
       Location       : not null access constant Agent_Location_Interface'Class;
+      Location_Index : Natural;
       Stock_Capacity : Concorde.Quantities.Quantity)
    is
    begin
       Agent.Stock.Create_Stock (Stock_Capacity);
       Agent.Belief := new Price_Belief_Vectors.Vector;
       Agent.Location := Location;
+      Agent.Location_Index := Location_Index;
    end New_Agent;
 
    -----------------------------
@@ -563,10 +577,12 @@ package body Concorde.Agents is
 
    procedure Set_Location
      (Agent    : in out Root_Agent_Type'Class;
-      Location : not null access constant Agent_Location_Interface'Class)
+      Location : not null access constant Agent_Location_Interface'Class;
+      Index    : Natural := 0)
    is
    begin
       Agent.Location := Location;
+      Agent.Location_Index := Index;
    end Set_Location;
 
    ------------------

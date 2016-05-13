@@ -26,6 +26,7 @@ package Concorde.Agents is
    procedure New_Agent
      (Agent          : in out Root_Agent_Type'Class;
       Location       : not null access constant Agent_Location_Interface'Class;
+      Location_Index : Natural;
       Stock_Capacity : Concorde.Quantities.Quantity);
 
    overriding function Offer_Strategy
@@ -165,9 +166,14 @@ package Concorde.Agents is
      (Agent : Root_Agent_Type'Class)
       return access constant Agent_Location_Interface'Class;
 
+   function Location_Index
+     (Agent : Root_Agent_Type'Class)
+      return Natural;
+
    procedure Set_Location
      (Agent    : in out Root_Agent_Type'Class;
-      Location : not null access constant Agent_Location_Interface'Class);
+      Location : not null access constant Agent_Location_Interface'Class;
+      Index    : Natural := 0);
 
    procedure Set_Guarantor
      (Agent     : in out Root_Agent_Type'Class;
@@ -191,12 +197,13 @@ private
      and Concorde.Commodities.Stock_Interface
      and Concorde.Trades.Trader_Interface with
       record
-         Stock     : Concorde.Commodities.Root_Stock_Type;
-         Cash      : Concorde.Money.Money_Type;
-         Belief    : access Price_Belief_Vectors.Vector;
-         Location  : access constant Agent_Location_Interface'Class;
-         Age       : Natural := 0;
-         Guarantor : access constant Root_Agent_Type'Class;
+         Stock          : Concorde.Commodities.Root_Stock_Type;
+         Cash           : Concorde.Money.Money_Type;
+         Belief         : access Price_Belief_Vectors.Vector;
+         Location       : access constant Agent_Location_Interface'Class;
+         Location_Index : Natural := 0;
+         Age            : Natural := 0;
+         Guarantor      : access constant Root_Agent_Type'Class;
       end record;
 
    function Get_Price_Belief

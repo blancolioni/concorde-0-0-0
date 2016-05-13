@@ -25,7 +25,7 @@ package body Concorde.Government.Create is
       procedure Create (Government : in out Root_Government_Type'Class) is
       begin
          Government.New_Agent
-           (Headquarters.Location, Quantities.Zero);
+           (Headquarters.Location, 0, Quantities.Zero);
          Government.Governed := Governed;
          Government.Set_Cash (Cash);
          Government.Headquarters :=
