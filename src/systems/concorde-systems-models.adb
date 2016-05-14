@@ -23,6 +23,7 @@ with Concorde.People.Pops.Lists;
 
 with Concorde.Ships.Models;
 with Concorde.Worlds.Models;
+with Concorde.Worlds.Tile_Models;
 
 with Concorde.Worlds.Db;
 
@@ -423,8 +424,9 @@ package body Concorde.Systems.Models is
          X_Offset : constant Real := Cos (Position) * World.Semimajor_Axis;
          Y_Offset : constant Real := Sin (Position) * World.Semimajor_Axis;
          Scale_Factor : constant Non_Negative_Real :=
-                          1000.0 / Concorde.Solar_System.Earth_Orbit
-                            / Model.Eye_Z;
+                          Real'Max (Real (Model.Width / 3), 200.0)
+                          / Concorde.Solar_System.Earth_Orbit
+                          / Model.Eye_Z;
          Scaled_X : constant Real :=
                       X_Offset * Scale_Factor;
          Scaled_Y : constant Real :=
@@ -512,7 +514,12 @@ package body Concorde.Systems.Models is
          if X in Render.X .. Render.X + Render.W
            and then Y in Render.Y .. Render.Y + Render.H
          then
-            return Concorde.Worlds.Models.World_Model (Render.World);
+            if False then
+               return Concorde.Worlds.Models.World_Model (Render.World);
+            else
+               return Concorde.Worlds.Tile_Models.World_Tile_Model
+                 (Render.World);
+            end if;
          end if;
       end loop;
       return null;

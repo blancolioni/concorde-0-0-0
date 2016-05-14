@@ -72,6 +72,43 @@ package body Concorde.Geometry is
       return (From, To);
    end Arc;
 
+   ------------
+   -- Arccos --
+   ------------
+
+   function Arccos (Value : Signed_Unit_Real) return Radians is
+   begin
+      return Radians (Concorde.Elementary_Functions.Arccos (Value));
+   end Arccos;
+
+   ------------
+   -- Arcsin --
+   ------------
+
+   function Arcsin (Value : Signed_Unit_Real) return Radians is
+   begin
+      return Radians (Concorde.Elementary_Functions.Arcsin (Value));
+   end Arcsin;
+
+   ------------
+   -- Arctan --
+   ------------
+
+   function Arctan (Value : Real) return Radians is
+   begin
+      return Radians (Concorde.Elementary_Functions.Arctan (Value));
+   end Arctan;
+
+   ---------------------
+   -- Arctan_Relative --
+   ---------------------
+
+   function Arctan_Relative (Value : Real) return Signed_Unit_Real is
+   begin
+      return Concorde.Elementary_Functions.Arctan (Value)
+        / Ada.Numerics.Pi;
+   end Arctan_Relative;
+
    -------------
    -- Bearing --
    -------------
@@ -112,7 +149,7 @@ package body Concorde.Geometry is
    -- Cos --
    ---------
 
-   function Cos (Angle : Radians) return Real is
+   function Cos (Angle : Radians) return Signed_Unit_Real is
    begin
       return Concorde.Elementary_Functions.Cos (Real (Angle));
    end Cos;
@@ -153,10 +190,19 @@ package body Concorde.Geometry is
    -- Sin --
    ---------
 
-   function Sin (Angle : Radians) return Real is
+   function Sin (Angle : Radians) return Signed_Unit_Real is
    begin
       return Concorde.Elementary_Functions.Sin (Real (Angle));
    end Sin;
+
+   ---------
+   -- Tan --
+   ---------
+
+   function Tan (Angle : Radians) return Real is
+   begin
+      return Concorde.Elementary_Functions.Tan (Real (Angle));
+   end Tan;
 
    ----------
    -- Turn --

@@ -24,6 +24,8 @@ package Concorde.Terrain is
 
    function Get (Id : String) return Terrain_Type;
 
+   function Mountain return Terrain_Type;
+
 private
 
    type Root_Terrain_Type is

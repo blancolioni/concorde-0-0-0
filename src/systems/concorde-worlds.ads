@@ -3,6 +3,7 @@ private with Ada.Containers.Doubly_Linked_Lists;
 private with Memor;
 
 private with Concorde.Graphs;
+private with Concorde.Surfaces;
 
 with Concorde.Objects;
 
@@ -56,8 +57,14 @@ private
          Concentration : Unit_Real;
       end record;
 
+   Min_Height : constant := -16;
+   Max_Height : constant := 32;
+
+   type Height_Range is range Min_Height .. Max_Height;
+
    type Sector_Record is
       record
+         Height  : Height_Range;
          Terrain : Concorde.Terrain.Terrain_Type;
          Feature : Concorde.Features.Feature_Type;
          Deposit : Deposit_Record;
@@ -65,6 +72,10 @@ private
 
    type Array_Of_Sectors is
      array (Positive range <>) of Sector_Record;
+
+   type Height_Map is
+     array (Positive range <>) of Height_Range
+     with Component_Size => 8;
 
    function Get_Sector_Index (Index : Positive) return Positive
    is (Index);
@@ -92,6 +103,12 @@ private
          Sectors               : access Array_Of_Sectors;
          Graph                 : Sector_Graphs.Graph;
          Row_Length            : access Array_Of_Row_Lengths;
+         Row_Start             : access Array_Of_Row_Lengths;
+         Heights               : access Height_Map;
+         Height_Count          : Natural;
+         Height_Row_Length     : access Array_Of_Row_Lengths;
+         Height_Row_Start      : access Array_Of_Row_Lengths;
+         Surface               : Concorde.Surfaces.Surface_Type;
          Resonant_Period       : Boolean;
          Greenhouse_Effect     : Boolean;
          Atmosphere            : Atmosphere_Lists.List;

@@ -25,6 +25,12 @@ package Concorde.Generate.Surfaces is
       X, Y    : Positive)
       return Integer;
 
+   function Detail_Height
+     (Surface : Surface_Type'Class;
+      X1, X2  : Positive;
+      Y1, Y2  : Positive)
+      return Integer;
+
    function Coarse_Height
      (Surface : Surface_Type'Class;
       X, Y    : Positive)
@@ -52,6 +58,16 @@ package Concorde.Generate.Surfaces is
      (Surface      : out Surface_Type;
       Frequency    : in  Surface_Frequency;
       Smoothing    : in  Natural);
+
+   procedure Generate_Fractal_Surface
+     (Surface        : out Surface_Type;
+      Frequency      : in  Surface_Frequency;
+      Iterations     : in  Positive);
+
+   procedure Write_Surface_Bitmap
+     (Surface : Surface_Type;
+      Path    : String;
+      Detail  : Boolean);
 
 private
 

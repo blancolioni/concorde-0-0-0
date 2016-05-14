@@ -90,18 +90,20 @@ package body Concorde.Markets is
             end if;
       end case;
 
-      case Offer.Limit_Quantity is
+      if Factor > 0.0 then
+         case Offer.Limit_Quantity is
          when No_Change =>
             Factor := 1.0;
          when Proportional =>
             Factor := 0.5 + Factor / 2.0;
          when Quadratic =>
             Factor := 0.5 + Factor ** 2 / 2.0;
-      end case;
+         end case;
+      end if;
 
       declare
          Adjusted_Result : constant Quantity :=
-                             Offer.Remaining_Quantity * To_Quantity (Factor);
+                             Scale (Offer.Remaining_Quantity, Factor);
          Maximum_Result  : constant Quantity :=
                              Offer.Agent.Maximum_Offer_Quantity
                                (Buy_Or_Sell, Commodity);
@@ -386,10 +388,20 @@ package body Concorde.Markets is
                   & Ask.Agent.Short_Name
                   & " asks "
                   & Taxable_Image (Ask_Price, Seller_Tax_Rate)
+                  & " limit "
+                  & Taxable_Image (Ask.Limit_Price, Seller_Tax_Rate)
+                  & " for "
+                  & Image (Ask_Quantity)
+                  & " units"
                   & "; "
                   & Bid.Agent.Short_Name
                   & " bids "
                   & Taxable_Image (Buyer_Price, Buyer_Tax_Rate)
+                  & " limit "
+                  & Taxable_Image (Bid.Limit_Price, Buyer_Tax_Rate)
+                  & " for "
+                  & Image (Bid_Quantity)
+                  & " units"
                   & (if Traded_Quantity > Zero
                     then "; final contract "
                     & Image (Traded_Quantity)
@@ -477,14 +489,18 @@ package body Concorde.Markets is
          end loop;
 
          while Has_Element (Next_Ask) loop
-            Market.Log_Offer
-              ("failed to sell", Commodity, Element (Next_Ask));
+            if Element (Next_Ask).Remaining_Quantity > Zero then
+               Market.Log_Offer
+                 ("failed to sell", Commodity, Element (Next_Ask));
+            end if;
             Next (Next_Ask);
          end loop;
 
          while Has_Element (Next_Bid) loop
-            Market.Log_Offer
-              ("failed to buy", Commodity, Element (Next_Bid));
+            if Element (Next_Bid).Remaining_Quantity > Zero then
+               Market.Log_Offer
+                 ("failed to buy", Commodity, Element (Next_Bid));
+            end if;
             Next (Next_Bid);
          end loop;
 

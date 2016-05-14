@@ -13,7 +13,6 @@ with Concorde.Options;
 with Concorde.Paths;
 
 with Concorde.Elementary_Functions;
-with Concorde.Geometry;
 with Concorde.Random;
 with Concorde.Roman_Images;
 
@@ -21,10 +20,9 @@ with Concorde.Constants;
 with Concorde.Solar_System;
 
 with Concorde.Atmosphere;
-with Concorde.Stars;
 with Concorde.Terrain;
 
-with Concorde.Terrain.Surface_Maps;
+--  with Concorde.Terrain.Surface_Maps;
 
 with Concorde.Generate.Surfaces;
 
@@ -37,11 +35,14 @@ package body Concorde.Worlds.Create is
 
    Verbose_Mode       : constant Boolean := False;
 
-   Write_World_Bitmaps : constant Boolean := False;
-   pragma Unreferenced (Write_World_Bitmaps);
+   Write_World_Bitmaps : constant Boolean := True;
 
    Sector_Size    : Non_Negative_Real := 0.0;
    Subsector_Size : Natural := 0;
+
+   World_Continent_Smoothing : Natural := 0;
+   World_Fractal_Iterations  : Natural := 0;
+   World_Height_Smoothing    : Natural := 0;
 
    package Terrain_Feature_Vectors is
      new Memor.Element_Vectors (Concorde.Features.Feature_Type, null,
@@ -277,7 +278,9 @@ package body Concorde.Worlds.Create is
    procedure Calculate_Climate
      (World : in out Root_World_Type'Class)
    is
+      use Concorde.Elementary_Functions;
       use Concorde.Terrain;
+      use type Concorde.Features.Feature_Type;
 
       function Tropic_Curve (Latitude : Positive) return Unit_Real;
 
@@ -289,10 +292,12 @@ package body Concorde.Worlds.Create is
       begin
          if Latitude <= World.Half_Circle_Sectors / 4 then
             return 0.0;
-         elsif Latitude <= World.Half_Circle_Sectors / 2 then
+         elsif Latitude <= World.Half_Circle_Sectors / 2  - 1 then
             return 1.0
               - Real (abs (Latitude - World.Half_Circle_Sectors / 3))
               / Real (World.Half_Circle_Sectors / 3);
+         elsif Latitude <= World.Half_Circle_Sectors / 2 + 2 then
+            return 0.0;
          elsif Latitude <= World.Half_Circle_Sectors * 3 / 4 then
             return 1.0
               - Real (abs (Latitude - 2 * World.Half_Circle_Sectors / 3))
@@ -302,14 +307,16 @@ package body Concorde.Worlds.Create is
          end if;
       end Tropic_Curve;
 
-      Last_Water : Natural := 0;
-      Sector_Index : Positive := 1;
+      Last_Water    : Natural;
+      Last_Mountain : Natural;
+      Sector_Index : Natural := World.Sector_Count;
    begin
-      for Latitude in 1 .. World.Half_Circle_Sectors loop
+      for Latitude in reverse 1 .. World.Half_Circle_Sectors loop
 
-         Last_Water := 0;
+         Last_Water := World.Row_Length (Latitude) + 1;
+         Last_Mountain := World.Row_Length (Latitude) + 2;
 
-         for Longitude in 1 .. World.Row_Length (Latitude) loop
+         for Longitude in reverse 1 .. World.Row_Length (Latitude) loop
             declare
                Terrain : constant Terrain_Type :=
                            World.Sectors (Sector_Index).Terrain;
@@ -317,20 +324,33 @@ package body Concorde.Worlds.Create is
             begin
                if Terrain.Is_Water then
                   Last_Water := Longitude;
+               elsif Terrain = Mountain then
+                  Last_Mountain := Longitude;
                else
                   declare
                      Water_Sectors    : constant Positive :=
-                                          Longitude - Last_Water;
+                                          Last_Water - Longitude;
+                     Mountain_Sectors : constant Positive :=
+                                          Last_Mountain - Longitude;
                      Ocean_Distance   : constant Unit_Real :=
-                                          World.Hydrosphere ** Water_Sectors;
+                                          Sqrt (World.Hydrosphere)
+                                          ** Water_Sectors;
                      Desert_Chance    : Unit_Real :=
                                           (1.0 - Ocean_Distance)
                                           * Tropic_Factor;
                   begin
                      if Longitude < World.Row_Length (Latitude)
                        and then World.Sectors
-                         (Sector_Index + 1).Terrain.Is_Water
+                         (Sector_Index + 1).Feature = Concorde.Features.Desert
                      then
+                        Desert_Chance := Sqrt (Desert_Chance);
+                     end if;
+
+                     if Mountain_Sectors = 1 then
+                        Desert_Chance := Sqrt (Desert_Chance);
+                     end if;
+
+                     if Last_Water = Longitude + 1 then
                         Desert_Chance := 0.0;
                      end if;
 
@@ -341,7 +361,7 @@ package body Concorde.Worlds.Create is
                   end;
                end if;
             end;
-            Sector_Index := Sector_Index + 1;
+            Sector_Index := Sector_Index - 1;
          end loop;
       end loop;
    end Calculate_Climate;
@@ -1065,16 +1085,45 @@ package body Concorde.Worlds.Create is
 
       Ice_Total : Natural;
 
-      Surface_Map : constant Concorde.Terrain.Surface_Maps.Surface_Map :=
-                      Concorde.Terrain.Surface_Maps.Get_Surface_Map
-                        (World.Category, World.Hydrosphere);
+      Frequency   : Concorde.Generate.Surfaces.Surface_Frequency
+        (1 .. Max_Height - Min_Height + 1);
+
+--        Surface_Map : constant Concorde.Terrain.Surface_Maps.Surface_Map :=
+--                        Concorde.Terrain.Surface_Maps.Get_Surface_Map
+--                          (World.Category, World.Hydrosphere);
       Surface          : Concorde.Generate.Surfaces.Surface_Type;
       Seed             : constant Positive :=
                            WL.Random.Random_Number (1, Positive'Last);
 
-      Terrain_Feature : Terrain_Feature_Vectors.Vector renames
-                          Category_Terrain_Features (World.Category);
+--        Terrain_Feature : Terrain_Feature_Vectors.Vector renames
+--                            Category_Terrain_Features (World.Category);
+      Freq_Sum    : Non_Negative_Real := 0.0;
    begin
+
+      Frequency (1) := 0.0;
+      for I in Min_Height + 1 .. -1 loop
+         Frequency (I - Min_Height + 1) :=
+           0.6 * World.Hydrosphere / Real (-Min_Height - 1);
+      end loop;
+      for I in 0 .. Max_Height - 8 loop
+         Frequency (I - Min_Height + 1) :=
+           (1.0 - World.Hydrosphere) * 0.8 / Real (Max_Height + 1);
+      end loop;
+
+      for I in Max_Height - 7 .. Max_Height loop
+         Frequency (I - Min_Height + 1) :=
+           (1.0 - World.Hydrosphere) * 0.2 / Real (Max_Height + 1);
+      end loop;
+
+      for F of Frequency loop
+         Freq_Sum := Freq_Sum + F;
+      end loop;
+
+      if Freq_Sum /= 1.0 then
+         for I in Frequency'Range loop
+            Frequency (I) := Frequency (I) / Freq_Sum;
+         end loop;
+      end if;
 
       if not Got_Category_Terrain_Features then
          Configure_Category_Terrain;
@@ -1088,11 +1137,30 @@ package body Concorde.Worlds.Create is
       pragma Assert (Bounding_Height mod 2 = 1);
       pragma Assert (Bounding_Width mod 2 = 1);
 
+      declare
+         use Ada.Numerics;
+         World_Surface_Area : constant Non_Negative_Real :=
+                                4.0 / 3.0 * Pi * World.Radius ** 2;
+         Sector_Target_Area : constant Non_Negative_Real :=
+                                Sector_Size ** 2;
+         Sector_Count       : constant Natural :=
+                                Natural (World_Surface_Area
+                                         / Sector_Target_Area);
+         pragma Unreferenced (Sector_Count);
+         Normalised_Area    : constant Unit_Real :=
+                                Sector_Target_Area / World_Surface_Area;
+      begin
+
+         World.Surface :=
+           Concorde.Surfaces.Create_Surface (Normalised_Area);
+      end;
+
       World.Surface_Seed := Seed;
       World.Great_Circle_Sectors := Bounding_Width;
       World.Half_Circle_Sectors := Bounding_Height;
 
       World.Row_Length := new Array_Of_Row_Lengths (1 .. Bounding_Height);
+      World.Row_Start := new Array_Of_Row_Lengths (1 .. Bounding_Height);
 
       Surface.Create
         (Detail_Width  => Bounding_Width * Subsector_Size,
@@ -1103,20 +1171,34 @@ package body Concorde.Worlds.Create is
 
       declare
          use Concorde.Generate.Surfaces;
-         Frequency : Surface_Frequency (Surface_Map'Range);
       begin
-         for I in Frequency'Range loop
-            Frequency (I) := Surface_Map (I).Frequency;
-         end loop;
-
-         if Category = Terrestrial
-           or else Category = Martian
-         then
-            Surface.Generate_Continental_Surface
-              (Frequency, 2);
+         if Category = Terrestrial or else Category = Martian then
+            if World_Fractal_Iterations = 0 then
+               World_Fractal_Iterations :=
+                 Concorde.Options.World_Fractal_Iterations;
+            end if;
+            if World_Continent_Smoothing = 0 then
+               World_Continent_Smoothing :=
+                 Concorde.Options.World_Continent_Smoothing;
+            end if;
+            if False then
+               Surface.Generate_Continental_Surface
+                 (Frequency, World_Continent_Smoothing);
+            else
+               Surface.Generate_Fractal_Surface
+                 (Frequency, World_Fractal_Iterations);
+            end if;
+            if Write_World_Bitmaps then
+               Surface.Write_Surface_Bitmap
+                 ("images/" & World.Name & ".bmp", Detail => True);
+            end if;
          else
+            if World_Height_Smoothing = 0 then
+               World_Height_Smoothing :=
+                 Concorde.Options.World_Height_Smoothing;
+            end if;
             Surface.Generate_Surface
-              (Frequency, 3);
+              (Frequency, World_Height_Smoothing);
          end if;
       end;
 
@@ -1132,13 +1214,65 @@ package body Concorde.Worlds.Create is
                                          Natural (Real_Length *
                                              Real (Bounding_Width)));
          begin
+            World.Row_Start (I) := Sector_Count + 1;
             World.Row_Length (I) := Length;
             Latitude_Count (I) := Length;
             Sector_Count := Sector_Count + Length;
          end;
       end loop;
 
+      World.Height_Count := 0;
+      World.Height_Row_Length :=
+        new Array_Of_Row_Lengths (1 .. Surface.Detail_Down);
+      World.Height_Row_Start :=
+        new Array_Of_Row_Lengths (1 .. Surface.Detail_Down);
+
+      for I in 1 .. Surface.Detail_Down loop
+         declare
+            Lat         : constant Integer :=
+                            I - Surface.Detail_Down / 2 - 1;
+            Rel_Lat     : constant Real :=
+                            2.0 * Real (Lat) / Real (Surface.Detail_Down);
+            Real_Length : constant Real :=
+                            Sqrt (1.0 - Rel_Lat ** 2);
+            Length      : constant Positive :=
+                            Natural'Max (1,
+                                         Natural (Real_Length *
+                                             Real (Surface.Detail_Across)));
+         begin
+            World.Height_Row_Start (I) := World.Height_Count + 1;
+            World.Height_Row_Length (I) := Length;
+            World.Height_Count := World.Height_Count + Length;
+         end;
+      end loop;
+
+      World.Sector_Count := Sector_Count;
       World.Sectors := new Array_Of_Sectors (1 .. Sector_Count);
+      World.Heights := new Height_Map (1 .. World.Height_Count);
+
+      Sector_Index := 1;
+      for Row in 1 .. Surface.Detail_Down loop
+         declare
+            Length : constant Positive := World.Height_Row_Length (Row);
+         begin
+            for Cell in 1 .. World.Height_Row_Length (Row) loop
+               declare
+                  X1       : constant Positive :=
+                               (Cell - 1) * Surface.Detail_Across / Length + 1;
+                  X2       : constant Positive :=
+                               Cell * Surface.Detail_Across / Length;
+                  Height   : constant Positive :=
+                               Surface.Detail_Height (X1, X2, Row, Row);
+               begin
+                  World.Heights (Sector_Index) :=
+                    Height_Range (Height + Min_Height - 1);
+               end;
+
+               Sector_Index := Sector_Index + 1;
+            end loop;
+         end;
+      end loop;
+
       Sector_Index := 1;
 
       for Sector_Index in World.Sectors'Range loop
@@ -1160,31 +1294,41 @@ package body Concorde.Worlds.Create is
                             World.Category = Ice
                                 or else Sector_Index < Ice_Total
                                     or else Sector_Count - Sector_Index
-                                      < Ice_Total;
+                                          < Ice_Total;
+            pragma Unreferenced (Ice_Sector);
+            Y1              : constant Positive :=
+                                (Latitude - 1)
+                                * Surface.Detail_Down
+                                / Bounding_Height
+                                  + 1;
+            Y2              : constant Positive :=
+                                Latitude
+                                  * Surface.Detail_Down
+                                / Bounding_Height;
          begin
             First_Sector (Latitude) := First_Index;
             --  Sector_Length (Latitude) := Length;
             for Longitude in 1 .. Length loop
                declare
                   X1 : constant Positive :=
-                         (Longitude - 1) * Bounding_Width / Length + 1;
+                         (Longitude - 1) * Surface.Detail_Across / Length + 1;
                   X2 : constant Positive :=
-                         Longitude * Bounding_Width / Length;
-                  Y        : constant Positive := Latitude;
+                         Longitude * Surface.Detail_Across / Length;
                   Height   : constant Positive :=
-                               Surface.Coarse_Height (X1, X2, Y, Y);
-                  Terrain  : constant Concorde.Terrain.Terrain_Type :=
-                               Surface_Map (Height).Terrain;
-                  Feature  : constant Concorde.Features.Feature_Type :=
-                               (if Ice_Sector
-                                then Concorde.Features.Ice
-                                else Terrain_Feature.Element
-                                  (Terrain.Reference));
+                               Surface.Detail_Height (X1, X2, Y1, Y2);
+--                    Terrain  : constant Concorde.Terrain.Terrain_Type :=
+--                                 Surface_Map (Height).Terrain;
+--                    Feature  : constant Concorde.Features.Feature_Type :=
+--                                 (if Ice_Sector
+--                                  then Concorde.Features.Ice
+--                                  else Terrain_Feature.Element
+--                                    (Terrain.Reference));
                begin
                   Sector_Map (Latitude, Longitude) := X1;
                   World.Sectors (Sector_Index) :=
-                    (Terrain => Terrain,
-                     Feature => Feature,
+                    (Height  => Height_Range (Height + Min_Height - 1),
+                     Terrain => null,
+                     Feature => null,
                      Deposit => (null, 0.0, 0.0));
                   if Longitude < Length then
                      World.Graph.Connect (Sector_Index, Sector_Index + 1);
@@ -1227,7 +1371,12 @@ package body Concorde.Worlds.Create is
          end;
       end loop;
 
-      Calculate_Climate (World);
+      if False
+        and then World.Surface_Pressure > 10.0
+        and then World.Hydrosphere > 0.0
+      then
+         Calculate_Climate (World);
+      end if;
 
 --        for Latitude in 1 .. Bounding_Height loop
 --           declare
@@ -1286,18 +1435,20 @@ package body Concorde.Worlds.Create is
    -------------------
 
    procedure Create_Worlds
-     (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+     (Star   : Concorde.Stars.Star_Type;
+      List   : in out Concorde.Worlds.Lists.List)
    is
       use Concorde.Elementary_Functions;
       use Concorde.Solar_System;
 
-      Star          : constant Concorde.Stars.Star_Type :=
-                        Concorde.Stars.Star_Type
-                          (System.Main_Object);
       Rock_Line     : constant Real :=
                         0.3 * Star.Solar_Masses;
       Frost_Line    : constant Real :=
                         2.7 * Star.Solar_Masses;
+      Goldilocks_Orbit : constant Non_Negative_Real :=
+                           Star.Solar_Masses;
+      Have_Goldilocks_World : Boolean := False;
+
       Current_Orbit : Real;
 
       World_Index : Positive := 1;
@@ -1351,7 +1502,7 @@ package body Concorde.Worlds.Create is
       begin
          if Orbit < Frost_Line then
             Min := Orbit * 0.25;
-            Max := Orbit * 0.75;
+            Max := Orbit * 0.65;
          else
             Min := Orbit * 0.25;
             Max := Orbit * 0.75;
@@ -1400,6 +1551,18 @@ package body Concorde.Worlds.Create is
          end if;
 
          Total_Mass := Solid_Mass + Gas_Mass;
+
+         if not Is_Jovian and then not Have_Goldilocks_World
+           and then abs (Current_Orbit / Goldilocks_Orbit - 1.0) < 0.4
+           and then abs (Current_Orbit / Goldilocks_Orbit - 1.0) > 0.1
+           and then Concorde.Random.Unit_Random < 0.5
+         then
+            Current_Orbit := Concorde.Random.About (Goldilocks_Orbit, 0.1);
+         end if;
+
+         Have_Goldilocks_World :=
+           Have_Goldilocks_World
+             or else abs (Current_Orbit / Goldilocks_Orbit - 1.0) < 0.1;
 
          declare
 
@@ -1557,8 +1720,7 @@ package body Concorde.Worlds.Create is
                      elsif World.Surface_Temp
                        < Concorde.Constants.Freezing_Point_Of_Water
                      then
-                        Category := Ice;
-                        World.Ice_Cover := 1.0;
+                        Category := Terrestrial;
                      else
                         Ada.Text_IO.Put_Line
                           (World.Name & ": can't categorise");
@@ -1596,10 +1758,7 @@ package body Concorde.Worlds.Create is
             New_World : constant World_Type :=
                           Concorde.Worlds.Db.Create (Create'Access);
          begin
-            System.Add_Object
-              (New_World,
-               Concorde.Geometry.Degrees_To_Radians
-                 (Concorde.Random.Unit_Random * 360.0));
+            List.Append (New_World);
             World_Index := World_Index + 1;
          end;
 

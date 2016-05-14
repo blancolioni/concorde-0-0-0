@@ -1,8 +1,11 @@
-with Concorde.Systems;
+with Concorde.Stars;
+
+with Concorde.Worlds.Lists;
 
 package Concorde.Worlds.Create is
 
    procedure Create_Worlds
-     (System : in out Concorde.Systems.Root_Star_System_Type'Class);
+     (Star   : Concorde.Stars.Star_Type;
+      List   : in out Concorde.Worlds.Lists.List);
 
 end Concorde.Worlds.Create;

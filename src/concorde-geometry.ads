@@ -25,8 +25,15 @@ package Concorde.Geometry is
       Towards   : Radians)
       return Radians;
 
-   function Cos (Angle : Radians) return Real;
-   function Sin (Angle : Radians) return Real;
+   function Cos (Angle : Radians) return Signed_Unit_Real;
+   function Sin (Angle : Radians) return Signed_Unit_Real;
+   function Tan (Angle : Radians) return Real;
+
+   function Arccos (Value : Signed_Unit_Real) return Radians;
+   function Arcsin (Value : Signed_Unit_Real) return Radians;
+   function Arctan (Value : Real) return Radians;
+
+   function Arctan_Relative (Value : Real) return Signed_Unit_Real;
 
    function "+" (Left, Right : Radians) return Radians;
    function "-" (Left, Right : Radians) return Radians;
