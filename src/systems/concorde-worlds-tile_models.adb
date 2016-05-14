@@ -10,6 +10,36 @@ with Lui.Models.Model_3D;
 
 package body Concorde.Worlds.Tile_Models is
 
+   type Colour_Element_Array is
+     array (Height_Range) of Lui.Colours.Colour_Byte;
+
+   Height_Red     : constant Colour_Element_Array :=
+                      (0,
+                       0, 0, 0, 0, 0, 0, 0, 34,
+                       68, 102, 119, 136, 153, 170, 187, 0,
+                       34, 34, 119, 187, 255, 238, 221, 204,
+                       187, 170, 153, 136, 119, 85, 68, 255,
+                       250, 245, 240, 235, 230, 225, 220, 215,
+                       210, 205, 200, 195, 190, 185, 180, 175);
+
+   Height_Green   : constant Colour_Element_Array :=
+                      (0,
+                       0, 17, 51, 85, 119, 153, 204, 221,
+                       238, 255, 255, 255, 255, 255, 255, 68,
+                       102, 136, 170, 221, 187, 170, 136, 136,
+                       102, 85, 85, 68, 51, 51, 34, 255,
+                       250, 245, 240, 235, 230, 225, 220, 215,
+                       210, 205, 200, 195, 190, 185, 180, 175);
+
+   Height_Blue    : constant Colour_Element_Array :=
+                      (0,
+                       68, 102, 136, 170, 187, 221, 255, 255,
+                       255, 255, 255, 255, 255, 255, 255, 0,
+                       0, 0, 0, 0, 34, 34, 34, 34,
+                       34, 34, 34, 34, 34, 17, 0, 255,
+                       250, 245, 240, 235, 230, 225, 220, 215,
+                       210, 205, 200, 195, 190, 185, 180, 175);
+
    type Root_World_Model is
      new Lui.Models.Model_3D.Root_3D_Model
      and Concorde.Watchers.Watcher_Interface with
@@ -137,22 +167,22 @@ package body Concorde.Worlds.Tile_Models is
       for I in 1 .. Surface.Tile_Count loop
 --           Ada.Text_IO.Put_Line ("--- tile" & I'Img);
          Model.Begin_Object (Positive (I));
-         Model.Begin_Surface
-           (Colour => (if Positive (I) = Model.Selected_Sector
-                       then (0.8, 0.6, 0.0, 1.0)
-                       else Lui.Colours.White));
 
          declare
             use Concorde.Surfaces;
+            Height : constant Height_Range :=
+                       Model.World.Sectors
+                         (Positive (I)).Height;
+            Colour : constant Lui.Colours.Colour_Type :=
+                       Lui.Colours.To_Colour
+                         (Height_Red (Height),
+                          Height_Green (Height),
+                          Height_Blue (Height));
             Boundary : constant Tile_Vertex_Array :=
                          Surface.Tile_Boundary (I);
          begin
+            Model.Begin_Surface (Colour);
             for V of Boundary loop
---                 Ada.Text_IO.Put_Line
---                   ("  (" & Lui.Approximate_Image (V (1))
---                    & ", " & Lui.Approximate_Image (V (2))
---                    & ", " & Lui.Approximate_Image (V (3))
---                    & ")");
                Model.Vertex (V);
             end loop;
          end;
