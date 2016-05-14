@@ -186,11 +186,6 @@ package body Concorde.Systems.Models is
      (Model    : in out Root_Star_System_Model;
       Renderer : in out Lui.Rendering.Root_Renderer'Class);
 
-   overriding function Get_Drag_Behaviour
-     (Model : Root_Star_System_Model)
-      return Lui.Models.Drag_Behaviour
-   is (Lui.Models.Translation);
-
    type Star_System_Model_Access is
      access all Root_Star_System_Model'Class;
 

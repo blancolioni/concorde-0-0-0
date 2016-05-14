@@ -168,11 +168,6 @@ package body Concorde.Galaxy.Model is
      (Model    : in out Root_Galaxy_Model;
       Renderer : in out Lui.Rendering.Root_Renderer'Class);
 
-   overriding function Get_Drag_Behaviour
-     (Model : Root_Galaxy_Model)
-      return Lui.Models.Drag_Behaviour
-   is (Lui.Models.Translation);
-
    overriding procedure On_Model_Removed
      (Model : in out Root_Galaxy_Model;
       Child : not null access Lui.Models.Root_Object_Model'Class);

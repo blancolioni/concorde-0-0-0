@@ -139,11 +139,6 @@ private
      (Model    : in out Root_Space_Combat_Arena;
       Renderer : in out Lui.Rendering.Root_Renderer'Class);
 
-   overriding function Get_Drag_Behaviour
-     (Model : Root_Space_Combat_Arena)
-      return Lui.Models.Drag_Behaviour
-   is (Lui.Models.Translation);
-
    overriding procedure Select_XY
      (Model : in out Root_Space_Combat_Arena;
       X, Y  : Natural);

@@ -1,3 +1,4 @@
+with Ada.Calendar;
 with Ada.Characters.Handling;
 
 with Concorde.Hash_Table;
@@ -47,7 +48,14 @@ package body Concorde.Worlds.Tile_Models is
          World           : World_Type;
          Needs_Render    : Boolean := True;
          Selected_Sector : Natural := 0;
+         Rotation        : Real    := 0.0;
+         Rotate_Speed    : Real    := 0.0;   --  degrees per second
+         Last_Update     : Ada.Calendar.Time;
       end record;
+
+   overriding function Handle_Update
+     (Model : in out Root_World_Model)
+      return Boolean;
 
    overriding procedure On_Object_Changed
      (Model  : in out Root_World_Model;
@@ -164,6 +172,9 @@ package body Concorde.Worlds.Tile_Models is
       Surface : constant Concorde.Surfaces.Surface_Type :=
                   Model.World.Surface;
    begin
+
+      Model.Rotate_Y (Model.Rotation);
+
       for I in 1 .. Surface.Tile_Count loop
 --           Ada.Text_IO.Put_Line ("--- tile" & I'Img);
          Model.Begin_Object (Positive (I));
@@ -190,6 +201,23 @@ package body Concorde.Worlds.Tile_Models is
          Model.End_Object;
       end loop;
    end Create_Scene;
+
+   -------------------
+   -- Handle_Update --
+   -------------------
+
+   overriding function Handle_Update
+     (Model : in out Root_World_Model)
+      return Boolean
+   is
+      use Ada.Calendar;
+      Now : constant Time := Clock;
+      Dt  : constant Real := Real (Now - Model.Last_Update);
+   begin
+      Model.Rotation := Dt * Model.Rotate_Speed;
+      Model.Last_Update := Now;
+      return True;
+   end Handle_Update;
 
    -----------------------
    -- On_Object_Changed --
@@ -237,6 +265,14 @@ package body Concorde.Worlds.Tile_Models is
             Result.Initialise (World.Name);
             Result.World := World;
             Result.Selected_Sector := World.Sectors'Length / 2;
+            Result.Last_Update := Ada.Calendar.Clock;
+            Result.Drag_Rotation_Behaviour
+              (Y_Axis    => True,
+               X_Axis    => False,
+               Z_Axis    => False,
+               Reverse_X => False,
+               Reverse_Y => False,
+               Reverse_Z => False);
             Add_Properties (Result);
             World_Models.Insert (World.Identifier, Result);
          end;
