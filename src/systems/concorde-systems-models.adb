@@ -22,7 +22,7 @@ with Concorde.Worlds;
 with Concorde.People.Pops.Lists;
 
 with Concorde.Ships.Models;
-with Concorde.Worlds.Models;
+--  with Concorde.Worlds.Models;
 with Concorde.Worlds.Tile_Models;
 
 with Concorde.Worlds.Db;
@@ -514,12 +514,8 @@ package body Concorde.Systems.Models is
          if X in Render.X .. Render.X + Render.W
            and then Y in Render.Y .. Render.Y + Render.H
          then
-            if False then
-               return Concorde.Worlds.Models.World_Model (Render.World);
-            else
-               return Concorde.Worlds.Tile_Models.World_Tile_Model
-                 (Render.World);
-            end if;
+            return Concorde.Worlds.Tile_Models.World_Tile_Model
+              (Render.World);
          end if;
       end loop;
       return null;
