@@ -4,8 +4,6 @@ package Concorde.Geometry is
 
    type Radians is private;
 
-   subtype Signed_Unit_Real is Real range -1.0 .. 1.0;
-
    function Degrees_To_Radians
      (Degrees : Real)
       return Radians;

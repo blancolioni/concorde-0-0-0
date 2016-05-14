@@ -3,6 +3,7 @@ private with Ada.Containers.Doubly_Linked_Lists;
 private with Memor;
 
 private with Concorde.Graphs;
+private with Concorde.Surfaces;
 
 with Concorde.Objects;
 
@@ -102,10 +103,12 @@ private
          Sectors               : access Array_Of_Sectors;
          Graph                 : Sector_Graphs.Graph;
          Row_Length            : access Array_Of_Row_Lengths;
+         Row_Start             : access Array_Of_Row_Lengths;
          Heights               : access Height_Map;
          Height_Count          : Natural;
          Height_Row_Length     : access Array_Of_Row_Lengths;
          Height_Row_Start      : access Array_Of_Row_Lengths;
+         Surface               : Concorde.Surfaces.Surface_Type;
          Resonant_Period       : Boolean;
          Greenhouse_Effect     : Boolean;
          Atmosphere            : Atmosphere_Lists.List;

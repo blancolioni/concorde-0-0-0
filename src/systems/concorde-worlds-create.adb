@@ -1137,11 +1137,30 @@ package body Concorde.Worlds.Create is
       pragma Assert (Bounding_Height mod 2 = 1);
       pragma Assert (Bounding_Width mod 2 = 1);
 
+      declare
+         use Ada.Numerics;
+         World_Surface_Area : constant Non_Negative_Real :=
+                                4.0 / 3.0 * Pi * World.Radius ** 2;
+         Sector_Target_Area : constant Non_Negative_Real :=
+                                Sector_Size ** 2;
+         Sector_Count       : constant Natural :=
+                                Natural (World_Surface_Area
+                                         / Sector_Target_Area);
+         pragma Unreferenced (Sector_Count);
+         Normalised_Area    : constant Unit_Real :=
+                                Sector_Target_Area / World_Surface_Area;
+      begin
+
+         World.Surface :=
+           Concorde.Surfaces.Create_Surface (Normalised_Area);
+      end;
+
       World.Surface_Seed := Seed;
       World.Great_Circle_Sectors := Bounding_Width;
       World.Half_Circle_Sectors := Bounding_Height;
 
       World.Row_Length := new Array_Of_Row_Lengths (1 .. Bounding_Height);
+      World.Row_Start := new Array_Of_Row_Lengths (1 .. Bounding_Height);
 
       Surface.Create
         (Detail_Width  => Bounding_Width * Subsector_Size,
@@ -1153,7 +1172,7 @@ package body Concorde.Worlds.Create is
       declare
          use Concorde.Generate.Surfaces;
       begin
-         if Category = Terrestrial then
+         if Category = Terrestrial or else Category = Martian then
             if World_Fractal_Iterations = 0 then
                World_Fractal_Iterations :=
                  Concorde.Options.World_Fractal_Iterations;
@@ -1195,6 +1214,7 @@ package body Concorde.Worlds.Create is
                                          Natural (Real_Length *
                                              Real (Bounding_Width)));
          begin
+            World.Row_Start (I) := Sector_Count + 1;
             World.Row_Length (I) := Length;
             Latitude_Count (I) := Length;
             Sector_Count := Sector_Count + Length;
@@ -1427,6 +1447,7 @@ package body Concorde.Worlds.Create is
                         2.7 * Star.Solar_Masses;
       Goldilocks_Orbit : constant Non_Negative_Real :=
                            Star.Solar_Masses;
+      Have_Goldilocks_World : Boolean := False;
 
       Current_Orbit : Real;
 
@@ -1481,7 +1502,7 @@ package body Concorde.Worlds.Create is
       begin
          if Orbit < Frost_Line then
             Min := Orbit * 0.25;
-            Max := Orbit * 0.75;
+            Max := Orbit * 0.65;
          else
             Min := Orbit * 0.25;
             Max := Orbit * 0.75;
@@ -1531,11 +1552,17 @@ package body Concorde.Worlds.Create is
 
          Total_Mass := Solid_Mass + Gas_Mass;
 
-         if not Is_Jovian
+         if not Is_Jovian and then not Have_Goldilocks_World
            and then abs (Current_Orbit / Goldilocks_Orbit - 1.0) < 0.4
+           and then abs (Current_Orbit / Goldilocks_Orbit - 1.0) > 0.1
+           and then Concorde.Random.Unit_Random < 0.5
          then
             Current_Orbit := Concorde.Random.About (Goldilocks_Orbit, 0.1);
          end if;
+
+         Have_Goldilocks_World :=
+           Have_Goldilocks_World
+             or else abs (Current_Orbit / Goldilocks_Orbit - 1.0) < 0.1;
 
          declare
 
@@ -1693,8 +1720,7 @@ package body Concorde.Worlds.Create is
                      elsif World.Surface_Temp
                        < Concorde.Constants.Freezing_Point_Of_Water
                      then
-                        Category := Ice;
-                        World.Ice_Cover := 1.0;
+                        Category := Terrestrial;
                      else
                         Ada.Text_IO.Put_Line
                           (World.Name & ": can't categorise");
