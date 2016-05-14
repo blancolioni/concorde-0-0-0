@@ -4,6 +4,7 @@ private with Memor;
 
 private with Concorde.Graphs;
 private with Concorde.Surfaces;
+private with Concorde.Maps;
 
 with Concorde.Objects;
 
@@ -101,13 +102,6 @@ private
          Category              : World_Category;
          Surface_Seed          : Integer;
          Sectors               : access Array_Of_Sectors;
-         Graph                 : Sector_Graphs.Graph;
-         Row_Length            : access Array_Of_Row_Lengths;
-         Row_Start             : access Array_Of_Row_Lengths;
-         Heights               : access Height_Map;
-         Height_Count          : Natural;
-         Height_Row_Length     : access Array_Of_Row_Lengths;
-         Height_Row_Start      : access Array_Of_Row_Lengths;
          Surface               : Concorde.Surfaces.Surface_Type;
          Resonant_Period       : Boolean;
          Greenhouse_Effect     : Boolean;
@@ -140,8 +134,6 @@ private
          Cloud_Cover           : Unit_Real;
          Ice_Cover             : Unit_Real;
          Sector_Count          : Natural;
-         Great_Circle_Sectors  : Natural;
-         Half_Circle_Sectors   : Natural;
       end record;
 
    overriding function Object_Database
@@ -172,5 +164,40 @@ private
      (World : Root_World_Type)
       return Unit_Real
    is (World.Eccentricity);
+
+   type World_Layout_Type is
+     new Concorde.Maps.Tile_Layout_Interface with
+      record
+         Surface : Concorde.Surfaces.Surface_Type;
+         Sectors : access Array_Of_Sectors;
+      end record;
+
+   overriding function Tile_Count
+     (Layout     : World_Layout_Type)
+      return Natural
+   is (Layout.Sectors'Length);
+
+   overriding function Neighbour_Count
+     (Layout     : World_Layout_Type;
+      Tile_Index : Positive)
+      return Natural
+   is (Natural
+       (Layout.Surface.Neighbour_Count
+          (Concorde.Surfaces.Surface_Tile_Index (Tile_Index))));
+
+   overriding function Neighbour
+     (Layout          : World_Layout_Type;
+      Tile_Index      : Positive;
+      Neighbour_Index : Positive)
+      return Positive
+   is (Positive
+       (Layout.Surface.Neighbour
+        (Concorde.Surfaces.Surface_Tile_Index (Tile_Index),
+         Concorde.Surfaces.Tile_Neighbour_Index (Neighbour_Index))));
+
+   overriding procedure Set_Height
+     (Layout          : in out World_Layout_Type;
+      Tile_Index      : Positive;
+      Height          : Positive);
 
 end Concorde.Worlds;

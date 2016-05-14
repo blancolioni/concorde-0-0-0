@@ -27,4 +27,18 @@ package body Concorde.Worlds is
       return Db.Get_Database;
    end Object_Database;
 
+   ----------------
+   -- Set_Height --
+   ----------------
+
+   overriding procedure Set_Height
+     (Layout          : in out World_Layout_Type;
+      Tile_Index      : Positive;
+      Height          : Positive)
+   is
+   begin
+      Layout.Sectors (Tile_Index).Height :=
+        Height_Range (Height + Min_Height - 1);
+   end Set_Height;
+
 end Concorde.Worlds;
