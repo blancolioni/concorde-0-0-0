@@ -43,6 +43,16 @@ package Concorde.Surfaces is
       Relative_Longitude : Unit_Real)
       return Surface_Tile_Index;
 
+   function Latitude
+     (Surface : Root_Surface_Type'Class;
+      Tile    : Surface_Tile_Index)
+      return Real;
+
+   function Longitude
+     (Surface : Root_Surface_Type'Class;
+      Tile    : Surface_Tile_Index)
+      return Real;
+
    subtype Vector_3 is
      Ada.Numerics.Long_Real_Arrays.Real_Vector (1 .. 3);
 

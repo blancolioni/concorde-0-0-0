@@ -1,3 +1,5 @@
+with Concorde.Elementary_Functions;
+
 package body Concorde.Surfaces is
 
    Max_Depth : constant := 5;
@@ -95,7 +97,7 @@ package body Concorde.Surfaces is
                V2 : constant Vector_3 :=
                       Surface.Tile_Vertices (Element (Position));
             begin
-               exit when Norm * Cross (V1 - Norm, V2 - Norm) > 0.0;
+               exit when Norm * Cross (V1 - Norm, V2 - Norm) < 0.0;
                Previous (Position);
             end;
          end loop;
@@ -255,6 +257,37 @@ package body Concorde.Surfaces is
    begin
       return 1;
    end Get_Tile;
+
+   --------------
+   -- Latitude --
+   --------------
+
+   function Latitude
+     (Surface : Root_Surface_Type'Class;
+      Tile    : Surface_Tile_Index)
+      return Real
+   is
+      use Concorde.Elementary_Functions;
+   begin
+      return Arcsin (Surface.Vertices.Element (Tile).Position (2),
+                     Cycle => 360.0);
+   end Latitude;
+
+   ---------------
+   -- Longitude --
+   ---------------
+
+   function Longitude
+     (Surface : Root_Surface_Type'Class;
+      Tile    : Surface_Tile_Index)
+      return Real
+   is
+      use Concorde.Elementary_Functions;
+      V : constant Vector_3 :=
+            Surface.Vertices.Element (Tile).Position;
+   begin
+      return Arctan (V (3), V (1), 360.0);
+   end Longitude;
 
    ---------------
    -- Neighbour --
