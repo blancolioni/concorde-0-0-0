@@ -54,8 +54,7 @@ package body Concorde.Worlds.Create is
    procedure Configure_Category_Terrain;
 
    procedure Calculate_Climate
-     (World : in out Root_World_Type'Class)
-   is null;
+     (World : in out Root_World_Type'Class);
 
    type Orbit_Zone is range 1 .. 3;
 
@@ -272,7 +271,59 @@ package body Concorde.Worlds.Create is
    -- Calculate_Climate --
    -----------------------
 
---     procedure Calculate_Climate
+   procedure Calculate_Climate
+     (World : in out Root_World_Type'Class)
+   is
+   begin
+      for Tile in World.Sectors'Range loop
+         declare
+            use Concorde.Elementary_Functions;
+            Sector : Sector_Record renames World.Sectors (Tile);
+            Latitude : constant Real :=
+                         World.Surface.Latitude (Tile);
+            Pressure : constant Real :=
+                         (if World.Surface_Pressure > 0.0
+                          then World.Surface_Pressure
+                          * Exp (-Real (Height_Range'Max (Sector.Height, 0))
+                            * (1.0 / 7.0 / World.Surface_Pressure))
+                          else 0.0);
+            Height_Factor   : constant Unit_Real :=
+                                (if Pressure > 0.0
+                                 then Pressure / World.Surface_Pressure
+                                 else 1.0);
+            Latitude_Factor : constant Real :=
+                                80.0 * abs Latitude / 180.0;
+         begin
+            Sector.Temperature :=
+              (Low     =>
+                 World.Nighttime_Low * Height_Factor - Latitude_Factor,
+               High    =>
+                 World.Daytime_High * Height_Factor - Latitude_Factor,
+               Average =>
+                 (World.Nighttime_Low + World.Daytime_High)
+               * Height_Factor / 2.0 - Latitude_Factor);
+            if Sector.Height < -4 and then World.Hydrosphere > 0.0 then
+               Sector.Terrain :=
+                 Concorde.Terrain.Get ("ocean");
+               if Sector.Temperature.High < 263.0 then
+                  Sector.Feature := Concorde.Features.Ice;
+               end if;
+            elsif Sector.Height < 0 and then World.Hydrosphere > 0.0 then
+               Sector.Terrain :=
+                 Concorde.Terrain.Get ("sea");
+               if Sector.Temperature.High < 272.0 then
+                  Sector.Feature := Concorde.Features.Ice;
+               end if;
+            elsif World.Ice_Cover > 0.0 or else World.Hydrosphere > 0.0 then
+               if Sector.Temperature.High < 276.0 then
+                  Sector.Feature := Concorde.Features.Ice;
+               end if;
+            end if;
+         end;
+      end loop;
+   end Calculate_Climate;
+
+   --     procedure Calculate_Climate
 --       (World : in out Root_World_Type'Class)
 --     is
 --        use Concorde.Elementary_Functions;
@@ -585,6 +636,18 @@ package body Concorde.Worlds.Create is
             World.Atmosphere.Append ((Refs (I), Amounts (I) / Total));
          end loop;
 
+         declare
+            function Higher_Concentration
+              (Left, Right : Atmospheric_Element)
+               return Boolean
+            is (Left.Fraction > Right.Fraction);
+
+            package Sorting is
+              new Atmosphere_Lists.Generic_Sorting
+                (Higher_Concentration);
+         begin
+            Sorting.Sort (World.Atmosphere);
+         end;
       end if;
 
    end Calculate_Gases;
@@ -785,8 +848,7 @@ package body Concorde.Worlds.Create is
      return Real
    is
    begin
-      return Volatile_Gas_Inventory * Earth_Gravities
-        * (1013.25 / 1000.0)
+      return Volatile_Gas_Inventory * Earth_Gravities * 0.1
         / (Earth_Radii ** 2);
    end Calculate_Surface_Pressure;
 
@@ -1008,7 +1070,7 @@ package body Concorde.Worlds.Create is
    is
       Resources : constant Concorde.Commodities.Array_Of_Commodities :=
                     Concorde.Commodities.Get
-                      (Concorde.Commodities.Resource);
+                      (Concorde.Commodities.Mineral);
       Local_Res : Concorde.Commodities.Array_Of_Commodities (1 .. 3);
       Probability : array (Local_Res'Range) of Positive;
       Max_Prob    : Natural := 0;
@@ -1059,21 +1121,6 @@ package body Concorde.Worlds.Create is
      (World       : in out Root_World_Type'Class)
    is
       use Concorde.Elementary_Functions;
-      Radius        : constant Real := World.Radius;
-      Circumference : constant Real := 2.0 * Ada.Numerics.Pi * Radius;
-      Equator       : constant Real := Circumference / Sector_Size;
-      Integer_Equator : constant Natural :=
-                          Natural (Equator)
-                          + (if Natural (Equator) mod 2 = 0 then 1 else 0);
-      Integer_Height   : constant Natural :=
-                           Integer_Equator / 2
-                             + (if Integer_Equator / 2 mod 2 = 0
-                                then 1 else 0);
-      Bounding_Width   : constant Positive :=
-                           Natural'Max (1, Integer_Equator);
-      Bounding_Height  : constant Positive :=
-                           Natural'Max (1, Integer_Height);
-
       Seed             : constant Positive :=
                            WL.Random.Random_Number (1, Positive'Last);
    begin
@@ -1086,9 +1133,6 @@ package body Concorde.Worlds.Create is
       if Subsector_Size = 0 then
          Subsector_Size := Concorde.Options.World_Detail_Factor;
       end if;
-
-      pragma Assert (Bounding_Height mod 2 = 1);
-      pragma Assert (Bounding_Width mod 2 = 1);
 
       declare
          use Ada.Numerics;
@@ -1107,8 +1151,9 @@ package body Concorde.Worlds.Create is
            Concorde.Surfaces.Create_Surface (Normalised_Area);
       end;
 
+      World.Sector_Count := Natural (World.Surface.Tile_Count);
       World.Sectors :=
-        new Array_Of_Sectors (1 .. Natural (World.Surface.Tile_Count));
+        new Array_Of_Sectors (1 .. World.Surface.Tile_Count);
 
 --        declare
 --           Layout : World_Layout_Type :=
@@ -1119,12 +1164,7 @@ package body Concorde.Worlds.Create is
 
       World.Surface_Seed := Seed;
 
-      if False
-        and then World.Surface_Pressure > 10.0
-        and then World.Hydrosphere > 0.0
-      then
-         Calculate_Climate (World);
-      end if;
+      Calculate_Climate (World);
 
    end Create_Sector_Layout;
 
@@ -1253,7 +1293,7 @@ package body Concorde.Worlds.Create is
          if not Is_Jovian and then not Have_Goldilocks_World
            and then abs (Current_Orbit / Goldilocks_Orbit - 1.0) < 0.4
            and then abs (Current_Orbit / Goldilocks_Orbit - 1.0) > 0.1
-           and then Concorde.Random.Unit_Random < 0.5
+           --  and then Concorde.Random.Unit_Random < 0.5
          then
             Current_Orbit := Concorde.Random.About (Goldilocks_Orbit, 0.1);
          end if;
