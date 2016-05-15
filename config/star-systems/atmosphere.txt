@@ -1,4 +1,5 @@
 H2 = {
+  formula = "H₂"
   name = "Hydrogen"
   weight = 2.0158
   mp = 14.06
@@ -35,6 +36,7 @@ CH4 = {
 }
 
 NH3 = {
+   formula = "NH₃"
    name = "Ammonia"
    weight = 17
    mp = 195.46
@@ -47,6 +49,7 @@ NH3 = {
 }
 
 H2O = {
+   formula = "H₂O"
    name = "Water Vapour"
    weight = 18
    mp = 273.16
@@ -71,6 +74,7 @@ Ne = {
 }
 
 N2 = {
+   formula = "N₂"
    name = "Nitrogen"
    weight = 28.0134
    mp = 63.34
@@ -83,6 +87,7 @@ N2 = {
 }
 
 O2 = {
+   formula = "O₂"
    name = "Oxygen"
    weight = 31.9988
    mp = 54.8
@@ -107,6 +112,7 @@ Ar = {
 }
 
 CO2 = {
+   formula = "CO₂"
    name = "Carbon Dioxide"
    weight = 44
    mp = 194.66
@@ -119,6 +125,7 @@ CO2 = {
 }
 
 O3 = {
+   formula = "O₃"
    name = "Ozone"
    weight = 48
    mp = 80.16
