@@ -36,8 +36,12 @@ package body Concorde.Worlds is
       Tile_Index      : Positive;
       Height          : Positive)
    is
+      Sector : Sector_Record renames
+                 Layout.Sectors
+                   (Concorde.Surfaces.Surface_Tile_Index (Tile_Index));
+
    begin
-      Layout.Sectors (Tile_Index).Height :=
+      Sector.Height :=
         Height_Range (Height + Min_Height - 1);
    end Set_Height;
 

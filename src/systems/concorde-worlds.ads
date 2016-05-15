@@ -5,7 +5,7 @@ private with Memor;
 private with Concorde.Graphs;
 private with Concorde.Surfaces;
 private with Concorde.Maps;
-
+private with Concorde.Geometry;
 with Concorde.Objects;
 
 with Concorde.Atmosphere;
@@ -58,6 +58,17 @@ private
          Concentration : Unit_Real;
       end record;
 
+   type Temperature_Record is
+      record
+         Low, Average, High : Non_Negative_Real;
+      end record;
+
+   type Wind_Record is
+      record
+         Direction : Concorde.Geometry.Radians;
+         Speed     : Non_Negative_Real;
+      end record;
+
    Min_Height : constant := -16;
    Max_Height : constant := 32;
 
@@ -65,14 +76,17 @@ private
 
    type Sector_Record is
       record
-         Height  : Height_Range;
-         Terrain : Concorde.Terrain.Terrain_Type;
-         Feature : Concorde.Features.Feature_Type;
-         Deposit : Deposit_Record;
+         Height      : Height_Range;
+         Terrain     : Concorde.Terrain.Terrain_Type;
+         Feature     : Concorde.Features.Feature_Type;
+         Deposit     : Deposit_Record;
+         Temperature : Temperature_Record;
+         Wind        : Wind_Record;
+         Moisture    : Non_Negative_Real;
       end record;
 
    type Array_Of_Sectors is
-     array (Positive range <>) of Sector_Record;
+     array (Concorde.Surfaces.Surface_Tile_Index range <>) of Sector_Record;
 
    type Height_Map is
      array (Positive range <>) of Height_Range
