@@ -145,7 +145,7 @@ package body Concorde.Worlds.Tile_Models is
                        (0.8, 0.7, 0.1, 0.5);
 
    Sector_Column_Count : constant := 2;
-   Sector_Row_Count    : constant := 8;
+   Sector_Row_Count    : constant := 10;
 
    subtype Sector_Column is Integer range 1 .. Sector_Column_Count;
    subtype Sector_Row is Integer range 1 .. Sector_Row_Count;
@@ -339,20 +339,24 @@ package body Concorde.Worlds.Tile_Models is
          when 1 =>
             case Sector_Row (Row) is
                when 1 =>
-                  return "Terrain";
+                  return "Latitude";
                when 2 =>
-                  return "Elevation";
+                  return "Longitude";
                when 3 =>
-                  return "Max Temperature";
+                  return "Terrain";
                when 4 =>
-                  return "Ave Temperature";
+                  return "Elevation";
                when 5 =>
-                  return "Min Temperature";
+                  return "Max Temperature";
                when 6 =>
-                  return "Resource";
+                  return "Ave Temperature";
                when 7 =>
-                  return "Concentration";
+                  return "Min Temperature";
                when 8 =>
+                  return "Resource";
+               when 9 =>
+                  return "Concentration";
+               when 10 =>
                   return "Accessibility";
             end case;
          when 2 =>
@@ -365,6 +369,28 @@ package body Concorde.Worlds.Tile_Models is
             begin
                case Sector_Row (Row) is
                   when 1 =>
+                     declare
+                        Latitude : constant Real :=
+                                     Table.World.Surface.Latitude (Table.Tile);
+                        NS : constant String :=
+                                     (if Latitude >= 0.0 then "N" else "S");
+                     begin
+                        return Lui.Approximate_Image (abs Latitude)
+                          & " " & NS;
+                     end;
+                  when 2 =>
+                     declare
+                        Longitude : constant Real :=
+                                      Table.World.Surface.Longitude
+                                        (Table.Tile);
+                        EW       : constant String :=
+                                      (if Longitude >= 0.0
+                                       then "E" else "W");
+                     begin
+                        return Lui.Approximate_Image (abs Longitude)
+                          & " " & EW;
+                     end;
+                  when 3 =>
                      if Sector.Feature /= null then
                         if Sector.Terrain /= null then
                            return Sector.Feature.Name
@@ -378,17 +404,17 @@ package body Concorde.Worlds.Tile_Models is
                      else
                         return "-";
                      end if;
-                  when 2 =>
+                  when 4 =>
                      return Integer'Image
                        (Integer (Sector.Height) * 100) & "m";
-                  when 3 .. 5 =>
+                  when 5 .. 7 =>
                      declare
                         Temp_Rec : Temperature_Record renames
                                      Sector.Temperature;
                         Temp_K   : constant Real :=
-                                     (if Row = 3
+                                     (if Row = 5
                                       then Temp_Rec.High
-                                      elsif Row = 4
+                                      elsif Row = 6
                                       then Temp_Rec.Average
                                       else Temp_Rec.Low);
                         Temp_C   : constant Real := Temp_K - 273.15;
@@ -396,13 +422,13 @@ package body Concorde.Worlds.Tile_Models is
                         return Lui.Approximate_Image
                           (Integer (Temp_C));
                      end;
-                  when 6 =>
+                  when 8 =>
                      if Sector.Deposit.Resource /= null then
                         return Sector.Deposit.Resource.Name;
                      else
                         return "none";
                      end if;
-                  when 7 =>
+                  when 9 =>
                      if Sector.Deposit.Resource /= null then
                         return Lui.Approximate_Image
                           (Sector.Deposit.Concentration * 100.0)
@@ -410,7 +436,7 @@ package body Concorde.Worlds.Tile_Models is
                      else
                         return "-";
                      end if;
-                  when 8 =>
+                  when 10 =>
                      if Sector.Deposit.Resource /= null then
                         return Lui.Approximate_Image
                           (Sector.Deposit.Accessibility * 100.0)
