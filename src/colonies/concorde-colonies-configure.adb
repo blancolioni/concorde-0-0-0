@@ -86,6 +86,7 @@ package body Concorde.Colonies.Configure is
                             (World);
       Tiles            : Concorde.Maps.List_Of_Tiles.List;
       Start_Tiles      : Concorde.Maps.List_Of_Tiles.List;
+      Used_Tiles       : Concorde.Maps.List_Of_Tiles.List;
       Current_Position : Concorde.Maps.List_Of_Tiles.Cursor;
       Capital_Tile     : Concorde.Surfaces.Surface_Tile_Index;
 
@@ -337,11 +338,37 @@ package body Concorde.Colonies.Configure is
             declare
                New_Tiles : List;
             begin
-               World.External_Border (Tiles, New_Tiles);
+               Ada.Text_IO.Put_Line ("expanding border");
+               World.External_Border (Used_Tiles, New_Tiles);
                Tiles := New_Tiles;
+               for Tile of New_Tiles loop
+                  Used_Tiles.Append (Tile);
+               end loop;
             end;
             Current_Position := Tiles.First;
          end if;
+
+         while Has_Element (Current_Position) loop
+            declare
+               use type Concorde.Features.Feature_Type;
+               Tile_Index : constant Concorde.Surfaces.Surface_Tile_Index :=
+                              Current_Tile;
+            begin
+               exit when
+                 (not World.Sector_Has_Terrain (Tile_Index)
+                  or else not World.Sector_Terrain (Tile_Index).Is_Water)
+                 and then
+                   (not World.Sector_Has_Feature (Tile_Index)
+                    or else World.Sector_Feature (Tile_Index) /= Features.Ice);
+               Next (Current_Position);
+            end;
+         end loop;
+
+         if not Has_Element (Current_Position) then
+            Current_Position := Tiles.Last;
+            Next_Tile;
+         end if;
+
       end Next_Tile;
 
       -----------------------
@@ -505,6 +532,7 @@ package body Concorde.Colonies.Configure is
       end if;
 
       Tiles.Append (Start_Tiles.First_Element);
+      Used_Tiles.Append (Start_Tiles.First_Element);
       Current_Position := Tiles.First;
       Capital_Tile :=
         Concorde.Surfaces.Surface_Tile_Index
@@ -591,7 +619,8 @@ package body Concorde.Colonies.Configure is
             end if;
 
             for I in 1 .. Install_Config.Get (Facility.Identifier, 0) loop
-               Create_Installation (Facility, Capital_Tile);
+               Create_Installation (Facility, Current_Tile);
+               Next_Tile;
             end loop;
          end Configure_Installation;
 
@@ -600,11 +629,16 @@ package body Concorde.Colonies.Configure is
             declare
                Tile : constant Concorde.Surfaces.Surface_Tile_Index :=
                         Current_Tile;
+               Facility : constant Concorde.Facilities.Facility_Type :=
+                            Concorde.Facilities.Resource_Generator
+                              (World.Sector_Resource (Tile));
             begin
                Create_Installation
-                 (Concorde.Facilities.Resource_Generator
-                    (World.Sector_Resource (Tile)),
-                  Tile);
+                 (Facility, Tile);
+               Ada.Text_IO.Put_Line
+                 ("  " & Facility.Name & " at tile"
+                  & Concorde.Surfaces.Surface_Tile_Index'Image
+                    (Tile));
                Next_Tile;
             end;
          end loop;
