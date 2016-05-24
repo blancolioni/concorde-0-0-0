@@ -555,6 +555,9 @@ package body Concorde.Ships.Models is
       Model : Ship_Model;
    begin
       Model.Initialise (Ship);
+      Model.Drag_Rotation_Behaviour
+        (Reverse_X => True);
+
       declare
          Result : constant Lui.Models.Object_Model :=
                     new Ship_Model'(Model);
