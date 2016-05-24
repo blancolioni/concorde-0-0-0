@@ -53,7 +53,9 @@ package body Concorde.Maps is
                Neighbour : constant Positive :=
                              Layout.Neighbour (Tile, Neighbour_Index);
             begin
-               if not Tiles.Contains (Neighbour) then
+               if not Border.Contains (Neighbour)
+                 and then not Tiles.Contains (Neighbour)
+               then
                   Border.Append (Neighbour);
                end if;
             end;
@@ -78,7 +80,9 @@ package body Concorde.Maps is
                Neighbour : constant Positive :=
                              Layout.Neighbour (Tile, Neighbour_Index);
             begin
-               if not Tiles.Contains (Neighbour) then
+               if Border.Contains (Neighbour)
+                 and then not Tiles.Contains (Neighbour)
+               then
                   Border.Append (Tile);
                   exit;
                end if;
