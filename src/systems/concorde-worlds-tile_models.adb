@@ -819,9 +819,7 @@ package body Concorde.Worlds.Tile_Models is
             Colour     : constant Lui.Colours.Colour_Type :=
                            (case Current_Map_Mode is
                                when Height_Mode      =>
-                              (if Owner /= null
-                               then Owner.Colour
-                               elsif Feature /= null
+                              (if Feature /= null
                                then Feature.Colour
                                elsif Terrain /= null
                                then Terrain.Colour
@@ -829,6 +827,9 @@ package body Concorde.Worlds.Tile_Models is
                                when Temperature_Mode =>
                                   Temp_Colour);
          begin
+            if Owner /= null then
+               Draw_Tile (I, Lui.Colours.Apply_Alpha (Owner.Colour, 0.8));
+            end if;
             Draw_Tile (I, Colour);
          end;
       end loop;
