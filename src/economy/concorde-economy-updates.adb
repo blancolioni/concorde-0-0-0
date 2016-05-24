@@ -30,20 +30,20 @@ package body Concorde.Economy.Updates is
                     (Concorde.Commodities.Virtual);
 
       procedure Agent_Trade_Update
-        (Rec : in out Memor.Root_Record_Type'Class);
+        (Rec : not null access Memor.Root_Record_Type'Class);
 
       procedure Ship_Trade_Update
-        (Ship : in out Concorde.Ships.Root_Ship_Type'Class);
+        (Ship : not null access Concorde.Ships.Root_Ship_Type'Class);
 
       ------------------------
       -- Agent_Trade_Update --
       ------------------------
 
       procedure Agent_Trade_Update
-        (Rec : in out Memor.Root_Record_Type'Class)
+        (Rec : not null access Memor.Root_Record_Type'Class)
       is
-         Agent : Concorde.Agents.Root_Agent_Type'Class renames
-                   Concorde.Agents.Root_Agent_Type'Class (Rec);
+         Agent : constant Concorde.Agents.Agent_Type :=
+                   Concorde.Agents.Agent_Type (Rec);
       begin
          for Commodity of Virtual loop
             Agent.Set_Quantity (Commodity, Quantities.Zero, Money.Zero);
@@ -57,7 +57,7 @@ package body Concorde.Economy.Updates is
       -----------------------
 
       procedure Ship_Trade_Update
-        (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
+        (Ship : not null access Concorde.Ships.Root_Ship_Type'Class)
       is
       begin
          Ship.Add_Trade_Offers;

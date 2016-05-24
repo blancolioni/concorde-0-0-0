@@ -181,6 +181,8 @@ package Concorde.Agents is
      (Agent     : in out Root_Agent_Type'Class;
       Guarantor : access constant Root_Agent_Type'Class);
 
+   type Agent_Type is access all Root_Agent_Type'Class;
+
 private
 
    type Agent_Price_Belief_Record is
