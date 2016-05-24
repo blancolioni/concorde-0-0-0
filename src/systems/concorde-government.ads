@@ -93,8 +93,7 @@ private
    is (Government.Governed.Name & " Government");
 
    overriding procedure Add_Trade_Offers
-     (Item   : not null access constant Root_Government_Type;
-      Market : in out Concorde.Trades.Trade_Interface'Class);
+     (Item   : not null access constant Root_Government_Type);
 
    overriding procedure On_Update_Start
      (Government : in out Root_Government_Type);

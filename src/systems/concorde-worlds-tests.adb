@@ -1,6 +1,6 @@
 with Concorde.Ships.Create;
 
-package body Concorde.Systems.Tests is
+package body Concorde.Worlds.Tests is
 
    -------------------
    -- New_Test_Ship --
@@ -9,14 +9,14 @@ package body Concorde.Systems.Tests is
    procedure New_Test_Ship
      (Owner  : not null access constant
         Concorde.Empires.Root_Empire_Type'Class;
-      System : in out Concorde.Systems.Root_Star_System_Type'Class;
+      World  : in out Root_World_Type'Class;
       Design : String)
    is
       Ship : constant Concorde.Ships.Ship_Type :=
                Concorde.Ships.Create.New_Ship
-                 (Owner, "", System, Design);
+                 (Owner, "", World, Design);
    begin
-      System.Ships.Append (Ship);
+      World.Ships.Append (Ship);
    end New_Test_Ship;
 
-end Concorde.Systems.Tests;
+end Concorde.Worlds.Tests;

@@ -6,11 +6,13 @@ with Memor;
 
 limited with Concorde.Empires;
 limited with Concorde.Systems;
+limited with Concorde.Worlds;
 
 with Concorde.Commodities;
 
 with Concorde.Agents;
 with Concorde.Components;
+with Concorde.Locations;
 with Concorde.Modules;
 with Concorde.Objects;
 with Concorde.Trades;
@@ -39,17 +41,13 @@ package Concorde.Ships is
      (Ship : Root_Ship_Type'Class)
       return access constant Concorde.Empires.Root_Empire_Type'Class;
 
-   function System
-     (Ship : Root_Ship_Type'Class)
-      return access constant Concorde.Systems.Root_Star_System_Type'Class;
-
    function Has_Destination
      (Ship : Root_Ship_Type'Class)
       return Boolean;
 
    function Destination
      (Ship : Root_Ship_Type'Class)
-      return access constant Concorde.Systems.Root_Star_System_Type'Class
+      return access constant Concorde.Worlds.Root_World_Type'Class
      with Pre => Ship.Has_Destination;
 
    procedure Cycle_Orders
@@ -62,14 +60,14 @@ package Concorde.Ships is
 
    procedure Add_Buy_Order
      (Ship : in out Root_Ship_Type'Class;
-      System : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class;
-      Item : Concorde.Commodities.Commodity_Type);
+      World : not null access constant
+        Concorde.Worlds.Root_World_Type'Class;
+      Item  : Concorde.Commodities.Commodity_Type);
 
    procedure Add_Sell_Order
      (Ship   : in out Root_Ship_Type'Class;
-      System : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class;
+      World : not null access constant
+        Concorde.Worlds.Root_World_Type'Class;
       Item   : Concorde.Commodities.Commodity_Type);
 
    procedure Clear_Orders
@@ -85,11 +83,6 @@ package Concorde.Ships is
    procedure Execute_Arrival_Orders
      (Ship : in out Root_Ship_Type'Class);
 
-   procedure Set_System
-     (Ship : in out Root_Ship_Type'Class;
-      System : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class);
-
    procedure Set_Owner
      (Ship   : in out Root_Ship_Type'Class;
       New_Owner : not null access constant
@@ -97,7 +90,12 @@ package Concorde.Ships is
 
    procedure Set_Destination
      (Ship   : in out Root_Ship_Type'Class;
-      System : not null access constant
+      World  : not null access constant
+        Concorde.Worlds.Root_World_Type'Class);
+
+   procedure Set_Destination
+     (Ship   : in out Root_Ship_Type'Class;
+      System  : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class);
 
    procedure Clear_Destination
@@ -264,9 +262,9 @@ private
 
    type Ship_Order_Record is
       record
-         Order            : Ship_Order_Type;
-         System_Reference : Memor.Database_Reference;
-         Commodity        : Concorde.Commodities.Commodity_Type;
+         Order      : Ship_Order_Type;
+         World      : access constant Concorde.Worlds.Root_World_Type'Class;
+         Commodity  : Concorde.Commodities.Commodity_Type;
       end record;
 
    package List_Of_Orders is
@@ -275,14 +273,16 @@ private
    type Root_Ship_Type is
      new Concorde.Agents.Root_Agent_Type
      and Memor.Identifier_Record_Type
+     and Concorde.Locations.Located_Interface
      and Concorde.Objects.User_Named_Object_Interface with
       record
          Identity              : String (1 .. 6);
          Ship_Name             : Ada.Strings.Unbounded.Unbounded_String;
          Owner                 : access constant
            Concorde.Empires.Root_Empire_Type'Class;
-         System_Reference      : Memor.Database_Reference;
+         Location              : Concorde.Locations.Object_Location;
          Dest_Reference        : Memor.Database_Reference;
+         Dest_System_Reference : Memor.Database_Reference;
          Orders                : List_Of_Orders.List;
          Cycle_Orders          : Boolean;
          Alive                 : Boolean;
@@ -290,7 +290,7 @@ private
          Size                  : Size_Type;
          Current_Damage        : Unit_Real := 0.0;
          Current_Shields       : Unit_Real := 0.0;
-         Location              : Newton.Vector_3;
+         Position              : Newton.Vector_3;
          Velocity              : Newton.Vector_3;
          Orientation           : Newton.Matrix_3;
       end record;
@@ -327,8 +327,7 @@ private
    is (False);
 
    overriding procedure Add_Trade_Offers
-     (Ship : not null access constant Root_Ship_Type;
-      Market : in out Concorde.Trades.Trade_Interface'Class);
+     (Ship : not null access constant Root_Ship_Type);
 
    overriding function Offer_Strategy
      (Ship : Root_Ship_Type;

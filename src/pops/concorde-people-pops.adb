@@ -10,8 +10,7 @@ package body Concorde.People.Pops is
    ----------------------
 
    overriding procedure Add_Trade_Offers
-     (Item   : not null access constant Root_Pop_Type;
-      Market : in out Concorde.Trades.Trade_Interface'Class)
+     (Item   : not null access constant Root_Pop_Type)
    is
       use Concorde.Commodities;
       use type Concorde.Quantities.Quantity;
@@ -28,10 +27,10 @@ package body Concorde.People.Pops is
    begin
       for Skill of Item.Skills loop
          Item.Create_Sell_Offer
-           (Market, Skill.Commodity, Item.Size_Quantity, Concorde.Money.Zero);
+           (Skill.Commodity, Item.Size_Quantity, Concorde.Money.Zero);
       end loop;
       for Need of Needs loop
-         Item.Create_Buy_Offer (Market, Need, Desired, Minimum);
+         Item.Create_Buy_Offer (Need, Desired, Minimum);
       end loop;
    end Add_Trade_Offers;
 

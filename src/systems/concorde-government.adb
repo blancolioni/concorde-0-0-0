@@ -7,11 +7,9 @@ package body Concorde.Government is
    ----------------------
 
    overriding procedure Add_Trade_Offers
-     (Item   : not null access constant Root_Government_Type;
-      Market : in out Concorde.Trades.Trade_Interface'Class)
+     (Item   : not null access constant Root_Government_Type)
    is
       pragma Unreferenced (Item);
-      pragma Unreferenced (Market);
    begin
       null;
    end Add_Trade_Offers;

@@ -1,4 +1,4 @@
-with Concorde.Systems;
+with Concorde.Worlds;
 
 with Concorde.Ships.Db;
 
@@ -17,11 +17,10 @@ package body Concorde.Ships.Invariants is
       -----------
 
       procedure Check (Ship : Ship_Type) is
-         use type Concorde.Systems.Star_System_Type;
       begin
          pragma Assert
            (not Ship.Has_Destination
-            or else Ship.Destination /= Ship.System,
+            or else Ship.Orbiting (Ship.Destination),
             Ship.Short_Description
             & " has current system as destination");
       end Check;

@@ -7,7 +7,6 @@ package Concorde.Empires.History is
    type Historical_Metric is
      (Controlled_Systems,
       Ship_Count,
-      Capacity,
       Production);
 
    function Get_Metric

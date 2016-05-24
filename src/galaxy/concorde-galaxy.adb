@@ -15,6 +15,8 @@ package body Concorde.Galaxy is
    Local_Battle_Container : Battle_Vectors.Vector;
    Local_Battle_Manager   : Battle_Manager;
 
+   Local_Capital_World    : Concorde.Worlds.World_Type;
+
    ----------------
    -- Add_Battle --
    ----------------
@@ -50,6 +52,15 @@ package body Concorde.Galaxy is
    begin
       return Local_Battle_Container.Last_Index;
    end Battle_Count;
+
+   -------------------
+   -- Capital_World --
+   -------------------
+
+   function Capital_World return Concorde.Worlds.World_Type is
+   begin
+      return Local_Capital_World;
+   end Capital_World;
 
    -------------------
    -- Clear_Battles --
@@ -443,6 +454,17 @@ package body Concorde.Galaxy is
    begin
       Local_Battle_Manager := Manager;
    end Set_Battle_Manager;
+
+   -----------------------
+   -- Set_Capital_World --
+   -----------------------
+
+   procedure Set_Capital_World
+     (World : Concorde.Worlds.World_Type)
+   is
+   begin
+      Local_Capital_World := World;
+   end Set_Capital_World;
 
    -------------------
    -- Shortest_Path --

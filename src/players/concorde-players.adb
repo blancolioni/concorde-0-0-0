@@ -32,6 +32,22 @@ package body Concorde.Players is
            (Concorde.Empires.Empire_Type (Empire), Ship));
    end Order_Colonisation;
 
+   --------------------------
+   -- Order_Explore_System --
+   --------------------------
+
+   procedure Order_Explore_System
+     (Player      : in out Root_Player_Type'Class;
+      Empire      : Concorde.Empires.Empire_Type;
+      Ship        : Concorde.Ships.Ship_Type;
+      Destination : Concorde.Systems.Star_System_Type)
+   is
+   begin
+      Player.Orders.Append
+        (Concorde.Orders.Ships.Move_Ship_To_System
+           (Empire, Ship, Destination));
+   end Order_Explore_System;
+
    ---------------------
    -- Order_Move_Ship --
    ---------------------
@@ -40,7 +56,7 @@ package body Concorde.Players is
      (Player      : in out Root_Player_Type'Class;
       Empire      : Concorde.Empires.Empire_Type;
       Ship        : Concorde.Ships.Ship_Type;
-      Destination : Concorde.Systems.Star_System_Type)
+      Destination : Concorde.Worlds.World_Type)
    is
    begin
       Player.Orders.Append

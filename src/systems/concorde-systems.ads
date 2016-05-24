@@ -14,20 +14,13 @@ with Concorde.Ships;
 
 with Concorde.Ships.Lists;
 
-with Concorde.Agents;
-with Concorde.Installations;
-with Concorde.People.Pops;
-
 with Concorde.Commodities;
-with Concorde.Markets;
 with Concorde.Government;
-
-private with Concorde.People.Pops.Lists;
-private with Concorde.Installations.Lists;
 
 package Concorde.Systems is
 
-   type Star_System_Object_Interface is limited interface;
+   type Star_System_Object_Interface is limited interface
+     and Concorde.Objects.Named_Object_Interface;
 
    function Mass (Object : Star_System_Object_Interface)
                   return Non_Negative_Real
@@ -61,8 +54,6 @@ package Concorde.Systems is
 
    type Root_Star_System_Type is
      new Concorde.Objects.Root_User_Named_Object_Type
-     and Concorde.Agents.Agent_Location_Interface
-     and Concorde.Government.Governed_Interface
    with private;
 
    function Index (System : Root_Star_System_Type'Class) return Positive;
@@ -92,30 +83,6 @@ package Concorde.Systems is
       Empire : Concorde.Empires.Root_Empire_Type'Class)
       return Boolean;
 
-   function Has_Market
-     (System : Root_Star_System_Type'Class)
-      return Boolean;
-
-   function Market
-     (System : Root_Star_System_Type'Class)
-      return Concorde.Markets.Market_Type;
-
-   function Resource
-     (System : Root_Star_System_Type'Class)
-      return Concorde.Commodities.Commodity_Type;
-
-   function Resource_Accessibility
-     (System : Root_Star_System_Type'Class)
-      return Unit_Real;
-
-   function Resource_Concentration
-     (System : Root_Star_System_Type'Class)
-      return Unit_Real;
-
-   function Resource_Size
-     (System : Root_Star_System_Type'Class)
-      return Concorde.Quantities.Quantity;
-
    function Loyalty
      (System : Root_Star_System_Type'Class)
       return Unit_Real;
@@ -125,34 +92,8 @@ package Concorde.Systems is
       return Boolean
    is (System.Owner /= null);
 
-   function Production (System : Root_Star_System_Type'Class)
-                        return Non_Negative_Real;
-
-   function Capacity (System : Root_Star_System_Type'Class)
-                      return Non_Negative_Real;
-
    function Capital (System : Root_Star_System_Type'Class)
                      return Boolean;
-
-   procedure Set_Government
-     (System     : in out Root_Star_System_Type'Class;
-      Government : Concorde.Government.Government_Type);
-
-   function Has_Government
-     (System : Root_Star_System_Type'Class)
-      return Boolean;
-
-   function Government
-     (System : Root_Star_System_Type'Class)
-      return Concorde.Government.Government_Type;
-
-   procedure Add_Pop
-     (System : in out Root_Star_System_Type'Class;
-      Pop    : Concorde.People.Pops.Pop_Type);
-
-   procedure Add_Installation
-     (System       : in out Root_Star_System_Type'Class;
-      Installation : Concorde.Installations.Installation_Type);
 
    function Ships
      (System : Root_Star_System_Type'Class)
@@ -213,14 +154,6 @@ package Concorde.Systems is
      (System     : in out Root_Star_System_Type'Class;
       Is_Capital : Boolean);
 
-   procedure Set_Production
-     (System : in out Root_Star_System_Type'Class;
-      New_Production : Non_Negative_Real);
-
-   procedure Set_Capacity
-     (System : in out Root_Star_System_Type'Class;
-      New_Capacity : Non_Negative_Real);
-
    type System_Influence_Boundary is
      array (Positive range <>) of Point_Type;
 
@@ -273,9 +206,7 @@ private
      new Ada.Containers.Doubly_Linked_Lists (System_Object_Record);
 
    type Root_Star_System_Type is
-     new Concorde.Objects.Root_User_Named_Object_Type
-     and Concorde.Agents.Agent_Location_Interface
-     and Concorde.Government.Governed_Interface with
+     new Concorde.Objects.Root_User_Named_Object_Type with
       record
          Index          : Positive;
          X, Y           : Real;
@@ -299,20 +230,10 @@ private
          Loyalty        : Unit_Real := 1.0;
          Edges          : Edge_Info_Lists.List;
          Boundary       : access System_Influence_Boundary;
-         Pops           : Concorde.People.Pops.Lists.List;
-         Installations  : Concorde.Installations.Lists.List;
-         Hub            : Concorde.Installations.Installation_Type;
-         Deposit        : Deposit_Record;
-         Market         : Concorde.Markets.Market_Type;
       end record;
 
    overriding function Object_Database
      (Star_System : Root_Star_System_Type)
       return Memor.Root_Database_Type'Class;
-
-   overriding function Agent_Location_Name
-     (System : Root_Star_System_Type)
-      return String
-   is (System.Name);
 
 end Concorde.Systems;

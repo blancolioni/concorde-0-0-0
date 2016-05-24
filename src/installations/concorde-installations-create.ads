@@ -1,10 +1,12 @@
+with Concorde.Locations;
 with Concorde.Money;
+with Concorde.Trades;
 
 package Concorde.Installations.Create is
 
    function Create
-     (Location      : not null access constant
-        Concorde.Agents.Agent_Location_Interface'Class;
+     (Location      : Concorde.Locations.Object_Location;
+      Market        : access constant Concorde.Trades.Trade_Interface'Class;
       Facility      : Concorde.Facilities.Facility_Type;
       Cash          : Concorde.Money.Money_Type;
       Owner         : not null access constant

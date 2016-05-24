@@ -1,4 +1,6 @@
+with Concorde.Locations;
 with Concorde.Money;
+with Concorde.Trades;
 
 with Concorde.People.Groups;
 with Concorde.People.Skills;
@@ -6,9 +8,8 @@ with Concorde.People.Skills;
 package Concorde.People.Pops.Create is
 
    function New_Pop
-     (Location       : not null access
-        Concorde.Agents.Agent_Location_Interface'Class;
-      Location_Index : Natural;
+     (Location       : Concorde.Locations.Object_Location;
+      Market         : access constant Concorde.Trades.Trade_Interface'Class;
       Wealth_Group   : Concorde.People.Groups.Pop_Group;
       Skill          : Concorde.People.Skills.Pop_Skill;
       Size           : Pop_Size;

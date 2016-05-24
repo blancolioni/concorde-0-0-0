@@ -47,6 +47,12 @@ package Concorde.Trades is
       Message : String)
    is null;
 
+   procedure Update
+     (Market         : Trade_Interface;
+      Perform_Update : not null access
+        procedure (M : in out Trade_Interface'Class))
+   is abstract;
+
    type Market_Tax_Category is (Sales, Export, Import);
 
    type Trade_Manager_Interface is limited interface;

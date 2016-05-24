@@ -6,6 +6,7 @@ with Concorde.Paths;
 with Concorde.Dates;
 
 with Concorde.Commodities.Db;
+with Concorde.Markets.Db;
 
 package body Concorde.Markets is
 
@@ -151,12 +152,22 @@ package body Concorde.Markets is
       Enable_Logging : Boolean)
       return Market_Type
    is
+
+      procedure Create
+        (Market : in out Root_Market_Type'Class);
+
+      procedure Create
+        (Market : in out Root_Market_Type'Class)
+      is
+      begin
+         Market.Owner := Owner;
+         Market.Manager := Manager;
+         Market.Commodities := new Cached_Commodity_Vectors.Vector;
+         Market.Enable_Logging := Enable_Logging;
+      end Create;
+
    begin
-      return new Root_Market_Type'
-        (Owner          => Owner,
-         Manager        => Manager,
-         Commodities    => new Cached_Commodity_Vectors.Vector,
-         Enable_Logging => Enable_Logging);
+      return Concorde.Markets.Db.Create (Create'Access);
    end Create_Market;
 
    ------------------
@@ -738,6 +749,19 @@ package body Concorde.Markets is
       return Market.Owner.Name;
    end Name;
 
+   ---------------------
+   -- Object_Database --
+   ---------------------
+
+   overriding function Object_Database
+     (Market : Root_Market_Type)
+      return Memor.Root_Database_Type'Class
+   is
+      pragma Unreferenced (Market);
+   begin
+      return Db.Get_Database;
+   end Object_Database;
+
    -------------------
    -- Taxable_Image --
    -------------------
@@ -852,5 +876,33 @@ package body Concorde.Markets is
       end Total_Supply;
 
    end Commodity_Offers;
+
+   ------------
+   -- Update --
+   ------------
+
+   overriding procedure Update
+     (Market         : Root_Market_Type;
+      Perform_Update : not null access
+        procedure (M : in out Concorde.Trades.Trade_Interface'Class))
+   is
+
+      procedure Go
+        (Market : in out Root_Market_Type'Class);
+
+      --------
+      -- Go --
+      --------
+
+      procedure Go
+        (Market : in out Root_Market_Type'Class)
+      is
+      begin
+         Perform_Update (Market);
+      end Go;
+
+   begin
+      Concorde.Markets.Db.Update (Market.Reference, Go'Access);
+   end Update;
 
 end Concorde.Markets;

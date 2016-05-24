@@ -10,10 +10,10 @@ with Concorde.Empires.Create;
 
 with Lui.Colours;
 
-with Concorde.Systems.Tests;
+with Concorde.Worlds.Tests;
 
 with Concorde.Empires.Db;
-with Concorde.Systems.Db;
+with Concorde.Worlds.Db;
 
 package body Concorde.Empires.Configure is
 
@@ -88,7 +88,7 @@ package body Concorde.Empires.Configure is
    is
 
       procedure Add_Test_Ships
-        (System : in out Concorde.Systems.Root_Star_System_Type'Class);
+        (World : in out Concorde.Worlds.Root_World_Type'Class);
 
       procedure Bad_Relationship
         (Empire : in out Root_Empire_Type'Class);
@@ -98,17 +98,17 @@ package body Concorde.Empires.Configure is
       --------------------
 
       procedure Add_Test_Ships
-        (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+        (World : in out Concorde.Worlds.Root_World_Type'Class)
       is
       begin
          for I in 1 .. 8 loop
-            Concorde.Systems.Tests.New_Test_Ship
-              (Defender, System, Design => "defender");
+            Concorde.Worlds.Tests.New_Test_Ship
+              (Defender, World, Design => "defender");
          end loop;
 
          for I in 1 .. 8 loop
-            Concorde.Systems.Tests.New_Test_Ship
-              (Attacker, System, Design => "dromon");
+            Concorde.Worlds.Tests.New_Test_Ship
+              (Attacker, World, Design => "dromon");
          end loop;
       end Add_Test_Ships;
 
@@ -128,8 +128,8 @@ package body Concorde.Empires.Configure is
       end Bad_Relationship;
 
    begin
-      Concorde.Systems.Db.Update
-        (Defender.Capital.Reference, Add_Test_Ships'Access);
+      Concorde.Worlds.Db.Update
+        (Defender.Capital_World.Reference, Add_Test_Ships'Access);
 
       Db.Update (Attacker.Reference, Bad_Relationship'Access);
       Db.Update (Defender.Reference, Bad_Relationship'Access);

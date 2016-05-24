@@ -81,11 +81,11 @@ package body Concorde.Players.Simple_Player is
                   declare
                      use Concorde.Ships;
                      Ship : constant Ship_Type := Element (Position);
-                     D    : constant Natural :=
-                              Empire.Path_Length
-                                (Ship.System, Destination);
+                     D    : constant Natural := 1;
+--                                Empire.Path_Length
+--                                  (Ship.Current_System, Destination);
                   begin
-                     if Ship.System = Destination then
+                     if Ship.Current_System = Destination then
                         Concorde.Empires.Logging.Log
                           (Empire,
                            "deleting " & Destination.Name
@@ -104,7 +104,7 @@ package body Concorde.Players.Simple_Player is
             pragma Assert (Skip or else Has_Element (Closest_Ship));
 
             if not Skip then
-               Player.Order_Move_Ship
+               Player.Order_Explore_System
                  (Concorde.Empires.Db.Reference (Empire),
                   Element (Closest_Ship),
                   Destination);
@@ -158,25 +158,25 @@ package body Concorde.Players.Simple_Player is
       Empire : not null access constant
         Concorde.Empires.Root_Empire_Type'Class;
       Ship   : Concorde.Ships.Ship_Type)
-   is
-   begin
-      if not Ship.Has_Orders then
-         if not Ship.System.Owned then
-            Concorde.Empires.Logging.Log
-              (Empire,
-               Ship.Short_Description
-               & ": start colonisation");
-            Player.Order_Colonisation (Empire, Ship);
-         else
-            Concorde.Empires.Logging.Log
-              (Empire,
-               Ship.Short_Description
-               & ": arrived");
-            Player.Idle_Ship (Ship);
-            Player.Check_Idle_Ships (Empire.all);
-         end if;
-      end if;
-   end On_Ship_Arrived;
+   is null;
+--     begin
+--        if not Ship.Has_Orders then
+--           if not Ship.System.Owned then
+--              Concorde.Empires.Logging.Log
+--                (Empire,
+--                 Ship.Short_Description
+--                 & ": start colonisation");
+--              Player.Order_Colonisation (Empire, Ship);
+--           else
+--              Concorde.Empires.Logging.Log
+--                (Empire,
+--                 Ship.Short_Description
+--                 & ": arrived");
+--              Player.Idle_Ship (Ship);
+--              Player.Check_Idle_Ships (Empire.all);
+--           end if;
+--        end if;
+--     end On_Ship_Arrived;
 
    -----------------------
    -- On_Ship_Completed --
@@ -202,17 +202,17 @@ package body Concorde.Players.Simple_Player is
    is
       use Concorde.Galaxy;
       Ns : constant Array_Of_Star_Systems :=
-             Neighbours (Empire.Capital);
+             Neighbours (Empire.Capital.System);
    begin
       for N of Ns loop
          if not N.Owned then
             Player.Unexplored_Targets.Append (N);
-            Empire.Set (N, Concorde.Empires.Claim);
+--            Empire.Set (N, Concorde.Empires.Claim);
          end if;
       end loop;
-      Empire.Set (Empire.Capital, Concorde.Empires.Owned);
-      Empire.Set (Empire.Capital, Concorde.Empires.Claim);
-      Player.Owned_Systems.Append (Empire.Capital);
+--        Empire.Set (Empire.Capital.System, Concorde.Empires.Owned);
+--        Empire.Set (Empire.Capital.System, Concorde.Empires.Claim);
+      Player.Owned_Systems.Append (Empire.Capital.System);
    end On_Start;
 
    -------------------------
@@ -233,12 +233,12 @@ package body Concorde.Players.Simple_Player is
       Player.Idle_Ship (Ship);
 
       for N of Concorde.Galaxy.Neighbours (System) loop
-         if not N.Owned
-           and then not Empire.Is_Set (N, Concorde.Empires.Claim)
-         then
+--           if not N.Owned
+--             and then not Empire.Is_Set (N, Concorde.Empires.Claim)
+--           then
             Player.Unexplored_Targets.Append (N);
-            Empire.Set (N, Concorde.Empires.Claim);
-         end if;
+--              Empire.Set (N, Concorde.Empires.Claim);
+--           end if;
       end loop;
 
       Player.Check_Idle_Ships (Empire);

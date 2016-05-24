@@ -4,31 +4,16 @@ with Ada.Exceptions;
 with Concorde.Constants;
 with Concorde.Elementary_Functions;
 
+with Concorde.Locations;
+with Concorde.Worlds;
+
 with Concorde.Ships.Db;
 with Concorde.Systems.Db;
 
 with Concorde.Empires;
 with Concorde.Players;
 
-with Concorde.Money;
-
 package body Concorde.Systems is
-
-   ----------------------
-   -- Add_Installation --
-   ----------------------
-
-   procedure Add_Installation
-     (System       : in out Root_Star_System_Type'Class;
-      Installation : Concorde.Installations.Installation_Type)
-   is
-   begin
-      if Installation.Is_Colony_Hub then
-         System.Hub := Installation;
-      end if;
-
-      System.Installations.Append (Installation);
-   end Add_Installation;
 
    ----------------
    -- Add_Object --
@@ -47,19 +32,6 @@ package body Concorde.Systems is
       System.Objects.Append
         ((Object, Position));
    end Add_Object;
-
-   -------------
-   -- Add_Pop --
-   -------------
-
-   procedure Add_Pop
-     (System : in out Root_Star_System_Type'Class;
-      Pop    : Concorde.People.Pops.Pop_Type)
-   is
-   begin
-      System.Pops.Append (Pop);
-      System.Market.Enable_Logging;
-   end Add_Pop;
 
    --------------
    -- Add_Ship --
@@ -125,17 +97,6 @@ package body Concorde.Systems is
       System.Battle_Size := Size;
    end Battle;
 
-   --------------
-   -- Capacity --
-   --------------
-
-   function Capacity (System : Root_Star_System_Type'Class)
-                      return Non_Negative_Real
-   is
-   begin
-      return System.Capacity;
-   end Capacity;
-
    -------------
    -- Capital --
    -------------
@@ -185,13 +146,19 @@ package body Concorde.Systems is
             procedure Update_System
               (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
             is
+               use type Memor.Database_Reference;
             begin
-               Ship.Set_System (System);
-               if Ship.System = Ship.Destination then
+               if System.Reference = Ship.Destination.System.Reference then
+                  Ship.Set_Location
+                    (Concorde.Locations.Geosynchronous_Orbit
+                       (Ship.Destination));
                   Ship.Clear_Destination;
                   Ship.Execute_Arrival_Orders;
                   Ship.Owner.Player.On_Ship_Arrived
                     (Ship.Owner, Concorde.Ships.Db.Reference (Ship));
+               else
+                  Ship.Set_Location
+                    (Concorde.Locations.System_Transfer_Orbit (System));
                end if;
 
             end Update_System;
@@ -257,44 +224,6 @@ package body Concorde.Systems is
          end if;
       end loop;
    end Get_Ships;
-
-   ----------------
-   -- Government --
-   ----------------
-
-   function Government
-     (System : Root_Star_System_Type'Class)
-      return Concorde.Government.Government_Type
-   is
-   begin
-      return System.Government;
-   end Government;
-
-   --------------------
-   -- Has_Government --
-   --------------------
-
-   function Has_Government
-     (System : Root_Star_System_Type'Class)
-      return Boolean
-   is
-      use type Concorde.Government.Government_Type;
-   begin
-      return System.Government /= null;
-   end Has_Government;
-
-   ----------------
-   -- Has_Market --
-   ----------------
-
-   function Has_Market
-     (System : Root_Star_System_Type'Class)
-      return Boolean
-   is
-      use type Concorde.Markets.Market_Type;
-   begin
-      return System.Market /= null;
-   end Has_Market;
 
    -----------
    -- Index --
@@ -365,18 +294,6 @@ package body Concorde.Systems is
       return System.Main_Object;
    end Main_Object;
 
-   ------------
-   -- Market --
-   ------------
-
-   function Market
-     (System : Root_Star_System_Type'Class)
-      return Concorde.Markets.Market_Type
-   is
-   begin
-      return System.Market;
-   end Market;
-
    ---------------------
    -- Object_Database --
    ---------------------
@@ -417,6 +334,10 @@ package body Concorde.Systems is
       return System.Owner;
    end Owner;
 
+   ------------
+   -- Period --
+   ------------
+
    function Period (Object : Star_System_Object_Interface'Class)
                     return Non_Negative_Real
    is
@@ -427,17 +348,6 @@ package body Concorde.Systems is
                               / (Gravitational_Constant
                                 * Object.Primary.Mass));
    end Period;
-
-   ----------------
-   -- Production --
-   ----------------
-
-   function Production (System : Root_Star_System_Type'Class)
-                        return Non_Negative_Real
-   is
-   begin
-      return System.Production;
-   end Production;
 
    -----------------------
    -- Remove_Dead_Ships --
@@ -478,54 +388,6 @@ package body Concorde.Systems is
       System.Ships.Delete (Position);
    end Remove_Ship;
 
-   --------------
-   -- Resource --
-   --------------
-
-   function Resource
-     (System : Root_Star_System_Type'Class)
-      return Concorde.Commodities.Commodity_Type
-   is
-   begin
-      return System.Deposit.Resource;
-   end Resource;
-
-   ----------------------------
-   -- Resource_Accessibility --
-   ----------------------------
-
-   function Resource_Accessibility
-     (System : Root_Star_System_Type'Class)
-      return Unit_Real
-   is
-   begin
-      return System.Deposit.Accessibility;
-   end Resource_Accessibility;
-
-   ----------------------------
-   -- Resource_Concentration --
-   ----------------------------
-
-   function Resource_Concentration
-     (System : Root_Star_System_Type'Class)
-      return Unit_Real
-   is
-   begin
-      return System.Deposit.Concentration;
-   end Resource_Concentration;
-
-   -------------------
-   -- Resource_Size --
-   -------------------
-
-   function Resource_Size
-     (System : Root_Star_System_Type'Class)
-      return Concorde.Quantities.Quantity
-   is
-   begin
-      return System.Deposit.Size;
-   end Resource_Size;
-
    -------------------------
    -- Scan_System_Objects --
    -------------------------
@@ -541,18 +403,6 @@ package body Concorde.Systems is
       end loop;
    end Scan_System_Objects;
 
-   ------------------
-   -- Set_Capacity --
-   ------------------
-
-   procedure Set_Capacity
-     (System : in out Root_Star_System_Type'Class;
-      New_Capacity : Non_Negative_Real)
-   is
-   begin
-      System.Capacity := New_Capacity;
-   end Set_Capacity;
-
    -----------------
    -- Set_Capital --
    -----------------
@@ -566,29 +416,6 @@ package body Concorde.Systems is
       System.Loyalty := 1.0;
       System.Original_Owner := null;
    end Set_Capital;
-
-   --------------------
-   -- Set_Government --
-   --------------------
-
-   procedure Set_Government
-     (System     : in out Root_Star_System_Type'Class;
-      Government : Concorde.Government.Government_Type)
-   is
-   begin
-      System.Government := Government;
-      System.Market :=
-        Concorde.Markets.Create_Market
-          (Concorde.Systems.Db.Reference (System.Reference),
-           System.Government,
-           Enable_Logging => False);
-      System.Market.Initial_Price
-        (System.Deposit.Resource,
-         Concorde.Money.Adjust_Price
-           (System.Deposit.Resource.Base_Price,
-            (1.0 - System.Deposit.Accessibility)
-            * (1.0 - System.Deposit.Concentration)));
-   end Set_Government;
 
    ---------------
    -- Set_Owner --
@@ -615,18 +442,6 @@ package body Concorde.Systems is
 
       System.Owner := New_Owner;
    end Set_Owner;
-
-   --------------------
-   -- Set_Production --
-   --------------------
-
-   procedure Set_Production
-     (System : in out Root_Star_System_Type'Class;
-      New_Production : Non_Negative_Real)
-   is
-   begin
-      System.Production := New_Production;
-   end Set_Production;
 
    -----------
    -- Ships --

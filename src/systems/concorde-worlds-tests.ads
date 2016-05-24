@@ -1,12 +1,12 @@
 with Concorde.Empires;
 with Concorde.Ships;
 
-package Concorde.Systems.Tests is
+package Concorde.Worlds.Tests is
 
    procedure New_Test_Ship
      (Owner  : not null access constant
         Concorde.Empires.Root_Empire_Type'Class;
-      System : in out Concorde.Systems.Root_Star_System_Type'Class;
+      World  : in out Root_World_Type'Class;
       Design : String);
 
-end Concorde.Systems.Tests;
+end Concorde.Worlds.Tests;

@@ -1,5 +1,6 @@
 with Concorde.Empires;
 with Concorde.Systems;
+with Concorde.Worlds;
 
 with Concorde.Roman_Images;
 
@@ -9,7 +10,7 @@ with Concorde.Empires.Logging;
 with Concorde.Ships.Db;
 with Concorde.Ships.Designs;
 
-with Concorde.Systems.Db;
+with Concorde.Worlds.Db;
 
 with Concorde.Money;
 with Concorde.Quantities;
@@ -24,7 +25,7 @@ package body Concorde.Ships.Create is
      (Owner  : not null access constant
         Concorde.Empires.Root_Empire_Type'Class;
       Name   : String;
-      System : in out Concorde.Systems.Root_Star_System_Type'Class;
+      World  : in out Concorde.Worlds.Root_World_Type'Class;
       Design : String)
       return Ship_Type
    is
@@ -44,7 +45,9 @@ package body Concorde.Ships.Create is
          Concorde.Ships.Designs.Create_Ship_From_Design
            (Design, Ship);
          Ship.New_Agent
-           (Concorde.Systems.Db.Reference (System), 0,
+           (Concorde.Locations.Geosynchronous_Orbit
+              (Concorde.Worlds.Db.Reference (World)),
+            World.Market,
             To_Quantity (Ship.Hold_Size));
          if Name = "" then
             if Owner.Current_Ships = 0 then
@@ -61,7 +64,9 @@ package body Concorde.Ships.Create is
          Ship.Owner := Owner;
          Ship.Set_Guarantor (Owner);
          Ship.Set_Cash (Concorde.Money.To_Money (100_000.0));
-         Ship.System_Reference := System.Reference;
+         Ship.Set_Location
+           (Concorde.Locations.Geosynchronous_Orbit
+              (Concorde.Worlds.Db.Reference (World)));
          Ship.Dest_Reference := Memor.Null_Database_Reference;
          Ship.Alive := True;
 
@@ -92,7 +97,7 @@ package body Concorde.Ships.Create is
          end;
 
          Concorde.Empires.Logging.Log
-           (Owner, System.Name & ": new ship: " & Ship.Name);
+           (Owner, World.Name & ": new ship: " & Ship.Name);
       end Create;
 
    begin

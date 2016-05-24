@@ -11,9 +11,6 @@ package body Concorde.Worlds.Maps is
    procedure Create_World_Map
      (World : in out Root_World_Type'Class)
    is
-      Layout : World_Layout_Type :=
-                 (Surface => World.Surface,
-                  Sectors => World.Sectors);
       Frequency   : Concorde.Maps.Frequency_Array
         (1 .. Max_Height - Min_Height + 1);
       Freq_Sum    : Non_Negative_Real := 0.0;
@@ -48,7 +45,7 @@ package body Concorde.Worlds.Maps is
       end if;
 
       Concorde.Maps.Height_Maps.Create_Height_Map
-        (Layout, Frequency, World_Height_Smoothing);
+        (World, Frequency, World_Height_Smoothing);
 
    end Create_World_Map;
 

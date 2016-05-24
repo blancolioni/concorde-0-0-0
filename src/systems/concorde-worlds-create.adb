@@ -1173,7 +1173,8 @@ package body Concorde.Worlds.Create is
    -------------------
 
    procedure Create_Worlds
-     (Star   : Concorde.Stars.Star_Type;
+     (System : Concorde.Systems.Star_System_Type;
+      Star   : Concorde.Stars.Star_Type;
       List   : in out Concorde.Worlds.Lists.List)
    is
       use Concorde.Elementary_Functions;
@@ -1315,6 +1316,7 @@ package body Concorde.Worlds.Create is
               (World : in out Root_World_Type'Class)
             is
             begin
+               World.System := System;
                World.Primary := Star;
                World.Semimajor_Axis := Current_Orbit;
                World.Eccentricity := 0.0;

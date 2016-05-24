@@ -10,8 +10,7 @@ package body Concorde.Installations.Production is
    ------------------------
 
    procedure Execute_Production
-     (System : Concorde.Systems.Root_Star_System_Type'Class;
-      Installation : in out
+     (Installation : in out
         Concorde.Installations.Root_Installation_Type'Class)
    is
       use Concorde.Commodities;
@@ -149,27 +148,32 @@ package body Concorde.Installations.Production is
             elsif Facility.Is_Resource_Generator then
 
                declare
-                  Factor : constant Unit_Real :=
-                             (System.Resource_Accessibility
-                              + System.Resource_Concentration)
-                             / 20.0;
+                  Resource : Concorde.Commodities.Commodity_Type;
+                  Concentration : Unit_Real;
+                  Accessibility : Unit_Real;
+                  Factor        : Unit_Real;
                begin
+                  Concorde.Worlds.Get_Sector_Resource
+                    (Installation.Current_Location,
+                     Resource, Concentration, Accessibility);
+
+                  Factor :=
+                    (Accessibility + Concentration) / 20.0;
                   Effective_Capacity :=
                     Scale (Effective_Capacity, Factor);
+
+                  Installation.Log_Production
+                    ("generates "
+                     & Image (Effective_Capacity)
+                     & " "
+                     & Resource.Name
+                     & " for "
+                     & Image (Production_Cost));
+
+                  Installation.Add_Quantity
+                    (Resource,
+                     Effective_Capacity, Production_Cost);
                end;
-
-               Installation.Log_Production
-                 ("generates "
-                  & Image (Effective_Capacity)
-                  & " "
-                  & System.Resource.Name
-                  & " for "
-                  & Image (Production_Cost));
-
-               Installation.Add_Quantity
-                 (System.Resource,
-                  Effective_Capacity, Production_Cost);
-
             end if;
          end if;
 

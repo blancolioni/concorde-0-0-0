@@ -97,83 +97,97 @@ package body Concorde.Agents is
 
    procedure Create_Buy_Offer
      (Agent     : not null access constant Root_Agent_Type'Class;
-      Market    : in out Concorde.Trades.Trade_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
       Desired   : Concorde.Quantities.Quantity;
       Minimum   : Concorde.Quantities.Quantity)
    is
-      use Concorde.Money;
-      use Concorde.Quantities;
 
-      Current       : constant Quantity :=
-                        Agent.Get_Quantity (Commodity);
-      Mean          : constant Price_Type :=
-                        Market.Historical_Mean_Price
-                          (Commodity);
-      Belief        : constant Agent_Price_Belief_Record :=
-                        Agent.Get_Price_Belief (Market, Commodity);
-      Favourability : constant Unit_Real :=
-                        (if Belief.Low = Belief.High
-                         then 1.0
-                         else 1.0 - Price_Position_In_Range
-                           (Mean, Belief.Low, Belief.High));
-      Buy_Price     : constant Price_Type :=
-                        (if Minimum = Zero
-                         then Belief.Low
-                         else Create_Bid_Price
-                           (Belief.Low, Belief.High, Agent.Age));
-      Limit_Price   : constant Price_Type := Belief.High;
-      Favoured      : constant Quantity :=
-                        (if Current >= Desired
-                         then Zero
-                         elsif Current >= Minimum
-                         then Scale (Desired - Minimum, Favourability)
-                         else Minimum
-                         + Scale (Desired - Minimum, Favourability));
-      Possible      : constant Quantity :=
-                        Max (Get_Quantity (Agent.Limit_Cash, Buy_Price),
-                             Zero);
-      Final         : constant Quantity :=
-                        Min (Favoured, Possible);
+      procedure Update
+        (Market : in out Concorde.Trades.Trade_Interface'Class);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update
+        (Market : in out Concorde.Trades.Trade_Interface'Class)
+      is
+         use Concorde.Money;
+         use Concorde.Quantities;
+
+         Current       : constant Quantity :=
+                           Agent.Get_Quantity (Commodity);
+         Mean          : constant Price_Type :=
+                           Market.Historical_Mean_Price
+                             (Commodity);
+         Belief        : constant Agent_Price_Belief_Record :=
+                           Agent.Get_Price_Belief (Market, Commodity);
+         Favourability : constant Unit_Real :=
+                           (if Belief.Low = Belief.High
+                            then 1.0
+                            else 1.0 - Price_Position_In_Range
+                              (Mean, Belief.Low, Belief.High));
+         Buy_Price     : constant Price_Type :=
+                           (if Minimum = Zero
+                            then Belief.Low
+                            else Create_Bid_Price
+                              (Belief.Low, Belief.High, Agent.Age));
+         Limit_Price   : constant Price_Type := Belief.High;
+         Favoured      : constant Quantity :=
+                           (if Current >= Desired
+                            then Zero
+                            elsif Current >= Minimum
+                            then Scale (Desired - Minimum, Favourability)
+                            else Minimum
+                            + Scale (Desired - Minimum, Favourability));
+         Possible      : constant Quantity :=
+                           Max (Get_Quantity (Agent.Limit_Cash, Buy_Price),
+                                Zero);
+         Final         : constant Quantity :=
+                           Min (Favoured, Possible);
+      begin
+         if Log_Offers then
+            Agent.Log_Trade
+              (Commodity.Name
+               & ": desire "
+               & Image (Desired)
+               & ": minimum "
+               & Image (Minimum)
+               & ": have "
+               & Image (Current)
+               & ": possible "
+               & Image (Possible)
+               & "; price belief "
+               & Image (Belief.Low)
+               & "/"
+               & Image (Belief.High)
+               & "; mean "
+               & Image (Mean)
+               & "; favourability "
+               & Lui.Approximate_Image (Favourability)
+               & "; buy price "
+               & Image (Buy_Price)
+               & "; limit price "
+               & Image (Limit_Price)
+               & "; cash "
+               & Image (Agent.Cash)
+               & "; quantity "
+               & Image (Final));
+         end if;
+
+         if Final > Zero then
+            Market.Create_Offer
+              (Offer     => Concorde.Trades.Buy,
+               Trader    => Agent,
+               Commodity => Commodity,
+               Quantity  => Final,
+               Price     => Buy_Price,
+               Limit     => Limit_Price);
+         end if;
+      end Update;
+
    begin
-      if Log_Offers then
-         Agent.Log_Trade
-           (Commodity.Name
-            & ": desire "
-            & Image (Desired)
-            & ": minimum "
-            & Image (Minimum)
-            & ": have "
-            & Image (Current)
-            & ": possible "
-            & Image (Possible)
-            & "; price belief "
-            & Image (Belief.Low)
-            & "/"
-            & Image (Belief.High)
-            & "; mean "
-            & Image (Mean)
-            & "; favourability "
-            & Lui.Approximate_Image (Favourability)
-            & "; buy price "
-            & Image (Buy_Price)
-            & "; limit price "
-            & Image (Limit_Price)
-            & "; cash "
-            & Image (Agent.Cash)
-            & "; quantity "
-            & Image (Final));
-      end if;
-
-      if Final > Zero then
-         Market.Create_Offer
-           (Offer     => Concorde.Trades.Buy,
-            Trader    => Agent,
-            Commodity => Commodity,
-            Quantity  => Final,
-            Price     => Buy_Price,
-            Limit     => Limit_Price);
-      end if;
+      Agent.Market.Update (Update'Access);
    exception
       when E : others =>
          Agent.Log_Trade
@@ -188,70 +202,84 @@ package body Concorde.Agents is
 
    procedure Create_Sell_Offer
      (Agent     : not null access constant Root_Agent_Type'Class;
-      Market    : in out Concorde.Trades.Trade_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
       Available : Concorde.Quantities.Quantity;
       Minimum   : Concorde.Money.Money_Type)
    is
       pragma Unreferenced (Minimum);
-      use Concorde.Money;
-      use Concorde.Quantities;
 
-      Mean          : constant Price_Type :=
-                        Market.Historical_Mean_Price
-                          (Commodity);
-      Belief        : constant Agent_Price_Belief_Record :=
-                        Agent.Get_Price_Belief (Market, Commodity);
-      Favourability : constant Unit_Real :=
-                        (if Belief.Low = Belief.High
-                         then 1.0
-                         else Price_Position_In_Range
-                           (Mean, Belief.Low, Belief.High));
-      Limit_Price   : constant Price_Type :=
-                        Add_Tax (Agent.Get_Average_Price (Commodity),
-                                 Market.Manager.Tax_Rate
-                                   (Concorde.Trades.Sales,
-                                    Commodity));
-      Sell_Price    : constant Price_Type :=
-                        (if Belief.High < Limit_Price
-                         then Limit_Price
-                         else Create_Ask_Price
-                           (Max (Belief.Low, Limit_Price),
-                            Belief.High, Agent.Age));
-      Sell_Quantity : constant Quantity := Available;
+      procedure Update
+        (Market : in out Concorde.Trades.Trade_Interface'Class);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update
+        (Market : in out Concorde.Trades.Trade_Interface'Class)
+      is
+         use Concorde.Money;
+         use Concorde.Quantities;
+
+         Mean          : constant Price_Type :=
+                           Market.Historical_Mean_Price
+                             (Commodity);
+         Belief        : constant Agent_Price_Belief_Record :=
+                           Agent.Get_Price_Belief (Market, Commodity);
+         Favourability : constant Unit_Real :=
+                           (if Belief.Low = Belief.High
+                            then 1.0
+                            else Price_Position_In_Range
+                              (Mean, Belief.Low, Belief.High));
+         Limit_Price   : constant Price_Type :=
+                           Add_Tax (Agent.Get_Average_Price (Commodity),
+                                    Market.Manager.Tax_Rate
+                                      (Concorde.Trades.Sales,
+                                       Commodity));
+         Sell_Price    : constant Price_Type :=
+                           (if Belief.High < Limit_Price
+                            then Limit_Price
+                            else Create_Ask_Price
+                              (Max (Belief.Low, Limit_Price),
+                               Belief.High, Agent.Age));
+         Sell_Quantity : constant Quantity := Available;
+      begin
+         if Log_Offers then
+            Agent.Log_Trade
+              (Commodity.Name
+               & ": have "
+               & Image (Available)
+               & "; price belief "
+               & Image (Belief.Low)
+               & "/"
+               & Image (Belief.High)
+               & "; mean "
+               & Image (Mean)
+               & "; favourability "
+               & Lui.Approximate_Image (Favourability)
+               & "; limit price "
+               & Image (Limit_Price)
+               & "; cash "
+               & Image (Agent.Cash)
+               & "; sell price "
+               & Image (Sell_Price)
+               & "; quantity "
+               & Image (Sell_Quantity));
+         end if;
+
+         if Sell_Quantity > Zero then
+            Market.Create_Offer
+              (Offer     => Concorde.Trades.Sell,
+               Trader    => Agent,
+               Commodity => Commodity,
+               Quantity  => Sell_Quantity,
+               Price     => Sell_Price,
+               Limit     => Limit_Price);
+         end if;
+      end Update;
+
    begin
-      if Log_Offers then
-         Agent.Log_Trade
-           (Commodity.Name
-            & ": have "
-            & Image (Available)
-            & "; price belief "
-            & Image (Belief.Low)
-            & "/"
-            & Image (Belief.High)
-            & "; mean "
-            & Image (Mean)
-            & "; favourability "
-            & Lui.Approximate_Image (Favourability)
-            & "; limit price "
-            & Image (Limit_Price)
-            & "; cash "
-            & Image (Agent.Cash)
-            & "; sell price "
-            & Image (Sell_Price)
-            & "; quantity "
-            & Image (Sell_Quantity));
-      end if;
-
-      if Sell_Quantity > Zero then
-         Market.Create_Offer
-           (Offer     => Concorde.Trades.Sell,
-            Trader    => Agent,
-            Commodity => Commodity,
-            Quantity  => Sell_Quantity,
-            Price     => Sell_Price,
-            Limit     => Limit_Price);
-      end if;
+      Agent.Market.Update (Update'Access);
    exception
       when E : others =>
          Agent.Log_Trade
@@ -259,6 +287,18 @@ package body Concorde.Agents is
             & ": "
             & Ada.Exceptions.Exception_Message (E));
    end Create_Sell_Offer;
+
+   ----------------------
+   -- Current_Location --
+   ----------------------
+
+   overriding function Current_Location
+     (Agent : Root_Agent_Type)
+      return Concorde.Locations.Object_Location
+   is
+   begin
+      return Agent.Location;
+   end Current_Location;
 
    --------------------------
    -- Enable_Offer_Logging --
@@ -375,6 +415,18 @@ package body Concorde.Agents is
    end Get_Value;
 
    ----------------
+   -- Has_Market --
+   ----------------
+
+   function Has_Market
+     (Agent : Root_Agent_Type'Class)
+      return Boolean
+   is
+   begin
+      return Agent.Market /= null;
+   end Has_Market;
+
+   ----------------
    -- Limit_Cash --
    ----------------
 
@@ -395,25 +447,25 @@ package body Concorde.Agents is
    -- Location --
    --------------
 
-   function Location
-     (Agent : Root_Agent_Type'Class)
-      return access constant Agent_Location_Interface'Class
-   is
-   begin
-      return Agent.Location;
-   end Location;
+--     function Location
+--       (Agent : Root_Agent_Type'Class)
+--        return access constant Agent_Location_Interface'Class
+--     is
+--     begin
+--        return Agent.Location;
+--     end Location;
 
    --------------------
    -- Location_Index --
    --------------------
 
-   function Location_Index
-     (Agent : Root_Agent_Type'Class)
-      return Natural
-   is
-   begin
-      return Agent.Location_Index;
-   end Location_Index;
+--     function Location_Index
+--       (Agent : Root_Agent_Type'Class)
+--        return Natural
+--     is
+--     begin
+--        return Agent.Location_Index;
+--     end Location_Index;
 
    ---------
    -- Log --
@@ -426,7 +478,7 @@ package body Concorde.Agents is
    is
    begin
       Concorde.Logging.Log
-        (Agent.Short_Name, Agent.Location.Agent_Location_Name,
+        (Agent.Short_Name, Concorde.Locations.Short_Name (Agent.Location),
          Category, Message);
    end Log;
 
@@ -466,6 +518,18 @@ package body Concorde.Agents is
       Agent.Log ("trade", Message);
    end Log_Trade;
 
+   ------------
+   -- Market --
+   ------------
+
+   function Market
+     (Agent : Root_Agent_Type'Class)
+      return access constant Concorde.Trades.Trade_Interface'Class
+   is
+   begin
+      return Agent.Market;
+   end Market;
+
    ----------------------------
    -- Maximum_Offer_Quantity --
    ----------------------------
@@ -504,15 +568,16 @@ package body Concorde.Agents is
 
    procedure New_Agent
      (Agent          : in out Root_Agent_Type'Class;
-      Location       : not null access constant Agent_Location_Interface'Class;
-      Location_Index : Natural;
+      Location       : Concorde.Locations.Object_Location;
+      Market         : access constant
+        Concorde.Trades.Trade_Interface'Class;
       Stock_Capacity : Concorde.Quantities.Quantity)
    is
    begin
       Agent.Stock.Create_Stock (Stock_Capacity);
       Agent.Belief := new Price_Belief_Vectors.Vector;
       Agent.Location := Location;
-      Agent.Location_Index := Location_Index;
+      Agent.Market := Market;
    end New_Agent;
 
    -----------------------------
@@ -575,15 +640,26 @@ package body Concorde.Agents is
    -- Set_Location --
    ------------------
 
-   procedure Set_Location
-     (Agent    : in out Root_Agent_Type'Class;
-      Location : not null access constant Agent_Location_Interface'Class;
-      Index    : Natural := 0)
+   overriding procedure Set_Location
+     (Agent    : in out Root_Agent_Type;
+      Location : Concorde.Locations.Object_Location)
    is
    begin
       Agent.Location := Location;
-      Agent.Location_Index := Index;
    end Set_Location;
+
+   ----------------
+   -- Set_Market --
+   ----------------
+
+   procedure Set_Market
+     (Agent  : in out Root_Agent_Type'Class;
+      Market : not null access constant
+        Concorde.Trades.Trade_Interface'Class)
+   is
+   begin
+      Agent.Market := Market;
+   end Set_Market;
 
    ------------------
    -- Set_Quantity --

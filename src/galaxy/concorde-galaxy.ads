@@ -1,6 +1,8 @@
 with Concorde.Combat.Ship_Combat;
 with Concorde.Systems.Graphs;
 
+with Concorde.Worlds;
+
 package Concorde.Galaxy is
 
    function Find_System
@@ -127,6 +129,11 @@ package Concorde.Galaxy is
 
    procedure Set_Battle_Manager
      (Manager : Battle_Manager);
+
+   function Capital_World return Concorde.Worlds.World_Type;
+
+   procedure Set_Capital_World
+     (World : Concorde.Worlds.World_Type);
 
 private
 

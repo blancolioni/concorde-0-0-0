@@ -55,8 +55,7 @@ private
        & Item.Wealth_Group.Name);
 
    overriding procedure Add_Trade_Offers
-     (Item   : not null access constant Root_Pop_Type;
-      Market : in out Concorde.Trades.Trade_Interface'Class);
+     (Item   : not null access constant Root_Pop_Type);
 
    overriding procedure Before_Market
      (Pop : in out Root_Pop_Type);

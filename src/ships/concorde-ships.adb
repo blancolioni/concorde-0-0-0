@@ -7,7 +7,7 @@ with Concorde.Random;
 with Concorde.Empires.Db;
 with Concorde.Modules.Db;
 with Concorde.Ships.Db;
-with Concorde.Systems.Db;
+with Concorde.Worlds.Db;
 
 with Concorde.Empires.Logging;
 
@@ -26,13 +26,13 @@ package body Concorde.Ships is
 
    procedure Add_Buy_Order
      (Ship   : in out Root_Ship_Type'Class;
-      System : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class;
+      World  : not null access constant
+        Concorde.Worlds.Root_World_Type'Class;
       Item   : Concorde.Commodities.Commodity_Type)
    is
    begin
       Ship.Orders.Append
-        ((Buy, System.Reference, Item));
+        ((Buy, World, Item));
    end Add_Buy_Order;
 
    --------------------
@@ -41,13 +41,13 @@ package body Concorde.Ships is
 
    procedure Add_Sell_Order
      (Ship   : in out Root_Ship_Type'Class;
-      System : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class;
+      World  : not null access constant
+        Concorde.Worlds.Root_World_Type'Class;
       Item   : Concorde.Commodities.Commodity_Type)
    is
    begin
       Ship.Orders.Append
-        ((Sell, System.Reference, Item));
+        ((Sell, World, Item));
    end Add_Sell_Order;
 
    ----------------------
@@ -55,21 +55,21 @@ package body Concorde.Ships is
    ----------------------
 
    overriding procedure Add_Trade_Offers
-     (Ship   : not null access constant Root_Ship_Type;
-      Market : in out Concorde.Trades.Trade_Interface'Class)
+     (Ship   : not null access constant Root_Ship_Type)
    is
       use Concorde.Quantities;
       use type Memor.Database_Reference;
       Space : constant Quantity := Ship.Hold_Quantity - Ship.Total_Quantity;
    begin
       for Current_Order of Ship.Orders loop
-         exit when Current_Order.System_Reference /= Ship.System_Reference;
+         exit when not Ship.Orbiting (Current_Order.World);
+
          case Current_Order.Order is
             when No_Order =>
                null;
             when Buy =>
-               Ship.Create_Buy_Offer
-                 (Market    => Market,
+               Concorde.Agents.Create_Buy_Offer
+                 (Agent     => Ship,
                   Commodity => Current_Order.Commodity,
                   Desired   => Space,
                   Minimum   => Space);
@@ -80,7 +80,7 @@ package body Concorde.Ships is
                begin
                   if Available > Zero then
                      Ship.Create_Sell_Offer
-                       (Market, Current_Order.Commodity, Available,
+                       (Current_Order.Commodity, Available,
                         Ship.Get_Value (Current_Order.Commodity));
                   end if;
                end;
@@ -359,10 +359,10 @@ package body Concorde.Ships is
 
    function Destination
      (Ship : Root_Ship_Type'Class)
-      return access constant Concorde.Systems.Root_Star_System_Type'Class
+      return access constant Concorde.Worlds.Root_World_Type'Class
    is
    begin
-      return Concorde.Systems.Db.Reference (Ship.Dest_Reference);
+      return Concorde.Worlds.Db.Reference (Ship.Dest_Reference);
    end Destination;
 
    ----------------
@@ -659,7 +659,7 @@ package body Concorde.Ships is
    function Long_Name (Ship : Root_Ship_Type'Class) return String is
    begin
       return Ship.Identity & " " & Ship.Name & " ["
-        & Concorde.Systems.Db.Reference (Ship.System_Reference).Name & "]";
+        & Concorde.Locations.Short_Name (Ship.Current_Location) & "]";
    end Long_Name;
 
    --------------------
@@ -766,7 +766,8 @@ package body Concorde.Ships is
      (Ship : in out Root_Ship_Type'Class)
    is
    begin
-      Ship.Orders.Append ((Colonise, Ship.System_Reference, null));
+      Ship.Orders.Append
+        ((Colonise, Concorde.Worlds.World_Type (Ship.Orbiting), null));
    end Set_Colonisation_Order;
 
    ---------------------
@@ -775,14 +776,26 @@ package body Concorde.Ships is
 
    procedure Set_Destination
      (Ship   : in out Root_Ship_Type'Class;
-      System : not null access constant
+      World : not null access constant
+        Concorde.Worlds.Root_World_Type'Class)
+   is
+   begin
+      Ship.Dest_System_Reference := World.System.Reference;
+      Ship.Dest_Reference := World.Reference;
+   end Set_Destination;
+
+   ---------------------
+   -- Set_Destination --
+   ---------------------
+
+   procedure Set_Destination
+     (Ship    : in out Root_Ship_Type'Class;
+      System  : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
    is
    begin
-      pragma Assert (Ship.System.Index /= System.Index);
-      Ship.Dest_Reference := System.Reference;
-      pragma Assert (Ship.Has_Destination
-                     and then Ship.Destination.Index = System.Index);
+      Ship.Dest_Reference := Memor.Null_Database_Reference;
+      Ship.Dest_System_Reference := System.Reference;
    end Set_Destination;
 
    --------------
@@ -810,20 +823,6 @@ package body Concorde.Ships is
    begin
       Ship.Owner := New_Owner;
    end Set_Owner;
-
-   ----------------
-   -- Set_System --
-   ----------------
-
-   procedure Set_System
-     (Ship : in out Root_Ship_Type'Class;
-      System : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
-   is
-      use type Memor.Database_Reference;
-   begin
-      Ship.System_Reference := System.Reference;
-   end Set_System;
 
    -------------
    -- Shields --
@@ -885,18 +884,6 @@ package body Concorde.Ships is
       end loop;
       return Result;
    end Standard_Full_Mass;
-
-   ------------
-   -- System --
-   ------------
-
-   function System
-     (Ship : Root_Ship_Type'Class)
-      return access constant Concorde.Systems.Root_Star_System_Type'Class
-   is
-   begin
-      return Concorde.Systems.Db.Reference (Ship.System_Reference);
-   end System;
 
    ---------------
    -- Tank_Size --

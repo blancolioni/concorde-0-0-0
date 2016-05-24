@@ -7,13 +7,12 @@ package body Concorde.People.Pops.Create is
    -------------
 
    function New_Pop
-     (Location       : not null access
-        Concorde.Agents.Agent_Location_Interface'Class;
-      Location_Index : Natural;
+     (Location       : Concorde.Locations.Object_Location;
+      Market         : access constant Concorde.Trades.Trade_Interface'Class;
       Wealth_Group   : Concorde.People.Groups.Pop_Group;
-      Skill        : Concorde.People.Skills.Pop_Skill;
-      Size         : Pop_Size;
-      Cash         : Concorde.Money.Money_Type)
+      Skill          : Concorde.People.Skills.Pop_Skill;
+      Size           : Pop_Size;
+      Cash           : Concorde.Money.Money_Type)
       return Pop_Type
    is
       procedure Create (Pop : in out Root_Pop_Type'Class);
@@ -29,7 +28,7 @@ package body Concorde.People.Pops.Create is
          Pop.Skills.Append (Skill);
          Pop.Size := Size;
          Pop.Set_Cash (Cash);
-         Pop.New_Agent (Location, Location_Index,
+         Pop.New_Agent (Location, Market,
                         Pop.Size_Quantity * To_Quantity (70.0));
       end Create;
 

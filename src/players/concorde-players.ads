@@ -3,6 +3,7 @@ with Concorde.Orders;
 
 with Concorde.Empires;
 with Concorde.Ships;
+with Concorde.Worlds;
 with Concorde.Systems;
 
 package Concorde.Players is
@@ -58,6 +59,13 @@ package Concorde.Players is
    is null;
 
    procedure Order_Move_Ship
+     (Player      : in out Root_Player_Type'Class;
+      Empire      : Concorde.Empires.Empire_Type;
+      Ship        : Concorde.Ships.Ship_Type;
+      Destination : Concorde.Worlds.World_Type)
+     with Pre => not Ship.Has_Orders;
+
+   procedure Order_Explore_System
      (Player      : in out Root_Player_Type'Class;
       Empire      : Concorde.Empires.Empire_Type;
       Ship        : Concorde.Ships.Ship_Type;

@@ -162,7 +162,6 @@ package body Concorde.Empires.Updates is
 
       procedure On_Update_Start (Empire : in out Root_Empire_Type'Class) is
       begin
-         Empire.Max_Ships := 0.0;
          Empire.Border_Change := False;
          Empire.Player.Execute_Orders;
       end On_Update_Start;
@@ -182,9 +181,11 @@ package body Concorde.Empires.Updates is
          ------------
 
          procedure Update (Empire : in out Root_Empire_Type'Class) is
+            pragma Unreferenced (Empire);
          begin
-            Empire.Max_Ships := Empire.Max_Ships
-              + System.Capacity * System.Loyalty;
+--              Empire.Max_Ships := Empire.Max_Ships
+--                + System.Capacity * System.Loyalty;
+            null;
          end Update;
 
       begin
@@ -223,10 +224,10 @@ package body Concorde.Empires.Updates is
 
       procedure Clear_System_Flags
         (Empire : in out Root_Empire_Type'Class)
-      is
-      begin
-         Empire.Clear_System_Flags (System);
-      end Clear_System_Flags;
+      is null;
+--        begin
+--           Empire.Clear_System_Flags (System);
+--        end Clear_System_Flags;
 
       ------------------
       -- Update_Owner --
@@ -234,10 +235,10 @@ package body Concorde.Empires.Updates is
 
       procedure Update_Owner
         (Owner : in out Root_Empire_Type'Class)
-      is
-      begin
-         Owner.Update_System_Owner (System);
-      end Update_Owner;
+      is null;
+--        begin
+--           Owner.Update_System_Owner (System);
+--        end Update_Owner;
 
    begin
       Db.Iterate (Clear_System_Flags'Access);

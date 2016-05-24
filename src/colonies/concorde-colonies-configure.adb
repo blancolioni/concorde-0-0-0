@@ -7,6 +7,9 @@ with Memor.Element_Vectors;
 with Concorde.Options;
 with Concorde.Paths;
 
+with Concorde.Locations;
+with Concorde.Maps;
+
 with Concorde.Money;
 with Concorde.Quantities;
 
@@ -27,7 +30,11 @@ with Concorde.Facilities.Db;
 with Concorde.People.Skills.Db;
 with Concorde.Installations.Db;
 
-with Concorde.Systems.Db;
+with Concorde.Features;
+with Concorde.Terrain;
+with Concorde.Surfaces;
+
+with Concorde.Worlds.Db;
 
 package body Concorde.Colonies.Configure is
 
@@ -37,7 +44,7 @@ package body Concorde.Colonies.Configure is
    procedure Read_Config;
 
    procedure Create_Colony_From_Template
-     (System   : in out Concorde.Systems.Root_Star_System_Type'Class;
+     (World    : in out Concorde.Worlds.Root_World_Type'Class;
       Template : Tropos.Configuration);
 
    ---------------------------------
@@ -45,7 +52,7 @@ package body Concorde.Colonies.Configure is
    ---------------------------------
 
    procedure Create_Colony_From_Template
-     (System        : in out Concorde.Systems.Root_Star_System_Type'Class;
+     (World         : in out Concorde.Worlds.Root_World_Type'Class;
       Template_Name : String)
    is
    begin
@@ -54,7 +61,7 @@ package body Concorde.Colonies.Configure is
       end if;
 
       Create_Colony_From_Template
-        (System, Template_Config.Child (Template_Name));
+        (World, Template_Config.Child (Template_Name));
 
    end Create_Colony_From_Template;
 
@@ -63,7 +70,7 @@ package body Concorde.Colonies.Configure is
    ---------------------------------
 
    procedure Create_Colony_From_Template
-     (System   : in out Concorde.Systems.Root_Star_System_Type'Class;
+     (World    : in out Concorde.Worlds.Root_World_Type'Class;
       Template : Tropos.Configuration)
    is
 
@@ -74,42 +81,45 @@ package body Concorde.Colonies.Configure is
 
       Skilled_Pop : Skilled_Pop_Vectors.Vector;
 
-      Hub : constant Concorde.Installations.Installation_Type :=
-              Concorde.Installations.Create.Create
-                (Location =>
-                           Concorde.Systems.Db.Reference (System),
-                 Facility => Concorde.Facilities.Colony_Hub,
-                 Cash     =>
-                   Concorde.Money.To_Money
-                     (Template.Get ("cash", 10_000.0)),
-                 Owner    => System.Owner);
+      World_Reference : constant Concorde.Worlds.World_Type :=
+                          Concorde.Worlds.Db.Reference
+                            (World);
+      Tiles            : Concorde.Maps.List_Of_Tiles.List;
+      Start_Tiles      : Concorde.Maps.List_Of_Tiles.List;
+      Current_Position : Concorde.Maps.List_Of_Tiles.Cursor;
+      Capital_Tile     : Concorde.Surfaces.Surface_Tile_Index;
 
-      Government : constant Concorde.Government.Government_Type :=
-                     Concorde.Government.Create.Create_Government
-                       (Governed          =>
-                         Concorde.Systems.Db.Reference (System),
-                        Cash              =>
-                          Concorde.Money.To_Money
-                            (Template.Get ("cash", 10_000.0)),
-                        Owner             => System.Owner,
-                        Headquarters      => Hub,
-                        Basic_Living_Wage =>
-                          Template.Get ("basic_living_wage", False));
+      function Current_Tile return Concorde.Surfaces.Surface_Tile_Index;
+      procedure Next_Tile;
+
+      Hub : Concorde.Installations.Installation_Type;
+      Government : Concorde.Government.Government_Type;
+
+      function Start_Sector_Good
+        (Tile_Index : Positive)
+         return Boolean;
+
+      function Start_Sector_OK
+        (Tile_Index : Positive)
+         return Boolean;
 
       procedure Create_Pop_From_Config
-        (Config : Tropos.Configuration);
+        (Config : Tropos.Configuration;
+         Sector : Concorde.Surfaces.Surface_Tile_Index);
 
       procedure Create_Pop_From_Skill
         (Reference : Memor.Database_Reference;
          Element   : Quantity);
 
       procedure Create_Pop
-        (Group : Concorde.People.Groups.Pop_Group;
-         Skill : Concorde.People.Skills.Pop_Skill;
-         Size  : Concorde.People.Pops.Pop_Size);
+        (Sector : Concorde.Surfaces.Surface_Tile_Index;
+         Group  : Concorde.People.Groups.Pop_Group;
+         Skill  : Concorde.People.Skills.Pop_Skill;
+         Size   : Concorde.People.Pops.Pop_Size);
 
       procedure Create_Installation
-        (Facility : Concorde.Facilities.Facility_Type);
+        (Facility : Concorde.Facilities.Facility_Type;
+         Sector   : Concorde.Surfaces.Surface_Tile_Index);
 
       procedure Add_Inputs
         (Installation : Concorde.Installations.Installation_Type);
@@ -188,17 +198,21 @@ package body Concorde.Colonies.Configure is
       -------------------------
 
       procedure Create_Installation
-        (Facility : Concorde.Facilities.Facility_Type)
+        (Facility : Concorde.Facilities.Facility_Type;
+         Sector   : Concorde.Surfaces.Surface_Tile_Index)
       is
+         Location     : constant Concorde.Locations.Object_Location :=
+                          Concorde.Locations.World_Surface
+                            (World_Reference, Positive (Sector));
          Installation : constant Concorde.Installations.Installation_Type :=
                           Concorde.Installations.Create.Create
-                            (Location =>
-                                 Concorde.Systems.Db.Reference (System),
+                            (Location => Location,
+                             Market   => World.Market,
                              Facility => Facility,
                              Cash     => Concorde.Money.To_Money (1.0E5),
-                             Owner    => System.Owner);
+                             Owner    => World.Owner);
       begin
-         System.Add_Installation (Installation);
+         World.Add_Installation (Sector, Installation);
          Add_Population (Installation);
          Add_Inputs (Installation);
       end Create_Installation;
@@ -208,26 +222,30 @@ package body Concorde.Colonies.Configure is
       ----------------
 
       procedure Create_Pop
-        (Group : Concorde.People.Groups.Pop_Group;
-         Skill : Concorde.People.Skills.Pop_Skill;
-         Size  : Concorde.People.Pops.Pop_Size)
+        (Sector : Concorde.Surfaces.Surface_Tile_Index;
+         Group  : Concorde.People.Groups.Pop_Group;
+         Skill  : Concorde.People.Skills.Pop_Skill;
+         Size   : Concorde.People.Pops.Pop_Size)
       is
          use Concorde.Commodities;
          Cash  : constant Non_Negative_Real :=
                    Real (Size) * Real (Group.Initial_Cash_Factor);
+         Location : constant Concorde.Locations.Object_Location :=
+                      Concorde.Locations.World_Surface
+                        (World_Reference, Positive (Sector));
          Pop   : constant Concorde.People.Pops.Pop_Type :=
-                   Concorde.People.Pops.Create.New_Pop
-                     (Location => Concorde.Systems.Db.Reference (System),
-                      Location_Index => 0,
-                      Wealth_Group => Group,
-                      Skill        => Skill,
-                      Size         => Size,
-                      Cash         => Concorde.Money.To_Money (Cash));
+                      Concorde.People.Pops.Create.New_Pop
+                        (Location     => Location,
+                         Market       => World.Market,
+                         Wealth_Group => Group,
+                         Skill        => Skill,
+                         Size         => Size,
+                         Cash         => Concorde.Money.To_Money (Cash));
          Needs : constant Array_Of_Commodities :=
                    Concorde.Commodities.Get
                      (Consumer, Group.Preferred_Quality);
       begin
-         System.Add_Pop (Pop);
+         World.Add_Pop (Sector, Pop);
 
          for Need of Needs loop
             declare
@@ -266,7 +284,8 @@ package body Concorde.Colonies.Configure is
       ----------------------------
 
       procedure Create_Pop_From_Config
-        (Config : Tropos.Configuration)
+        (Config : Tropos.Configuration;
+         Sector : Concorde.Surfaces.Surface_Tile_Index)
       is
 --           use Concorde.Commodities;
          use Concorde.People.Groups;
@@ -276,7 +295,7 @@ package body Concorde.Colonies.Configure is
          Size  : constant Natural := Config.Get ("size");
       begin
          Create_Pop
-           (Group, Skill,
+           (Sector, Group, Skill,
             Concorde.People.Pops.Pop_Size (Size));
       end Create_Pop_From_Config;
 
@@ -291,20 +310,264 @@ package body Concorde.Colonies.Configure is
          Skill : constant Concorde.People.Skills.Pop_Skill :=
                    Concorde.People.Skills.Db.Element (Reference);
       begin
-         Create_Pop (Skill.Wealth_Group, Skill,
+         Create_Pop (Capital_Tile, Skill.Wealth_Group, Skill,
                      Concorde.People.Pops.Pop_Size
                        (Quantities.To_Real (Element)));
       end Create_Pop_From_Skill;
 
+      ------------------
+      -- Current_Tile --
+      ------------------
+
+      function Current_Tile return Concorde.Surfaces.Surface_Tile_Index is
+      begin
+         return Concorde.Surfaces.Surface_Tile_Index
+           (Concorde.Maps.List_Of_Tiles.Element (Current_Position));
+      end Current_Tile;
+
+      ---------------
+      -- Next_Tile --
+      ---------------
+
+      procedure Next_Tile is
+         use Concorde.Maps.List_Of_Tiles;
+      begin
+         Next (Current_Position);
+         if not Has_Element (Current_Position) then
+            declare
+               New_Tiles : List;
+            begin
+               World.External_Border (Tiles, New_Tiles);
+               Tiles := New_Tiles;
+            end;
+            Current_Position := Tiles.First;
+         end if;
+      end Next_Tile;
+
+      -----------------------
+      -- Start_Sector_Good --
+      -----------------------
+
+      function Start_Sector_Good
+        (Tile_Index : Positive)
+            return Boolean
+      is
+         use Concorde.Features, Concorde.Terrain;
+         Sector_Index : constant Concorde.Surfaces.Surface_Tile_Index :=
+                          Concorde.Surfaces.Surface_Tile_Index
+                            (Tile_Index);
+         Terrain      : constant Terrain_Type :=
+                          (if World.Sector_Has_Terrain (Sector_Index)
+                           then World.Sector_Terrain (Sector_Index)
+                           else null);
+         Feature      : constant Feature_Type :=
+                          (if World.Sector_Has_Feature (Sector_Index)
+                           then World.Sector_Feature (Sector_Index)
+                           else null);
+         Water_Count  : Natural := 0;
+         Low_Temp     : constant Non_Negative_Real :=
+                          World.Sector_Temperature_Low (Sector_Index);
+         High_Temp    : constant Non_Negative_Real :=
+                          World.Sector_Temperature_High (Sector_Index);
+      begin
+         if Terrain /= null and then Terrain.Is_Water then
+            return False;
+         end if;
+
+         if Feature = Ice then
+            return False;
+         end if;
+
+         if Low_Temp < 260.0 or else High_Temp > 323.0 then
+            return False;
+         end if;
+
+         for I in 1 .. World.Neighbour_Count (Tile_Index) loop
+            declare
+               Neighbour : constant Concorde.Surfaces.Surface_Tile_Index :=
+                             Concorde.Surfaces.Surface_Tile_Index
+                               (World.Neighbour (Tile_Index, I));
+               Neighbour_Low : constant Non_Negative_Real :=
+                                 World.Sector_Temperature_Low (Neighbour);
+               Neighbour_High : constant Non_Negative_Real :=
+                                  World.Sector_Temperature_High (Neighbour);
+            begin
+               if World.Sector_Has_Feature (Neighbour)
+                 and then World.Sector_Feature (Neighbour) = Ice
+               then
+                  return False;
+               end if;
+               if Neighbour_Low < 260.0 or else Neighbour_High > 323.0 then
+                  return False;
+               end if;
+
+               if World.Sector_Has_Terrain (Neighbour)
+                 and then World.Sector_Terrain (Neighbour).Is_Water
+               then
+                  Water_Count := Water_Count + 1;
+               end if;
+            end;
+         end loop;
+         if Water_Count > 3 then
+            return False;
+         end if;
+
+         return True;
+      end Start_Sector_Good;
+
+      ---------------------
+      -- Start_Sector_OK --
+      ---------------------
+
+      function Start_Sector_OK
+        (Tile_Index : Positive)
+         return Boolean
+      is
+         use Concorde.Features, Concorde.Terrain;
+         Sector_Index : constant Concorde.Surfaces.Surface_Tile_Index :=
+                          Concorde.Surfaces.Surface_Tile_Index
+                            (Tile_Index);
+         Terrain      : constant Terrain_Type :=
+                          (if World.Sector_Has_Terrain (Sector_Index)
+                           then World.Sector_Terrain (Sector_Index)
+                           else null);
+         Feature      : constant Feature_Type :=
+                          (if World.Sector_Has_Feature (Sector_Index)
+                           then World.Sector_Feature (Sector_Index)
+                           else null);
+         Water_Count  : Natural := 0;
+         Low_Temp     : constant Non_Negative_Real :=
+                          World.Sector_Temperature_Low (Sector_Index);
+         High_Temp    : constant Non_Negative_Real :=
+                          World.Sector_Temperature_High (Sector_Index);
+      begin
+         if Terrain /= null and then Terrain.Is_Water then
+            return False;
+         end if;
+
+         if Feature = Ice then
+            return False;
+         end if;
+
+         if Low_Temp < 240.0 or else High_Temp > 343.0 then
+            return False;
+         end if;
+
+         for I in 1 .. World.Neighbour_Count (Tile_Index) loop
+            declare
+               Neighbour      : constant Surfaces.Surface_Tile_Index :=
+                                  Concorde.Surfaces.Surface_Tile_Index
+                                    (World.Neighbour (Tile_Index, I));
+               Neighbour_Low  : constant Non_Negative_Real :=
+                                  World.Sector_Temperature_Low (Neighbour);
+               Neighbour_High : constant Non_Negative_Real :=
+                                  World.Sector_Temperature_High (Neighbour);
+            begin
+               if World.Sector_Has_Feature (Neighbour)
+                 and then World.Sector_Feature (Neighbour) = Ice
+               then
+                  return False;
+               end if;
+               if Neighbour_Low < 240.0 or else Neighbour_High > 343.0 then
+                  return False;
+               end if;
+
+               if World.Sector_Has_Terrain (Neighbour)
+                 and then World.Sector_Terrain (Neighbour).Is_Water
+               then
+                  Water_Count := Water_Count + 1;
+               end if;
+            end;
+         end loop;
+         if Water_Count > 5 then
+            return False;
+         end if;
+
+         return True;
+      end Start_Sector_OK;
+
    begin
 
-      System.Set_Government (Government);
-      System.Add_Installation (Hub);
+      Ada.Text_IO.Put_Line
+        ("New colony on " & World.Name);
+
+      World.Scan_Tiles (Start_Sector_Good'Access, Start_Tiles);
+      if Start_Tiles.Is_Empty then
+         Ada.Text_IO.Put_Line
+           ("  -- retry with looser constraints " & World.Name);
+         World.Scan_Tiles (Start_Sector_OK'Access, Start_Tiles);
+      end if;
+
+      if Start_Tiles.Is_Empty then
+         Ada.Text_IO.Put_Line
+           ("Unabled to find good spot for hub");
+         return;
+      end if;
+
+      Tiles.Append (Start_Tiles.First_Element);
+      Current_Position := Tiles.First;
+      Capital_Tile :=
+        Concorde.Surfaces.Surface_Tile_Index
+          (Tiles.First_Element);
+
+      Hub :=
+        Concorde.Installations.Create.Create
+          (Location =>
+             Concorde.Locations.World_Surface
+               (Concorde.Worlds.Db.Reference (World),
+                Tiles.First_Element),
+           Market => null,
+           Facility => Concorde.Facilities.Colony_Hub,
+           Cash     =>
+             Concorde.Money.To_Money
+               (Template.Get ("cash", 10_000.0)),
+           Owner    => World.Owner);
+
+      Government :=
+        Concorde.Government.Create.Create_Government
+          (Governed          =>
+             Concorde.Worlds.Db.Reference (World),
+           Cash              =>
+             Concorde.Money.To_Money
+               (Template.Get ("cash", 10_000.0)),
+           Owner             => World.Owner,
+           Headquarters      => Hub,
+           Basic_Living_Wage =>
+             Template.Get ("basic_living_wage", False));
+
+      World.Add_Installation (Current_Tile, Hub);
+      World.Set_Government (Government);
+
+      declare
+         procedure Set_Market
+           (Installation :
+            in out Concorde.Installations.Root_Installation_Type'Class);
+
+         ----------------
+         -- Set_Market --
+         ----------------
+
+         procedure Set_Market
+           (Installation :
+            in out Concorde.Installations.Root_Installation_Type'Class)
+         is
+         begin
+            Installation.Set_Market (World.Market);
+         end Set_Market;
+
+      begin
+         Concorde.Installations.Db.Update
+           (Hub.Reference, Set_Market'Access);
+      end;
+
       Add_Population (Hub);
 
       for Pop_Config of Template.Child ("pops") loop
-         Create_Pop_From_Config (Pop_Config);
+         Create_Pop_From_Config
+           (Pop_Config, Current_Tile);
       end loop;
+
+      Next_Tile;
 
       declare
          Install_Config : constant Tropos.Configuration :=
@@ -328,15 +591,22 @@ package body Concorde.Colonies.Configure is
             end if;
 
             for I in 1 .. Install_Config.Get (Facility.Identifier, 0) loop
-               Create_Installation (Facility);
+               Create_Installation (Facility, Capital_Tile);
             end loop;
          end Configure_Installation;
 
       begin
          for I in 1 .. Install_Config.Get ("resource_generator", 0) loop
-            Create_Installation
-              (Concorde.Facilities.Resource_Generator
-                 (System.Resource));
+            declare
+               Tile : constant Concorde.Surfaces.Surface_Tile_Index :=
+                        Current_Tile;
+            begin
+               Create_Installation
+                 (Concorde.Facilities.Resource_Generator
+                    (World.Sector_Resource (Tile)),
+                  Tile);
+               Next_Tile;
+            end;
          end loop;
 
          Concorde.Facilities.Db.Scan (Configure_Installation'Access);

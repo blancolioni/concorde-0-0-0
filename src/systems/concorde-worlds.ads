@@ -2,10 +2,11 @@ private with Ada.Containers.Doubly_Linked_Lists;
 
 private with Memor;
 
-private with Concorde.Graphs;
-private with Concorde.Surfaces;
-private with Concorde.Maps;
 private with Concorde.Geometry;
+
+with Concorde.Maps;
+with Concorde.Surfaces;
+
 with Concorde.Objects;
 
 with Concorde.Atmosphere;
@@ -15,6 +16,19 @@ with Concorde.Terrain;
 with Concorde.Systems;
 
 with Concorde.Commodities;
+with Concorde.Government;
+with Concorde.People.Pops;
+with Concorde.Installations;
+with Concorde.Markets;
+
+limited with Concorde.Empires;
+with Concorde.Ships.Lists;
+
+with Concorde.Locations;
+
+private with Concorde.Commodities.Lists;
+private with Concorde.Installations.Lists;
+private with Concorde.People.Pops.Lists;
 
 package Concorde.Worlds is
 
@@ -27,7 +41,35 @@ package Concorde.Worlds is
    type Root_World_Type is
      new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Systems.Star_System_Object_Interface
+     and Concorde.Government.Governed_Interface
+     and Concorde.Maps.Tile_Layout_Interface
    with private;
+
+   function System
+     (World : Root_World_Type'Class)
+      return Concorde.Systems.Star_System_Type;
+
+   function Day_Length
+     (World : Root_World_Type'Class)
+      return Non_Negative_Real;
+
+   function Owner
+     (World : Root_World_Type'Class)
+      return access constant Concorde.Empires.Root_Empire_Type'Class;
+
+   function Owned
+     (World : Root_World_Type'Class)
+      return Boolean;
+
+   function Owned_By
+     (World : Root_World_Type'Class;
+      Empire : Concorde.Empires.Root_Empire_Type'Class)
+      return Boolean;
+
+   procedure Set_Owner
+     (World  : in out Root_World_Type'Class;
+      Empire : not null access constant
+        Concorde.Empires.Root_Empire_Type'Class);
 
    function Category
      (World : Root_World_Type'Class)
@@ -37,6 +79,125 @@ package Concorde.Worlds is
      (World : Root_World_Type'Class)
       return Boolean
    is (World.Category in Jovian_World);
+
+   procedure Set_Capital
+     (World      : in out Root_World_Type'Class;
+      Is_Capital : Boolean);
+
+   function Is_Capital
+     (World : Root_World_Type'Class)
+      return Boolean;
+
+   procedure Set_Government
+     (World      : in out Root_World_Type'Class;
+      Government : Concorde.Government.Government_Type);
+
+   function Has_Government
+     (World : Root_World_Type'Class)
+      return Boolean;
+
+   function Government
+     (World : Root_World_Type'Class)
+      return Concorde.Government.Government_Type;
+
+   function Has_Market
+     (World : Root_World_Type'Class)
+      return Boolean;
+
+   function Market
+     (World : Root_World_Type'Class)
+      return Concorde.Markets.Market_Type;
+
+   function Resources
+     (World : Root_World_Type'Class)
+      return Concorde.Commodities.Array_Of_Commodities;
+
+   function Sector_Ground_Level
+     (World  : Root_World_Type'Class;
+      Sector : Concorde.Surfaces.Surface_Tile_Index)
+      return Real;
+
+   function Sector_Has_Feature
+     (World  : Root_World_Type'Class;
+      Sector : Concorde.Surfaces.Surface_Tile_Index)
+      return Boolean;
+
+   function Sector_Has_Terrain
+     (World  : Root_World_Type'Class;
+      Sector : Concorde.Surfaces.Surface_Tile_Index)
+      return Boolean;
+
+   function Sector_Resource
+     (World  : Root_World_Type'Class;
+      Sector : Concorde.Surfaces.Surface_Tile_Index)
+      return Concorde.Commodities.Commodity_Type;
+
+   function Sector_Temperature_Low
+     (World  : Root_World_Type'Class;
+      Sector : Concorde.Surfaces.Surface_Tile_Index)
+      return Non_Negative_Real;
+
+   function Sector_Temperature_Average
+     (World  : Root_World_Type'Class;
+      Sector : Concorde.Surfaces.Surface_Tile_Index)
+      return Non_Negative_Real;
+
+   function Sector_Temperature_High
+     (World  : Root_World_Type'Class;
+      Sector : Concorde.Surfaces.Surface_Tile_Index)
+      return Non_Negative_Real;
+
+   function Sector_Feature
+     (World  : Root_World_Type'Class;
+      Sector : Concorde.Surfaces.Surface_Tile_Index)
+      return Concorde.Features.Feature_Type
+     with Pre => World.Sector_Has_Feature (Sector);
+
+   function Sector_Terrain
+     (World  : Root_World_Type'Class;
+      Sector : Concorde.Surfaces.Surface_Tile_Index)
+      return Concorde.Terrain.Terrain_Type
+     with Pre => World.Sector_Has_Terrain (Sector);
+
+   procedure Get_Sector_Resource
+     (Location      : Concorde.Locations.Object_Location;
+      Resource      : out Concorde.Commodities.Commodity_Type;
+      Concentration : out Unit_Real;
+      Accessibility : out Unit_Real);
+
+   --     function Resource
+--       (System : Root_Star_System_Type'Class)
+--        return Concorde.Commodities.Commodity_Type;
+--
+--     function Resource_Accessibility
+--       (System : Root_Star_System_Type'Class)
+--        return Unit_Real;
+--
+--     function Resource_Concentration
+--       (System : Root_Star_System_Type'Class)
+--        return Unit_Real;
+--
+--     function Resource_Size
+--       (System : Root_Star_System_Type'Class)
+--        return Concorde.Quantities.Quantity;
+
+   procedure Add_Pop
+     (World  : in out Root_World_Type'Class;
+      Sector : Concorde.Surfaces.Surface_Tile_Index;
+      Pop    : Concorde.People.Pops.Pop_Type);
+
+   procedure Add_Installation
+     (World        : in out Root_World_Type'Class;
+      Sector       : Concorde.Surfaces.Surface_Tile_Index;
+      Installation : Concorde.Installations.Installation_Type);
+
+   procedure Add_Ship
+     (World : in out Root_World_Type'Class;
+      Ship  : Concorde.Ships.Ship_Type);
+
+   procedure Get_Ships
+     (World : Root_World_Type'Class;
+      Ships : out Concorde.Ships.Lists.List);
 
    type World_Type is access constant Root_World_Type'Class;
 
@@ -76,13 +237,15 @@ private
 
    type Sector_Record is
       record
-         Height      : Height_Range;
-         Terrain     : Concorde.Terrain.Terrain_Type;
-         Feature     : Concorde.Features.Feature_Type;
-         Deposit     : Deposit_Record;
-         Temperature : Temperature_Record;
-         Wind        : Wind_Record;
-         Moisture    : Non_Negative_Real;
+         Height        : Height_Range;
+         Terrain       : Concorde.Terrain.Terrain_Type;
+         Feature       : Concorde.Features.Feature_Type;
+         Deposit       : Deposit_Record;
+         Temperature   : Temperature_Record;
+         Wind          : Wind_Record;
+         Moisture      : Non_Negative_Real;
+         Pops          : Concorde.People.Pops.Lists.List;
+         Installations : Concorde.Installations.Lists.List;
       end record;
 
    type Array_Of_Sectors is
@@ -92,24 +255,16 @@ private
      array (Positive range <>) of Height_Range
      with Component_Size => 8;
 
-   function Get_Sector_Index (Index : Positive) return Positive
-   is (Index);
-
-   package Sector_Graphs is
-     new Concorde.Graphs
-       (Index_Type   => Positive,
-        Vertex_Type  => Positive,
-        Cost_Type    => Non_Negative_Real,
-        Default_Cost => 1.0,
-        Index_Of     => Get_Sector_Index);
-
-   type Array_Of_Row_Lengths is array (Positive range <>) of Positive;
-
    type Root_World_Type is
      new Concorde.Objects.Root_User_Named_Object_Type
-     and Concorde.Systems.Star_System_Object_Interface with
+     and Concorde.Systems.Star_System_Object_Interface
+     and Concorde.Government.Governed_Interface
+     and Concorde.Maps.Tile_Layout_Interface with
       record
-         Primary               : access
+         System                : Concorde.Systems.Star_System_Type;
+         Owner                 : access constant
+           Concorde.Empires.Root_Empire_Type'Class;
+         Primary               : access constant
            Concorde.Systems.Star_System_Object_Interface'Class;
          Semimajor_Axis        : Non_Negative_Real;
          Eccentricity          : Unit_Real;
@@ -148,6 +303,12 @@ private
          Cloud_Cover           : Unit_Real;
          Ice_Cover             : Unit_Real;
          Sector_Count          : Natural;
+         Is_Capital_World      : Boolean := False;
+         Hub                   : Concorde.Installations.Installation_Type;
+         Resources             : Concorde.Commodities.Lists.List;
+         Ships                 : Concorde.Ships.Lists.List;
+         Market                : Concorde.Markets.Market_Type;
+         Government            : Concorde.Government.Government_Type;
       end record;
 
    overriding function Object_Database
@@ -179,39 +340,32 @@ private
       return Unit_Real
    is (World.Eccentricity);
 
-   type World_Layout_Type is
-     new Concorde.Maps.Tile_Layout_Interface with
-      record
-         Surface : Concorde.Surfaces.Surface_Type;
-         Sectors : access Array_Of_Sectors;
-      end record;
-
    overriding function Tile_Count
-     (Layout     : World_Layout_Type)
+     (World : Root_World_Type)
       return Natural
-   is (Layout.Sectors'Length);
+   is (Natural (World.Sectors'Length));
 
    overriding function Neighbour_Count
-     (Layout     : World_Layout_Type;
+     (World      : Root_World_Type;
       Tile_Index : Positive)
       return Natural
    is (Natural
-       (Layout.Surface.Neighbour_Count
+       (World.Surface.Neighbour_Count
           (Concorde.Surfaces.Surface_Tile_Index (Tile_Index))));
 
    overriding function Neighbour
-     (Layout          : World_Layout_Type;
+     (World           : Root_World_Type;
       Tile_Index      : Positive;
       Neighbour_Index : Positive)
       return Positive
    is (Positive
-       (Layout.Surface.Neighbour
+       (World.Surface.Neighbour
         (Concorde.Surfaces.Surface_Tile_Index (Tile_Index),
          Concorde.Surfaces.Tile_Neighbour_Index (Neighbour_Index))));
 
    overriding procedure Set_Height
-     (Layout          : in out World_Layout_Type;
-      Tile_Index      : Positive;
-      Height          : Positive);
+     (World      : in out Root_World_Type;
+      Tile_Index : Positive;
+      Height     : Positive);
 
 end Concorde.Worlds;

@@ -88,7 +88,8 @@ package body Concorde.Ships.Updates is
             & Ship.Destination.Name
             & " (distance"
             & Natural'Image
-              (Ship.Owner.Path_Length (Ship.System, Ship.Destination))
+              (Ship.Owner.Path_Length
+                   (Ship.Current_System, Ship.Destination.System))
             & ")");
 
          Concorde.Galaxy.Ships.Move_Ship (Ship);
@@ -133,7 +134,7 @@ package body Concorde.Ships.Updates is
                Order : constant Ship_Order_Record := Element (Position);
             begin
 
-               if Order.System_Reference = Ship.System_Reference then
+               if Ship.Orbiting (Order.World) then
                   case Order.Order is
                      when No_Order =>
                         Ship.Orders.Delete (Position);
@@ -170,9 +171,8 @@ package body Concorde.Ships.Updates is
                else
                   Ship.Log_Trade
                     ("Finished trading; heading to "
-                     & Concorde.Systems.Db.Element
-                       (Order.System_Reference).Name);
-                  Ship.Dest_Reference := Order.System_Reference;
+                     & Order.World.Name);
+                  Ship.Dest_Reference := Order.World.Reference;
                   exit;
                end if;
             end;

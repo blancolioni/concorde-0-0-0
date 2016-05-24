@@ -1,12 +1,10 @@
 with Ada.Containers.Vectors;
 
 with Concorde.Empires.Logging;
-with Concorde.Empires.Relations;
 with Concorde.Galaxy;
 with Concorde.Systems.Graphs;
 
 with Concorde.Empires.Db;
-with Concorde.Systems.Db;
 
 package body Concorde.Empires is
 
@@ -50,29 +48,16 @@ package body Concorde.Empires is
 
    end All_Empires;
 
-   ------------------------------
-   -- Available_Ship_Capacity --
-   ------------------------------
-
-   function Available_Ship_Capacity
-     (Empire : Root_Empire_Type'Class)
-      return Natural
-   is
-   begin
-      return Integer'Max
-        (Natural (Empire.Max_Ships) - Empire.Current_Ships, 0);
-   end Available_Ship_Capacity;
-
    -------------
    -- Capital --
    -------------
 
    function Capital
      (Empire : Root_Empire_Type'Class)
-      return Concorde.Systems.Star_System_Type
+      return access constant Concorde.Worlds.Root_World_Type'Class
    is
    begin
-      return Empire.Capital;
+      return Empire.Capital_World;
    end Capital;
 
    -------------------------
@@ -149,9 +134,10 @@ package body Concorde.Empires is
             function OK
               (System : Concorde.Systems.Star_System_Type)
                return Boolean
-            is (not System.Owned
-                or else Empire.Owned_System (System)
-                or else not Relations.At_War (Empire, System.Owner.all));
+            is (True);
+--              is (not System.Owned
+--                  or else Empire.Owned_System (System)
+--                  or else not Relations.At_War (Empire, System.Owner.all));
 
             Path : constant Concorde.Systems.Graphs.Array_Of_Vertices :=
                      Concorde.Galaxy.Shortest_Path
@@ -205,15 +191,17 @@ package body Concorde.Empires is
       -----------
 
       procedure Check (Empire : Root_Empire_Type'Class) is
+         use type Memor.Database_Reference;
          use type Concorde.Systems.Star_System_Type;
       begin
          if Empire.Current_Systems > 0 then
-            pragma Assert (Empire.Capital /= null,
+            pragma Assert (Empire.Capital_World /= null,
                            Empire.Name & ": no capital");
-            pragma Assert (Empire.Owned_System (Empire.Capital),
+            pragma Assert (Empire.Owned_World
+                           (Empire.Capital),
                            Empire.Name & " does not own capital system "
                            & Empire.Capital.Name);
-            pragma Assert (Empire.Capital.Capital,
+            pragma Assert (Empire.Capital.Is_Capital,
                            Empire.Name & ": capital system is not a capital");
          end if;
       end Check;
@@ -248,10 +236,10 @@ package body Concorde.Empires is
       -- Clear --
       -----------
 
-      procedure Clear (Empire : in out Root_Empire_Type'Class) is
-      begin
-         Empire.Battles.Clear;
-      end Clear;
+      procedure Clear (Empire : in out Root_Empire_Type'Class) is null;
+--        begin
+--           Empire.Battles.Clear;
+--        end Clear;
 
    begin
       Db.Iterate (Clear'Access);
@@ -400,18 +388,6 @@ package body Concorde.Empires is
       return Empire.System_Data (System.Index).Flags (Flag);
    end Is_Set;
 
-   ------------------------------
-   -- Maximum_Supported_Ships --
-   ------------------------------
-
-   function Maximum_Supported_Ships
-     (Empire : Root_Empire_Type'Class)
-      return Natural
-   is
-   begin
-      return Natural (Empire.Max_Ships);
-   end Maximum_Supported_Ships;
-
    ----------------
    -- New_Ships --
    ----------------
@@ -459,16 +435,31 @@ package body Concorde.Empires is
    -- Owned_System --
    ------------------
 
-   function Owned_System
+--     function Owned_System
+--       (Empire : Root_Empire_Type'Class;
+--        System : not null access constant
+--          Concorde.Systems.Root_Star_System_Type'Class)
+--        return Boolean
+--     is
+--        use type Memor.Database_Reference;
+--     begin
+--        return System.Owned
+--  and then System.Owner.Reference = Empire.Reference;
+--     end Owned_System;
+
+   -----------------
+   -- Owned_World --
+   -----------------
+
+   function Owned_World
      (Empire : Root_Empire_Type'Class;
-      System : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
+      World  : not null access constant
+        Concorde.Worlds.Root_World_Type'Class)
       return Boolean
    is
-      use type Memor.Database_Reference;
    begin
-      return System.Owned and then System.Owner.Reference = Empire.Reference;
-   end Owned_System;
+      return World.Owned_By (Empire);
+   end Owned_World;
 
    -----------------
    -- Path_Length --
@@ -674,124 +665,124 @@ package body Concorde.Empires is
    -- System_Acquired --
    ---------------------
 
-   procedure System_Acquired
-     (Empire : in out Root_Empire_Type'Class;
-      System : in out Concorde.Systems.Root_Star_System_Type'Class)
-   is
-      use type Concorde.Systems.Star_System_Type;
-   begin
-      Empire.Current_Systems := Empire.Current_Systems + 1;
-      Concorde.Empires.Logging.Log
-        (Empire,
-         "new system count:"
-         & Empire.Current_Systems'Img);
-      Empire.Clear_Path_Cache;
-      if Empire.Capital = null then
-         Empire.Capital := Concorde.Systems.Db.Reference (System);
-         System.Set_Capital (True);
-         Concorde.Empires.Logging.Log
-           (Empire,
-            System.Name & " is our new capital");
-      end if;
-
-      Empire.Update_System_Owner (System);
-
-   end System_Acquired;
+--     procedure System_Acquired
+--       (Empire : in out Root_Empire_Type'Class;
+--        System : in out Concorde.Systems.Root_Star_System_Type'Class)
+--     is
+--        use type Concorde.Systems.Star_System_Type;
+--     begin
+--        Empire.Current_Systems := Empire.Current_Systems + 1;
+--        Concorde.Empires.Logging.Log
+--          (Empire,
+--           "new system count:"
+--           & Empire.Current_Systems'Img);
+--        Empire.Clear_Path_Cache;
+--        if Empire.Capital = null then
+--           Empire.Capital_World := Concorde.Systems.Db.Reference (System);
+--           System.Set_Capital (True);
+--           Concorde.Empires.Logging.Log
+--             (Empire,
+--              System.Name & " is our new capital");
+--        end if;
+--
+--        Empire.Update_System_Owner (System);
+--
+--     end System_Acquired;
 
    -----------------
    -- System_Lost --
    -----------------
 
-   procedure System_Lost
-     (Empire : in out Root_Empire_Type'Class;
-      System : in out Concorde.Systems.Root_Star_System_Type'Class)
-   is
-   begin
-      Empire.Current_Systems := Empire.Current_Systems - 1;
-      Empire.Clear_Path_Cache;
-
-      Concorde.Empires.Logging.Log
-        (Empire,
-         "new system count:"
-         & Empire.Current_Systems'Img);
-      if System.Capital then
-         Empires.Logging.Log
-           (Empire,
-            "lost its capital " & System.Name);
-         System.Set_Capital (False);
-         declare
-            use Concorde.Systems;
-
-            function Score
-              (Test : Concorde.Systems.Star_System_Type)
-               return Natural;
-
-            procedure Set_Capital
-              (System : in out Root_Star_System_Type'Class);
-
-            -----------
-            -- Score --
-            -----------
-
-            function Score
-              (Test : Concorde.Systems.Star_System_Type)
-               return Natural
-            is
-               use type Memor.Database_Reference;
-               Result : Natural := 0;
-            begin
-               if Empire.Owned_System (Test)
-                 and then Test.Reference /= System.Reference
-               then
-                  Result := 100 + Test.Ships;
-
-                  for N of Concorde.Galaxy.Neighbours (Test.Index) loop
-                     if Empire.Owned_System (N) then
-                        Result := Result + 5;
-                     elsif N.Owned then
-                        if Concorde.Empires.Relations.At_War
-                          (Empire, N.Owner.all)
-                        then
-                           Result := Result - 10;
-                        else
-                           Result := Result - 2;
-                        end if;
-                     end if;
-                  end loop;
-               end if;
-
-               return Result;
-            end Score;
-
-            -----------------
-            -- Set_Capital --
-            -----------------
-
-            procedure Set_Capital
-              (System : in out Root_Star_System_Type'Class)
-            is
-            begin
-               System.Set_Capital (True);
-            end Set_Capital;
-
-            New_Capital : constant Concorde.Systems.Star_System_Type :=
-                            Galaxy.Maximum (Score'Access);
-
-         begin
-            if New_Capital /= null then
-               Concorde.Systems.Db.Update (New_Capital.Reference,
-                                           Set_Capital'Access);
-               Empire.Capital := New_Capital;
-               Empires.Logging.Log
-                 (Empire, "new capital: " & New_Capital.Name);
-            else
-               Empires.Logging.Log
-                 (Empire, "eliminated");
-               Empire.Capital := null;
-            end if;
-         end;
-      end if;
-   end System_Lost;
+--     procedure System_Lost
+--       (Empire : in out Root_Empire_Type'Class;
+--        System : in out Concorde.Systems.Root_Star_System_Type'Class)
+--     is
+--     begin
+--        Empire.Current_Systems := Empire.Current_Systems - 1;
+--        Empire.Clear_Path_Cache;
+--
+--        Concorde.Empires.Logging.Log
+--          (Empire,
+--           "new system count:"
+--           & Empire.Current_Systems'Img);
+--        if System.Capital then
+--           Empires.Logging.Log
+--             (Empire,
+--              "lost its capital " & System.Name);
+--           System.Set_Capital (False);
+--           declare
+--              use Concorde.Systems;
+--
+--              function Score
+--                (Test : Concorde.Systems.Star_System_Type)
+--                 return Natural;
+--
+--              procedure Set_Capital
+--                (System : in out Root_Star_System_Type'Class);
+--
+--              -----------
+--              -- Score --
+--              -----------
+--
+--              function Score
+--                (Test : Concorde.Systems.Star_System_Type)
+--                 return Natural
+--              is
+--                 use type Memor.Database_Reference;
+--                 Result : Natural := 0;
+--              begin
+--                 if Empire.Owned_System (Test)
+--                   and then Test.Reference /= System.Reference
+--                 then
+--                    Result := 100 + Test.Ships;
+--
+--                    for N of Concorde.Galaxy.Neighbours (Test.Index) loop
+--                       if Empire.Owned_System (N) then
+--                          Result := Result + 5;
+--                       elsif N.Owned then
+--                          if Concorde.Empires.Relations.At_War
+--                            (Empire, N.Owner.all)
+--                          then
+--                             Result := Result - 10;
+--                          else
+--                             Result := Result - 2;
+--                          end if;
+--                       end if;
+--                    end loop;
+--                 end if;
+--
+--                 return Result;
+--              end Score;
+--
+--              -----------------
+--              -- Set_Capital --
+--              -----------------
+--
+--              procedure Set_Capital
+--                (System : in out Root_Star_System_Type'Class)
+--              is
+--              begin
+--                 System.Set_Capital (True);
+--              end Set_Capital;
+--
+--              New_Capital : constant Concorde.Systems.Star_System_Type :=
+--                              Galaxy.Maximum (Score'Access);
+--
+--           begin
+--              if New_Capital /= null then
+--                 Concorde.Systems.Db.Update (New_Capital.Reference,
+--                                             Set_Capital'Access);
+--                 Empire.Capital := New_Capital;
+--                 Empires.Logging.Log
+--                   (Empire, "new capital: " & New_Capital.Name);
+--              else
+--                 Empires.Logging.Log
+--                   (Empire, "eliminated");
+--                 Empire.Capital := null;
+--              end if;
+--           end;
+--        end if;
+--     end System_Lost;
 
    -------------------------
    -- Update_System_Owner --

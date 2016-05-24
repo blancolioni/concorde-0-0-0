@@ -53,7 +53,6 @@ package body Concorde.Empires.History is
          M : constant Metric_Record :=
                (Controlled_Systems => Real (Empire.Current_Systems),
                 Ship_Count         => Real (Empire.Current_Ships),
-                Capacity           => Empire.Max_Ships,
                 Production         => 0.0);
       begin
          R.Replace_Element (Empire.Reference, M);

@@ -1,4 +1,6 @@
 with Concorde.Galaxy;
+with Concorde.Locations;
+with Concorde.Markets;
 with Concorde.Ships.Create;
 with Concorde.Stars;
 with Concorde.Worlds;
@@ -9,40 +11,42 @@ with Concorde.Scenarios;
 with Concorde.Colonies.Configure;
 
 with Concorde.Empires.Db;
+with Concorde.Markets.Db;
 with Concorde.Ships.Db;
-with Concorde.Systems.Db;
 
 with Concorde.Commodities;
 with Concorde.Money;
 with Concorde.Quantities;
 
+with Concorde.Worlds.Db;
+
 package body Concorde.Empires.Create is
 
    procedure Create_Initial_Ships
-     (System : in out Concorde.Systems.Root_Star_System_Type'Class);
+     (World : in out Concorde.Worlds.Root_World_Type'Class);
 
    --------------------------
    -- Create_Initial_Ships --
    --------------------------
 
    procedure Create_Initial_Ships
-     (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+     (World : in out Concorde.Worlds.Root_World_Type'Class)
    is
       Trader   : constant Concorde.Ships.Ship_Type :=
                    Concorde.Ships.Create.New_Ship
-                     (Owner  => System.Owner,
+                     (Owner  => World.Owner,
                       Name   =>
-                        System.Owner.Name
+                        World.Owner.Name
                       & " Trader",
-                      System => System,
+                      World  => World,
                       Design => "trader");
       Defender : constant Concorde.Ships.Ship_Type :=
                    Concorde.Ships.Create.New_Ship
-                     (Owner  => System.Owner,
+                     (Owner  => World.Owner,
                       Name   =>
-                        System.Owner.Name
+                        World.Owner.Name
                       & " Defender",
-                      System => System,
+                      World  => World,
                       Design => "defender");
 
       procedure Initial_Trade_Route
@@ -55,18 +59,27 @@ package body Concorde.Empires.Create is
       procedure Initial_Trade_Route
         (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
       is
-         Start    : constant Concorde.Systems.Star_System_Type :=
-                      Concorde.Systems.Db.Reference (System);
-         Capital  : constant Concorde.Systems.Star_System_Type :=
-                      Galaxy.Get_System (1);
+         Start    : constant Concorde.Worlds.World_Type :=
+                      Concorde.Worlds.Db.Reference (World);
+         Capital  : constant Concorde.Worlds.World_Type :=
+                      Galaxy.Capital_World;
          Consumer : constant Commodities.Array_Of_Commodities :=
                       Commodities.Get (Commodities.Consumer);
+         Resources : constant Commodities.Array_Of_Commodities :=
+                       World.Resources;
       begin
          for Item of Consumer loop
             Ship.Add_Sell_Order (Start, Item);
          end loop;
-         Ship.Add_Buy_Order (Start, System.Resource);
-         Ship.Add_Sell_Order (Capital, System.Resource);
+
+         for R of Resources loop
+            Ship.Add_Buy_Order (Start, R);
+         end loop;
+
+         for R of Resources loop
+            Ship.Add_Sell_Order (Capital, R);
+         end loop;
+
          for Item of Consumer loop
             Ship.Add_Buy_Order (Capital, Item);
          end loop;
@@ -77,8 +90,8 @@ package body Concorde.Empires.Create is
       Concorde.Ships.Db.Update
         (Trader.Reference, Initial_Trade_Route'Access);
 
-      System.Add_Ship (Trader);
-      System.Add_Ship (Defender);
+      World.Add_Ship (Trader);
+      World.Add_Ship (Defender);
    end Create_Initial_Ships;
 
    ----------------
@@ -110,7 +123,7 @@ package body Concorde.Empires.Create is
         (Empire : Root_Empire_Type'Class)
       is
       begin
-         Concorde.Galaxy.Add_Systems (Taken, Empire.Capital, 0.4);
+         Concorde.Galaxy.Add_Systems (Taken, Empire.Capital.System, 0.4);
       end Add_Taken_Systems;
 
       ------------
@@ -121,80 +134,113 @@ package body Concorde.Empires.Create is
         (New_Empire : in out Root_Empire_Type'Class)
       is
 
-         procedure Choose
+         Start_World : Concorde.Worlds.World_Type;
+         Start_System : Concorde.Systems.Star_System_Type;
+
+         procedure Choose_System
            (System : in out Concorde.Systems.Root_Star_System_Type'Class);
+
+         procedure Choose_World
+           (World : in out Concorde.Worlds.Root_World_Type'Class);
 
          function OK_For_Start
            (System : Concorde.Systems.Star_System_Type)
             return Boolean;
 
-         ------------
-         -- Choose --
-         ------------
+         -------------------
+         -- Choose_System --
+         -------------------
 
-         procedure Choose
+         procedure Choose_System
            (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+         is
+            use Concorde.Commodities;
+         begin
+            System.Set_Owner (Db.Reference (New_Empire));
+            System.Set_Capital (True);
+            System.Set_Name (Capital);
+         end Choose_System;
+
+         ------------------
+         -- Choose_World --
+         ------------------
+
+         procedure Choose_World
+           (World : in out Concorde.Worlds.Root_World_Type'Class)
          is
             use Concorde.Commodities;
             Resources : constant Concorde.Commodities.Array_Of_Commodities :=
                           Concorde.Commodities.Get
                             (Concorde.Commodities.Resource);
+            Imperial_Centre : constant Boolean :=
+                                Concorde.Scenarios.Imperial_Centre
+                                    and then Start_System.Index = 1;
+
+            procedure Set_Initial_Prices
+              (Market : in out Concorde.Markets.Root_Market_Type'Class);
+
+            ------------------------
+            -- Set_Initial_Prices --
+            ------------------------
+
+            procedure Set_Initial_Prices
+              (Market : in out Concorde.Markets.Root_Market_Type'Class)
+            is
+            begin
+               for Unavailable of Resources loop
+                  if Imperial_Centre then
+                     Market.Initial_Price
+                       (Unavailable,
+                        Concorde.Money.Adjust_Price
+                          (Unavailable.Base_Price, Factor => 2.0));
+               --                 elsif Unavailable /= System.Resource then
+               --                    System.Market.Initial_Price
+               --                      (Unavailable,
+               --                       Concorde.Money.Adjust_Price
+               --                   (Unavailable.Base_Price, Factor => 2.0));
+                  end if;
+               end loop;
+
+               declare
+                  Consumer_Goods : constant Array_Of_Commodities :=
+                                     Get (Consumer);
+               begin
+                  for Item of Consumer_Goods loop
+                     if Imperial_Centre then
+                        null;
+                     else
+                        Market.Initial_Price
+                          (Item,
+                           Concorde.Money.Adjust_Price
+                             (Item.Base_Price, Factor => 2.0));
+                     end if;
+                  end loop;
+               end;
+
+            end Set_Initial_Prices;
 
          begin
-            System.Set_Owner (Db.Reference (New_Empire));
-            System.Set_Capital (True);
-            System.Set_Name (Capital);
+            World.Set_Owner (Db.Reference (New_Empire));
+            World.Set_Capital (True);
+            World.Set_Name (Capital);
 
             if Concorde.Scenarios.Imperial_Centre
-              and then System.Index = 1
+              and then Start_System.Index = 1
             then
-               System.Set_Production (System.Production * 20.0);
-               System.Set_Capacity (System.Capacity * 20.0);
                Concorde.Colonies.Configure.Create_Colony_From_Template
-                 (System, "imperial_capital");
+                 (World, "imperial_capital");
             else
-               System.Set_Production (System.Production * 4.0);
-               System.Set_Capacity (System.Capacity * 4.0);
                Concorde.Colonies.Configure.Create_Colony_From_Template
-                 (System, "initial");
+                 (World, "initial");
 
-               Create_Initial_Ships (System);
+               Create_Initial_Ships (World);
 
             end if;
 
-            for Unavailable of Resources loop
-               if Concorde.Scenarios.Imperial_Centre
-                 and then System.Index = 1
-               then
-                  System.Market.Initial_Price
-                    (Unavailable,
-                     Concorde.Money.Adjust_Price
-                       (Unavailable.Base_Price, Factor => 2.0));
-               elsif Unavailable /= System.Resource then
-                  System.Market.Initial_Price
-                    (Unavailable,
-                     Concorde.Money.Adjust_Price
-                       (Unavailable.Base_Price, Factor => 2.0));
-               end if;
-            end loop;
+            Concorde.Markets.Db.Update
+              (World.Market.Reference, Set_Initial_Prices'Access);
 
-            declare
-               Consumer_Goods : constant Array_Of_Commodities :=
-                                  Get (Consumer);
-            begin
-               for Item of Consumer_Goods loop
-                  if Concorde.Scenarios.Imperial_Centre then
-                     null;
-                  else
-                     System.Market.Initial_Price
-                       (Item,
-                        Concorde.Money.Adjust_Price
-                          (Item.Base_Price, Factor => 2.0));
-                  end if;
-               end loop;
-            end;
-
-         end Choose;
+         end Choose_World;
 
          ------------------
          -- OK_For_Start --
@@ -248,6 +294,8 @@ package body Concorde.Empires.Create is
                      begin
                         if W.Category = Terrestrial then
                            Good_Starting_World := True;
+                           Start_World :=
+                             Concorde.Worlds.Db.Reference (W);
                         end if;
                      end;
                   end if;
@@ -270,11 +318,16 @@ package body Concorde.Empires.Create is
             end case;
          end OK_For_Start;
 
-         Start      : constant Concorde.Systems.Star_System_Type :=
-                        Concorde.Galaxy.Find_System
-                          (OK_For_Start'Access);
       begin
-         New_Empire.New_Agent (Start, 0, Concorde.Quantities.Zero);
+         Start_System :=
+           Concorde.Galaxy.Find_System
+             (OK_For_Start'Access);
+
+         New_Empire.New_Agent
+           (Concorde.Locations.Nowhere,
+            null,
+            Concorde.Quantities.Zero);
+
          New_Empire.Set_Cash (Concorde.Money.To_Money (1_000_000.0));
          New_Empire.Identifier :=
            Ada.Strings.Unbounded.To_Unbounded_String (Name);
@@ -282,17 +335,20 @@ package body Concorde.Empires.Create is
          New_Empire.System_Data :=
            new System_Data_Array (1 .. Galaxy.System_Count);
          New_Empire.Colour := Colour;
-         New_Empire.Capital := Start;
+         New_Empire.Capital_World := Start_World;
          New_Empire.Player := Player;
          New_Empire.Current_Systems := 1;
          New_Empire.Default_Ship := new String'(Default_Ship_Design);
-         Concorde.Galaxy.Update_System (Start, Choose'Access);
+         Concorde.Galaxy.Update_System
+           (Start_System, Choose_System'Access);
+         Concorde.Worlds.Db.Update
+           (Start_World.Reference, Choose_World'Access);
 
          if False
            and then Concorde.Scenarios.Imperial_Centre
-           and then not Concorde.Galaxy.Neighbours (1, Start.Index)
+           and then not Concorde.Galaxy.Neighbours (1, Start_System.Index)
          then
-            Concorde.Galaxy.Connect (1, Start.Index);
+            Concorde.Galaxy.Connect (1, Start_System.Index);
          end if;
 
       end Create;

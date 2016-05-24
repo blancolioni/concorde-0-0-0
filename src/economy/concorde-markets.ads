@@ -12,7 +12,9 @@ with Concorde.Commodities;
 
 package Concorde.Markets is
 
-   type Root_Market_Type is new Trades.Trade_Interface with private;
+   type Root_Market_Type is
+     new Concorde.Objects.Root_Object_Type
+     and Trades.Trade_Interface with private;
 
    overriding function Current_Price
      (Market    : Root_Market_Type;
@@ -76,7 +78,7 @@ package Concorde.Markets is
      (Market  : in out Root_Market_Type'Class;
       Manager : in out Concorde.Trades.Trade_Manager_Interface'Class);
 
-   type Market_Type is access Root_Market_Type'Class;
+   type Market_Type is access constant Root_Market_Type'Class;
 
    function Create_Market
      (Owner  : not null access constant
@@ -179,7 +181,9 @@ private
    package Cached_Commodity_Vectors is
      new Memor.Element_Vectors (Cached_Commodity, null);
 
-   type Root_Market_Type is new Trades.Trade_Interface with
+   type Root_Market_Type is
+     new Concorde.Objects.Root_Object_Type
+     and Trades.Trade_Interface with
       record
          Owner          : access constant
            Concorde.Objects.Named_Object_Interface'Class;
@@ -188,6 +192,15 @@ private
          Enable_Logging : Boolean;
          Commodities    : access Cached_Commodity_Vectors.Vector;
       end record;
+
+   overriding function Object_Database
+     (Market : Root_Market_Type)
+      return Memor.Root_Database_Type'Class;
+
+   overriding procedure Update
+     (Market : Root_Market_Type;
+      Perform_Update : not null access
+        procedure (M : in out Concorde.Trades.Trade_Interface'Class));
 
    overriding function Manager
      (Market : Root_Market_Type)

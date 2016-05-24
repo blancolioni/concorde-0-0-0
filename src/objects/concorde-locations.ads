@@ -10,9 +10,22 @@ package Concorde.Locations is
    type Location_Type is
      (Nowhere,
       Interstellar, Orbit,
-      World_Surface, On_Ship, In_Unit);
+      World_Surface, On_Ship, At_Installation, In_Unit);
 
    type Object_Location (Loc_Type : Location_Type := Nowhere) is private;
+
+   function Short_Name (Location : Object_Location) return String;
+   function Long_Name (Location : Object_Location) return String;
+
+   function Primary
+     (Location : Object_Location)
+      return Concorde.Objects.Object_Type;
+
+   function Current_System
+     (Location : Object_Location)
+      return access constant Concorde.Systems.Root_Star_System_Type'Class;
+
+   function Nowhere return Object_Location;
 
    function Interstellar_Location
      (System_1, System_2 : not null access constant
@@ -27,7 +40,32 @@ package Concorde.Locations is
       Velocity       : Newton.Vector_3)
       return Object_Location;
 
-   type Located_Interface is interface;
+   function System_Transfer_Orbit
+     (System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Object_Location;
+
+   function Geosynchronous_Orbit
+     (Primary        : not null access constant
+        Concorde.Objects.Root_Object_Type'Class)
+      return Object_Location;
+
+   function World_Surface
+     (World  : not null access constant
+        Concorde.Objects.Root_Object_Type'Class;
+      Sector : Positive)
+      return Object_Location;
+
+   function World_Sector
+     (Location : Object_Location)
+      return Positive;
+
+   function At_Installation
+     (Installation : not null access constant
+        Concorde.Objects.Root_Object_Type'Class)
+      return Object_Location;
+
+   type Located_Interface is limited interface;
 
    function Current_Location
      (Located : Located_Interface)
@@ -39,16 +77,32 @@ package Concorde.Locations is
       Location : Object_Location)
    is abstract;
 
+   function Orbiting
+     (Located : Located_Interface'Class;
+      Primary : not null access constant
+        Concorde.Objects.Root_Object_Type'Class)
+      return Boolean;
+
+   function Orbiting
+     (Located : Located_Interface'Class)
+      return access constant Concorde.Objects.Root_Object_Type'Class;
+
+   function Current_System
+     (Located : Located_Interface'Class)
+      return access constant Concorde.Systems.Root_Star_System_Type'Class
+   is (Current_System (Located.Current_Location));
+
 private
 
    type Object_Location (Loc_Type : Location_Type := Nowhere) is
       record
-         Reference : Concorde.Objects.Object_Type;
+         Reference : access constant Concorde.Objects.Root_Object_Type'Class;
          case Loc_Type is
             when Nowhere =>
                null;
             when Interstellar =>
-               Destination_System : Concorde.Objects.Object_Type;
+               Destination_System : access constant
+                 Concorde.Objects.Root_Object_Type'Class;
                Progress           : Unit_Real;
             when Orbit =>
                Angle              : Concorde.Geometry.Radians;
@@ -58,6 +112,8 @@ private
                Clockwise          : Boolean;
             when World_Surface =>
                Sector             : Positive;
+            when At_Installation =>
+               null;
             when On_Ship =>
                Module             : Positive;
             when In_Unit =>

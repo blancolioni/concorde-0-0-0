@@ -22,9 +22,10 @@ package body Concorde.Galaxy.Ships is
    is
       use type Concorde.Systems.Star_System_Type;
    begin
-      return Destination = Ship.System
-        or else Neighbours (Ship.System, Destination)
-        or else Ship.Owner.Next_Path_Node_Index (Ship.System, Destination) > 0;
+      return Destination = Ship.Current_System
+        or else Neighbours (Ship.Current_System, Destination)
+        or else Ship.Owner.Next_Path_Node_Index
+          (Ship.Current_System, Destination) > 0;
    end Can_Move_To;
 
    -----------------------
@@ -80,8 +81,8 @@ package body Concorde.Galaxy.Ships is
 
       Next_Index : constant Natural :=
                      Ship.Owner.Next_Path_Node_Index
-                       (Ship.System, Ship.Destination);
-      From : constant Star_System_Type := Ship.System;
+                       (Ship.Current_System, Ship.Destination.System);
+      From : constant Star_System_Type := Ship.Current_System;
       To         : constant Star_System_Type :=
                      (if Next_Index = 0
                       then null
@@ -93,7 +94,7 @@ package body Concorde.Galaxy.Ships is
            (Ship.Owner,
             Ship.Short_Description &
             ": movement canceled because path from "
-            & Ship.System.Name
+            & Ship.Current_System.Name
             & " to "
             & Ship.Destination.Name
             & " is blocked");

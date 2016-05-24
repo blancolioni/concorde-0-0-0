@@ -11,8 +11,7 @@ package body Concorde.Installations is
    ----------------------
 
    overriding procedure Add_Trade_Offers
-     (Item   : not null access constant Root_Installation_Type;
-      Market : in out Concorde.Trades.Trade_Interface'Class)
+     (Item   : not null access constant Root_Installation_Type)
    is
       use Concorde.Quantities;
 
@@ -29,8 +28,8 @@ package body Concorde.Installations is
       procedure Add_Hub_Trade_Offer
         (Commodity : Concorde.Commodities.Commodity_Type)
       is
-         Demand : constant Quantity := Market.Current_Demand (Commodity);
-         Supply : constant Quantity := Market.Current_Supply (Commodity);
+         Demand : constant Quantity := Item.Market.Current_Demand (Commodity);
+         Supply : constant Quantity := Item.Market.Current_Supply (Commodity);
       begin
          if not Commodity.Is_Set (Concorde.Commodities.Virtual) then
             if Demand > Supply then
@@ -41,7 +40,7 @@ package body Concorde.Installations is
                begin
                   if Sell_Quantity > Zero then
                      Item.Create_Sell_Offer
-                       (Market, Commodity, Sell_Quantity, Concorde.Money.Zero);
+                       (Commodity, Sell_Quantity, Concorde.Money.Zero);
                   end if;
                end;
             elsif Supply > Demand then
@@ -51,7 +50,7 @@ package body Concorde.Installations is
                                    + Supply - Demand;
                begin
                   Item.Create_Buy_Offer
-                    (Market, Commodity, Buy_Quantity, Buy_Quantity);
+                    (Commodity, Buy_Quantity, Buy_Quantity);
                end;
             end if;
          end if;
@@ -66,7 +65,7 @@ package body Concorde.Installations is
       is
       begin
          Item.Create_Sell_Offer
-           (Market, Commodity, Item.Get_Quantity (Commodity),
+           (Commodity, Item.Get_Quantity (Commodity),
             Concorde.Money.Zero);
       end Add_Sell_Offer;
 
@@ -81,7 +80,7 @@ package body Concorde.Installations is
                           * Item.Facility.Capacity_Quantity;
          begin
             Item.Create_Buy_Offer
-              (Market, Commodity, Required, Required);
+              (Commodity, Required, Required);
          end;
       end loop;
 
@@ -93,7 +92,7 @@ package body Concorde.Installations is
                           Item.Facility.Worker_Quantity (I);
          begin
             Item.Create_Buy_Offer
-              (Market, Commodity, Required, Required);
+              (Commodity, Required, Required);
          end;
       end loop;
 
@@ -104,7 +103,7 @@ package body Concorde.Installations is
            and then Item.Get_Quantity (Item.Facility.Output) > Zero
          then
             Item.Create_Sell_Offer
-              (Market, Item.Facility.Output,
+              (Item.Facility.Output,
                Item.Get_Quantity (Item.Facility.Output),
                Concorde.Money.Zero);
          elsif Item.Facility.Is_Resource_Generator then
@@ -176,5 +175,17 @@ package body Concorde.Installations is
    begin
       return Installation.Owner;
    end Owner;
+
+   ------------------
+   -- Set_Location --
+   ------------------
+
+   overriding procedure Set_Location
+     (Installation : in out Root_Installation_Type;
+      Location     : Concorde.Locations.Object_Location)
+   is
+   begin
+      Installation.Location := Location;
+   end Set_Location;
 
 end Concorde.Installations;

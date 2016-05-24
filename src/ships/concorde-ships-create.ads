@@ -4,7 +4,7 @@ package Concorde.Ships.Create is
      (Owner  : not null access constant
         Concorde.Empires.Root_Empire_Type'Class;
       Name   : String;
-      System : in out Concorde.Systems.Root_Star_System_Type'Class;
+      World  : in out Concorde.Worlds.Root_World_Type'Class;
       Design : String)
       return Ship_Type;
 

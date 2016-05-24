@@ -1,6 +1,6 @@
 with Ada.Text_IO;
 
-with WL.Random;
+--  with WL.Random;
 
 with Concorde.Random;
 with Concorde.Scenarios;
@@ -42,9 +42,9 @@ package body Concorde.Systems.Create is
    is
       use Concorde.Commodities;
 
-      Resources : constant Concorde.Commodities.Array_Of_Commodities :=
-                    Concorde.Commodities.Get
-                      (Concorde.Commodities.Organic);
+--        Resources : constant Concorde.Commodities.Array_Of_Commodities :=
+--                      Concorde.Commodities.Get
+--                        (Concorde.Commodities.Organic);
 
       Imperial_Centre : constant Boolean :=
                           Concorde.Scenarios.Imperial_Centre
@@ -57,10 +57,10 @@ package body Concorde.Systems.Create is
       ------------
 
       procedure Create (System : in out Root_Star_System_Type'Class) is
-         Resource : constant Concorde.Commodities.Commodity_Type :=
-                      Resources
-                        (WL.Random.Random_Number
-                           (Resources'First, Resources'Last));
+--           Resource : constant Concorde.Commodities.Commodity_Type :=
+--                        Resources
+--                          (WL.Random.Random_Number
+--                             (Resources'First, Resources'Last));
       begin
          System.Set_Name (Name);
          System.Index := Index;
@@ -85,35 +85,36 @@ package body Concorde.Systems.Create is
             Ada.Text_IO.Put ("Star: " & Main_Star.Name);
          end;
 
-         declare
-            Deposit_Size : constant Concorde.Quantities.Quantity :=
-                             Concorde.Quantities.Around
-                               (Concorde.Quantities.To_Quantity
-                                  ((if Imperial_Centre
-                                   then 1.0e2 else 1.0E6)));
-            Accessibility : constant Unit_Real :=
-                              (if Imperial_Centre
-                               then Concorde.Random.Unit_Random / 10.0
-                               else Concorde.Random.Unit_Random / 2.0 + 0.3);
-            Concentration : constant Unit_Real :=
-                              (if Imperial_Centre
-                               then Concorde.Random.Unit_Random / 10.0
-                               else Concorde.Random.Unit_Random / 2.0 + 0.3);
-         begin
-            System.Deposit :=
-              (Resource      => Resource,
-               Accessibility => Accessibility,
-               Concentration => Concentration,
-               Size          => Deposit_Size,
-               Original_Size => Deposit_Size);
-         end;
+--           declare
+--              Deposit_Size : constant Concorde.Quantities.Quantity :=
+--                               Concorde.Quantities.Around
+--                                 (Concorde.Quantities.To_Quantity
+--                                    ((if Imperial_Centre
+--                                     then 1.0e2 else 1.0E6)));
+--              Accessibility : constant Unit_Real :=
+--                                (if Imperial_Centre
+--                                 then Concorde.Random.Unit_Random / 10.0
+--                           else Concorde.Random.Unit_Random / 2.0 + 0.3);
+--              Concentration : constant Unit_Real :=
+--                                (if Imperial_Centre
+--                                 then Concorde.Random.Unit_Random / 10.0
+--                             else Concorde.Random.Unit_Random / 2.0 + 0.3);
+--           begin
+--              System.Deposit :=
+--                (Resource      => Resource,
+--                 Accessibility => Accessibility,
+--                 Concentration => Concentration,
+--                 Size          => Deposit_Size,
+--                 Original_Size => Deposit_Size);
+--           end;
 
          declare
             List   : Concorde.Worlds.Lists.List;
          begin
 
             Concorde.Worlds.Create.Create_Worlds
-              (Concorde.Stars.Star_Type (System.Main_Object),
+              (Concorde.Systems.Db.Reference (System),
+               Concorde.Stars.Star_Type (System.Main_Object),
                List);
 
             for World of List loop

@@ -26,7 +26,6 @@ with Concorde.Updates;
 
 with Concorde.Options;
 
-with Concorde.Money;
 with Concorde.Trades;
 
 package body Concorde.Galaxy.Model is
@@ -55,7 +54,7 @@ package body Concorde.Galaxy.Model is
       Col   : Positive)
       return String;
 
-   System_Column_Count : constant := 6;
+   System_Column_Count : constant := 2;
 
    subtype System_Column is Integer range 1 .. System_Column_Count;
 
@@ -83,11 +82,11 @@ package body Concorde.Galaxy.Model is
       return String
    is ((case System_Column (Col) is
            when 1 => "System",
-           when 2 => "Owner",
-           when 3 => "Tax Income",
-           when 4 => "HQ cash",
-           when 5 => "Payments",
-           when 6 => "Balance"));
+           when 2 => "Owner"));
+--             when 3 => "Tax Income",
+--             when 4 => "HQ cash",
+--             when 5 => "Payments",
+--             when 6 => "Balance"));
 
    overriding function Cell_Text
      (Table : System_Table;
@@ -284,18 +283,18 @@ package body Concorde.Galaxy.Model is
             return System.Name;
          when 2 =>
             return System.Owner.Name;
-         when 3 =>
-            return Concorde.Money.Image
-              (System.Government.Tax_Receipts
-                 (Concorde.Trades.Sales));
-         when 4 =>
-            return Concorde.Money.Image
-              (System.Government.Headquarters.Cash);
-         when 5 =>
-            return "";
-         when 6 =>
-            return Concorde.Money.Image
-              (System.Government.Cash);
+--           when 3 =>
+--              return Concorde.Money.Image
+--                (System.Government.Tax_Receipts
+--                   (Concorde.Trades.Sales));
+--           when 4 =>
+--              return Concorde.Money.Image
+--                (System.Government.Headquarters.Cash);
+--           when 5 =>
+--              return "";
+--           when 6 =>
+--              return Concorde.Money.Image
+--                (System.Government.Cash);
       end case;
    end Cell_Text;
 
@@ -469,7 +468,9 @@ package body Concorde.Galaxy.Model is
             is
                Power : constant Non_Negative_Real :=
                          Concorde.Empires.History.Get_Metric
-                           (Date, Concorde.Empires.History.Capacity, Empire);
+                           (Date,
+                            Concorde.Empires.History.Controlled_Systems,
+                            Empire);
             begin
                Xs.Replace_Element
                  (Empire.Reference, Power);
@@ -565,6 +566,7 @@ package body Concorde.Galaxy.Model is
             B_Table : Battle_Table;
             S_Table : System_Table;
             E, S, B : Lui.Tables.Model_Table;
+            pragma Unreferenced (S);
 
             procedure Watch_System
               (System : in out Concorde.Systems.Root_Star_System_Type'Class);
@@ -592,24 +594,24 @@ package body Concorde.Galaxy.Model is
                Num_Rows => Concorde.Empires.Db.Active_Count,
                Num_Cols => System_Column_Count);
 
-            declare
-               procedure Add_Capital
-                 (Empire : Concorde.Empires.Empire_Type);
-
-               -----------------
-               -- Add_Capital --
-               -----------------
-
-               procedure Add_Capital
-                 (Empire : Concorde.Empires.Empire_Type)
-               is
-               begin
-                  S_Table.Rows.Append (Empire.Capital);
-               end Add_Capital;
-
-            begin
-               Concorde.Empires.Db.Scan (Add_Capital'Access);
-            end;
+--              declare
+--                 procedure Add_Capital
+--                   (Empire : Concorde.Empires.Empire_Type);
+--
+--                 -----------------
+--                 -- Add_Capital --
+--                 -----------------
+--
+--                 procedure Add_Capital
+--                   (Empire : Concorde.Empires.Empire_Type)
+--                 is
+--                 begin
+--                    S_Table.Rows.Append (Empire.Capital);
+--                 end Add_Capital;
+--
+--              begin
+--                 Concorde.Empires.Db.Scan (Add_Capital'Access);
+--              end;
 
             S := new System_Table'(S_Table);
 
@@ -621,7 +623,7 @@ package body Concorde.Galaxy.Model is
             Result.Initialise
               ("Galaxy",
                Last_Render_Layer => 3,
-               Tables            => (E, S, B));
+               Tables            => (E, B));
 
             Result.Set_Eye_Position (0.0, 0.0, 2.2);
             Result.Show_Capital_Names :=
@@ -809,7 +811,7 @@ package body Concorde.Galaxy.Model is
                      end if;
 
                      declare
-                        Radius : Positive := 8;
+                        --  Radius : Positive := 8;
 
                         procedure Draw_Claims
                           (Empire : Concorde.Empires.Root_Empire_Type'Class);
@@ -820,22 +822,22 @@ package body Concorde.Galaxy.Model is
 
                         procedure Draw_Claims
                           (Empire : Concorde.Empires.Root_Empire_Type'Class)
-                        is
-                           use Concorde.Empires;
-                        begin
-                           if Empire.Is_Set (System, Claim)
-                             and then not Empire.Owned_System (System)
-                           then
-                              Renderer.Draw_Circle
-                                (X          => Screen_X,
-                                 Y          => Screen_Y,
-                                 Radius     => Radius,
-                                 Colour     => Empire.Colour,
-                                 Filled     => False,
-                                 Line_Width => 1);
-                              Radius := Radius + 2;
-                           end if;
-                        end Draw_Claims;
+                        is null;
+--                             use Concorde.Empires;
+--                          begin
+--                           if Empire.Is_Set (System, Claim) then
+--                               and then not Empire.Owned_System (System)
+--                             then
+--                                Renderer.Draw_Circle
+--                                  (X          => Screen_X,
+--                                   Y          => Screen_Y,
+--                                   Radius     => Radius,
+--                                   Colour     => Empire.Colour,
+--                                   Filled     => False,
+--                                   Line_Width => 1);
+--                                Radius := Radius + 2;
+--                             end if;
+--                          end Draw_Claims;
 
                      begin
                         Concorde.Empires.Db.Scan (Draw_Claims'Access);

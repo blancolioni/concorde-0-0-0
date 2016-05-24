@@ -5,10 +5,13 @@ with Concorde.Trades;
 
 with Concorde.Facilities;
 
+with Concorde.Locations;
+
 package Concorde.Installations is
 
    type Root_Installation_Type is
      new Concorde.Agents.Root_Agent_Type
+     and Concorde.Locations.Located_Interface
    with private;
 
    function Is_Colony_Hub
@@ -28,10 +31,12 @@ package Concorde.Installations is
 private
 
    type Root_Installation_Type is
-     new Concorde.Agents.Root_Agent_Type with
+     new Concorde.Agents.Root_Agent_Type
+     and Concorde.Locations.Located_Interface with
       record
          Facility : Concorde.Facilities.Facility_Type;
          Owner    : access constant Concorde.Agents.Root_Agent_Type'Class;
+         Location : Concorde.Locations.Object_Location;
       end record;
 
    overriding function Short_Name
@@ -45,7 +50,15 @@ private
       return Memor.Root_Database_Type'Class;
 
    overriding procedure Add_Trade_Offers
-     (Item   : not null access constant Root_Installation_Type;
-      Market : in out Concorde.Trades.Trade_Interface'Class);
+     (Item   : not null access constant Root_Installation_Type);
+
+   overriding function Current_Location
+     (Installation : Root_Installation_Type)
+      return Concorde.Locations.Object_Location
+   is (Installation.Location);
+
+   overriding procedure Set_Location
+     (Installation : in out Root_Installation_Type;
+      Location     : Concorde.Locations.Object_Location);
 
 end Concorde.Installations;
