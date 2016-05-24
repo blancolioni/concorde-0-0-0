@@ -7,7 +7,7 @@ imperium = {
 musitello = {
    name = Musitello
    capital = Aramael
-   colour = { 30 144 255 }
+   colour = { 106 90 205 }
 }
 
 atreides = {
