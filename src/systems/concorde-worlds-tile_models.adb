@@ -196,6 +196,8 @@ package body Concorde.Worlds.Tile_Models is
          Pops  : Concorde.People.Pops.Lists.List;
       end record;
 
+   type Pop_Table_Access is access all Pop_Table'Class;
+
    overriding function Heading_Column_Text
      (Table : Pop_Table;
       Col   : Positive)
@@ -224,6 +226,9 @@ package body Concorde.Worlds.Tile_Models is
          World : World_Type;
          Installations : Concorde.Installations.Lists.List;
       end record;
+
+   type Installation_Table_Access is
+     access all Installation_Table'Class;
 
    overriding function Heading_Column_Text
      (Table : Installation_Table;
@@ -320,6 +325,8 @@ package body Concorde.Worlds.Tile_Models is
          Rotation          : Real    := 0.0;
          Rotate_Speed      : Real    := 0.0;   --  degrees per second
          Last_Update       : Ada.Calendar.Time;
+         Pops              : access Pop_Table;
+         Installations     : access Installation_Table;
       end record;
 
    overriding function Handle_Update
@@ -804,11 +811,17 @@ package body Concorde.Worlds.Tile_Models is
                               Model.World.Sectors (I).Feature;
             Terrain       : constant Concorde.Terrain.Terrain_Type :=
                               Model.World.Sectors (I).Terrain;
-
+            Owner : constant access constant
+              Concorde.Empires.Root_Empire_Type'Class :=
+                (if not Model.World.Sectors (I).Installations.Is_Empty
+                 then Model.World.Owner
+                 else null);
             Colour     : constant Lui.Colours.Colour_Type :=
                            (case Current_Map_Mode is
                                when Height_Mode      =>
-                              (if Feature /= null
+                              (if Owner /= null
+                               then Owner.Colour
+                               elsif Feature /= null
                                then Feature.Colour
                                elsif Terrain /= null
                                then Terrain.Colour
@@ -890,13 +903,14 @@ package body Concorde.Worlds.Tile_Models is
    begin
       if Object_Id = 0 then
          null;
-      elsif Object_Id = Natural (Model.Selected_Sector) then
-         Model.Selected_Sector := 0;
-         Model.Sector_Properties.Selected := False;
       else
          Model.Selected_Sector :=
            Concorde.Surfaces.Surface_Tile_Index (Object_Id);
          Model.Sector_Properties.Tile := Model.Selected_Sector;
+         Model.Pops.Pops :=
+           Model.World.Sectors (Model.Selected_Sector).Pops;
+         Model.Installations.Installations :=
+           Model.World.Sectors (Model.Selected_Sector).Installations;
          Model.Sector_Properties.Selected := True;
          Model.Needs_Render := True;
       end if;
@@ -924,10 +938,9 @@ package body Concorde.Worlds.Tile_Models is
 
             M_Table : Market_Table;
             M       : Lui.Tables.Model_Table;
-            P_Table : Pop_Table;
-            P       : Lui.Tables.Model_Table;
-            I_Table : Installation_Table;
-            I       : Lui.Tables.Model_Table;
+            P_Table : constant Pop_Table_Access := new Pop_Table;
+            I_Table : constant Installation_Table_Access :=
+                        new Installation_Table;
             S_Table : Ship_Table;
             S       : Lui.Tables.Model_Table;
 
@@ -958,11 +971,9 @@ package body Concorde.Worlds.Tile_Models is
 
             P_Table.World := World;
             P_Table.Initialise ("Population", 0, Pop_Column'Last);
-            P := new Pop_Table'(P_Table);
 
             I_Table.World := World;
             I_Table.Initialise ("Installations", 0, Installation_Column'Last);
-            I := new Installation_Table'(I_Table);
 
             S_Table.World := World;
             S_Table.Initialise ("Ships", 0, Ship_Column'Last);
@@ -980,8 +991,11 @@ package body Concorde.Worlds.Tile_Models is
               (World.Name,
                Tables =>
                  (Lui.Tables.Model_Table (Result.Sector_Properties),
-                  M, P, I, S));
+                  M, Lui.Tables.Model_Table (P_Table),
+                  Lui.Tables.Model_Table (I_Table), S));
 
+            Result.Pops := P_Table;
+            Result.Installations := I_Table;
             Result.World := World;
             Result.Selected_Sector := 0;
             Result.Last_Update := Ada.Calendar.Clock;
