@@ -11,7 +11,6 @@ package Concorde.Installations is
 
    type Root_Installation_Type is
      new Concorde.Agents.Root_Agent_Type
-     and Concorde.Locations.Located_Interface
    with private;
 
    function Is_Colony_Hub
@@ -36,7 +35,6 @@ private
       record
          Facility : Concorde.Facilities.Facility_Type;
          Owner    : access constant Concorde.Agents.Root_Agent_Type'Class;
-         Location : Concorde.Locations.Object_Location;
       end record;
 
    overriding function Short_Name
@@ -51,14 +49,5 @@ private
 
    overriding procedure Add_Trade_Offers
      (Item   : not null access constant Root_Installation_Type);
-
-   overriding function Current_Location
-     (Installation : Root_Installation_Type)
-      return Concorde.Locations.Object_Location
-   is (Installation.Location);
-
-   overriding procedure Set_Location
-     (Installation : in out Root_Installation_Type;
-      Location     : Concorde.Locations.Object_Location);
 
 end Concorde.Installations;

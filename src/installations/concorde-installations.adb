@@ -176,16 +176,4 @@ package body Concorde.Installations is
       return Installation.Owner;
    end Owner;
 
-   ------------------
-   -- Set_Location --
-   ------------------
-
-   overriding procedure Set_Location
-     (Installation : in out Root_Installation_Type;
-      Location     : Concorde.Locations.Object_Location)
-   is
-   begin
-      Installation.Location := Location;
-   end Set_Location;
-
 end Concorde.Installations;
