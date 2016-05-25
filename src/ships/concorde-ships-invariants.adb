@@ -20,7 +20,7 @@ package body Concorde.Ships.Invariants is
       begin
          pragma Assert
            (not Ship.Has_Destination
-            or else Ship.Orbiting (Ship.Destination),
+            or else not Ship.Orbiting (Ship.Destination),
             Ship.Short_Description
             & " has current system as destination");
       end Check;
