@@ -336,6 +336,13 @@ package body Concorde.Empires.Create is
            new System_Data_Array (1 .. Galaxy.System_Count);
          New_Empire.Colour := Colour;
          New_Empire.Capital_World := Start_World;
+
+         if Concorde.Scenarios.Imperial_Centre
+           and then Start_System.Index = 1
+         then
+            Galaxy.Set_Capital_World (Start_World);
+         end if;
+
          New_Empire.Player := Player;
          New_Empire.Current_Systems := 1;
          New_Empire.Default_Ship := new String'(Default_Ship_Design);
