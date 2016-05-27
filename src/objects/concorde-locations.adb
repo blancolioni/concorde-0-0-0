@@ -40,7 +40,8 @@ package body Concorde.Locations is
          when Interstellar =>
             return null;
          when Orbit | World_Surface =>
-            return Concorde.Worlds.World_Type (Location.Reference).System;
+            return Concorde.Systems.Star_System_Object_Interface'Class
+              (Location.Reference.all).System;
          when On_Ship =>
             return Current_System
               (Concorde.Ships.Ship_Type (Location.Reference).Current_Location);
