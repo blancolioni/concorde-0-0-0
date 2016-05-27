@@ -1080,6 +1080,7 @@ package body Concorde.Worlds.Create is
            Resources (WL.Random.Random_Number (1, Resources'Last));
          Probability (I) := Local_Res'Last - I + 1;
          Max_Prob := Max_Prob + Probability (I);
+         World.Resources.Append (Local_Res (I));
       end loop;
 
       for Sector of World.Sectors.all loop
