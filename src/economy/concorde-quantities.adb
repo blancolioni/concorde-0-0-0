@@ -64,7 +64,7 @@ package body Concorde.Quantities is
 
    function Scale
      (X      : Quantity;
-      Factor : Unit_Real)
+      Factor : Real)
       return Quantity
    is
    begin
