@@ -10,6 +10,7 @@ with Concorde.Empires.Logging;
 with Concorde.Ships.Db;
 with Concorde.Ships.Designs;
 
+with Concorde.Systems.Db;
 with Concorde.Worlds.Db;
 
 with Concorde.Money;
@@ -41,6 +42,22 @@ package body Concorde.Ships.Create is
         (Ship : in out Root_Ship_Type'Class)
       is
          use Concorde.Quantities;
+
+         procedure Update_System
+           (System : in out Concorde.Systems.Root_Star_System_Type'Class);
+
+         -------------------
+         -- Update_System --
+         -------------------
+
+         procedure Update_System
+           (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+         is
+         begin
+            System.Add_Ship
+              (Concorde.Ships.Db.Reference (Ship));
+         end Update_System;
+
       begin
          Concorde.Ships.Designs.Create_Ship_From_Design
            (Design, Ship);
@@ -49,6 +66,7 @@ package body Concorde.Ships.Create is
               (Concorde.Worlds.Db.Reference (World)),
             World.Market,
             To_Quantity (Ship.Hold_Size));
+
          if Name = "" then
             if Owner.Current_Ships = 0 then
                Ship.Set_Name (Owner.Name);
@@ -95,6 +113,9 @@ package body Concorde.Ships.Create is
          begin
             Concorde.Empires.Db.Update (Owner.Reference, Set_New_Ship'Access);
          end;
+
+         Concorde.Systems.Db.Update
+           (World.System.Reference, Update_System'Access);
 
          Concorde.Empires.Logging.Log
            (Owner, World.Name & ": new ship: " & Ship.Name);
