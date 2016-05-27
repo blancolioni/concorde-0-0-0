@@ -1,5 +1,7 @@
 with Ada.Text_IO;
 
+with WL.Random;
+
 with Tropos.Reader;
 
 with Memor.Element_Vectors;
@@ -89,6 +91,10 @@ package body Concorde.Colonies.Configure is
       Used_Tiles       : Concorde.Maps.List_Of_Tiles.List;
       Current_Position : Concorde.Maps.List_Of_Tiles.Cursor;
       Capital_Tile     : Concorde.Surfaces.Surface_Tile_Index;
+
+      Organics : constant Concorde.Commodities.Array_Of_Commodities :=
+                   Concorde.Commodities.Get
+                     (Concorde.Commodities.Organic);
 
       function Current_Tile return Concorde.Surfaces.Surface_Tile_Index;
       procedure Next_Tile;
@@ -627,12 +633,25 @@ package body Concorde.Colonies.Configure is
       begin
          for I in 1 .. Install_Config.Get ("resource_generator", 0) loop
             declare
-               Tile : constant Concorde.Surfaces.Surface_Tile_Index :=
-                        Current_Tile;
-               Facility : constant Concorde.Facilities.Facility_Type :=
-                            Concorde.Facilities.Resource_Generator
-                              (World.Sector_Resource (Tile));
+               Tile          : constant Concorde.Surfaces.Surface_Tile_Index :=
+                                 Current_Tile;
+               Resource      : Concorde.Commodities.Commodity_Type;
+               Accessibility : Unit_Real;
+               Concentration : Unit_Real;
+               Facility      : Concorde.Facilities.Facility_Type;
             begin
+               World.Get_Sector_Resource
+                 (Tile, Resource, Concentration, Accessibility);
+               if Concentration + Accessibility > 0.8 then
+                  Facility :=
+                    Concorde.Facilities.Resource_Generator
+                      (World.Sector_Resource (Tile));
+               else
+                  Facility :=
+                    Concorde.Facilities.Resource_Generator
+                      (Organics (WL.Random.Random_Number (1, Organics'Last)));
+               end if;
+
                Create_Installation
                  (Facility, Tile);
                Ada.Text_IO.Put_Line
