@@ -459,16 +459,4 @@ package body Concorde.Worlds is
       World.Owner := Concorde.Empires.Empire_Type (Empire);
    end Set_Owner;
 
-   ------------
-   -- System --
-   ------------
-
-   function System
-     (World : Root_World_Type'Class)
-      return Concorde.Systems.Star_System_Type
-   is
-   begin
-      return World.System;
-   end System;
-
 end Concorde.Worlds;

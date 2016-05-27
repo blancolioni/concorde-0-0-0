@@ -45,10 +45,6 @@ package Concorde.Worlds is
      and Concorde.Maps.Tile_Layout_Interface
    with private;
 
-   function System
-     (World : Root_World_Type'Class)
-      return Concorde.Systems.Star_System_Type;
-
    function Day_Length
      (World : Root_World_Type'Class)
       return Non_Negative_Real;
@@ -367,5 +363,10 @@ private
      (World      : in out Root_World_Type;
       Tile_Index : Positive;
       Height     : Positive);
+
+   overriding function System
+     (World : Root_World_Type)
+      return access constant Concorde.Systems.Root_Star_System_Type'Class
+   is (World.System);
 
 end Concorde.Worlds;

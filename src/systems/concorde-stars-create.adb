@@ -11,6 +11,7 @@ package body Concorde.Stars.Create is
 
    function New_Main_Sequence_Star
      (Name         : String;
+      System       : Concorde.Systems.Star_System_Type;
       Solar_Masses : Non_Negative_Real)
       return Star_Type
    is
@@ -30,6 +31,7 @@ package body Concorde.Stars.Create is
       procedure Create (Star : in out Root_Star_Type'Class) is
       begin
          Star.Set_Name (Name);
+         Star.System := System;
          Star.Solar_Masses := Solar_Masses;
          Star.Class := Class;
          Star.Subclass := Subclass;

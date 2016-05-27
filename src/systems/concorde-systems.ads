@@ -45,16 +45,14 @@ package Concorde.Systems is
    function Period (Object : Star_System_Object_Interface'Class)
                     return Non_Negative_Real;
 
-   type Main_Star_System_Object_Interface is limited interface
-     and Star_System_Object_Interface;
-
-   function Colour (Object : Main_Star_System_Object_Interface)
-                    return Lui.Colours.Colour_Type
-                    is abstract;
-
    type Root_Star_System_Type is
      new Concorde.Objects.Root_User_Named_Object_Type
    with private;
+
+   function System
+     (Object : Star_System_Object_Interface)
+      return access constant Root_Star_System_Type'Class
+      is abstract;
 
    function Index (System : Root_Star_System_Type'Class) return Positive;
    function X (System : Root_Star_System_Type'Class) return Real;
@@ -64,6 +62,13 @@ package Concorde.Systems is
      (System   : in out Root_Star_System_Type'Class;
       Object   : not null access Star_System_Object_Interface'Class;
       Position : Concorde.Geometry.Radians);
+
+   type Main_Star_System_Object_Interface is limited interface
+     and Star_System_Object_Interface;
+
+   function Colour (Object : Main_Star_System_Object_Interface)
+                    return Lui.Colours.Colour_Type
+                    is abstract;
 
    function Main_Object
      (System : Root_Star_System_Type'Class)

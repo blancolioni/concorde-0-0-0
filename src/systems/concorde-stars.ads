@@ -56,6 +56,7 @@ private
      new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Systems.Main_Star_System_Object_Interface with
       record
+         System       : Concorde.Systems.Star_System_Type;
          Class        : Stellar_Class_Type;
          Subclass     : Stellar_Subclass_Type;
          Size         : Stellar_Size_Type;
@@ -93,5 +94,10 @@ private
      (Star : Root_Star_Type)
       return Unit_Real
    is (0.0);
+
+   overriding function System
+     (Star : Root_Star_Type)
+      return access constant Concorde.Systems.Root_Star_System_Type'Class
+   is (Star.System);
 
 end Concorde.Stars;
