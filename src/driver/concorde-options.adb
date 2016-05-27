@@ -134,6 +134,15 @@ package body Concorde.Options is
       return Boolean_Value ("empire-logging", 'E');
    end Enable_Empire_Logging;
 
+   ---------------------------
+   -- Enable_Market_Logging --
+   ---------------------------
+
+   function Enable_Market_Logging return Boolean is
+   begin
+      return Boolean_Value ("market-logging");
+   end Enable_Market_Logging;
+
    -------------------
    -- Integer_Value --
    -------------------

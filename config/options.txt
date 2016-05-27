@@ -2,16 +2,17 @@ scenario = fading-suns
 
 randomise = no
 
-empire_count = 99
-system_count = 40
+empire_count = 3
+system_count = 20
 
 average_connections = 4
 detailed_battle_logging = no
 empire_logging = yes
+market_logging = yes
 minimum_battle_size = 6
 
 console = no
-update_count = 500
+update_count = 20
 
 show_capital_names = yes
 show_system_names = no
