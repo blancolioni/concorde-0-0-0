@@ -329,9 +329,9 @@ refinery = { class = Resource_Generator
 mine = { class = Resource_Generator
          name = Mine
          power = 5
-         workers = { tech = 1 unskilled = 19 }
+         workers = { tech = 1 unskilled = 2 }
          modules = { industrial = 6 habitation = 4 }
-         capacity = 100000
+         capacity = 10000
          mineral = true
          fissile = true
        }
