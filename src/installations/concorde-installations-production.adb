@@ -151,14 +151,14 @@ package body Concorde.Installations.Production is
                   Resource : Concorde.Commodities.Commodity_Type;
                   Concentration : Unit_Real;
                   Accessibility : Unit_Real;
-                  Factor        : Unit_Real;
+                  Factor        : Non_Negative_Real;
                begin
                   Concorde.Worlds.Get_Sector_Resource
                     (Installation.Current_Location,
                      Resource, Concentration, Accessibility);
 
                   Factor :=
-                    (Accessibility + Concentration) / 20.0;
+                    (Accessibility + Concentration);
                   Effective_Capacity :=
                     Scale (Effective_Capacity, Factor);
 
