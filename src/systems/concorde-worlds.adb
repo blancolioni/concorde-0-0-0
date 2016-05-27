@@ -3,6 +3,7 @@ with Concorde.Government.Db;
 with Concorde.Markets.Db;
 with Concorde.Worlds.Db;
 with Concorde.Money;
+with Concorde.Options;
 
 package body Concorde.Worlds is
 
@@ -421,7 +422,7 @@ package body Concorde.Worlds is
         Concorde.Markets.Create_Market
           (Concorde.Worlds.Db.Reference (World.Reference),
            World.Government,
-           Enable_Logging => False);
+           Enable_Logging => Concorde.Options.Enable_Market_Logging);
       Concorde.Government.Db.Update
         (Government.Reference, Set_Market'Access);
       Concorde.Markets.Db.Update
