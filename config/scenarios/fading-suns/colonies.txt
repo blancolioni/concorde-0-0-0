@@ -2,7 +2,7 @@ initial = {
    pops = {
    }
    installations = {
-      resource_generator = 10
+      resource_generator = 20
    }
 }
 
