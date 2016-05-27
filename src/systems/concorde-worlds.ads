@@ -161,6 +161,13 @@ package Concorde.Worlds is
       Concentration : out Unit_Real;
       Accessibility : out Unit_Real);
 
+   procedure Get_Sector_Resource
+     (World         : Root_World_Type'Class;
+      Sector        : Concorde.Surfaces.Surface_Tile_Index;
+      Resource      : out Concorde.Commodities.Commodity_Type;
+      Concentration : out Unit_Real;
+      Accessibility : out Unit_Real);
+
    --     function Resource
 --       (System : Root_Star_System_Type'Class)
 --        return Concorde.Commodities.Commodity_Type;

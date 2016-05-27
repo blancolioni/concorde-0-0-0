@@ -81,11 +81,26 @@ package body Concorde.Worlds is
    is
       World : constant World_Type :=
                 World_Type (Concorde.Locations.Primary (Location));
-      Tile : constant Concorde.Surfaces.Surface_Tile_Index :=
-               Concorde.Surfaces.Surface_Tile_Index
-                 (Concorde.Locations.World_Sector (Location));
+      Tile  : constant Concorde.Surfaces.Surface_Tile_Index :=
+                Concorde.Surfaces.Surface_Tile_Index
+                  (Concorde.Locations.World_Sector (Location));
+   begin
+      World.Get_Sector_Resource (Tile, Resource, Concentration, Accessibility);
+   end Get_Sector_Resource;
+
+   -------------------------
+   -- Get_Sector_Resource --
+   -------------------------
+
+   procedure Get_Sector_Resource
+     (World         : Root_World_Type'Class;
+      Sector        : Concorde.Surfaces.Surface_Tile_Index;
+      Resource      : out Concorde.Commodities.Commodity_Type;
+      Concentration : out Unit_Real;
+      Accessibility : out Unit_Real)
+   is
       Deposit : Deposit_Record renames
-                  World.Sectors (Tile).Deposit;
+                  World.Sectors (Sector).Deposit;
    begin
       Resource := Deposit.Resource;
       Concentration := Deposit.Concentration;
