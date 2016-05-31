@@ -67,13 +67,24 @@ package body Concorde.Empires.Create is
                       Commodities.Get (Commodities.Consumer);
          Resources : constant Commodities.Array_Of_Commodities :=
                        World.Resources;
+         Organics  : constant Commodities.Array_Of_Commodities :=
+                       Concorde.Commodities.Get
+                         (Concorde.Commodities.Organic);
       begin
          for Item of Consumer loop
             Ship.Add_Sell_Order (Start, Item);
          end loop;
 
+         for Item of Organics loop
+            Ship.Add_Buy_Order (Start, Item);
+         end loop;
+
          for R of Resources loop
             Ship.Add_Buy_Order (Start, R);
+         end loop;
+
+         for Item of Organics loop
+            Ship.Add_Sell_Order (Capital, Item);
          end loop;
 
          for R of Resources loop
