@@ -152,6 +152,7 @@ package body Concorde.Systems is
                   Ship.Set_Location
                     (Concorde.Locations.Geosynchronous_Orbit
                        (Ship.Destination));
+                  Ship.Set_Market (Ship.Destination.Market);
                   Ship.Clear_Destination;
                   Ship.Execute_Arrival_Orders;
                   Ship.Owner.Player.On_Ship_Arrived
