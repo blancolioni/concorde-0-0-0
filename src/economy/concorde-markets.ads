@@ -31,6 +31,16 @@ package Concorde.Markets is
       Item     : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity;
 
+   overriding function Last_Average_Ask
+     (Market    : Root_Market_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Price_Type;
+
+   overriding function Last_Average_Bid
+     (Market    : Root_Market_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Price_Type;
+
    overriding function Last_Demand
      (Market   : Root_Market_Type;
       Item     : Concorde.Commodities.Commodity_Type)
@@ -169,6 +179,8 @@ private
       record
          Current_Price         : Concorde.Money.Price_Type;
          Historical_Mean_Price : Concorde.Money.Price_Type;
+         Last_Average_Ask      : Concorde.Money.Price_Type;
+         Last_Average_Bid      : Concorde.Money.Price_Type;
          Supply, Demand        : Concorde.Quantities.Quantity :=
                                    Quantities.Zero;
          Traded_Quantity       : Concorde.Quantities.Quantity :=

@@ -129,6 +129,8 @@ package body Concorde.Markets is
                            new Cached_Commodity_Record'
                              (Current_Price         => Commodity.Base_Price,
                               Historical_Mean_Price => Commodity.Base_Price,
+                              Last_Average_Ask      => Commodity.Base_Price,
+                              Last_Average_Bid      => Commodity.Base_Price,
                               Supply                => Quantities.Zero,
                               Demand                => Quantities.Zero,
                               Traded_Quantity       => Quantities.Zero,
@@ -324,6 +326,8 @@ package body Concorde.Markets is
       Supply         : constant Quantity := Info.Offers.Total_Supply;
       Demand         : constant Quantity := Info.Offers.Total_Demand;
       Total_Money    : Money_Type := Zero;
+      Total_Ask      : Money_Type := Zero;
+      Total_Bid      : Money_Type := Zero;
 
    begin
 
@@ -333,6 +337,16 @@ package body Concorde.Markets is
 
       Offer_Sorting.Sort (Bids);
       Offer_Sorting.Sort (Asks);
+
+      for Ask of Asks loop
+         Total_Ask := Total_Ask
+           + Total (Ask.Current_Price, Ask.Offered_Quantity);
+      end loop;
+
+      for Bid of Bids loop
+         Total_Bid := Total_Bid
+           + Total (Bid.Current_Price, Bid.Offered_Quantity);
+      end loop;
 
       declare
          use Offer_Vectors;
@@ -542,6 +556,11 @@ package body Concorde.Markets is
       Info.Demand := Demand;
       Info.Traded_Quantity := Total_Quantity;
 
+      if Total_Quantity > Zero then
+         Info.Last_Average_Ask := Price (Total_Ask, Supply);
+         Info.Last_Average_Bid := Price (Total_Bid, Demand);
+      end if;
+
       --        Conflict.Db.Market_Commodity.Create
       --          (Market           => Market,
       --           Date             => Conflict.Dates.Today,
@@ -670,6 +689,32 @@ package body Concorde.Markets is
       Info.Current_Price := Price;
       Info.Historical_Mean_Price := Price;
    end Initial_Price;
+
+   ----------------------
+   -- Last_Average_Ask --
+   ----------------------
+
+   overriding function Last_Average_Ask
+     (Market    : Root_Market_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Price_Type
+   is
+   begin
+      return Market.Get_Commodity (Commodity).Last_Average_Ask;
+   end Last_Average_Ask;
+
+   ----------------------
+   -- Last_Average_Bid --
+   ----------------------
+
+   overriding function Last_Average_Bid
+     (Market    : Root_Market_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Price_Type
+   is
+   begin
+      return Market.Get_Commodity (Commodity).Last_Average_Bid;
+   end Last_Average_Bid;
 
    -----------------
    -- Last_Demand --
