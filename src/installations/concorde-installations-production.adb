@@ -131,7 +131,21 @@ package body Concorde.Installations.Production is
                end;
             end loop;
 
-            if Facility.Has_Output then
+            if Facility.Is_Farm then
+               Installation.Log_Production
+                 ("produces "
+                  & Image (Effective_Capacity)
+                  & " "
+                  & Facility.Output.Name
+                  & " for "
+                  & Image (Production_Cost));
+
+               Installation.Add_Quantity
+                 (Facility.Output,
+                  Effective_Capacity,
+                  Production_Cost);
+
+            elsif Facility.Has_Output then
                Installation.Log_Production
                  ("produces "
                   & Image (Effective_Capacity)

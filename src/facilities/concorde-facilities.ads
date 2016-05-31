@@ -12,7 +12,7 @@ package Concorde.Facilities is
 
    type Facility_Class is
      (Colony_Hub, Consulate, Corporate_HQ, Orbital_Dock,
-      Factory, Resource_Generator, Service_Facility);
+      Factory, Resource_Generator, Farm, Service_Facility);
 
    type Facility_Flag is
      (Medical,
@@ -94,6 +94,11 @@ package Concorde.Facilities is
      (Facility : Root_Facility_Type'Class)
       return Boolean
    is (Facility.Class = Resource_Generator);
+
+   function Is_Farm
+     (Facility : Root_Facility_Type'Class)
+      return Boolean
+   is (Facility.Class = Farm);
 
    function Has_Output
      (Facility : Root_Facility_Type'Class)

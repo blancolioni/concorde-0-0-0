@@ -50,6 +50,46 @@ dock = { class = Orbital_Dock
                   }
        }
        
+farm = { class = Farm
+         name = Farm
+         template-class = yes
+         power = 5
+         workers = { tech = 1 unskilled = 9 }
+         modules = { industrial = 3 habitation = 2 }
+         capacity = 10000
+       }
+       
+seafood-farm = {
+   template = farm
+   name = "Seafood farm"
+   output = seafood
+   terrain = sea
+}
+
+legume-farm = {
+   template = farm
+   name = "Legume farm"
+   output = legumes
+}
+
+fruit-farm = {
+   template = farm
+   name = "Orchard"
+   output = fruit
+}
+
+grains-farm = {
+   template = farm
+   name = "Grain farm"
+   output = grains
+}
+
+herb-farm = {
+   template = farm
+   name = "Herb farm"
+   output = herb
+}
+
 light-factory = { class = Factory
                   name = "Light Factory"
                   template-class = yes
@@ -308,15 +348,6 @@ shipyard = { class = Factory
              capacity = 500
            }
            
-farm = { class = Resource_Generator
-         name = Farm
-         power = 5
-         workers = { tech = 1 unskilled = 9 }
-         modules = { industrial = 3 habitation = 2 }
-         capacity = 10000
-         organic = true
-       }
-       
 refinery = { class = Resource_Generator
              name = Refinery
              power = 10
