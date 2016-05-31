@@ -114,6 +114,7 @@ package body Concorde.Agents is
       is
          use Concorde.Money;
          use Concorde.Quantities;
+         use Concorde.Trades;
 
          Current       : constant Quantity :=
                            Agent.Get_Quantity (Commodity);
@@ -130,6 +131,10 @@ package body Concorde.Agents is
          Buy_Price     : constant Price_Type :=
                            (if Minimum = Zero
                             then Belief.Low
+                            elsif Agent.Offer_Strategy (Commodity)
+                            = Average_Price
+                            then Adjust_Price
+                              (Market.Last_Average_Ask (Commodity), 1.05)
                             else Create_Bid_Price
                               (Belief.Low, Belief.High, Agent.Age));
          Limit_Price   : constant Price_Type := Belief.High;
@@ -220,6 +225,7 @@ package body Concorde.Agents is
       is
          use Concorde.Money;
          use Concorde.Quantities;
+         use Concorde.Trades;
 
          Mean          : constant Price_Type :=
                            Market.Historical_Mean_Price
@@ -239,6 +245,11 @@ package body Concorde.Agents is
          Sell_Price    : constant Price_Type :=
                            (if Belief.High < Limit_Price
                             then Limit_Price
+                            elsif Agent.Offer_Strategy (Commodity)
+                            = Average_Price
+                            then Adjust_Price
+                              (Market.Last_Average_Bid (Commodity),
+                               0.95)
                             else Create_Ask_Price
                               (Max (Belief.Low, Limit_Price),
                                Belief.High, Agent.Age));
@@ -382,8 +393,8 @@ package body Concorde.Agents is
                     High => Commodity.Base_Price,
                     Strength => 1.0);
          when Average_Price =>
-            return (Low      => Market.Current_Price (Commodity),
-                    High     => Market.Current_Price (Commodity),
+            return (Low      => Market.Last_Average_Bid (Commodity),
+                    High     => Market.Last_Average_Ask (Commodity),
                     Strength => 1.0);
       end case;
    end Get_Price_Belief;
