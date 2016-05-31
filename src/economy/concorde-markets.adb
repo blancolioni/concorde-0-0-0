@@ -386,9 +386,10 @@ package body Concorde.Markets is
                Price_Without_Tax : constant Price_Type :=
                                      Without_Tax (Price_With_Tax,
                                                   Seller_Tax_Rate);
+               pragma Unreferenced (Price_Without_Tax);
                Ask_Quantity      : constant Quantity :=
                                      Calculate_Quantity
-                                       (Price_Without_Tax,
+                                       (Price_With_Tax,
                                         Concorde.Trades.Sell,
                                         Commodity,  Ask);
                Bid_Quantity      : constant Quantity :=
