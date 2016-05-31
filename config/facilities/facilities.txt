@@ -78,7 +78,7 @@ fruit-farm = {
    output = fruit
 }
 
-grains-farm = {
+grain-farm = {
    template = farm
    name = "Grain farm"
    output = grains
