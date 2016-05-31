@@ -37,7 +37,20 @@ package body Concorde.Quantities is
          end if;
       end loop;
 
-      return Significant_Digits_Image (Real (Item), 3);
+      return Ada.Strings.Fixed.Trim
+        (Quantity'Image (Item), Ada.Strings.Left);
+--
+--        declare
+--           Result : constant String :=
+--                      Significant_Digits_Image (Real (Item), 3);
+--        begin
+--           if Result (Result'Last - 2 .. Result'Last) = ".00" then
+--              return Result (Result'First .. Result'Last - 3);
+--           else
+--              return Result;
+--           end if;
+--        end;
+
    end Image;
 
    ---------
