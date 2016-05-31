@@ -114,6 +114,11 @@ package Concorde.Agents is
       return access constant Concorde.Trades.Trade_Interface'Class
      with Pre => Agent.Has_Market;
 
+   function Delayed_Trade_Offers
+     (Agent : Root_Agent_Type)
+      return Boolean
+   is (False);
+
    function Cash
      (Agent : Root_Agent_Type'Class)
       return Concorde.Money.Money_Type;

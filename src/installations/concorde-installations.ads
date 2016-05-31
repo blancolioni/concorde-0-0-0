@@ -50,4 +50,9 @@ private
    overriding procedure Add_Trade_Offers
      (Item   : not null access constant Root_Installation_Type);
 
+   overriding function Delayed_Trade_Offers
+     (Installation : Root_Installation_Type)
+      return Boolean
+   is (Installation.Is_Colony_Hub);
+
 end Concorde.Installations;

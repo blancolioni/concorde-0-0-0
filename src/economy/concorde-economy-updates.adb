@@ -1,3 +1,5 @@
+with Ada.Containers.Doubly_Linked_Lists;
+
 with Memor;
 
 with Concorde.Agents;
@@ -25,6 +27,13 @@ package body Concorde.Economy.Updates is
 
    procedure Daily_Update is
 
+      package List_Of_References is
+        new Ada.Containers.Doubly_Linked_Lists
+          (Element_Type => Memor.Database_Reference,
+           "="          => Memor."=");
+
+      Delayed_Installation_Trade_Offers : List_Of_References.List;
+
       Virtual : constant Concorde.Commodities.Array_Of_Commodities :=
                   Concorde.Commodities.Get
                     (Concorde.Commodities.Virtual);
@@ -49,7 +58,21 @@ package body Concorde.Economy.Updates is
             Agent.Set_Quantity (Commodity, Quantities.Zero, Money.Zero);
          end loop;
          Agent.Before_Market;
-         Agent.Add_Trade_Offers;
+
+         if Agent.Delayed_Trade_Offers then
+            if Agent.all in
+              Concorde.Installations.Root_Installation_Type'Class
+            then
+               Delayed_Installation_Trade_Offers.Append
+                 (Agent.Reference);
+            else
+               raise Constraint_Error with
+                 "cannot delay trade: " & Agent.Short_Name;
+            end if;
+         else
+            Agent.Add_Trade_Offers;
+         end if;
+
       end Agent_Trade_Update;
 
       -----------------------
@@ -75,6 +98,16 @@ package body Concorde.Economy.Updates is
 
       Concorde.Ships.Db.Iterate
         (Ship_Trade_Update'Access);
+
+      for Reference of Delayed_Installation_Trade_Offers loop
+         declare
+            Installation : constant Concorde.Installations.Installation_Type :=
+                             Concorde.Installations.Db.Reference
+                               (Reference);
+         begin
+            Installation.Add_Trade_Offers;
+         end;
+      end loop;
 
       Concorde.Worlds.Db.Scan
         (Concorde.Worlds.Has_Market'Access,
