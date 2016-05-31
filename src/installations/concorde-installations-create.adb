@@ -37,6 +37,7 @@ package body Concorde.Installations.Create is
          Installation.Facility := Facility;
          Installation.Owner := Owner;
          Installation.Set_Cash (Cash);
+         Installation.Set_Guarantor (Owner);
       end Initialise;
 
    begin
