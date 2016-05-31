@@ -95,6 +95,9 @@ package body Concorde.Colonies.Configure is
       Organics : constant Concorde.Commodities.Array_Of_Commodities :=
                    Concorde.Commodities.Get
                      (Concorde.Commodities.Organic);
+      Farms    : constant Concorde.Facilities.Array_Of_Facilities :=
+                   Concorde.Facilities.Get_By_Class
+                     (Concorde.Facilities.Farm);
 
       function Current_Tile return Concorde.Surfaces.Surface_Tile_Index;
       procedure Next_Tile;
@@ -647,9 +650,15 @@ package body Concorde.Colonies.Configure is
                     Concorde.Facilities.Resource_Generator
                       (World.Sector_Resource (Tile));
                else
-                  Facility :=
-                    Concorde.Facilities.Resource_Generator
-                      (Organics (WL.Random.Random_Number (1, Organics'Last)));
+                  if True then
+                     Facility :=
+                       Farms (WL.Random.Random_Number (1, Farms'Last));
+                  else
+                     Facility :=
+                       Concorde.Facilities.Resource_Generator
+                         (Organics
+                            (WL.Random.Random_Number (1, Organics'Last)));
+                  end if;
                end if;
 
                Create_Installation
