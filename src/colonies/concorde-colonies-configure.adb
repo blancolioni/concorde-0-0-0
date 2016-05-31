@@ -650,7 +650,9 @@ package body Concorde.Colonies.Configure is
                     Concorde.Facilities.Resource_Generator
                       (World.Sector_Resource (Tile));
                else
-                  if True then
+                  if WL.Random.Random_Number (1, 6) < 10 then
+                     Facility := Concorde.Facilities.Get ("grain-farm");
+                  elsif True then
                      Facility :=
                        Farms (WL.Random.Random_Number (1, Farms'Last));
                   else
