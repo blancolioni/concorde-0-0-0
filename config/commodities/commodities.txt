@@ -40,7 +40,7 @@ grains = { class = resource
            name = Grains
            mass = 1600
            organic = yes
-           base_price = 0.2
+           base_price = 0.5
          }
 herb = { class = resource
          name = Herbs
