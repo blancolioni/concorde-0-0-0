@@ -11,7 +11,8 @@ with Concorde.Commodities.Configure;
 package body Concorde.Facilities.Configure is
 
    procedure Configure_Facility
-     (Config : Tropos.Configuration);
+     (Config          : Tropos.Configuration;
+      Template_Config : Tropos.Configuration);
 
    ---------------------------
    -- Configure_Facilities --
@@ -24,7 +25,17 @@ package body Concorde.Facilities.Configure is
                                   ("facilities/facilities.txt"));
    begin
       for Config of Facilities_Config loop
-         Configure_Facility (Config);
+         if not Config.Get ("template-class") then
+            declare
+               Template_Config : Tropos.Configuration;
+            begin
+               if Config.Contains ("template") then
+                  Template_Config :=
+                    Facilities_Config.Child (Config.Get ("template", ""));
+               end if;
+               Configure_Facility (Config, Template_Config);
+            end;
+         end if;
       end loop;
    end Configure_Facilities;
 
@@ -33,7 +44,8 @@ package body Concorde.Facilities.Configure is
    -------------------------
 
    procedure Configure_Facility
-     (Config : Tropos.Configuration)
+     (Config          : Tropos.Configuration;
+      Template_Config : Tropos.Configuration)
    is
 
       procedure Create (Facility : in out Root_Facility_Type'Class);
@@ -44,33 +56,27 @@ package body Concorde.Facilities.Configure is
 
       procedure Create (Facility : in out Root_Facility_Type'Class) is
          use Concorde.Commodities;
-         Template : constant Facility_Type :=
-                      (if Config.Contains ("template")
-                       then Get (Config.Get ("template"))
-                       else null);
+--           Template : constant Facility_Type :=
+--                        (if Config.Contains ("template")
+--                         then Get (Config.Get ("template"))
+--                         else null);
+         function Value (Tag : String; Default : String) return String
+         is (Config.Get (Tag, Template_Config.Get (Tag, Default)));
+
       begin
          Facility.Tag := new String'(Config.Config_Name);
          Facility.Class :=
-           (if Template /= null
-            then Template.Class
-            else Facility_Class'Value (Config.Get ("class")));
+           Facility_Class'Value
+             (Value ("class", "bad class in " & Config.Config_Name));
          Facility.Set_Local_Tag (Config.Config_Name);
          Facility.Base_Service_Charge :=
            Concorde.Money.Value (Config.Get ("service_charge", "0"));
          Facility.Power :=
-           (if Template /= null
-            then Template.Power
-            else Concorde.Quantities.Value (Config.Get ("power", "0")));
+           Concorde.Quantities.Value (Value ("power", "0"));
          Facility.Capacity :=
-           (if Template /= null
-            then Template.Capacity
-            else Facility_Capacity'Value (Config.Get ("capacity", "0")));
+           Facility_Capacity'Value (Value ("capacity", "0"));
 
-         if Template /= null then
-            Facility.Flags := Template.Flags;
-         else
-            Facility.Flags := (others => False);
-         end if;
+         Facility.Flags := (others => False);
 
          for Flag in Facility.Flags'Range loop
             Facility.Flags (Flag) :=
@@ -78,31 +84,40 @@ package body Concorde.Facilities.Configure is
               or else
                 Config.Get
                   (Ada.Characters.Handling.To_Lower
+                     (Facility_Flag'Image (Flag)))
+              or else
+                Template_Config.Get
+                  (Ada.Characters.Handling.To_Lower
                      (Facility_Flag'Image (Flag)));
          end loop;
 
-         if Template /= null then
-            Facility.Commodity_Flags := Template.Commodity_Flags;
-         else
-            Facility.Commodity_Flags := (others => False);
-         end if;
+         Facility.Commodity_Flags := (others => False);
 
          for Flag in Facility.Commodity_Flags'Range loop
             Facility.Commodity_Flags (Flag) :=
               Facility.Commodity_Flags (Flag)
               or else Config.Get
                 (Ada.Characters.Handling.To_Lower
+                   (Commodity_Flag'Image (Flag)))
+              or else Template_Config.Get
+                (Ada.Characters.Handling.To_Lower
                    (Commodity_Flag'Image (Flag)));
+
          end loop;
+
          Facility.Quality :=
            Commodity_Quality'Val (Config.Get ("quality", 2) - 1);
 
-         if Template /= null then
-            Facility.Workers := Template.Workers;
-         elsif Config.Contains ("workers") then
+         declare
+            Worker_Config : Tropos.Configuration;
+         begin
+            if Config.Contains ("workers") then
+               Worker_Config := Config.Child ("workers");
+            elsif Template_Config.Contains ("workers") then
+               Worker_Config := Template_Config.Child ("workers");
+            end if;
+
             declare
-               Worker_Config : constant Tropos.Configuration :=
-                                 Config.Child ("workers");
                Worker_Array  : Array_Of_Workers
                  (1 .. Worker_Config.Child_Count);
                Count        : Natural := 0;
@@ -116,12 +131,18 @@ package body Concorde.Facilities.Configure is
                end loop;
                Facility.Workers := new Array_Of_Workers'(Worker_Array);
             end;
-         end if;
+         end;
 
-         if Config.Contains ("inputs") then
+         declare
+            Input_Config : Tropos.Configuration;
+         begin
+            if Config.Contains ("inputs") then
+               Input_Config := Config.Child ("inputs");
+            elsif Config.Contains ("inputs") then
+               Input_Config := Config.Child ("inputs");
+            end if;
+
             declare
-               Input_Config : constant Tropos.Configuration :=
-                                Config.Child ("inputs");
                Input_Array  : Array_Of_Inputs (1 .. Input_Config.Child_Count);
                Count        : Natural := 0;
             begin
@@ -133,10 +154,12 @@ package body Concorde.Facilities.Configure is
                end loop;
                Facility.Inputs := new Array_Of_Inputs'(Input_Array);
             end;
-         end if;
+         end;
 
-         if Config.Contains ("output") then
-            Facility.Output := Get (Config.Get ("output"));
+         if Config.Contains ("output")
+           or else Template_Config.Contains ("output")
+         then
+            Facility.Output := Get (Value ("output", ""));
          end if;
 
       end Create;
