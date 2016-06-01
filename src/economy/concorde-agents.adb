@@ -133,17 +133,21 @@ package body Concorde.Agents is
                             then Belief.Low
                             elsif Agent.Offer_Strategy (Commodity)
                             = Average_Price
-                            then Adjust_Price
-                              (Market.Last_Average_Ask (Commodity), 1.05)
+                            then Market.Last_Average_Ask (Commodity)
                             else Create_Bid_Price
                               (Belief.Low, Belief.High, Agent.Age));
-         Limit_Price   : constant Price_Type := Belief.High;
+         Limit_Price   : constant Price_Type :=
+                           Belief.High
+                             + (if Agent.Offer_Strategy (Commodity)
+                                = Average_Price
+                                then Adjust_Price (Belief.High, 0.1)
+                                else Zero);
          Favoured      : constant Quantity :=
                            (if Current >= Desired
                             then Zero
                             elsif Current >= Minimum
                             then Scale (Desired - Minimum, Favourability)
-                            else Minimum
+                            else Minimum - Current
                             + Scale (Desired - Minimum, Favourability));
          Possible      : constant Quantity :=
                            Max (Get_Quantity (Agent.Limit_Cash, Buy_Price),
@@ -247,9 +251,7 @@ package body Concorde.Agents is
                             then Limit_Price
                             elsif Agent.Offer_Strategy (Commodity)
                             = Average_Price
-                            then Adjust_Price
-                              (Market.Last_Average_Bid (Commodity),
-                               0.95)
+                            then Market.Last_Average_Bid (Commodity)
                             else Create_Ask_Price
                               (Max (Belief.Low, Limit_Price),
                                Belief.High, Agent.Age));
