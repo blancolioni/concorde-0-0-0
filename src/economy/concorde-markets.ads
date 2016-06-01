@@ -31,6 +31,16 @@ package Concorde.Markets is
       Item     : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity;
 
+   overriding function Current_Local_Demand
+     (Market   : Root_Market_Type;
+      Item     : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity;
+
+   overriding function Current_Local_Supply
+     (Market   : Root_Market_Type;
+      Item     : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity;
+
    overriding function Last_Average_Ask
      (Market    : Root_Market_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
@@ -167,6 +177,8 @@ private
          Limit     : Concorde.Money.Price_Type);
       function Total_Demand return Concorde.Quantities.Quantity;
       function Total_Supply return Concorde.Quantities.Quantity;
+      function Local_Demand return Concorde.Quantities.Quantity;
+      function Local_Supply return Concorde.Quantities.Quantity;
       function Buy_Offers return Offer_Vectors.Vector;
       function Sell_Offers return Offer_Vectors.Vector;
       procedure Clear;
@@ -181,6 +193,8 @@ private
          Historical_Mean_Price : Concorde.Money.Price_Type;
          Last_Average_Ask      : Concorde.Money.Price_Type;
          Last_Average_Bid      : Concorde.Money.Price_Type;
+         Local_Supply          : Concorde.Quantities.Quantity;
+         Local_Demand          : Concorde.Quantities.Quantity;
          Supply, Demand        : Concorde.Quantities.Quantity :=
                                    Quantities.Zero;
          Traded_Quantity       : Concorde.Quantities.Quantity :=

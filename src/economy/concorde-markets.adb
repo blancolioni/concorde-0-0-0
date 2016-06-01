@@ -39,6 +39,8 @@ package body Concorde.Markets is
             Item.Offers.Clear;
             Item.Supply := Quantities.Zero;
             Item.Demand := Quantities.Zero;
+            Item.Local_Supply := Quantities.Zero;
+            Item.Local_Demand := Quantities.Zero;
             Item.Traded_Quantity := Quantities.Zero;
          end if;
       end Clear_Offers;
@@ -133,6 +135,8 @@ package body Concorde.Markets is
                               Last_Average_Bid      => Commodity.Base_Price,
                               Supply                => Quantities.Zero,
                               Demand                => Quantities.Zero,
+                              Local_Supply          => Quantities.Zero,
+                              Local_Demand          => Quantities.Zero,
                               Traded_Quantity       => Quantities.Zero,
                               Offers                => new Commodity_Offers);
          begin
@@ -209,6 +213,32 @@ package body Concorde.Markets is
    begin
       return Market.Get_Commodity (Item).Offers.Total_Demand;
    end Current_Demand;
+
+   --------------------------
+   -- Current_Local_Demand --
+   --------------------------
+
+   overriding function Current_Local_Demand
+     (Market   : Root_Market_Type;
+      Item     : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity
+   is
+   begin
+      return Market.Get_Commodity (Item).Offers.Local_Demand;
+   end Current_Local_Demand;
+
+   --------------------------
+   -- Current_Local_Supply --
+   --------------------------
+
+   overriding function Current_Local_Supply
+     (Market   : Root_Market_Type;
+      Item     : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity
+   is
+   begin
+      return Market.Get_Commodity (Item).Offers.Local_Supply;
+   end Current_Local_Supply;
 
    -------------------
    -- Current_Price --
@@ -883,6 +913,38 @@ package body Concorde.Markets is
          Buys.Clear;
          Sells.Clear;
       end Clear;
+
+      ------------------
+      -- Local_Demand --
+      ------------------
+
+      function Local_Demand return Concorde.Quantities.Quantity is
+         use Concorde.Quantities;
+         Result : Quantity := Zero;
+      begin
+         for Offer of Buys loop
+            if Offer.Agent.Market_Resident then
+               Result := Result + Offer.Offered_Quantity;
+            end if;
+         end loop;
+         return Result;
+      end Local_Demand;
+
+      ------------------
+      -- Local_Supply --
+      ------------------
+
+      function Local_Supply return Concorde.Quantities.Quantity is
+         use Concorde.Quantities;
+         Result : Quantity := Zero;
+      begin
+         for Offer of Sells loop
+            if Offer.Agent.Market_Resident then
+               Result := Result + Offer.Offered_Quantity;
+            end if;
+         end loop;
+         return Result;
+      end Local_Supply;
 
       -----------------
       -- Sell_Offers --

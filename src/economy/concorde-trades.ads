@@ -24,6 +24,18 @@ package Concorde.Trades is
       return Concorde.Quantities.Quantity
       is abstract;
 
+   function Current_Local_Demand
+     (Trade    : Trade_Interface;
+      Item     : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity
+      is abstract;
+
+   function Current_Local_Supply
+     (Trade    : Trade_Interface;
+      Item     : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity
+      is abstract;
+
    function Last_Average_Ask
      (Trade     : Trade_Interface;
       Commodity : Concorde.Commodities.Commodity_Type)
