@@ -10,8 +10,7 @@ package body Concorde.Installations.Production is
    ------------------------
 
    procedure Execute_Production
-     (Installation : in out
-        Concorde.Installations.Root_Installation_Type'Class)
+     (Installation : in out Root_Installation_Type'Class)
    is
       use Concorde.Commodities;
       Facility : constant Concorde.Facilities.Facility_Type :=
