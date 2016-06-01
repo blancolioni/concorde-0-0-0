@@ -63,15 +63,21 @@ package body Concorde.Empires.Create is
                       Concorde.Worlds.Db.Reference (World);
          Capital  : constant Concorde.Worlds.World_Type :=
                       Galaxy.Capital_World;
-         Consumer : constant Commodities.Array_Of_Commodities :=
-                      Commodities.Get (Commodities.Consumer);
+         Food     : constant Commodities.Array_Of_Commodities :=
+                      Commodities.Get (Commodities.Food);
+         Clothing  : constant Commodities.Array_Of_Commodities :=
+                       Commodities.Get (Commodities.Clothing);
          Resources : constant Commodities.Array_Of_Commodities :=
                        World.Resources;
          Organics  : constant Commodities.Array_Of_Commodities :=
                        Concorde.Commodities.Get
                          (Concorde.Commodities.Organic);
       begin
-         for Item of Consumer loop
+         for Item of Food loop
+            Ship.Add_Sell_Order (Start, Item);
+         end loop;
+
+         for Item of Clothing loop
             Ship.Add_Sell_Order (Start, Item);
          end loop;
 
@@ -91,9 +97,14 @@ package body Concorde.Empires.Create is
             Ship.Add_Sell_Order (Capital, R);
          end loop;
 
-         for Item of Consumer loop
+         for Item of Food loop
             Ship.Add_Buy_Order (Capital, Item);
          end loop;
+
+         for Item of Clothing loop
+            Ship.Add_Buy_Order (Capital, Item);
+         end loop;
+
          Ship.Cycle_Orders (True);
       end Initial_Trade_Route;
 
