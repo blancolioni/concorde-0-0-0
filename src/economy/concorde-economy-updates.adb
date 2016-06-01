@@ -6,6 +6,7 @@ with Concorde.Agents;
 with Concorde.Commodities;
 
 with Concorde.People.Pops.Db;
+with Concorde.People.Pops.Consumption;
 
 with Concorde.Installations.Db;
 with Concorde.Installations.Production;
@@ -115,6 +116,9 @@ package body Concorde.Economy.Updates is
 
       Concorde.Installations.Db.Iterate
         (Concorde.Installations.Production.Execute_Production'Access);
+
+      Concorde.People.Pops.Db.Iterate
+        (Concorde.People.Pops.Consumption.Execute_Consumption'Access);
 
    end Daily_Update;
 
