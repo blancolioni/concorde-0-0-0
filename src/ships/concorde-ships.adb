@@ -121,7 +121,7 @@ package body Concorde.Ships is
          use Concorde.Money;
       begin
          return To_Natural (Min (Supply, Demand))
-           * Integer (To_Real (Sell_At - Buy_At));
+           * Integer (To_Real (Sell_At) - To_Real (Buy_At));
       end Score_Trade;
 
    begin
