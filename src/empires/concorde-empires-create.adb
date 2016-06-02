@@ -359,11 +359,15 @@ package body Concorde.Empires.Create is
          New_Empire.Colour := Colour;
          New_Empire.Capital_World := Start_World;
 
-         if Concorde.Scenarios.Imperial_Centre
-           and then Start_System.Index = 1
-         then
-            Galaxy.Set_Capital_World (Start_World);
-         end if;
+         declare
+            use Concorde.Worlds;
+         begin
+            if Concorde.Scenarios.Imperial_Centre
+              and then Concorde.Galaxy.Capital_World = null
+            then
+               Galaxy.Set_Capital_World (Start_World);
+            end if;
+         end;
 
          New_Empire.Player := Player;
          New_Empire.Current_Systems := 1;
