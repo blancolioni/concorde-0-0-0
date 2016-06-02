@@ -105,11 +105,11 @@ package Concorde.Commodities is
       Item     : Commodity_Type;
       Quantity : Concorde.Quantities.Quantity;
       Value    : Concorde.Money.Money_Type)
-   is abstract
-     with Pre'Class =>
-       Stock.Total_Quantity + Quantity
-         - Stock_Interface'Class (Stock).Get_Quantity (Item)
-     <= Stock.Maximum_Quantity;
+   is abstract;
+--       with Pre'Class =>
+--         Stock.Total_Quantity + Quantity
+--           - Stock_Interface'Class (Stock).Get_Quantity (Item)
+--       <= Stock.Maximum_Quantity;
 
    procedure Add_Quantity
      (Stock    : in out Stock_Interface'Class;

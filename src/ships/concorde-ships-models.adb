@@ -234,8 +234,7 @@ package body Concorde.Ships.Models is
 
    overriding function Handle_Update
      (Model : in out Ship_Model)
-      return Boolean
-   is (True);
+      return Boolean;
 
    procedure Draw_Component
      (Model     : in out Ship_Model'Class;

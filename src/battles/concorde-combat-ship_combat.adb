@@ -923,7 +923,11 @@ package body Concorde.Combat.Ship_Combat is
 
       if not Arena.Done then
          for I in 1 .. Arena.Ships.Last_Index loop
-            Arena.Update_Ship (Arena.Ships (I));
+            declare
+               Ship : Ship_Record renames Arena.Ships (I);
+            begin
+               Arena.Update_Ship (Ship);
+            end;
          end loop;
       end if;
 
