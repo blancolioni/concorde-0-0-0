@@ -195,6 +195,8 @@ private
          Last_Average_Bid      : Concorde.Money.Price_Type;
          Local_Supply          : Concorde.Quantities.Quantity;
          Local_Demand          : Concorde.Quantities.Quantity;
+         Last_Supply           : Concorde.Quantities.Quantity;
+         Last_Demand           : Concorde.Quantities.Quantity;
          Supply, Demand        : Concorde.Quantities.Quantity :=
                                    Quantities.Zero;
          Traded_Quantity       : Concorde.Quantities.Quantity :=

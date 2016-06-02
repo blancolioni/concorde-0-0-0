@@ -37,7 +37,9 @@ package body Concorde.Markets is
       begin
          if Item /= null then
             Item.Offers.Clear;
+            Item.Last_Supply := Item.Supply;
             Item.Supply := Quantities.Zero;
+            Item.Last_Demand := Item.Demand;
             Item.Demand := Quantities.Zero;
             Item.Local_Supply := Quantities.Zero;
             Item.Local_Demand := Quantities.Zero;
@@ -137,6 +139,8 @@ package body Concorde.Markets is
                               Demand                => Quantities.Zero,
                               Local_Supply          => Quantities.Zero,
                               Local_Demand          => Quantities.Zero,
+                              Last_Supply           => Quantities.Zero,
+                              Last_Demand           => Quantities.Zero,
                               Traded_Quantity       => Quantities.Zero,
                               Offers                => new Commodity_Offers);
          begin
@@ -757,7 +761,7 @@ package body Concorde.Markets is
       return Concorde.Quantities.Quantity
    is
    begin
-      return Market.Get_Commodity (Item).Demand;
+      return Market.Get_Commodity (Item).Last_Demand;
    end Last_Demand;
 
    -----------------
@@ -770,7 +774,7 @@ package body Concorde.Markets is
       return Concorde.Quantities.Quantity
    is
    begin
-      return Market.Get_Commodity (Item).Supply;
+      return Market.Get_Commodity (Item).Last_Supply;
    end Last_Supply;
 
    ---------
