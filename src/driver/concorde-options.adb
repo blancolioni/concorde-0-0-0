@@ -339,7 +339,7 @@ package body Concorde.Options is
 
    function Work_Threads return Positive is
    begin
-      return Integer_Value ("work-threads", 't', 1);
+      return Integer_Value ("work-threads", 't', 4);
    end Work_Threads;
 
    -------------------------------
