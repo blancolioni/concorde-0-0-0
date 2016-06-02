@@ -347,7 +347,6 @@ package body Concorde.Colonies.Configure is
             declare
                New_Tiles : List;
             begin
-               Ada.Text_IO.Put_Line ("expanding border");
                World.External_Border (Used_Tiles, New_Tiles);
                Tiles := New_Tiles;
                for Tile of New_Tiles loop
@@ -665,10 +664,6 @@ package body Concorde.Colonies.Configure is
 
                Create_Installation
                  (Facility, Tile);
-               Ada.Text_IO.Put_Line
-                 ("  " & Facility.Name & " at tile"
-                  & Concorde.Surfaces.Surface_Tile_Index'Image
-                    (Tile));
                Next_Tile;
             end;
          end loop;
