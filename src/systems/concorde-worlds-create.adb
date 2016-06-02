@@ -1,4 +1,4 @@
-with Ada.Characters.Handling;
+--  with Ada.Characters.Handling;
 with Ada.Numerics;
 with Ada.Text_IO;
 with Ada.Long_Float_Text_IO;
@@ -49,7 +49,12 @@ package body Concorde.Worlds.Create is
      array (World_Category) of Terrain_Feature_Vectors.Vector;
 
    Category_Terrain_Features : Category_Terrain_Feature_Array;
-   Got_Category_Terrain_Features : Boolean := False;
+
+   protected Category_Terrain_Reader is
+      procedure Check_Category_Terrain;
+   private
+      Got_Category_Terrain_Features : Boolean := False;
+   end Category_Terrain_Reader;
 
    procedure Configure_Category_Terrain;
 
@@ -1027,6 +1032,26 @@ package body Concorde.Worlds.Create is
            + (1.0 / 373.0));
    end Calculate_Water_Boiling_Point;
 
+   -----------------------------
+   -- Category_Terrain_Reader --
+   -----------------------------
+
+   protected body Category_Terrain_Reader is
+
+      ----------------------------
+      -- Check_Category_Terrain --
+      ----------------------------
+
+      procedure Check_Category_Terrain is
+      begin
+         if not Got_Category_Terrain_Features then
+            Configure_Category_Terrain;
+            Got_Category_Terrain_Features := True;
+         end if;
+      end Check_Category_Terrain;
+
+   end Category_Terrain_Reader;
+
    --------------------------------
    -- Configure_Category_Terrain --
    --------------------------------
@@ -1126,10 +1151,7 @@ package body Concorde.Worlds.Create is
                            WL.Random.Random_Number (1, Positive'Last);
    begin
 
-      if not Got_Category_Terrain_Features then
-         Configure_Category_Terrain;
-         Got_Category_Terrain_Features := True;
-      end if;
+      Category_Terrain_Reader.Check_Category_Terrain;
 
       if Subsector_Size = 0 then
          Subsector_Size := Concorde.Options.World_Detail_Factor;
@@ -1471,14 +1493,14 @@ package body Concorde.Worlds.Create is
 
                   World.Category := Category;
 
-                  declare
-                     function To_Lower
-                       (S : String) return String
-                        renames Ada.Characters.Handling.To_Lower;
-                  begin
-                     Ada.Text_IO.Put
-                       (" " & To_Lower (World_Category'Image (Category)));
-                  end;
+--                    declare
+--                       function To_Lower
+--                         (S : String) return String
+--                          renames Ada.Characters.Handling.To_Lower;
+--                    begin
+--                       Ada.Text_IO.Put
+--                         (" " & To_Lower (World_Category'Image (Category)));
+--                    end;
 
                   if World.Category /= Jovian
                     and then World.Category /= Sub_Jovian
@@ -1506,8 +1528,6 @@ package body Concorde.Worlds.Create is
          Current_Orbit := Current_Orbit + Width * 2.0;
 
       end loop;
-
-      Ada.Text_IO.Put_Line (World_Index'Img & " worlds");
 
    end Create_Worlds;
 

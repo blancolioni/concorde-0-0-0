@@ -3,6 +3,8 @@ with Ada.Float_Text_IO;
 
 with Ada.Numerics.Float_Random;
 
+with WL.Work;
+
 with Concorde.Elementary_Functions;
 with Concorde.Voronoi_Diagrams;
 
@@ -31,6 +33,8 @@ package body Concorde.Galaxy.Create is
       Influence         : Concorde.Voronoi_Diagrams.Voronoi_Diagram;
       Xs, Ys            : array (1 .. System_Count) of Real;
       Retries           : Natural := 0;
+      Create_Handle     : WL.Work.Work_Handle :=
+                            WL.Work.Create_Handle;
    begin
       if Reset_Seed then
          Reset (Gen);
@@ -108,7 +112,8 @@ package body Concorde.Galaxy.Create is
             declare
                System : constant Concorde.Systems.Star_System_Type :=
                           Concorde.Systems.Create.New_System
-                            (I, Name, Xs (I), Ys (I), Boundary,
+                            (I, Name, Create_Handle,
+                             Xs (I), Ys (I), Boundary,
                              Production => 0.025,
                              Capacity   => 2.0);
             begin
@@ -116,6 +121,8 @@ package body Concorde.Galaxy.Create is
             end;
          end;
       end loop;
+
+      WL.Work.Wait (Create_Handle);
 
       Ada.Text_IO.Put_Line ("created" & System_Count'Img & " systems");
 

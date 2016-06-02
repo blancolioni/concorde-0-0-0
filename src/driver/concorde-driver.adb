@@ -1,5 +1,6 @@
 with WL.Processes;
 with WL.Random.Names;
+with WL.Work;
 
 with Memor;
 
@@ -37,6 +38,7 @@ procedure Concorde.Driver is
 begin
 
    Memor.Locking (True);
+   WL.Work.Set_Task_Count (Concorde.Options.Work_Threads);
 
    WL.Random.Names.Load_Lexicon
      (Name_Generator,
@@ -98,6 +100,8 @@ begin
 
    end if;
 
+   WL.Work.Stop_Work_Tasks;
+
    Concorde.Empires.Reports.Report_Empires;
 
    Concorde.Logging.Stop_Logging;
@@ -113,6 +117,7 @@ exception
          Concorde.Empires.Logging.Stop_Logging;
       end if;
       Concorde.Logging.Stop_Logging;
+      WL.Work.Stop_Work_Tasks;
       raise;
 
 end Concorde.Driver;

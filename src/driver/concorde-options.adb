@@ -333,6 +333,15 @@ package body Concorde.Options is
       return Result;
    end With_Underscores;
 
+   ------------------
+   -- Work_Threads --
+   ------------------
+
+   function Work_Threads return Positive is
+   begin
+      return Integer_Value ("work-threads", 't', 1);
+   end Work_Threads;
+
    -------------------------------
    -- World_Continent_Smoothing --
    -------------------------------

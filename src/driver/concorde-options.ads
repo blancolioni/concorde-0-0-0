@@ -17,6 +17,7 @@ package Concorde.Options is
    function Show_Capital_Names return Boolean;
    function Show_System_Names return Boolean;
    function Test_Battle return Boolean;
+   function Work_Threads return Positive;
    function World_Continent_Smoothing return Positive;
    function World_Detail_Factor return Positive;
    function World_Fractal_Iterations return Positive;

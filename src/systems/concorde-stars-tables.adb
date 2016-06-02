@@ -25,6 +25,10 @@ package body Concorde.Stars.Tables is
 
    procedure Read_Tables;
 
+   protected Table_Reader is
+      procedure Check_Tables;
+   end Table_Reader;
+
    ----------------------------
    -- Get_Main_Sequence_Info --
    ----------------------------
@@ -41,9 +45,7 @@ package body Concorde.Stars.Tables is
       Position : Cursor;
    begin
 
-      if Main_Sequence_Table.Is_Empty then
-         Read_Tables;
-      end if;
+      Table_Reader.Check_Tables;
 
       Position := Main_Sequence_Table.First;
 
@@ -71,6 +73,10 @@ package body Concorde.Stars.Tables is
       end;
 
    end Get_Main_Sequence_Info;
+
+   -----------------
+   -- Read_Tables --
+   -----------------
 
    procedure Read_Tables is
       Config : constant Tropos.Configuration :=
@@ -115,4 +121,22 @@ package body Concorde.Stars.Tables is
       end loop;
    end Read_Tables;
 
+   ------------------
+   -- Table_Reader --
+   ------------------
+
+   protected body Table_Reader is
+
+      ------------------
+      -- Check_Tables --
+      ------------------
+
+      procedure Check_Tables is
+      begin
+         if Main_Sequence_Table.Is_Empty then
+            Read_Tables;
+         end if;
+      end Check_Tables;
+
+   end Table_Reader;
 end Concorde.Stars.Tables;
