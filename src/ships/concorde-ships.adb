@@ -2,6 +2,7 @@ with WL.Random;
 
 with Concorde.Systems;
 
+with Concorde.Money;
 with Concorde.Random;
 
 with Concorde.Empires.Db;
@@ -10,6 +11,8 @@ with Concorde.Ships.Db;
 with Concorde.Worlds.Db;
 
 with Concorde.Empires.Logging;
+
+with Concorde.Markets;
 
 package body Concorde.Ships is
 
@@ -59,8 +62,70 @@ package body Concorde.Ships is
    is
       use Concorde.Quantities;
       use type Memor.Database_Reference;
-      Space : constant Quantity := Ship.Hold_Quantity - Ship.Total_Quantity;
+      Hold  : constant Quantity := Ship.Hold_Quantity;
+      Space : constant Quantity := Hold - Ship.Total_Quantity;
+
+      type Buy_Commodity is
+         record
+            Commodity : Concorde.Commodities.Commodity_Type;
+            Supply    : Quantity;
+            Demand    : Quantity;
+            Buy_At    : Concorde.Money.Price_Type;
+            Sell_At   : Concorde.Money.Price_Type;
+            Score     : Natural;
+         end record;
+
+      package List_Of_Buy_Commodities is
+        new Ada.Containers.Doubly_Linked_Lists (Buy_Commodity);
+
+      Buy_List : List_Of_Buy_Commodities.List;
+
+      function Matching_Sell_Order
+        (Commodity : Concorde.Commodities.Commodity_Type)
+         return Concorde.Worlds.World_Type;
+
+      function Score_Trade
+        (Supply, Demand  : Quantity;
+         Buy_At, Sell_At : Concorde.Money.Price_Type)
+         return Integer;
+
+      -------------------------
+      -- Matching_Sell_Order --
+      -------------------------
+
+      function Matching_Sell_Order
+        (Commodity : Concorde.Commodities.Commodity_Type)
+         return Concorde.Worlds.World_Type
+      is
+         use Concorde.Commodities, Concorde.Worlds;
+      begin
+         for Order of Ship.Orders loop
+            if Order.Order = Sell
+              and then Order.Commodity = Commodity
+            then
+               return World_Type (Order.World);
+            end if;
+         end loop;
+         return null;
+      end Matching_Sell_Order;
+
+      -----------------
+      -- Score_Trade --
+      -----------------
+
+      function Score_Trade
+        (Supply, Demand  : Quantity;
+         Buy_At, Sell_At : Concorde.Money.Price_Type)
+         return Integer
+      is
+         use Concorde.Money;
+      begin
+         return To_Natural (Min (Supply, Demand))
+           * Integer (To_Real (Sell_At - Buy_At));
+      end Score_Trade;
+
    begin
+
       for Current_Order of Ship.Orders loop
          exit when not Ship.Orbiting (Current_Order.World);
 
@@ -68,11 +133,65 @@ package body Concorde.Ships is
             when No_Order =>
                null;
             when Buy =>
-               Concorde.Agents.Create_Buy_Offer
-                 (Agent     => Ship,
-                  Commodity => Current_Order.Commodity,
-                  Desired   => Space,
-                  Minimum   => Space);
+               declare
+                  use type Concorde.Worlds.World_Type;
+                  Commodity : constant Concorde.Commodities.Commodity_Type :=
+                                Current_Order.Commodity;
+                  Destination : constant Concorde.Worlds.World_Type :=
+                                  Matching_Sell_Order (Commodity);
+               begin
+                  if Destination /= null then
+                     declare
+                        From : constant Concorde.Markets.Market_Type :=
+                                 Current_Order.World.Market;
+                        To   : constant Concorde.Markets.Market_Type :=
+                                 Destination.Market;
+                        Supply : constant Quantity :=
+                                   From.Last_Supply (Commodity);
+                        Demand : constant Quantity :=
+                                   To.Last_Demand (Commodity);
+                        Buy_At : constant Concorde.Money.Price_Type :=
+                                   From.Last_Average_Ask (Commodity);
+                        Sell_At : constant Concorde.Money.Price_Type :=
+                                    To.Last_Average_Ask (Commodity);
+                        Score   : constant Integer :=
+                                    Score_Trade
+                                      (Supply, Demand, Buy_At, Sell_At);
+                        Rec     : constant Buy_Commodity :=
+                                    (Commodity => Current_Order.Commodity,
+                                     Supply    => Supply,
+                                     Demand    => Demand,
+                                     Buy_At    => Buy_At,
+                                     Sell_At   => Sell_At,
+                                     Score     =>
+                                       Integer'Max (Score, 0));
+                     begin
+                        if Score > 0 then
+                           Ship.Log_Trade
+                             (Commodity.Name
+                              & ": supply "
+                              & Image (Supply)
+                              & " @ "
+                              & Money.Image (Buy_At)
+                              & "; demand at "
+                              & To.Name
+                              & " is "
+                              & Image (Demand)
+                              & " @ "
+                              & Money.Image (Sell_At)
+                              & "; score "
+                              & Score'Img);
+                           Buy_List.Append (Rec);
+                        end if;
+                     end;
+                  else
+                     Concorde.Agents.Create_Buy_Offer
+                       (Agent     => Ship,
+                        Commodity => Current_Order.Commodity,
+                        Desired   => Space,
+                        Minimum   => Space);
+                  end if;
+               end;
             when Sell =>
                declare
                   Available : constant Quantity :=
@@ -88,6 +207,24 @@ package body Concorde.Ships is
                null;
          end case;
       end loop;
+
+      declare
+         Total_Score : Natural := 0;
+      begin
+         for Trade of Buy_List loop
+            Total_Score := Total_Score + Trade.Score;
+         end loop;
+
+         for Trade of Buy_List loop
+            Concorde.Agents.Create_Buy_Offer
+              (Agent     => Ship,
+               Commodity => Trade.Commodity,
+               Desired   =>
+                 Scale (Hold, Real (Trade.Score) / Real (Total_Score)),
+               Minimum   =>
+                 Scale (Hold, Real (Trade.Score) / Real (Total_Score)));
+         end loop;
+      end;
    end Add_Trade_Offers;
 
    -----------
