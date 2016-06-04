@@ -319,7 +319,7 @@ package body Concorde.Worlds.Create is
                if Sector.Temperature.High < 272.0 then
                   Sector.Feature := Concorde.Features.Ice;
                end if;
-            elsif World.Ice_Cover > 0.0 or else World.Hydrosphere > 0.0 then
+            elsif World.Ice_Cover > 0.0 and then World.Hydrosphere > 0.0 then
                if Sector.Temperature.High < 276.0 then
                   Sector.Feature := Concorde.Features.Ice;
                end if;
