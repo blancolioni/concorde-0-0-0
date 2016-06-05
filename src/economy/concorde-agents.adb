@@ -354,6 +354,15 @@ package body Concorde.Agents is
                Agent.Remove_Quantity (Commodity, Quantity, Cost);
                Agent.Add_Cash (Cost);
          end case;
+
+         Agent.Account.Append
+           ((Date       => Concorde.Dates.Current_Date,
+             Item       => Commodity,
+             Entry_Type => Offer,
+             Quantity   => Quantity,
+             Cost       => Cost,
+             Balance    => Agent.Cash));
+
       end Update;
 
    begin

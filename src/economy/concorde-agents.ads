@@ -1,5 +1,8 @@
+private with Ada.Containers.Vectors;
+
 private with Memor.Element_Vectors;
 
+with Concorde.Dates;
 with Concorde.Money;
 with Concorde.Quantities;
 
@@ -201,6 +204,19 @@ private
    package Price_Belief_Vectors is
      new Memor.Element_Vectors (Agent_Price_Belief_Access, null);
 
+   type Account_Entry is
+      record
+         Date       : Concorde.Dates.Date_Type;
+         Item       : Concorde.Commodities.Commodity_Type;
+         Entry_Type : Concorde.Trades.Offer_Type;
+         Quantity   : Concorde.Quantities.Quantity;
+         Cost       : Concorde.Money.Money_Type;
+         Balance    : Concorde.Money.Money_Type;
+      end record;
+
+   package Account_Entry_Vectors is
+      new Ada.Containers.Vectors (Positive, Account_Entry);
+
    type Root_Agent_Type is
      abstract new Concorde.Objects.Root_Object_Type
      and Concorde.Commodities.Stock_Interface
@@ -214,6 +230,7 @@ private
          Location  : Concorde.Locations.Object_Location;
          Age       : Natural := 0;
          Guarantor : access constant Root_Agent_Type'Class;
+         Account   : Account_Entry_Vectors.Vector;
       end record;
 
    function Get_Price_Belief

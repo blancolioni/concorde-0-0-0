@@ -20,6 +20,8 @@ with Concorde.Money;
 
 with Concorde.Commodities.Db;
 
+with Concorde.Agents.Tables;
+
 package body Concorde.Ships.Models is
 
    Show_Cubes : constant Boolean := True;
@@ -898,7 +900,9 @@ package body Concorde.Ships.Models is
          Model.Initialise
            (Name              => Ship.Name,
             Last_Render_Layer => 1,
-            Tables            => (Modules, Cargo, Engines),
+            Tables            => (Modules, Cargo, Engines,
+                                  Concorde.Agents.Tables.Account_Table
+                                    (Ship)),
             Gadgets           => Rotation_Buttons & Engine_Buttons);
       end;
 
