@@ -22,6 +22,8 @@ with Concorde.Worlds.Db;
 
 package body Concorde.Empires.Create is
 
+   Imperial_Centre : Boolean := True;
+
    procedure Create_Initial_Ships
      (World : in out Concorde.Worlds.Root_World_Type'Class);
 
@@ -194,9 +196,6 @@ package body Concorde.Empires.Create is
             Resources : constant Concorde.Commodities.Array_Of_Commodities :=
                           Concorde.Commodities.Get
                             (Concorde.Commodities.Resource);
-            Imperial_Centre : constant Boolean :=
-                                Concorde.Scenarios.Imperial_Centre
-                                    and then Start_System.Index = 1;
 
             procedure Set_Initial_Prices
               (Market : in out Concorde.Markets.Root_Market_Type'Class);
@@ -246,9 +245,7 @@ package body Concorde.Empires.Create is
             World.Set_Capital (True);
             World.Set_Name (Capital);
 
-            if Concorde.Scenarios.Imperial_Centre
-              and then Start_System.Index = 1
-            then
+            if Imperial_Centre then
                Concorde.Colonies.Configure.Create_Colony_From_Template
                  (World, "imperial_capital");
             else
@@ -341,6 +338,11 @@ package body Concorde.Empires.Create is
          end OK_For_Start;
 
       begin
+
+         if not Concorde.Scenarios.Imperial_Centre then
+            Imperial_Centre := False;
+         end if;
+
          Start_System :=
            Concorde.Galaxy.Find_System
              (OK_For_Start'Access);
@@ -362,9 +364,7 @@ package body Concorde.Empires.Create is
          declare
             use Concorde.Worlds;
          begin
-            if Concorde.Scenarios.Imperial_Centre
-              and then Concorde.Galaxy.Capital_World = null
-            then
+            if Imperial_Centre then
                Galaxy.Set_Capital_World (Start_World);
             end if;
          end;
@@ -383,6 +383,8 @@ package body Concorde.Empires.Create is
          then
             Concorde.Galaxy.Connect (1, Start_System.Index);
          end if;
+
+         Imperial_Centre := False;
 
       end Create;
 
