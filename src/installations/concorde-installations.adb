@@ -43,20 +43,54 @@ package body Concorde.Installations is
                   Sell_Quantity : constant Quantity :=
                                     Min (Item.Get_Quantity (Commodity),
                                          Demand - Supply);
+
+                  procedure Update_Import_Demand
+                    (Market : in out Concorde.Trades.Trade_Interface'Class);
+
+                  --------------------------
+                  -- Update_Import_Demand --
+                  --------------------------
+
+                  procedure Update_Import_Demand
+                    (Market : in out Concorde.Trades.Trade_Interface'Class)
+                  is
+                  begin
+                     Market.Add_Import_Demand
+                       (Commodity, Local_Demand - Supply);
+                  end Update_Import_Demand;
+
                begin
                   if Sell_Quantity > Zero then
                      Item.Create_Sell_Offer
                        (Commodity, Sell_Quantity, Concorde.Money.Zero);
                   end if;
+                  Item.Market.Update (Update_Import_Demand'Access);
                end;
             elsif Local_Supply > Demand then
                declare
                   Buy_Quantity : constant Quantity :=
                                    Item.Get_Quantity (Commodity)
                                    + Supply - Demand;
+
+                  procedure Update_Export_Supply
+                    (Market : in out Concorde.Trades.Trade_Interface'Class);
+
+                  --------------------------
+                  -- Update_Export_Supply --
+                  --------------------------
+
+                  procedure Update_Export_Supply
+                    (Market : in out Concorde.Trades.Trade_Interface'Class)
+                  is
+                  begin
+                     Market.Add_Export_Supply
+                       (Commodity, Local_Supply - Demand);
+                  end Update_Export_Supply;
+
                begin
                   Item.Create_Buy_Offer
                     (Commodity, Buy_Quantity, Buy_Quantity);
+                  Item.Market.Update (Update_Export_Supply'Access);
                end;
             end if;
          end if;

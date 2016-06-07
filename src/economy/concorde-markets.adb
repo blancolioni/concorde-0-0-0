@@ -15,6 +15,36 @@ package body Concorde.Markets is
       Tax_Rate       : Non_Negative_Real)
       return String;
 
+   -----------------------
+   -- Add_Export_Supply --
+   -----------------------
+
+   overriding procedure Add_Export_Supply
+     (Market    : in out Root_Market_Type;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity)
+   is
+      use type Quantities.Quantity;
+      Info : constant Cached_Commodity := Get_Commodity (Market, Commodity);
+   begin
+      Info.New_Export_Supply := Info.New_Export_Supply + Quantity;
+   end Add_Export_Supply;
+
+   -----------------------
+   -- Add_Import_Demand --
+   -----------------------
+
+   overriding procedure Add_Import_Demand
+     (Market    : in out Root_Market_Type;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity)
+   is
+      use type Quantities.Quantity;
+      Info : constant Cached_Commodity := Get_Commodity (Market, Commodity);
+   begin
+      Info.New_Import_Demand := Info.New_Import_Demand + Quantity;
+   end Add_Import_Demand;
+
    -------------------
    -- After_Trading --
    -------------------
@@ -44,6 +74,10 @@ package body Concorde.Markets is
             Item.Local_Supply := Quantities.Zero;
             Item.Local_Demand := Quantities.Zero;
             Item.Traded_Quantity := Quantities.Zero;
+            Item.Export_Supply := Item.New_Export_Supply;
+            Item.Import_Demand := Item.New_Import_Demand;
+            Item.New_Export_Supply := Quantities.Zero;
+            Item.New_Import_Demand := Quantities.Zero;
          end if;
       end Clear_Offers;
 
@@ -141,6 +175,10 @@ package body Concorde.Markets is
                               Local_Demand          => Quantities.Zero,
                               Last_Supply           => Quantities.Zero,
                               Last_Demand           => Quantities.Zero,
+                              Export_Supply         => Quantities.Zero,
+                              Import_Demand         => Quantities.Zero,
+                              New_Export_Supply     => Quantities.Zero,
+                              New_Import_Demand     => Quantities.Zero,
                               Traded_Quantity       => Quantities.Zero,
                               Offers                => new Commodity_Offers);
          begin
@@ -217,6 +255,32 @@ package body Concorde.Markets is
    begin
       return Market.Get_Commodity (Item).Offers.Total_Demand;
    end Current_Demand;
+
+   ---------------------------
+   -- Current_Export_Supply --
+   ---------------------------
+
+   overriding function Current_Export_Supply
+     (Market    : Root_Market_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity
+   is
+   begin
+      return Market.Get_Commodity (Commodity).Export_Supply;
+   end Current_Export_Supply;
+
+   ---------------------------
+   -- Current_Import_Demand --
+   ---------------------------
+
+   overriding function Current_Import_Demand
+     (Market    : Root_Market_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity
+   is
+   begin
+      return Market.Get_Commodity (Commodity).Import_Demand;
+   end Current_Import_Demand;
 
    --------------------------
    -- Current_Local_Demand --

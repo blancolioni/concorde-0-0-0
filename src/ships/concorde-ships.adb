@@ -121,7 +121,7 @@ package body Concorde.Ships is
          use Concorde.Money;
       begin
          return To_Natural (Min (Supply, Demand))
-           * Integer (To_Real (Sell_At) - To_Real (Buy_At));
+           * Integer (100.0 * (To_Real (Sell_At) - To_Real (Buy_At)));
       end Score_Trade;
 
    begin
@@ -147,9 +147,10 @@ package body Concorde.Ships is
                         To   : constant Concorde.Markets.Market_Type :=
                                  Destination.Market;
                         Supply : constant Quantity :=
-                                   From.Last_Supply (Commodity);
+                                   From.Current_Export_Supply
+                                     (Commodity);
                         Demand : constant Quantity :=
-                                   To.Last_Demand (Commodity);
+                                   To.Current_Import_Demand (Commodity);
                         Buy_At : constant Concorde.Money.Price_Type :=
                                    From.Last_Average_Ask (Commodity);
                         Sell_At : constant Concorde.Money.Price_Type :=
@@ -166,21 +167,21 @@ package body Concorde.Ships is
                                      Score     =>
                                        Integer'Max (Score, 0));
                      begin
+                        Ship.Log_Trade
+                          (Commodity.Name
+                           & ": supply "
+                           & Image (Supply)
+                           & " @ "
+                           & Money.Image (Buy_At)
+                           & "; demand at "
+                           & To.Name
+                           & " is "
+                           & Image (Demand)
+                           & " @ "
+                           & Money.Image (Sell_At)
+                           & "; score "
+                           & Score'Img);
                         if Score > 0 then
-                           Ship.Log_Trade
-                             (Commodity.Name
-                              & ": supply "
-                              & Image (Supply)
-                              & " @ "
-                              & Money.Image (Buy_At)
-                              & "; demand at "
-                              & To.Name
-                              & " is "
-                              & Image (Demand)
-                              & " @ "
-                              & Money.Image (Sell_At)
-                              & "; score "
-                              & Score'Img);
                            Buy_List.Append (Rec);
                         end if;
                      end;

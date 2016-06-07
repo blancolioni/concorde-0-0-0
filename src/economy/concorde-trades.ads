@@ -36,6 +36,18 @@ package Concorde.Trades is
       return Concorde.Quantities.Quantity
       is abstract;
 
+   function Current_Import_Demand
+     (Trade    : Trade_Interface;
+      Item     : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity
+      is abstract;
+
+   function Current_Export_Supply
+     (Trade    : Trade_Interface;
+      Item     : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity
+      is abstract;
+
    function Last_Average_Ask
      (Trade     : Trade_Interface;
       Commodity : Concorde.Commodities.Commodity_Type)
@@ -70,6 +82,18 @@ package Concorde.Trades is
      (Trade   : Trade_Interface;
       Message : String)
    is null;
+
+   procedure Add_Export_Supply
+     (Market    : in out Trade_Interface;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity)
+   is abstract;
+
+   procedure Add_Import_Demand
+     (Market    : in out Trade_Interface;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity)
+   is abstract;
 
    procedure Update
      (Market         : Trade_Interface;

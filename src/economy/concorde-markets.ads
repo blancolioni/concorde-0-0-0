@@ -61,6 +61,16 @@ package Concorde.Markets is
       Item     : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity;
 
+   overriding function Current_Import_Demand
+     (Market    : Root_Market_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity;
+
+   overriding function Current_Export_Supply
+     (Market    : Root_Market_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity;
+
    overriding function Historical_Mean_Price
      (Market    : Root_Market_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
@@ -75,6 +85,16 @@ package Concorde.Markets is
       Quantity  : Concorde.Quantities.Quantity;
       Price     : Concorde.Money.Price_Type;
       Limit     : Concorde.Money.Price_Type);
+
+   overriding procedure Add_Export_Supply
+     (Market    : in out Root_Market_Type;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity);
+
+   overriding procedure Add_Import_Demand
+     (Market    : in out Root_Market_Type;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity);
 
    procedure Enable_Logging
      (Market  : in out Root_Market_Type'Class;
@@ -197,6 +217,10 @@ private
          Local_Demand          : Concorde.Quantities.Quantity;
          Last_Supply           : Concorde.Quantities.Quantity;
          Last_Demand           : Concorde.Quantities.Quantity;
+         Export_Supply         : Concorde.Quantities.Quantity;
+         Import_Demand         : Concorde.Quantities.Quantity;
+         New_Export_Supply     : Concorde.Quantities.Quantity;
+         New_Import_Demand     : Concorde.Quantities.Quantity;
          Supply, Demand        : Concorde.Quantities.Quantity :=
                                    Quantities.Zero;
          Traded_Quantity       : Concorde.Quantities.Quantity :=
