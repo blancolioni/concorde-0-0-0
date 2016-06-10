@@ -59,10 +59,11 @@ package Concorde.Ships is
       return Boolean;
 
    procedure Add_Buy_Order
-     (Ship : in out Root_Ship_Type'Class;
-      World : not null access constant
+     (Ship     : in out Root_Ship_Type'Class;
+      World    : not null access constant
         Concorde.Worlds.Root_World_Type'Class;
-      Item  : Concorde.Commodities.Commodity_Type);
+      Item     : Concorde.Commodities.Commodity_Type;
+      Quantity : Concorde.Quantities.Quantity);
 
    procedure Add_Sell_Order
      (Ship   : in out Root_Ship_Type'Class;
@@ -265,6 +266,7 @@ private
          Order      : Ship_Order_Type;
          World      : access constant Concorde.Worlds.Root_World_Type'Class;
          Commodity  : Concorde.Commodities.Commodity_Type;
+         Quantity   : Concorde.Quantities.Quantity;
       end record;
 
    package List_Of_Orders is

@@ -140,7 +140,10 @@ package body Concorde.Ships.Updates is
                         Ship.Orders.Delete (Position);
                         Position := Ship.Orders.First;
                      when Buy =>
-                        if Ship.Total_Quantity = Ship.Hold_Quantity then
+                        if Ship.Total_Quantity = Ship.Hold_Quantity
+                          or else Ship.Get_Quantity (Order.Commodity)
+                          >= Order.Quantity
+                        then
                            Ship.Log_Trade ("Finished buying "
                                            & Order.Commodity.Name);
                            if Ship.Cycle_Orders then

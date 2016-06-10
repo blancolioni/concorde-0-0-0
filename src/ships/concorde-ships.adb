@@ -28,14 +28,15 @@ package body Concorde.Ships is
    -------------------
 
    procedure Add_Buy_Order
-     (Ship   : in out Root_Ship_Type'Class;
-      World  : not null access constant
+     (Ship     : in out Root_Ship_Type'Class;
+      World    : not null access constant
         Concorde.Worlds.Root_World_Type'Class;
-      Item   : Concorde.Commodities.Commodity_Type)
+      Item     : Concorde.Commodities.Commodity_Type;
+      Quantity : Concorde.Quantities.Quantity)
    is
    begin
       Ship.Orders.Append
-        ((Buy, World, Item));
+        ((Buy, World, Item, Quantity));
    end Add_Buy_Order;
 
    --------------------
@@ -50,7 +51,7 @@ package body Concorde.Ships is
    is
    begin
       Ship.Orders.Append
-        ((Sell, World, Item));
+        ((Sell, World, Item, Ship.Hold_Quantity));
    end Add_Sell_Order;
 
    ----------------------
@@ -72,6 +73,7 @@ package body Concorde.Ships is
             Demand    : Quantity;
             Buy_At    : Concorde.Money.Price_Type;
             Sell_At   : Concorde.Money.Price_Type;
+            Quantity  : Quantities.Quantity;
             Score     : Natural;
          end record;
 
@@ -164,24 +166,25 @@ package body Concorde.Ships is
                                      Demand    => Demand,
                                      Buy_At    => Buy_At,
                                      Sell_At   => Sell_At,
+                                     Quantity  => Current_Order.Quantity,
                                      Score     =>
                                        Integer'Max (Score, 0));
                      begin
-                        Ship.Log_Trade
-                          (Commodity.Name
-                           & ": supply "
-                           & Image (Supply)
-                           & " @ "
-                           & Money.Image (Buy_At)
-                           & "; demand at "
-                           & To.Name
-                           & " is "
-                           & Image (Demand)
-                           & " @ "
-                           & Money.Image (Sell_At)
-                           & "; score "
-                           & Score'Img);
                         if Score > 0 then
+                           Ship.Log_Trade
+                             (Commodity.Name
+                              & ": supply "
+                              & Image (Supply)
+                              & " @ "
+                              & Money.Image (Buy_At)
+                              & "; demand at "
+                              & To.Name
+                              & " is "
+                              & Image (Demand)
+                              & " @ "
+                              & Money.Image (Sell_At)
+                              & "; score "
+                              & Score'Img);
                            Buy_List.Append (Rec);
                         end if;
                      end;
@@ -217,13 +220,20 @@ package body Concorde.Ships is
          end loop;
 
          for Trade of Buy_List loop
-            Concorde.Agents.Create_Buy_Offer
-              (Agent     => Ship,
-               Commodity => Trade.Commodity,
-               Desired   =>
-                 Scale (Hold, Real (Trade.Score) / Real (Total_Score)),
-               Minimum   =>
-                 Scale (Hold, Real (Trade.Score) / Real (Total_Score)));
+            declare
+               Desired : constant Quantity :=
+                           (if Trade.Quantity < Ship.Hold_Quantity
+                            then Trade.Quantity
+                            else Scale
+                              (Trade.Quantity,
+                               Real (Trade.Score) / Real (Total_Score)));
+            begin
+               Concorde.Agents.Create_Buy_Offer
+                 (Agent     => Ship,
+                  Commodity => Trade.Commodity,
+                  Desired   => Desired,
+                  Minimum   => Desired);
+            end;
          end loop;
       end;
    end Add_Trade_Offers;
@@ -905,7 +915,8 @@ package body Concorde.Ships is
    is
    begin
       Ship.Orders.Append
-        ((Colonise, Concorde.Worlds.World_Type (Ship.Orbiting), null));
+        ((Colonise, Concorde.Worlds.World_Type (Ship.Orbiting), null,
+         Quantities.Zero));
    end Set_Colonisation_Order;
 
    ---------------------
