@@ -138,20 +138,7 @@ water = { class = resource
           liquid = yes
           base_price = 0.1
         }
-luxuryfood = { class = consumer
-               name = "Luxury Food"
-               mass = 10
-               quality = 3
-               food = yes
-             }
-             
-readymeal = { class = consumer
-              name = "Ready Meal"
-              mass = 10
-              quality = 2
-              food = yes
-            }
-            
+		
 rations = { class = consumer
             name = Rations
             mass = 10
@@ -159,24 +146,40 @@ rations = { class = consumer
             food = yes
           }
           
-ambrosia = { class = consumer
-             name = Ambrosia
-             mass = 20
-             quality = 3
-             drink = yes
-           }
-soda = { class = consumer
-         name = Soda
-         mass = 20
-         quality = 2
-         drink = yes
-       }
+readymeal = { class = consumer
+              name = "Ready Meal"
+              mass = 10
+              quality = 2
+              food = yes
+            }
+            
+luxuryfood = { class = consumer
+               name = "Luxury Food"
+               mass = 10
+               quality = 3
+               food = yes
+             }
+             
 bottled-water = { class = consumer
                   name = "Bottled Water"
                   mass = 20
                   quality = 1
                   drink = yes
                 }
+
+soda = { class = consumer
+         name = Soda
+         mass = 20
+         quality = 2
+         drink = yes
+       }
+
+ambrosia = { class = consumer
+             name = Ambrosia
+             mass = 20
+             quality = 3
+             drink = yes
+           }
 narcotics = { class = consumer
               name = Narcotics
               mass = 10

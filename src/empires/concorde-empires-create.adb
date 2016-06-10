@@ -84,11 +84,11 @@ package body Concorde.Empires.Create is
          end loop;
 
          for Item of Organics loop
-            Ship.Add_Buy_Order (Start, Item);
+            Ship.Add_Buy_Order (Start, Item, Ship.Hold_Quantity);
          end loop;
 
          for R of Resources loop
-            Ship.Add_Buy_Order (Start, R);
+            Ship.Add_Buy_Order (Start, R, Ship.Hold_Quantity);
          end loop;
 
          for Item of Organics loop
@@ -99,13 +99,22 @@ package body Concorde.Empires.Create is
             Ship.Add_Sell_Order (Capital, R);
          end loop;
 
-         for Item of Food loop
-            Ship.Add_Buy_Order (Capital, Item);
-         end loop;
+         declare
+            Buy_Factor : Unit_Real := 0.4;
+         begin
+            for Item of Food loop
+               Ship.Add_Buy_Order
+                 (Capital, Item,
+                  Quantities.Scale (Ship.Hold_Quantity, Buy_Factor));
+               Buy_Factor := Buy_Factor / 4.0;
+            end loop;
 
-         for Item of Clothing loop
-            Ship.Add_Buy_Order (Capital, Item);
-         end loop;
+            for Item of Clothing loop
+               Ship.Add_Buy_Order
+                 (Capital, Item,
+                  Quantities.Scale (Ship.Hold_Quantity, Buy_Factor));
+            end loop;
+         end;
 
          Ship.Cycle_Orders (True);
       end Initial_Trade_Route;
