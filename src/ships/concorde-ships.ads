@@ -71,6 +71,13 @@ package Concorde.Ships is
         Concorde.Worlds.Root_World_Type'Class;
       Item   : Concorde.Commodities.Commodity_Type);
 
+   procedure Add_Trade_Order
+     (Ship  : in out Root_Ship_Type'Class;
+      From  : not null access constant
+        Concorde.Worlds.Root_World_Type'Class;
+      To    : not null access constant
+        Concorde.Worlds.Root_World_Type'Class);
+
    procedure Clear_Orders
      (Ship : in out Root_Ship_Type'Class);
 
@@ -259,12 +266,13 @@ private
      new Ada.Containers.Vectors
        (Positive, Module_Layout_Record);
 
-   type Ship_Order_Type is (No_Order, Buy, Sell, Colonise);
+   type Ship_Order_Type is (No_Order, Trade, Buy, Sell, Colonise);
 
    type Ship_Order_Record is
       record
          Order      : Ship_Order_Type;
          World      : access constant Concorde.Worlds.Root_World_Type'Class;
+         Next       : access constant Concorde.Worlds.Root_World_Type'Class;
          Commodity  : Concorde.Commodities.Commodity_Type;
          Quantity   : Concorde.Quantities.Quantity;
       end record;
@@ -286,6 +294,7 @@ private
          Dest_Reference        : Memor.Database_Reference;
          Dest_System_Reference : Memor.Database_Reference;
          Orders                : List_Of_Orders.List;
+         Buy_Requirements      : Concorde.Commodities.Root_Stock_Type;
          Cycle_Orders          : Boolean;
          Alive                 : Boolean;
          Structure             : Module_Vectors.Vector;

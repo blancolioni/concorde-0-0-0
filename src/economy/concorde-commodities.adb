@@ -47,6 +47,17 @@ package body Concorde.Commodities is
       return Commodity.Class;
    end Class;
 
+   -----------------
+   -- Clear_Stock --
+   -----------------
+
+   overriding procedure Clear_Stock
+     (Stock : in out Root_Stock_Type)
+   is
+   begin
+      Stock.Vector.Clear;
+   end Clear_Stock;
+
    ------------------
    -- Create_Stock --
    ------------------
@@ -225,6 +236,34 @@ package body Concorde.Commodities is
       Stock.Set_Quantity
         (Item, New_Quantity, New_Value);
    end Remove_Quantity;
+
+   overriding procedure Scan_Stock
+     (Stock   : Root_Stock_Type;
+      Process : not null access
+        procedure (Commodity : Commodity_Type))
+   is
+      procedure Process_Stock
+        (Reference : Memor.Database_Reference;
+         Info      : Stock_Entry);
+
+      -------------------
+      -- Process_Stock --
+      -------------------
+
+      procedure Process_Stock
+        (Reference : Memor.Database_Reference;
+         Info      : Stock_Entry)
+      is
+         use Concorde.Quantities;
+      begin
+         if Info.Quantity > Zero then
+            Process (Db.Reference (Reference));
+         end if;
+      end Process_Stock;
+
+   begin
+      Stock.Vector.Iterate (Process_Stock'Access);
+   end Scan_Stock;
 
    ------------------
    -- Set_Quantity --

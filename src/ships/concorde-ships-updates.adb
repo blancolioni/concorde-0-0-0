@@ -139,6 +139,72 @@ package body Concorde.Ships.Updates is
                      when No_Order =>
                         Ship.Orders.Delete (Position);
                         Position := Ship.Orders.First;
+                     when Trade =>
+                        declare
+                           use Concorde.Quantities;
+                           Finished : Boolean := True;
+
+                           procedure Check_Buys
+                             (Commodity : Commodities.Commodity_Type);
+
+                           procedure Check_Sells
+                             (Commodity : Commodities.Commodity_Type);
+
+                           ----------------
+                           -- Check_Buys --
+                           ----------------
+
+                           procedure Check_Buys
+                             (Commodity : Commodities.Commodity_Type)
+                           is
+                           begin
+                              if Ship.Get_Quantity (Commodity)
+                                < Ship.Buy_Requirements.Get_Quantity
+                                (Commodity)
+                              then
+                                 Finished := False;
+                              end if;
+                           end Check_Buys;
+
+                           -----------------
+                           -- Check_Sells --
+                           -----------------
+
+                           procedure Check_Sells
+                             (Commodity : Commodities.Commodity_Type)
+                           is
+                           begin
+                              if Ship.Buy_Requirements.Get_Quantity
+                                (Commodity)
+                                = Zero
+                              then
+                                 Finished := False;
+                              end if;
+                           end Check_Sells;
+
+                        begin
+                           if Ship.Total_Quantity < Ship.Hold_Quantity then
+                              Ship.Buy_Requirements.Scan_Stock
+                                (Check_Buys'Access);
+                           end if;
+                           Ship.Scan_Stock
+                             (Check_Sells'Access);
+
+                           if Finished then
+                              Ship.Log_Trade
+                                ("Finished trading at "
+                                 & Order.World.Name);
+                              Ship.Buy_Requirements.Clear_Stock;
+                              if Ship.Cycle_Orders then
+                                 Cycle_List.Append (Order);
+                              end if;
+                              Ship.Orders.Delete (Position);
+                              Position := Ship.Orders.First;
+                           else
+                              exit;
+                           end if;
+                        end;
+
                      when Buy =>
                         if Ship.Total_Quantity = Ship.Hold_Quantity
                           or else Ship.Get_Quantity (Order.Commodity)

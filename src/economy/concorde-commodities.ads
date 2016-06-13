@@ -111,6 +111,16 @@ package Concorde.Commodities is
 --           - Stock_Interface'Class (Stock).Get_Quantity (Item)
 --       <= Stock.Maximum_Quantity;
 
+   procedure Scan_Stock
+     (Stock : Stock_Interface;
+      Process : not null access
+        procedure (Commodity : Commodity_Type))
+   is abstract;
+
+   procedure Clear_Stock
+     (Stock : in out Stock_Interface)
+   is abstract;
+
    procedure Add_Quantity
      (Stock    : in out Stock_Interface'Class;
       Item     : Commodity_Type;
@@ -197,5 +207,13 @@ private
       Item     : Commodity_Type;
       Quantity : Concorde.Quantities.Quantity;
       Value    : Concorde.Money.Money_Type);
+
+   overriding procedure Clear_Stock
+     (Stock : in out Root_Stock_Type);
+
+   overriding procedure Scan_Stock
+     (Stock   : Root_Stock_Type;
+      Process : not null access
+        procedure (Commodity : Commodity_Type));
 
 end Concorde.Commodities;

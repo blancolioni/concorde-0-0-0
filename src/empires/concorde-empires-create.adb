@@ -75,46 +75,55 @@ package body Concorde.Empires.Create is
                        Concorde.Commodities.Get
                          (Concorde.Commodities.Organic);
       begin
-         for Item of Food loop
-            Ship.Add_Sell_Order (Start, Item);
-         end loop;
 
-         for Item of Clothing loop
-            Ship.Add_Sell_Order (Start, Item);
-         end loop;
+         if True then
+            Ship.Add_Trade_Order
+              (Start, Capital);
+            Ship.Add_Trade_Order
+              (Capital, Start);
+         else
 
-         for Item of Organics loop
-            Ship.Add_Buy_Order (Start, Item, Ship.Hold_Quantity);
-         end loop;
-
-         for R of Resources loop
-            Ship.Add_Buy_Order (Start, R, Ship.Hold_Quantity);
-         end loop;
-
-         for Item of Organics loop
-            Ship.Add_Sell_Order (Capital, Item);
-         end loop;
-
-         for R of Resources loop
-            Ship.Add_Sell_Order (Capital, R);
-         end loop;
-
-         declare
-            Buy_Factor : Unit_Real := 0.4;
-         begin
             for Item of Food loop
-               Ship.Add_Buy_Order
-                 (Capital, Item,
-                  Quantities.Scale (Ship.Hold_Quantity, Buy_Factor));
-               Buy_Factor := Buy_Factor / 4.0;
+               Ship.Add_Sell_Order (Start, Item);
             end loop;
 
             for Item of Clothing loop
-               Ship.Add_Buy_Order
-                 (Capital, Item,
-                  Quantities.Scale (Ship.Hold_Quantity, Buy_Factor));
+               Ship.Add_Sell_Order (Start, Item);
             end loop;
-         end;
+
+            for Item of Organics loop
+               Ship.Add_Buy_Order (Start, Item, Ship.Hold_Quantity);
+            end loop;
+
+            for R of Resources loop
+               Ship.Add_Buy_Order (Start, R, Ship.Hold_Quantity);
+            end loop;
+
+            for Item of Organics loop
+               Ship.Add_Sell_Order (Capital, Item);
+            end loop;
+
+            for R of Resources loop
+               Ship.Add_Sell_Order (Capital, R);
+            end loop;
+
+            declare
+               Buy_Factor : Unit_Real := 0.4;
+            begin
+               for Item of Food loop
+                  Ship.Add_Buy_Order
+                    (Capital, Item,
+                     Quantities.Scale (Ship.Hold_Quantity, Buy_Factor));
+                  Buy_Factor := Buy_Factor / 4.0;
+               end loop;
+
+               for Item of Clothing loop
+                  Ship.Add_Buy_Order
+                    (Capital, Item,
+                     Quantities.Scale (Ship.Hold_Quantity, Buy_Factor));
+               end loop;
+            end;
+         end if;
 
          Ship.Cycle_Orders (True);
       end Initial_Trade_Route;
