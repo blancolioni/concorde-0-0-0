@@ -62,6 +62,7 @@ package body Concorde.Markets is
       procedure Clear_Offers
         (Commodity : Concorde.Commodities.Commodity_Type)
       is
+         use Concorde.Quantities;
          Item : constant Cached_Commodity :=
                   Market.Commodities.Element (Commodity.Reference);
       begin
@@ -74,8 +75,14 @@ package body Concorde.Markets is
             Item.Local_Supply := Quantities.Zero;
             Item.Local_Demand := Quantities.Zero;
             Item.Traded_Quantity := Quantities.Zero;
-            Item.Export_Supply := Item.New_Export_Supply;
-            Item.Import_Demand := Item.New_Import_Demand;
+            Item.Export_Supply :=
+              Scale (Item.Export_Supply, 0.5)
+              + Scale (Item.New_Export_Supply, 0.5);
+
+            Item.Import_Demand :=
+              Scale (Item.Import_Demand, 0.5)
+              + Scale (Item.New_Import_Demand, 0.5);
+
             Item.New_Export_Supply := Quantities.Zero;
             Item.New_Import_Demand := Quantities.Zero;
          end if;
