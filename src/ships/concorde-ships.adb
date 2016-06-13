@@ -1035,6 +1035,9 @@ package body Concorde.Ships is
    is
       use Concorde.Quantities;
 
+      Space : constant Quantity :=
+                Ship.Hold_Quantity - Ship.Total_Quantity;
+
       procedure Check (Commodity : Concorde.Commodities.Commodity_Type);
 
       -----------
@@ -1049,21 +1052,19 @@ package body Concorde.Ships is
             return;
          end if;
 
-         declare
-            Q : constant Quantity :=
-                  Ship.Buy_Requirements.Get_Quantity (Commodity)
-                  - Ship.Get_Quantity (Commodity);
-         begin
-            Concorde.Agents.Create_Buy_Offer
-              (Agent     => Ship,
-               Commodity => Commodity,
-               Desired   => Q,
-               Minimum   => Q);
-         end;
+         Concorde.Agents.Create_Buy_Offer
+           (Agent     => Ship,
+            Commodity => Commodity,
+            Desired   => Ship.Buy_Requirements.Get_Quantity (Commodity),
+            Minimum   => Ship.Buy_Requirements.Get_Quantity (Commodity));
       end Check;
 
    begin
-      Ship.Buy_Requirements.Scan_Stock (Check'Access);
+      if Space > Zero then
+         Ship.Buy_Requirements.Scan_Stock (Check'Access);
+      else
+         Ship.Log_Trade ("no room for buying stock");
+      end if;
    end Ship_Buy_Commodities;
 
    -----------------------------
@@ -1100,9 +1101,25 @@ package body Concorde.Ships is
          if Supply > Zero and then Demand > Zero
            and then Sell_At > Buy_At
          then
-            Ship.Buy_Requirements.Set_Quantity
-              (Commodity, Min (Supply, Demand),
-               Total (Buy_At, Min (Supply, Demand)));
+            Ship.Log_Trade
+              (Commodity.Name
+               & ": supply "
+               & Image (Supply)
+               & " @ "
+               & Money.Image (Buy_At)
+               & "; demand at "
+               & To.Name
+               & " is "
+               & Image (Demand)
+               & " @ "
+               & Money.Image (Sell_At));
+            declare
+               Wanted : constant Quantity :=
+                          Min (Ship.Hold_Quantity, Min (Supply, Demand));
+            begin
+               Ship.Buy_Requirements.Set_Quantity
+                 (Commodity, Wanted, Total (Buy_At, Wanted));
+            end;
          end if;
       end Check;
 
