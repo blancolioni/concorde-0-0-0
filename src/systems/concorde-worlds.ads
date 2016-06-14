@@ -4,6 +4,9 @@ private with Memor;
 
 private with Concorde.Geometry;
 
+with Concorde.Money;
+with Concorde.Quantities;
+
 with Concorde.Maps;
 with Concorde.Surfaces;
 
@@ -20,6 +23,7 @@ with Concorde.Government;
 with Concorde.People.Pops;
 with Concorde.Installations;
 with Concorde.Markets;
+with Concorde.Trades;
 
 limited with Concorde.Empires;
 with Concorde.Ships.Lists;
@@ -202,6 +206,36 @@ package Concorde.Worlds is
      (World : Root_World_Type'Class;
       Ships : out Concorde.Ships.Lists.List);
 
+   function Buy_Price
+     (World     : Root_World_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Price_Type;
+
+   function Sell_Price
+     (World     : Root_World_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Price_Type;
+
+   function Import_Market_Size
+     (World     : Root_World_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity;
+
+   function Export_Market_Size
+     (World     : Root_World_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity;
+
+   procedure Buy
+     (World     : in out Root_World_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : in out Concorde.Quantities.Quantity);
+
+   procedure Sell
+     (World     : in out Root_World_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : in out Concorde.Quantities.Quantity);
+
    type World_Type is access constant Root_World_Type'Class;
 
 private
@@ -308,6 +342,7 @@ private
          Sector_Count          : Natural;
          Is_Capital_World      : Boolean := False;
          Hub                   : Concorde.Installations.Installation_Type;
+         Port                  : Concorde.Installations.Installation_Type;
          Resources             : Concorde.Commodities.Lists.List;
          Ships                 : Concorde.Ships.Lists.List;
          Market                : Concorde.Markets.Market_Type;

@@ -574,13 +574,13 @@ package body Concorde.Ships is
 
    procedure Execute_Arrival_Orders
      (Ship : in out Root_Ship_Type'Class)
-   is
-      use Concorde.Quantities;
-   begin
-      if Ship.Buy_Requirements.Total_Quantity = Zero then
-         Ship_Check_Requirements (Ship);
-      end if;
-   end Execute_Arrival_Orders;
+   is null;
+--        use Concorde.Quantities;
+--     begin
+--        if Ship.Buy_Requirements.Total_Quantity = Zero then
+--           Ship_Check_Requirements (Ship);
+--        end if;
+--     end Execute_Arrival_Orders;
 
    ----------------------
    -- Get_Class_Mounts --
@@ -842,6 +842,18 @@ package body Concorde.Ships is
    end Hold_Size;
 
    ---------------
+   -- Is_Trader --
+   ---------------
+
+   function Is_Trader
+     (Ship : Root_Ship_Type'Class)
+      return Boolean
+   is
+   begin
+      return Ship.Is_Trader;
+   end Is_Trader;
+
+   ---------------
    -- Long_Name --
    ---------------
 
@@ -890,6 +902,23 @@ package body Concorde.Ships is
    begin
       return Db.Get_Database;
    end Object_Database;
+
+   ---------------------
+   -- On_Update_Start --
+   ---------------------
+
+   overriding procedure On_Update_Start
+     (Ship : in out Root_Ship_Type)
+   is
+      use Concorde.Quantities;
+   begin
+      if Ship.Buy_Requirements.Total_Quantity = Zero
+        and then Ship.Total_Quantity = Zero
+        and then not Ship.Orders.Is_Empty
+      then
+         Ship_Check_Requirements (Ship);
+      end if;
+   end On_Update_Start;
 
    -----------
    -- Owner --
@@ -1013,6 +1042,25 @@ package body Concorde.Ships is
    begin
       Ship.Owner := New_Owner;
    end Set_Owner;
+
+   ---------------------
+   -- Set_Trade_Route --
+   ---------------------
+
+   procedure Set_Trade_Route
+     (Ship   : in out Root_Ship_Type'Class;
+      From   : not null access constant Concorde.Worlds.Root_World_Type'Class;
+      To     : not null access constant Concorde.Worlds.Root_World_Type'Class)
+   is
+   begin
+      Ship.Trade_From := From.Reference;
+      Ship.Trade_To := To.Reference;
+      Ship.Is_Trader := True;
+      Ship.Have_Trade_Orders := False;
+      if not Ship.Orbiting (From) then
+         Ship.Set_Destination (From);
+      end if;
+   end Set_Trade_Route;
 
    -------------
    -- Shields --

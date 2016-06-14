@@ -1,6 +1,7 @@
 with Concorde.Empires.Db;
 with Concorde.Installations.Db;
 with Concorde.People.Pops.Db;
+with Concorde.Ships.Db;
 
 package body Concorde.Agents.Updates is
 
@@ -51,6 +52,7 @@ package body Concorde.Agents.Updates is
       Concorde.Empires.Db.Iterate (Update_Rec'Access);
       Concorde.Installations.Db.Iterate (Update_Rec'Access);
       Concorde.People.Pops.Db.Iterate (Update_Rec'Access);
+      Concorde.Ships.Db.Iterate (Update_Rec'Access);
    end Update_Agents;
 
 end Concorde.Agents.Updates;

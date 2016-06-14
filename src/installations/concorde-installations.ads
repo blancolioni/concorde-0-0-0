@@ -17,6 +17,10 @@ package Concorde.Installations is
      (Installation : Root_Installation_Type'Class)
       return Boolean;
 
+   function Is_Port
+     (Installation : Root_Installation_Type'Class)
+      return Boolean;
+
    function Facility
      (Installation : Root_Installation_Type'Class)
       return Concorde.Facilities.Facility_Type;
@@ -54,5 +58,9 @@ private
      (Installation : Root_Installation_Type)
       return Boolean
    is (Installation.Is_Colony_Hub);
+
+   overriding procedure On_Update_Start
+     (Installation : in out Root_Installation_Type)
+   is null;
 
 end Concorde.Installations;

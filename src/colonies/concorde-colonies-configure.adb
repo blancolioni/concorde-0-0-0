@@ -102,7 +102,8 @@ package body Concorde.Colonies.Configure is
       function Current_Tile return Concorde.Surfaces.Surface_Tile_Index;
       procedure Next_Tile;
 
-      Hub : Concorde.Installations.Installation_Type;
+      Hub        : Concorde.Installations.Installation_Type;
+      Port       : Concorde.Installations.Installation_Type;
       Government : Concorde.Government.Government_Type;
 
       function Start_Sector_Good
@@ -673,6 +674,20 @@ package body Concorde.Colonies.Configure is
       end;
 
       Create_Service_Facilities;
+
+      Port :=
+        Concorde.Installations.Create.Create
+          (Location =>
+             Concorde.Locations.World_Surface
+               (Concorde.Worlds.Db.Reference (World),
+                Positive (Current_Tile)),
+           Market   => World.Market,
+           Facility => Concorde.Facilities.Get ("port"),
+           Cash     =>
+             Concorde.Money.To_Money (10_000.0),
+           Owner    => World.Owner);
+
+      World.Add_Installation (Current_Tile, Port);
 
       Skilled_Pop.Iterate (Create_Pop_From_Skill'Access);
 

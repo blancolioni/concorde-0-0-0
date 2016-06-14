@@ -11,6 +11,8 @@ with Concorde.People.Pops.Consumption;
 with Concorde.Installations.Db;
 with Concorde.Installations.Production;
 
+with Concorde.Ships.Trading;
+
 with Concorde.Worlds.Updates;
 
 with Concorde.Markets.Db;
@@ -41,9 +43,6 @@ package body Concorde.Economy.Updates is
 
       procedure Agent_Trade_Update
         (Rec : not null access Memor.Root_Record_Type'Class);
-
-      procedure Ship_Trade_Update
-        (Ship : not null access Concorde.Ships.Root_Ship_Type'Class);
 
       ------------------------
       -- Agent_Trade_Update --
@@ -76,17 +75,6 @@ package body Concorde.Economy.Updates is
 
       end Agent_Trade_Update;
 
-      -----------------------
-      -- Ship_Trade_Update --
-      -----------------------
-
-      procedure Ship_Trade_Update
-        (Ship : not null access Concorde.Ships.Root_Ship_Type'Class)
-      is
-      begin
-         Ship.Add_Trade_Offers;
-      end Ship_Trade_Update;
-
    begin
       Concorde.Markets.Db.Iterate
         (Concorde.Markets.Before_Trading'Access);
@@ -98,7 +86,7 @@ package body Concorde.Economy.Updates is
         (Agent_Trade_Update'Access);
 
       Concorde.Ships.Db.Iterate
-        (Ship_Trade_Update'Access);
+        (Concorde.Ships.Trading.Trade'Access);
 
       for Reference of Delayed_Installation_Trade_Offers loop
          declare

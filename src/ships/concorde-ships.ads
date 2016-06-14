@@ -50,6 +50,15 @@ package Concorde.Ships is
       return access constant Concorde.Worlds.Root_World_Type'Class
      with Pre => Ship.Has_Destination;
 
+   function Is_Trader
+     (Ship : Root_Ship_Type'Class)
+      return Boolean;
+
+   procedure Set_Trade_Route
+     (Ship   : in out Root_Ship_Type'Class;
+      From   : not null access constant Concorde.Worlds.Root_World_Type'Class;
+      To     : not null access constant Concorde.Worlds.Root_World_Type'Class);
+
    procedure Cycle_Orders
      (Ship  : in out Root_Ship_Type'Class;
       Cycle : Boolean);
@@ -295,8 +304,12 @@ private
          Dest_System_Reference : Memor.Database_Reference;
          Orders                : List_Of_Orders.List;
          Buy_Requirements      : Concorde.Commodities.Root_Stock_Type;
-         Cycle_Orders          : Boolean;
-         Alive                 : Boolean;
+         Cycle_Orders          : Boolean := False;
+         Alive                 : Boolean := True;
+         Is_Trader             : Boolean := False;
+         Have_Trade_Orders     : Boolean := False;
+         Trade_From            : Memor.Database_Reference;
+         Trade_To              : Memor.Database_Reference;
          Structure             : Module_Vectors.Vector;
          Size                  : Size_Type;
          Current_Damage        : Unit_Real := 0.0;
@@ -345,5 +358,8 @@ private
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Trades.Offer_Price_Strategy
    is (Concorde.Trades.Average_Price);
+
+   overriding procedure On_Update_Start
+     (Ship : in out Root_Ship_Type);
 
 end Concorde.Ships;

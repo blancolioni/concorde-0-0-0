@@ -18,6 +18,9 @@ package body Concorde.Installations is
       procedure Add_Hub_Trade_Offer
         (Commodity : Concorde.Commodities.Commodity_Type);
 
+      procedure Add_Port_Trade_Offer
+        (Commodity : Concorde.Commodities.Commodity_Type);
+
       procedure Add_Sell_Offer
         (Commodity : Concorde.Commodities.Commodity_Type);
 
@@ -96,6 +99,32 @@ package body Concorde.Installations is
          end if;
       end Add_Hub_Trade_Offer;
 
+      --------------------------
+      -- Add_Port_Trade_Offer --
+      --------------------------
+
+      procedure Add_Port_Trade_Offer
+        (Commodity : Concorde.Commodities.Commodity_Type)
+      is
+         Import_Demand : constant Quantity :=
+                           Item.Market.Current_Import_Demand (Commodity);
+         Export_Supply : constant Quantity :=
+                           Item.Market.Current_Export_Supply (Commodity);
+         In_Stock      : constant Quantity :=
+                           Item.Get_Quantity (Commodity);
+      begin
+         if Import_Demand > Zero and then In_Stock > Zero then
+            Item.Create_Sell_Offer
+              (Commodity, Min (Import_Demand, In_Stock),
+               Concorde.Money.Adjust (Item.Get_Value (Commodity), 1.1));
+         elsif Export_Supply > Zero then
+            Item.Create_Buy_Offer
+              (Commodity => Commodity,
+               Desired   => Export_Supply,
+               Minimum   => Export_Supply);
+         end if;
+      end Add_Port_Trade_Offer;
+
       --------------------
       -- Add_Sell_Offer --
       --------------------
@@ -138,6 +167,8 @@ package body Concorde.Installations is
 
       if Item.Is_Colony_Hub then
          Concorde.Commodities.Db.Scan (Add_Hub_Trade_Offer'Access);
+      elsif Item.Is_Port then
+         Concorde.Commodities.Db.Scan (Add_Port_Trade_Offer'Access);
       else
          if Item.Facility.Has_Output
            and then Item.Get_Quantity (Item.Facility.Output) > Zero
@@ -190,6 +221,23 @@ package body Concorde.Installations is
             return False;
       end case;
    end Is_Colony_Hub;
+
+   -------------
+   -- Is_Port --
+   -------------
+
+   function Is_Port
+     (Installation : Root_Installation_Type'Class)
+      return Boolean
+   is
+   begin
+      case Installation.Facility.Class is
+         when Concorde.Facilities.Port =>
+            return True;
+         when others =>
+            return False;
+      end case;
+   end Is_Port;
 
    ---------------------
    -- Object_Database --

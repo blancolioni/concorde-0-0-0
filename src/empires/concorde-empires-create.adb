@@ -77,10 +77,7 @@ package body Concorde.Empires.Create is
       begin
 
          if True then
-            Ship.Add_Trade_Order
-              (Start, Capital);
-            Ship.Add_Trade_Order
-              (Capital, Start);
+            Ship.Set_Trade_Route (Start, Capital);
          else
 
             for Item of Food loop
