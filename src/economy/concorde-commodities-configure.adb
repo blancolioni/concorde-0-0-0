@@ -139,7 +139,7 @@ package body Concorde.Commodities.Configure is
                                 Commodity_Class'Value (Config.Get ("class")),
                               Mass       =>
                                 Non_Negative_Real
-                                  (Float'(Config.Get ("mass"))),
+                                  (Float'(Config.Get ("mass"))) * 1000.0,
                               Base_Price =>
                                 Concorde.Money.Value
                                   (Config.Get ("base_price", "0")),

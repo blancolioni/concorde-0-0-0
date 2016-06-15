@@ -1,68 +1,68 @@
 legumes = { class = resource
-            mass = 2000
+            mass = 2
             organic = yes
             base_price = 3
           }
 wool = { class = resource
-            mass = 2000
+            mass = 2
             organic = yes
             base_price = 3
           }
 cotton = { class = resource
-            mass = 2000
+            mass = 2
             organic = yes
             base_price = 3
           }
 silk = { class = resource
-            mass = 2000
+            mass = 2
             organic = yes
             base_price = 20
           }
 seafood = { class = resource
             name = Seafood
-            mass = 1500
+            mass = 1.5
             organic = yes
             base_price = 5
           }
 fruit = { class = resource
           name = Fruit
-          mass = 1200
+          mass = 1.2
           organic = yes
           base_price = 2
         }
 vegetables = { class = resource
                name = vegetables
-               mass = 1200
+               mass = 1.2
                organic = yes
                base_price = 0.5
              }
 grains = { class = resource
            name = Grains
-           mass = 1600
+           mass = 1.6
            organic = yes
            base_price = 0.5
          }
 herb = { class = resource
          name = Herbs
-         mass = 1200
+         mass = 1.2
          organic = yes
          base_price = 3
        }
 fungi = { class = resource
            name = fungi
-           mass = 1200
+           mass = 1.2
            organic = yes
            base_price = 3
          }
 salt = { class = resource
          name = Salt
-         mass = 2165
+         mass = 2.165
          mineral = yes
          base_price = 0.2
        }
 silicon = { class = resource
             name = Silicon
-            mass = 2330
+            mass = 2.330
             mineral = yes
             base_price = 0.5
           }
