@@ -81,7 +81,7 @@ package body Concorde.Ships.Create is
          end if;
          Ship.Owner := Owner;
          Ship.Set_Guarantor (Owner);
-         Ship.Set_Cash (Concorde.Money.To_Money (100_000.0));
+         Ship.Set_Cash (Concorde.Money.To_Money (10_000.0));
          Ship.Set_Location
            (Concorde.Locations.Geosynchronous_Orbit
               (Concorde.Worlds.Db.Reference (World)));
