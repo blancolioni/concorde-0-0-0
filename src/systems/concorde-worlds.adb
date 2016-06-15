@@ -1,9 +1,11 @@
 with Concorde.Empires;
+with Concorde.Facilities;
 with Concorde.Government.Db;
 with Concorde.Markets.Db;
-with Concorde.Worlds.Db;
-with Concorde.Money;
 with Concorde.Options;
+
+with Concorde.Installations.Db;
+with Concorde.Worlds.Db;
 
 package body Concorde.Worlds is
 
@@ -18,6 +20,16 @@ package body Concorde.Worlds is
    is
    begin
       World.Sectors (Sector).Installations.Append (Installation);
+
+      case Installation.Facility.Class is
+         when Concorde.Facilities.Colony_Hub =>
+            World.Hub := Installation;
+         when Concorde.Facilities.Port =>
+            World.Port := Installation;
+         when others =>
+            null;
+      end case;
+
    end Add_Installation;
 
    -------------
@@ -45,6 +57,60 @@ package body Concorde.Worlds is
       World.Ships.Append (Ship);
    end Add_Ship;
 
+   ---------
+   -- Buy --
+   ---------
+
+   procedure Buy
+     (World     : in out Root_World_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : in out Concorde.Quantities.Quantity)
+   is
+      use Concorde.Money, Concorde.Quantities;
+      New_Quantity : constant Quantities.Quantity :=
+                       Min (Quantity, World.Import_Market_Size (Commodity));
+      Cash : constant Money_Type :=
+                       Total (World.Buy_Price (Commodity), New_Quantity);
+
+      procedure Update_Port
+        (Port : in out Concorde.Installations.Root_Installation_Type'Class);
+
+      -----------------
+      -- Update_Port --
+      -----------------
+
+      procedure Update_Port
+        (Port : in out Concorde.Installations.Root_Installation_Type'Class)
+      is
+      begin
+         Port.Remove_Cash (Cash);
+         Port.Add_Quantity (Commodity, New_Quantity, Cash);
+      end Update_Port;
+
+   begin
+      Concorde.Installations.Db.Update
+        (World.Port.Reference, Update_Port'Access);
+      Quantity := New_Quantity;
+   end Buy;
+
+   ---------------
+   -- Buy_Price --
+   ---------------
+
+   function Buy_Price
+     (World     : Root_World_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Price_Type
+   is
+   begin
+      return Concorde.Money.Adjust_Price
+        (Concorde.Money.Without_Tax
+           (World.Market.Last_Average_Bid (Commodity),
+            World.Government.Tax_Rate
+              (Concorde.Trades.Import, Commodity)),
+         0.9);
+   end Buy_Price;
+
    --------------
    -- Category --
    --------------
@@ -68,6 +134,19 @@ package body Concorde.Worlds is
    begin
       return World.Day_Length;
    end Day_Length;
+
+   ------------------------
+   -- Export_Market_Size --
+   ------------------------
+
+   function Export_Market_Size
+     (World     : Root_World_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity
+   is
+   begin
+      return World.Port.Get_Quantity (Commodity);
+   end Export_Market_Size;
 
    -------------------------
    -- Get_Sector_Resource --
@@ -159,6 +238,19 @@ package body Concorde.Worlds is
    begin
       return World.Market /= null;
    end Has_Market;
+
+   ------------------------
+   -- Import_Market_Size --
+   ------------------------
+
+   function Import_Market_Size
+     (World     : Root_World_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity
+   is
+   begin
+      return World.Market.Current_Import_Demand (Commodity);
+   end Import_Market_Size;
 
    ----------------
    -- Is_Capital --
@@ -374,6 +466,79 @@ package body Concorde.Worlds is
    begin
       return World.Sectors (Sector).Terrain;
    end Sector_Terrain;
+
+   ----------
+   -- Sell --
+   ----------
+
+   procedure Sell
+     (World     : in out Root_World_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : in out Concorde.Quantities.Quantity)
+   is
+      use Concorde.Money, Concorde.Quantities;
+      New_Quantity : constant Quantities.Quantity :=
+                       Min (Quantity, World.Export_Market_Size (Commodity));
+      Cash         : constant Money_Type :=
+                       Total (World.Sell_Price (Commodity), New_Quantity);
+
+      procedure Update_Port
+        (Port : in out Concorde.Installations.Root_Installation_Type'Class);
+
+      -----------------
+      -- Update_Port --
+      -----------------
+
+      procedure Update_Port
+        (Port : in out Concorde.Installations.Root_Installation_Type'Class)
+      is
+      begin
+         Port.Add_Cash (Cash);
+         Port.Remove_Quantity (Commodity, New_Quantity, Cash);
+      end Update_Port;
+
+   begin
+      Concorde.Installations.Db.Update
+        (World.Port.Reference, Update_Port'Access);
+      Quantity := New_Quantity;
+   end Sell;
+
+   ----------------
+   -- Sell_Price --
+   ----------------
+
+   function Sell_Price
+     (World     : Root_World_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Price_Type
+   is
+--        use Concorde.Money;
+      use Concorde.Quantities;
+      Base_Price : constant Concorde.Money.Price_Type :=
+                     (if World.Port.Get_Quantity (Commodity) > Zero
+                      then World.Port.Get_Average_Price (Commodity)
+                      else World.Market.Last_Average_Bid (Commodity));
+   begin
+--        World.Port.Log_Price
+--          (Commodity.Name & ": stock price "
+--           & (if World.Port.Get_Quantity (Commodity) > Zero
+--             then Image (World.Port.Get_Average_Price (Commodity))
+--             else "-")
+--           & "; local average "
+--           & Image (World.Market.Last_Average_Bid (Commodity))
+--           & "; with export tax "
+--           & Image (Concorde.Money.Add_Tax
+--             (Base_Price,
+--                  World.Government.Tax_Rate
+--                    (Concorde.Trades.Export, Commodity))));
+
+      return Concorde.Money.Adjust_Price
+        (Concorde.Money.Add_Tax
+           (Base_Price,
+            World.Government.Tax_Rate
+              (Concorde.Trades.Export, Commodity)),
+         1.1);
+   end Sell_Price;
 
    -----------------
    -- Set_Capital --

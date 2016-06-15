@@ -61,6 +61,14 @@ package Concorde.Agents is
       Quantity  : Concorde.Quantities.Quantity;
       Cost      : Concorde.Money.Money_Type);
 
+   overriding procedure Clear_Stock
+     (Agent    : in out Root_Agent_Type);
+
+   overriding procedure Scan_Stock
+     (Agent    : Root_Agent_Type;
+      Process  : not null access
+        procedure (Commodity : Concorde.Commodities.Commodity_Type));
+
    overriding function Maximum_Offer_Quantity
      (Agent     : Root_Agent_Type;
       Offer     : Concorde.Trades.Offer_Type;

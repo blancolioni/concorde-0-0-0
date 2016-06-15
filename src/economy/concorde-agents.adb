@@ -51,6 +51,17 @@ package body Concorde.Agents is
       return Agent.Cash;
    end Cash;
 
+   -----------------
+   -- Clear_Stock --
+   -----------------
+
+   overriding procedure Clear_Stock
+     (Agent    : in out Root_Agent_Type)
+   is
+   begin
+      Agent.Stock.Clear_Stock;
+   end Clear_Stock;
+
    ----------------------
    -- Create_Ask_Price --
    ----------------------
@@ -633,6 +644,19 @@ package body Concorde.Agents is
    begin
       Agent.Set_Cash (Agent.Cash - Amount);
    end Remove_Cash;
+
+   ----------------
+   -- Scan_Stock --
+   ----------------
+
+   overriding procedure Scan_Stock
+     (Agent    : Root_Agent_Type;
+      Process  : not null access
+        procedure (Commodity : Concorde.Commodities.Commodity_Type))
+   is
+   begin
+      Agent.Stock.Scan_Stock (Process);
+   end Scan_Stock;
 
    --------------
    -- Set_Cash --

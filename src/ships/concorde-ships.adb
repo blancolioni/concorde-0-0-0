@@ -5,6 +5,7 @@ with Concorde.Systems;
 with Concorde.Money;
 with Concorde.Random;
 
+with Concorde.Commodities.Db;
 with Concorde.Empires.Db;
 with Concorde.Modules.Db;
 with Concorde.Ships.Db;
@@ -23,6 +24,15 @@ package body Concorde.Ships is
    procedure Calculate_Damage
      (Ship : in out Root_Ship_Type'Class);
 
+   procedure Ship_Check_Requirements
+     (Ship      : in out Root_Ship_Type'Class);
+
+   procedure Ship_Buy_Commodities
+     (Ship      : not null access constant Root_Ship_Type'Class);
+
+   procedure Ship_Sell_Commodities
+     (Ship      : not null access constant Root_Ship_Type'Class);
+
    -------------------
    -- Add_Buy_Order --
    -------------------
@@ -36,7 +46,7 @@ package body Concorde.Ships is
    is
    begin
       Ship.Orders.Append
-        ((Buy, World, Item, Quantity));
+        ((Buy, World, null, Item, Quantity));
    end Add_Buy_Order;
 
    --------------------
@@ -51,7 +61,7 @@ package body Concorde.Ships is
    is
    begin
       Ship.Orders.Append
-        ((Sell, World, Item, Ship.Hold_Quantity));
+        ((Sell, World, null, Item, Ship.Hold_Quantity));
    end Add_Sell_Order;
 
    ----------------------
@@ -68,6 +78,7 @@ package body Concorde.Ships is
 
       type Buy_Commodity is
          record
+            Market    : Concorde.Markets.Market_Type;
             Commodity : Concorde.Commodities.Commodity_Type;
             Supply    : Quantity;
             Demand    : Quantity;
@@ -134,6 +145,10 @@ package body Concorde.Ships is
          case Current_Order.Order is
             when No_Order =>
                null;
+            when Trade =>
+               Ship_Buy_Commodities (Ship);
+               Ship_Sell_Commodities (Ship);
+
             when Buy =>
                declare
                   use type Concorde.Worlds.World_Type;
@@ -161,7 +176,8 @@ package body Concorde.Ships is
                                     Score_Trade
                                       (Supply, Demand, Buy_At, Sell_At);
                         Rec     : constant Buy_Commodity :=
-                                    (Commodity => Current_Order.Commodity,
+                                    (Market    => To,
+                                     Commodity => Current_Order.Commodity,
                                      Supply    => Supply,
                                      Demand    => Demand,
                                      Buy_At    => Buy_At,
@@ -221,22 +237,45 @@ package body Concorde.Ships is
 
          for Trade of Buy_List loop
             declare
-               Desired : constant Quantity :=
-                           (if Trade.Quantity < Ship.Hold_Quantity
-                            then Trade.Quantity
-                            else Scale
-                              (Trade.Quantity,
-                               Real (Trade.Score) / Real (Total_Score)));
+               Raw_Desired : constant Quantity :=
+                               (if Trade.Quantity < Ship.Hold_Quantity
+                                then Trade.Quantity
+                                else Scale
+                                  (Trade.Quantity,
+                                   Real (Trade.Score) / Real (Total_Score)));
+               Actual_Desired : constant Quantity :=
+                                  Min (Raw_Desired,
+                                       Trade.Market.Current_Import_Demand
+                                         (Trade.Commodity));
+
             begin
-               Concorde.Agents.Create_Buy_Offer
-                 (Agent     => Ship,
-                  Commodity => Trade.Commodity,
-                  Desired   => Desired,
-                  Minimum   => Desired);
+               if Actual_Desired > Zero then
+                  Concorde.Agents.Create_Buy_Offer
+                    (Agent     => Ship,
+                     Commodity => Trade.Commodity,
+                     Desired   => Actual_Desired,
+                     Minimum   => Actual_Desired);
+               end if;
             end;
          end loop;
       end;
    end Add_Trade_Offers;
+
+   ---------------------
+   -- Add_Trade_Order --
+   ---------------------
+
+   procedure Add_Trade_Order
+     (Ship  : in out Root_Ship_Type'Class;
+      From  : not null access constant
+        Concorde.Worlds.Root_World_Type'Class;
+      To    : not null access constant
+        Concorde.Worlds.Root_World_Type'Class)
+   is
+   begin
+      Ship.Orders.Append
+        ((Trade, From, To, null, Concorde.Quantities.Zero));
+   end Add_Trade_Order;
 
    -----------
    -- Alive --
@@ -535,11 +574,13 @@ package body Concorde.Ships is
 
    procedure Execute_Arrival_Orders
      (Ship : in out Root_Ship_Type'Class)
-   is
-      pragma Unreferenced (Ship);
-   begin
-      null;
-   end Execute_Arrival_Orders;
+   is null;
+--        use Concorde.Quantities;
+--     begin
+--        if Ship.Buy_Requirements.Total_Quantity = Zero then
+--           Ship_Check_Requirements (Ship);
+--        end if;
+--     end Execute_Arrival_Orders;
 
    ----------------------
    -- Get_Class_Mounts --
@@ -801,6 +842,18 @@ package body Concorde.Ships is
    end Hold_Size;
 
    ---------------
+   -- Is_Trader --
+   ---------------
+
+   function Is_Trader
+     (Ship : Root_Ship_Type'Class)
+      return Boolean
+   is
+   begin
+      return Ship.Is_Trader;
+   end Is_Trader;
+
+   ---------------
    -- Long_Name --
    ---------------
 
@@ -849,6 +902,23 @@ package body Concorde.Ships is
    begin
       return Db.Get_Database;
    end Object_Database;
+
+   ---------------------
+   -- On_Update_Start --
+   ---------------------
+
+   overriding procedure On_Update_Start
+     (Ship : in out Root_Ship_Type)
+   is
+      use Concorde.Quantities;
+   begin
+      if Ship.Buy_Requirements.Total_Quantity = Zero
+        and then Ship.Total_Quantity = Zero
+        and then not Ship.Orders.Is_Empty
+      then
+         Ship_Check_Requirements (Ship);
+      end if;
+   end On_Update_Start;
 
    -----------
    -- Owner --
@@ -915,7 +985,7 @@ package body Concorde.Ships is
    is
    begin
       Ship.Orders.Append
-        ((Colonise, Concorde.Worlds.World_Type (Ship.Orbiting), null,
+        ((Colonise, Concorde.Worlds.World_Type (Ship.Orbiting), null, null,
          Quantities.Zero));
    end Set_Colonisation_Order;
 
@@ -973,6 +1043,25 @@ package body Concorde.Ships is
       Ship.Owner := New_Owner;
    end Set_Owner;
 
+   ---------------------
+   -- Set_Trade_Route --
+   ---------------------
+
+   procedure Set_Trade_Route
+     (Ship   : in out Root_Ship_Type'Class;
+      From   : not null access constant Concorde.Worlds.Root_World_Type'Class;
+      To     : not null access constant Concorde.Worlds.Root_World_Type'Class)
+   is
+   begin
+      Ship.Trade_From := From.Reference;
+      Ship.Trade_To := To.Reference;
+      Ship.Is_Trader := True;
+      Ship.Have_Trade_Orders := False;
+      if not Ship.Orbiting (From) then
+         Ship.Set_Destination (From);
+      end if;
+   end Set_Trade_Route;
+
    -------------
    -- Shields --
    -------------
@@ -984,6 +1073,134 @@ package body Concorde.Ships is
    begin
       return Ship.Current_Shields;
    end Shields;
+
+   --------------------------
+   -- Ship_Buy_Commodities --
+   --------------------------
+
+   procedure Ship_Buy_Commodities
+     (Ship      : not null access constant Root_Ship_Type'Class)
+   is
+      use Concorde.Quantities;
+
+      Space : constant Quantity :=
+                Ship.Hold_Quantity - Ship.Total_Quantity;
+
+      procedure Check (Commodity : Concorde.Commodities.Commodity_Type);
+
+      -----------
+      -- Check --
+      -----------
+
+      procedure Check (Commodity : Concorde.Commodities.Commodity_Type) is
+      begin
+         if Ship.Get_Quantity (Commodity)
+           >= Ship.Buy_Requirements.Get_Quantity (Commodity)
+         then
+            return;
+         end if;
+
+         Concorde.Agents.Create_Buy_Offer
+           (Agent     => Ship,
+            Commodity => Commodity,
+            Desired   => Ship.Buy_Requirements.Get_Quantity (Commodity),
+            Minimum   => Ship.Buy_Requirements.Get_Quantity (Commodity));
+      end Check;
+
+   begin
+      if Space > Zero then
+         Ship.Buy_Requirements.Scan_Stock (Check'Access);
+      else
+         Ship.Log_Trade ("no room for buying stock");
+      end if;
+   end Ship_Buy_Commodities;
+
+   -----------------------------
+   -- Ship_Check_Requirements --
+   -----------------------------
+
+   procedure Ship_Check_Requirements
+     (Ship      : in out Root_Ship_Type'Class)
+   is
+
+      procedure Check (Commodity : Concorde.Commodities.Commodity_Type);
+
+      -----------
+      -- Check --
+      -----------
+
+      procedure Check (Commodity : Concorde.Commodities.Commodity_Type) is
+         use Concorde.Money;
+         use Concorde.Quantities;
+         From : constant Concorde.Markets.Market_Type :=
+                  Ship.Orders.First_Element.World.Market;
+         To   : constant Concorde.Markets.Market_Type :=
+                  Ship.Orders.First_Element.Next.Market;
+         Supply : constant Quantity :=
+                    From.Current_Export_Supply
+                      (Commodity);
+         Demand : constant Quantity :=
+                    To.Current_Import_Demand (Commodity);
+         Buy_At : constant Concorde.Money.Price_Type :=
+                    From.Last_Average_Ask (Commodity);
+         Sell_At : constant Concorde.Money.Price_Type :=
+                     To.Last_Average_Bid (Commodity);
+      begin
+         if Supply > Zero and then Demand > Zero
+           and then Sell_At > Buy_At
+         then
+            Ship.Log_Trade
+              (Commodity.Name
+               & ": supply "
+               & Image (Supply)
+               & " @ "
+               & Money.Image (Buy_At)
+               & "; demand at "
+               & To.Name
+               & " is "
+               & Image (Demand)
+               & " @ "
+               & Money.Image (Sell_At));
+            declare
+               Wanted : constant Quantity :=
+                          Min (Ship.Hold_Quantity, Min (Supply, Demand));
+            begin
+               Ship.Buy_Requirements.Set_Quantity
+                 (Commodity, Wanted, Total (Buy_At, Wanted));
+            end;
+         end if;
+      end Check;
+
+   begin
+      Concorde.Commodities.Db.Scan (Check'Access);
+   end Ship_Check_Requirements;
+
+   ---------------------------
+   -- Ship_Sell_Commodities --
+   ---------------------------
+
+   procedure Ship_Sell_Commodities
+     (Ship      : not null access constant Root_Ship_Type'Class)
+   is
+      procedure Check (Commodity : Concorde.Commodities.Commodity_Type);
+
+      -----------
+      -- Check --
+      -----------
+
+      procedure Check (Commodity : Concorde.Commodities.Commodity_Type) is
+         use Concorde.Quantities;
+      begin
+         if Ship.Buy_Requirements.Get_Quantity (Commodity) = Zero then
+            Ship.Create_Sell_Offer
+              (Commodity => Commodity,
+               Available => Ship.Get_Quantity (Commodity),
+               Minimum   => Ship.Get_Value (Commodity));
+         end if;
+      end Check;
+   begin
+      Ship.Scan_Stock (Check'Access);
+   end Ship_Sell_Commodities;
 
    -----------------------
    -- Short_Description --

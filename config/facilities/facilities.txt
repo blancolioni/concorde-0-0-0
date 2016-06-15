@@ -12,6 +12,23 @@ hub = { class = Colony_Hub
                     military = 5
                   }
       }
+	  
+port = { class = Port
+         name = "Orbital Port"
+         power = 10
+         capacity = 100000
+         workers = { executive = 5
+                     tech = 5
+                     unskilled = 10
+                   }
+         modules = { commercial = 5
+                     industrial = 5
+                     habitation = 10
+                     military = 5
+                   }
+       }
+	  
+	  
 
 consulate = { class = consulate
               name = "Trade Consulate"
