@@ -108,7 +108,7 @@ package body Concorde.Worlds is
            (World.Market.Last_Average_Bid (Commodity),
             World.Government.Tax_Rate
               (Concorde.Trades.Import, Commodity)),
-         0.8);
+         0.9);
    end Buy_Price;
 
    --------------
@@ -512,18 +512,32 @@ package body Concorde.Worlds is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Money.Price_Type
    is
+--        use Concorde.Money;
       use Concorde.Quantities;
       Base_Price : constant Concorde.Money.Price_Type :=
                      (if World.Port.Get_Quantity (Commodity) > Zero
                       then World.Port.Get_Average_Price (Commodity)
                       else World.Market.Last_Average_Bid (Commodity));
    begin
+--        World.Port.Log_Price
+--          (Commodity.Name & ": stock price "
+--           & (if World.Port.Get_Quantity (Commodity) > Zero
+--             then Image (World.Port.Get_Average_Price (Commodity))
+--             else "-")
+--           & "; local average "
+--           & Image (World.Market.Last_Average_Bid (Commodity))
+--           & "; with export tax "
+--           & Image (Concorde.Money.Add_Tax
+--             (Base_Price,
+--                  World.Government.Tax_Rate
+--                    (Concorde.Trades.Export, Commodity))));
+
       return Concorde.Money.Adjust_Price
-        (Concorde.Money.Tax
+        (Concorde.Money.Add_Tax
            (Base_Price,
             World.Government.Tax_Rate
               (Concorde.Trades.Export, Commodity)),
-         1.2);
+         1.1);
    end Sell_Price;
 
    -----------------
