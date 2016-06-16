@@ -151,8 +151,13 @@ package body Concorde.Money is
                    Quantity : Quantities.Quantity)
                    return Price_Type
    is
+      use type Quantities.Quantity;
    begin
-      return Price_Type (Real (Total) / Quantities.To_Real (Quantity));
+      if Quantity = Quantities.Zero then
+         return Zero;
+      else
+         return Price_Type (Real (Total) / Quantities.To_Real (Quantity));
+      end if;
    end Price;
 
    -----------

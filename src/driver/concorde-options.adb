@@ -387,4 +387,13 @@ package body Concorde.Options is
       return Integer_Value ("world-sector-size", Default => 1400);
    end World_Sector_Size;
 
+   --------------------
+   -- Write_Accounts --
+   --------------------
+
+   function Write_Accounts return Boolean is
+   begin
+      return Boolean_Value ("write-accounts");
+   end Write_Accounts;
+
 end Concorde.Options;

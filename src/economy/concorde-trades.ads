@@ -173,11 +173,17 @@ package Concorde.Trades is
    is abstract;
 
    procedure Execute_Trade
-     (Trader    : Trader_Interface;
+     (Trader    : in out Trader_Interface;
       Offer     : Offer_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity;
       Cost      : Concorde.Money.Money_Type)
+   is abstract;
+
+   procedure Update_Trader
+     (Trader : Trader_Interface;
+      Update : not null access
+        procedure (Trader : in out Trader_Interface'Class))
    is abstract;
 
    function Maximum_Offer_Quantity

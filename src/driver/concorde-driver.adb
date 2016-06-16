@@ -22,6 +22,7 @@ with Concorde.Gtk_UI;
 with Concorde.Empires.Logging;
 
 with Concorde.Options;
+with Concorde.Reports;
 
 with Concorde.Players.Registry;
 
@@ -103,6 +104,10 @@ begin
    WL.Work.Stop_Work_Tasks;
 
    Concorde.Empires.Reports.Report_Empires;
+
+   if Concorde.Options.Write_Accounts then
+      Concorde.Reports.Write_Accounts;
+   end if;
 
    Concorde.Logging.Stop_Logging;
 

@@ -568,12 +568,31 @@ package body Concorde.Markets is
                   Ask.Total_Cost := Ask.Total_Cost + Money_Without_Tax;
                   Bid.Total_Cost := Bid.Total_Cost + Money_With_Tax;
 
-                  Ask.Agent.Execute_Trade
-                    (Concorde.Trades.Sell, Commodity,
-                     Traded_Quantity, Money_Without_Tax);
-                  Bid.Agent.Execute_Trade
-                    (Concorde.Trades.Buy, Commodity,
-                     Traded_Quantity, Money_With_Tax);
+                  declare
+                     generic
+                        Buy_Or_Sell : Concorde.Trades.Offer_Type;
+                     procedure Execute
+                       (Trader : in out Trades.Trader_Interface'Class);
+
+                     procedure Execute
+                       (Trader : in out Trades.Trader_Interface'Class)
+                     is
+                     begin
+                        Trader.Execute_Trade
+                          (Buy_Or_Sell, Commodity,
+                           Traded_Quantity, Money_Without_Tax);
+                     end Execute;
+
+                     procedure Execute_Buy is
+                       new Execute (Concorde.Trades.Buy);
+
+                     procedure Execute_Sell is
+                       new Execute (Concorde.Trades.Sell);
+
+                  begin
+                     Ask.Agent.Update_Trader (Execute_Sell'Access);
+                     Bid.Agent.Update_Trader (Execute_Buy'Access);
+                  end;
 
                   Manager.Tax_Receipt
                     (Commodity => Commodity,
