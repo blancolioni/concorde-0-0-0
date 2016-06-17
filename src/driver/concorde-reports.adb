@@ -45,7 +45,7 @@ package body Concorde.Reports is
               & "/../log/accounts/"
               & Rec.Object_Database.Database_Class_Name
               & "-"
-              & Memor.To_String (Rec.Reference)
+              & Agent.Identifier
               & ".txt");
       Set_Output (File);
       Concorde.Agents.Reports.Write_Accounts (Agent);
