@@ -338,48 +338,30 @@ package body Concorde.Agents is
    -------------------
 
    overriding procedure Execute_Trade
-     (Agent     : Root_Agent_Type;
+     (Agent     : in out Root_Agent_Type;
       Offer     : Concorde.Trades.Offer_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity;
       Cost      : Concorde.Money.Money_Type)
    is
-      procedure Update
-        (Object : in out Memor.Root_Record_Type'Class);
-
-      ------------
-      -- Update --
-      ------------
-
-      procedure Update
-        (Object : in out Memor.Root_Record_Type'Class)
-      is
-         Agent : Root_Agent_Type'Class renames
-                   Root_Agent_Type'Class (Object);
-      begin
-         case Offer is
-            when Concorde.Trades.Buy =>
-               Agent.Add_Quantity (Commodity, Quantity, Cost);
-               Agent.Remove_Cash (Cost);
-            when Concorde.Trades.Sell =>
-               Agent.Remove_Quantity (Commodity, Quantity, Cost);
-               Agent.Add_Cash (Cost);
-         end case;
-
-         Agent.Account.Append
-           ((Date       => Concorde.Dates.Current_Date,
-             Item       => Commodity,
-             Entry_Type => Offer,
-             Quantity   => Quantity,
-             Cost       => Cost,
-             Balance    => Agent.Cash));
-
-      end Update;
-
    begin
 
-      Root_Agent_Type'Class (Agent).Object_Database.Update
-        (Agent.Reference, Update'Access);
+      case Offer is
+         when Concorde.Trades.Buy =>
+            Agent.Add_Quantity (Commodity, Quantity, Cost);
+            Agent.Remove_Cash (Cost);
+         when Concorde.Trades.Sell =>
+            Agent.Remove_Quantity (Commodity, Quantity, Cost);
+            Agent.Add_Cash (Cost);
+      end case;
+
+      Agent.Account.Append
+        ((Date       => Concorde.Dates.Current_Date,
+          Item       => Commodity,
+          Entry_Type => Offer,
+          Quantity   => Quantity,
+          Cost       => Cost,
+          Balance    => Agent.Cash));
 
    end Execute_Trade;
 
@@ -893,5 +875,30 @@ package body Concorde.Agents is
          Agent.Belief.Element (Commodity.Reference).all := Belief;
       end if;
    end Update_Price_Belief;
+
+   -------------------
+   -- Update_Trader --
+   -------------------
+
+   overriding procedure Update_Trader
+     (Agent  : Root_Agent_Type;
+      Update : not null access
+        procedure (Agent : in out Concorde.Trades.Trader_Interface'Class))
+   is
+      procedure Do_Update (Rec : in out Memor.Root_Record_Type'Class);
+
+      ---------------
+      -- Do_Update --
+      ---------------
+
+      procedure Do_Update (Rec : in out Memor.Root_Record_Type'Class) is
+      begin
+         Update (Root_Agent_Type'Class (Rec));
+      end Do_Update;
+
+   begin
+      Root_Agent_Type'Class (Agent).Object_Database.Update
+        (Agent.Reference, Do_Update'Access);
+   end Update_Trader;
 
 end Concorde.Agents;

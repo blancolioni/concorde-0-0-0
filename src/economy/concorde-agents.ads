@@ -55,11 +55,16 @@ package Concorde.Agents is
       Value    : Concorde.Money.Money_Type);
 
    overriding procedure Execute_Trade
-     (Agent     : Root_Agent_Type;
+     (Agent     : in out Root_Agent_Type;
       Offer     : Concorde.Trades.Offer_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity;
       Cost      : Concorde.Money.Money_Type);
+
+   overriding procedure Update_Trader
+     (Agent : Root_Agent_Type;
+      Update : not null access
+        procedure (Agent : in out Concorde.Trades.Trader_Interface'Class));
 
    overriding procedure Clear_Stock
      (Agent    : in out Root_Agent_Type);

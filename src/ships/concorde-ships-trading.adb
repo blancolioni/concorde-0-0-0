@@ -134,8 +134,13 @@ package body Concorde.Ships.Trading is
                                 Total (Price, Traded_Quantity);
          begin
             World.Sell (Commodity, Traded_Quantity);
-            Ship.Remove_Cash (Cost);
-            Ship.Add_Quantity (Commodity, Traded_Quantity, Cost);
+
+            Ship.Execute_Trade
+              (Offer     => Concorde.Trades.Buy,
+               Commodity => Commodity,
+               Quantity  => Traded_Quantity,
+               Cost      => Cost);
+
             Ship.Log_Trade
               ("bought " & Image (Traded_Quantity)
                & "/" & Image (Required)
@@ -195,8 +200,12 @@ package body Concorde.Ships.Trading is
                                 Total (Price, Traded_Quantity);
          begin
             World.Buy (Commodity, Traded_Quantity);
-            Ship.Remove_Quantity (Commodity, Traded_Quantity, Cost);
-            Ship.Add_Cash (Cost);
+            Ship.Execute_Trade
+              (Offer     => Concorde.Trades.Sell,
+               Commodity => Commodity,
+               Quantity  => Traded_Quantity,
+               Cost      => Cost);
+
             Ship.Log_Trade
               ("sold " & Image (Traded_Quantity)
                & "/" & Image (Min (Have, Available))
@@ -205,6 +214,7 @@ package body Concorde.Ships.Trading is
                & " @ "
                & Image (Price)
                & " ea");
+
             if Ship.Get_Quantity (Commodity) > Zero then
                Finished := False;
             end if;

@@ -23,6 +23,7 @@ package Concorde.Options is
    function World_Fractal_Iterations return Positive;
    function World_Height_Smoothing return Positive;
    function World_Sector_Size return Positive;
+   function Write_Accounts return Boolean;
 
    function Boolean_Value
      (Long_Name  : String;
