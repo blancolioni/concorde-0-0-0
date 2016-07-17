@@ -242,6 +242,7 @@ package body Concorde.Systems.Models is
 
    begin
       if not System_Models.Contains (System.Name) then
+         System.Check_Loaded;
          Result := new Root_Star_System_Model;
          Result.Initialise (System.Name);
          Result.System := System;

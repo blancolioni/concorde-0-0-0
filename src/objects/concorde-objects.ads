@@ -16,6 +16,12 @@ package Concorde.Objects is
      (Item : Root_Object_Type)
       return String;
 
+   procedure Check_Loaded (Item : Root_Object_Type'Class);
+
+   procedure Load
+     (Item : in out Root_Object_Type)
+   is null;
+
    overriding procedure Add_Watcher
      (Object  : in out Root_Object_Type;
       Watcher : not null access Concorde.Watchers.Watcher_Interface'Class);
@@ -75,6 +81,7 @@ private
      and Concorde.Watchers.Watched_Object_Interface with
       record
          Watchers : Concorde.Watchers.Watcher_List;
+         Loaded   : Boolean := False;
       end record;
 
    overriding procedure After_Change

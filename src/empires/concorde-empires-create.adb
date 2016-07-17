@@ -162,7 +162,8 @@ package body Concorde.Empires.Create is
         (Empire : Root_Empire_Type'Class)
       is
       begin
-         Concorde.Galaxy.Add_Systems (Taken, Empire.Capital.System, 0.4);
+         Concorde.Galaxy.Add_Systems
+           (Taken, Empire.Capital.System, 0.4);
       end Add_Taken_Systems;
 
       ------------
@@ -282,12 +283,15 @@ package body Concorde.Empires.Create is
 
          function OK_For_Start
            (System : Concorde.Systems.Star_System_Type)
-         return Boolean
+            return Boolean
          is
             use Concorde.Galaxy;
             Ns : constant Array_Of_Star_Systems :=
                    Neighbours (System);
          begin
+
+            System.Check_Loaded;
+
 --              if Imperial_Centre and then System.Index = 1 then
 --                 return False;
 --              end if;
@@ -404,7 +408,10 @@ package body Concorde.Empires.Create is
       end Create;
 
    begin
-      Db.Scan (Add_Taken_Systems'Access);
+      if False then
+         Db.Scan (Add_Taken_Systems'Access);
+      end if;
+
       return Db.Create (Create'Access);
    end New_Empire;
 

@@ -26,6 +26,32 @@ package body Concorde.Objects is
       Concorde.Watchers.Send_Changed (Object.Watchers, Object);
    end After_Change;
 
+   ------------------
+   -- Check_Loaded --
+   ------------------
+
+   procedure Check_Loaded (Item : Root_Object_Type'Class) is
+
+      procedure Perform_Load (RW_Item : in out Memor.Root_Record_Type'Class);
+
+      ------------------
+      -- Perform_Load --
+      ------------------
+
+      procedure Perform_Load
+        (RW_Item : in out Memor.Root_Record_Type'Class)
+      is
+      begin
+         Root_Object_Type'Class (RW_Item).Load;
+         Root_Object_Type'Class (RW_Item).Loaded := True;
+      end Perform_Load;
+
+   begin
+      if not Item.Loaded then
+         Item.Object_Database.Update (Item.Reference, Perform_Load'Access);
+      end if;
+   end Check_Loaded;
+
    ----------------
    -- Identifier --
    ----------------

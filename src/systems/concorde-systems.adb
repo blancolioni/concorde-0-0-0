@@ -3,15 +3,20 @@ with Ada.Exceptions;
 
 with Concorde.Constants;
 with Concorde.Elementary_Functions;
+with Concorde.Random;
 
 with Concorde.Locations;
 with Concorde.Worlds;
+with Concorde.Stars;
 
 with Concorde.Ships.Db;
 with Concorde.Systems.Db;
 
 with Concorde.Empires;
 with Concorde.Players;
+
+with Concorde.Worlds.Lists;
+with Concorde.Worlds.Create;
 
 package body Concorde.Systems is
 
@@ -270,6 +275,34 @@ package body Concorde.Systems is
    begin
       return System.Battle_Size;
    end Last_Battle_Size;
+
+   ----------
+   -- Load --
+   ----------
+
+   overriding procedure Load
+     (Star_System : in out Root_Star_System_Type)
+   is
+      List   : Concorde.Worlds.Lists.List;
+   begin
+      Concorde.Worlds.Create.Create_Worlds
+        (Db.Reference (Star_System),
+         Concorde.Stars.Star_Type (Star_System.Main_Object),
+         List);
+
+      for World of List loop
+         Star_System.Add_Object
+           (World,
+            Concorde.Geometry.Degrees_To_Radians
+              (Concorde.Random.Unit_Random * 360.0));
+      end loop;
+
+      Ada.Text_IO.Put_Line
+        (Star_System.Name & ":"
+         & Ada.Containers.Count_Type'Image
+           (List.Length) & " planets");
+
+   end Load;
 
    -------------
    -- Loyalty --

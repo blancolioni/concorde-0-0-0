@@ -142,7 +142,9 @@ package body Concorde.Systems.Create is
 
    begin
 
-      WL.Work.Add_Job (Work_Handle, Job);
+      if False then
+         WL.Work.Add_Job (Work_Handle, Job);
+      end if;
 
       return System;
 

@@ -241,4 +241,7 @@ private
      (Star_System : Root_Star_System_Type)
       return Memor.Root_Database_Type'Class;
 
+   overriding procedure Load
+     (Star_System : in out Root_Star_System_Type);
+
 end Concorde.Systems;
