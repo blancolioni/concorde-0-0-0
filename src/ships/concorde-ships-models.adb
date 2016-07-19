@@ -212,10 +212,10 @@ package body Concorde.Ships.Models is
                           X, Y  : Natural)
                           return String;
 
-   overriding
-   function Select_XY (Model : Ship_Model;
-                       X, Y  : Natural)
-                       return Lui.Models.Object_Model;
+   overriding function Select_XY
+     (Model : in out Ship_Model;
+      X, Y  : Natural)
+      return Lui.Models.Object_Model;
 
    overriding procedure Select_XY
      (Model : in out Ship_Model;
@@ -1120,7 +1120,7 @@ package body Concorde.Ships.Models is
    ---------------
 
    overriding function Select_XY
-     (Model : Ship_Model;
+     (Model : in out Ship_Model;
       X, Y  : Natural)
       return Lui.Models.Object_Model
    is

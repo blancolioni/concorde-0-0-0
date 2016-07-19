@@ -49,7 +49,7 @@ package body Concorde.Systems.Models is
    is (Model.Needs_Render);
 
    overriding function Select_XY
-     (Model : Root_Star_System_Model;
+     (Model : in out Root_Star_System_Model;
       X, Y  : Natural)
       return Lui.Models.Object_Model;
 
@@ -203,7 +203,7 @@ package body Concorde.Systems.Models is
    ---------------
 
    overriding function Select_XY
-     (Model : Root_Star_System_Model;
+     (Model : in out Root_Star_System_Model;
       X, Y  : Natural)
       return Lui.Models.Object_Model
    is
