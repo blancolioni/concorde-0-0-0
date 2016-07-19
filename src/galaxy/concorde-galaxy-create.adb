@@ -6,6 +6,7 @@ with Ada.Numerics.Float_Random;
 with WL.Work;
 
 with Concorde.Elementary_Functions;
+with Concorde.Geometry;
 with Concorde.Voronoi_Diagrams;
 
 with Concorde.Systems.Create;
@@ -14,12 +15,52 @@ with Concorde.Scenarios;
 
 package body Concorde.Galaxy.Create is
 
+   procedure Cartesian_Location
+     (Gen     : Ada.Numerics.Float_Random.Generator;
+      X, Y, Z : out Real);
+
+   procedure Spherical_Location
+     (Gen     : Ada.Numerics.Float_Random.Generator;
+      X, Y, Z : out Real);
+
+   procedure Spiral_Location
+     (Gen     : Ada.Numerics.Float_Random.Generator;
+      X, Y, Z : out Real);
+
+   function Random_Normal
+     (Gen           : Ada.Numerics.Float_Random.Generator;
+      Std_Deviation : Non_Negative_Real)
+      return Real;
+
+   function Clamp
+     (X          : Real;
+      Max        : Real := 1.0;
+      Min        : Real := -1.0)
+      return Real
+   is ((if X < Min then Min elsif X > Max then Max else X));
+
+   ------------------------
+   -- Cartesian_Location --
+   ------------------------
+
+   procedure Cartesian_Location
+     (Gen     : Ada.Numerics.Float_Random.Generator;
+      X, Y, Z : out Real)
+   is
+      use Ada.Numerics.Float_Random;
+   begin
+      X := Real (Random (Gen) * 2.0 - 1.0);
+      Y := Real (Random (Gen) * 2.0 - 1.0);
+      Z := Real (Random (Gen) * 2.0 - 1.0);
+   end Cartesian_Location;
+
    -------------------
    -- Create_Galaxy --
    -------------------
 
    procedure Create_Galaxy
      (System_Count        : Natural;
+      Shape               : Galaxy_Shape;
       Average_Connections : Positive;
       Reset_Seed          : Boolean;
       Name_Generator      : WL.Random.Names.Name_Generator)
@@ -52,7 +93,7 @@ package body Concorde.Galaxy.Create is
       for I in 1 .. System_Count loop
          declare
             D : Non_Negative_Real := 0.0;
-            X, Y : Real := 0.0;
+            X, Y, Z : Real := 0.0;
          begin
             Xs (I) := 0.0;
             Ys (I) := 0.0;
@@ -60,8 +101,19 @@ package body Concorde.Galaxy.Create is
                while D < Min_Distance loop
                   Retries := Retries + 1;
                   D :=  Non_Negative_Real'Last;
-                  X := Real (Random (Gen) * 2.0 - 1.0);
-                  Y := Real (Random (Gen) * 2.0 - 1.0);
+                  case Shape is
+                     when Cube =>
+                        Cartesian_Location (Gen, X, Y, Z);
+                     when Sphere =>
+                        Spherical_Location (Gen, X, Y, Z);
+                     when Spiral =>
+                        Spiral_Location (Gen, X, Y, Z);
+                  end case;
+
+                  X := Clamp (X);
+                  Y := Clamp (Y);
+                  Z := Clamp (Z);
+
                   for J in 1 .. I - 1 loop
                      declare
                         Test_D : constant Real :=
@@ -294,5 +346,68 @@ package body Concorde.Galaxy.Create is
                              0, 2, 0);
       Ada.Text_IO.New_Line;
    end Create_Galaxy;
+
+   -------------------
+   -- Random_Normal --
+   -------------------
+
+   function Random_Normal
+     (Gen           : Ada.Numerics.Float_Random.Generator;
+      Std_Deviation : Non_Negative_Real)
+      return Real
+   is
+      Samples : constant := 12;
+      T       : Real := 0.0;
+   begin
+      for I in 1 .. Samples loop
+         T := T + Real (Ada.Numerics.Float_Random.Random (Gen));
+      end loop;
+      T := T - Real (Samples) / 2.0;
+      T := T * Std_Deviation;
+      return T;
+   end Random_Normal;
+
+   ------------------------
+   -- Spherical_Location --
+   ------------------------
+
+   procedure Spherical_Location
+     (Gen     : Ada.Numerics.Float_Random.Generator;
+      X, Y, Z : out Real)
+   is
+      use Concorde.Elementary_Functions;
+      R : constant Non_Negative_Real :=
+            Real (Ada.Numerics.Float_Random.Random (Gen));
+      D : Non_Negative_Real;
+   begin
+      Cartesian_Location (Gen, X, Y, Z);
+      D := Sqrt (X ** 2 + Y ** 2 + Z ** 2);
+      X := X / D * R;
+      Y := Y / D * R;
+      Z := Z / D * R;
+   end Spherical_Location;
+
+   ---------------------
+   -- Spiral_Location --
+   ---------------------
+
+   procedure Spiral_Location
+     (Gen     : Ada.Numerics.Float_Random.Generator;
+      X, Y, Z : out Real)
+   is
+      use Ada.Numerics.Float_Random;
+      use Concorde.Elementary_Functions;
+      use Concorde.Geometry;
+      Degrees : constant Real :=
+                  (Real (Random (Gen)) * 1440.0);
+      R     : constant Real :=
+                  Sqrt (abs Degrees) / 40.0
+                  * (if Random (Gen) < 0.5 then -1.0 else 1.0);
+      Theta : constant Radians := Degrees_To_Radians (Degrees);
+   begin
+      X := R * Cos (Theta) + Random_Normal (Gen, 0.02);
+      Y := R * Sin (Theta) + Random_Normal (Gen, 0.02);
+      Z := Random_Normal (Gen, 0.1);
+   end Spiral_Location;
 
 end Concorde.Galaxy.Create;

@@ -56,6 +56,7 @@ begin
 
    Concorde.Galaxy.Create.Create_Galaxy
      (System_Count        => Concorde.Options.Number_Of_Systems,
+      Shape => Concorde.Galaxy.Create.Spiral,
       Average_Connections => Concorde.Options.Average_Connections,
       Reset_Seed          => Concorde.Options.Randomise,
       Name_Generator      => Name_Generator);
