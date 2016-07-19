@@ -72,7 +72,7 @@ package body Concorde.Galaxy.Create is
       Total_Connections : Natural := 0;
       Gen               : Generator;
       Influence         : Concorde.Voronoi_Diagrams.Voronoi_Diagram;
-      Xs, Ys            : array (1 .. System_Count) of Real;
+      Xs, Ys, Zs        : array (1 .. System_Count) of Real;
       Retries           : Natural := 0;
       Create_Handle     : WL.Work.Work_Handle :=
                             WL.Work.Create_Handle;
@@ -97,44 +97,45 @@ package body Concorde.Galaxy.Create is
          begin
             Xs (I) := 0.0;
             Ys (I) := 0.0;
-            if I > 1 or else not Concorde.Scenarios.Imperial_Centre then
-               while D < Min_Distance loop
-                  Retries := Retries + 1;
-                  D :=  Non_Negative_Real'Last;
-                  case Shape is
-                     when Cube =>
-                        Cartesian_Location (Gen, X, Y, Z);
-                     when Sphere =>
-                        Spherical_Location (Gen, X, Y, Z);
-                     when Spiral =>
-                        Spiral_Location (Gen, X, Y, Z);
-                  end case;
 
-                  X := Clamp (X);
-                  Y := Clamp (Y);
-                  Z := Clamp (Z);
+            while D < Min_Distance loop
+               Retries := Retries + 1;
+               D :=  Non_Negative_Real'Last;
+               case Shape is
+                  when Cube =>
+                     Cartesian_Location (Gen, X, Y, Z);
+                  when Sphere =>
+                     Spherical_Location (Gen, X, Y, Z);
+                  when Spiral =>
+                     Spiral_Location (Gen, X, Y, Z);
+               end case;
 
-                  for J in 1 .. I - 1 loop
-                     declare
-                        Test_D : constant Real :=
-                                   (X - Xs (J)) ** 2 + (Y - Ys (J)) ** 2;
-                     begin
-                        if J = 1 then
-                           if Test_D / 2.0 < D then
-                              D := Test_D / 2.0;
-                           end if;
-                        else
-                           if Test_D < D then
-                              D := Test_D;
-                           end if;
+               X := Clamp (X);
+               Y := Clamp (Y);
+               Z := Clamp (Z);
+
+               for J in 1 .. I - 1 loop
+                  declare
+                     Test_D : constant Real :=
+                                (X - Xs (J)) ** 2 + (Y - Ys (J)) ** 2;
+                  begin
+                     if J = 1 then
+                        if Test_D / 2.0 < D then
+                           D := Test_D / 2.0;
                         end if;
-                     end;
-                  end loop;
+                     else
+                        if Test_D < D then
+                           D := Test_D;
+                        end if;
+                     end if;
+                  end;
                end loop;
-            end if;
+            end loop;
 
             Xs (I) := X;
             Ys (I) := Y;
+            Zs (I) := Z;
+
             Influence.Add_Point (X, Y);
 
          end;
@@ -165,7 +166,7 @@ package body Concorde.Galaxy.Create is
                System : constant Concorde.Systems.Star_System_Type :=
                           Concorde.Systems.Create.New_System
                             (I, Name, Create_Handle,
-                             Xs (I), Ys (I), Boundary,
+                             Xs (I), Ys (I), Zs (I), Boundary,
                              Production => 0.025,
                              Capacity   => 2.0);
             begin
@@ -407,7 +408,7 @@ package body Concorde.Galaxy.Create is
    begin
       X := R * Cos (Theta) + Random_Normal (Gen, 0.02);
       Y := R * Sin (Theta) + Random_Normal (Gen, 0.02);
-      Z := Random_Normal (Gen, 0.1);
+      Z := Random_Normal (Gen, 0.02);
    end Spiral_Location;
 
 end Concorde.Galaxy.Create;
