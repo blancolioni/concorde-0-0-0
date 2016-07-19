@@ -960,6 +960,7 @@ package body Concorde.Worlds.Tile_Models is
             end Add_Market_Row;
 
          begin
+            World.Check_Loaded;
             M_Table.World := World;
 
             Concorde.Commodities.Db.Scan (Add_Market_Row'Access);

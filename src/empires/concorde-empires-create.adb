@@ -393,6 +393,7 @@ package body Concorde.Empires.Create is
          New_Empire.Default_Ship := new String'(Default_Ship_Design);
          Concorde.Galaxy.Update_System
            (Start_System, Choose_System'Access);
+         Start_World.Check_Loaded;
          Concorde.Worlds.Db.Update
            (Start_World.Reference, Choose_World'Access);
 

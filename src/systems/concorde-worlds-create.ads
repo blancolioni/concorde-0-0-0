@@ -10,4 +10,10 @@ package Concorde.Worlds.Create is
       Star   : Concorde.Stars.Star_Type;
       List   : in out Concorde.Worlds.Lists.List);
 
+   procedure Create_Sector_Layout
+     (World       : in out Root_World_Type'Class);
+
+   procedure Create_Resources
+     (World : in out Root_World_Type'Class);
+
 end Concorde.Worlds.Create;

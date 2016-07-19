@@ -411,4 +411,6 @@ private
       return access constant Concorde.Systems.Root_Star_System_Type'Class
    is (World.System);
 
+   overriding procedure Load (World : in out Root_World_Type);
+
 end Concorde.Worlds;

@@ -441,6 +441,7 @@ package body Concorde.Worlds.Models is
          declare
             Result : constant World_Model_Access := new Root_World_Model;
          begin
+            World.Check_Loaded;
             Result.Initialise (World.Name);
             Result.World := World;
             Result.Selected_Sector := World.Sectors'Length / 2;

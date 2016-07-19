@@ -7,6 +7,8 @@ with Concorde.Options;
 with Concorde.Installations.Db;
 with Concorde.Worlds.Db;
 
+with Concorde.Worlds.Create;
+
 package body Concorde.Worlds is
 
    ----------------------
@@ -263,6 +265,20 @@ package body Concorde.Worlds is
    begin
       return World.Is_Capital_World;
    end Is_Capital;
+
+   ----------
+   -- Load --
+   ----------
+
+   overriding procedure Load (World : in out Root_World_Type) is
+   begin
+      if World.Category /= Jovian
+        and then World.Category /= Sub_Jovian
+      then
+         Concorde.Worlds.Create.Create_Sector_Layout (World);
+         Concorde.Worlds.Create.Create_Resources (World);
+      end if;
+   end Load;
 
    ------------
    -- Market --

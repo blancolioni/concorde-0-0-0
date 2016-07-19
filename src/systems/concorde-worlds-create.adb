@@ -74,12 +74,6 @@ package body Concorde.Worlds.Create is
       Large_Mass  : Real)
       return Real with Unreferenced;
 
-   procedure Create_Sector_Layout
-     (World       : in out Root_World_Type'Class);
-
-   procedure Create_Resources
-     (World : in out Root_World_Type'Class);
-
    function Calculate_Kothari_Radius
      (Earth_Masses : Real;
       Jovian       : Boolean;
@@ -1502,19 +1496,7 @@ package body Concorde.Worlds.Create is
 --                         (" " & To_Lower (World_Category'Image (Category)));
 --                    end;
 
-                  if World.Category /= Jovian
-                    and then World.Category /= Sub_Jovian
-                  then
-                     Create_Sector_Layout
-                       (World);
-                  end if;
                end;
-
-               if World.Category /= Jovian
-                 and then World.Category /= Sub_Jovian
-               then
-                  Create_Resources (World);
-               end if;
 
             end Create;
 
