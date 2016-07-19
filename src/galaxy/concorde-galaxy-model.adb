@@ -152,6 +152,7 @@ package body Concorde.Galaxy.Model is
          Battles            : Lui.Tables.Model_Table;
          Arena              : access Concorde.Combat.Root_Combat_Arena'Class;
          Needs_Render       : Boolean := True;
+         Selected_System    : Concorde.Systems.Star_System_Type;
       end record;
 
    overriding procedure On_Object_Changed
@@ -172,7 +173,7 @@ package body Concorde.Galaxy.Model is
       Child : not null access Lui.Models.Root_Object_Model'Class);
 
    overriding function Select_XY
-     (Model : Root_Galaxy_Model;
+     (Model : in out Root_Galaxy_Model;
       X, Y  : Natural)
       return Lui.Models.Object_Model;
 
@@ -954,7 +955,7 @@ package body Concorde.Galaxy.Model is
    ---------------
 
    overriding function Select_XY
-     (Model : Root_Galaxy_Model;
+     (Model : in out Root_Galaxy_Model;
       X, Y  : Natural)
       return Lui.Models.Object_Model
    is
@@ -967,7 +968,14 @@ package body Concorde.Galaxy.Model is
       end if;
 
       if System /= null then
-         return Concorde.Systems.Models.System_Model (System);
+         if System = Model.Selected_System then
+            return Concorde.Systems.Models.System_Model (System);
+         else
+            Model.Selected_System := System;
+            Model.Start_Transition
+              (System.X, System.Y, System.Z + 0.1, 2.0);
+            return null;
+         end if;
       else
          return null;
       end if;
