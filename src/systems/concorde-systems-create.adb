@@ -81,7 +81,7 @@ package body Concorde.Systems.Create is
      (Index       : Positive;
       Name        : String;
       Work_Handle : WL.Work.Work_Handle;
-      X, Y        : Real;
+      X, Y, Z     : Real;
       Boundary    : System_Influence_Boundary;
       Production  : Non_Negative_Real;
       Capacity    : Non_Negative_Real)
@@ -113,6 +113,8 @@ package body Concorde.Systems.Create is
          System.Index := Index;
          System.X := X;
          System.Y := Y;
+         System.Z := Z;
+
          System.Production := Production;
          System.Capacity := Capacity;
          System.Boundary :=

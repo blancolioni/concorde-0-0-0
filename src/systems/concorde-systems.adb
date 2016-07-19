@@ -526,4 +526,13 @@ package body Concorde.Systems is
       return System.Y;
    end Y;
 
+   -------
+   -- Z --
+   -------
+
+   function Z (System : Root_Star_System_Type'Class) return Real is
+   begin
+      return System.Z;
+   end Z;
+
 end Concorde.Systems;
