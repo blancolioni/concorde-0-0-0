@@ -625,6 +625,8 @@ package body Concorde.Galaxy.Model is
                Last_Render_Layer => 3,
                Tables            => (E, B));
 
+            Result.Drag_Rotation_Behaviour;
+
             Result.Set_Eye_Position (0.0, 0.0, 2.2);
             Result.Show_Capital_Names :=
               Concorde.Options.Show_Capital_Names;
@@ -723,10 +725,11 @@ package body Concorde.Galaxy.Model is
                              Galaxy_Graph.Vertex (I);
                   X      : constant Real := System.X;
                   Y      : constant Real := System.Y;
+                  Z      : constant Real := System.Z;
                   Radius : constant Non_Negative_Real :=
                              Concorde.Elementary_Functions.Sqrt
                                (System.Main_Object.Radius)
-                               * 6.0 / Model.Eye_Z;
+                               * 1.0 / Model.Eye_Z;
                   System_Radius : constant Positive :=
                                     Natural'Max (1, Natural (Radius));
                   Screen_X : Integer;
@@ -734,14 +737,17 @@ package body Concorde.Galaxy.Model is
                   Screen_Z : Real;
                   Owner    : constant Concorde.Empires.Empire_Type :=
                                System.Owner;
-                  Colour   : constant Lui.Colours.Colour_Type :=
+                  Colour   : Lui.Colours.Colour_Type :=
                                (if Owner /= null
                                 then Owner.Colour
                                 else System.Main_Object.Colour);
                begin
                   Model.Get_Screen_Coordinates
-                    (X, Y, 0.0, Screen_X, Screen_Y, Screen_Z);
-                  if Star_Pass then
+                    (X, Y, Z, Screen_X, Screen_Y, Screen_Z);
+
+                  if Screen_Z not in -1.0 .. 1.0 then
+                     null;
+                  elsif Star_Pass then
 
                      Model.Rendered_Systems.Replace_Element
                        (System.Reference,
@@ -780,10 +786,16 @@ package body Concorde.Galaxy.Model is
                         end;
                      end if;
 
+                     if Screen_Z >= 0.0 then
+                        Colour := Lui.Colours.Brighten (Colour, Screen_Z);
+                     else
+                        Colour := Lui.Colours.Apply_Alpha (Colour, -Screen_Z);
+                     end if;
+
                      Renderer.Draw_Circle
                        (X          => Screen_X,
                         Y          => Screen_Y,
-                        Radius     => Positive (Radius),
+                        Radius     => Natural'Max (Natural (Radius), 1),
                         Colour     => Colour,
                         Filled     => True,
                         Line_Width => 1);
