@@ -54,12 +54,21 @@ begin
 
    Concorde.Configure.Load_Configuration;
 
-   Concorde.Galaxy.Create.Create_Galaxy
-     (System_Count        => Concorde.Options.Number_Of_Systems,
-      Shape => Concorde.Galaxy.Create.Spiral,
-      Average_Connections => Concorde.Options.Average_Connections,
-      Reset_Seed          => Concorde.Options.Randomise,
-      Name_Generator      => Name_Generator);
+   declare
+      Shape : constant Concorde.Galaxy.Create.Galaxy_Shape :=
+                Concorde.Galaxy.Create.Galaxy_Shape'Value
+                  (Concorde.Options.Galaxy_Shape);
+   begin
+      Concorde.Galaxy.Create.Create_Galaxy
+        (System_Count        => Concorde.Options.Number_Of_Systems,
+         Shape               => Shape,
+         DX                  => Concorde.Options.System_X_Deviation,
+         DY                  => Concorde.Options.System_Y_Deviation,
+         DZ                  => Concorde.Options.System_Z_Deviation,
+         Average_Connections => Concorde.Options.Average_Connections,
+         Reset_Seed          => Concorde.Options.Randomise,
+         Name_Generator      => Name_Generator);
+   end;
 
    Concorde.Empires.Configure.Create_Empires
      (Count => Concorde.Options.Number_Of_Empires);

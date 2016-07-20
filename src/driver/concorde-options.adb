@@ -25,6 +25,12 @@ package body Concorde.Options is
       Default    : Integer := 0)
       return Integer;
 
+   function Real_Value
+     (Long_Name  : String;
+      Short_Name : Character := Character'Val (0);
+      Default    : Real := 0.0)
+      return Real;
+
    -------------------------
    -- Average_Connections --
    -------------------------
@@ -143,6 +149,15 @@ package body Concorde.Options is
       return Boolean_Value ("market-logging");
    end Enable_Market_Logging;
 
+   ------------------
+   -- Galaxy_Shape --
+   ------------------
+
+   function Galaxy_Shape return String is
+   begin
+      return String_Value ("galaxy-shape", 'g', "spiral");
+   end Galaxy_Shape;
+
    -------------------
    -- Integer_Value --
    -------------------
@@ -219,6 +234,26 @@ package body Concorde.Options is
    begin
       return Boolean_Value ("randomise", 'R');
    end Randomise;
+
+   ----------------
+   -- Real_Value --
+   ----------------
+
+   function Real_Value
+     (Long_Name  : String;
+      Short_Name : Character := Character'Val (0);
+      Default    : Real := 0.0)
+      return Real
+   is
+   begin
+      return Real'Value
+        (String_Value
+           (Long_Name, Short_Name,
+            Real'Image (Default)));
+   exception
+      when Constraint_Error =>
+         return Default;
+   end Real_Value;
 
    --------------
    -- Scenario --
@@ -308,6 +343,33 @@ package body Concorde.Options is
       end if;
 
    end String_Value;
+
+   ------------------------
+   -- System_X_Deviation --
+   ------------------------
+
+   function System_X_Deviation return Real is
+   begin
+      return Real_Value ("system-x-deviation", Default => 0.0);
+   end System_X_Deviation;
+
+   ------------------------
+   -- System_Y_Deviation --
+   ------------------------
+
+   function System_Y_Deviation return Real is
+   begin
+      return Real_Value ("system-y-deviation", Default => 0.0);
+   end System_Y_Deviation;
+
+   ------------------------
+   -- System_Z_Deviation --
+   ------------------------
+
+   function System_Z_Deviation return Real is
+   begin
+      return Real_Value ("system-z-deviation", Default => 0.0);
+   end System_Z_Deviation;
 
    -----------------
    -- Test_Battle --

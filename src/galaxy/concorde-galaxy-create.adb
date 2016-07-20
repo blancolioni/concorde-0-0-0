@@ -15,6 +15,8 @@ with Concorde.Scenarios;
 
 package body Concorde.Galaxy.Create is
 
+   Connect_Systems : constant Boolean := False;
+
    procedure Cartesian_Location
      (Gen     : Ada.Numerics.Float_Random.Generator;
       X, Y, Z : out Real);
@@ -61,6 +63,7 @@ package body Concorde.Galaxy.Create is
    procedure Create_Galaxy
      (System_Count        : Natural;
       Shape               : Galaxy_Shape;
+      DX, DY, DZ          : Real;
       Average_Connections : Positive;
       Reset_Seed          : Boolean;
       Name_Generator      : WL.Random.Names.Name_Generator)
@@ -108,6 +111,9 @@ package body Concorde.Galaxy.Create is
                      Spherical_Location (Gen, X, Y, Z);
                   when Spiral =>
                      Spiral_Location (Gen, X, Y, Z);
+                     X := X + Random_Normal (Gen, DX);
+                     Y := Y + Random_Normal (Gen, DY);
+                     Z := Z + Random_Normal (Gen, DZ);
                end case;
 
                X := Clamp (X);
@@ -226,126 +232,130 @@ package body Concorde.Galaxy.Create is
          end;
       end if;
 
-      for I in 1 .. System_Count loop
-         declare
-            function Sqrt (X : Non_Negative_Real) return Non_Negative_Real
+      if Connect_Systems then
+         for I in 1 .. System_Count loop
+            declare
+               function Sqrt (X : Non_Negative_Real) return Non_Negative_Real
                            renames Concorde.Elementary_Functions.Sqrt;
-            System : constant Star_System_Type :=
-                       Galaxy_Graph.Vertex (I);
-            X      : constant Real := System.X;
-            Y      : constant Real := System.Y;
-            Max_Connections : constant Natural :=
-                                (if Concorde.Scenarios.Imperial_Centre
-                                 then Natural'Max (10, Average_Connections)
-                                 else Average_Connections);
-            Ds     : array (1 .. Max_Connections) of Non_Negative_Real :=
-                                (others => Real'Last);
-            To              : array (1 .. Max_Connections) of Natural :=
-                                (others => 0);
-            Count  : Natural := Average_Connections;
-         begin
-            if I = 1 and then Concorde.Scenarios.Imperial_Centre then
-               Count := 0;
-            end if;
+               System          : constant Star_System_Type :=
+                                   Galaxy_Graph.Vertex (I);
+               X               : constant Real := System.X;
+               Y               : constant Real := System.Y;
+               Max_Connections : constant Natural :=
+                                   (if Concorde.Scenarios.Imperial_Centre
+                                    then Natural'Max (10, Average_Connections)
+                                    else Average_Connections);
+               Ds                   : array (1 .. Max_Connections)
+                 of Non_Negative_Real :=
+                   (others => Real'Last);
+               To              : array (1 .. Max_Connections) of Natural :=
+                                   (others => 0);
+               Count           : Natural := Average_Connections;
+            begin
+               if I = 1 and then Concorde.Scenarios.Imperial_Centre then
+                  Count := 0;
+               end if;
 
-            for J in 1 .. System_Count loop
-               exit when Count = 0;
-               if I /= J then
-                  if Galaxy_Graph.Connected (I, J) then
-                     Count := Count - 1;
-                  else
-                     declare
-                        Target : constant Star_System_Type :=
-                                   Galaxy_Graph.Vertex (J);
-                        D      : constant Non_Negative_Real :=
-                                   Sqrt ((X - Target.X) ** 2
-                                         + (Y - Target.Y) ** 2);
-                        Index : Natural := Count;
-                     begin
-                        while Index > 0 and then Ds (Index) > D loop
+               for J in 1 .. System_Count loop
+                  exit when Count = 0;
+                  if I /= J then
+                     if Galaxy_Graph.Connected (I, J) then
+                        Count := Count - 1;
+                     else
+                        declare
+                           Target : constant Star_System_Type :=
+                                      Galaxy_Graph.Vertex (J);
+                           D      : constant Non_Negative_Real :=
+                                      Sqrt ((X - Target.X) ** 2
+                                            + (Y - Target.Y) ** 2);
+                           Index  : Natural := Count;
+                        begin
+                           while Index > 0 and then Ds (Index) > D loop
+                              if Index < Count then
+                                 Ds (Index + 1) := Ds (Index);
+                                 To (Index + 1) := To (Index);
+                              end if;
+                              Index := Index - 1;
+                           end loop;
+
                            if Index < Count then
-                              Ds (Index + 1) := Ds (Index);
-                              To (Index + 1) := To (Index);
+                              Ds (Index + 1) := D;
+                              To (Index + 1) := J;
                            end if;
-                           Index := Index - 1;
-                        end loop;
-
-                        if Index < Count then
-                           Ds (Index + 1) := D;
-                           To (Index + 1) := J;
-                        end if;
-                     end;
-                  end if;
-               end if;
-            end loop;
-
-            for Edge_Index in 1 .. Count loop
-               if To (Edge_Index) > 0 then
-                  Galaxy_Graph.Connect
-                    (I, To (Edge_Index), Ds (Edge_Index));
-                  Galaxy_Graph.Connect
-                    (To (Edge_Index), I, Ds (Edge_Index));
-                  Total_Connections := Total_Connections + 1;
-               end if;
-            end loop;
-         end;
-      end loop;
-
-      Ada.Text_IO.Put_Line ("created"
-                            & Total_Connections'Img
-                            & " connections");
-
-      loop
-         declare
-            use Concorde.Systems.Graphs;
-            Components : Sub_Graph_Collection;
-            Min_D      : Real := Real'Last;
-            From, To   : Natural := 0;
-         begin
-            Galaxy_Graph.Get_Connected_Components (Components);
-            Ada.Text_IO.Put_Line
-              ("connected components:"
-               & Natural'Image (Sub_Graph_Count (Components)));
-            exit when Sub_Graph_Count (Components) = 1;
-
-            for I in 1 .. Galaxy_Graph.Last_Vertex_Index loop
-               for J in 1 .. Galaxy_Graph.Last_Vertex_Index loop
-                  if I /= J
-                    and then not Same_Sub_Graph (Components, I, J)
-                  then
-                     declare
-                        V1 : constant Star_System_Type :=
-                               Galaxy_Graph.Vertex (I);
-                        V2 : constant Star_System_Type :=
-                               Galaxy_Graph.Vertex (J);
-                        D  : constant Non_Negative_Real :=
-                               Distance (V1, V2);
-                     begin
-                        if D < Min_D then
-                           Min_D := D;
-                           From := I;
-                           To := J;
-                        end if;
-                     end;
+                        end;
+                     end if;
                   end if;
                end loop;
-            end loop;
 
-            if From /= 0 then
-               Galaxy_Graph.Connect (From, To, Min_D);
-               Galaxy_Graph.Connect (To, From, Min_D);
-            end if;
+               for Edge_Index in 1 .. Count loop
+                  if To (Edge_Index) > 0 then
+                     Galaxy_Graph.Connect
+                       (I, To (Edge_Index), Ds (Edge_Index));
+                     Galaxy_Graph.Connect
+                       (To (Edge_Index), I, Ds (Edge_Index));
+                     Total_Connections := Total_Connections + 1;
+                  end if;
+               end loop;
+            end;
+         end loop;
 
-         end;
-      end loop;
+         Ada.Text_IO.Put_Line ("created"
+                               & Total_Connections'Img
+                               & " connections");
+         loop
+            declare
+               use Concorde.Systems.Graphs;
+               Components : Sub_Graph_Collection;
+               Min_D      : Real := Real'Last;
+               From, To   : Natural := 0;
+            begin
+               Galaxy_Graph.Get_Connected_Components (Components);
+               Ada.Text_IO.Put_Line
+                 ("connected components:"
+                  & Natural'Image (Sub_Graph_Count (Components)));
+               exit when Sub_Graph_Count (Components) = 1;
 
-      Ada.Text_IO.Put_Line
-        ("# systems:" & System_Count'Img);
-      Ada.Text_IO.Put
-        ("ave. conn: ");
-      Ada.Float_Text_IO.Put (Float (Total_Connections) / Float (System_Count),
-                             0, 2, 0);
-      Ada.Text_IO.New_Line;
+               for I in 1 .. Galaxy_Graph.Last_Vertex_Index loop
+                  for J in 1 .. Galaxy_Graph.Last_Vertex_Index loop
+                     if I /= J
+                       and then not Same_Sub_Graph (Components, I, J)
+                     then
+                        declare
+                           V1 : constant Star_System_Type :=
+                                  Galaxy_Graph.Vertex (I);
+                           V2 : constant Star_System_Type :=
+                                  Galaxy_Graph.Vertex (J);
+                           D  : constant Non_Negative_Real :=
+                                  Distance (V1, V2);
+                        begin
+                           if D < Min_D then
+                              Min_D := D;
+                              From := I;
+                              To := J;
+                           end if;
+                        end;
+                     end if;
+                  end loop;
+               end loop;
+
+               if From /= 0 then
+                  Galaxy_Graph.Connect (From, To, Min_D);
+                  Galaxy_Graph.Connect (To, From, Min_D);
+               end if;
+
+            end;
+         end loop;
+
+         Ada.Text_IO.Put_Line
+           ("# systems:" & System_Count'Img);
+         Ada.Text_IO.Put
+           ("ave. conn: ");
+         Ada.Float_Text_IO.Put
+           (Float (Total_Connections) / Float (System_Count),
+            0, 2, 0);
+         Ada.Text_IO.New_Line;
+      end if;
+
    end Create_Galaxy;
 
    -------------------
@@ -399,16 +409,21 @@ package body Concorde.Galaxy.Create is
       use Ada.Numerics.Float_Random;
       use Concorde.Elementary_Functions;
       use Concorde.Geometry;
-      Degrees : constant Real :=
-                  (Real (Random (Gen)) * 1440.0);
-      R     : constant Real :=
-                  Sqrt (abs Degrees) / 40.0
-                  * (if Random (Gen) < 0.5 then -1.0 else 1.0);
-      Theta : constant Radians := Degrees_To_Radians (Degrees);
+      Degrees     : constant Real :=
+                      (Real (Random (Gen)) * 1440.0);
+      Fermat_R    : constant Real :=
+                      Sqrt (Degrees) / 40.0
+                      * (if Random (Gen) < 0.5 then -1.0 else 1.0);
+      Archimedes_R : constant Real :=
+                      Degrees / 1440.0
+                        * (if Random (Gen) < 0.5 then -1.0 else 1.0);
+      Theta       : constant Radians := Degrees_To_Radians (Degrees);
+      R           : constant Real :=
+                       (if True then Archimedes_R else Fermat_R);
    begin
-      X := R * Cos (Theta) + Random_Normal (Gen, 0.02);
-      Y := R * Sin (Theta) + Random_Normal (Gen, 0.02);
-      Z := Random_Normal (Gen, 0.02);
+      X := R * Cos (Theta);
+      Y := R * Sin (Theta);
+      Z := 0.0;
    end Spiral_Location;
 
 end Concorde.Galaxy.Create;

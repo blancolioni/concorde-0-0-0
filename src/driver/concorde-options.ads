@@ -7,6 +7,7 @@ package Concorde.Options is
    function Enable_Empire_Logging return Boolean;
    function Enable_Market_Logging return Boolean;
    function Display_Language return String;
+   function Galaxy_Shape return String;
    function Minimum_Size_For_Battle return Natural;
    function Number_Of_Empires return Positive;
    function Number_Of_Systems return Positive;
@@ -16,6 +17,9 @@ package Concorde.Options is
    function Show_Battle_Screen return Boolean;
    function Show_Capital_Names return Boolean;
    function Show_System_Names return Boolean;
+   function System_X_Deviation return Real;
+   function System_Y_Deviation return Real;
+   function System_Z_Deviation return Real;
    function Test_Battle return Boolean;
    function Work_Threads return Positive;
    function World_Continent_Smoothing return Positive;
