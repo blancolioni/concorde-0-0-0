@@ -1,6 +1,7 @@
 scenario = fading-suns
 
 randomise = no
+create_voronoi = no
 
 empire_count = 3
 system_count = 5000

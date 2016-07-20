@@ -9,6 +9,8 @@ with Concorde.Elementary_Functions;
 with Concorde.Geometry;
 with Concorde.Voronoi_Diagrams;
 
+with Concorde.Options;
+
 with Concorde.Systems.Create;
 
 with Concorde.Scenarios;
@@ -75,6 +77,8 @@ package body Concorde.Galaxy.Create is
       Total_Connections : Natural := 0;
       Gen               : Generator;
       Influence         : Concorde.Voronoi_Diagrams.Voronoi_Diagram;
+      Create_Voronoi    : constant Boolean :=
+                            Concorde.Options.Create_Voronoi_Diagram;
       Xs, Ys, Zs        : array (1 .. System_Count) of Real;
       Retries           : Natural := 0;
       Create_Handle     : WL.Work.Work_Handle :=
@@ -142,7 +146,9 @@ package body Concorde.Galaxy.Create is
             Ys (I) := Y;
             Zs (I) := Z;
 
-            Influence.Add_Point (X, Y);
+            if Create_Voronoi then
+               Influence.Add_Point (X, Y);
+            end if;
 
          end;
 
@@ -151,14 +157,20 @@ package body Concorde.Galaxy.Create is
       Ada.Text_IO.Put_Line
         ("retries:" & Integer'Image (Retries - System_Count));
 
-      Influence.Generate;
+      if Create_Voronoi then
+         Influence.Generate;
 
-      Ada.Text_IO.Put_Line ("created Voronoi map");
+         Ada.Text_IO.Put_Line ("created Voronoi map");
+      end if;
 
       for I in 1 .. System_Count loop
          declare
+            Vertex_Count : constant Natural :=
+                             (if Create_Voronoi
+                              then Influence.Vertex_Count (I)
+                              else 0);
             Boundary : Concorde.Systems.System_Influence_Boundary
-              (1 .. Influence.Vertex_Count (I));
+              (1 .. Vertex_Count);
             Name     : constant String :=
                          WL.Random.Names.Random_Name
                            (Name_Generator);

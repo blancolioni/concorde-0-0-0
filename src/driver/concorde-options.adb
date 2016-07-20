@@ -113,6 +113,15 @@ package body Concorde.Options is
       return Boolean_Value ("console", 'c');
    end Console;
 
+   ----------------------------
+   -- Create_Voronoi_Diagram --
+   ----------------------------
+
+   function Create_Voronoi_Diagram return Boolean is
+   begin
+      return Boolean_Value ("create-voronoi");
+   end Create_Voronoi_Diagram;
+
    ----------------------
    -- Display_Language --
    ----------------------
