@@ -768,6 +768,8 @@ package body Concorde.Galaxy.Model is
                   Model.Get_Screen_Coordinates
                     (X, Y, Z, Screen_X, Screen_Y, Screen_Z);
 
+                  Screen_Z := Screen_Z * 3.0;
+
                   if Screen_Z not in -1.0 .. 1.0 then
                      null;
                   elsif Star_Pass then
@@ -812,7 +814,8 @@ package body Concorde.Galaxy.Model is
                      if Screen_Z >= 0.0 then
                         Colour := Lui.Colours.Brighten (Colour, Screen_Z);
                      else
-                        Colour := Lui.Colours.Apply_Alpha (Colour, -Screen_Z);
+                        Colour :=
+                          Lui.Colours.Apply_Alpha (Colour, 1.0 + Screen_Z);
                      end if;
 
                      Renderer.Draw_Circle
@@ -994,9 +997,8 @@ package body Concorde.Galaxy.Model is
             return Concorde.Systems.Models.System_Model (System);
          else
             Model.Selected_System := System;
-            Model.After_Transition;
---              Model.Start_Transition
---                (System.X, System.Y, System.Z + 0.1, 2.0);
+            Model.Start_Transition
+              (System.X, System.Y, System.Z + 0.1, 2.0);
             return null;
          end if;
       else
@@ -1060,9 +1062,14 @@ package body Concorde.Galaxy.Model is
       use type Concorde.Systems.Star_System_Type;
       System : constant Concorde.Systems.Star_System_Type :=
                  Model.Closest_System (X, Y, 10);
+      Screen_X, Screen_Y : Integer;
+      Screen_Z : Real;
+
    begin
       if System /= null then
-         return System.Name;
+         Model.Get_Screen_Coordinates (System.X, System.Y, System.Z,
+                                       Screen_X, Screen_Y, Screen_Z);
+         return System.Name & " (" & Lui.Approximate_Image (Screen_Z) & ")";
       else
          return "";
       end if;
