@@ -11,6 +11,7 @@ with Concorde.Voronoi_Diagrams;
 
 with Concorde.Options;
 
+with Concorde.Stars;
 with Concorde.Systems.Create;
 
 with Concorde.Scenarios;
@@ -83,6 +84,9 @@ package body Concorde.Galaxy.Create is
       Retries           : Natural := 0;
       Create_Handle     : WL.Work.Work_Handle :=
                             WL.Work.Create_Handle;
+      Class_Count       : array (Concorde.Stars.Stellar_Class_Type)
+        of Natural := (others => 0);
+
    begin
       if Reset_Seed then
          Reset (Gen);
@@ -187,8 +191,13 @@ package body Concorde.Galaxy.Create is
                              Xs (I), Ys (I), Zs (I), Boundary,
                              Production => 0.025,
                              Capacity   => 2.0);
+               Count  : Natural renames
+                          Class_Count
+                            (Concorde.Stars.Star_Type
+                               (System.Main_Object).Stellar_Class);
             begin
                Galaxy_Graph.Append (System);
+               Count := Count + 1;
             end;
          end;
       end loop;
@@ -196,6 +205,13 @@ package body Concorde.Galaxy.Create is
       WL.Work.Wait (Create_Handle);
 
       Ada.Text_IO.Put_Line ("created" & System_Count'Img & " systems");
+
+      Ada.Text_IO.Put_Line ("Class   Count");
+      for Class in Class_Count'Range loop
+         Ada.Text_IO.Put (Class'Img);
+         Ada.Text_IO.Set_Col (8);
+         Ada.Text_IO.Put_Line (Natural'Image (Class_Count (Class)));
+      end loop;
 
       if Concorde.Scenarios.Imperial_Centre then
          declare
