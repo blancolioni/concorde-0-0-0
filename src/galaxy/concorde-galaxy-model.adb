@@ -749,10 +749,9 @@ package body Concorde.Galaxy.Model is
                   X      : constant Real := System.X;
                   Y      : constant Real := System.Y;
                   Z      : constant Real := System.Z;
-                  Radius : constant Non_Negative_Real :=
+                  Radius : Non_Negative_Real :=
                              Concorde.Elementary_Functions.Sqrt
-                               (System.Main_Object.Radius)
-                               * 1.0 / Model.Eye_Z;
+                               (System.Main_Object.Radius);
                   System_Radius : constant Positive :=
                                     Natural'Max (1, Natural (Radius));
                   Screen_X : Integer;
@@ -768,12 +767,11 @@ package body Concorde.Galaxy.Model is
                   Model.Get_Screen_Coordinates
                     (X, Y, Z, Screen_X, Screen_Y, Screen_Z);
 
-                  Screen_Z := Screen_Z * 3.0;
-
                   if Screen_Z not in -1.0 .. 1.0 then
                      null;
                   elsif Star_Pass then
 
+                     Radius := Radius * (Screen_Z + 1.0);
                      Model.Rendered_Systems.Replace_Element
                        (System.Reference,
                         (Screen_X, Screen_Y, System_Radius, Colour));
