@@ -186,6 +186,9 @@ package body Concorde.Galaxy.Model is
      (Model   : in out Root_Galaxy_Model;
       Battle  : not null access Concorde.Combat.Root_Combat_Arena'Class);
 
+   overriding procedure After_Transition
+     (Model : in out Root_Galaxy_Model);
+
    procedure Draw_Connection
      (Model    : in out Root_Galaxy_Model'Class;
       Renderer : in out Lui.Rendering.Root_Renderer'Class;
@@ -231,6 +234,25 @@ package body Concorde.Galaxy.Model is
    type Galaxy_Model_Access is access all Root_Galaxy_Model'Class;
 
    Local_Model : Galaxy_Model_Access;
+
+   ----------------------
+   -- After_Transition --
+   ----------------------
+
+   overriding procedure After_Transition
+     (Model : in out Root_Galaxy_Model)
+   is
+   begin
+      Model.Add_Inline_Model
+        (Width         => Model.Width,
+         Height        => Model.Height,
+         Model         =>
+           Concorde.Systems.Models.System_Model (Model.Selected_System),
+         Attach_Left   => True,
+         Attach_Right  => True,
+         Attach_Top    => True,
+         Attach_Bottom => True);
+   end After_Transition;
 
    ---------------
    -- Cell_Text --
@@ -972,8 +994,9 @@ package body Concorde.Galaxy.Model is
             return Concorde.Systems.Models.System_Model (System);
          else
             Model.Selected_System := System;
-            Model.Start_Transition
-              (System.X, System.Y, System.Z + 0.1, 2.0);
+            Model.After_Transition;
+--              Model.Start_Transition
+--                (System.X, System.Y, System.Z + 0.1, 2.0);
             return null;
          end if;
       else
