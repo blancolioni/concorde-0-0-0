@@ -18,7 +18,10 @@ with Concorde.Commodities;
 with Concorde.Money;
 with Concorde.Quantities;
 
+with Concorde.Systems.Db;
 with Concorde.Worlds.Db;
+
+with Concorde.Systems.Lists;
 
 package body Concorde.Empires.Create is
 
@@ -26,6 +29,13 @@ package body Concorde.Empires.Create is
 
    procedure Create_Initial_Ships
      (World : in out Concorde.Worlds.Root_World_Type'Class);
+
+   function Find_System
+     (Start  : Concorde.Systems.Star_System_Type;
+      OK     : not null access
+        function (System : Concorde.Systems.Star_System_Type)
+      return Boolean)
+     return Concorde.Systems.Star_System_Type;
 
    --------------------------
    -- Create_Initial_Ships --
@@ -132,6 +142,118 @@ package body Concorde.Empires.Create is
       World.Add_Ship (Trader);
       World.Add_Ship (Defender);
    end Create_Initial_Ships;
+
+   -----------------
+   -- Find_System --
+   -----------------
+
+   function Find_System
+     (Start  : Concorde.Systems.Star_System_Type;
+      OK     : not null access
+        function (System : Concorde.Systems.Star_System_Type)
+      return Boolean)
+      return Concorde.Systems.Star_System_Type
+   is
+
+      function Find
+        (Start : Concorde.Systems.Star_System_Type)
+         return Concorde.Systems.Star_System_Type;
+
+      procedure Connect
+        (System       : Concorde.Systems.Star_System_Type;
+         Minimum      : Positive;
+         Maximum      : Positive;
+         Max_Distance : Non_Negative_Real);
+
+      -------------
+      -- Connect --
+      -------------
+
+      procedure Connect
+        (System       : Concorde.Systems.Star_System_Type;
+         Minimum      : Positive;
+         Maximum      : Positive;
+         Max_Distance : Non_Negative_Real)
+      is
+         List : Concorde.Systems.Lists.List;
+
+         procedure Add_System (S : Concorde.Systems.Star_System_Type);
+
+         ----------------
+         -- Add_System --
+         ----------------
+
+         procedure Add_System (S : Concorde.Systems.Star_System_Type) is
+            use type Concorde.Systems.Star_System_Type;
+            use Concorde.Systems.Lists;
+            D : constant Non_Negative_Real :=
+                  Concorde.Systems.Distance (System, S);
+            Position : Cursor := List.First;
+         begin
+            if S /= System
+              and then not Concorde.Galaxy.Neighbours (System, S)
+              and then (D <= Max_Distance
+                        or else Natural (List.Length) < Minimum)
+            then
+               while Has_Element (Position)
+                 and then Concorde.Systems.Distance
+                   (Element (Position), System)
+                     < D
+               loop
+                  Next (Position);
+               end loop;
+               if Has_Element (Position) then
+                  List.Insert (Position, S);
+               elsif Natural (List.Length) < Maximum then
+                  List.Append (S);
+               end if;
+            end if;
+         end Add_System;
+
+      begin
+         Concorde.Systems.Db.Scan (Add_System'Access);
+
+         for Target of List loop
+            exit when Galaxy.Neighbours (System)'Length >= Maximum;
+            Concorde.Galaxy.Connect (System.Index, Target.Index);
+         end loop;
+
+      end Connect;
+
+      ----------
+      -- Find --
+      ----------
+
+      function Find
+        (Start : Concorde.Systems.Star_System_Type)
+         return Concorde.Systems.Star_System_Type
+      is
+         Queue : Concorde.Systems.Lists.List;
+      begin
+         Queue.Append (Start);
+         while not Queue.Is_Empty loop
+            declare
+               System : constant Concorde.Systems.Star_System_Type :=
+                          Queue.First_Element;
+            begin
+               Queue.Delete_First;
+
+               if OK (System) then
+                  return System;
+               else
+                  Connect (System, 2, 4, 0.1);
+                  for N of Concorde.Galaxy.Neighbours (System) loop
+                     Queue.Append (N);
+                  end loop;
+               end if;
+            end;
+         end loop;
+         return null;
+      end Find;
+
+   begin
+      return Find (Start);
+   end Find_System;
 
    ----------------
    -- New_Empire --
@@ -348,12 +470,20 @@ package body Concorde.Empires.Create is
 
             end;
 
-            case Concorde.Stars.Star_Type (System.Main_Object).Stellar_Class is
-               when Concorde.Stars.G =>
-                  return True;
-               when others =>
-                  return False;
-            end case;
+            declare
+               use all type Concorde.Stars.Stellar_Class_Type;
+               Class : constant Concorde.Stars.Stellar_Class_Type :=
+                         Concorde.Stars.Star_Type
+                           (System.Main_Object).Stellar_Class;
+            begin
+               case Class is
+                  when F | G | K | M =>
+                     return True;
+                  when O | B | A | L =>
+                     return False;
+               end case;
+            end;
+
          end OK_For_Start;
 
       begin
@@ -363,8 +493,9 @@ package body Concorde.Empires.Create is
          end if;
 
          Start_System :=
-           Concorde.Galaxy.Find_System
-             (OK_For_Start'Access);
+           Find_System
+             (Concorde.Galaxy.Get_System (1),
+              OK_For_Start'Access);
 
          New_Empire.New_Agent
            (Concorde.Locations.Nowhere,
