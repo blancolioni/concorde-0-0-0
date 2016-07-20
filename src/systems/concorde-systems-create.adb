@@ -124,7 +124,7 @@ package body Concorde.Systems.Create is
             Main_Star : constant Concorde.Stars.Star_Type :=
                           Concorde.Stars.Create.New_Main_Sequence_Star
                             (Name, Concorde.Systems.Db.Reference (System),
-                             (if True or else Imperial_Centre
+                             (if Imperial_Centre
                               then 1.0
                               else Random_Star_Mass));
          begin
