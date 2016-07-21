@@ -376,12 +376,21 @@ package body Concorde.Galaxy.Model is
         (Reference : Memor.Database_Reference;
          System    : Rendered_System)
       is
-         D : constant Natural :=
-               (X - System.X) ** 2 + (Y - System.Y) ** 2;
       begin
-         if D < Shortest_Distance then
-            Shortest_Distance := D;
-            Closest_Reference := Reference;
+         if System.X in 1 .. Model.Width
+           and then System.Y in 1 .. Model.Height
+           and then abs (X - System.X) <= Shortest_Distance
+           and then abs (Y - System.Y) <= Shortest_Distance
+         then
+            declare
+               D : constant Natural :=
+                     (X - System.X) ** 2 + (Y - System.Y) ** 2;
+            begin
+               if D < Shortest_Distance then
+                  Shortest_Distance := D;
+                  Closest_Reference := Reference;
+               end if;
+            end;
          end if;
       end Update;
 
