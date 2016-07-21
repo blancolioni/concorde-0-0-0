@@ -1,3 +1,5 @@
+with Ada.Text_IO;
+
 with Concorde.Galaxy;
 with Concorde.Locations;
 with Concorde.Markets;
@@ -228,7 +230,11 @@ package body Concorde.Empires.Create is
         (Start : Concorde.Systems.Star_System_Type)
          return Concorde.Systems.Star_System_Type
       is
+         package Tried_Vectors is
+           new Memor.Element_Vectors (Boolean, False);
+
          Queue : Concorde.Systems.Lists.List;
+         Tried : Tried_Vectors.Vector;
       begin
          Queue.Append (Start);
          while not Queue.Is_Empty loop
@@ -236,6 +242,7 @@ package body Concorde.Empires.Create is
                System : constant Concorde.Systems.Star_System_Type :=
                           Queue.First_Element;
             begin
+               Tried.Replace_Element (System.Reference, True);
                Queue.Delete_First;
 
                if OK (System) then
@@ -243,7 +250,9 @@ package body Concorde.Empires.Create is
                else
                   Connect (System, 2, 4, 0.1);
                   for N of Concorde.Galaxy.Neighbours (System) loop
-                     Queue.Append (N);
+                     if not Tried.Element (N.Reference) then
+                        Queue.Append (N);
+                     end if;
                   end loop;
                end if;
             end;
@@ -394,9 +403,14 @@ package body Concorde.Empires.Create is
 
             end if;
 
-            Concorde.Markets.Db.Update
-              (World.Market.Reference, Set_Initial_Prices'Access);
-
+            if World.Has_Market then
+               Concorde.Markets.Db.Update
+                 (World.Market.Reference, Set_Initial_Prices'Access);
+            else
+               Ada.Text_IO.Put_Line
+                 ("Could not create initial colony on "
+                  & World.Name);
+            end if;
          end Choose_World;
 
          ------------------
@@ -447,15 +461,40 @@ package body Concorde.Empires.Create is
                is
                   use Concorde.Worlds;
                begin
-                  if System_Object in Root_World_Type'Class then
+                  if not Good_Starting_World
+                    and then System_Object in Root_World_Type'Class
+                  then
                      declare
                         W : Root_World_Type'Class renames
                               Root_World_Type'Class (System_Object);
                      begin
                         if W.Category = Terrestrial then
-                           Good_Starting_World := True;
-                           Start_World :=
-                             Concorde.Worlds.Db.Reference (W);
+                           if W.Minimum_Temperature < 220.0 then
+                              Ada.Text_IO.Put_Line
+                                ("Rejecting " & W.Name &
+                                   " because min temperature is "
+                                 & Lui.Approximate_Image
+                                   (W.Minimum_Temperature - 273.0)
+                                 & " degrees");
+                           elsif W.Maximum_Temperature > 3730.0 then
+                              Ada.Text_IO.Put_Line
+                                ("Rejecting " & W.Name &
+                                   " because max temperature is "
+                                 & Lui.Approximate_Image
+                                   (W.Maximum_Temperature - 273.0)
+                                 & " degrees");
+                           elsif W.Hydrosphere not in 0.2 .. 0.75 then
+                              Ada.Text_IO.Put_Line
+                                ("Rejecting " & W.Name &
+                                   " because hydrosphere is "
+                                 & Lui.Approximate_Image
+                                   (W.Hydrosphere * 100.0)
+                                 & "%");
+                           else
+                              Good_Starting_World := True;
+                              Start_World :=
+                                Concorde.Worlds.Db.Reference (W);
+                           end if;
                         end if;
                      end;
                   end if;
