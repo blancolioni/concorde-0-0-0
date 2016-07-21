@@ -536,7 +536,7 @@ package body Concorde.Colonies.Configure is
 
       if Start_Tiles.Is_Empty then
          Ada.Text_IO.Put_Line
-           ("Unabled to find good spot for hub");
+           ("Unable to find good spot for hub");
          return;
       end if;
 
