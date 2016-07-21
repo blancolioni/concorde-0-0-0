@@ -241,6 +241,18 @@ package body Concorde.Worlds is
       return World.Market /= null;
    end Has_Market;
 
+   -----------------
+   -- Hydrosphere --
+   -----------------
+
+   function Hydrosphere
+     (World : Root_World_Type'Class)
+      return Unit_Real
+   is
+   begin
+      return World.Hydrosphere;
+   end Hydrosphere;
+
    ------------------------
    -- Import_Market_Size --
    ------------------------
@@ -291,6 +303,30 @@ package body Concorde.Worlds is
    begin
       return World.Market;
    end Market;
+
+   -------------------------
+   -- Maximum_Temperature --
+   -------------------------
+
+   function Maximum_Temperature
+     (World : Root_World_Type'Class)
+      return Non_Negative_Real
+   is
+   begin
+      return World.Max_Temperature;
+   end Maximum_Temperature;
+
+   -------------------------
+   -- Minimum_Temperature --
+   -------------------------
+
+   function Minimum_Temperature
+     (World : Root_World_Type'Class)
+      return Non_Negative_Real
+   is
+   begin
+      return World.Min_Temperature;
+   end Minimum_Temperature;
 
    ---------------------
    -- Object_Database --

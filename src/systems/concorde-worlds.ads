@@ -75,6 +75,18 @@ package Concorde.Worlds is
      (World : Root_World_Type'Class)
       return World_Category;
 
+   function Maximum_Temperature
+     (World : Root_World_Type'Class)
+      return Non_Negative_Real;
+
+   function Minimum_Temperature
+     (World : Root_World_Type'Class)
+      return Non_Negative_Real;
+
+   function Hydrosphere
+     (World : Root_World_Type'Class)
+      return Unit_Real;
+
    function Gas_Giant
      (World : Root_World_Type'Class)
       return Boolean
