@@ -1202,7 +1202,7 @@ package body Concorde.Worlds.Create is
       Frost_Line    : constant Real :=
                         2.7 * Star.Solar_Masses;
       Goldilocks_Orbit : constant Non_Negative_Real :=
-                           Star.Solar_Masses;
+                           Star.Solar_Masses ** 2;
       Have_Goldilocks_World : Boolean := False;
 
       Current_Orbit : Real;
