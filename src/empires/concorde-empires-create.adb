@@ -242,18 +242,20 @@ package body Concorde.Empires.Create is
                System : constant Concorde.Systems.Star_System_Type :=
                           Queue.First_Element;
             begin
-               Tried.Replace_Element (System.Reference, True);
                Queue.Delete_First;
+               if not Tried.Element (System.Reference) then
+                  Tried.Replace_Element (System.Reference, True);
 
-               if OK (System) then
-                  return System;
-               else
-                  Connect (System, 2, 4, 0.1);
-                  for N of Concorde.Galaxy.Neighbours (System) loop
-                     if not Tried.Element (N.Reference) then
-                        Queue.Append (N);
-                     end if;
-                  end loop;
+                  if OK (System) then
+                     return System;
+                  else
+                     Connect (System, 2, 4, 0.1);
+                     for N of Concorde.Galaxy.Neighbours (System) loop
+                        if not Tried.Element (N.Reference) then
+                           Queue.Append (N);
+                        end if;
+                     end loop;
+                  end if;
                end if;
             end;
          end loop;
