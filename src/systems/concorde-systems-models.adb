@@ -20,6 +20,8 @@ with Concorde.Worlds.Db;
 
 package body Concorde.Systems.Models is
 
+   Zoom_Limit : constant := 40.0;
+
    type Rendered_World is
       record
          World : Concorde.Worlds.World_Type;
@@ -56,6 +58,11 @@ package body Concorde.Systems.Models is
    overriding procedure Render
      (Model    : in out Root_Star_System_Model;
       Renderer : in out Lui.Rendering.Root_Renderer'Class);
+
+   overriding procedure Zoom
+     (Model : in out Root_Star_System_Model;
+      Z       : in     Integer;
+      Control : in     Boolean);
 
    type Star_System_Model_Access is
      access all Root_Star_System_Model'Class;
@@ -274,7 +281,26 @@ package body Concorde.Systems.Models is
          Result := System_Models.Element (System.Name);
       end if;
 
+      Result.Set_Eye_Position (0.0, 0.0, Zoom_Limit);
+
       return Lui.Models.Object_Model (Result);
    end System_Model;
+
+   ----------
+   -- Zoom --
+   ----------
+
+   overriding procedure Zoom
+     (Model   : in out Root_Star_System_Model;
+      Z       : in     Integer;
+      Control : in     Boolean)
+   is
+   begin
+      Lui.Models.Root_Object_Model (Model).Zoom (Z, Control);
+      if Model.Eye_Z > Zoom_Limit * 1.1 then
+         Model.Parent_Model.Remove_Inline_Model
+           (System_Model (Model.System));
+      end if;
+   end Zoom;
 
 end Concorde.Systems.Models;

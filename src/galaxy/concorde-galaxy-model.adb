@@ -30,6 +30,8 @@ with Concorde.Trades;
 
 package body Concorde.Galaxy.Model is
 
+   Zoom_Limit : constant := 5.0;
+
    function Ship_Count_Image
      (Count : Natural)
       return String;
@@ -176,6 +178,11 @@ package body Concorde.Galaxy.Model is
      (Model : in out Root_Galaxy_Model;
       X, Y  : Natural)
       return Lui.Models.Object_Model;
+
+   overriding procedure Zoom
+     (Model   : in out Root_Galaxy_Model;
+      Z       : in     Integer;
+      Control : in     Boolean);
 
    overriding function Tooltip
      (Model : Root_Galaxy_Model;
@@ -776,11 +783,14 @@ package body Concorde.Galaxy.Model is
                   Model.Get_Screen_Coordinates
                     (X, Y, Z, Screen_X, Screen_Y, Screen_Z);
 
-                  if Screen_Z not in -1.0 .. 1.0 then
+                  if Screen_Z not in -6.0 .. 0.0 then
                      null;
                   elsif Star_Pass then
 
-                     Radius := Radius * (Screen_Z + 1.0);
+                     Radius :=
+                       (if Screen_Z > -3.0
+                        then Real'Max (Radius * (Screen_Z + 3.0) / 2.0, 1.0)
+                        else 1.0);
                      Model.Rendered_Systems.Replace_Element
                        (System.Reference,
                         (Screen_X, Screen_Y, System_Radius, Colour));
@@ -818,11 +828,17 @@ package body Concorde.Galaxy.Model is
                         end;
                      end if;
 
-                     if Screen_Z >= 0.0 then
-                        Colour := Lui.Colours.Brighten (Colour, Screen_Z);
+                     if Screen_Z >= -0.5 then
+                        Colour :=
+                          Lui.Colours.Brighten (Colour, Screen_Z + 1.0);
+                     elsif Screen_Z > -3.2 then
+                        Colour :=
+                          Lui.Colours.Apply_Alpha
+                            (Colour, (4.0 + Screen_Z) / 4.0);
                      else
                         Colour :=
-                          Lui.Colours.Apply_Alpha (Colour, 1.0 + Screen_Z);
+                          Lui.Colours.Apply_Alpha
+                            (Colour, 0.2);
                      end if;
 
                      Renderer.Draw_Circle
@@ -1000,14 +1016,12 @@ package body Concorde.Galaxy.Model is
       end if;
 
       if System /= null then
-         if System = Model.Selected_System then
-            return Concorde.Systems.Models.System_Model (System);
-         else
+         if System /= Model.Selected_System then
             Model.Selected_System := System;
             Model.Start_Transition
-              (System.X, System.Y, System.Z + 0.1, 2.0);
-            return null;
+              (System.X, System.Y, System.Z + 0.05, 2.0);
          end if;
+         return null;
       else
          return null;
       end if;
@@ -1081,5 +1095,21 @@ package body Concorde.Galaxy.Model is
          return "";
       end if;
    end Tooltip;
+
+   ----------
+   -- Zoom --
+   ----------
+
+   overriding procedure Zoom
+     (Model   : in out Root_Galaxy_Model;
+      Z       : in     Integer;
+      Control : in     Boolean)
+   is
+   begin
+      Lui.Models.Root_Object_Model (Model).Zoom (Z, Control);
+      if Model.Eye_Z > Zoom_Limit then
+         Model.Set_Eye_Position (Model.Eye_X, Model.Eye_Y, Zoom_Limit);
+      end if;
+   end Zoom;
 
 end Concorde.Galaxy.Model;
