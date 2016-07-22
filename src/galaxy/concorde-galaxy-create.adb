@@ -121,7 +121,19 @@ package body Concorde.Galaxy.Create is
                      Spiral_Location (Gen, X, Y, Z);
                      X := X + Random_Normal (Gen, DX);
                      Y := Y + Random_Normal (Gen, DY);
-                     Z := Z + Random_Normal (Gen, DZ);
+
+                     declare
+                        use Concorde.Elementary_Functions;
+                        Orbit : constant Non_Negative_Real :=
+                                  Sqrt (X ** 2 + Y ** 2);
+                        Radius_DZ : constant Non_Negative_Real :=
+                                      (if Orbit < 0.1
+                                       then 1.2 * DZ
+                                       else (1.2 / (Orbit + 0.9)) * DZ);
+                     begin
+                        Z := Z + Random_Normal (Gen, Radius_DZ);
+                     end;
+
                end case;
 
                X := Clamp (X);
