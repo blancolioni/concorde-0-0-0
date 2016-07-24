@@ -1,4 +1,5 @@
 scenario = fading-suns
+interface = xi
 
 randomise = no
 create_voronoi = no

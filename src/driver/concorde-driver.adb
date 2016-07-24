@@ -1,8 +1,15 @@
+with Ada.Text_IO;
+
 with WL.Processes;
 with WL.Random.Names;
 with WL.Work;
 
 with Memor;
+
+with Xi.Main;
+with Xi.Render_Window;
+
+with Xtk;
 
 with Concorde.Paths;
 
@@ -18,6 +25,7 @@ with Concorde.Empires.Updates;
 with Concorde.Updates;
 
 with Concorde.Gtk_UI;
+with Concorde.Xi_UI;
 
 with Concorde.Empires.Logging;
 
@@ -36,6 +44,12 @@ procedure Concorde.Driver is
 
    Check_Invariants : constant Boolean :=
                         Concorde.Options.Check_Invariants;
+
+   Interface_Name   : constant String :=
+                        Concorde.Options.Interface_Name;
+   Use_Gtk          : constant Boolean := Interface_Name = "gtk";
+   Use_Xi           : constant Boolean := Interface_Name = "xi";
+
 begin
 
    Memor.Locking (True);
@@ -105,7 +119,38 @@ begin
 
       Concorde.Updates.Start_Updates;
 
-      Concorde.Gtk_UI.Start;
+      if Use_Gtk then
+         Concorde.Gtk_UI.Start;
+      elsif Use_Xi then
+
+         declare
+            Window : Xi.Render_Window.Xi_Render_Window;
+            Top_Model : Concorde.Xi_UI.Xi_Model;
+         begin
+
+            Xi.Main.Init;
+            Xtk.Initialize;
+
+            Window :=
+              Xi.Main.Current_Renderer.Create_Top_Level_Window;
+
+            Top_Model := Concorde.Xi_UI.Model (null);
+
+            Window.Set_Scene (Top_Model.Scene);
+            Top_Model.Scene.Active_Camera.Set_Viewport (Window.Full_Viewport);
+
+            Window.Add_Top_Level (Top_Model.Top_Panel);
+            --  Top_Model.Top_Panel.Show_All;
+
+            Xi.Main.Main_Loop;
+
+         end;
+
+      else
+         Ada.Text_IO.Put_Line
+           (Ada.Text_IO.Standard_Error,
+            "unknown interface: " & Interface_Name);
+      end if;
 
       Concorde.Updates.Stop_Updates;
 

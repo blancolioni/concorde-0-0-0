@@ -185,6 +185,15 @@ package body Concorde.Options is
          return Default;
    end Integer_Value;
 
+   --------------------
+   -- Interface_Name --
+   --------------------
+
+   function Interface_Name return String is
+   begin
+      return String_Value ("interface", 'i', "xi");
+   end Interface_Name;
+
    ------------------
    -- Load_Options --
    ------------------

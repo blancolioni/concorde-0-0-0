@@ -20,6 +20,7 @@ source_dir = src/systems
 source_dir = src/ships
 source_dir = src/voronoi
 source_dir = src/ui
+source_dir = src/ui/xi
 depend = { project = Tropos version = any }
 depend = { project = Lui version = any }
 depend = { project = Wlib version = any }
@@ -43,9 +44,9 @@ compiler_option = "-fstack-check"
 compiler_option = "-gnato"
 linker_option = "-lpixman-1"
 linker_option = "-lm"
-#linker_option = "-lopengl32"
+linker_option = "-lopengl32"
 #linker_option = "./lib/glee.o"
 #linker_option = "-lglu32"
-#linker_option = "-lfreeglut"
-#linker_option = "-L./lib"
+linker_option = "-lfreeglut"
+linker_option = "-L./lib"
 post_install = concorde --self-test
