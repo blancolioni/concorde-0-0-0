@@ -27,7 +27,7 @@ package body Concorde.Xi_UI is
       use type Xi.Xi_Float;
    begin
       Model.Scene.Active_Camera.Translate
-        (0.0, 0.0, Model.Scene.Active_Camera.Position_3 (3) * 0.01);
+        (0.0, 0.0, 0.01);
    end On_Wheel_Down;
 
    -----------------
@@ -38,7 +38,7 @@ package body Concorde.Xi_UI is
       use type Xi.Xi_Float;
    begin
       Model.Scene.Active_Camera.Translate
-        (0.0, 0.0, -Model.Scene.Active_Camera.Position_3 (3) * 0.01);
+        (0.0, 0.0, -0.01);
    end On_Wheel_Up;
 
    -----------
