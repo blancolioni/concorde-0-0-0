@@ -68,33 +68,37 @@ begin
 
    Concorde.Configure.Load_Configuration;
 
-   declare
-      Shape : constant Concorde.Galaxy.Create.Galaxy_Shape :=
-                Concorde.Galaxy.Create.Galaxy_Shape'Value
-                  (Concorde.Options.Galaxy_Shape);
-   begin
-      Concorde.Galaxy.Create.Create_Galaxy
-        (System_Count        => Concorde.Options.Number_Of_Systems,
-         Shape               => Shape,
-         DX                  => Concorde.Options.System_X_Deviation,
-         DY                  => Concorde.Options.System_Y_Deviation,
-         DZ                  => Concorde.Options.System_Z_Deviation,
-         Average_Connections => Concorde.Options.Average_Connections,
-         Reset_Seed          => Concorde.Options.Randomise,
-         Name_Generator      => Name_Generator);
-   end;
+   if Concorde.Options.Create_Galaxy then
+      declare
+         Shape : constant Concorde.Galaxy.Create.Galaxy_Shape :=
+                   Concorde.Galaxy.Create.Galaxy_Shape'Value
+                     (Concorde.Options.Galaxy_Shape);
+      begin
+         Concorde.Galaxy.Create.Create_Galaxy
+           (System_Count        => Concorde.Options.Number_Of_Systems,
+            Shape               => Shape,
+            DX                  => Concorde.Options.System_X_Deviation,
+            DY                  => Concorde.Options.System_Y_Deviation,
+            DZ                  => Concorde.Options.System_Z_Deviation,
+            Average_Connections => Concorde.Options.Average_Connections,
+            Reset_Seed          => Concorde.Options.Randomise,
+            Name_Generator      => Name_Generator);
+      end;
 
-   Concorde.Empires.Configure.Create_Empires
-     (Count => Concorde.Options.Number_Of_Empires);
+      if Concorde.Options.Create_Empires then
+         Concorde.Empires.Configure.Create_Empires
+           (Count => Concorde.Options.Number_Of_Empires);
 
-   if Concorde.Options.Enable_Empire_Logging then
-      Concorde.Empires.Logging.Start_Logging;
+         if Concorde.Options.Enable_Empire_Logging then
+            Concorde.Empires.Logging.Start_Logging;
+         end if;
+
+         Concorde.Agents.Enable_Offer_Logging (Enabled => True);
+         Concorde.Logging.Start_Logging;
+
+         Concorde.Empires.Updates.Start;
+      end if;
    end if;
-
-   Concorde.Agents.Enable_Offer_Logging (Enabled => True);
-   Concorde.Logging.Start_Logging;
-
-   Concorde.Empires.Updates.Start;
 
    if Concorde.Options.Console then
       declare
@@ -134,13 +138,15 @@ begin
             Window :=
               Xi.Main.Current_Renderer.Create_Top_Level_Window;
 
+            Window.Enable_Point_Size (True);
+
             Top_Model := Concorde.Xi_UI.Model (null);
 
             Window.Set_Scene (Top_Model.Scene);
             Top_Model.Scene.Active_Camera.Set_Viewport (Window.Full_Viewport);
 
             Window.Add_Top_Level (Top_Model.Top_Panel);
-            --  Top_Model.Top_Panel.Show_All;
+            Top_Model.Top_Panel.Show_All;
 
             Xi.Main.Main_Loop;
 

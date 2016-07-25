@@ -113,6 +113,24 @@ package body Concorde.Options is
       return Boolean_Value ("console", 'c');
    end Console;
 
+   --------------------
+   -- Create_Empires --
+   --------------------
+
+   function Create_Empires return Boolean is
+   begin
+      return Boolean_Value ("create-empires");
+   end Create_Empires;
+
+   -------------------
+   -- Create_Galaxy --
+   -------------------
+
+   function Create_Galaxy return Boolean is
+   begin
+      return Boolean_Value ("create-galaxy");
+   end Create_Galaxy;
+
    ----------------------------
    -- Create_Voronoi_Diagram --
    ----------------------------
