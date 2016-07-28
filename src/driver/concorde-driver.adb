@@ -7,6 +7,7 @@ with WL.Work;
 with Memor;
 
 with Xi.Main;
+with Xi.Render_Target;
 with Xi.Render_Window;
 
 with Xtk;
@@ -139,6 +140,8 @@ begin
               Xi.Main.Current_Renderer.Create_Top_Level_Window;
 
             Window.Enable_Point_Size (True);
+            Window.Blend (Xi.Render_Target.Source_Alpha,
+                          Xi.Render_Target.Destination_Alpha);
 
             Top_Model := Concorde.Xi_UI.Model (null);
 

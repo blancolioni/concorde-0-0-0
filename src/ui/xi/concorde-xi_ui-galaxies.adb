@@ -1,5 +1,4 @@
 with Ada.Calendar;
-with Ada.Text_IO;
 
 with Xi;                               use Xi;
 
@@ -19,6 +18,7 @@ with Xtk.Label;
 
 with Concorde.Galaxy;
 with Concorde.Systems;
+with Concorde.Systems.Lists;
 
 with Concorde.Paths;
 with Xi.Texture;
@@ -94,8 +94,7 @@ package body Concorde.Xi_UI.Galaxies is
          begin
             Listener.Start := Now;
             Listener.Frames := 0;
-            --  Main_Model.FPS.Set_Label
-            Ada.Text_IO.Put_Line
+            Main_Model.FPS.Set_Label
               (Lui.Approximate_Image (Lui.Real (FPS)) & " FPS");
          end;
       end if;
@@ -115,7 +114,6 @@ package body Concorde.Xi_UI.Galaxies is
    is
       Scene    : constant Xi.Scene.Xi_Scene := Xi.Scene.Create_Scene;
       Camera   : constant Xi.Camera.Xi_Camera := Scene.Active_Camera;
-      Node     : constant Xi.Node.Xi_Node := Scene.Create_Node ("galaxy");
       Entity   : Xi.Entity.Manual.Xi_Manual_Entity;
       Size     : constant := 0.01;
       Texture  : constant Xi.Texture.Xi_Texture :=
@@ -135,6 +133,17 @@ package body Concorde.Xi_UI.Galaxies is
                      (Concorde.Paths.Config_File
                         ("shaders/galaxy.frag"),
                       Xi.Shader.Fragment);
+
+      function Behind
+        (S1, S2 : Concorde.Systems.Star_System_Type)
+         return Boolean
+      is (S1.Z > S2.Z);
+
+      package Sort is
+        new Concorde.Systems.Lists.Generic_Sorting (Behind);
+
+      List : Concorde.Systems.Lists.List;
+
    begin
       Program.Add (Vert);
       Program.Add (Frag);
@@ -148,9 +157,13 @@ package body Concorde.Xi_UI.Galaxies is
 
       Entity.Begin_Operation (Xi.Render_Operation.Quad_List);
       for I in 1 .. Concorde.Galaxy.System_Count loop
+         List.Append (Concorde.Galaxy.Get_System (I));
+      end loop;
+
+      Sort.Sort (List);
+
+      for System of List loop
          declare
-            System : constant Concorde.Systems.Star_System_Type :=
-                       Concorde.Galaxy.Get_System (I);
             X      : constant Xi_Float := Xi_Float (System.X);
             Y      : constant Xi_Float := Xi_Float (System.Y);
             Z      : constant Xi_Float := Xi_Float (System.Z);
@@ -170,12 +183,8 @@ package body Concorde.Xi_UI.Galaxies is
       end loop;
       Entity.End_Operation;
 
-      declare
-         Node : constant Xi.Node.Xi_Node :=
-                  Scene.Create_Node ("top");
-      begin
-         Node.Set_Entity (Entity);
-      end;
+      Main_Model.Galaxy_Node := Scene.Create_Node ("galaxy");
+      Main_Model.Galaxy_Node.Set_Entity (Entity);
 
       Camera.Set_Position (0.0, 0.0, 1.0);
       Camera.Set_Orientation (0.0, 0.0, 1.0, 0.0);
@@ -212,7 +221,6 @@ package body Concorde.Xi_UI.Galaxies is
       end;
 
       Main_Model.Scene := Scene;
-      Main_Model.Galaxy_Node := Node;
 
       return Main_Model'Access;
    end Galaxy_Model;
