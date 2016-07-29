@@ -203,6 +203,7 @@ package body Concorde.Xi_UI.Galaxies is
                begin
                   Node.Set_Position (X, Y, Z);
                   Node.Set_Entity (Star_Entity);
+                  Node.Set_Billboard (True);
                end;
             end if;
          end;
