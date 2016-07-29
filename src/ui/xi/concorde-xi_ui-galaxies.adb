@@ -1,4 +1,5 @@
 with Ada.Calendar;
+with Ada.Text_IO;
 
 with Xi;                               use Xi;
 
@@ -12,6 +13,7 @@ with Xi.Node;
 with Xi.Render_Operation;
 with Xi.Scene;
 with Xi.Shader;
+with Xi.Shapes;
 
 with Xtk.Fixed;
 with Xtk.Label;
@@ -96,6 +98,8 @@ package body Concorde.Xi_UI.Galaxies is
             Listener.Frames := 0;
             Main_Model.FPS.Set_Label
               (Lui.Approximate_Image (Lui.Real (FPS)) & " FPS");
+            Ada.Text_IO.Put_Line
+              (Lui.Approximate_Image (Lui.Real (FPS)) & " FPS");
          end;
       end if;
 
@@ -112,9 +116,11 @@ package body Concorde.Xi_UI.Galaxies is
    function Galaxy_Model
       return Xi_Model
    is
+      Single_Entity : constant Boolean := False;
       Scene    : constant Xi.Scene.Xi_Scene := Xi.Scene.Create_Scene;
       Camera   : constant Xi.Camera.Xi_Camera := Scene.Active_Camera;
-      Entity   : Xi.Entity.Manual.Xi_Manual_Entity;
+      Galaxy_Entity : Xi.Entity.Manual.Xi_Manual_Entity;
+      Star_Entity   : Xi.Entity.Xi_Entity;
       Size     : constant := 0.01;
       Texture  : constant Xi.Texture.Xi_Texture :=
                    Xi.Texture.Create_From_Png
@@ -152,10 +158,20 @@ package body Concorde.Xi_UI.Galaxies is
       Tex := Program.Declare_Uniform_Value ("tex");
       Texture.Set_Uniform (Tex);
 
-      Xi.Entity.Manual.Xi_New (Entity);
-      Entity.Set_Texture (Texture);
+      if Single_Entity then
+         Xi.Entity.Manual.Xi_New (Galaxy_Entity);
+         Galaxy_Entity.Set_Texture (Texture);
+      else
+         Star_Entity := Xi.Shapes.Square (0.01);
+         Star_Entity.Set_Texture (Texture);
+      end if;
 
-      Entity.Begin_Operation (Xi.Render_Operation.Quad_List);
+      Main_Model.Galaxy_Node := Scene.Create_Node ("galaxy");
+
+      if Single_Entity then
+         Galaxy_Entity.Begin_Operation (Xi.Render_Operation.Quad_List);
+      end if;
+
       for I in 1 .. Concorde.Galaxy.System_Count loop
          List.Append (Concorde.Galaxy.Get_System (I));
       end loop;
@@ -168,23 +184,34 @@ package body Concorde.Xi_UI.Galaxies is
             Y      : constant Xi_Float := Xi_Float (System.Y);
             Z      : constant Xi_Float := Xi_Float (System.Z);
          begin
-            Entity.Texture_Coordinate (0.0, 0.0);
-            Entity.Vertex (X - Size, Y - Size, Z);
+            if Single_Entity then
+               Galaxy_Entity.Texture_Coordinate (0.0, 0.0);
+               Galaxy_Entity.Vertex (X - Size, Y - Size, Z);
 
-            Entity.Texture_Coordinate (1.0, 0.0);
-            Entity.Vertex (X + Size, Y - Size, Z);
+               Galaxy_Entity.Texture_Coordinate (1.0, 0.0);
+               Galaxy_Entity.Vertex (X + Size, Y - Size, Z);
 
-            Entity.Texture_Coordinate (1.0, 1.0);
-            Entity.Vertex (X + Size, Y + Size, Z);
+               Galaxy_Entity.Texture_Coordinate (1.0, 1.0);
+               Galaxy_Entity.Vertex (X + Size, Y + Size, Z);
 
-            Entity.Texture_Coordinate (0.0, 1.0);
-            Entity.Vertex (X - Size, Y + Size, Z);
+               Galaxy_Entity.Texture_Coordinate (0.0, 1.0);
+               Galaxy_Entity.Vertex (X - Size, Y + Size, Z);
+            else
+               declare
+                  Node : constant Xi.Node.Xi_Node :=
+                           Main_Model.Galaxy_Node.Create_Child (System.Name);
+               begin
+                  Node.Set_Position (X, Y, Z);
+                  Node.Set_Entity (Star_Entity);
+               end;
+            end if;
          end;
       end loop;
-      Entity.End_Operation;
 
-      Main_Model.Galaxy_Node := Scene.Create_Node ("galaxy");
-      Main_Model.Galaxy_Node.Set_Entity (Entity);
+      if Single_Entity then
+         Galaxy_Entity.End_Operation;
+         Main_Model.Galaxy_Node.Set_Entity (Galaxy_Entity);
+      end if;
 
       Camera.Set_Position (0.0, 0.0, 1.0);
       Camera.Set_Orientation (0.0, 0.0, 1.0, 0.0);
