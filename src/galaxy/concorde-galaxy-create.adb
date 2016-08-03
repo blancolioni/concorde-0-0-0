@@ -225,7 +225,9 @@ package body Concorde.Galaxy.Create is
          Ada.Text_IO.Put_Line (Natural'Image (Class_Count (Class)));
       end loop;
 
-      if Concorde.Scenarios.Imperial_Centre then
+      if Concorde.Options.Create_Empires
+        and then Concorde.Scenarios.Imperial_Centre
+      then
          declare
             type Best_Connection is
                record
