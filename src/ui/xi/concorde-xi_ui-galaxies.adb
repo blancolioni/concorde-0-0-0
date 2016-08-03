@@ -1,16 +1,17 @@
 with Ada.Calendar;
+with Ada.Containers.Vectors;
 with Ada.Text_IO;
 
 with Xi;                               use Xi;
 
 with Xi.Camera;
-with Xi.Entity.Manual;
+with Xi.Entity;
 with Xi.Frame_Event;
 with Xi.Keyboard;
 with Xi.Main;
+with Xi.Matrices;
 with Xi.Mouse;
 with Xi.Node;
-with Xi.Render_Operation;
 with Xi.Scene;
 with Xi.Shader;
 with Xi.Shapes;
@@ -20,20 +21,26 @@ with Xtk.Label;
 
 with Concorde.Galaxy;
 with Concorde.Systems;
-with Concorde.Systems.Lists;
 
 with Concorde.Paths;
 with Xi.Texture;
 
 package body Concorde.Xi_UI.Galaxies is
 
+   package System_Vectors is
+     new Ada.Containers.Vectors
+       (Index_Type   => Positive,
+        Element_Type => Concorde.Systems.Star_System_Type,
+        "="          => Concorde.Systems."=");
+
    type Root_Galaxy_Model is
      new Root_Xi_Model with
       record
-         Top_Panel    : Xtk.Panel.Xtk_Panel;
-         FPS          : Xtk.Label.Xtk_Label;
-         Render_Time  : Xtk.Label.Xtk_Label;
-         Galaxy_Node  : Xi.Node.Xi_Node;
+         Top_Panel     : Xtk.Panel.Xtk_Panel;
+         FPS           : Xtk.Label.Xtk_Label;
+         Render_Time   : Xtk.Label.Xtk_Label;
+         Galaxy_Node   : Xi.Node.Xi_Node;
+         System_Vector : System_Vectors.Vector;
       end record;
 
    overriding function Top_Panel
@@ -53,6 +60,8 @@ package body Concorde.Xi_UI.Galaxies is
    overriding procedure Frame_Started
      (Listener : in out Galaxy_Frame_Listener;
       Event    : Xi.Frame_Event.Xi_Frame_Event);
+
+   function Node_Offset (Index : Positive) return Xi.Matrices.Vector_3;
 
    -------------------
    -- Frame_Started --
@@ -116,29 +125,28 @@ package body Concorde.Xi_UI.Galaxies is
    function Galaxy_Model
       return Xi_Model
    is
-      Single_Entity : constant Boolean := False;
-      Scene    : constant Xi.Scene.Xi_Scene := Xi.Scene.Create_Scene;
-      Camera   : constant Xi.Camera.Xi_Camera := Scene.Active_Camera;
-      Galaxy_Entity : Xi.Entity.Manual.Xi_Manual_Entity;
-      Star_Entity   : Xi.Entity.Xi_Entity;
-      Size     : constant := 0.01;
-      Texture  : constant Xi.Texture.Xi_Texture :=
-                   Xi.Texture.Create_From_Png
-                     ("star",
-                      Concorde.Paths.Config_File
-                        ("images/stars/star.png"));
+      Scene       : constant Xi.Scene.Xi_Scene := Xi.Scene.Create_Scene;
+      Camera      : constant Xi.Camera.Xi_Camera := Scene.Active_Camera;
+      Program     : constant Xi.Shader.Xi_Program :=
+                      Xi.Shader.Create
+                        (Concorde.Paths.Config_File
+                           ("shaders/galaxy.vert"),
+                         Concorde.Paths.Config_File
+                           ("shaders/galaxy.frag"));
+      Offset      : constant Xi.Shader.Xi_Shader_Value :=
+                      Program.Declare_Attribute_Value ("vOffset");
+
+      Size        : constant := 0.01;
+      Count       : constant Natural := Concorde.Galaxy.System_Count;
+
+      Texture : constant Xi.Texture.Xi_Texture :=
+                  Xi.Texture.Create_From_Png
+                    ("star",
+                     Concorde.Paths.Config_File
+                       ("images/stars/star.png"));
+      Star    : constant Xi.Entity.Xi_Entity :=
+                  Xi.Shapes.Square (Size);
       Tex      : Xi.Shader.Xi_Shader_Value;
-      Program  : constant Xi.Shader.Xi_Program := Xi.Shader.Create;
-      Vert     : constant Xi.Shader.Xi_Shader :=
-                   Xi.Shader.Load
-                     (Concorde.Paths.Config_File
-                        ("shaders/galaxy.vert"),
-                      Xi.Shader.Vertex);
-      Frag     : constant Xi.Shader.Xi_Shader :=
-                   Xi.Shader.Load
-                     (Concorde.Paths.Config_File
-                        ("shaders/galaxy.frag"),
-                      Xi.Shader.Fragment);
 
       function Behind
         (S1, S2 : Concorde.Systems.Star_System_Type)
@@ -146,111 +154,87 @@ package body Concorde.Xi_UI.Galaxies is
       is (S1.Z > S2.Z);
 
       package Sort is
-        new Concorde.Systems.Lists.Generic_Sorting (Behind);
-
-      List : Concorde.Systems.Lists.List;
+        new System_Vectors.Generic_Sorting (Behind);
 
    begin
-      Program.Add (Vert);
-      Program.Add (Frag);
-      Program.Compile;
       Scene.Set_Shader (Program);
+      Star.Set_Texture (Texture);
+
       Tex := Program.Declare_Uniform_Value ("tex");
       Texture.Set_Uniform (Tex);
 
-      if Single_Entity then
-         Xi.Entity.Manual.Xi_New (Galaxy_Entity);
-         Galaxy_Entity.Set_Texture (Texture);
-      else
-         Star_Entity := Xi.Shapes.Square (0.01);
-         Star_Entity.Set_Texture (Texture);
-      end if;
-
       Main_Model.Galaxy_Node := Scene.Create_Node ("galaxy");
 
-      if Single_Entity then
-         Galaxy_Entity.Begin_Operation (Xi.Render_Operation.Quad_List);
-      end if;
-
       for I in 1 .. Concorde.Galaxy.System_Count loop
-         List.Append (Concorde.Galaxy.Get_System (I));
+         Main_Model.System_Vector.Append (Concorde.Galaxy.Get_System (I));
       end loop;
 
-      Sort.Sort (List);
-
-      for System of List loop
-         declare
-            X      : constant Xi_Float := Xi_Float (System.X);
-            Y      : constant Xi_Float := Xi_Float (System.Y);
-            Z      : constant Xi_Float := Xi_Float (System.Z);
-         begin
-            if Single_Entity then
-               Galaxy_Entity.Texture_Coordinate (0.0, 0.0);
-               Galaxy_Entity.Vertex (X - Size, Y - Size, Z);
-
-               Galaxy_Entity.Texture_Coordinate (1.0, 0.0);
-               Galaxy_Entity.Vertex (X + Size, Y - Size, Z);
-
-               Galaxy_Entity.Texture_Coordinate (1.0, 1.0);
-               Galaxy_Entity.Vertex (X + Size, Y + Size, Z);
-
-               Galaxy_Entity.Texture_Coordinate (0.0, 1.0);
-               Galaxy_Entity.Vertex (X - Size, Y + Size, Z);
-            else
-               declare
-                  Node : constant Xi.Node.Xi_Node :=
-                           Main_Model.Galaxy_Node.Create_Child (System.Name);
-               begin
-                  Node.Set_Position (X, Y, Z);
-                  Node.Set_Entity (Star_Entity);
-                  Node.Set_Billboard (True);
-               end;
-            end if;
-         end;
-      end loop;
-
-      if Single_Entity then
-         Galaxy_Entity.End_Operation;
-         Main_Model.Galaxy_Node.Set_Entity (Galaxy_Entity);
-      end if;
+      Sort.Sort (Main_Model.System_Vector);
 
       Camera.Set_Position (0.0, 0.0, 1.0);
       Camera.Set_Orientation (0.0, 0.0, 1.0, 0.0);
       Camera.Look_At (0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
       Camera.Frustum (-0.1, 0.1, -0.1, 0.1, 0.05, 3.0);
 
-      declare
-         Listener : constant Xi.Frame_Event.Xi_Frame_Listener :=
-                      new Galaxy_Frame_Listener'
-                        (Frames => 0,
-                         Start  => Ada.Calendar.Clock);
-      begin
-         Xi.Main.Add_Frame_Listener (Listener);
-      end;
+      Main_Model.Galaxy_Node.Set_Entity (Star);
+      Main_Model.Galaxy_Node.Set_Instanced (Count);
+      Main_Model.Galaxy_Node.Set_Instance_Value (Offset, Node_Offset'Access);
 
-      Xtk.Label.Xtk_New (Main_Model.FPS, "FPS");
-      Main_Model.FPS.Set_Rectangle ((200.0, 20.0, 180.0, 40.0));
+      if True then
+         declare
+            Listener : constant Xi.Frame_Event.Xi_Frame_Listener :=
+                         new Galaxy_Frame_Listener'
+                           (Frames => 0,
+                            Start  => Ada.Calendar.Clock);
+         begin
+            Xi.Main.Add_Frame_Listener (Listener);
+         end;
 
-      Xtk.Label.Xtk_New (Main_Model.Render_Time, "Render time");
-      Main_Model.Render_Time.Set_Rectangle ((20.0, 20.0, 180.0, 40.0));
+         Xtk.Label.Xtk_New (Main_Model.FPS, "FPS");
+         Main_Model.FPS.Set_Rectangle ((200.0, 20.0, 180.0, 40.0));
 
-      declare
-         Fixed : Xtk.Fixed.Xtk_Fixed;
-      begin
-         Xtk.Fixed.Xi_New (Fixed);
-         Fixed.Set_Rectangle ((20.0, 50.0, 400.0, 60.0));
-         Fixed.Add (Main_Model.FPS);
-         Fixed.Add (Main_Model.Render_Time);
+         Xtk.Label.Xtk_New (Main_Model.Render_Time, "Render time");
+         Main_Model.Render_Time.Set_Rectangle ((20.0, 20.0, 180.0, 40.0));
 
-         Xtk.Panel.Xtk_New
-           (Panel  => Main_Model.Top_Panel,
-            Region => (20.0, 50.0, 400.0, 60.0),
-            Top    => Fixed);
-      end;
+         declare
+            Fixed : Xtk.Fixed.Xtk_Fixed;
+         begin
+            Xtk.Fixed.Xi_New (Fixed);
+            Fixed.Set_Rectangle ((20.0, 50.0, 400.0, 60.0));
+            Fixed.Add (Main_Model.FPS);
+            Fixed.Add (Main_Model.Render_Time);
+
+            Xtk.Panel.Xtk_New
+              (Panel  => Main_Model.Top_Panel,
+               Region => (20.0, 50.0, 400.0, 60.0),
+               Top    => Fixed);
+         end;
+      end if;
 
       Main_Model.Scene := Scene;
 
       return Main_Model'Access;
    end Galaxy_Model;
+
+   -----------------
+   -- Node_Offset --
+   -----------------
+
+   function Node_Offset (Index : Positive) return Xi.Matrices.Vector_3 is
+      use type Xi.Xi_Float;
+      System : constant Concorde.Systems.Star_System_Type :=
+                 Main_Model.System_Vector.Element (Index);
+      X      : constant Xi.Xi_Float := Xi.Xi_Float (System.X);
+      Y      : constant Xi.Xi_Float := Xi.Xi_Float (System.Y);
+      Z      : constant Xi.Xi_Float := Xi.Xi_Float (System.Z);
+   begin
+      if True then
+         return (X, Y, Z);
+      elsif Index mod 2 = 0 then
+         return (0.5, 0.0, -Xi.Xi_Float (Index) / 100.0);
+      else
+         return (-0.5, 0.0, -Xi.Xi_Float (Index) / 100.0);
+      end if;
+   end Node_Offset;
 
 end Concorde.Xi_UI.Galaxies;
