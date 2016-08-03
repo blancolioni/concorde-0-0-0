@@ -149,7 +149,7 @@ begin
             Top_Model.Scene.Active_Camera.Set_Viewport (Window.Full_Viewport);
 
             Window.Add_Top_Level (Top_Model.Top_Panel);
-            Top_Model.Top_Panel.Show_All;
+--              Top_Model.Top_Panel.Show_All;
 
             Xi.Main.Main_Loop;
 
