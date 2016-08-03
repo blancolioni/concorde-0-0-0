@@ -151,6 +151,9 @@ begin
             Window.Add_Top_Level (Top_Model.Top_Panel);
 --              Top_Model.Top_Panel.Show_All;
 
+            Top_Model.Transit_To_Object
+              (Concorde.Galaxy.Get_System (1));
+
             Xi.Main.Main_Loop;
 
          end;

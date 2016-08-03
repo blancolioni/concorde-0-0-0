@@ -1,3 +1,5 @@
+with Concorde.Systems;
+
 package Concorde.Xi_UI.Galaxies is
 
    function Galaxy_Model

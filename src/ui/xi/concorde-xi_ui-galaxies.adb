@@ -22,12 +22,14 @@ with Xtk.Label;
 with Lui.Colours;
 
 with Concorde.Galaxy;
-with Concorde.Systems;
 
 with Concorde.Paths;
 with Xi.Texture;
 
 package body Concorde.Xi_UI.Galaxies is
+
+   Camera_Near : constant := 0.05;
+   Camera_Far  : constant := 3.0;
 
    package System_Vectors is
      new Ada.Containers.Vectors
@@ -49,6 +51,11 @@ package body Concorde.Xi_UI.Galaxies is
      (Model : Root_Galaxy_Model)
       return Xtk.Panel.Xtk_Panel
    is (Model.Top_Panel);
+
+   overriding procedure Transit_To_Object
+     (Model         : in out Root_Galaxy_Model;
+      Target_Object : not null access constant
+        Concorde.Objects.Root_Object_Type'Class);
 
    Main_Model : aliased Root_Galaxy_Model;
 
@@ -77,6 +84,8 @@ package body Concorde.Xi_UI.Galaxies is
       use Xi;
       pragma Unreferenced (Event);
    begin
+      Main_Model.On_Frame_Start;
+
       if Xi.Mouse.Current_Mouse.Wheel_Up
         or else Xi.Keyboard.Key_Down (Xi.Keyboard.Character_Key ('e'))
       then
@@ -178,7 +187,7 @@ package body Concorde.Xi_UI.Galaxies is
       Camera.Set_Position (0.0, 0.0, 1.0);
       Camera.Set_Orientation (0.0, 0.0, 1.0, 0.0);
       Camera.Look_At (0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
-      Camera.Frustum (-0.1, 0.1, -0.1, 0.1, 0.05, 3.0);
+      Camera.Frustum (-0.1, 0.1, -0.1, 0.1, Camera_Near, Camera_Far);
 
       Main_Model.Galaxy_Node.Set_Entity (Star);
       Main_Model.Galaxy_Node.Set_Instanced (Count);
@@ -255,5 +264,33 @@ package body Concorde.Xi_UI.Galaxies is
    begin
       return (X, Y, Z);
    end Node_Offset;
+
+   -----------------------
+   -- Transit_To_Object --
+   -----------------------
+
+   overriding procedure Transit_To_Object
+     (Model         : in out Root_Galaxy_Model;
+      Target_Object : not null access constant
+        Concorde.Objects.Root_Object_Type'Class)
+   is
+      use type Xi.Xi_Float;
+   begin
+      if Target_Object.all in Concorde.Systems.Root_Star_System_Type'Class then
+         declare
+            System : constant Concorde.Systems.Star_System_Type :=
+                       Concorde.Systems.Star_System_Type (Target_Object);
+            Target_Position : constant Xi.Matrices.Vector_3 :=
+                                (Xi.Xi_Float (System.X),
+                                 Xi.Xi_Float (System.Y),
+                                 Xi.Xi_Float (System.Z + Camera_Near * 1.01));
+         begin
+            Model.Start_Transition
+              (Target_Position    => Target_Position,
+               Target_Orientation => Model.Scene.Active_Camera.Orientation,
+               Transition_Time    => 5.0);
+         end;
+      end if;
+   end Transit_To_Object;
 
 end Concorde.Xi_UI.Galaxies;
