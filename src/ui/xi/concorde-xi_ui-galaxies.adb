@@ -19,6 +19,8 @@ with Xi.Shapes;
 with Xtk.Fixed;
 with Xtk.Label;
 
+with Lui.Colours;
+
 with Concorde.Galaxy;
 with Concorde.Systems;
 
@@ -62,6 +64,7 @@ package body Concorde.Xi_UI.Galaxies is
       Event    : Xi.Frame_Event.Xi_Frame_Event);
 
    function Node_Offset (Index : Positive) return Xi.Matrices.Vector_3;
+   function Node_Colour (Index : Positive) return Xi.Matrices.Vector_3;
 
    -------------------
    -- Frame_Started --
@@ -135,7 +138,8 @@ package body Concorde.Xi_UI.Galaxies is
                            ("shaders/galaxy.frag"));
       Offset      : constant Xi.Shader.Xi_Shader_Value :=
                       Program.Declare_Attribute_Value ("vOffset");
-
+      Colour      : constant Xi.Shader.Xi_Shader_Value :=
+                      Program.Declare_Attribute_Value ("star_colour");
       Size        : constant := 0.01;
       Count       : constant Natural := Concorde.Galaxy.System_Count;
 
@@ -179,6 +183,7 @@ package body Concorde.Xi_UI.Galaxies is
       Main_Model.Galaxy_Node.Set_Entity (Star);
       Main_Model.Galaxy_Node.Set_Instanced (Count);
       Main_Model.Galaxy_Node.Set_Instance_Value (Offset, Node_Offset'Access);
+      Main_Model.Galaxy_Node.Set_Instance_Value (Colour, Node_Colour'Access);
 
       if True then
          declare
@@ -217,6 +222,26 @@ package body Concorde.Xi_UI.Galaxies is
    end Galaxy_Model;
 
    -----------------
+   -- Node_Colour --
+   -----------------
+
+   function Node_Colour (Index : Positive) return Xi.Matrices.Vector_3 is
+      use type Xi.Xi_Float;
+      System : constant Concorde.Systems.Star_System_Type :=
+                 Main_Model.System_Vector.Element (Index);
+      Colour : constant Lui.Colours.Colour_Type :=
+                 System.Main_Object.Colour;
+      R      : constant Xi.Xi_Unit_Float :=
+                 Xi.Xi_Unit_Float (Colour.Red);
+      G      : constant Xi.Xi_Unit_Float :=
+                 Xi.Xi_Unit_Float (Colour.Green);
+      B      : constant Xi.Xi_Unit_Float :=
+                 Xi.Xi_Unit_Float (Colour.Blue);
+   begin
+      return (R, G, B);
+   end Node_Colour;
+
+   -----------------
    -- Node_Offset --
    -----------------
 
@@ -228,13 +253,7 @@ package body Concorde.Xi_UI.Galaxies is
       Y      : constant Xi.Xi_Float := Xi.Xi_Float (System.Y);
       Z      : constant Xi.Xi_Float := Xi.Xi_Float (System.Z);
    begin
-      if True then
-         return (X, Y, Z);
-      elsif Index mod 2 = 0 then
-         return (0.5, 0.0, -Xi.Xi_Float (Index) / 100.0);
-      else
-         return (-0.5, 0.0, -Xi.Xi_Float (Index) / 100.0);
-      end if;
+      return (X, Y, Z);
    end Node_Offset;
 
 end Concorde.Xi_UI.Galaxies;
