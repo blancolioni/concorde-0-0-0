@@ -13,7 +13,7 @@ with Xi.Matrices;
 with Xi.Mouse;
 with Xi.Node;
 with Xi.Scene;
-with Xi.Shader;
+with Xi.Shader.Load;
 with Xi.Shapes;
 
 with Xtk.Fixed;
@@ -28,6 +28,9 @@ with Xi.Texture;
 
 package body Concorde.Xi_UI.Galaxies is
 
+   Show_Stars      : constant Boolean := True;
+   Show_Highlights : constant Boolean := True;
+
    Camera_Near : constant := 0.05;
    Camera_Far  : constant := 3.0;
 
@@ -40,11 +43,12 @@ package body Concorde.Xi_UI.Galaxies is
    type Root_Galaxy_Model is
      new Root_Xi_Model with
       record
-         Top_Panel     : Xtk.Panel.Xtk_Panel;
-         FPS           : Xtk.Label.Xtk_Label;
-         Render_Time   : Xtk.Label.Xtk_Label;
-         Galaxy_Node   : Xi.Node.Xi_Node;
-         System_Vector : System_Vectors.Vector;
+         Top_Panel      : Xtk.Panel.Xtk_Panel;
+         FPS            : Xtk.Label.Xtk_Label;
+         Render_Time    : Xtk.Label.Xtk_Label;
+         Galaxy_Node    : Xi.Node.Xi_Node;
+         Highlight_Node : Xi.Node.Xi_Node;
+         System_Vector  : System_Vectors.Vector;
       end record;
 
    overriding function Top_Panel
@@ -119,8 +123,10 @@ package body Concorde.Xi_UI.Galaxies is
             Listener.Frames := 0;
             Main_Model.FPS.Set_Label
               (Lui.Approximate_Image (Lui.Real (FPS)) & " FPS");
-            Ada.Text_IO.Put_Line
-              (Lui.Approximate_Image (Lui.Real (FPS)) & " FPS");
+            if False then
+               Ada.Text_IO.Put_Line
+                 (Lui.Approximate_Image (Lui.Real (FPS)) & " FPS");
+            end if;
          end;
       end if;
 
@@ -139,15 +145,19 @@ package body Concorde.Xi_UI.Galaxies is
    is
       Scene       : constant Xi.Scene.Xi_Scene := Xi.Scene.Create_Scene;
       Camera      : constant Xi.Camera.Xi_Camera := Scene.Active_Camera;
-      Program     : constant Xi.Shader.Xi_Program :=
-                      Xi.Shader.Create
-                        (Concorde.Paths.Config_File
-                           ("shaders/galaxy.vert"),
-                         Concorde.Paths.Config_File
-                           ("shaders/galaxy.frag"));
-      Offset      : constant Xi.Shader.Xi_Shader_Value :=
+      Program     : constant Xi.Shader.Xi_Shader :=
+                      Xi.Shader.Load.Load ("galaxy", "galaxy");
+      Highlight   : constant Xi.Shader.Xi_Shader :=
+                      Xi.Shader.Load.Load ("highlight", "highlight");
+      Highlight_Texture : constant Xi.Texture.Xi_Texture :=
+                            Xi.Texture.Create_From_Png
+                              ("highlight",
+                               Concorde.Paths.Config_File
+                                 ("images/stars/star-highlight.png"));
+
+      Offset      : constant Xi.Shader.Xi_Attribute_Value :=
                       Program.Declare_Attribute_Value ("vOffset");
-      Colour      : constant Xi.Shader.Xi_Shader_Value :=
+      Colour      : constant Xi.Shader.Xi_Attribute_Value :=
                       Program.Declare_Attribute_Value ("star_colour");
       Size        : constant := 0.01;
       Count       : constant Natural := Concorde.Galaxy.System_Count;
@@ -159,7 +169,9 @@ package body Concorde.Xi_UI.Galaxies is
                        ("images/stars/star.png"));
       Star    : constant Xi.Entity.Xi_Entity :=
                   Xi.Shapes.Square (Size);
-      Tex      : Xi.Shader.Xi_Shader_Value;
+      Highlight_Entity : constant Xi.Entity.Xi_Entity :=
+                           Xi.Shapes.Square (Size);
+      Tex      : Xi.Shader.Xi_Uniform_Value;
 
       function Behind
         (S1, S2 : Concorde.Systems.Star_System_Type)
@@ -172,14 +184,51 @@ package body Concorde.Xi_UI.Galaxies is
    begin
       Scene.Set_Shader (Program);
       Star.Set_Texture (Texture);
+      Star.Bind_Shader
+        (Vertices => Program.Declare_Attribute_Value ("vPosition"),
+         Textures => Program.Declare_Attribute_Value ("texture_coord"));
 
       Tex := Program.Declare_Uniform_Value ("tex");
       Texture.Set_Uniform (Tex);
 
+      Highlight_Entity.Set_Texture (Highlight_Texture);
+      Highlight_Texture.Set_Uniform
+        (Highlight.Declare_Uniform_Value ("tex"));
+      Highlight_Entity.Bind_Shader
+        (Vertices => Highlight.Declare_Attribute_Value ("vPosition"),
+         Textures => Highlight.Declare_Attribute_Value ("texture_coord"));
+
       Main_Model.Galaxy_Node := Scene.Create_Node ("galaxy");
+      Main_Model.Highlight_Node := Scene.Create_Node ("highlight");
+      Main_Model.Highlight_Node.Set_Shader (Highlight);
 
       for I in 1 .. Concorde.Galaxy.System_Count loop
-         Main_Model.System_Vector.Append (Concorde.Galaxy.Get_System (I));
+         declare
+            System : constant Concorde.Systems.Star_System_Type :=
+                       Concorde.Galaxy.Get_System (I);
+         begin
+            Main_Model.System_Vector.Append (System);
+            if Show_Highlights and then System.Owned then
+               declare
+                  Node : constant Xi.Node.Xi_Node :=
+                           Main_Model.Highlight_Node.Create_Child
+                             ("owned-" & System.Name);
+                  Colour : constant Lui.Colours.Colour_Type :=
+                             System.Owner.Colour;
+               begin
+                  Node.Set_Position
+                    (Xi.Xi_Float (System.X),
+                     Xi.Xi_Float (System.Y),
+                     Xi.Xi_Float (System.Z));
+                  Node.Set_Color (Xi.Xi_Unit_Float (Colour.Red),
+                                  Xi.Xi_Unit_Float (Colour.Green),
+                                  Xi.Xi_Unit_Float (Colour.Blue),
+                                  0.5);
+                  Node.Set_Entity (Highlight_Entity);
+                  Node.Set_Billboard (True);
+               end;
+            end if;
+         end;
       end loop;
 
       Sort.Sort (Main_Model.System_Vector);
@@ -189,10 +238,14 @@ package body Concorde.Xi_UI.Galaxies is
       Camera.Look_At (0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
       Camera.Frustum (-0.1, 0.1, -0.1, 0.1, Camera_Near, Camera_Far);
 
-      Main_Model.Galaxy_Node.Set_Entity (Star);
-      Main_Model.Galaxy_Node.Set_Instanced (Count);
-      Main_Model.Galaxy_Node.Set_Instance_Value (Offset, Node_Offset'Access);
-      Main_Model.Galaxy_Node.Set_Instance_Value (Colour, Node_Colour'Access);
+      if Show_Stars then
+         Main_Model.Galaxy_Node.Set_Entity (Star);
+         Main_Model.Galaxy_Node.Set_Instanced (Count);
+         Main_Model.Galaxy_Node.Set_Instance_Value
+           (Offset, Node_Offset'Access);
+         Main_Model.Galaxy_Node.Set_Instance_Value
+           (Colour, Node_Colour'Access);
+      end if;
 
       if True then
          declare
