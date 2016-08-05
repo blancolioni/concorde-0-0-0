@@ -9,13 +9,14 @@ package body Concorde.Xi_UI is
    -----------
 
    function Model
-     (For_Object : Concorde.Objects.Object_Type)
+     (For_Object : Concorde.Objects.Object_Type;
+      Window     : Xi.Render_Window.Xi_Render_Window)
       return Xi_Model
    is
       use type Concorde.Objects.Object_Type;
    begin
       if For_Object = null then
-         return Concorde.Xi_UI.Galaxies.Galaxy_Model;
+         return Concorde.Xi_UI.Galaxies.Galaxy_Model (Window);
       else
          return null;
       end if;
@@ -45,6 +46,7 @@ package body Concorde.Xi_UI is
                  (Model.Target_Position);
                Model.Scene.Active_Camera.Set_Orientation
                  (Model.Target_Orientation);
+               Root_Xi_Model'Class (Model).On_Transition_Complete;
             else
                Model.Scene.Active_Camera.Set_Position
                  (Model.Start_Position + Progress * Model.Position_Delta);
@@ -77,18 +79,6 @@ package body Concorde.Xi_UI is
       Model.Scene.Active_Camera.Translate
         (0.0, 0.0, -0.01);
    end On_Wheel_Up;
-
-   -----------
-   -- Scene --
-   -----------
-
-   function Scene
-     (Model : Root_Xi_Model'Class)
-      return Xi.Scene.Xi_Scene
-   is
-   begin
-      return Model.Scene;
-   end Scene;
 
    ----------------------
    -- Start_Transition --

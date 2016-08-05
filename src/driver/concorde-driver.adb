@@ -139,16 +139,17 @@ begin
             Window :=
               Xi.Main.Current_Renderer.Create_Top_Level_Window;
 
+            Window.Set_Full_Screen (True);
+
             Window.Enable_Point_Size (True);
             Window.Blend (Xi.Render_Target.Source_Alpha,
                           Xi.Render_Target.Destination_Alpha);
 
-            Top_Model := Concorde.Xi_UI.Model (null);
+            Top_Model := Concorde.Xi_UI.Model (null, Window);
 
-            Window.Set_Scene (Top_Model.Scene);
-            Top_Model.Scene.Active_Camera.Set_Viewport (Window.Full_Viewport);
-
-            Window.Add_Top_Level (Top_Model.Top_Panel);
+--          Top_Model.Scene.Active_Camera.Set_Viewport (Window.Full_Viewport);
+--
+--              Window.Add_Top_Level (Top_Model.Top_Panel);
 --              Top_Model.Top_Panel.Show_All;
 
             Top_Model.Transit_To_Object
