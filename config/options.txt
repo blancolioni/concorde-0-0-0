@@ -7,11 +7,14 @@ create_voronoi = no
 empire_count = 3
 system_count = 5000
 
+create_galaxy = yes
+create_empires = yes
+
 galaxy_shape = spiral
 galaxy_sub_shape = archimedes
 system_x_deviation = 0.018
 system_y_deviation = 0.018
-system_z_deviation = 0.04
+system_z_deviation = 0.02
 
 average_connections = 4
 detailed_battle_logging = no
