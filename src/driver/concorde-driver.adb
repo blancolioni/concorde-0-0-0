@@ -9,6 +9,7 @@ with Memor;
 with Xi.Main;
 with Xi.Render_Target;
 with Xi.Render_Window;
+with Xi.Shader.Load;
 
 with Xtk;
 
@@ -135,6 +136,9 @@ begin
 
             Xi.Main.Init;
             Xtk.Initialize;
+
+            Xi.Shader.Load.Add_Search_Path
+              (Concorde.Paths.Config_File ("shaders"));
 
             Window :=
               Xi.Main.Current_Renderer.Create_Top_Level_Window;
