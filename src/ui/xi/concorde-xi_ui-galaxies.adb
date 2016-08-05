@@ -28,8 +28,12 @@ with Xi.Texture;
 
 package body Concorde.Xi_UI.Galaxies is
 
-   Camera_Near : constant := 0.05;
-   Camera_Far  : constant := 3.0;
+   Camera_Left      : constant := -0.1;
+   Camera_Right     : constant := 0.1;
+   Camera_Top       : constant := -0.1;
+   Camera_Bottom    : constant := 0.1;
+   Camera_Near      : constant := 0.02;
+   Camera_Far       : constant := 2.0;
 
    package System_Vectors is
      new Ada.Containers.Vectors
@@ -45,6 +49,12 @@ package body Concorde.Xi_UI.Galaxies is
          Render_Time   : Xtk.Label.Xtk_Label;
          Galaxy_Node   : Xi.Node.Xi_Node;
          System_Vector : System_Vectors.Vector;
+         Focus_System  : Concorde.Systems.Star_System_Type;
+         Active_Focus  : Boolean := False;
+         Focus_Length  : Xi.Xi_Float;
+         Galaxy_Scene  : Xi.Scene.Xi_Scene;
+         System_Scene  : Xi.Scene.Xi_Scene;
+         Star_Shader   : Xi.Shader.Xi_Program;
       end record;
 
    overriding function Top_Panel
@@ -56,6 +66,9 @@ package body Concorde.Xi_UI.Galaxies is
      (Model         : in out Root_Galaxy_Model;
       Target_Object : not null access constant
         Concorde.Objects.Root_Object_Type'Class);
+
+   overriding procedure On_Transition_Complete
+     (Model : in out Root_Galaxy_Model);
 
    Main_Model : aliased Root_Galaxy_Model;
 
@@ -73,6 +86,39 @@ package body Concorde.Xi_UI.Galaxies is
    function Node_Offset (Index : Positive) return Xi.Matrices.Vector_3;
    function Node_Colour (Index : Positive) return Xi.Matrices.Vector_3;
 
+   function Create_System_Scene
+     (System : Concorde.Systems.Star_System_Type)
+      return Xi.Scene.Xi_Scene;
+
+   -------------------------
+   -- Create_System_Scene --
+   -------------------------
+
+   function Create_System_Scene
+     (System : Concorde.Systems.Star_System_Type)
+      return Xi.Scene.Xi_Scene
+   is
+      Scene : constant Xi.Scene.Xi_Scene := Xi.Scene.Create_Scene;
+      Camera      : constant Xi.Camera.Xi_Camera := Scene.Active_Camera;
+      Star_Node   : constant Xi.Node.Xi_Node :=
+                    Scene.Create_Node (System.Name);
+   begin
+      Scene.Set_Shader (Main_Model.Star_Shader);
+      Star_Node.Set_Color (1.0, 1.0, 1.0, 1.0);
+      --  Star_Node.Scale (0.01, 0.01, 0.01);
+      Star_Node.Set_Entity (Xi.Shapes.Icosohedral_Sphere (5));
+      Camera.Set_Position (0.0, 0.0, Camera_Near * 1.01);
+      Camera.Set_Orientation (0.0, 0.0, 1.0, 0.0);
+      Camera.Frustum
+        (Camera_Left * Main_Model.Focus_Length,
+         Camera_Right * Main_Model.Focus_Length,
+         Camera_Bottom * Main_Model.Focus_Length,
+         Camera_Top * Main_Model.Focus_Length,
+         Camera_Near, Camera_Far);
+
+      return Scene;
+   end Create_System_Scene;
+
    -------------------
    -- Frame_Started --
    -------------------
@@ -82,9 +128,32 @@ package body Concorde.Xi_UI.Galaxies is
       Event    : Xi.Frame_Event.Xi_Frame_Event)
    is
       use Xi;
+      use type Concorde.Systems.Star_System_Type;
       pragma Unreferenced (Event);
    begin
       Main_Model.On_Frame_Start;
+
+      if Main_Model.Active_Focus then
+         if Main_Model.Focus_Length <= 0.07 then
+            Main_Model.Focus_Length := 0.07;
+            Main_Model.Active_Focus := False;
+            Main_Model.System_Scene :=
+              Create_System_Scene (Main_Model.Focus_System);
+            Main_Model.System_Scene.Active_Camera.Set_Viewport
+              (Main_Model.Window.Full_Viewport);
+            Main_Model.Focus_System := null;
+            Main_Model.Scene := Main_Model.System_Scene;
+            Main_Model.Window.Set_Scene (Main_Model.System_Scene);
+         else
+            Main_Model.Focus_Length := Main_Model.Focus_Length * 0.99;
+            Main_Model.Scene.Active_Camera.Frustum
+              (Camera_Left * Main_Model.Focus_Length,
+               Camera_Right * Main_Model.Focus_Length,
+               Camera_Bottom * Main_Model.Focus_Length,
+               Camera_Top * Main_Model.Focus_Length,
+               Camera_Near, Camera_Far);
+         end if;
+      end if;
 
       if Xi.Mouse.Current_Mouse.Wheel_Up
         or else Xi.Keyboard.Key_Down (Xi.Keyboard.Character_Key ('e'))
@@ -135,6 +204,7 @@ package body Concorde.Xi_UI.Galaxies is
    ------------------
 
    function Galaxy_Model
+     (Window : Xi.Render_Window.Xi_Render_Window)
       return Xi_Model
    is
       Scene       : constant Xi.Scene.Xi_Scene := Xi.Scene.Create_Scene;
@@ -170,6 +240,14 @@ package body Concorde.Xi_UI.Galaxies is
         new System_Vectors.Generic_Sorting (Behind);
 
    begin
+
+      Main_Model.Star_Shader :=
+        Xi.Shader.Create
+          (Concorde.Paths.Config_File
+             ("shaders/star.vert"),
+           Concorde.Paths.Config_File
+             ("shaders/star.frag"));
+
       Scene.Set_Shader (Program);
       Star.Set_Texture (Texture);
 
@@ -187,7 +265,10 @@ package body Concorde.Xi_UI.Galaxies is
       Camera.Set_Position (0.0, 0.0, 1.0);
       Camera.Set_Orientation (0.0, 0.0, 1.0, 0.0);
       Camera.Look_At (0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
-      Camera.Frustum (-0.1, 0.1, -0.1, 0.1, Camera_Near, Camera_Far);
+      Camera.Frustum
+        (Camera_Left, Camera_Right, Camera_Bottom, Camera_Top,
+         Camera_Near, Camera_Far);
+      Camera.Set_Viewport (Window.Full_Viewport);
 
       Main_Model.Galaxy_Node.Set_Entity (Star);
       Main_Model.Galaxy_Node.Set_Instanced (Count);
@@ -226,6 +307,10 @@ package body Concorde.Xi_UI.Galaxies is
       end if;
 
       Main_Model.Scene := Scene;
+      Main_Model.Window := Window;
+      Main_Model.Galaxy_Scene := Scene;
+
+      Window.Set_Scene (Scene);
 
       return Main_Model'Access;
    end Galaxy_Model;
@@ -265,6 +350,17 @@ package body Concorde.Xi_UI.Galaxies is
       return (X, Y, Z);
    end Node_Offset;
 
+   ----------------------------
+   -- On_Transition_Complete --
+   ----------------------------
+
+   overriding procedure On_Transition_Complete
+     (Model : in out Root_Galaxy_Model)
+   is
+   begin
+      Model.Active_Focus := True;
+   end On_Transition_Complete;
+
    -----------------------
    -- Transit_To_Object --
    -----------------------
@@ -289,6 +385,8 @@ package body Concorde.Xi_UI.Galaxies is
               (Target_Position    => Target_Position,
                Target_Orientation => Model.Scene.Active_Camera.Orientation,
                Transition_Time    => 5.0);
+            Main_Model.Focus_Length := 1.0;
+            Model.Focus_System := System;
          end;
       end if;
    end Transit_To_Object;
