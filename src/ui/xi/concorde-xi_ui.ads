@@ -36,10 +36,13 @@ package Concorde.Xi_UI is
       Window     : Xi.Render_Window.Xi_Render_Window)
       return Xi_Model;
 
+   procedure Load_Top_Model (Window : Xi.Render_Window.Xi_Render_Window);
+
    procedure Start_Transition
      (Model              : in out Root_Xi_Model'Class;
       Target_Position    : Xi.Matrices.Vector_3;
       Target_Orientation : Xi.Matrices.Matrix_3;
+      Target_Projection  : Xi.Matrices.Matrix_4;
       Transition_Time    : Duration);
 
    procedure On_Transition_Complete
@@ -55,10 +58,13 @@ private
          Active_Transition  : Boolean := False;
          Target_Position    : Xi.Matrices.Vector_4;
          Target_Orientation : Xi.Matrices.Matrix_3;
+         Target_Projection  : Xi.Matrices.Matrix_4;
          Start_Position     : Xi.Matrices.Vector_4;
          Start_Orientation  : Xi.Matrices.Matrix_3;
+         Start_Projection   : Xi.Matrices.Matrix_4;
          Position_Delta     : Xi.Matrices.Vector_4;
          Orientation_Delta  : Xi.Matrices.Matrix_3;
+         Projection_Delta   : Xi.Matrices.Matrix_4;
          Start_Time         : Ada.Calendar.Time;
          Transition_Time    : Duration;
       end record;
