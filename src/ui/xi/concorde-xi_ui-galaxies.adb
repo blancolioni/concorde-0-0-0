@@ -12,9 +12,11 @@ with Xi.Main;
 with Xi.Matrices;
 with Xi.Mouse;
 with Xi.Node;
+with Xi.Render_Target;
 with Xi.Scene;
 with Xi.Shader.Load;
 with Xi.Shapes;
+with Xi.Texture;
 
 with Xtk.Fixed;
 with Xtk.Label;
@@ -24,7 +26,6 @@ with Lui.Colours;
 with Concorde.Galaxy;
 
 with Concorde.Paths;
-with Xi.Texture;
 
 package body Concorde.Xi_UI.Galaxies is
 
@@ -35,8 +36,13 @@ package body Concorde.Xi_UI.Galaxies is
    Camera_Right     : constant := 0.1;
    Camera_Top       : constant := -0.1;
    Camera_Bottom    : constant := 0.1;
-   Camera_Near      : constant := 0.02;
+   Camera_Near      : constant := 0.5;
    Camera_Far       : constant := 2.0;
+   Camera_Fov       : constant := 80.0;
+   Focus_Fov        : constant := 40.0;
+   System_Fov       : constant := 10.0;
+
+   Star_Size : constant := 0.005;
 
    package System_Vectors is
      new Ada.Containers.Vectors
@@ -52,13 +58,18 @@ package body Concorde.Xi_UI.Galaxies is
          Render_Time    : Xtk.Label.Xtk_Label;
          Galaxy_Node    : Xi.Node.Xi_Node;
          Highlight_Node : Xi.Node.Xi_Node;
+         Active_Node    : Xi.Node.Xi_Node;
          System_Vector  : System_Vectors.Vector;
-         Focus_System  : Concorde.Systems.Star_System_Type;
-         Active_Focus  : Boolean := False;
-         Focus_Length  : Xi.Xi_Float;
-         Galaxy_Scene  : Xi.Scene.Xi_Scene;
-         System_Scene  : Xi.Scene.Xi_Scene;
-         Star_Shader   : Xi.Shader.Xi_Program;
+         Focus_System   : Concorde.Systems.Star_System_Type;
+         Next_Focus     : Concorde.Systems.Star_System_Type;
+         Active_Focus   : Boolean := False;
+         Focus_Length   : Xi.Xi_Float;
+         Galaxy_Scene   : Xi.Scene.Xi_Scene;
+         System_Scene   : Xi.Scene.Xi_Scene;
+         Star_Shader    : Xi.Shader.Xi_Shader;
+         Current_Near   : Xi.Xi_Float := Camera_Near;
+         Current_Far    : Xi.Xi_Float := Camera_Far;
+         Current_Fov    : Xi.Xi_Float := Camera_Fov;
       end record;
 
    overriding function Top_Panel
@@ -94,6 +105,11 @@ package body Concorde.Xi_UI.Galaxies is
      (System : Concorde.Systems.Star_System_Type)
       return Xi.Scene.Xi_Scene;
 
+   procedure On_Resize
+     (Target : not null access Xi.Render_Target.Xi_Render_Target_Record'Class);
+
+   procedure Update_Camera;
+
    -------------------------
    -- Create_System_Scene --
    -------------------------
@@ -109,8 +125,8 @@ package body Concorde.Xi_UI.Galaxies is
    begin
       Scene.Set_Shader (Main_Model.Star_Shader);
       Star_Node.Set_Color (1.0, 1.0, 1.0, 1.0);
-      --  Star_Node.Scale (0.01, 0.01, 0.01);
-      Star_Node.Set_Entity (Xi.Shapes.Icosohedral_Sphere (5));
+      Star_Node.Scale (0.001, 0.001, 0.001);
+      Star_Node.Set_Entity (Xi.Shapes.Icosohedral_Sphere (2));
       Camera.Set_Position (0.0, 0.0, Camera_Near * 1.01);
       Camera.Set_Orientation (0.0, 0.0, 1.0, 0.0);
       Camera.Frustum
@@ -138,8 +154,8 @@ package body Concorde.Xi_UI.Galaxies is
       Main_Model.On_Frame_Start;
 
       if Main_Model.Active_Focus then
-         if Main_Model.Focus_Length <= 0.07 then
-            Main_Model.Focus_Length := 0.07;
+         if Main_Model.Current_Fov <= System_Fov then
+            Main_Model.Current_Fov := System_Fov;
             Main_Model.Active_Focus := False;
             Main_Model.System_Scene :=
               Create_System_Scene (Main_Model.Focus_System);
@@ -148,15 +164,14 @@ package body Concorde.Xi_UI.Galaxies is
             Main_Model.Focus_System := null;
             Main_Model.Scene := Main_Model.System_Scene;
             Main_Model.Window.Set_Scene (Main_Model.System_Scene);
+            Update_Camera;
          else
-            Main_Model.Focus_Length := Main_Model.Focus_Length * 0.99;
-            Main_Model.Scene.Active_Camera.Frustum
-              (Camera_Left * Main_Model.Focus_Length,
-               Camera_Right * Main_Model.Focus_Length,
-               Camera_Bottom * Main_Model.Focus_Length,
-               Camera_Top * Main_Model.Focus_Length,
-               Camera_Near, Camera_Far);
+            Main_Model.Current_Fov := Main_Model.Current_Fov * 0.99;
+            Update_Camera;
          end if;
+      elsif Main_Model.Next_Focus /= null then
+         Main_Model.Transit_To_Object (Main_Model.Next_Focus);
+         Main_Model.Next_Focus := null;
       end if;
 
       if Xi.Mouse.Current_Mouse.Wheel_Up
@@ -175,6 +190,31 @@ package body Concorde.Xi_UI.Galaxies is
          Main_Model.Galaxy_Node.Pitch (-0.1);
       elsif Xi.Keyboard.Key_Down (Xi.Keyboard.Character_Key ('s')) then
          Main_Model.Galaxy_Node.Pitch (0.1);
+      elsif Xi.Keyboard.Key_Down (Xi.Keyboard.Character_Key ('z')) then
+         Main_Model.Current_Fov :=
+           Xi_Float'Max (Main_Model.Current_Fov - 0.1, 10.0);
+         Update_Camera;
+         Ada.Text_IO.Put_Line
+           ("Fov: " & Lui.Approximate_Image (Real (Main_Model.Current_Fov)));
+      elsif Xi.Keyboard.Key_Down (Xi.Keyboard.Character_Key ('x')) then
+         Main_Model.Current_Fov :=
+           Xi_Float'Min (Main_Model.Current_Fov + 0.1, 80.0);
+         Update_Camera;
+         Ada.Text_IO.Put_Line
+           ("Fov: " & Lui.Approximate_Image (Real (Main_Model.Current_Fov)));
+      elsif Xi.Keyboard.Key_Down (Xi.Keyboard.Character_Key ('f')) then
+         Main_Model.Current_Far :=
+           Xi_Float'Min (Main_Model.Current_Far * 1.1, 100.0);
+         Update_Camera;
+         Ada.Text_IO.Put_Line
+           ("Far: " & Lui.Approximate_Image (Real (Main_Model.Current_Far)));
+      elsif Xi.Keyboard.Key_Down (Xi.Keyboard.Character_Key ('v')) then
+         Main_Model.Current_Far :=
+           Xi_Float'Max (Main_Model.Current_Far / 1.1,
+                         Main_Model.Current_Near * 2.0);
+         Update_Camera;
+         Ada.Text_IO.Put_Line
+           ("Far: " & Lui.Approximate_Image (Real (Main_Model.Current_Far)));
       end if;
       if Xi.Keyboard.Key_Down (Xi.Keyboard.Key_Esc) then
          Xi.Main.Leave_Main_Loop;
@@ -229,7 +269,6 @@ package body Concorde.Xi_UI.Galaxies is
                       Program.Declare_Attribute_Value ("vOffset");
       Colour      : constant Xi.Shader.Xi_Attribute_Value :=
                       Program.Declare_Attribute_Value ("star_colour");
-      Size        : constant := 0.01;
       Count       : constant Natural := Concorde.Galaxy.System_Count;
 
       Texture : constant Xi.Texture.Xi_Texture :=
@@ -238,9 +277,9 @@ package body Concorde.Xi_UI.Galaxies is
                      Concorde.Paths.Config_File
                        ("images/stars/star.png"));
       Star    : constant Xi.Entity.Xi_Entity :=
-                  Xi.Shapes.Square (Size);
+                  Xi.Shapes.Square (Star_Size);
       Highlight_Entity : constant Xi.Entity.Xi_Entity :=
-                           Xi.Shapes.Square (Size);
+                           Xi.Shapes.Square (Star_Size);
       Tex      : Xi.Shader.Xi_Uniform_Value;
 
       function Behind
@@ -253,12 +292,10 @@ package body Concorde.Xi_UI.Galaxies is
 
    begin
 
+      Main_Model.Scene := Scene;
+      Main_Model.Window := Window;
       Main_Model.Star_Shader :=
-        Xi.Shader.Create
-          (Concorde.Paths.Config_File
-             ("shaders/star.vert"),
-           Concorde.Paths.Config_File
-             ("shaders/star.frag"));
+        Xi.Shader.Load.Load ("star", "star");
 
       Scene.Set_Shader (Program);
       Star.Set_Texture (Texture);
@@ -309,15 +346,31 @@ package body Concorde.Xi_UI.Galaxies is
          end;
       end loop;
 
+      Main_Model.Next_Focus := Main_Model.System_Vector.First_Element;
+
       Sort.Sort (Main_Model.System_Vector);
 
       Camera.Set_Position (0.0, 0.0, 1.0);
       Camera.Set_Orientation (0.0, 0.0, 1.0, 0.0);
       Camera.Look_At (0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
-      Camera.Frustum
-        (Camera_Left, Camera_Right, Camera_Bottom, Camera_Top,
-         Camera_Near, Camera_Far);
+
       Camera.Set_Viewport (Window.Full_Viewport);
+
+--        Camera.Frustum
+--          (Camera_Left, Camera_Right, Camera_Bottom, Camera_Top,
+--           Camera_Near, Camera_Far);
+
+--        Main_Model.Current_Fov := 45.0;
+--        Main_Model.Current_Near := Camera_Near;
+--        Main_Model.Current_Far := Camera_Far;
+      Update_Camera;
+
+--        Camera.Perspective
+--          (Fovy         => 10.0,
+--           Near         => Camera_Near,
+--           Far          => Camera_Far);
+
+      Window.On_Resize (On_Resize'Access);
 
       if Show_Stars then
          Main_Model.Galaxy_Node.Set_Entity (Star);
@@ -359,8 +412,6 @@ package body Concorde.Xi_UI.Galaxies is
          end;
       end if;
 
-      Main_Model.Scene := Scene;
-      Main_Model.Window := Window;
       Main_Model.Galaxy_Scene := Scene;
 
       Window.Set_Scene (Scene);
@@ -403,6 +454,28 @@ package body Concorde.Xi_UI.Galaxies is
       return (X, Y, Z);
    end Node_Offset;
 
+   ---------------
+   -- On_Resize --
+   ---------------
+
+   procedure On_Resize
+     (Target : not null access Xi.Render_Target.Xi_Render_Target_Record'Class)
+   is
+      Aspect_Ratio : constant Xi_Float :=
+                       Target.Width / Target.Height;
+      Camera       : constant Xi.Camera.Xi_Camera :=
+                       Main_Model.Scene.Active_Camera;
+   begin
+      if False then
+         Camera.Frustum
+           (Camera_Left / Aspect_Ratio, Camera_Right / Aspect_Ratio,
+            Camera_Bottom, Camera_Top,
+            Camera_Near, Camera_Far);
+      end if;
+      Camera.Set_Viewport (Target.Full_Viewport);
+      Update_Camera;
+   end On_Resize;
+
    ----------------------------
    -- On_Transition_Complete --
    ----------------------------
@@ -411,6 +484,7 @@ package body Concorde.Xi_UI.Galaxies is
      (Model : in out Root_Galaxy_Model)
    is
    begin
+      Model.Current_Fov := Focus_Fov;
       Model.Active_Focus := True;
    end On_Transition_Complete;
 
@@ -433,15 +507,35 @@ package body Concorde.Xi_UI.Galaxies is
                                 (Xi.Xi_Float (System.X),
                                  Xi.Xi_Float (System.Y),
                                  Xi.Xi_Float (System.Z + Camera_Near * 1.01));
+            Target_Projection : constant Xi.Matrices.Matrix_4 :=
+                                  Xi.Matrices.Perspective_Matrix
+                                    (Fovy         => Focus_Fov,
+                                     Aspect_Ratio =>
+                                       Model.Window.Viewport.Aspect_Ratio,
+                                     Near         => Camera_Near,
+                                     Far          => Camera_Far);
          begin
             Model.Start_Transition
               (Target_Position    => Target_Position,
                Target_Orientation => Model.Scene.Active_Camera.Orientation,
+               Target_Projection  => Target_Projection,
                Transition_Time    => 5.0);
             Main_Model.Focus_Length := 1.0;
             Model.Focus_System := System;
          end;
       end if;
    end Transit_To_Object;
+
+   -------------------
+   -- Update_Camera --
+   -------------------
+
+   procedure Update_Camera is
+   begin
+      Main_Model.Scene.Active_Camera.Perspective
+        (Fovy         => Main_Model.Current_Fov,
+         Near         => Main_Model.Current_Near,
+         Far          => Main_Model.Current_Far);
+   end Update_Camera;
 
 end Concorde.Xi_UI.Galaxies;
