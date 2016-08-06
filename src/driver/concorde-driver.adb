@@ -144,7 +144,6 @@ begin
 
             Window.Set_Full_Screen (True);
 
-            Window.Enable_Point_Size (True);
             Window.Blend (Xi.Render_Target.Source_Alpha,
                           Xi.Render_Target.Destination_Alpha);
 
