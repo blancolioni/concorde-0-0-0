@@ -131,7 +131,6 @@ begin
 
          declare
             Window : Xi.Render_Window.Xi_Render_Window;
-            Top_Model : Concorde.Xi_UI.Xi_Model;
          begin
 
             Xi.Main.Init;
@@ -149,15 +148,7 @@ begin
             Window.Blend (Xi.Render_Target.Source_Alpha,
                           Xi.Render_Target.Destination_Alpha);
 
-            Top_Model := Concorde.Xi_UI.Model (null, Window);
-
---          Top_Model.Scene.Active_Camera.Set_Viewport (Window.Full_Viewport);
---
---              Window.Add_Top_Level (Top_Model.Top_Panel);
---              Top_Model.Top_Panel.Show_All;
-
-            Top_Model.Transit_To_Object
-              (Concorde.Galaxy.Get_System (1));
+            Concorde.Xi_UI.Load_Top_Model (Window);
 
             Xi.Main.Main_Loop;
 
