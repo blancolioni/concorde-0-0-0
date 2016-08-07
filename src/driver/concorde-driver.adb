@@ -27,7 +27,8 @@ with Concorde.Empires.Updates;
 with Concorde.Updates;
 
 with Concorde.Gtk_UI;
-with Concorde.Xi_UI;
+with Concorde.Xi_UI.Model_Manager;
+with Concorde.Xi_UI.Key_Bindings;
 
 with Concorde.Empires.Logging;
 
@@ -136,6 +137,8 @@ begin
             Xi.Main.Init;
             Xtk.Initialize;
 
+            Concorde.Xi_UI.Key_Bindings.Load_Key_Bindings;
+
             Xi.Shader.Load.Add_Search_Path
               (Concorde.Paths.Config_File ("shaders"));
 
@@ -147,7 +150,7 @@ begin
             Window.Blend (Xi.Render_Target.Source_Alpha,
                           Xi.Render_Target.Destination_Alpha);
 
-            Concorde.Xi_UI.Load_Top_Model (Window);
+            Concorde.Xi_UI.Model_Manager.Load_Top_Model (Window);
 
             Xi.Main.Main_Loop;
 
