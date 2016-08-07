@@ -13,7 +13,7 @@ with Xi.Mouse;
 with Xi.Node;
 with Xi.Render_Target;
 with Xi.Scene;
-with Xi.Shader.Load;
+with Xi.Shader;
 with Xi.Shapes;
 with Xi.Texture;
 
@@ -26,6 +26,8 @@ with Concorde.Galaxy;
 with Concorde.Worlds;
 
 with Concorde.Systems.Xi_Model;
+
+with Concorde.Xi_UI.Shaders;
 
 with Concorde.Paths;
 
@@ -162,9 +164,9 @@ package body Concorde.Xi_UI.Galaxies is
       Scene       : constant Xi.Scene.Xi_Scene := Xi.Scene.Create_Scene;
       Camera      : constant Xi.Camera.Xi_Camera := Scene.Active_Camera;
       Program     : constant Xi.Shader.Xi_Shader :=
-                      Xi.Shader.Load.Load ("galaxy", "galaxy");
+                      Concorde.Xi_UI.Shaders.Shader ("galaxy");
       Highlight   : constant Xi.Shader.Xi_Shader :=
-                      Xi.Shader.Load.Load ("highlight", "highlight");
+                            Concorde.Xi_UI.Shaders.Shader ("highlight");
       Highlight_Texture : constant Xi.Texture.Xi_Texture :=
                             Xi.Texture.Create_From_Png
                               ("highlight",
@@ -201,7 +203,7 @@ package body Concorde.Xi_UI.Galaxies is
       Main_Model.Scene := Scene;
       Main_Model.Window := Window;
       Main_Model.Star_Shader :=
-        Xi.Shader.Load.Load ("star", "star");
+        Concorde.Xi_UI.Shaders.Shader ("star");
 
       Scene.Set_Shader (Program);
       Star.Set_Texture (Texture);

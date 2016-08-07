@@ -15,4 +15,18 @@ package body Concorde.Xi_UI.Colours is
          Xi_Float (Colour.Blue), Xi_Float (Colour.Alpha));
    end Set_Lui_Colour;
 
+   -----------------
+   -- To_Xi_Color --
+   -----------------
+
+   function To_Xi_Color
+     (Colour : Lui.Colours.Colour_Type)
+      return Xi.Color.Xi_Color
+   is
+      use Xi;
+   begin
+      return (Xi_Float (Colour.Red), Xi_Float (Colour.Green),
+              Xi_Float (Colour.Blue), Xi_Float (Colour.Alpha));
+   end To_Xi_Color;
+
 end Concorde.Xi_UI.Colours;

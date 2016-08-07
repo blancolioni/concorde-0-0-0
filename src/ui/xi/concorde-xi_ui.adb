@@ -103,17 +103,17 @@ package body Concorde.Xi_UI is
                   when Exit_Model =>
                      Xi.Main.Leave_Main_Loop;
                   when Move_Forward =>
-                     Root_Xi_Model'Class (Model).Move_In (0.1);
+                     Root_Xi_Model'Class (Model).Move_In (-0.01);
                   when Move_Backward =>
-                     Root_Xi_Model'Class (Model).Move_In (-0.1);
+                     Root_Xi_Model'Class (Model).Move_In (0.01);
                   when Move_Right =>
-                     Root_Xi_Model'Class (Model).Move_Horizontal (0.1);
+                     Root_Xi_Model'Class (Model).Move_Horizontal (0.01);
                   when Move_Left =>
-                     Root_Xi_Model'Class (Model).Move_Horizontal (-0.1);
+                     Root_Xi_Model'Class (Model).Move_Horizontal (-0.01);
                   when Move_Up =>
-                     Root_Xi_Model'Class (Model).Move_Vertical (0.1);
+                     Root_Xi_Model'Class (Model).Move_Vertical (0.01);
                   when Move_Down =>
-                     Root_Xi_Model'Class (Model).Move_Vertical (-0.1);
+                     Root_Xi_Model'Class (Model).Move_Vertical (-0.01);
                end case;
             end loop;
          end;

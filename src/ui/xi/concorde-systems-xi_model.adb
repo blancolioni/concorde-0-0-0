@@ -3,6 +3,7 @@ with Xi.Float_Arrays;
 with Xi.Matrices;
 with Xi.Node;
 with Xi.Scene;
+with Xi.Shader;
 with Xi.Shapes;
 
 --  with Concorde.Xi_UI.Colours;
@@ -14,6 +15,9 @@ with Concorde.Solar_System;
 
 with Concorde.Stars;
 
+with Concorde.Worlds.Db;
+with Concorde.Worlds.Xi_Model;
+
 package body Concorde.Systems.Xi_Model is
 
    Camera_Start_Near : constant := 0.5;
@@ -21,8 +25,8 @@ package body Concorde.Systems.Xi_Model is
    Camera_Start_Fov  : constant := 80.0;
 
    World_Start_Fov   : constant := 60.0;
-   World_Start_Near  : constant := 0.1;
-   World_Start_Far   : constant := 16.0;
+   World_Start_Near  : constant := 0.01;
+   World_Start_Far   : constant := 1.6;
 
    function System_Scene
      (System             : Concorde.Systems.Star_System_Type;
@@ -43,6 +47,8 @@ package body Concorde.Systems.Xi_Model is
       Camera      : constant Xi.Camera.Xi_Camera := Scene.Active_Camera;
       System_Node : constant Xi.Node.Xi_Node :=
                       Scene.Create_Node (System.Name);
+      Star_Shader : constant Xi.Shader.Xi_Shader :=
+                      Concorde.Xi_UI.Shaders.Shader ("star");
 
       procedure Create_Node
         (Object   : Star_System_Object_Interface'Class;
@@ -88,6 +94,9 @@ package body Concorde.Systems.Xi_Model is
       begin
          Star_Node.Scale (0.1, 0.1, 0.1);
          Star_Node.Set_Entity (Xi.Shapes.Icosohedral_Sphere (2));
+         Star_Node.Entity.Bind_Shader
+           (Vertices => Star_Shader.Declare_Attribute_Value ("vPosition"),
+            Colors   => Star_Shader.Declare_Attribute_Value ("vColor"));
       end Create_Star;
 
       ------------------
@@ -112,16 +121,20 @@ package body Concorde.Systems.Xi_Model is
                           / Concorde.Solar_System.Earth_Orbit
                           * 2.0 * 100.0;
       begin
+         World_Node.Set_Shader
+           (Concorde.Xi_UI.Shaders.Shader ("world"));
          World_Node.Scale (Scale, Scale, Scale);
          World_Node.Set_Position
            (X => Orbit_Radius * Xi_Float (Cos (Position)),
             Y => 0.0,
             Z => Orbit_Radius * Xi_Float (Sin (Position)));
-         World_Node.Set_Entity (Xi.Shapes.Icosohedral_Sphere (2));
+         Concorde.Worlds.Xi_Model.Load_World
+           (World       => Concorde.Worlds.Db.Reference (World),
+            Parent_Node => World_Node);
       end Create_World;
 
    begin
-      Scene.Set_Shader (Concorde.Xi_UI.Shaders.Shader ("star"));
+      Scene.Set_Shader (Star_Shader);
 
       for Object of System.Objects loop
          Create_Node (Object.Object.all, Object.Start);
