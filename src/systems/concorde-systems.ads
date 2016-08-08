@@ -80,6 +80,13 @@ package Concorde.Systems is
       Process : not null access
         procedure (System_Object : Star_System_Object_Interface'Class));
 
+   procedure Scan_System_Objects
+     (System  : Root_Star_System_Type'Class;
+      Process : not null access
+        procedure
+          (System_Object : not null access constant
+               Star_System_Object_Interface'Class));
+
    function Owner
      (System : Root_Star_System_Type'Class)
       return access constant Concorde.Empires.Root_Empire_Type'Class;
