@@ -307,7 +307,7 @@ package body Concorde.Worlds.Xi_Model is
       if World.Category in Jovian_World then
          Parent_Node.Set_Shader (Concorde.Xi_UI.Shaders.Shader ("star"));
          Parent_Node.Set_Entity
-           (Xi.Shapes.Icosohedral_Sphere (1));
+           (Xi.Shapes.Icosohedral_Sphere (3));
          Parent_Node.Entity.Set_Texture
            (Concorde.Xi_UI.Assets.Texture ("gas_giant_1x2048"));
          Parent_Node.Entity.Bind_Shader
