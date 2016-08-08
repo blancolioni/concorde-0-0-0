@@ -1,3 +1,5 @@
+with Ada.Directories;
+
 with Tropos.Reader;
 
 with Concorde.String_Maps;
@@ -47,23 +49,32 @@ package body Concorde.Xi_UI.Assets is
          return Texture_Assets (Name);
       elsif Asset_Config.Contains (Name) then
          declare
-            Path : constant String := Asset_Config.Get (Name);
-            Texture : constant Xi.Texture.Xi_Texture :=
-                        Xi.Texture.Create_From_Png
-                          (Name, Path);
+            Path : constant String :=
+                     Concorde.Paths.Config_File
+                       (Asset_Config.Get (Name));
          begin
-            Texture_Assets.Insert (Name, Texture);
-            return Texture;
-         end;
-      else
-         declare
-            Result : constant Xi.Texture.Xi_Texture :=
-                       Texture ("default_texture");
-         begin
-            Texture_Assets.Insert (Name, Result);
-            return Result;
+
+            if Ada.Directories.Exists (Path) then
+               declare
+                  Texture : constant Xi.Texture.Xi_Texture :=
+                              Xi.Texture.Create_From_Png
+                                (Name, Path);
+               begin
+                  Texture_Assets.Insert (Name, Texture);
+                  return Texture;
+               end;
+            end if;
+
          end;
       end if;
+
+      declare
+         Result : constant Xi.Texture.Xi_Texture :=
+                    Texture ("default_texture");
+      begin
+         Texture_Assets.Insert (Name, Result);
+         return Result;
+      end;
    end Texture;
 
 end Concorde.Xi_UI.Assets;
