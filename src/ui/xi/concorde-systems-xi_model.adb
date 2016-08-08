@@ -28,7 +28,7 @@ package body Concorde.Systems.Xi_Model is
 
    World_Start_Fov   : constant := 60.0;
    World_Start_Near  : constant := 0.01;
-   World_Start_Far   : constant := 1.6;
+   World_Start_Far   : constant := 40.0;
 
    function System_Scene
      (System             : Concorde.Systems.Star_System_Type;
@@ -95,7 +95,7 @@ package body Concorde.Systems.Xi_Model is
                        System_Node.Create_Child (Star.Name);
       begin
          Star_Node.Scale (0.1, 0.1, 0.1);
-         Star_Node.Set_Entity (Xi.Shapes.Icosohedral_Sphere (2));
+         Star_Node.Set_Entity (Xi.Shapes.Icosohedral_Sphere (3));
          Star_Node.Entity.Bind_Shader
            (Vertices => Star_Shader.Declare_Attribute_Value ("vPosition"),
             Colors   => Star_Shader.Declare_Attribute_Value ("vColor"));
@@ -160,6 +160,7 @@ package body Concorde.Systems.Xi_Model is
    is
       use Xi;
       use Concorde.Geometry;
+      use type Concorde.Worlds.World_Type;
       Scene             : constant Xi.Scene.Xi_Scene :=
                             System_Scene (World.System, Model.Window.Viewport);
       System_Transition : constant Transitions.Transition_Type :=
@@ -177,7 +178,9 @@ package body Concorde.Systems.Xi_Model is
         (System_Transition);
 
       for Object of World.System.Objects loop
-         if Object.Object = World then
+         if Object.Object.all in Concorde.Worlds.Root_World_Type'Class
+           and then Concorde.Worlds.World_Type (Object.Object) = World
+         then
             Orbital_Offset := Object.Start;
             Got_Orbit_Offset := True;
             exit;
@@ -198,7 +201,7 @@ package body Concorde.Systems.Xi_Model is
                        Xi_Float
                          (AU * Sin (Orbital_Offset)));
          Target_Position : constant Xi.Matrices.Vector_3 :=
-                             Position + (0.0, 0.0, 0.6);
+                             Position + (0.0, 0.0, 0.05);
          Target_Orientation : constant Xi.Matrices.Matrix_3 :=
                                 Xi.Matrices.Look_At_Matrix
                                   (Target_Position, (0.0, 1.0, 0.0),
