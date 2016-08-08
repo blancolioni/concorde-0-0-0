@@ -1,4 +1,4 @@
-with Xi.Entity.Manual;
+with Xi.Entity;
 with Xi.Matrices;
 with Xi.Render_Operation;
 with Xi.Shader;
@@ -198,7 +198,7 @@ package body Concorde.Worlds.Xi_Model is
          use Xi;
          Boundary : constant Concorde.Surfaces.Tile_Vertex_Array :=
                       Surface.Tile_Boundary (Index);
-         Entity   : Xi.Entity.Manual.Xi_Manual_Entity;
+         Entity   : Xi.Entity.Xi_Entity;
          Node     : constant Xi.Node.Xi_Node :=
                       Parent_Node.Create_Child ("Tile" & Index'Img);
 
@@ -217,7 +217,7 @@ package body Concorde.Worlds.Xi_Model is
               Xi_Float (V (3))));
 
       begin
-         Xi.Entity.Manual.Xi_New (Entity);
+         Xi.Entity.Xi_New (Entity);
          Entity.Bind_Shader
            (Vertices => Shader.Declare_Attribute_Value ("vPosition"),
             Colors   => Shader.Declare_Attribute_Value ("vColor"));

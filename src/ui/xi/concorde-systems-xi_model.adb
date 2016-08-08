@@ -1,3 +1,5 @@
+with Ada.Text_IO;
+
 with Xi.Camera;
 with Xi.Float_Arrays;
 with Xi.Matrices;
@@ -168,6 +170,7 @@ package body Concorde.Systems.Xi_Model is
                             World.Semimajor_Axis
                               / Concorde.Solar_System.Earth_Orbit;
       Orbital_Offset    : Radians;
+      Got_Orbit_Offset  : Boolean := False;
    begin
       System_Transition.Scene_Transition (Scene);
       Model.Add_Transition
@@ -176,9 +179,15 @@ package body Concorde.Systems.Xi_Model is
       for Object of World.System.Objects loop
          if Object.Object = World then
             Orbital_Offset := Object.Start;
+            Got_Orbit_Offset := True;
             exit;
          end if;
       end loop;
+
+      if not Got_Orbit_Offset then
+         Ada.Text_IO.Put_Line
+           ("Warning: no orbit offset for " & World.Name);
+      end if;
 
       declare
          use Xi.Float_Arrays;
