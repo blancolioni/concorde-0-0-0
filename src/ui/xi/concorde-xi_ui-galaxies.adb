@@ -22,6 +22,8 @@ with Xtk.Label;
 
 with Lui.Colours;
 
+with Concorde.Xi_UI.Assets;
+
 with Concorde.Galaxy;
 with Concorde.Worlds;
 
@@ -64,8 +66,7 @@ package body Concorde.Xi_UI.Galaxies is
          Highlight_Node : Xi.Node.Xi_Node;
          Active_Node    : Xi.Node.Xi_Node;
          System_Vector  : System_Vectors.Vector;
-         Focus_System   : Concorde.Systems.Star_System_Type;
-         Next_Focus     : Concorde.Systems.Star_System_Type;
+         Current_System : Concorde.Systems.Star_System_Type;
          Active_Focus   : Boolean := False;
          Focus_Length   : Xi.Xi_Float;
          Galaxy_Scene   : Xi.Scene.Xi_Scene;
@@ -123,9 +124,32 @@ package body Concorde.Xi_UI.Galaxies is
       Main_Model.On_Frame_Start;
 
       if not Main_Model.Transited then
-         Main_Model.Transit_To_Object
-           (Concorde.Galaxy.Capital_World);  --  .Get_System (1));
-         Main_Model.Transited := True;
+         declare
+            procedure Visit_Object
+              (Object : not null access constant
+                 Concorde.Systems.Star_System_Object_Interface'Class);
+
+            ------------------
+            -- Visit_Object --
+            ------------------
+
+            procedure Visit_Object
+              (Object : not null access constant
+                 Concorde.Systems.Star_System_Object_Interface'Class)
+            is
+            begin
+               if Object.all in Concorde.Worlds.Root_World_Type'Class then
+                  Main_Model.Transit_To_Object
+                    (Concorde.Worlds.Root_World_Type'Class
+                       (Object.all)'Access);
+               end if;
+            end Visit_Object;
+
+         begin
+            Concorde.Galaxy.Get_System (1).Scan_System_Objects
+              (Visit_Object'Access);
+            Main_Model.Transited := True;
+         end;
       end if;
 
       Listener.Frames := Listener.Frames + 1;
@@ -180,10 +204,7 @@ package body Concorde.Xi_UI.Galaxies is
       Count       : constant Natural := Concorde.Galaxy.System_Count;
 
       Texture : constant Xi.Texture.Xi_Texture :=
-                  Xi.Texture.Create_From_Png
-                    ("star",
-                     Concorde.Paths.Config_File
-                       ("images/stars/star.png"));
+                  Concorde.Xi_UI.Assets.Texture ("galaxy_star_large");
       Star    : constant Xi.Entity.Xi_Entity :=
                   Xi.Shapes.Square (Star_Size);
       Highlight_Entity : constant Xi.Entity.Xi_Entity :=
@@ -253,8 +274,6 @@ package body Concorde.Xi_UI.Galaxies is
             end if;
          end;
       end loop;
-
-      Main_Model.Next_Focus := Main_Model.System_Vector.First_Element;
 
       Sort.Sort (Main_Model.System_Vector);
 
@@ -441,15 +460,18 @@ package body Concorde.Xi_UI.Galaxies is
                Target_Projection  => Projection_2,
                Transition_Time    => 3.0);
             Model.Add_Transition (Transition_2);
-            Model.Focus_System := System;
+            Model.Current_System := System;
          end;
       elsif Target_Object.all in Concorde.Worlds.Root_World_Type'Class then
 
          declare
+            use type Concorde.Systems.Star_System_Type;
             World : constant Concorde.Worlds.World_Type :=
                       Concorde.Worlds.World_Type (Target_Object);
          begin
-            Model.Transit_To_Object (World.System);
+            if Model.Current_System /= World.System then
+               Model.Transit_To_Object (World.System);
+            end if;
             Concorde.Systems.Xi_Model.Transit_To_World (World, Model);
          end;
 
