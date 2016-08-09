@@ -294,9 +294,9 @@ package body Concorde.Worlds.Xi_Model is
 
    end Create_Tiles;
 
-   ------------------
-   -- World_Entity --
-   ------------------
+   ----------------
+   -- Load_World --
+   ----------------
 
    procedure Load_World
      (World       : World_Type;
