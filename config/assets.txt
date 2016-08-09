@@ -1,2 +1,3 @@
 default_texture = "images/default-texture.png"
 gas_giant_1x2048 = "images/planets/gas_giant_lookup1.png"
+star = "images/stars/star-texture.png"
