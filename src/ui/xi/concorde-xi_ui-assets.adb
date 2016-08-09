@@ -1,4 +1,5 @@
 with Ada.Directories;
+with Ada.Text_IO;
 
 with Tropos.Reader;
 
@@ -67,6 +68,8 @@ package body Concorde.Xi_UI.Assets is
 
          end;
       end if;
+
+      Ada.Text_IO.Put_Line ("Texture " & Name & " not found; using default");
 
       declare
          Result : constant Xi.Texture.Xi_Texture :=
