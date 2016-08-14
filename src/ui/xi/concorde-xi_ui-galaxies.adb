@@ -2,11 +2,15 @@ with Ada.Calendar;
 with Ada.Containers.Vectors;
 with Ada.Text_IO;
 
+with GL;
+
 with Xi;                               use Xi;
 
+with Xi.Assets;
 with Xi.Camera;
 with Xi.Entity;
 with Xi.Frame_Event;
+with Xi.Keyboard;
 with Xi.Main;
 with Xi.Matrices;
 with Xi.Mouse;
@@ -22,33 +26,26 @@ with Xtk.Label;
 
 with Lui.Colours;
 
-with Concorde.Xi_UI.Assets;
-
 with Concorde.Galaxy;
 with Concorde.Worlds;
 
 with Concorde.Systems.Xi_Model;
 
-with Concorde.Xi_UI.Shaders;
-
-with Concorde.Paths;
-
 package body Concorde.Xi_UI.Galaxies is
-
-   Show_Stars      : constant Boolean := True;
-   Show_Highlights : constant Boolean := True;
 
    Camera_Left      : constant := -0.1;
    Camera_Right     : constant := 0.1;
    Camera_Top       : constant := -0.1;
    Camera_Bottom    : constant := 0.1;
-   Camera_Near      : constant := 0.5;
+   Camera_Near      : constant := 0.01;
    Camera_Far       : constant := 2.0;
    Camera_Fov       : constant := 80.0;
    Focus_Fov        : constant := 40.0;
    System_Fov       : constant := 10.0;
 
    Star_Size : constant := 0.005;
+
+   Initial_Transition : constant Boolean := True;
 
    package System_Vectors is
      new Ada.Containers.Vectors
@@ -93,8 +90,8 @@ package body Concorde.Xi_UI.Galaxies is
    type Galaxy_Frame_Listener is
      new Xi.Frame_Event.Xi_Frame_Listener_Interface with
       record
-         Frames : Natural := 0;
-         Start  : Ada.Calendar.Time;
+         Frames         : Natural;
+         Last_FPS_Check : Ada.Calendar.Time;
       end record;
 
    overriding procedure Frame_Started
@@ -103,6 +100,8 @@ package body Concorde.Xi_UI.Galaxies is
 
    function Node_Offset (Index : Positive) return Xi.Matrices.Vector_3;
    function Node_Colour (Index : Positive) return Xi.Matrices.Vector_3;
+
+   pragma Unreferenced (Node_Offset, Node_Colour);
 
    procedure On_Resize
      (Target : not null access Xi.Render_Target.Xi_Render_Target_Record'Class);
@@ -117,10 +116,16 @@ package body Concorde.Xi_UI.Galaxies is
      (Listener : in out Galaxy_Frame_Listener;
       Event    : Xi.Frame_Event.Xi_Frame_Event)
    is
+      pragma Unreferenced (Event);
       use Xi;
       use type Concorde.Systems.Star_System_Type;
-      pragma Unreferenced (Event);
    begin
+
+      if Xi.Keyboard.Key_Down (Xi.Keyboard.Key_Esc) then
+         Xi.Main.Leave_Main_Loop;
+         return;
+      end if;
+
       Main_Model.On_Frame_Start;
 
       if not Main_Model.Transited then
@@ -153,18 +158,19 @@ package body Concorde.Xi_UI.Galaxies is
       end if;
 
       Listener.Frames := Listener.Frames + 1;
-      if Listener.Frames >= 100 then
+      if Listener.Frames >= 600 then
          declare
-            use type Ada.Calendar.Time;
-            Now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+            use Ada.Calendar;
+            Now : constant Time := Clock;
             FPS : constant Float :=
-                    Float (Listener.Frames) / Float (Now - Listener.Start);
+                    Float (Listener.Frames)
+                    / Float (Now - Listener.Last_FPS_Check);
          begin
-            Listener.Start := Now;
             Listener.Frames := 0;
+            Listener.Last_FPS_Check := Now;
             Main_Model.FPS.Set_Label
               (Lui.Approximate_Image (Lui.Real (FPS)) & " FPS");
-            if False then
+            if True then
                Ada.Text_IO.Put_Line
                  (Lui.Approximate_Image (Lui.Real (FPS)) & " FPS");
             end if;
@@ -185,31 +191,10 @@ package body Concorde.Xi_UI.Galaxies is
      (Window : Xi.Render_Window.Xi_Render_Window)
       return Xi_Model
    is
-      Scene       : constant Xi.Scene.Xi_Scene := Xi.Scene.Create_Scene;
-      Camera      : constant Xi.Camera.Xi_Camera := Scene.Active_Camera;
-      Program     : constant Xi.Shader.Xi_Shader :=
-                      Concorde.Xi_UI.Shaders.Shader ("galaxy");
-      Highlight   : constant Xi.Shader.Xi_Shader :=
-                            Concorde.Xi_UI.Shaders.Shader ("highlight");
-      Highlight_Texture : constant Xi.Texture.Xi_Texture :=
-                            Xi.Texture.Create_From_Png
-                              ("highlight",
-                               Concorde.Paths.Config_File
-                                 ("images/stars/star-highlight.png"));
-
-      Offset      : constant Xi.Shader.Xi_Attribute_Value :=
-                      Program.Declare_Attribute_Value ("vOffset");
-      Colour      : constant Xi.Shader.Xi_Attribute_Value :=
-                      Program.Declare_Attribute_Value ("star_colour");
-      Count       : constant Natural := Concorde.Galaxy.System_Count;
-
-      Texture : constant Xi.Texture.Xi_Texture :=
-                  Concorde.Xi_UI.Assets.Texture ("galaxy_star_large");
+      Scene   : constant Xi.Scene.Xi_Scene := Xi.Scene.Create_Scene;
+      Camera  : constant Xi.Camera.Xi_Camera := Scene.Active_Camera;
       Star    : constant Xi.Entity.Xi_Entity :=
                   Xi.Shapes.Square (Star_Size);
-      Highlight_Entity : constant Xi.Entity.Xi_Entity :=
-                           Xi.Shapes.Square (Star_Size);
-      Tex      : Xi.Shader.Xi_Uniform_Value;
 
       function Behind
         (S1, S2 : Concorde.Systems.Star_System_Type)
@@ -221,30 +206,20 @@ package body Concorde.Xi_UI.Galaxies is
 
    begin
 
+      if False then
+         GL.Enable_Debug;
+      end if;
+
       Main_Model.Scene := Scene;
       Main_Model.Window := Window;
-      Main_Model.Star_Shader :=
-        Concorde.Xi_UI.Shaders.Shader ("star");
 
-      Scene.Set_Shader (Program);
-      Star.Set_Texture (Texture);
-      Star.Bind_Shader
-        (Vertices => Program.Declare_Attribute_Value ("vPosition"),
-         Textures => Program.Declare_Attribute_Value ("texture_coord"));
+      Main_Model.Transited := not Initial_Transition;
 
-      Tex := Program.Declare_Uniform_Value ("tex");
-      Texture.Set_Uniform (Tex);
-
-      Highlight_Entity.Set_Texture (Highlight_Texture);
-      Highlight_Texture.Set_Uniform
-        (Highlight.Declare_Uniform_Value ("tex"));
-      Highlight_Entity.Bind_Shader
-        (Vertices => Highlight.Declare_Attribute_Value ("vPosition"),
-         Textures => Highlight.Declare_Attribute_Value ("texture_coord"));
+      Star.Set_Material
+        (Xi.Assets.Material ("Concorde/Galaxy/Star"));
 
       Main_Model.Galaxy_Node := Scene.Create_Node ("galaxy");
       Main_Model.Highlight_Node := Scene.Create_Node ("highlight");
-      Main_Model.Highlight_Node.Set_Shader (Highlight);
 
       for I in 1 .. Concorde.Galaxy.System_Count loop
          declare
@@ -252,30 +227,24 @@ package body Concorde.Xi_UI.Galaxies is
                        Concorde.Galaxy.Get_System (I);
          begin
             Main_Model.System_Vector.Append (System);
-            if Show_Highlights and then System.Owned then
-               declare
-                  Node : constant Xi.Node.Xi_Node :=
-                           Main_Model.Highlight_Node.Create_Child
-                             ("owned-" & System.Name);
-                  Colour : constant Lui.Colours.Colour_Type :=
-                             System.Owner.Colour;
-               begin
-                  Node.Set_Position
-                    (Xi.Xi_Float (System.X),
-                     Xi.Xi_Float (System.Y),
-                     Xi.Xi_Float (System.Z));
-                  Node.Set_Color (Xi.Xi_Unit_Float (Colour.Red),
-                                  Xi.Xi_Unit_Float (Colour.Green),
-                                  Xi.Xi_Unit_Float (Colour.Blue),
-                                  0.5);
-                  Node.Set_Entity (Highlight_Entity);
-                  Node.Set_Billboard (True);
-               end;
-            end if;
          end;
       end loop;
 
       Sort.Sort (Main_Model.System_Vector);
+
+      for System of Main_Model.System_Vector loop
+         declare
+            Node : constant Xi.Node.Xi_Node :=
+                     Scene.Create_Node
+                       (System.Name);
+         begin
+            Node.Set_Position
+              (Xi.Xi_Float (System.X),
+               Xi.Xi_Float (System.Y),
+               Xi.Xi_Float (System.Z));
+            Node.Set_Entity (Star);
+         end;
+      end loop;
 
       Camera.Set_Position (0.0, 0.0, 1.0);
       Camera.Set_Orientation (0.0, 0.0, 1.0, 0.0);
@@ -299,21 +268,12 @@ package body Concorde.Xi_UI.Galaxies is
 
       Window.On_Resize (On_Resize'Access);
 
-      if Show_Stars then
-         Main_Model.Galaxy_Node.Set_Entity (Star);
-         Main_Model.Galaxy_Node.Set_Instanced (Count);
-         Main_Model.Galaxy_Node.Set_Instance_Value
-           (Offset, Node_Offset'Access);
-         Main_Model.Galaxy_Node.Set_Instance_Value
-           (Colour, Node_Colour'Access);
-      end if;
-
       if True then
          declare
             Listener : constant Xi.Frame_Event.Xi_Frame_Listener :=
                          new Galaxy_Frame_Listener'
-                           (Frames => 0,
-                            Start  => Ada.Calendar.Clock);
+                           (Frames         => 0,
+                            Last_FPS_Check => Ada.Calendar.Clock);
          begin
             Xi.Main.Add_Frame_Listener (Listener);
          end;
@@ -452,7 +412,11 @@ package body Concorde.Xi_UI.Galaxies is
                Target_Projection  => Projection_1,
                Acceleration       => 0.05,
                Max_Velocity       => 0.1);
-            Model.Add_Transition (Transition_1);
+
+            if True then
+               Model.Add_Transition (Transition_1);
+            end if;
+
             Transition_2.Create
               (Scene              => Model.Scene,
                Target_Position    => Position_2,

@@ -1,16 +1,14 @@
+with Xi.Assets;
 with Xi.Entity;
 with Xi.Matrices;
 with Xi.Render_Operation;
-with Xi.Shader;
 with Xi.Shapes;
 
 with Lui.Colours;
 
 with Concorde.Hash_Table;
 
-with Concorde.Xi_UI.Assets;
 with Concorde.Xi_UI.Colours;
-with Concorde.Xi_UI.Shaders;
 
 --  with Concorde.Solar_System;
 --  with Concorde.Money;
@@ -180,9 +178,6 @@ package body Concorde.Worlds.Xi_Model is
       Surface : constant Concorde.Surfaces.Surface_Type :=
                   World.Surface;
 
-      Shader : constant Xi.Shader.Xi_Shader :=
-                 Concorde.Xi_UI.Shaders.Shader ("world");
-
       procedure Draw_Tile
         (Index  : Concorde.Surfaces.Surface_Tile_Index;
          Colour : Lui.Colours.Colour_Type);
@@ -218,9 +213,7 @@ package body Concorde.Worlds.Xi_Model is
 
       begin
          Xi.Entity.Xi_New (Entity);
-         Entity.Bind_Shader
-           (Vertices => Shader.Declare_Attribute_Value ("vPosition"),
-            Colors   => Shader.Declare_Attribute_Value ("vColor"));
+         Entity.Set_Material (Xi.Assets.Material ("default"));
 
          Entity.Begin_Operation (Xi.Render_Operation.Triangle_Fan);
          Entity.Color (Concorde.Xi_UI.Colours.To_Xi_Color (Colour));
@@ -234,8 +227,6 @@ package body Concorde.Worlds.Xi_Model is
       end Draw_Tile;
 
    begin
-
-      Parent_Node.Set_Shader (Shader);
 
       for I in 1 .. Surface.Tile_Count loop
          declare
@@ -305,18 +296,10 @@ package body Concorde.Worlds.Xi_Model is
    begin
       World.Check_Loaded;
       if World.Category in Jovian_World then
-         Parent_Node.Set_Shader (Concorde.Xi_UI.Shaders.Shader ("star"));
          Parent_Node.Set_Entity
            (Xi.Shapes.Icosohedral_Sphere (3));
-         Parent_Node.Entity.Set_Texture
-           (Concorde.Xi_UI.Assets.Texture ("gas_giant_1x2048"));
-         Parent_Node.Entity.Bind_Shader
-           (Vertices =>
-              Parent_Node.Shader.Declare_Attribute_Value ("vPosition"),
-            Textures =>
-              Parent_Node.Shader.Declare_Attribute_Value ("texture_coord"));
-         Parent_Node.Entity.Texture.Set_Uniform
-           (Parent_Node.Shader.Declare_Uniform_Value ("tex"));
+         Parent_Node.Entity.Set_Material
+           (Xi.Assets.Material ("Concorde/System/Gas_Giant"));
       else
          Create_Tiles (World, Parent_Node);
       end if;
