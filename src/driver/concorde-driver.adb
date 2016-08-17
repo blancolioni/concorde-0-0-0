@@ -72,21 +72,29 @@ begin
    Concorde.Configure.Load_Configuration;
 
    if Concorde.Options.Create_Galaxy then
-      declare
-         Shape : constant Concorde.Galaxy.Create.Galaxy_Shape :=
-                   Concorde.Galaxy.Create.Galaxy_Shape'Value
-                     (Concorde.Options.Galaxy_Shape);
-      begin
-         Concorde.Galaxy.Create.Create_Galaxy
-           (System_Count        => Concorde.Options.Number_Of_Systems,
-            Shape               => Shape,
-            DX                  => Concorde.Options.System_X_Deviation,
-            DY                  => Concorde.Options.System_Y_Deviation,
-            DZ                  => Concorde.Options.System_Z_Deviation,
-            Average_Connections => Concorde.Options.Average_Connections,
-            Reset_Seed          => Concorde.Options.Randomise,
-            Name_Generator      => Name_Generator);
-      end;
+      if Concorde.Options.Galaxy_Shape = "catalogue" then
+         Concorde.Galaxy.Create.Create_Catalogue_Systems
+           (Concorde.Paths.Config_File
+              ("hygdata_v3.csv"));
+
+      else
+         declare
+            use type Concorde.Galaxy.Create.Galaxy_Shape;
+            Shape : constant Concorde.Galaxy.Create.Galaxy_Shape :=
+                      Concorde.Galaxy.Create.Galaxy_Shape'Value
+                        (Concorde.Options.Galaxy_Shape);
+         begin
+            Concorde.Galaxy.Create.Create_Galaxy
+              (System_Count        => Concorde.Options.Number_Of_Systems,
+               Shape               => Shape,
+               DX                  => Concorde.Options.System_X_Deviation,
+               DY                  => Concorde.Options.System_Y_Deviation,
+               DZ                  => Concorde.Options.System_Z_Deviation,
+               Average_Connections => Concorde.Options.Average_Connections,
+               Reset_Seed          => Concorde.Options.Randomise,
+               Name_Generator      => Name_Generator);
+         end;
+      end if;
 
       if Concorde.Options.Create_Empires then
          Concorde.Empires.Configure.Create_Empires

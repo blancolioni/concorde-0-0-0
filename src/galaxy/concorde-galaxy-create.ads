@@ -23,4 +23,7 @@ package Concorde.Galaxy.Create is
    --  be randomised.  Name_Generator is used to give each system
    --  a random name.
 
+   procedure Create_Catalogue_Systems
+     (Catalogue_Path : String);
+
 end Concorde.Galaxy.Create;

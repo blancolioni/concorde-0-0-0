@@ -1,3 +1,6 @@
+with Ada.Containers.Vectors;
+with Ada.Strings.Unbounded;
+
 with Ada.Text_IO;
 with Ada.Float_Text_IO;
 
@@ -5,13 +8,18 @@ with Ada.Numerics.Float_Random;
 
 with WL.Work;
 
+with Tropos.Reader;
+--  with Tropos.Writer;
+
+--  with Concorde.Paths;
+
 with Concorde.Elementary_Functions;
 with Concorde.Geometry;
 with Concorde.Voronoi_Diagrams;
 
 with Concorde.Options;
 
-with Concorde.Stars;
+with Concorde.Stars.Classification;
 with Concorde.Systems.Create;
 
 with Concorde.Scenarios;
@@ -58,6 +66,104 @@ package body Concorde.Galaxy.Create is
       Y := Real (Random (Gen) * 2.0 - 1.0);
       Z := Real (Random (Gen) * 2.0 - 1.0);
    end Cartesian_Location;
+
+   ------------------------------
+   -- Create_Catalogue_Systems --
+   ------------------------------
+
+   procedure Create_Catalogue_Systems
+     (Catalogue_Path : String)
+   is
+      Max_Distance : constant := 900.0;
+
+      Galaxy_Config : constant Tropos.Configuration :=
+                        Tropos.Reader.Read_CSV_Config
+                          (Path          => Catalogue_Path,
+                           Header_Line   => True,
+                           Separator     => ',',
+                           Extend_Header => False);
+
+      type Catalogue_Star is
+         record
+            X, Y, Z          : Real;
+            Name             : Ada.Strings.Unbounded.Unbounded_String;
+            Classification   : Concorde.Stars.Stellar_Classification;
+         end record;
+
+      package Catalogue_Vectors is
+        new Ada.Containers.Vectors (Positive, Catalogue_Star);
+
+      Catalogue_Stars : Catalogue_Vectors.Vector;
+      Max_X, Max_Y, Max_Z : Real := 0.0;
+
+   begin
+      Ada.Text_IO.Put_Line ("catalogue stars:"
+                            & Natural'Image (Galaxy_Config.Child_Count));
+
+      for Config of Galaxy_Config loop
+         declare
+            use Concorde.Stars;
+            Rec : Catalogue_Star;
+            Name : constant String := Config.Get ("proper");
+            Spectrum : constant String := Config.Get ("spect");
+         begin
+            Rec.X := Real (Float'(Config.Get ("x")));
+            Rec.Y := Real (Float'(Config.Get ("y")));
+            Rec.Z := Real (Float'(Config.Get ("z")));
+            if Rec.X ** 2 + Rec.Y ** 2 + Rec.Z ** 2 <= Max_Distance then
+               Rec.Name :=
+                 Ada.Strings.Unbounded.To_Unbounded_String
+                   ((if Name = ""
+                    then "Star"
+                    & Positive'Image (Catalogue_Stars.Last_Index + 1)
+                    else Name));
+               Rec.Classification :=
+                 Concorde.Stars.Classification.Get_Stellar_Classification
+                   (Spectrum);
+               Max_X := Real'Max (Max_X, abs Rec.X);
+               Max_Y := Real'Max (Max_Y, abs Rec.Y);
+               Max_Z := Real'Max (Max_Z, abs Rec.Z);
+
+               if Name /= "" then
+                  Ada.Text_IO.Put_Line (Name);
+               end if;
+
+               Catalogue_Stars.Append (Rec);
+            end if;
+         exception
+            when Constraint_Error =>
+               null;
+         end;
+      end loop;
+
+      Ada.Text_IO.Put_Line
+        ("using"
+         & Ada.Containers.Count_Type'Image (Catalogue_Stars.Length)
+         & " stars");
+      Ada.Text_IO.Put ("max x: ");
+      Ada.Float_Text_IO.Put (Float (Max_X), 1, 1, 0);
+      Ada.Text_IO.New_Line;
+      Ada.Text_IO.Put ("max y: ");
+      Ada.Float_Text_IO.Put (Float (Max_Y), 1, 1, 0);
+      Ada.Text_IO.New_Line;
+      Ada.Text_IO.Put ("max z: ");
+      Ada.Float_Text_IO.Put (Float (Max_Z), 1, 1, 0);
+      Ada.Text_IO.New_Line;
+
+      for I in 1 .. Catalogue_Stars.Last_Index loop
+         declare
+            use Ada.Strings.Unbounded;
+            Rec : Catalogue_Star renames Catalogue_Stars (I);
+            System : constant Concorde.Systems.Star_System_Type :=
+                       Concorde.Systems.Create.New_System
+                         (I, To_String (Rec.Name),
+                          Rec.X / Max_X, Rec.Y / Max_Y, Rec.Z / Max_Z);
+         begin
+            Galaxy_Graph.Append (System);
+         end;
+      end loop;
+
+   end Create_Catalogue_Systems;
 
    -------------------
    -- Create_Galaxy --
@@ -199,10 +305,8 @@ package body Concorde.Galaxy.Create is
             declare
                System : constant Concorde.Systems.Star_System_Type :=
                           Concorde.Systems.Create.New_System
-                            (I, Name, Create_Handle,
-                             Xs (I), Ys (I), Zs (I), Boundary,
-                             Production => 0.025,
-                             Capacity   => 2.0);
+                            (I, Name,
+                             Xs (I), Ys (I), Zs (I));
                Count  : Natural renames
                           Class_Count
                             (Concorde.Stars.Star_Type
