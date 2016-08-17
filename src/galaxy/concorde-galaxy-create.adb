@@ -20,6 +20,7 @@ with Concorde.Voronoi_Diagrams;
 with Concorde.Options;
 
 with Concorde.Stars.Classification;
+with Concorde.Stars.Create;
 with Concorde.Systems.Create;
 
 with Concorde.Scenarios;
@@ -51,6 +52,8 @@ package body Concorde.Galaxy.Create is
       Min        : Real := -1.0)
       return Real
    is ((if X < Min then Min elsif X > Max then Max else X));
+
+   procedure Create_Scenario_Links;
 
    ------------------------
    -- Cartesian_Location --
@@ -154,14 +157,22 @@ package body Concorde.Galaxy.Create is
          declare
             use Ada.Strings.Unbounded;
             Rec : Catalogue_Star renames Catalogue_Stars (I);
+            Star : constant Concorde.Stars.Star_Type :=
+                     Concorde.Stars.Create.New_Main_Sequence_Star
+                       (To_String (Rec.Name),
+                        Concorde.Stars.Classification.Solar_Masses
+                          (Rec.Classification));
             System : constant Concorde.Systems.Star_System_Type :=
                        Concorde.Systems.Create.New_System
                          (I, To_String (Rec.Name),
-                          Rec.X / Max_X, Rec.Y / Max_Y, Rec.Z / Max_Z);
+                          Rec.X / Max_X, Rec.Y / Max_Y, Rec.Z / Max_Z,
+                          Primary => Star);
          begin
             Galaxy_Graph.Append (System);
          end;
       end loop;
+
+      Create_Scenario_Links;
 
    end Create_Catalogue_Systems;
 
@@ -329,54 +340,7 @@ package body Concorde.Galaxy.Create is
          Ada.Text_IO.Put_Line (Natural'Image (Class_Count (Class)));
       end loop;
 
-      if Concorde.Options.Create_Empires
-        and then Concorde.Scenarios.Imperial_Centre
-      then
-         declare
-            type Best_Connection is
-               record
-                  DX, DY : Real;
-                  D      : Non_Negative_Real;
-                  Index  : Natural;
-               end record;
-
-            function Direction_Index (DX, DY : Real) return Positive
-            is (if abs DX > 3.0 * abs DY
-                then (if DX < 0.0 then 1 else 5)
-                elsif abs DY > 3.0 * abs DX
-                then (if DY < 0.0 then 3 else 7)
-                elsif DX > 0.0
-                then (if DY > 0.0 then 8 else 2)
-                elsif DY > 0.0 then 6 else 4);
-
-            Best : array (1 .. 8) of Best_Connection :=
-                     (others => (0.0, 0.0, 0.0, 0));
-         begin
-            for J in 2 .. System_Count loop
-               declare
-                  DX : constant Real := Xs (J) - Xs (1);
-                  DY : constant Real := Ys (J) - Ys (1);
-                  Direction : constant Positive := Direction_Index (DX, DY);
-                  Distance  : constant Non_Negative_Real :=
-                                DX ** 2 + DY ** 2;
-               begin
-                  if Best (Direction).Index = 0
-                    or else Best (Direction).D > Distance
-                  then
-                     Best (Direction) := (DX, DY, Distance, J);
-                  end if;
-               end;
-            end loop;
-
-            for J in Best'Range loop
-               Galaxy_Graph.Connect
-                 (1, Best (J).Index, Best (J).D);
-               Galaxy_Graph.Connect
-                 (Best (J).Index, 1, Best (J).D);
-               Total_Connections := Total_Connections + 1;
-            end loop;
-         end;
-      end if;
+      Create_Scenario_Links;
 
       if Connect_Systems then
          for I in 1 .. System_Count loop
@@ -503,6 +467,74 @@ package body Concorde.Galaxy.Create is
       end if;
 
    end Create_Galaxy;
+
+   ---------------------------
+   -- Create_Scenario_Links --
+   ---------------------------
+
+   procedure Create_Scenario_Links is
+   begin
+      if Concorde.Options.Create_Empires
+        and then Concorde.Scenarios.Imperial_Centre
+      then
+         declare
+            type Best_Connection is
+               record
+                  DX, DY : Real;
+                  D      : Non_Negative_Real;
+                  Index  : Natural;
+               end record;
+
+            function Direction_Index (DX, DY : Real) return Positive
+            is (if abs DX > 3.0 * abs DY
+                then (if DX < 0.0 then 1 else 5)
+                elsif abs DY > 3.0 * abs DX
+                then (if DY < 0.0 then 3 else 7)
+                elsif DX > 0.0
+                then (if DY > 0.0 then 8 else 2)
+                elsif DY > 0.0 then 6 else 4);
+
+            Best : array (1 .. 8) of Best_Connection :=
+                     (others => (0.0, 0.0, 0.0, 0));
+
+            Centre : constant Concorde.Systems.Star_System_Type :=
+                       Get_System (1);
+         begin
+            for J in 2 .. System_Count loop
+               declare
+                  use Concorde.Systems;
+                  System    : constant Star_System_Type :=
+                                Get_System (J);
+                  DX        : constant Real :=
+                                System.X - Centre.X;
+                  DY        : constant Real :=
+                                System.Y - Centre.Y;
+                  DZ        : constant Real :=
+                                System.Z - Centre.Z;
+
+                  Direction : constant Positive :=
+                                Direction_Index (DX, DY);
+                  Distance  : constant Non_Negative_Real :=
+                                DX ** 2 + DY ** 2 + DZ ** 2;
+               begin
+                  if Best (Direction).Index = 0
+                    or else Best (Direction).D > Distance
+                  then
+                     Best (Direction) := (DX, DY, Distance, J);
+                  end if;
+               end;
+            end loop;
+
+            for J in Best'Range loop
+               Galaxy_Graph.Connect
+                 (1, Best (J).Index, Best (J).D);
+               Galaxy_Graph.Connect
+                 (Best (J).Index, 1, Best (J).D);
+            end loop;
+         end;
+      end if;
+
+   end Create_Scenario_Links;
 
    -------------------
    -- Random_Normal --
