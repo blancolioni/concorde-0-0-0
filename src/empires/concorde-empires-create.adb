@@ -331,7 +331,7 @@ package body Concorde.Empires.Create is
          begin
             System.Set_Owner (Db.Reference (New_Empire));
             System.Set_Capital (True);
-            System.Set_Name (Capital);
+--            System.Set_Name (Capital);
          end Choose_System;
 
          ------------------

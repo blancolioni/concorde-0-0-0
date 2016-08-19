@@ -11,6 +11,7 @@ with Xi.Node;
 with Xi.Scene;
 with Xi.Shapes;
 
+with Concorde.Xi_UI.Assets;
 with Concorde.Transitions;
 
 with Concorde.Geometry;
@@ -29,10 +30,12 @@ package body Concorde.Systems.Xi_Model is
 
    World_Start_Fov   : constant := 60.0;
    World_Start_Near  : constant := 0.01;
-   World_Start_Far   : constant := 40.0;
+   World_Start_Far   : constant := 60.0;
 
    package System_Scene_Vectors is
      new Memor.Element_Vectors
+   Scene_Unit_Length : constant :=
+                         Concorde.Solar_System.Earth_Orbit / 10.0;
        (Element_Type  => Xi.Scene.Xi_Scene,
         Default_Value => null,
         "="           => Xi.Scene."=");
@@ -98,11 +101,16 @@ package body Concorde.Systems.Xi_Model is
       procedure Create_Star
         (Star      : Concorde.Stars.Root_Star_Type'Class)
       is
+         use Xi;
          Star_Node : constant Xi.Node.Xi_Node :=
                        System_Node.Create_Child (Star.Name);
          Light     : Xi.Light.Xi_Light;
+         Star_Scale : constant Xi_Float :=
+                        Xi_Float (Star.Radius)
+                        * Concorde.Solar_System.Solar_Radius
+                        / Scene_Unit_Length;
       begin
-         Star_Node.Scale (0.1, 0.1, 0.1);
+         Star_Node.Set_Shader (Star_Shader);
          Star_Node.Set_Entity (Xi.Shapes.Icosohedral_Sphere (3));
          Star_Node.Entity.Set_Material
            (Xi.Assets.Material ("Concorde/System/Star"));
@@ -112,6 +120,10 @@ package body Concorde.Systems.Xi_Model is
          Light.Set_Attenuation (0.2);
          Light.Set_Ambient_Coefficient (0.005);
          Scene.Add_Light (Light);
+           (Scene.Shader.Declare_Uniform_Value ("tex"));
+
+         Star_Node.Scale (Star_Scale);
+
       end Create_Star;
 
       ------------------
@@ -133,10 +145,9 @@ package body Concorde.Systems.Xi_Model is
                           / Concorde.Solar_System.Earth_Orbit;
          Scale        : constant Xi_Float :=
                           Xi_Float (World.Radius)
-                          / Concorde.Solar_System.Earth_Orbit
-                          * 2.0 * 100.0;
+                          / Scene_Unit_Length;
       begin
-         World_Node.Scale (Scale, Scale, Scale);
+         World_Node.Scale (Scale);
          World_Node.Set_Position
            (X => Orbit_Radius * Xi_Float (Cos (Position)),
             Y => 0.0,

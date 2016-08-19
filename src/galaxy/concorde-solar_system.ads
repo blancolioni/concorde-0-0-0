@@ -4,7 +4,8 @@ package Concorde.Solar_System is
    Earth_Mass                 : constant := 5.9736e24;
    Solar_Mass_In_Earth_Masses : constant :=
                                   Solar_Mass / Earth_Mass;
-   Earth_Radius               : constant := 6371000.0;
+   Solar_Radius               : constant := 695_700_000.0;
+   Earth_Radius               : constant := 6_371_000.0;
    Earth_Orbit                : constant := 149_598_261_000.0;
 
    Earth_Exospheric_Temp      : constant := 1273.0;

@@ -1,77 +1,14 @@
-with Ada.Text_IO;
-
---  with WL.Random;
-
 with Concorde.Random;
 with Concorde.Scenarios;
 
 with Concorde.Commodities;
 with Concorde.Stars.Create;
-with Concorde.Worlds.Create;
-with Concorde.Worlds.Lists;
 
 with Concorde.Systems.Db;
 
 package body Concorde.Systems.Create is
 
-   type System_Create_Job is
-     new WL.Work.Root_Job_Type with
-      record
-         System : Star_System_Type;
-      end record;
-
-   overriding procedure Execute
-     (Job : in out System_Create_Job);
-
    function Random_Star_Mass return Non_Negative_Real;
-
-   -------------
-   -- Execute --
-   -------------
-
-   overriding procedure Execute
-     (Job : in out System_Create_Job)
-   is
-      List   : Concorde.Worlds.Lists.List;
-
-   begin
-
-      Concorde.Worlds.Create.Create_Worlds
-        (Job.System,
-         Concorde.Stars.Star_Type (Job.System.Main_Object),
-         List);
-
-      for World of List loop
-         declare
-            procedure Add_Object
-              (To_System : in out Root_Star_System_Type'Class);
-
-            ----------------
-            -- Add_Object --
-            ----------------
-
-            procedure Add_Object
-              (To_System : in out Root_Star_System_Type'Class)
-            is
-            begin
-               To_System.Add_Object
-                 (World,
-                  Concorde.Geometry.Degrees_To_Radians
-                    (Concorde.Random.Unit_Random * 360.0));
-            end Add_Object;
-
-         begin
-            Db.Update (Job.System.Reference, Add_Object'Access);
-         end;
-
-      end loop;
-
-      Ada.Text_IO.Put_Line
-        (Job.System.Name & ":"
-         & Ada.Containers.Count_Type'Image
-           (List.Length) & " planets");
-
-   end Execute;
 
    ----------------
    -- New_System --
@@ -80,12 +17,9 @@ package body Concorde.Systems.Create is
    function New_System
      (Index       : Positive;
       Name        : String;
-      Work_Handle : WL.Work.Work_Handle;
       X, Y, Z     : Real;
-      Boundary    : System_Influence_Boundary;
-      Production  : Non_Negative_Real;
-      Capacity    : Non_Negative_Real)
-      return Star_System_Type
+      Primary     : Concorde.Stars.Star_Type := null)
+     return Star_System_Type
    is
       use Concorde.Commodities;
 
@@ -115,18 +49,18 @@ package body Concorde.Systems.Create is
          System.Y := Y;
          System.Z := Z;
 
-         System.Production := Production;
-         System.Capacity := Capacity;
-         System.Boundary :=
-           new System_Influence_Boundary'(Boundary);
+         System.Boundary := new System_Influence_Boundary (1 .. 0);
 
          declare
+            use type Concorde.Stars.Star_Type;
             Main_Star : constant Concorde.Stars.Star_Type :=
-                          Concorde.Stars.Create.New_Main_Sequence_Star
-                            (Name, Concorde.Systems.Db.Reference (System),
-                             (if Imperial_Centre
-                              then 1.0
-                              else Random_Star_Mass));
+                          (if Primary = null
+                           then Concorde.Stars.Create.New_Main_Sequence_Star
+                             (Name,
+                              (if Imperial_Centre
+                               then 1.0
+                               else Random_Star_Mass))
+                           else Primary);
          begin
             System.Add_Object
               (Object   => Main_Star,
@@ -138,15 +72,7 @@ package body Concorde.Systems.Create is
       System : constant Star_System_Type :=
                  Concorde.Systems.Db.Create (Create'Access);
 
-      Job    : constant WL.Work.Job_Type :=
-                 new System_Create_Job'
-                   (WL.Work.Root_Job_Type with System => System);
-
    begin
-
-      if False then
-         WL.Work.Add_Job (Work_Handle, Job);
-      end if;
 
       return System;
 

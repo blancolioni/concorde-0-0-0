@@ -1,15 +1,12 @@
-with WL.Work;
+with Concorde.Stars;
 
 package Concorde.Systems.Create is
 
    function New_System
      (Index       : Positive;
       Name        : String;
-      Work_Handle : WL.Work.Work_Handle;
       X, Y, Z     : Real;
-      Boundary    : System_Influence_Boundary;
-      Production  : Non_Negative_Real;
-      Capacity    : Non_Negative_Real)
+      Primary     : Concorde.Stars.Star_Type := null)
       return Star_System_Type;
 
 end Concorde.Systems.Create;

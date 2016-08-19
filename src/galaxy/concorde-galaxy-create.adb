@@ -1,3 +1,6 @@
+with Ada.Containers.Vectors;
+with Ada.Strings.Unbounded;
+
 with Ada.Text_IO;
 with Ada.Float_Text_IO;
 
@@ -5,13 +8,19 @@ with Ada.Numerics.Float_Random;
 
 with WL.Work;
 
+with Tropos.Reader;
+--  with Tropos.Writer;
+
+--  with Concorde.Paths;
+
 with Concorde.Elementary_Functions;
 with Concorde.Geometry;
 with Concorde.Voronoi_Diagrams;
 
 with Concorde.Options;
 
-with Concorde.Stars;
+with Concorde.Stars.Classification;
+with Concorde.Stars.Create;
 with Concorde.Systems.Create;
 
 with Concorde.Scenarios;
@@ -44,6 +53,8 @@ package body Concorde.Galaxy.Create is
       return Real
    is ((if X < Min then Min elsif X > Max then Max else X));
 
+   procedure Create_Scenario_Links;
+
    ------------------------
    -- Cartesian_Location --
    ------------------------
@@ -58,6 +69,112 @@ package body Concorde.Galaxy.Create is
       Y := Real (Random (Gen) * 2.0 - 1.0);
       Z := Real (Random (Gen) * 2.0 - 1.0);
    end Cartesian_Location;
+
+   ------------------------------
+   -- Create_Catalogue_Systems --
+   ------------------------------
+
+   procedure Create_Catalogue_Systems
+     (Catalogue_Path : String)
+   is
+      Max_Distance : constant := 900.0;
+
+      Galaxy_Config : constant Tropos.Configuration :=
+                        Tropos.Reader.Read_CSV_Config
+                          (Path          => Catalogue_Path,
+                           Header_Line   => True,
+                           Separator     => ',',
+                           Extend_Header => False);
+
+      type Catalogue_Star is
+         record
+            X, Y, Z          : Real;
+            Name             : Ada.Strings.Unbounded.Unbounded_String;
+            Classification   : Concorde.Stars.Stellar_Classification;
+         end record;
+
+      package Catalogue_Vectors is
+        new Ada.Containers.Vectors (Positive, Catalogue_Star);
+
+      Catalogue_Stars : Catalogue_Vectors.Vector;
+      Max_X, Max_Y, Max_Z : Real := 0.0;
+
+   begin
+      Ada.Text_IO.Put_Line ("catalogue stars:"
+                            & Natural'Image (Galaxy_Config.Child_Count));
+
+      for Config of Galaxy_Config loop
+         declare
+            use Concorde.Stars;
+            Rec : Catalogue_Star;
+            Name : constant String := Config.Get ("proper");
+            Spectrum : constant String := Config.Get ("spect");
+         begin
+            Rec.X := Real (Float'(Config.Get ("x")));
+            Rec.Y := Real (Float'(Config.Get ("y")));
+            Rec.Z := Real (Float'(Config.Get ("z")));
+            if Rec.X ** 2 + Rec.Y ** 2 + Rec.Z ** 2 <= Max_Distance then
+               Rec.Name :=
+                 Ada.Strings.Unbounded.To_Unbounded_String
+                   ((if Name = ""
+                    then "Star"
+                    & Positive'Image (Catalogue_Stars.Last_Index + 1)
+                    else Name));
+               Rec.Classification :=
+                 Concorde.Stars.Classification.Get_Stellar_Classification
+                   (Spectrum);
+               Max_X := Real'Max (Max_X, abs Rec.X);
+               Max_Y := Real'Max (Max_Y, abs Rec.Y);
+               Max_Z := Real'Max (Max_Z, abs Rec.Z);
+
+               if Name /= "" then
+                  Ada.Text_IO.Put_Line (Name);
+               end if;
+
+               Catalogue_Stars.Append (Rec);
+            end if;
+         exception
+            when Constraint_Error =>
+               null;
+         end;
+      end loop;
+
+      Ada.Text_IO.Put_Line
+        ("using"
+         & Ada.Containers.Count_Type'Image (Catalogue_Stars.Length)
+         & " stars");
+      Ada.Text_IO.Put ("max x: ");
+      Ada.Float_Text_IO.Put (Float (Max_X), 1, 1, 0);
+      Ada.Text_IO.New_Line;
+      Ada.Text_IO.Put ("max y: ");
+      Ada.Float_Text_IO.Put (Float (Max_Y), 1, 1, 0);
+      Ada.Text_IO.New_Line;
+      Ada.Text_IO.Put ("max z: ");
+      Ada.Float_Text_IO.Put (Float (Max_Z), 1, 1, 0);
+      Ada.Text_IO.New_Line;
+
+      for I in 1 .. Catalogue_Stars.Last_Index loop
+         declare
+            use Ada.Strings.Unbounded;
+            Rec : Catalogue_Star renames Catalogue_Stars (I);
+            Star : constant Concorde.Stars.Star_Type :=
+                     Concorde.Stars.Create.New_Main_Sequence_Star
+                       (To_String (Rec.Name),
+                        Concorde.Stars.Classification.Solar_Masses
+                          (Rec.Classification));
+            System : constant Concorde.Systems.Star_System_Type :=
+                       Concorde.Systems.Create.New_System
+                         (I, To_String (Rec.Name),
+                          Rec.X / Max_X, Rec.Y / Max_Y, Rec.Z / Max_Z,
+                          Primary => Star);
+         begin
+            Galaxy_Graph.Append (System);
+         end;
+      end loop;
+
+      Create_Scenario_Links;
+
+   end Create_Catalogue_Systems;
 
    -------------------
    -- Create_Galaxy --
@@ -199,10 +316,8 @@ package body Concorde.Galaxy.Create is
             declare
                System : constant Concorde.Systems.Star_System_Type :=
                           Concorde.Systems.Create.New_System
-                            (I, Name, Create_Handle,
-                             Xs (I), Ys (I), Zs (I), Boundary,
-                             Production => 0.025,
-                             Capacity   => 2.0);
+                            (I, Name,
+                             Xs (I), Ys (I), Zs (I));
                Count  : Natural renames
                           Class_Count
                             (Concorde.Stars.Star_Type
@@ -225,54 +340,7 @@ package body Concorde.Galaxy.Create is
          Ada.Text_IO.Put_Line (Natural'Image (Class_Count (Class)));
       end loop;
 
-      if Concorde.Options.Create_Empires
-        and then Concorde.Scenarios.Imperial_Centre
-      then
-         declare
-            type Best_Connection is
-               record
-                  DX, DY : Real;
-                  D      : Non_Negative_Real;
-                  Index  : Natural;
-               end record;
-
-            function Direction_Index (DX, DY : Real) return Positive
-            is (if abs DX > 3.0 * abs DY
-                then (if DX < 0.0 then 1 else 5)
-                elsif abs DY > 3.0 * abs DX
-                then (if DY < 0.0 then 3 else 7)
-                elsif DX > 0.0
-                then (if DY > 0.0 then 8 else 2)
-                elsif DY > 0.0 then 6 else 4);
-
-            Best : array (1 .. 8) of Best_Connection :=
-                     (others => (0.0, 0.0, 0.0, 0));
-         begin
-            for J in 2 .. System_Count loop
-               declare
-                  DX : constant Real := Xs (J) - Xs (1);
-                  DY : constant Real := Ys (J) - Ys (1);
-                  Direction : constant Positive := Direction_Index (DX, DY);
-                  Distance  : constant Non_Negative_Real :=
-                                DX ** 2 + DY ** 2;
-               begin
-                  if Best (Direction).Index = 0
-                    or else Best (Direction).D > Distance
-                  then
-                     Best (Direction) := (DX, DY, Distance, J);
-                  end if;
-               end;
-            end loop;
-
-            for J in Best'Range loop
-               Galaxy_Graph.Connect
-                 (1, Best (J).Index, Best (J).D);
-               Galaxy_Graph.Connect
-                 (Best (J).Index, 1, Best (J).D);
-               Total_Connections := Total_Connections + 1;
-            end loop;
-         end;
-      end if;
+      Create_Scenario_Links;
 
       if Connect_Systems then
          for I in 1 .. System_Count loop
@@ -399,6 +467,74 @@ package body Concorde.Galaxy.Create is
       end if;
 
    end Create_Galaxy;
+
+   ---------------------------
+   -- Create_Scenario_Links --
+   ---------------------------
+
+   procedure Create_Scenario_Links is
+   begin
+      if Concorde.Options.Create_Empires
+        and then Concorde.Scenarios.Imperial_Centre
+      then
+         declare
+            type Best_Connection is
+               record
+                  DX, DY : Real;
+                  D      : Non_Negative_Real;
+                  Index  : Natural;
+               end record;
+
+            function Direction_Index (DX, DY : Real) return Positive
+            is (if abs DX > 3.0 * abs DY
+                then (if DX < 0.0 then 1 else 5)
+                elsif abs DY > 3.0 * abs DX
+                then (if DY < 0.0 then 3 else 7)
+                elsif DX > 0.0
+                then (if DY > 0.0 then 8 else 2)
+                elsif DY > 0.0 then 6 else 4);
+
+            Best : array (1 .. 8) of Best_Connection :=
+                     (others => (0.0, 0.0, 0.0, 0));
+
+            Centre : constant Concorde.Systems.Star_System_Type :=
+                       Get_System (1);
+         begin
+            for J in 2 .. System_Count loop
+               declare
+                  use Concorde.Systems;
+                  System    : constant Star_System_Type :=
+                                Get_System (J);
+                  DX        : constant Real :=
+                                System.X - Centre.X;
+                  DY        : constant Real :=
+                                System.Y - Centre.Y;
+                  DZ        : constant Real :=
+                                System.Z - Centre.Z;
+
+                  Direction : constant Positive :=
+                                Direction_Index (DX, DY);
+                  Distance  : constant Non_Negative_Real :=
+                                DX ** 2 + DY ** 2 + DZ ** 2;
+               begin
+                  if Best (Direction).Index = 0
+                    or else Best (Direction).D > Distance
+                  then
+                     Best (Direction) := (DX, DY, Distance, J);
+                  end if;
+               end;
+            end loop;
+
+            for J in Best'Range loop
+               Galaxy_Graph.Connect
+                 (1, Best (J).Index, Best (J).D);
+               Galaxy_Graph.Connect
+                 (Best (J).Index, 1, Best (J).D);
+            end loop;
+         end;
+      end if;
+
+   end Create_Scenario_Links;
 
    -------------------
    -- Random_Normal --

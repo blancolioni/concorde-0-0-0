@@ -14,6 +14,13 @@ package Concorde.Stars is
    type Stellar_Subclass_Type is range 0 .. 9;
    type Stellar_Size_Type is (Brown_Dwarf, Main_Sequence, Giant, Supergiant);
 
+   type Stellar_Classification is
+      record
+         Class    : Stellar_Class_Type;
+         Subclass : Stellar_Subclass_Type;
+         Size     : Stellar_Size_Type;
+      end record;
+
    type Root_Star_Type is
      new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Systems.Main_Star_System_Object_Interface
