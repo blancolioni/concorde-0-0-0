@@ -151,8 +151,13 @@ package body Concorde.Xi_UI.Galaxies is
             end Visit_Object;
 
          begin
-            Concorde.Galaxy.Get_System (1).Scan_System_Objects
-              (Visit_Object'Access);
+            if False then
+               Concorde.Galaxy.Get_System (1).Scan_System_Objects
+                 (Visit_Object'Access);
+            else
+               Main_Model.Transit_To_Object
+                 (Concorde.Galaxy.Capital_World);
+            end if;
             Main_Model.Transited := True;
          end;
       end if;
@@ -433,7 +438,10 @@ package body Concorde.Xi_UI.Galaxies is
             World : constant Concorde.Worlds.World_Type :=
                       Concorde.Worlds.World_Type (Target_Object);
          begin
-            if Model.Current_System /= World.System then
+            if Model.Current_System = null
+              or else Model.Current_System.Identifier
+                /= World.System.Identifier
+            then
                Model.Transit_To_Object (World.System);
             end if;
             Concorde.Systems.Xi_Model.Transit_To_World (World, Model);

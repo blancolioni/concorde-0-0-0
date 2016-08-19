@@ -1,5 +1,6 @@
 with Xi.Elementary_Functions;
 with Xi.Float_Arrays;
+with Xi.Logging;
 
 package body Concorde.Transitions is
 
@@ -181,6 +182,12 @@ package body Concorde.Transitions is
       Transition.Start_Position := Scene.Active_Camera.Position;
       Transition.Start_Orientation := Scene.Active_Camera.Orientation;
       Transition.Start_Projection := Scene.Active_Camera.Projection_Matrix;
+
+      Xi.Logging.Put ("transition: start ");
+      Xi.Logging.Put (Transition.Start_Position);
+      Xi.Logging.Put ("; finish ");
+      Xi.Logging.Put (Transition.Target_Position);
+      Xi.Logging.New_Line;
 
       Transition.Position_Delta :=
         Transition.Target_Position - Transition.Start_Position;

@@ -213,7 +213,7 @@ package body Concorde.Worlds.Xi_Model is
 
       begin
          Xi.Entity.Xi_New (Entity);
-         Entity.Set_Material (Xi.Assets.Material ("default"));
+         Entity.Set_Material (Xi.Assets.Material ("Xi/Blue"));
 
          Entity.Begin_Operation (Xi.Render_Operation.Triangle_Fan);
          Entity.Color (Concorde.Xi_UI.Colours.To_Xi_Color (Colour));

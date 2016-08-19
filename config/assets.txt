@@ -1,2 +1,6 @@
-default_texture = "images/default-texture.png"
-gas_giant_1x2048 = "images/planets/gas_giant_lookup1.png"
+texture = { "Concorde/Galaxy/Star" "images/stars/star.png" }
+texture = { "Concorde/System/Gas_Giant" "images/planets/gas_giant_vertical.png" }
+texture = { "Concorde/System/Star" "images/stars/system-star.png" }
+material = { "Concorde/Galaxy/Star" "material/galaxy-star.material"}
+material = { "Concorde/System/Star" "material/system-star.material"}
+material = { "Concorde/System/Gas_Giant" "material/system-gas_giant.material"}

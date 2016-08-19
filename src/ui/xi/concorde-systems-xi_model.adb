@@ -5,6 +5,7 @@ with Memor.Element_Vectors;
 with Xi.Assets;
 with Xi.Camera;
 with Xi.Float_Arrays;
+with Xi.Light;
 with Xi.Matrices;
 with Xi.Node;
 with Xi.Scene;
@@ -99,11 +100,18 @@ package body Concorde.Systems.Xi_Model is
       is
          Star_Node : constant Xi.Node.Xi_Node :=
                        System_Node.Create_Child (Star.Name);
+         Light     : Xi.Light.Xi_Light;
       begin
          Star_Node.Scale (0.1, 0.1, 0.1);
          Star_Node.Set_Entity (Xi.Shapes.Icosohedral_Sphere (3));
          Star_Node.Entity.Set_Material
            (Xi.Assets.Material ("Concorde/System/Star"));
+         Xi.Light.Xi_New (Light, Xi.Light.Point);
+         Light.Set_Position (Star_Node.Position);
+         Light.Set_Color (1.0, 1.0, 1.0, 1.0);
+         Light.Set_Attenuation (0.2);
+         Light.Set_Ambient_Coefficient (0.005);
+         Scene.Add_Light (Light);
       end Create_Star;
 
       ------------------
@@ -165,8 +173,8 @@ package body Concorde.Systems.Xi_Model is
       use type Concorde.Worlds.World_Type;
       Scene             : Xi.Scene.Xi_Scene :=
                             Created_Scenes.Element (World.System.Reference);
-      System_Transition : constant Transitions.Transition_Type :=
-                            new Transitions.Root_Transition_Type;
+--        System_Transition : constant Transitions.Transition_Type :=
+--                              new Transitions.Root_Transition_Type;
       World_Transition  : constant Transitions.Transition_Type :=
                             new Transitions.Root_Transition_Type;
       AU                : constant Real :=
@@ -182,9 +190,9 @@ package body Concorde.Systems.Xi_Model is
 
       Scene.Active_Camera.Set_Viewport (Model.Window.Viewport);
 
-      System_Transition.Scene_Transition (Scene);
-      Model.Add_Transition
-        (System_Transition);
+--        System_Transition.Scene_Transition (Scene);
+--        Model.Add_Transition
+--          (System_Transition);
 
       for Object of World.System.Objects loop
          if Object.Object.all in Concorde.Worlds.Root_World_Type'Class

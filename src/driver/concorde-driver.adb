@@ -6,6 +6,7 @@ with WL.Work;
 
 with Memor;
 
+with Xi.Assets;
 with Xi.Main;
 with Xi.Render_Target;
 with Xi.Render_Window;
@@ -137,6 +138,9 @@ begin
             Xi.Main.Init;
             Xtk.Initialize;
 
+            Xi.Assets.Load_Assets
+              (Concorde.Paths.Config_File ("assets.txt"));
+
             Concorde.Xi_UI.Key_Bindings.Load_Key_Bindings;
 
             Xi.Shader.Load.Add_Search_Path
@@ -145,8 +149,7 @@ begin
             Window :=
               Xi.Main.Current_Renderer.Create_Top_Level_Window;
 
-            Window.Set_Full_Screen (True);
-            Window.Set_Back_Face_Removal (True);
+            --  Window.Set_Full_Screen (True);
 
             Window.Blend (Xi.Render_Target.Source_Alpha,
                           Xi.Render_Target.Destination_Alpha);
