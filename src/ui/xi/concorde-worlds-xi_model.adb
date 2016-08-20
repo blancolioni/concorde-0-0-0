@@ -1,16 +1,23 @@
 with Xi.Assets;
 with Xi.Entity;
+with Xi.Materials.Material;
+with Xi.Materials.Pass;
 with Xi.Matrices;
 with Xi.Render_Operation;
+with Xi.Scene;
 with Xi.Shapes;
 
 with Lui.Colours;
 
 with Concorde.Hash_Table;
+with Concorde.Transitions;
 
-with Concorde.Xi_UI.Colours;
+with Concorde.Worlds.Tables;
+
+--  with Concorde.Xi_UI.Colours;
 
 --  with Concorde.Solar_System;
+
 --  with Concorde.Money;
 --  with Concorde.Quantities;
 
@@ -19,140 +26,22 @@ with Concorde.Empires;
 package body Concorde.Worlds.Xi_Model is
 
    type Map_Mode_Type is (Height_Mode, Temperature_Mode);
+   pragma Unreferenced (Temperature_Mode);
 
    Current_Map_Mode : constant Map_Mode_Type := Height_Mode;
-
-   type Colour_Element_Array is
-     array (Height_Range) of Lui.Colours.Colour_Byte;
-
-   Height_Red     : constant Colour_Element_Array :=
-                      (0,
-                       0, 0, 0, 0, 0, 0, 0, 34,
-                       68, 102, 119, 136, 153, 170, 187, 0,
-                       34, 34, 119, 187, 255, 238, 221, 204,
-                       187, 170, 153, 136, 119, 85, 68, 255,
-                       250, 245, 240, 235, 230, 225, 220, 215,
-                       210, 205, 200, 195, 190, 185, 180, 175);
-
-   Height_Green   : constant Colour_Element_Array :=
-                      (0,
-                       0, 17, 51, 85, 119, 153, 204, 221,
-                       238, 255, 255, 255, 255, 255, 255, 68,
-                       102, 136, 170, 221, 187, 170, 136, 136,
-                       102, 85, 85, 68, 51, 51, 34, 255,
-                       250, 245, 240, 235, 230, 225, 220, 215,
-                       210, 205, 200, 195, 190, 185, 180, 175);
-
-   Height_Blue    : constant Colour_Element_Array :=
-                      (0,
-                       68, 102, 136, 170, 187, 221, 255, 255,
-                       255, 255, 255, 255, 255, 255, 255, 0,
-                       0, 0, 0, 0, 34, 34, 34, 34,
-                       34, 34, 34, 34, 34, 17, 0, 255,
-                       250, 245, 240, 235, 230, 225, 220, 215,
-                       210, 205, 200, 195, 190, 185, 180, 175);
-
-   type Temperature_Palette_Array is
-     array (250 .. 339, 1 .. 3) of Lui.Colours.Colour_Byte;
-
-   Temperature_Palette : constant Temperature_Palette_Array :=
-                           ((255, 14, 240),
-                            (255, 13, 240),
-                            (255, 12, 240),
-                            (255, 11, 240),
-                            (255, 10, 240),
-                            (255, 9, 240),
-                            (255, 8, 240),
-                            (255, 7, 240),
-                            (255, 6, 240),
-                            (255, 5, 240),
-                            (255, 4, 240),
-                            (255, 3, 240),
-                            (255, 2, 240),
-                            (255, 1, 240),
-                            (255, 0, 240),
-                            (255, 0, 224),
-                            (255, 0, 208),
-                            (255, 0, 192),
-                            (255, 0, 176),
-                            (255, 0, 160),
-                            (255, 0, 144),
-                            (255, 0, 128),
-                            (255, 0, 112),
-                            (255, 0, 96),
-                            (255, 0, 80),
-                            (255, 0, 64),
-                            (255, 0, 48),
-                            (255, 0, 32),
-                            (255, 0, 16),
-                            (255, 0, 0),
-                            (255, 10, 0),
-                            (255, 20, 0),
-                            (255, 30, 0),
-                            (255, 40, 0),
-                            (255, 50, 0),
-                            (255, 60, 0),
-                            (255, 70, 0),
-                            (255, 80, 0),
-                            (255, 90, 0),
-                            (255, 100, 0),
-                            (255, 110, 0),
-                            (255, 120, 0),
-                            (255, 130, 0),
-                            (255, 140, 0),
-                            (255, 150, 0),
-                            (255, 160, 0),
-                            (255, 170, 0),
-                            (255, 180, 0),
-                            (255, 190, 0),
-                            (255, 200, 0),
-                            (255, 210, 0),
-                            (255, 220, 0),
-                            (255, 230, 0),
-                            (255, 240, 0),
-                            (255, 250, 0),
-                            (253, 255, 0),
-                            (215, 255, 0),
-                            (176, 255, 0),
-                            (138, 255, 0),
-                            (101, 255, 0),
-                            (62, 255, 0),
-                            (23, 255, 0),
-                            (0, 255, 16),
-                            (0, 255, 54),
-                            (0, 255, 92),
-                            (0, 255, 131),
-                            (0, 255, 168),
-                            (0, 255, 208),
-                            (0, 255, 244),
-                            (0, 228, 255),
-                            (0, 212, 255),
-                            (0, 196, 255),
-                            (0, 180, 255),
-                            (0, 164, 255),
-                            (0, 148, 255),
-                            (0, 132, 255),
-                            (0, 116, 255),
-                            (0, 100, 255),
-                            (0, 84, 255),
-                            (0, 68, 255),
-                            (0, 50, 255),
-                            (0, 34, 255),
-                            (0, 18, 255),
-                            (0, 2, 255),
-                            (0, 0, 255),
-                            (1, 0, 255),
-                            (2, 0, 255),
-                            (3, 0, 255),
-                            (4, 0, 255),
-                            (5, 0, 255));
+   pragma Unreferenced (Current_Map_Mode);
 
    Selected_Colour : constant Lui.Colours.Colour_Type :=
                        (0.8, 0.7, 0.1, 0.5);
    pragma Unreferenced (Selected_Colour);
 
+   Height_Material_Array                : array (Height_Range)
+     of Xi.Materials.Material.Xi_Material :=
+       (others => null);
+
    type Rendered_World_Record is
       record
+         Scene   : Xi.Scene.Xi_Scene;
          World   : World_Type;
          Entity  : Xi.Entity.Xi_Entity;
       end record;
@@ -161,48 +50,55 @@ package body Concorde.Worlds.Xi_Model is
      new Concorde.Hash_Table (Rendered_World_Record);
 
    Rendered_Worlds : Rendered_World_Table.Map;
-   pragma Unreferenced (Rendered_Worlds);
 
-   procedure Create_Tiles
-     (World       : World_Type;
-      Parent_Node : Xi.Node.Xi_Node);
+   function Create_Tiles
+     (World       : World_Type)
+      return Xi.Entity.Xi_Entity;
+
+   function World_Scene
+     (World : World_Type;
+      Model : Concorde.Xi_UI.Root_Xi_Model'Class)
+      return Xi.Scene.Xi_Scene;
+
+   function World_Entity
+     (World : World_Type)
+      return Xi.Entity.Xi_Entity;
+
+   function Height_Material
+     (Height : Height_Range)
+      return Xi.Materials.Material.Xi_Material;
 
    ------------------
    -- Create_Tiles --
    ------------------
 
-   procedure Create_Tiles
-     (World       : World_Type;
-      Parent_Node : Xi.Node.Xi_Node)
+   function Create_Tiles
+     (World       : World_Type)
+      return Xi.Entity.Xi_Entity
    is
       Surface : constant Concorde.Surfaces.Surface_Type :=
                   World.Surface;
 
-      procedure Draw_Tile
-        (Index  : Concorde.Surfaces.Surface_Tile_Index;
-         Colour : Lui.Colours.Colour_Type);
+      function Tile_Entity
+        (Index    : Concorde.Surfaces.Surface_Tile_Index;
+         Material : Xi.Materials.Material.Xi_Material)
+         return Xi.Entity.Xi_Entity;
 
-      ---------------
-      -- Draw_Tile --
-      ---------------
+      -----------------
+      -- Tile_Entity --
+      -----------------
 
-      procedure Draw_Tile
-        (Index  : Concorde.Surfaces.Surface_Tile_Index;
-         Colour : Lui.Colours.Colour_Type)
+      function Tile_Entity
+        (Index    : Concorde.Surfaces.Surface_Tile_Index;
+         Material : Xi.Materials.Material.Xi_Material)
+         return Xi.Entity.Xi_Entity
       is
          use Xi;
+         use type Xi.Matrices.Vector_3;
+
          Boundary : constant Concorde.Surfaces.Tile_Vertex_Array :=
                       Surface.Tile_Boundary (Index);
-         Entity   : Xi.Entity.Xi_Entity;
-         Node     : constant Xi.Node.Xi_Node :=
-                      Parent_Node.Create_Child ("Tile" & Index'Img);
-
-         --           Height   : constant Height_Range :=
---                        Model.World.Sectors (Index).Height;
---           Factor   : constant Non_Negative_Real :=
---                        (if True or else Height < 0
---                         then 1.0
---                         else 1.0 + Real (Height) / 1000.0);
+         Result : Xi.Entity.Xi_Entity;
 
          function Vertex
            (V : Concorde.Surfaces.Vector_3)
@@ -211,22 +107,37 @@ package body Concorde.Worlds.Xi_Model is
               Xi_Float (V (2)),
               Xi_Float (V (3))));
 
-      begin
-         Xi.Entity.Xi_New (Entity);
-         Entity.Set_Material (Xi.Assets.Material ("Xi/Blue"));
+         Normal : Xi.Matrices.Vector_3 := (others => 0.0);
 
-         Entity.Begin_Operation (Xi.Render_Operation.Triangle_Fan);
-         Entity.Color (Concorde.Xi_UI.Colours.To_Xi_Color (Colour));
+      begin
+         Xi.Entity.Xi_New (Result);
+         Result.Set_Material (Material);
+
+         Result.Begin_Operation (Xi.Render_Operation.Triangle_Fan);
+         --  Result.Color (Concorde.Xi_UI.Colours.To_Xi_Color (Colour));
 
          for V of Boundary loop
-            Entity.Vertex (Vertex (V));
+            Normal := Normal + Vertex (V);
          end loop;
 
-         Entity.End_Operation;
-         Node.Set_Entity (Entity);
-      end Draw_Tile;
+         Normal := Xi.Matrices.Normalise (Normal);
+
+         for V of Boundary loop
+            Result.Normal (Normal);
+            Result.Color ((0.0, 0.0, 0.0, 0.0));
+            Result.Vertex (Vertex (V));
+         end loop;
+
+         Result.End_Operation;
+
+         return Result;
+      end Tile_Entity;
+
+      Result : Xi.Entity.Xi_Entity;
 
    begin
+
+      Xi.Entity.Xi_New (Result);
 
       for I in 1 .. Surface.Tile_Count loop
          declare
@@ -238,52 +149,59 @@ package body Concorde.Worlds.Xi_Model is
                             (if Raw_Height < 0
                              then ((Raw_Height + 2) / 3) * 3 - 2
                              else Raw_Height);
-            Ave_Temp    : constant Non_Negative_Real :=
-                            World.Sectors (I).Temperature.Average;
-            Int_Temp    : constant Integer :=
-                            Integer'Max
-                              (Temperature_Palette'First (1),
-                               Integer'Min
-                                 (Temperature_Palette'Last (1),
-                                  Integer (Ave_Temp)));
-            Temp_Colour : constant Lui.Colours.Colour_Type :=
-                            Lui.Colours.To_Colour
-                              (Temperature_Palette (Int_Temp, 1),
-                               Temperature_Palette (Int_Temp, 2),
-                               Temperature_Palette (Int_Temp, 3));
-            Height_Colour : constant Lui.Colours.Colour_Type :=
-                              Lui.Colours.To_Colour
-                                (Height_Red (Height),
-                                 Height_Green (Height),
-                                 Height_Blue (Height));
-            Feature       : constant Concorde.Features.Feature_Type :=
-                              World.Sectors (I).Feature;
-            Terrain       : constant Concorde.Terrain.Terrain_Type :=
-                              World.Sectors (I).Terrain;
-            Owner : constant access constant
-              Concorde.Empires.Root_Empire_Type'Class :=
-                (if not World.Sectors (I).Installations.Is_Empty
-                 then World.Owner
-                 else null);
-            Colour     : constant Lui.Colours.Colour_Type :=
-                           (case Current_Map_Mode is
-                               when Height_Mode      =>
-                              (if Feature /= null
-                               then Feature.Colour
-                               elsif Terrain /= null
-                               then Terrain.Colour
-                               else Height_Colour),
-                               when Temperature_Mode =>
-                                  Temp_Colour);
+            Material : constant Xi.Materials.Material.Xi_Material :=
+                         Height_Material (Height);
          begin
-            if Owner /= null then
-               Draw_Tile (I, Lui.Colours.Apply_Alpha (Owner.Colour, 0.8));
-            end if;
-            Draw_Tile (I, Colour);
+            Result.Add_Child (Tile_Entity (I, Material));
          end;
       end loop;
 
+      return Result;
+
    end Create_Tiles;
+
+   ---------------------
+   -- Height_Material --
+   ---------------------
+
+   function Height_Material
+     (Height : Height_Range)
+      return Xi.Materials.Material.Xi_Material
+   is
+      use Xi.Materials.Material;
+      Material : Xi_Material renames Height_Material_Array (Height);
+   begin
+      if Material = null then
+         Material := Xi_New_With_Defaults;
+         declare
+            use Xi;
+            Pass : Xi.Materials.Pass.Xi_Material_Pass renames
+                     Material.Technique (1).Pass (1);
+            Height_Colour : constant Lui.Colours.Colour_Type :=
+                              Concorde.Worlds.Tables.Height_Colour
+                                (Height);
+         begin
+            if True then
+               Pass.Set_Ambient
+                 ((Xi_Unit_Float (Height_Colour.Red),
+                  Xi_Unit_Float (Height_Colour.Green),
+                  Xi_Unit_Float (Height_Colour.Blue),
+                  1.0));
+            else
+               declare
+                  Index : constant Xi_Unit_Float :=
+                            (Xi_Float (Height) - Xi_Float (Height_Range'First))
+                            / 50.0;
+               begin
+                  Pass.Set_Ambient
+                    ((Index, Index, Index, 1.0));
+               end;
+            end if;
+         end;
+      end if;
+
+      return Material;
+   end Height_Material;
 
    ----------------
    -- Load_World --
@@ -294,15 +212,119 @@ package body Concorde.Worlds.Xi_Model is
       Parent_Node : Xi.Node.Xi_Node)
    is
    begin
+      Parent_Node.Set_Entity
+        (World_Entity (World));
+   end Load_World;
+
+   ----------------------
+   -- Transit_To_World --
+   ----------------------
+
+   procedure Transit_To_World
+     (World     : Concorde.Worlds.World_Type;
+      Model     : in out Concorde.Xi_UI.Root_Xi_Model'Class)
+   is
+      use Xi;
+      use type Xi.Scene.Xi_Scene;
+      use Concorde.Geometry;
+      use type Concorde.Worlds.World_Type;
+      Scene : constant Xi.Scene.Xi_Scene := World_Scene (World, Model);
+      World_Transition : constant Concorde.Transitions.Transition_Type :=
+                           new Concorde.Transitions.Root_Transition_Type;
+      Target_Position : constant Xi.Matrices.Vector_3 :=
+                          (0.0, Xi_Float (World.Radius),
+                           Xi_Float (World.Radius) + 1_000_000.0);
+   begin
+      Scene.Active_Camera.Set_Viewport (Model.Window.Viewport);
+      Scene.Active_Camera.Set_Position
+        (0.0, 0.0, 224398100.0);
+      Scene.Active_Camera.Perspective
+        (60.0, 10.0, 1.0e9);
+      Scene.Active_Camera.Look_At (0.0, 0.0, 0.0);
+
+      World_Transition.Create
+        (Scene              => Scene,
+         Target_Position    => Target_Position,
+         Target_Orientation => Scene.Active_Camera.Orientation,
+         Acceleration       => 75.0e5,
+         Max_Velocity       => 75.0e6);
+      Model.Add_Transition (World_Transition);
+   end Transit_To_World;
+
+   ------------------
+   -- World_Entity --
+   ------------------
+
+   function World_Entity
+     (World : World_Type)
+      return Xi.Entity.Xi_Entity
+   is
+      Entity : Xi.Entity.Xi_Entity;
+   begin
       World.Check_Loaded;
       if World.Category in Jovian_World then
-         Parent_Node.Set_Entity
-           (Xi.Shapes.Icosohedral_Sphere (3));
-         Parent_Node.Entity.Set_Material
+         Entity := Xi.Shapes.Icosohedral_Sphere (3);
+         Entity.Set_Material
            (Xi.Assets.Material ("Concorde/System/Gas_Giant"));
       else
-         Create_Tiles (World, Parent_Node);
+         Entity := Create_Tiles (World);
       end if;
-   end Load_World;
+      return Entity;
+   end World_Entity;
+
+   -----------------
+   -- World_Scene --
+   -----------------
+
+   function World_Scene
+     (World : World_Type;
+      Model : Concorde.Xi_UI.Root_Xi_Model'Class)
+      return Xi.Scene.Xi_Scene
+   is
+      pragma Unreferenced (Model);
+      use type Xi.Entity.Xi_Entity;
+      Scene : Xi.Scene.Xi_Scene;
+      Rec   : Rendered_World_Record;
+   begin
+      if Rendered_Worlds.Contains (World.Identifier) then
+         declare
+            use type Xi.Scene.Xi_Scene;
+         begin
+            Rec := Rendered_Worlds.Element (World.Identifier);
+
+            if Rec.Scene /= null then
+               return Rec.Scene;
+            end if;
+         end;
+      else
+         Rec := (null, World, null);
+      end if;
+
+      Scene := Xi.Scene.Create_Scene;
+      Rec.Scene := Scene;
+
+      if Rec.Entity = null then
+         Rec.Entity := World_Entity (World);
+      end if;
+
+      if Rendered_Worlds.Contains (World.Identifier) then
+         Rendered_Worlds.Replace
+           (World.Identifier, Rec);
+      else
+         Rendered_Worlds.Insert
+           (World.Identifier, Rec);
+      end if;
+
+      declare
+         Node : constant Xi.Node.Xi_Node :=
+                  Scene.Create_Node (World.Identifier);
+      begin
+         Node.Set_Entity (Rec.Entity);
+         Node.Scale
+           (Xi.Xi_Float (World.Radius));
+      end;
+
+      return Scene;
+   end World_Scene;
 
 end Concorde.Worlds.Xi_Model;

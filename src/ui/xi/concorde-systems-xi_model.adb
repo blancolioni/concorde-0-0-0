@@ -11,7 +11,6 @@ with Xi.Node;
 with Xi.Scene;
 with Xi.Shapes;
 
-with Concorde.Xi_UI.Assets;
 with Concorde.Transitions;
 
 with Concorde.Geometry;
@@ -30,12 +29,13 @@ package body Concorde.Systems.Xi_Model is
 
    World_Start_Fov   : constant := 60.0;
    World_Start_Near  : constant := 0.01;
-   World_Start_Far   : constant := 60.0;
+   World_Start_Far   : constant := 45.0;
+
+   Scene_Unit_Length : constant :=
+                         Concorde.Solar_System.Earth_Orbit / 10.0;
 
    package System_Scene_Vectors is
      new Memor.Element_Vectors
-   Scene_Unit_Length : constant :=
-                         Concorde.Solar_System.Earth_Orbit / 10.0;
        (Element_Type  => Xi.Scene.Xi_Scene,
         Default_Value => null,
         "="           => Xi.Scene."=");
@@ -110,17 +110,15 @@ package body Concorde.Systems.Xi_Model is
                         * Concorde.Solar_System.Solar_Radius
                         / Scene_Unit_Length;
       begin
-         Star_Node.Set_Shader (Star_Shader);
          Star_Node.Set_Entity (Xi.Shapes.Icosohedral_Sphere (3));
          Star_Node.Entity.Set_Material
            (Xi.Assets.Material ("Concorde/System/Star"));
          Xi.Light.Xi_New (Light, Xi.Light.Point);
          Light.Set_Position (Star_Node.Position);
          Light.Set_Color (1.0, 1.0, 1.0, 1.0);
-         Light.Set_Attenuation (0.2);
-         Light.Set_Ambient_Coefficient (0.005);
+--           Light.Set_Attenuation (0.2);
+--           Light.Set_Ambient_Coefficient (0.005);
          Scene.Add_Light (Light);
-           (Scene.Shader.Declare_Uniform_Value ("tex"));
 
          Star_Node.Scale (Star_Scale);
 
@@ -229,7 +227,7 @@ package body Concorde.Systems.Xi_Model is
                        Xi_Float
                          (AU * Sin (Orbital_Offset)));
          Target_Position : constant Xi.Matrices.Vector_3 :=
-                             Position + (0.0, 0.0, 0.05);
+                             Position + (0.0, 0.0, 0.015);
          Target_Orientation : constant Xi.Matrices.Matrix_3 :=
                                 Xi.Matrices.Look_At_Matrix
                                   (Target_Position, (0.0, 1.0, 0.0),
@@ -249,6 +247,8 @@ package body Concorde.Systems.Xi_Model is
             Acceleration       => 1.0,
             Max_Velocity       => 3.0);
          Model.Add_Transition (World_Transition);
+         Concorde.Worlds.Xi_Model.Transit_To_World
+           (World, Model);
       end;
    end Transit_To_World;
 
