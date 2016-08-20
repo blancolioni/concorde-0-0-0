@@ -26,7 +26,6 @@ depend = { project = Lui version = any }
 depend = { project = Wlib version = any }
 depend = { project = xi version = any }
 depend = { project = memor version = any }
-depend = { project = gtkada external = yes }
 main_unit = concorde-driver
 exec_name = concorde
 config_dir = config
