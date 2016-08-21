@@ -6,6 +6,7 @@ with Xi.Matrices;
 with Xi.Render_Operation;
 with Xi.Scene;
 with Xi.Shapes;
+with Xi.Value;
 
 with Lui.Colours;
 
@@ -169,34 +170,27 @@ package body Concorde.Worlds.Xi_Model is
       return Xi.Materials.Material.Xi_Material
    is
       use Xi.Materials.Material;
-      Material : Xi_Material renames Height_Material_Array (Height);
+      Base_Material : constant Xi.Materials.Material.Xi_Material :=
+                        Xi.Assets.Material ("Xi/Solid_Lit_Color");
+
+      Material      : Xi_Material renames Height_Material_Array (Height);
    begin
       if Material = null then
-         Material := Xi_New_With_Defaults;
+         Material := Base_Material.Instantiate;
          declare
             use Xi;
-            Pass : Xi.Materials.Pass.Xi_Material_Pass renames
-                     Material.Technique (1).Pass (1);
             Height_Colour : constant Lui.Colours.Colour_Type :=
                               Concorde.Worlds.Tables.Height_Colour
                                 (Height);
          begin
-            if True then
-               Pass.Set_Ambient
-                 ((Xi_Unit_Float (Height_Colour.Red),
-                  Xi_Unit_Float (Height_Colour.Green),
-                  Xi_Unit_Float (Height_Colour.Blue),
-                  1.0));
-            else
-               declare
-                  Index : constant Xi_Unit_Float :=
-                            (Xi_Float (Height) - Xi_Float (Height_Range'First))
-                            / 50.0;
-               begin
-                  Pass.Set_Ambient
-                    ((Index, Index, Index, 1.0));
-               end;
-            end if;
+            Material.Set_Parameter_Value
+              (Parameter_Name => "color",
+               Value          =>
+                 Xi.Value.Color_Value
+                   (Xi_Unit_Float (Height_Colour.Red),
+                    Xi_Unit_Float (Height_Colour.Green),
+                    Xi_Unit_Float (Height_Colour.Blue),
+                    1.0));
          end;
       end if;
 
