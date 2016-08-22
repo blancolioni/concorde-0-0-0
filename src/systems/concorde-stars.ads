@@ -8,6 +8,8 @@ with Concorde.Systems;
 
 with Concorde.Commodities;
 
+private with Concorde.Geometry;
+
 package Concorde.Stars is
 
    type Stellar_Class_Type is (O, B, A, F, G, K, M, L);
@@ -101,6 +103,11 @@ private
      (Star : Root_Star_Type)
       return Unit_Real
    is (0.0);
+
+   overriding function Orbit_Progress
+     (Star : Root_Star_Type)
+      return Concorde.Geometry.Radians
+   is (Concorde.Geometry.Degrees_To_Radians (0.0));
 
    overriding function System
      (Star : Root_Star_Type)

@@ -317,6 +317,7 @@ private
            Concorde.Systems.Star_System_Object_Interface'Class;
          Semimajor_Axis        : Non_Negative_Real;
          Eccentricity          : Unit_Real;
+         Orbit_Progress        : Concorde.Geometry.Radians;
          Category              : World_Category;
          Surface_Seed          : Integer;
          Sectors               : access Array_Of_Sectors;
@@ -389,6 +390,11 @@ private
      (World : Root_World_Type)
       return Unit_Real
    is (World.Eccentricity);
+
+   overriding function Orbit_Progress
+     (World : Root_World_Type)
+      return Concorde.Geometry.Radians
+   is (World.Orbit_Progress);
 
    overriding function Tile_Count
      (World : Root_World_Type)

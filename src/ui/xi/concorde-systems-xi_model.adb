@@ -1,5 +1,3 @@
-with Ada.Text_IO;
-
 with Memor.Element_Vectors;
 
 with Xi.Assets;
@@ -63,15 +61,13 @@ package body Concorde.Systems.Xi_Model is
                       Scene.Create_Node (System.Name);
 
       procedure Create_Node
-        (Object   : Star_System_Object_Interface'Class;
-         Position : Concorde.Geometry.Radians);
+        (Object   : Star_System_Object_Interface'Class);
 
       procedure Create_Star
         (Star      : Concorde.Stars.Root_Star_Type'Class);
 
       procedure Create_World
         (World     : Concorde.Worlds.Root_World_Type'Class;
-         Position  : Concorde.Geometry.Radians;
          Primary   : access Star_System_Object_Interface'Class);
 
       -----------------
@@ -79,8 +75,7 @@ package body Concorde.Systems.Xi_Model is
       -----------------
 
       procedure Create_Node
-        (Object   : Star_System_Object_Interface'Class;
-         Position : Concorde.Geometry.Radians)
+        (Object   : Star_System_Object_Interface'Class)
       is
       begin
          if Object in Concorde.Stars.Root_Star_Type'Class then
@@ -89,7 +84,6 @@ package body Concorde.Systems.Xi_Model is
          else
             Create_World
               (Concorde.Worlds.Root_World_Type'Class (Object),
-               Position,
                Object.Primary);
          end if;
       end Create_Node;
@@ -130,12 +124,12 @@ package body Concorde.Systems.Xi_Model is
 
       procedure Create_World
         (World     : Concorde.Worlds.Root_World_Type'Class;
-         Position  : Concorde.Geometry.Radians;
          Primary   : access Star_System_Object_Interface'Class)
       is
          pragma Unreferenced (Primary);
          use Xi;
          use Concorde.Geometry;
+         Position : constant Radians := World.Orbit_Progress;
          World_Node : constant Xi.Node.Xi_Node :=
                         System_Node.Create_Child (World.Name);
          Orbit_Radius : constant Xi_Float :=
@@ -157,7 +151,7 @@ package body Concorde.Systems.Xi_Model is
 
    begin
       for Object of System.Objects loop
-         Create_Node (Object.Object.all, Object.Start);
+         Create_Node (Object.Object.all);
       end loop;
 
       Camera.Set_Position (0.0, 0.0, Camera_Start_Far / 5.0);
@@ -189,8 +183,6 @@ package body Concorde.Systems.Xi_Model is
       AU                : constant Real :=
                             World.Semimajor_Axis
                               / Concorde.Solar_System.Earth_Orbit;
-      Orbital_Offset    : Radians;
-      Got_Orbit_Offset  : Boolean := False;
    begin
       if Scene = null then
          Scene := System_Scene (World.System, Model.Window.Viewport);
@@ -199,27 +191,10 @@ package body Concorde.Systems.Xi_Model is
 
       Scene.Active_Camera.Set_Viewport (Model.Window.Viewport);
 
---        System_Transition.Scene_Transition (Scene);
---        Model.Add_Transition
---          (System_Transition);
-
-      for Object of World.System.Objects loop
-         if Object.Object.all in Concorde.Worlds.Root_World_Type'Class
-           and then Concorde.Worlds.World_Type (Object.Object) = World
-         then
-            Orbital_Offset := Object.Start;
-            Got_Orbit_Offset := True;
-            exit;
-         end if;
-      end loop;
-
-      if not Got_Orbit_Offset then
-         Ada.Text_IO.Put_Line
-           ("Warning: no orbit offset for " & World.Name);
-      end if;
-
       declare
          use Xi.Float_Arrays;
+         Orbital_Offset : constant Radians :=
+                            World.Orbit_Progress;
          Position : constant Xi.Matrices.Vector_3 :=
                       (Xi_Float
                          (AU * Cos (Orbital_Offset)),
