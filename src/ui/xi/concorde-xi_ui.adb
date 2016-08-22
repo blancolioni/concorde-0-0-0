@@ -1,8 +1,17 @@
+with Xi.Color;
 with Xi.Main;
+with Xi.Materials.Material;
+with Xi.Shapes;
 
 with Concorde.Xi_UI.Key_Bindings;
 
 package body Concorde.Xi_UI is
+
+   Selector_Size : constant := 128;
+   Selector_Boundary_Size : constant := 6;
+
+   Local_Selector_Texture : Xi.Texture.Xi_Texture := null;
+   Local_Selector_Entity  : Xi.Entity.Xi_Entity := null;
 
    --------------------
    -- Add_Transition --
@@ -176,6 +185,55 @@ package body Concorde.Xi_UI is
       Model.Scene.Active_Camera.Translate
         (0.0, 0.0, -0.1);
    end On_Wheel_Up;
+
+   ---------------------
+   -- Selector_Entity --
+   ---------------------
+
+   function Selector_Entity return Xi.Entity.Xi_Entity is
+      use type Xi.Entity.Xi_Entity;
+   begin
+      if Local_Selector_Entity = null then
+         Local_Selector_Entity :=
+           Xi.Shapes.Square (Xi.Xi_Float (Selector_Size));
+         Local_Selector_Entity.Set_Material
+           (Xi.Materials.Material.Xi_New_With_Texture
+              ("selector", Selector_Texture));
+      end if;
+      return Local_Selector_Entity;
+   end Selector_Entity;
+
+   ----------------------
+   -- Selector_Texture --
+   ----------------------
+
+   function Selector_Texture return Xi.Texture.Xi_Texture is
+      use type Xi.Texture.Xi_Texture;
+   begin
+      if Local_Selector_Texture = null then
+         declare
+            Data : Xi.Color.Xi_Color_2D_Array
+              (1 .. Selector_Size, 1 .. Selector_Size);
+         begin
+            for Y in Data'Range (2) loop
+               for X in Data'Range (1) loop
+                  if X <= Selector_Boundary_Size
+                    or else X > Selector_Size - Selector_Boundary_Size
+                    or else Y <= Selector_Boundary_Size
+                    or else Y > Selector_Size - Selector_Boundary_Size
+                  then
+                     Data (X, Y) := (0.2, 0.8, 0.4, 1.0);
+                  else
+                     Data (X, Y) := (0.0, 0.0, 0.0, 0.0);
+                  end if;
+               end loop;
+            end loop;
+            Local_Selector_Texture :=
+              Xi.Texture.Create_From_Data ("selector-texture", Data);
+         end;
+      end if;
+      return Local_Selector_Texture;
+   end Selector_Texture;
 
    ------------
    -- Window --

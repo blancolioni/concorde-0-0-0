@@ -201,6 +201,9 @@ package body Concorde.Xi_UI.Galaxies is
       Star    : constant Xi.Entity.Xi_Entity :=
                   Xi.Shapes.Square (Star_Size);
 
+      Star_Node : constant Xi.Node.Xi_Node := Scene.Create_Node ("stars");
+      Selector_Node : constant Xi.Node.Xi_Node :=
+                        Scene.Create_Node ("selectors");
       function Behind
         (S1, S2 : Concorde.Systems.Star_System_Type)
          return Boolean
@@ -240,7 +243,7 @@ package body Concorde.Xi_UI.Galaxies is
       for System of Main_Model.System_Vector loop
          declare
             Node : constant Xi.Node.Xi_Node :=
-                     Scene.Create_Node
+                     Star_Node.Create_Child
                        (System.Name);
          begin
             Node.Set_Position
@@ -248,6 +251,19 @@ package body Concorde.Xi_UI.Galaxies is
                Xi.Xi_Float (System.Y),
                Xi.Xi_Float (System.Z));
             Node.Set_Entity (Star);
+
+            if System.Owned then
+               declare
+                  Selector : constant Xi.Node.Xi_Node :=
+                               Selector_Node.Create_Child
+                                 (System.Name & " selector");
+               begin
+                  Selector.Set_Position (Node.Position);
+                  Selector.Set_Billboard (True);
+                  Selector.Set_Fixed_Size (True);
+                  Selector.Set_Entity (Selector_Entity);
+               end;
+            end if;
          end;
       end loop;
 
@@ -428,7 +444,10 @@ package body Concorde.Xi_UI.Galaxies is
                Target_Orientation => Model.Scene.Active_Camera.Orientation,
                Target_Projection  => Projection_2,
                Transition_Time    => 3.0);
-            Model.Add_Transition (Transition_2);
+            if False then
+               Model.Add_Transition (Transition_2);
+            end if;
+
             Model.Current_System := System;
          end;
       elsif Target_Object.all in Concorde.Worlds.Root_World_Type'Class then

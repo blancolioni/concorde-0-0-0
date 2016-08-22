@@ -1,7 +1,9 @@
 private with Ada.Containers.Doubly_Linked_Lists;
 
+with Xi.Entity;
 with Xi.Render_Window;
 with Xi.Scene;
+with Xi.Texture;
 
 with Xtk.Panel;
 
@@ -58,6 +60,9 @@ package Concorde.Xi_UI is
    procedure Move_Vertical
      (Model : in out Root_Xi_Model;
       Scale : Xi.Xi_Signed_Unit_Float);
+
+   function Selector_Texture return Xi.Texture.Xi_Texture;
+   function Selector_Entity return Xi.Entity.Xi_Entity;
 
 private
 
