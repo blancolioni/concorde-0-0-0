@@ -146,8 +146,11 @@ begin
             Xi.Main.Init;
             Xtk.Initialize;
 
-            Xi.Assets.Load_Assets
-              (Concorde.Paths.Config_File ("assets.txt"));
+            Xi.Assets.Add_Search_Path
+              (Concorde.Paths.Config_Path);
+
+            Xi.Assets.Add_Image_Path
+              (Concorde.Paths.Config_Path);
 
             Concorde.Xi_UI.Key_Bindings.Load_Key_Bindings;
 
