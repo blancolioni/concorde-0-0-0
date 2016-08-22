@@ -157,7 +157,7 @@ begin
             Window :=
               Xi.Main.Current_Renderer.Create_Top_Level_Window;
 
-            --  Window.Set_Full_Screen (True);
+            Window.Set_Full_Screen (True);
 
             Window.Blend (Xi.Render_Target.Source_Alpha,
                           Xi.Render_Target.Destination_Alpha);
