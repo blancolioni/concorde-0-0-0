@@ -20,6 +20,8 @@ with Concorde.Ships.Lists;
 with Concorde.Systems.Db;
 with Concorde.Systems.Models;
 
+with Concorde.Stars;
+
 with Concorde.Galaxy.Locking;
 
 with Concorde.Updates;
@@ -852,6 +854,8 @@ package body Concorde.Galaxy.Model is
                      if Model.Show_System_Names
                        or else (System.Capital
                                 and then Model.Show_Capital_Names)
+                       or else System.Name'Length < 5
+                       or else System.Name (1 .. 4) /= "Star"
                      then
                         Renderer.Draw_String
                           (X      => Screen_X - 20,
@@ -1083,14 +1087,14 @@ package body Concorde.Galaxy.Model is
       use type Concorde.Systems.Star_System_Type;
       System : constant Concorde.Systems.Star_System_Type :=
                  Model.Closest_System (X, Y, 10);
-      Screen_X, Screen_Y : Integer;
-      Screen_Z : Real;
-
+      Star : Concorde.Stars.Star_Type;
    begin
       if System /= null then
-         Model.Get_Screen_Coordinates (System.X, System.Y, System.Z,
-                                       Screen_X, Screen_Y, Screen_Z);
-         return System.Name & " (" & Lui.Approximate_Image (Screen_Z) & ")";
+         Star :=
+           Concorde.Stars.Star_Type
+             (System.Main_Object);
+         return System.Name & " "
+           & Star.Stellar_Class;
       else
          return "";
       end if;

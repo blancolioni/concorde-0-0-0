@@ -27,9 +27,11 @@ with Xtk.Label;
 with Lui.Colours;
 
 with Concorde.Galaxy;
+with Concorde.Ships.Db;
 with Concorde.Worlds;
 
 with Concorde.Systems.Xi_Model;
+with Concorde.Ships.Xi_Model;
 
 package body Concorde.Xi_UI.Galaxies is
 
@@ -130,6 +132,13 @@ package body Concorde.Xi_UI.Galaxies is
 
       if not Main_Model.Transited then
          declare
+            use type Concorde.Ships.Ship_Type;
+
+            First_Ship : Concorde.Ships.Ship_Type := null;
+
+            procedure Visit_Ship
+              (Ship : Concorde.Ships.Ship_Type);
+
             procedure Visit_Object
               (Object : not null access constant
                  Concorde.Systems.Star_System_Object_Interface'Class);
@@ -150,13 +159,30 @@ package body Concorde.Xi_UI.Galaxies is
                end if;
             end Visit_Object;
 
+            ----------------
+            -- Visit_Ship --
+            ----------------
+
+            procedure Visit_Ship
+              (Ship : Concorde.Ships.Ship_Type)
+            is
+            begin
+               if First_Ship = null then
+                  First_Ship := Ship;
+               end if;
+            end Visit_Ship;
+
          begin
             if False then
                Concorde.Galaxy.Get_System (1).Scan_System_Objects
                  (Visit_Object'Access);
-            else
+            elsif First_Ship = null then
                Main_Model.Transit_To_Object
                  (Concorde.Galaxy.Capital_World);
+            else
+               Concorde.Ships.Db.Scan (Visit_Ship'Access);
+               Concorde.Ships.Xi_Model.Transit_To_Ship
+                 (First_Ship, Main_Model);
             end if;
             Main_Model.Transited := True;
          end;

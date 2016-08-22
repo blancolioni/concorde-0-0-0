@@ -3,7 +3,6 @@ with Ada.Exceptions;
 
 with Concorde.Constants;
 with Concorde.Elementary_Functions;
-with Concorde.Random;
 
 with Concorde.Locations;
 with Concorde.Worlds;
@@ -26,8 +25,7 @@ package body Concorde.Systems is
 
    procedure Add_Object
      (System   : in out Root_Star_System_Type'Class;
-      Object   : not null access Star_System_Object_Interface'Class;
-      Position : Concorde.Geometry.Radians)
+      Object   : not null access Star_System_Object_Interface'Class)
    is
    begin
       if System.Objects.Is_Empty then
@@ -35,7 +33,7 @@ package body Concorde.Systems is
            Main_Star_System_Object_Interface'Class (Object.all)'Access;
       end if;
       System.Objects.Append
-        ((Object, Position));
+        ((Object => Object));
    end Add_Object;
 
    --------------
@@ -292,9 +290,7 @@ package body Concorde.Systems is
 
       for World of List loop
          Star_System.Add_Object
-           (World,
-            Concorde.Geometry.Degrees_To_Radians
-              (Concorde.Random.Unit_Random * 360.0));
+           (World);
       end loop;
 
       Ada.Text_IO.Put_Line

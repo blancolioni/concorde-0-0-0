@@ -38,6 +38,11 @@ package Concorde.Systems is
                             return Non_Negative_Real
                             is abstract;
 
+   function Orbit_Progress
+     (Object : Star_System_Object_Interface)
+      return Concorde.Geometry.Radians
+      is abstract;
+
    function Eccentricity (Object : Star_System_Object_Interface)
                           return Unit_Real
                           is abstract;
@@ -61,8 +66,7 @@ package Concorde.Systems is
 
    procedure Add_Object
      (System   : in out Root_Star_System_Type'Class;
-      Object   : not null access Star_System_Object_Interface'Class;
-      Position : Concorde.Geometry.Radians);
+      Object   : not null access Star_System_Object_Interface'Class);
 
    type Main_Star_System_Object_Interface is limited interface
      and Star_System_Object_Interface;
@@ -212,7 +216,6 @@ private
    type System_Object_Record is
       record
          Object  : access Star_System_Object_Interface'Class;
-         Start   : Concorde.Geometry.Radians;
       end record;
 
    package System_Object_Lists is

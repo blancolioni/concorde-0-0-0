@@ -63,8 +63,7 @@ package body Concorde.Systems.Create is
                            else Primary);
          begin
             System.Add_Object
-              (Object   => Main_Star,
-               Position => Concorde.Geometry.Degrees_To_Radians (0.0));
+              (Object   => Main_Star);
          end;
 
       end Create;

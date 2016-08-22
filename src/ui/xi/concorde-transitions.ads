@@ -95,9 +95,15 @@ private
          Speed                : Xi.Xi_Non_Negative_Float;
          Vector               : Xi.Matrices.Vector_4;
          Distance             : Xi.Xi_Non_Negative_Float;
+         Accel_Coefficient    : Xi.Xi_Non_Negative_Float;
+         Coast_Coefficient    : Xi.Xi_Non_Negative_Float;
          Accelerate_Time      : Duration;
          Coast_Time           : Duration;
          Transition_Time      : Duration;
+         Coast_Start_At       : Xi.Xi_Unit_Float;
+         Decel_Start_At       : Xi.Xi_Unit_Float;
+         Coast_Start_Progress : Xi.Xi_Unit_Float;
+         Decel_Start_Progress : Xi.Xi_Unit_Float;
          Completed            : Boolean := False;
       end record;
 

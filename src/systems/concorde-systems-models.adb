@@ -95,15 +95,13 @@ package body Concorde.Systems.Models is
    is
 
       procedure Render_System_Object
-        (Object : Star_System_Object_Interface'Class;
-         Position : Concorde.Geometry.Radians);
+        (Object : Star_System_Object_Interface'Class);
 
       procedure Render_Star
         (Star : Concorde.Stars.Root_Star_Type'Class);
 
       procedure Render_World
-        (World    : Concorde.Worlds.Root_World_Type'Class;
-         Position : Concorde.Geometry.Radians);
+        (World    : Concorde.Worlds.Root_World_Type'Class);
 
       -----------------
       -- Render_Star --
@@ -130,8 +128,7 @@ package body Concorde.Systems.Models is
       --------------------------
 
       procedure Render_System_Object
-        (Object   : Star_System_Object_Interface'Class;
-         Position : Concorde.Geometry.Radians)
+        (Object   : Star_System_Object_Interface'Class)
       is
       begin
          if Object in Concorde.Stars.Root_Star_Type'Class then
@@ -139,7 +136,7 @@ package body Concorde.Systems.Models is
               (Concorde.Stars.Root_Star_Type'Class (Object));
          else
             Render_World
-              (Concorde.Worlds.Root_World_Type'Class (Object), Position);
+              (Concorde.Worlds.Root_World_Type'Class (Object));
          end if;
       end Render_System_Object;
 
@@ -148,10 +145,10 @@ package body Concorde.Systems.Models is
       ------------------
 
       procedure Render_World
-        (World    : Concorde.Worlds.Root_World_Type'Class;
-         Position : Concorde.Geometry.Radians)
+        (World    : Concorde.Worlds.Root_World_Type'Class)
       is
          use Concorde.Geometry;
+         Position : constant Radians := World.Orbit_Progress;
          X_Offset : constant Real := Cos (Position) * World.Semimajor_Axis;
          Y_Offset : constant Real := Sin (Position) * World.Semimajor_Axis;
          Scale_Factor : constant Non_Negative_Real :=
@@ -199,7 +196,7 @@ package body Concorde.Systems.Models is
    begin
       Model.Rendered_Words.Clear;
       for Object of Model.System.Objects loop
-         Render_System_Object (Object.Object.all, Object.Start);
+         Render_System_Object (Object.Object.all);
       end loop;
 
       Model.Needs_Render := False;
