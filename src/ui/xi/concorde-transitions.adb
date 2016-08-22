@@ -229,6 +229,24 @@ package body Concorde.Transitions is
             Transition.Transition_Time :=
               Transition.Accelerate_Time * 2.0
                 + Transition.Coast_Time;
+            Transition.Accel_Coefficient :=
+              (S / D) / ((T / Xi_Float (Transition.Transition_Time)) ** 2);
+
+            Transition.Coast_Start_At :=
+              Xi_Float (Transition.Accelerate_Time)
+              / Xi_Float (Transition.Transition_Time);
+            Transition.Decel_Start_At := 1.0 - Transition.Coast_Start_At;
+            Transition.Coast_Start_Progress :=
+              Transition.Accel_Coefficient
+                * Transition.Coast_Start_At ** 2;
+            Transition.Decel_Start_Progress :=
+              1.0 - Transition.Coast_Start_Progress;
+            if Transition.Coast_Time > 0.0 then
+               Transition.Coast_Coefficient :=
+                 (Transition.Decel_Start_Progress
+                  - Transition.Coast_Start_Progress)
+                 / (Transition.Decel_Start_At - Transition.Coast_Start_At);
+            end if;
          end;
       end if;
 
@@ -258,35 +276,39 @@ package body Concorde.Transitions is
       Now     : constant Time := Clock;
       Elapsed : constant Duration := Now - Transition.Start_Time;
       Tick    : constant Duration := Now - Transition.Last_Update;
-      Progress : constant Xi_Non_Negative_Float :=
-                   (if Transition.Completed
-                    then 1.0
-                    else Xi_Non_Negative_Float (Elapsed)
-                    / Xi_Non_Negative_Float (Transition.Transition_Time));
+      Time_Progress : constant Xi_Non_Negative_Float :=
+                        (if Transition.Completed
+                         then 1.0
+                         else Xi_Non_Negative_Float (Elapsed)
+                         / Xi_Non_Negative_Float (Transition.Transition_Time));
+      Distance_Progress : Xi_Unit_Float;
    begin
-      if Progress >= 1.0 then
+      if Time_Progress >= 1.0 then
          Transition.Completed := True;
          Transition.Current_Position := Transition.Target_Position;
          Transition.Current_Orientation := Transition.Target_Orientation;
          Transition.Current_Projection := Transition.Target_Projection;
       else
          if Transition.Acceleration > 0.0 then
-            if Elapsed < Transition.Accelerate_Time then
-               Transition.Speed := Transition.Speed +
-                 Transition.Acceleration * Xi_Float (Tick);
-            elsif Elapsed >=
-              Transition.Accelerate_Time + Transition.Coast_Time
-            then
-               Transition.Speed :=
-                 Xi_Float'Max
-                   (Transition.Speed
-                    - Transition.Acceleration * Xi_Float (Tick),
-                    0.0);
+            if Time_Progress < Transition.Coast_Start_At then
+               Distance_Progress :=
+                 Transition.Accel_Coefficient
+                   * Time_Progress ** 2;
+            elsif Time_Progress < Transition.Decel_Start_At then
+               Distance_Progress :=
+                 Transition.Coast_Start_Progress
+                   + (Time_Progress - Transition.Coast_Start_At)
+                 * Transition.Coast_Coefficient;
+            else
+               Distance_Progress :=
+                 1.0 -
+                   Transition.Accel_Coefficient
+                     * (1.0 - Time_Progress) ** 2;
             end if;
 
             Transition.Current_Position :=
-              Transition.Current_Position
-                + Transition.Vector * Transition.Speed * Xi_Float (Tick);
+              Transition.Start_Position
+                + Transition.Position_Delta * Distance_Progress;
          else
             Transition.Current_Position :=
               Transition.Start_Position
@@ -295,10 +317,10 @@ package body Concorde.Transitions is
 
          Transition.Current_Orientation :=
            Transition.Start_Orientation
-             + Transition.Orientation_Delta * Progress;
+             + Transition.Orientation_Delta * Distance_Progress;
          Transition.Current_Projection :=
            Transition.Start_Projection
-             + Transition.Projection_Delta * Progress;
+             + Transition.Projection_Delta * Distance_Progress;
       end if;
 
       Transition.Last_Update := Now;
