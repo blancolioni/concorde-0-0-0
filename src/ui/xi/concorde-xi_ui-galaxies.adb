@@ -40,7 +40,7 @@ package body Concorde.Xi_UI.Galaxies is
    Camera_Top       : constant := -0.1;
    Camera_Bottom    : constant := 0.1;
    Camera_Near      : constant := 0.01;
-   Camera_Far       : constant := 2.0;
+   Camera_Far       : constant := 3.0;
    Camera_Fov       : constant := 80.0;
    Focus_Fov        : constant := 40.0;
    System_Fov       : constant := 10.0;
@@ -130,7 +130,7 @@ package body Concorde.Xi_UI.Galaxies is
 
       Main_Model.On_Frame_Start;
 
-      if not Main_Model.Transited then
+      if True and then not Main_Model.Transited then
          declare
             use type Concorde.Ships.Ship_Type;
 
@@ -267,36 +267,46 @@ package body Concorde.Xi_UI.Galaxies is
       Sort.Sort (Main_Model.System_Vector);
 
       for System of Main_Model.System_Vector loop
-         declare
-            Node : constant Xi.Node.Xi_Node :=
-                     Star_Node.Create_Child
-                       (System.Name);
-         begin
-            Node.Set_Position
-              (Xi.Xi_Float (System.X),
-               Xi.Xi_Float (System.Y),
-               Xi.Xi_Float (System.Z));
-            Node.Set_Entity (Star);
+         if True then
+            declare
+               Node : constant Xi.Node.Xi_Node :=
+                        Star_Node.Create_Child
+                          (System.Name);
+            begin
+               Node.Set_Position
+                 (Xi.Xi_Float (System.X),
+                  Xi.Xi_Float (System.Y),
+                  Xi.Xi_Float (System.Z));
+               Node.Set_Entity (Star);
 
-            if System.Owned then
-               declare
-                  Selector : constant Xi.Node.Xi_Node :=
-                               Selector_Node.Create_Child
-                                 (System.Name & " selector");
-               begin
-                  Selector.Set_Position (Node.Position);
-                  Selector.Set_Billboard (True);
-                  Selector.Set_Fixed_Size (True);
-                  Selector.Set_Entity (Selector_Entity);
-               end;
-            end if;
-         end;
+               --               Node.Set_Billboard (True);
+
+--                 if System.Owned then
+--                    Node.Scale (5.0);
+--                 end if;
+            end;
+         end if;
+
+         if System.Owned then
+            declare
+               Selector : constant Xi.Node.Xi_Node :=
+                            Selector_Node.Create_Child
+                              (System.Name & " selector");
+            begin
+               Selector.Set_Position
+                 (Xi.Xi_Float (System.X / 2.0),
+                  Xi.Xi_Float (System.Y / 2.0),
+                  Xi.Xi_Float (System.Z / 2.0));
+               Selector.Fixed_Pixel_Size (32.0, 32.0);
+               Selector.Set_Billboard (True);
+               Selector.Set_Entity (Selector_Entity);
+            end;
+         end if;
       end loop;
 
-      Camera.Set_Position (0.0, 0.0, 1.0);
+      Camera.Set_Position (0.0, 0.0, 1.5);
       Camera.Set_Orientation (0.0, 0.0, 1.0, 0.0);
       Camera.Look_At (0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
-
       Camera.Set_Viewport (Window.Full_Viewport);
 
 --        Camera.Frustum
