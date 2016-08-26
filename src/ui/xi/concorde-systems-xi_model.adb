@@ -59,7 +59,8 @@ package body Concorde.Systems.Xi_Model is
       Camera      : constant Xi.Camera.Xi_Camera := Scene.Active_Camera;
       System_Node : constant Xi.Node.Xi_Node :=
                       Scene.Create_Node (System.Name);
-
+      Selector_Node : constant Xi.Node.Xi_Node :=
+                         Scene.Create_Node ("selectors");
       procedure Create_Node
         (Object   : Star_System_Object_Interface'Class);
 
@@ -147,6 +148,18 @@ package body Concorde.Systems.Xi_Model is
          Concorde.Worlds.Xi_Model.Load_World
            (World       => Concorde.Worlds.Db.Reference (World),
             Parent_Node => World_Node);
+
+         declare
+            use type Xi.Float_Arrays.Real_Vector;
+            Selector : constant Xi.Node.Xi_Node :=
+                         Selector_Node.Create_Child
+                           (System.Name & " selector");
+         begin
+            Selector.Set_Position (World_Node.Position_3 / 2.0 & 1.0);
+            Selector.Fixed_Pixel_Size (32.0, 32.0);
+            Selector.Set_Billboard (True);
+            Selector.Set_Entity (Concorde.Xi_UI.Selector_Entity);
+         end;
       end Create_World;
 
    begin
