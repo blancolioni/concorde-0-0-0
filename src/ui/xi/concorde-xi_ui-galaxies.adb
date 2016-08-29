@@ -1,6 +1,4 @@
-with Ada.Calendar;
 with Ada.Containers.Vectors;
-with Ada.Text_IO;
 
 with GL;
 
@@ -21,8 +19,7 @@ with Xi.Shader;
 with Xi.Shapes;
 with Xi.Texture;
 
-with Xtk.Fixed;
-with Xtk.Label;
+with Xtk.FPS;
 
 with Lui.Colours;
 
@@ -59,8 +56,6 @@ package body Concorde.Xi_UI.Galaxies is
      new Root_Xi_Model with
       record
          Top_Panel      : Xtk.Panel.Xtk_Panel;
-         FPS            : Xtk.Label.Xtk_Label;
-         Render_Time    : Xtk.Label.Xtk_Label;
          Galaxy_Node    : Xi.Node.Xi_Node;
          Highlight_Node : Xi.Node.Xi_Node;
          Active_Node    : Xi.Node.Xi_Node;
@@ -90,11 +85,7 @@ package body Concorde.Xi_UI.Galaxies is
    Main_Model : aliased Root_Galaxy_Model;
 
    type Galaxy_Frame_Listener is
-     new Xi.Frame_Event.Xi_Frame_Listener_Interface with
-      record
-         Frames         : Natural;
-         Last_FPS_Check : Ada.Calendar.Time;
-      end record;
+     new Xi.Frame_Event.Xi_Frame_Listener_Interface with null record;
 
    overriding procedure Frame_Started
      (Listener : in out Galaxy_Frame_Listener;
@@ -118,6 +109,7 @@ package body Concorde.Xi_UI.Galaxies is
      (Listener : in out Galaxy_Frame_Listener;
       Event    : Xi.Frame_Event.Xi_Frame_Event)
    is
+      pragma Unreferenced (Listener);
       pragma Unreferenced (Event);
       use Xi;
       use type Concorde.Systems.Star_System_Type;
@@ -134,7 +126,8 @@ package body Concorde.Xi_UI.Galaxies is
          declare
             use type Concorde.Ships.Ship_Type;
 
-            First_Ship : Concorde.Ships.Ship_Type := null;
+            First_Ship  : Concorde.Ships.Ship_Type := null;
+            Second_Ship : Concorde.Ships.Ship_Type := null;
 
             procedure Visit_Ship
               (Ship : Concorde.Ships.Ship_Type);
@@ -169,48 +162,29 @@ package body Concorde.Xi_UI.Galaxies is
             begin
                if First_Ship = null then
                   First_Ship := Ship;
+               elsif Second_Ship = null then
+                  Second_Ship := Ship;
                end if;
             end Visit_Ship;
 
          begin
+            Concorde.Ships.Db.Scan (Visit_Ship'Access);
             if False then
                Concorde.Galaxy.Get_System (1).Scan_System_Objects
                  (Visit_Object'Access);
             elsif First_Ship = null then
                Main_Model.Transit_To_Object
                  (Concorde.Galaxy.Capital_World);
-            else
-               Concorde.Ships.Db.Scan (Visit_Ship'Access);
+            elsif True or else Second_Ship = null then
                Concorde.Ships.Xi_Model.Transit_To_Ship
                  (First_Ship, Main_Model);
+            else
+               Concorde.Ships.Xi_Model.Transit_To_Ship
+                 (Second_Ship, Main_Model);
             end if;
             Main_Model.Transited := True;
          end;
       end if;
-
-      Listener.Frames := Listener.Frames + 1;
-      if Listener.Frames >= 600 then
-         declare
-            use Ada.Calendar;
-            Now : constant Time := Clock;
-            FPS : constant Float :=
-                    Float (Listener.Frames)
-                    / Float (Now - Listener.Last_FPS_Check);
-         begin
-            Listener.Frames := 0;
-            Listener.Last_FPS_Check := Now;
-            Main_Model.FPS.Set_Label
-              (Lui.Approximate_Image (Lui.Real (FPS)) & " FPS");
-            if True then
-               Ada.Text_IO.Put_Line
-                 (Lui.Approximate_Image (Lui.Real (FPS)) & " FPS");
-            end if;
-         end;
-      end if;
-
-      Main_Model.Render_Time.Set_Label
-        (Lui.Approximate_Image
-           (Lui.Real (Main_Model.Scene.Last_Render_Time)));
 
    end Frame_Started;
 
@@ -325,36 +299,22 @@ package body Concorde.Xi_UI.Galaxies is
 
       Window.On_Resize (On_Resize'Access);
 
-      if True then
-         declare
-            Listener : constant Xi.Frame_Event.Xi_Frame_Listener :=
-                         new Galaxy_Frame_Listener'
-                           (Frames         => 0,
-                            Last_FPS_Check => Ada.Calendar.Clock);
-         begin
-            Xi.Main.Add_Frame_Listener (Listener);
-         end;
+      declare
+         FPS_Panel : Xtk.Panel.Xtk_Panel;
+      begin
+         Xtk.Panel.Xtk_New
+           (FPS_Panel, (20.0, 200.0, 200.0, 200.0),
+            Xtk.FPS.Create_FPS_Widget);
+         Window.Add_Top_Level (FPS_Panel);
+         FPS_Panel.Show_All;
+      end;
 
-         Xtk.Label.Xtk_New (Main_Model.FPS, "FPS");
-         Main_Model.FPS.Set_Rectangle ((200.0, 20.0, 180.0, 40.0));
-
-         Xtk.Label.Xtk_New (Main_Model.Render_Time, "Render time");
-         Main_Model.Render_Time.Set_Rectangle ((20.0, 20.0, 180.0, 40.0));
-
-         declare
-            Fixed : Xtk.Fixed.Xtk_Fixed;
-         begin
-            Xtk.Fixed.Xi_New (Fixed);
-            Fixed.Set_Rectangle ((20.0, 50.0, 400.0, 60.0));
-            Fixed.Add (Main_Model.FPS);
-            Fixed.Add (Main_Model.Render_Time);
-
-            Xtk.Panel.Xtk_New
-              (Panel  => Main_Model.Top_Panel,
-               Region => (20.0, 50.0, 400.0, 60.0),
-               Top    => Fixed);
-         end;
-      end if;
+      declare
+         Listener : constant Xi.Frame_Event.Xi_Frame_Listener :=
+                      new Galaxy_Frame_Listener;
+      begin
+         Xi.Main.Add_Frame_Listener (Listener);
+      end;
 
       Main_Model.Galaxy_Scene := Scene;
 
@@ -438,7 +398,7 @@ package body Concorde.Xi_UI.Galaxies is
             Position_1 : constant Xi.Matrices.Vector_3 :=
                            (Xi.Xi_Float (System.X),
                             Xi.Xi_Float (System.Y),
-                            Xi.Xi_Float (System.Z + Camera_Near * 1.05));
+                            Xi.Xi_Float (System.Z + Camera_Near * 1.2));
             Position_2   : constant Xi.Matrices.Vector_3 :=
                              (Xi.Xi_Float (System.X),
                               Xi.Xi_Float (System.Y),
@@ -467,7 +427,7 @@ package body Concorde.Xi_UI.Galaxies is
                Target_Position    => Position_1,
                Target_Orientation => Model.Scene.Active_Camera.Orientation,
                Target_Projection  => Projection_1,
-               Acceleration       => 0.05,
+               Acceleration       => 0.01,
                Max_Velocity       => 0.1);
 
             if True then
