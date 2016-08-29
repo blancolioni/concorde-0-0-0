@@ -3,6 +3,7 @@ with Ada.Numerics;
 with Concorde.Constants;
 with Concorde.Solar_System;
 with Concorde.Elementary_Functions;
+with Concorde.Random;
 
 with Concorde.Installations;
 with Concorde.Ships;
@@ -132,8 +133,34 @@ package body Concorde.Locations is
       pragma Unreferenced (Velocity);
       use Newton.Matrices;
    begin
-      return (Orbit, Primary, Geometry.Degrees_To_Radians (0.0),
-              Position, -Position, 0.0, True);
+      return (Orbit, Primary,
+              Geometry.Degrees_To_Radians (0.0),
+              Position, -Position,
+              Concorde.Random.Unit_Random, True);
+   end Orbit;
+
+   -----------
+   -- Orbit --
+   -----------
+
+   function Orbit
+     (Primary        : not null access constant
+        Concorde.Objects.Root_Object_Type'Class;
+      Altitude       : Real)
+      return Object_Location
+   is
+      use Concorde.Elementary_Functions;
+      World   : constant Concorde.Worlds.World_Type :=
+                  Concorde.Worlds.World_Type (Primary);
+      R       : constant Non_Negative_Real :=
+                  World.Radius + Altitude;
+      V       : constant Non_Negative_Real :=
+                  2.0 * Ada.Numerics.Pi * R
+                    / World.Day_Length;
+   begin
+      return Orbit (Primary,
+                    Position => (R, 0.0, 0.0),
+                    Velocity => (0.0, V, 0.0));
    end Orbit;
 
    --------------
@@ -174,6 +201,23 @@ package body Concorde.Locations is
    begin
       return Location.Reference;
    end Primary;
+
+   -------------------------------
+   -- Primary_Relative_Position --
+   -------------------------------
+
+   function Primary_Relative_Position
+     (Location : Object_Location)
+      return Newton.Vector_3
+   is
+      use Newton.Matrices;
+      use Concorde.Geometry;
+      R : constant Non_Negative_Real := abs (Location.Apoapsis);
+      Theta : constant Radians :=
+                Degrees_To_Radians (Location.Offset * 360.0);
+   begin
+      return (R * Cos (Theta), 0.0, R * Sin (Theta));
+   end Primary_Relative_Position;
 
    ----------------
    -- Short_Name --

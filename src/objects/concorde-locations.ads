@@ -21,6 +21,10 @@ package Concorde.Locations is
      (Location : Object_Location)
       return Concorde.Objects.Object_Type;
 
+   function Primary_Relative_Position
+     (Location : Object_Location)
+      return Newton.Vector_3;
+
    function Current_System
      (Location : Object_Location)
       return access constant Concorde.Systems.Root_Star_System_Type'Class;
@@ -48,6 +52,12 @@ package Concorde.Locations is
    function Geosynchronous_Orbit
      (Primary        : not null access constant
         Concorde.Objects.Root_Object_Type'Class)
+      return Object_Location;
+
+   function Orbit
+     (Primary        : not null access constant
+        Concorde.Objects.Root_Object_Type'Class;
+      Altitude       : Real)
       return Object_Location;
 
    function World_Surface
@@ -91,6 +101,11 @@ package Concorde.Locations is
      (Located : Located_Interface'Class)
       return access constant Concorde.Systems.Root_Star_System_Type'Class
    is (Current_System (Located.Current_Location));
+
+   function Primary_Relative_Position
+     (Located : Located_Interface'Class)
+      return Newton.Vector_3
+   is (Primary_Relative_Position (Located.Current_Location));
 
 private
 
