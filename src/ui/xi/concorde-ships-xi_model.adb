@@ -1,14 +1,14 @@
-with Lui.Colours;
+--  with Lui.Colours;
 
 with Xi.Assets;
-with Xi.Color;
+--  with Xi.Color;
 with Xi.Entity;
 with Xi.Float_Arrays;
 with Xi.Logging;
 with Xi.Materials.Material;
 with Xi.Matrices;
 with Xi.Shapes;
-with Xi.Value;
+--  with Xi.Value;
 
 with Concorde.Transitions;
 
@@ -42,13 +42,13 @@ package body Concorde.Ships.Xi_Model is
                           Ship.Structure (Mount_Index);
             Module    : constant Concorde.Modules.Module_Type := Mount.Module;
             Component : constant Component_Type := Module.Component;
-            Lui_Color : constant Lui.Colours.Colour_Type :=
-                          Component.Colour;
-            Colour    : constant Xi.Color.Xi_Color :=
-                          (Xi_Unit_Float (Lui_Color.Red),
-                           Xi_Unit_Float (Lui_Color.Green),
-                           Xi_Unit_Float (Lui_Color.Blue),
-                           Xi_Unit_Float (Lui_Color.Alpha));
+--              Lui_Color : constant Lui.Colours.Colour_Type :=
+--                            Component.Colour;
+--              Colour    : constant Xi.Color.Xi_Color :=
+--                            (Xi_Unit_Float (Lui_Color.Red),
+--                             Xi_Unit_Float (Lui_Color.Green),
+--                             Xi_Unit_Float (Lui_Color.Blue),
+--                             Xi_Unit_Float (Lui_Color.Alpha));
             DX        : constant Xi_Non_Negative_Float :=
                           Xi_Float (Module.Size.X) / 2.0;
             DY        : constant Xi_Non_Negative_Float :=
@@ -63,13 +63,15 @@ package body Concorde.Ships.Xi_Model is
                           Xi_Float (Mount.Left_Low_Aft.Z) + DZ;
             Node      : constant Xi.Node.Xi_Node :=
                           Top.Create_Child (Module.Name);
-            Base      : constant Xi.Materials.Material.Xi_Material :=
-                          Xi.Assets.Material ("Xi.Solid_Lit_Color");
+--              Base      : constant Xi.Materials.Material.Xi_Material :=
+--                            Xi.Assets.Material ("Xi.Solid_Lit_Color");
             Material  : constant Xi.Materials.Material.Xi_Material :=
-                          Base.Instantiate;
+                          Xi.Assets.Material
+                            ("Concorde.Ships.Components."
+                             & Component.Name);
          begin
-            Material.Set_Parameter_Value
-              ("color", Xi.Value.Color_Value (Colour));
+--              Material.Set_Parameter_Value
+--                ("color", Xi.Value.Color_Value (Colour));
 
             Node.Set_Orientation_4
               (To_Orientation_Matrix (Mount.Orientation));
@@ -227,8 +229,8 @@ package body Concorde.Ships.Xi_Model is
       Ship_Transition.Create
         (Target_Position    => Target_Position,
          Target_Orientation => Target_Orientation,
-         Acceleration       => 1.0e5,
-         Max_Velocity       => 5.0e5);
+         Acceleration       => 1.0e6,
+         Max_Velocity       => 5.0e6);
       Model.Add_Transition (Ship_Transition);
    end Transit_To_Ship;
 
