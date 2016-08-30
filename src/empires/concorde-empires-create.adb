@@ -143,6 +143,62 @@ package body Concorde.Empires.Create is
 
       World.Add_Ship (Trader);
       World.Add_Ship (Defender);
+
+      declare
+
+         procedure Create_Ships_At_Capital
+           (Capital : in out Concorde.Worlds.Root_World_Type'Class);
+
+         ----------------------------
+         -- Create_Ship_At_Capital --
+         ----------------------------
+
+         procedure Create_Ships_At_Capital
+           (Capital : in out Concorde.Worlds.Root_World_Type'Class)
+         is
+         begin
+            for I in 1 .. 4 loop
+               declare
+                  Trader   : constant Concorde.Ships.Ship_Type :=
+                               Concorde.Ships.Create.New_Ship
+                                 (Owner  => World.Owner,
+                                  Name   =>
+                                    World.Owner.Name
+                                  & " Trader"
+                                  & Positive'Image (I + 1),
+                                  World  => Capital,
+                                  Design => "trader");
+
+                  procedure Set_Trade_Route
+                    (Ship : in out Concorde.Ships.Root_Ship_Type'Class);
+
+                  ---------------------
+                  -- Set_Trade_Route --
+                  ---------------------
+
+                  procedure Set_Trade_Route
+                    (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
+                  is
+                  begin
+                     Ship.Set_Trade_Route
+                       (Concorde.Galaxy.Capital_World,
+                        Concorde.Worlds.Db.Reference (World));
+                  end Set_Trade_Route;
+
+               begin
+                  Concorde.Ships.Db.Update (Trader.Reference,
+                                            Set_Trade_Route'Access);
+                  Capital.Add_Ship (Trader);
+               end;
+            end loop;
+         end Create_Ships_At_Capital;
+
+      begin
+         Concorde.Worlds.Db.Update
+           (Concorde.Galaxy.Capital_World.Reference,
+            Create_Ships_At_Capital'Access);
+      end;
+
    end Create_Initial_Ships;
 
    -----------------
