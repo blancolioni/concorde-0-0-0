@@ -83,8 +83,8 @@ package body Concorde.Ships.Create is
          Ship.Set_Guarantor (Owner);
          Ship.Set_Cash (Concorde.Money.To_Money (10_000.0));
          Ship.Set_Location
-           (Concorde.Locations.Geosynchronous_Orbit
-              (Concorde.Worlds.Db.Reference (World)));
+           (Concorde.Locations.Orbit
+              (Concorde.Worlds.Db.Reference (World), 300_000.0));
          Ship.Dest_Reference := Memor.Null_Database_Reference;
          Ship.Alive := True;
 
