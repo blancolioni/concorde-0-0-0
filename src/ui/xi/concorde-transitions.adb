@@ -31,6 +31,10 @@ package body Concorde.Transitions is
    is
       use Xi.Float_Arrays;
    begin
+      Transition.Transit_Position := True;
+      Transition.Transit_Orientation := True;
+      Transition.Transit_Projection := True;
+
       Transition.Scene := Scene;
 
       Transition.Acceleration := Acceleration;
@@ -56,6 +60,10 @@ package body Concorde.Transitions is
    is
       use Xi.Float_Arrays;
    begin
+      Transition.Transit_Position := True;
+      Transition.Transit_Orientation := True;
+      Transition.Transit_Projection := True;
+
       Transition.Scene := Scene;
 
       Transition.Acceleration := 0.0;
@@ -81,8 +89,11 @@ package body Concorde.Transitions is
    is
    begin
       Transition.Create (Scene, Target_Position, Target_Orientation,
-                         Scene.Active_Camera.Projection_Matrix,
+                         Xi.Float_Arrays.Unit_Matrix (4),
                          Transition_Time);
+      Transition.Transit_Position := True;
+      Transition.Transit_Orientation := True;
+      Transition.Transit_Projection := False;
    end Create;
 
    ------------
@@ -99,8 +110,66 @@ package body Concorde.Transitions is
    is
    begin
       Transition.Create (Scene, Target_Position, Target_Orientation,
-                         Scene.Active_Camera.Projection_Matrix,
+                         Xi.Float_Arrays.Unit_Matrix (4),
                          Acceleration, Max_Velocity);
+      Transition.Transit_Position := True;
+      Transition.Transit_Orientation := True;
+      Transition.Transit_Projection := False;
+   end Create;
+
+   ------------
+   -- Create --
+   ------------
+
+   procedure Create
+     (Transition         : in out Root_Transition_Type'Class;
+      Target_Position    : Xi.Matrices.Vector_3;
+      Target_Orientation : Xi.Matrices.Matrix_3;
+      Acceleration       : Xi.Xi_Non_Negative_Float;
+      Max_Velocity       : Xi.Xi_Non_Negative_Float)
+   is
+   begin
+      Transition.Create (null, Target_Position, Target_Orientation,
+                         Xi.Float_Arrays.Unit_Matrix (4),
+                         Acceleration, Max_Velocity);
+      Transition.Transit_Position := True;
+      Transition.Transit_Orientation := True;
+      Transition.Transit_Projection := False;
+   end Create;
+
+   ------------
+   -- Create --
+   ------------
+
+   procedure Create
+     (Transition         : in out Root_Transition_Type'Class;
+      Target_Position    : Xi.Matrices.Vector_3;
+      Acceleration       : Xi.Xi_Non_Negative_Float;
+      Max_Velocity       : Xi.Xi_Non_Negative_Float)
+   is
+   begin
+      Transition.Create (null, Target_Position,
+                         Xi.Float_Arrays.Unit_Matrix (3),
+                         Xi.Float_Arrays.Unit_Matrix (4),
+                         Acceleration, Max_Velocity);
+      Transition.Transit_Position := True;
+      Transition.Transit_Orientation := False;
+      Transition.Transit_Projection := False;
+   end Create;
+
+   ------------
+   -- Create --
+   ------------
+
+   procedure Create
+     (Transition         : in out Root_Transition_Type'Class;
+      Target_Position    : Xi.Matrices.Vector_3;
+      Target_Orientation : Xi.Matrices.Matrix_3;
+      Transition_Time    : Duration)
+   is
+   begin
+      Transition.Create (null, Target_Position, Target_Orientation,
+                         Transition_Time);
    end Create;
 
    -------------------------
@@ -167,6 +236,18 @@ package body Concorde.Transitions is
          0.1);
    end Scene_Transition;
 
+   ---------------
+   -- Set_Scene --
+   ---------------
+
+   procedure Set_Scene
+     (Transition : in out Root_Transition_Type;
+      Scene      : Xi.Scene.Xi_Scene)
+   is
+   begin
+      Transition.Scene := Scene;
+   end Set_Scene;
+
    -----------
    -- Start --
    -----------
@@ -183,10 +264,22 @@ package body Concorde.Transitions is
       Transition.Start_Orientation := Scene.Active_Camera.Orientation;
       Transition.Start_Projection := Scene.Active_Camera.Projection_Matrix;
 
-      Xi.Logging.Put ("transition: start ");
-      Xi.Logging.Put (Transition.Start_Position);
-      Xi.Logging.Put ("; finish ");
-      Xi.Logging.Put (Transition.Target_Position);
+      Xi.Logging.Put ("transition ");
+      Xi.Logging.Put (Xi_Float (Transition.Transition_Time));
+      Xi.Logging.Put ("s: ");
+      if Transition.Transit_Position then
+         Xi.Logging.Put ("position: ");
+         Xi.Logging.Put (Transition.Start_Position);
+         Xi.Logging.Put (" -> ");
+         Xi.Logging.Put (Transition.Target_Position);
+      end if;
+      if Transition.Transit_Orientation then
+         Xi.Logging.Put ("; orientation");
+      end if;
+      if Transition.Transit_Projection then
+         Xi.Logging.Put ("; projection");
+      end if;
+
       Xi.Logging.New_Line;
 
       Transition.Position_Delta :=
@@ -236,16 +329,20 @@ package body Concorde.Transitions is
               Xi_Float (Transition.Accelerate_Time)
               / Xi_Float (Transition.Transition_Time);
             Transition.Decel_Start_At := 1.0 - Transition.Coast_Start_At;
-            Transition.Coast_Start_Progress :=
-              Transition.Accel_Coefficient
-                * Transition.Coast_Start_At ** 2;
-            Transition.Decel_Start_Progress :=
-              1.0 - Transition.Coast_Start_Progress;
             if Transition.Coast_Time > 0.0 then
+               Transition.Coast_Start_Progress :=
+                 Transition.Accel_Coefficient
+                   * Transition.Coast_Start_At ** 2;
+               Transition.Decel_Start_Progress :=
+                 1.0 - Transition.Coast_Start_Progress;
                Transition.Coast_Coefficient :=
                  (Transition.Decel_Start_Progress
                   - Transition.Coast_Start_Progress)
                  / (Transition.Decel_Start_At - Transition.Coast_Start_At);
+            else
+               Transition.Coast_Start_Progress := 0.5;
+               Transition.Decel_Start_Progress := 0.5;
+               Transition.Coast_Coefficient := 1.0;
             end if;
          end;
       end if;
@@ -288,6 +385,9 @@ package body Concorde.Transitions is
          Transition.Current_Position := Transition.Target_Position;
          Transition.Current_Orientation := Transition.Target_Orientation;
          Transition.Current_Projection := Transition.Target_Projection;
+         Xi.Logging.Put ("transition: complete; elapsed time ");
+         Xi.Logging.Put (Xi_Float (Elapsed));
+         Xi.Logging.Put_Line ("s");
       else
          if Transition.Acceleration > 0.0 then
             if Time_Progress < Transition.Coast_Start_At then
@@ -324,12 +424,20 @@ package body Concorde.Transitions is
       end if;
 
       Transition.Last_Update := Now;
-      Transition.Scene.Active_Camera.Set_Position
-        (Transition.Current_Position);
-      Transition.Scene.Active_Camera.Set_Orientation
-        (Transition.Current_Orientation);
-      Transition.Scene.Active_Camera.Set_Projection_Matrix
-        (Transition.Current_Projection);
+      if Transition.Transit_Position then
+         Transition.Scene.Active_Camera.Set_Position
+           (Transition.Current_Position);
+      end if;
+
+      if Transition.Transit_Orientation then
+         Transition.Scene.Active_Camera.Set_Orientation
+           (Transition.Current_Orientation);
+      end if;
+
+      if Transition.Transit_Projection then
+         Transition.Scene.Active_Camera.Set_Projection_Matrix
+           (Transition.Current_Projection);
+      end if;
 
    end Update;
 

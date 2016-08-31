@@ -39,6 +39,25 @@ package Concorde.Transitions is
       Acceleration       : Xi.Xi_Non_Negative_Float;
       Max_Velocity       : Xi.Xi_Non_Negative_Float);
 
+   procedure Create
+     (Transition         : in out Root_Transition_Type'Class;
+      Target_Position    : Xi.Matrices.Vector_3;
+      Target_Orientation : Xi.Matrices.Matrix_3;
+      Acceleration       : Xi.Xi_Non_Negative_Float;
+      Max_Velocity       : Xi.Xi_Non_Negative_Float);
+
+   procedure Create
+     (Transition         : in out Root_Transition_Type'Class;
+      Target_Position    : Xi.Matrices.Vector_3;
+      Target_Orientation : Xi.Matrices.Matrix_3;
+      Transition_Time    : Duration);
+
+   procedure Create
+     (Transition         : in out Root_Transition_Type'Class;
+      Target_Position    : Xi.Matrices.Vector_3;
+      Acceleration       : Xi.Xi_Non_Negative_Float;
+      Max_Velocity       : Xi.Xi_Non_Negative_Float);
+
    procedure Scene_Transition
      (Transition : in out Root_Transition_Type;
       New_Scene  : Xi.Scene.Xi_Scene);
@@ -69,12 +88,19 @@ package Concorde.Transitions is
      (Transition : Root_Transition_Type)
      return Xi.Scene.Xi_Scene;
 
+   procedure Set_Scene
+     (Transition : in out Root_Transition_Type;
+      Scene      : Xi.Scene.Xi_Scene);
+
    type Transition_Type is access all Root_Transition_Type'Class;
 
 private
 
    type Root_Transition_Type is tagged
       record
+         Transit_Position     : Boolean := False;
+         Transit_Orientation  : Boolean := False;
+         Transit_Projection   : Boolean := False;
          Scene                : Xi.Scene.Xi_Scene;
          Target_Position      : Xi.Matrices.Vector_4;
          Target_Orientation   : Xi.Matrices.Matrix_3;
