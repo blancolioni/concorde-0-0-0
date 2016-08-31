@@ -197,14 +197,11 @@ package body Concorde.Xi_UI is
       if Local_Selector_Entity = null then
          Local_Selector_Entity :=
            Xi.Shapes.Square (Xi.Xi_Float (1.0));
-         if False then
-            Local_Selector_Entity.Set_Material
-              (Xi.Assets.Material ("Xi.Blue"));
-         else
-            Local_Selector_Entity.Set_Material
-              (Xi.Materials.Material.Xi_New_With_Texture
-                 ("selector", Selector_Texture, Lighting => False));
-         end if;
+         Local_Selector_Entity.Set_Material
+           (Xi.Materials.Material.Xi_New_With_Texture
+              ("selector", Selector_Texture, Lighting => False));
+         Local_Selector_Entity.Material.Technique (1).Pass (1).Alpha_Discard
+           (Xi.Materials.Less_Than, 0.5);
       end if;
       return Local_Selector_Entity;
    end Selector_Entity;
