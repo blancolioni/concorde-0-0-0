@@ -165,7 +165,10 @@ begin
             Window.Blend (Xi.Render_Target.Source_Alpha,
                           Xi.Render_Target.Destination_Alpha);
 
-            Concorde.Xi_UI.Model_Manager.Load_Top_Model (Window);
+--              Concorde.Xi_UI.Model_Manager.Load_Top_Model (Window);
+
+            Concorde.Xi_UI.Model_Manager.Model
+              (Concorde.Galaxy.Capital_World, Window).Activate;
 
             Xi.Main.Main_Loop;
 
