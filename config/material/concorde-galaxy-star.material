@@ -1,1 +1,2 @@
 texture = Concorde.Galaxy.Star
+color-discard = { 0.0 0.0 0.0 }
