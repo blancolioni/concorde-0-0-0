@@ -8,6 +8,8 @@ package Concorde.Geometry is
      (Degrees : Real)
       return Radians;
 
+   Circle : constant Radians;
+
    function Bearing
      (From : Point_Type;
       To   : Point_Type)
@@ -38,6 +40,10 @@ package Concorde.Geometry is
    function "+" (Left, Right : Radians) return Radians;
    function "-" (Left, Right : Radians) return Radians;
 
+   function "*" (Left : Radians; Right : Real) return Radians;
+   function "*" (Left : Real; Right : Radians) return Radians;
+   function "/" (Left : Radians; Right : Real) return Radians;
+
    function "<" (Left, Right : Radians) return Boolean;
 
    function ">" (Left, Right : Radians) return Boolean
@@ -64,6 +70,8 @@ package Concorde.Geometry is
 private
 
    type Radians is new Real range 0.0 .. 2.0 * Ada.Numerics.Pi;
+
+   Circle : constant Radians := Radians'Last;
 
    function "abs" (R : Radians) return Radians;
 
