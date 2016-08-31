@@ -5,6 +5,24 @@ package body Concorde.Geometry is
    function Real_To_Radians (R : Real) return Radians;
 
    ---------
+   -- "*" --
+   ---------
+
+   function "*" (Left : Radians; Right : Real) return Radians is
+   begin
+      return Real_To_Radians (Real (Left) * Right);
+   end "*";
+
+   ---------
+   -- "*" --
+   ---------
+
+   function "*" (Left : Real; Right : Radians) return Radians is
+   begin
+      return Real_To_Radians (Left * Real (Right));
+   end "*";
+
+   ---------
    -- "+" --
    ---------
 
@@ -23,6 +41,15 @@ package body Concorde.Geometry is
    begin
       return Real_To_Radians (X);
    end "-";
+
+   ---------
+   -- "/" --
+   ---------
+
+   function "/" (Left : Radians; Right : Real) return Radians is
+   begin
+      return Real_To_Radians (Real (Left) / Right);
+   end "/";
 
    ---------
    -- "<" --
