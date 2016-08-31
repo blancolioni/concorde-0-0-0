@@ -198,11 +198,11 @@ package body Concorde.Systems.Xi_Model is
                               / Concorde.Solar_System.Earth_Orbit;
    begin
       if Scene = null then
-         Scene := System_Scene (World.System, Model.Window.Viewport);
+         Scene := System_Scene (World.System, Model.Renderer.Viewport);
          Created_Scenes.Replace_Element (World.System.Reference, Scene);
       end if;
 
-      Scene.Active_Camera.Set_Viewport (Model.Window.Viewport);
+      Scene.Active_Camera.Set_Viewport (Model.Renderer.Viewport);
 
       declare
          use Xi.Float_Arrays;
@@ -223,7 +223,7 @@ package body Concorde.Systems.Xi_Model is
          Target_Projection  : constant Xi.Matrices.Matrix_4 :=
                                 Xi.Matrices.Perspective_Matrix
                                   (World_Start_Fov,
-                                   Model.Window.Viewport.Aspect_Ratio,
+                                   Model.Renderer.Viewport.Aspect_Ratio,
                                    World_Start_Near, World_Start_Far);
 
       begin

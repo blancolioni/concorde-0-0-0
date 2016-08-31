@@ -110,7 +110,6 @@ package body Concorde.Xi_UI.Galaxies is
       Event    : Xi.Frame_Event.Xi_Frame_Event)
    is
       pragma Unreferenced (Listener);
-      pragma Unreferenced (Event);
       use Xi;
       use type Concorde.Systems.Star_System_Type;
    begin
@@ -120,7 +119,7 @@ package body Concorde.Xi_UI.Galaxies is
          return;
       end if;
 
-      Main_Model.On_Frame_Start;
+      Main_Model.On_Frame_Start (Event.Time_Since_Last_Event);
 
       if True and then not Main_Model.Transited then
          declare
@@ -193,7 +192,8 @@ package body Concorde.Xi_UI.Galaxies is
    ------------------
 
    function Galaxy_Model
-     (Window : Xi.Render_Window.Xi_Render_Window)
+     (Renderer : not null access
+        Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
       return Xi_Model
    is
       Scene   : constant Xi.Scene.Xi_Scene := Xi.Scene.Create_Scene;
@@ -218,8 +218,8 @@ package body Concorde.Xi_UI.Galaxies is
          GL.Enable_Debug;
       end if;
 
-      Main_Model.Scene := Scene;
-      Main_Model.Window := Window;
+      Main_Model.Set_Scene (Scene);
+      Main_Model.Set_Renderer (Renderer);
 
       Main_Model.Transited := not Initial_Transition;
 
@@ -281,7 +281,7 @@ package body Concorde.Xi_UI.Galaxies is
       Camera.Set_Position (0.0, 0.0, 1.5);
       Camera.Set_Orientation (0.0, 0.0, 1.0, 0.0);
       Camera.Look_At (0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
-      Camera.Set_Viewport (Window.Full_Viewport);
+      Camera.Set_Viewport (Renderer.Full_Viewport);
 
 --        Camera.Frustum
 --          (Camera_Left, Camera_Right, Camera_Bottom, Camera_Top,
@@ -297,7 +297,7 @@ package body Concorde.Xi_UI.Galaxies is
 --           Near         => Camera_Near,
 --           Far          => Camera_Far);
 
-      Window.On_Resize (On_Resize'Access);
+      Renderer.On_Resize (On_Resize'Access);
 
       declare
          FPS_Panel : Xtk.Panel.Xtk_Panel;
@@ -305,7 +305,7 @@ package body Concorde.Xi_UI.Galaxies is
          Xtk.Panel.Xtk_New
            (FPS_Panel, (20.0, 200.0, 200.0, 200.0),
             Xtk.FPS.Create_FPS_Widget);
-         Window.Add_Top_Level (FPS_Panel);
+         Renderer.Add_Top_Level (FPS_Panel);
          FPS_Panel.Show_All;
       end;
 
@@ -318,7 +318,7 @@ package body Concorde.Xi_UI.Galaxies is
 
       Main_Model.Galaxy_Scene := Scene;
 
-      Window.Set_Scene (Scene);
+      Renderer.Set_Scene (Scene);
 
       return Main_Model'Access;
    end Galaxy_Model;
@@ -407,14 +407,14 @@ package body Concorde.Xi_UI.Galaxies is
                                 Xi.Matrices.Perspective_Matrix
                                   (Fovy         => Focus_Fov,
                                    Aspect_Ratio =>
-                                     Model.Window.Viewport.Aspect_Ratio,
+                                     Model.Renderer.Viewport.Aspect_Ratio,
                                    Near         => Camera_Near,
                                    Far          => Camera_Far);
             Projection_2 : constant Xi.Matrices.Matrix_4 :=
                                 Xi.Matrices.Perspective_Matrix
                                   (Fovy         => System_Fov,
                                    Aspect_Ratio =>
-                                     Model.Window.Viewport.Aspect_Ratio,
+                                     Model.Renderer.Viewport.Aspect_Ratio,
                                    Near         => Camera_Near,
                                    Far          => Camera_Far);
             Transition_1       : constant Transitions.Transition_Type :=

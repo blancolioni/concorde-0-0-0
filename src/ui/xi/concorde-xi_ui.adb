@@ -1,18 +1,41 @@
 with Xi.Assets;
 with Xi.Color;
+with Xi.Frame_Event;
 with Xi.Main;
 with Xi.Materials.Material;
 with Xi.Shapes;
+
+with Xi.Float_Arrays;
+with Xi.Matrices;
 
 with Concorde.Xi_UI.Key_Bindings;
 
 package body Concorde.Xi_UI is
 
-   Selector_Size : constant := 64;
-   Selector_Boundary_Size : constant := 12;
+   Selector_Size : constant := 48;
+   Selector_Boundary_Size : constant := 6;
 
    Local_Selector_Texture : Xi.Texture.Xi_Texture := null;
    Local_Selector_Entity  : Xi.Entity.Xi_Entity := null;
+
+   type Model_Frame_Listener is
+     new Xi.Frame_Event.Xi_Frame_Listener_Interface with
+      record
+         Model : Xi_Model;
+      end record;
+
+   overriding procedure Frame_Started
+     (Listener : in out Model_Frame_Listener;
+      Event    : Xi.Frame_Event.Xi_Frame_Event);
+
+   --------------
+   -- Activate --
+   --------------
+
+   procedure Activate (Model : in out Root_Xi_Model) is
+   begin
+      Model.Renderer.Set_Scene (Model.Scene);
+   end Activate;
 
    --------------------
    -- Add_Transition --
@@ -39,6 +62,38 @@ package body Concorde.Xi_UI is
       --        Model.Transition_Time := Transition_Time;
       --        Model.Start_Time := Ada.Calendar.Clock;
    end Add_Transition;
+
+   -------------------
+   -- Frame_Started --
+   -------------------
+
+   overriding procedure Frame_Started
+     (Listener : in out Model_Frame_Listener;
+      Event    : Xi.Frame_Event.Xi_Frame_Event)
+   is
+   begin
+      Listener.Model.On_Frame_Start (Event.Time_Since_Last_Event);
+   end Frame_Started;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (Model    : not null access Root_Xi_Model'Class;
+      Renderer : not null access
+        Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
+   is
+   begin
+      Model.Current_Renderer := Xi.Scene_Renderer.Xi_Scene_Renderer (Renderer);
+
+      declare
+         Listener : constant Xi.Frame_Event.Xi_Frame_Listener :=
+                      new Model_Frame_Listener'(Model => Xi_Model (Model));
+      begin
+         Xi.Main.Add_Frame_Listener (Listener);
+      end;
+   end Initialize;
 
    ---------------------
    -- Move_Horizontal --
@@ -81,11 +136,13 @@ package body Concorde.Xi_UI is
    --------------------
 
    procedure On_Frame_Start
-     (Model : in out Root_Xi_Model)
+     (Model      : in out Root_Xi_Model;
+      Time_Delta : Duration)
    is
       use type Xi.Scene.Xi_Scene;
       use type Concorde.Transitions.Transition_Type;
    begin
+
       if Model.Current_Transition /= null then
          Model.Current_Transition.Update;
          if Model.Current_Transition.Complete then
@@ -94,9 +151,11 @@ package body Concorde.Xi_UI is
       elsif not Model.Active_Transitions.Is_Empty then
          Model.Current_Transition := Model.Active_Transitions.First_Element;
          Model.Active_Transitions.Delete_First;
-         if Model.Current_Transition.Scene /= Model.Scene then
-            Model.Scene := Model.Current_Transition.Scene;
-            Model.Window.Set_Scene (Model.Scene);
+         if Model.Current_Transition.Scene = null then
+            Model.Current_Transition.Set_Scene (Model.Scene);
+         elsif Model.Current_Transition.Scene /= Model.Scene then
+            Model.Current_Scene := Model.Current_Transition.Scene;
+            Model.Renderer.Set_Scene (Model.Scene);
          end if;
          Model.Current_Transition.Start;
       else
@@ -106,25 +165,9 @@ package body Concorde.Xi_UI is
             Active : constant Array_Of_Key_Bindings :=
                        Current_Active_Bindings;
          begin
-            for Binding of Active loop
-               case Binding is
-                  when No_Binding =>
-                     null;
-                  when Exit_Model =>
-                     Xi.Main.Leave_Main_Loop;
-                  when Move_Forward =>
-                     Root_Xi_Model'Class (Model).Move_In (-0.01);
-                  when Move_Backward =>
-                     Root_Xi_Model'Class (Model).Move_In (0.01);
-                  when Move_Right =>
-                     Root_Xi_Model'Class (Model).Move_Horizontal (0.01);
-                  when Move_Left =>
-                     Root_Xi_Model'Class (Model).Move_Horizontal (-0.01);
-                  when Move_Up =>
-                     Root_Xi_Model'Class (Model).Move_Vertical (0.01);
-                  when Move_Down =>
-                     Root_Xi_Model'Class (Model).Move_Vertical (-0.01);
-               end case;
+            for Command of Active loop
+               Root_Xi_Model'Class (Model).On_User_Command
+                 (Time_Delta, Command);
             end loop;
          end;
       end if;
@@ -165,27 +208,89 @@ package body Concorde.Xi_UI is
 --        end if;
    end On_Frame_Start;
 
-   -------------------
-   -- On_Wheel_Down --
-   -------------------
+   ---------------------
+   -- On_User_Command --
+   ---------------------
 
-   procedure On_Wheel_Down (Model : in out Root_Xi_Model) is
+   procedure On_User_Command
+     (Model      : in out Root_Xi_Model;
+      Time_Delta : Duration;
+      Command    : User_Command)
+   is
       use type Xi.Xi_Float;
+      use Xi.Matrices, Xi.Float_Arrays;
+      Class : Root_Xi_Model'Class renames Root_Xi_Model'Class (Model);
+      Translation : Vector_3 := (0.0, 0.0, 0.0);
+      Yaw         : Xi.Xi_Float := 0.0;
+      Pitch       : Xi.Xi_Float := 0.0;
    begin
-      Model.Scene.Active_Camera.Translate
-        (0.0, 0.0, 0.1);
-   end On_Wheel_Down;
+      case Command is
+         when No_Command =>
+            null;
+         when Exit_Model =>
+            Xi.Main.Leave_Main_Loop;
+         when Move_Forward =>
+            Translation (3) := -Class.Base_Movement;
+         when Move_Backward =>
+            Translation (3) := Class.Base_Movement;
+         when Move_Right =>
+            Yaw := -Class.Base_Rotation;
+         when Move_Left =>
+            Yaw := Class.Base_Rotation;
+         when Move_Up =>
+            Pitch := -Class.Base_Rotation;
+         when Move_Down =>
+            Pitch := Class.Base_Rotation;
+         when Zoom_In =>
+            null;
+         when Zoom_Out =>
+            null;
+      end case;
 
-   -----------------
-   -- On_Wheel_Up --
-   -----------------
+      if abs Translation /= 0.0 then
+         Model.Scene.Active_Camera.Translate
+           (Model.Scene.Active_Camera.Orientation
+            * Translation
+            * Xi.Xi_Float (Time_Delta));
+      end if;
 
-   procedure On_Wheel_Up (Model : in out Root_Xi_Model) is
-      use type Xi.Xi_Float;
+      if Pitch /= 0.0 then
+         Model.Scene.Active_Camera.Rotate
+           (Pitch * Xi.Xi_Float (Time_Delta),
+            1.0, 0.0, 0.0);
+      end if;
+
+      if Yaw /= 0.0 then
+         Model.Scene.Active_Camera.Rotate
+           (Yaw * Xi.Xi_Float (Time_Delta),
+            0.0, 1.0, 0.0);
+      end if;
+
+   end On_User_Command;
+
+   --------------
+   -- Renderer --
+   --------------
+
+   function Renderer
+     (Model : Root_Xi_Model'Class)
+      return Xi.Scene_Renderer.Xi_Scene_Renderer
+   is
    begin
-      Model.Scene.Active_Camera.Translate
-        (0.0, 0.0, -0.1);
-   end On_Wheel_Up;
+      return Model.Current_Renderer;
+   end Renderer;
+
+   -----------
+   -- Scene --
+   -----------
+
+   function Scene
+     (Model : Root_Xi_Model'Class)
+      return Xi.Scene.Xi_Scene
+   is
+   begin
+      return Model.Current_Scene;
+   end Scene;
 
    ---------------------
    -- Selector_Entity --
@@ -245,16 +350,42 @@ package body Concorde.Xi_UI is
       return Local_Selector_Texture;
    end Selector_Texture;
 
+   ------------------
+   -- Set_Renderer --
+   ------------------
+
+   procedure Set_Renderer
+     (Model  : in out Root_Xi_Model'Class;
+      Target : not null access
+        Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
+   is
+   begin
+      Model.Current_Renderer :=
+        Xi.Scene_Renderer.Xi_Scene_Renderer (Target);
+   end Set_Renderer;
+
+   ---------------
+   -- Set_Scene --
+   ---------------
+
+   procedure Set_Scene
+     (Model : in out Root_Xi_Model'Class;
+      Scene : Xi.Scene.Xi_Scene)
+   is
+   begin
+      Model.Current_Scene := Scene;
+   end Set_Scene;
+
    ------------
    -- Window --
    ------------
 
-   function Window
-     (Model : Root_Xi_Model'Class)
-      return Xi.Render_Window.Xi_Render_Window
-   is
-   begin
-      return Model.Window;
-   end Window;
+--     function Window
+--       (Model : Root_Xi_Model'Class)
+--        return Xi.Render_Window.Xi_Render_Window
+--     is
+--     begin
+--        return Model.Window;
+--     end Window;
 
 end Concorde.Xi_UI;

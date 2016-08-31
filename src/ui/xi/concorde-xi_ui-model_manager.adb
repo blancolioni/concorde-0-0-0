@@ -1,5 +1,7 @@
 with Concorde.Xi_UI.Galaxies;
 
+with Concorde.Worlds.Xi_Model;
+
 package body Concorde.Xi_UI.Model_Manager is
 
    Top_Model : Xi_Model := null;
@@ -9,9 +11,12 @@ package body Concorde.Xi_UI.Model_Manager is
    -- Load_Top_Model --
    --------------------
 
-   procedure Load_Top_Model (Window : Xi.Render_Window.Xi_Render_Window) is
+   procedure Load_Top_Model
+     (Renderer : not null access
+        Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
+   is
    begin
-      Top_Model := Model (null, Window);
+      Top_Model := Model (null, Renderer);
    end Load_Top_Model;
 
    -----------
@@ -19,14 +24,19 @@ package body Concorde.Xi_UI.Model_Manager is
    -----------
 
    function Model
-     (For_Object : Concorde.Objects.Object_Type;
-      Window     : Xi.Render_Window.Xi_Render_Window)
+     (For_Object : access constant
+        Concorde.Objects.Root_Object_Type'Class;
+      Renderer   : not null access
+        Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
       return Xi_Model
    is
       use type Concorde.Objects.Object_Type;
    begin
       if For_Object = null then
-         return Concorde.Xi_UI.Galaxies.Galaxy_Model (Window);
+         return Concorde.Xi_UI.Galaxies.Galaxy_Model (Renderer);
+      elsif For_Object.all in Concorde.Worlds.Root_World_Type'Class then
+         return Concorde.Worlds.Xi_Model.World_Model
+           (Concorde.Worlds.World_Type (For_Object), Renderer);
       else
          return null;
       end if;

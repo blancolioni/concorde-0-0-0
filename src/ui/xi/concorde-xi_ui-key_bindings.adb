@@ -7,10 +7,10 @@ package body Concorde.Xi_UI.Key_Bindings is
    subtype Available_Key is
      Character range Ada.Characters.Latin_1.ESC .. '~';
 
-   type Key_Binding_Array is array (Available_Key) of Key_Binding;
+   type Key_Binding_Array is array (Available_Key) of User_Command;
 
    Current_Bindings : Key_Binding_Array :=
-       (others => No_Binding);
+       (others => No_Command);
 
    --  Shift, Control, Alt, Meta : Key_Binding := No_Binding;
 
@@ -27,10 +27,10 @@ package body Concorde.Xi_UI.Key_Bindings is
       for Ch in Current_Bindings'Range loop
          if Xi.Keyboard.Key_Down (Xi.Keyboard.Character_Key (Ch)) then
             declare
-               Binding : constant Key_Binding :=
+               Binding : constant User_Command :=
                            Current_Bindings (Ch);
             begin
-               if Binding /= No_Binding then
+               if Binding /= No_Command then
                   Count := Count + 1;
                   Result (Count) := Binding;
                end if;
@@ -53,7 +53,7 @@ package body Concorde.Xi_UI.Key_Bindings is
          'a' => Move_Left, 'd' => Move_Right,
          'e' => Move_Up, 'c' => Move_Down,
          Ada.Characters.Latin_1.ESC => Exit_Model,
-         others => No_Binding);
+         others => No_Command);
 
    end Load_Key_Bindings;
 

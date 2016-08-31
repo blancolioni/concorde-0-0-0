@@ -1,7 +1,7 @@
 private with Ada.Containers.Doubly_Linked_Lists;
 
 with Xi.Entity;
-with Xi.Render_Window;
+with Xi.Scene_Renderer;
 with Xi.Scene;
 with Xi.Texture;
 
@@ -12,15 +12,42 @@ with Concorde.Transitions;
 
 package Concorde.Xi_UI is
 
+   type User_Command is
+     (No_Command,
+      Exit_Model,
+      Move_Forward, Move_Backward,
+      Move_Left, Move_Right,
+      Move_Up, Move_Down,
+      Zoom_In, Zoom_Out);
+
    type Root_Xi_Model is abstract tagged private;
 
-   procedure On_Wheel_Up (Model : in out Root_Xi_Model);
-   procedure On_Wheel_Down (Model : in out Root_Xi_Model);
+   procedure Initialize
+     (Model    : not null access Root_Xi_Model'Class;
+      Renderer : not null access
+        Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class);
+
+   procedure Activate (Model : in out Root_Xi_Model);
+
+   function Base_Movement
+     (Model : Root_Xi_Model)
+      return Xi.Xi_Float
+   is (10.0);
+
+   function Base_Rotation
+     (Model : Root_Xi_Model)
+      return Xi.Xi_Float
+   is (5.0);
+
+   procedure On_User_Command
+     (Model      : in out Root_Xi_Model;
+      Time_Delta : Duration;
+      Command    : User_Command);
 
    function Top_Panel
      (Model : Root_Xi_Model)
       return Xtk.Panel.Xtk_Panel
-      is abstract;
+   is (null);
 
    procedure Transit_To_Object
      (Model         : in out Root_Xi_Model;
@@ -29,25 +56,14 @@ package Concorde.Xi_UI is
    is abstract;
 
    procedure On_Frame_Start
-     (Model : in out Root_Xi_Model);
-
-   function Window
-     (Model : Root_Xi_Model'Class)
-      return Xi.Render_Window.Xi_Render_Window;
+     (Model      : in out Root_Xi_Model;
+      Time_Delta : Duration);
 
    type Xi_Model is access all Root_Xi_Model'Class;
 
    procedure Add_Transition
-     (Model              : in out Root_Xi_Model'Class;
-      Transition         : Concorde.Transitions.Transition_Type);
-
---     procedure On_Transition_Update
---       (Model    : in out Root_Xi_Model;
---        Progress : Xi.Xi_Unit_Float);
---
---     procedure On_Transition_Complete
---       (Model : in out Root_Xi_Model)
---     is null;
+     (Model      : in out Root_Xi_Model'Class;
+      Transition : Concorde.Transitions.Transition_Type);
 
    procedure Move_In
      (Model : in out Root_Xi_Model;
@@ -61,6 +77,23 @@ package Concorde.Xi_UI is
      (Model : in out Root_Xi_Model;
       Scale : Xi.Xi_Signed_Unit_Float);
 
+   function Scene
+     (Model : Root_Xi_Model'Class)
+      return Xi.Scene.Xi_Scene;
+
+   procedure Set_Scene
+     (Model : in out Root_Xi_Model'Class;
+      Scene : Xi.Scene.Xi_Scene);
+
+   function Renderer
+     (Model : Root_Xi_Model'Class)
+      return Xi.Scene_Renderer.Xi_Scene_Renderer;
+
+   procedure Set_Renderer
+     (Model : in out Root_Xi_Model'Class;
+      Target : not null access
+        Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class);
+
    function Selector_Texture return Xi.Texture.Xi_Texture;
    function Selector_Entity return Xi.Entity.Xi_Entity;
 
@@ -73,8 +106,8 @@ private
 
    type Root_Xi_Model is abstract tagged
       record
-         Scene              : Xi.Scene.Xi_Scene;
-         Window             : Xi.Render_Window.Xi_Render_Window;
+         Current_Scene      : Xi.Scene.Xi_Scene;
+         Current_Renderer   : Xi.Scene_Renderer.Xi_Scene_Renderer;
          Active_Transitions : Active_Transition_Lists.List;
          Current_Transition : Concorde.Transitions.Transition_Type;
       end record;

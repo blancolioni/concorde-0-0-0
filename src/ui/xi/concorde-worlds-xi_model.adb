@@ -10,10 +10,13 @@ with Xi.Value;
 
 with Lui.Colours;
 
+with Newton;
+
 with Concorde.Hash_Table;
 with Concorde.Transitions;
 
 with Concorde.Worlds.Tables;
+with Concorde.Ships.Xi_Model;
 
 --  with Concorde.Xi_UI.Colours;
 
@@ -52,13 +55,31 @@ package body Concorde.Worlds.Xi_Model is
 
    Rendered_Worlds : Rendered_World_Table.Map;
 
+   type Root_World_Model is
+     new Concorde.Xi_UI.Root_Xi_Model with
+      record
+         World : World_Type;
+      end record;
+
+   overriding procedure Transit_To_Object
+     (Model         : in out Root_World_Model;
+      Target_Object : not null access constant
+        Concorde.Objects.Root_Object_Type'Class)
+   is null;
+
+   type World_Model_Access is access all Root_World_Model'Class;
+
+   package World_Model_Table is
+     new Concorde.Hash_Table (World_Model_Access);
+
+   World_Models : World_Model_Table.Map;
+
    function Create_Tiles
      (World       : World_Type)
       return Xi.Entity.Xi_Entity;
 
    function World_Scene
-     (World : World_Type;
-      Model : Concorde.Xi_UI.Root_Xi_Model'Class)
+     (World : World_Type)
       return Xi.Scene.Xi_Scene;
 
    function World_Entity
@@ -222,26 +243,31 @@ package body Concorde.Worlds.Xi_Model is
       use type Xi.Scene.Xi_Scene;
       use Concorde.Geometry;
       use type Concorde.Worlds.World_Type;
-      Scene : constant Xi.Scene.Xi_Scene := World_Scene (World, Model);
+      Scene : constant Xi.Scene.Xi_Scene := World_Scene (World);
       World_Transition : constant Concorde.Transitions.Transition_Type :=
                            new Concorde.Transitions.Root_Transition_Type;
       Target_Position : constant Xi.Matrices.Vector_3 :=
                           (0.0, Xi_Float (World.Radius),
                            Xi_Float (World.Radius) + 1_000_000.0);
    begin
-      Scene.Active_Camera.Set_Viewport (Model.Window.Viewport);
+      Scene.Active_Camera.Set_Viewport (Model.Renderer.Viewport);
       Scene.Active_Camera.Set_Position
         (0.0, 0.0, 224398100.0);
       Scene.Active_Camera.Perspective
         (60.0, 10.0, 1.0e9);
       Scene.Active_Camera.Look_At (0.0, 0.0, 0.0);
 
-      World_Transition.Create
-        (Scene              => Scene,
-         Target_Position    => Target_Position,
-         Target_Orientation => Scene.Active_Camera.Orientation,
-         Acceleration       => 75.0e5,
-         Max_Velocity       => 75.0e6);
+      if True then
+         World_Transition.Scene_Transition (Scene);
+      else
+         World_Transition.Create
+           (Scene              => Scene,
+            Target_Position    => Target_Position,
+            Target_Orientation => Scene.Active_Camera.Orientation,
+            Acceleration       => 7.0e6,
+            Max_Velocity       => 35.0e6);
+      end if;
+
       Model.Add_Transition (World_Transition);
    end Transit_To_World;
 
@@ -267,15 +293,46 @@ package body Concorde.Worlds.Xi_Model is
    end World_Entity;
 
    -----------------
+   -- World_Model --
+   -----------------
+
+   function World_Model
+     (World  : World_Type;
+      Target     : not null access
+        Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
+      return Concorde.Xi_UI.Xi_Model
+   is
+      Model : World_Model_Access;
+   begin
+      if World_Models.Contains (World.Identifier) then
+         Model := World_Models.Element (World.Identifier);
+         Model.Set_Renderer (Target);
+      else
+         Model := new Root_World_Model;
+         Model.Initialize (Target);
+         Model.World := World;
+         Model.Set_Scene (World_Scene (World));
+         Model.Scene.Active_Camera.Set_Position
+           (0.0, 0.0, Xi.Xi_Float (World.Radius * 5.0));
+         Model.Scene.Active_Camera.Look_At
+           (0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
+         Model.Scene.Active_Camera.Set_Viewport (Target.Full_Viewport);
+         Model.Scene.Active_Camera.Perspective
+           (45.0, 10.0, 1.0e9);
+
+         World_Models.Insert (World.Identifier, Model);
+      end if;
+      return Concorde.Xi_UI.Xi_Model (Model);
+   end World_Model;
+
+   -----------------
    -- World_Scene --
    -----------------
 
    function World_Scene
-     (World : World_Type;
-      Model : Concorde.Xi_UI.Root_Xi_Model'Class)
+     (World : World_Type)
       return Xi.Scene.Xi_Scene
    is
-      pragma Unreferenced (Model);
       use type Xi.Entity.Xi_Entity;
       Scene : Xi.Scene.Xi_Scene;
       Rec   : Rendered_World_Record;
@@ -310,12 +367,44 @@ package body Concorde.Worlds.Xi_Model is
       end if;
 
       declare
-         Node : constant Xi.Node.Xi_Node :=
-                  Scene.Create_Node (World.Identifier);
+         World_Node : constant Xi.Node.Xi_Node :=
+                        Scene.Create_Node (World.Identifier);
+         Ships_Node : constant Xi.Node.Xi_Node :=
+                        Scene.Create_Node (World.Identifier & " ships");
+         Ships      : Concorde.Ships.Lists.List;
       begin
-         Node.Set_Entity (Rec.Entity);
-         Node.Scale
-           (Xi.Xi_Float (World.Radius));
+         if True then
+            World_Node.Set_Entity (Rec.Entity);
+            World_Node.Scale
+              (Xi.Xi_Float (World.Radius));
+         end if;
+
+         World.Get_Ships (Ships);
+
+         for Ship of Ships loop
+
+            Concorde.Ships.Xi_Model.Create_Ship_Node
+              (Ship, Scene, Ships_Node);
+
+            if True then
+               declare
+                  use Xi;
+                  Node : constant Xi.Node.Xi_Node :=
+                           World_Node.Create_Child
+                             (Ship.Name & " selector");
+                  Pos  : constant Newton.Vector_3 :=
+                           Ship.Primary_Relative_Position;
+               begin
+                  Node.Set_Position
+                    (Xi_Float (Pos (1) / 2.0),
+                     Xi_Float (Pos (2) / 2.0),
+                     Xi_Float (Pos (3)) / 2.0);
+                  Node.Set_Entity (Concorde.Xi_UI.Selector_Entity);
+                  Node.Set_Billboard (True);
+                  Node.Fixed_Pixel_Size (32.0, 32.0);
+               end;
+            end if;
+         end loop;
       end;
 
       return Scene;
