@@ -8,7 +8,6 @@ with Memor;
 
 with Xi.Assets;
 with Xi.Main;
-with Xi.Render_Target;
 with Xi.Render_Window;
 with Xi.Shader.Load;
 
@@ -161,9 +160,6 @@ begin
               Xi.Main.Current_Renderer.Create_Top_Level_Window;
 
             Window.Set_Full_Screen (True);
-
-            Window.Blend (Xi.Render_Target.Source_Alpha,
-                          Xi.Render_Target.Destination_Alpha);
 
 --              Concorde.Xi_UI.Model_Manager.Load_Top_Model (Window);
 
