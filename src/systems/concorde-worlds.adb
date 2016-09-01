@@ -278,6 +278,18 @@ package body Concorde.Worlds is
       return World.Is_Capital_World;
    end Is_Capital;
 
+   -------------
+   -- Is_Moon --
+   -------------
+
+   function Is_Moon
+     (World : Root_World_Type'Class)
+      return Boolean
+   is
+   begin
+      return World.Moon;
+   end Is_Moon;
+
    ----------
    -- Load --
    ----------
@@ -286,6 +298,7 @@ package body Concorde.Worlds is
    begin
       if World.Category /= Jovian
         and then World.Category /= Sub_Jovian
+        and then not World.Is_Moon
       then
          Concorde.Worlds.Create.Create_Sector_Layout (World);
          Concorde.Worlds.Create.Create_Resources (World);

@@ -98,8 +98,9 @@ package body Concorde.Worlds.Create is
      return Real;
 
    procedure Calculate_Day_Length
-     (Star    : in Concorde.Stars.Star_Type;
-      World  : in out Root_World_Type'Class);
+     (Primary : not null access
+        Concorde.Systems.Star_System_Object_Interface'Class;
+      World   : in out Root_World_Type'Class);
 
    function Calculate_Water_Boiling_Point
      (Surface_Pressure : Real)
@@ -186,12 +187,12 @@ package body Concorde.Worlds.Create is
       Zone            : Orbit_Zone;
       Greenhouse      : Boolean;
       Accreted_Gas    : Boolean)
-     return Real;
+      return Non_Negative_Real;
 
    function Volatile_Inventory
      (Star     : Concorde.Stars.Star_Type;
       World   : Root_World_Type'Class)
-      return Real;
+      return Non_Negative_Real;
 
    function Calculate_Surface_Pressure
      (Volatile_Gas_Inventory : Real;
@@ -208,6 +209,24 @@ package body Concorde.Worlds.Create is
 
    procedure Set_Axial_Tilt
      (World : in out Root_World_Type'Class);
+
+   procedure Create_Moons
+     (World : World_Type;
+      List  : in out Concorde.Worlds.Lists.List);
+
+   function Create_World
+     (System          : Concorde.Systems.Star_System_Type;
+      Primary         : not null access constant
+        Concorde.Systems.Star_System_Object_Interface'Class;
+      Star            : Concorde.Stars.Star_Type;
+      Index           : Positive;
+      Orbit           : Non_Negative_Real;
+      Solid_Mass      : Non_Negative_Real;
+      Gas_Mass        : Non_Negative_Real;
+      Star_Distance   : Non_Negative_Real;
+      Is_Moon         : Boolean;
+      Is_Jovian       : Boolean)
+      return World_Type;
 
    function Soft_Limit (V, Max, Min : Real) return Real;
 
@@ -295,7 +314,10 @@ package body Concorde.Worlds.Create is
          begin
             Sector.Temperature :=
               (Low     =>
-                 World.Nighttime_Low * Height_Factor - Latitude_Factor,
+                 Real'Max
+                   (World.Nighttime_Low * Height_Factor
+                    - Latitude_Factor,
+                    3.0),
                High    =>
                  World.Daytime_High * Height_Factor - Latitude_Factor,
                Average =>
@@ -463,8 +485,9 @@ package body Concorde.Worlds.Create is
    --------------------------
 
    procedure Calculate_Day_Length
-     (Star    : in Concorde.Stars.Star_Type;
-      World  : in out Root_World_Type'Class)
+     (Primary : not null access
+        Concorde.Systems.Star_System_Object_Interface'Class;
+      World   : in out Root_World_Type'Class)
    is
       use Concorde.Elementary_Functions;
       use Concorde.Solar_System;
@@ -486,12 +509,12 @@ package body Concorde.Worlds.Create is
         * (World.Density / Earth_Density)
         * (World_Radius / Earth_Radius)
         * (Earth_Mass / World_Mass)
-        * (Star.Mass / Solar_Mass) ** 2
+        * (Primary.Mass / Solar_Mass) ** 2
         * (World.Semimajor_Axis / Earth_Orbit) ** (-6.0);
 
       Angular_V     : constant Real :=
                         Base_Angular_V
-                          + Change_In_Angular_V * Star.Age;
+                          + Change_In_Angular_V * Primary.Age;
       Stopped       : constant Boolean :=
                         Angular_V <= 0.0;
       World_Day    : constant Real :=
@@ -1080,6 +1103,114 @@ package body Concorde.Worlds.Create is
       end loop;
    end Configure_Category_Terrain;
 
+   ------------------
+   -- Create_Moons --
+   ------------------
+
+   procedure Create_Moons
+     (World : World_Type;
+      List  : in out Concorde.Worlds.Lists.List)
+   is
+      Earth_Masses : constant Non_Negative_Real :=
+                       World.Mass / Concorde.Solar_System.Earth_Mass;
+   begin
+      if Earth_Masses in 0.5 .. 4.0
+        and then Concorde.Random.Unit_Random <= 0.1
+      then
+         --  one large moon caused by cataclysmic collision
+         Ada.Text_IO.Put_Line
+           (World.Name & " (mass "
+            & Lui.Approximate_Image (Earth_Masses)
+            & ")"
+            & ": single large moon");
+         declare
+            use Concorde.Solar_System;
+            Orbit : constant Non_Negative_Real :=
+                      Concorde.Random.About (5.0e8, 2.0e8);
+            Mass  : constant Non_Negative_Real :=
+                      Concorde.Random.About (World.Mass * 0.01,
+                                             World.Mass * 0.005);
+            Moon  : constant World_Type :=
+                      Create_World
+                        (System        => World.System,
+                         Primary       => World,
+                         Star          =>
+                           Concorde.Stars.Star_Type (World.Primary),
+                         Index         => 1,
+                         Orbit         => Orbit / Earth_Orbit,
+                         Solid_Mass    => Mass / Earth_Mass,
+                         Gas_Mass      => 0.0,
+                         Star_Distance => World.Semimajor_Axis / Earth_Orbit,
+                         Is_Moon       => True,
+                         Is_Jovian     => False);
+         begin
+            Ada.Text_IO.Put_Line
+              (Moon.Name & ": mass = "
+               & Lui.Approximate_Image (Moon.Mass / Earth_Mass)
+               & "; orbit = "
+               & Lui.Approximate_Image (Moon.Semimajor_Axis / 1000.0));
+
+            List.Append (Moon);
+         end;
+
+      else
+         declare
+            use Concorde.Elementary_Functions;
+            Number_Of_Moons : constant Natural :=
+                                Natural
+                                  (Sqrt (Earth_Masses) / 5.0
+                                   * Concorde.Random.Unit_Random + 0.4);
+         begin
+            if Number_Of_Moons > 0 then
+               Ada.Text_IO.Put_Line
+                 (World.Name & " (mass "
+                  & Lui.Approximate_Image (Earth_Masses)
+                  & ") has" & Number_Of_Moons'Img & " major moon"
+                  & (if Number_Of_Moons > 1 then "s" else ""));
+
+               for I in 1 .. Number_Of_Moons loop
+                  declare
+                     use Concorde.Solar_System;
+                     Base_Orbit : constant Non_Negative_Real :=
+                                    5.0e6 * World.Mass / Earth_Mass
+                                      * Non_Negative_Real (I);
+                     Orbit : constant Non_Negative_Real :=
+                               Concorde.Random.About
+                                 (Base_Orbit, Base_Orbit / 2.0);
+                     Mass  : constant Non_Negative_Real :=
+                               Concorde.Random.About (World.Mass * 0.00002,
+                                                      World.Mass * 0.000005);
+                     Moon  : constant World_Type :=
+                               Create_World
+                                 (System        => World.System,
+                                  Primary       => World,
+                                  Star          =>
+                                    Concorde.Stars.Star_Type (World.Primary),
+                                  Index         => I,
+                                  Orbit         => Orbit / Earth_Orbit,
+                                  Solid_Mass    => Mass / Earth_Mass,
+                                  Gas_Mass      => 0.0,
+                                  Star_Distance =>
+                                    World.Semimajor_Axis / Earth_Orbit,
+                                  Is_Moon       => True,
+                                  Is_Jovian     => False);
+                  begin
+                     Ada.Text_IO.Put_Line
+                       (Moon.Name & ": mass = "
+                        & Lui.Approximate_Image (Moon.Mass / Moon_Mass)
+                        & "; orbit = "
+                        & Lui.Approximate_Image
+                          (Moon.Semimajor_Axis / 1000.0));
+
+                     List.Append (Moon);
+                  end;
+               end loop;
+            end if;
+         end;
+      end if;
+
+   end Create_Moons;
+
    ----------------------
    -- Create_Resources --
    ----------------------
@@ -1138,7 +1269,7 @@ package body Concorde.Worlds.Create is
    --------------------------
 
    procedure Create_Sector_Layout
-     (World       : in out Root_World_Type'Class)
+     (World : in out Root_World_Type'Class)
    is
       use Concorde.Elementary_Functions;
       Seed             : constant Positive :=
@@ -1185,6 +1316,211 @@ package body Concorde.Worlds.Create is
 
    end Create_Sector_Layout;
 
+   ------------------
+   -- Create_World --
+   ------------------
+
+   function Create_World
+     (System          : Concorde.Systems.Star_System_Type;
+      Primary         : not null access constant
+        Concorde.Systems.Star_System_Object_Interface'Class;
+      Star            : Concorde.Stars.Star_Type;
+      Index           : Positive;
+      Orbit           : Non_Negative_Real;
+      Solid_Mass      : Non_Negative_Real;
+      Gas_Mass        : Non_Negative_Real;
+      Star_Distance   : Non_Negative_Real;
+      Is_Moon         : Boolean;
+      Is_Jovian       : Boolean)
+      return World_Type
+   is
+      procedure Create
+        (World : in out Root_World_Type'Class);
+
+      ------------
+      -- Create --
+      ------------
+
+      procedure Create
+        (World : in out Root_World_Type'Class)
+      is
+         use Concorde.Elementary_Functions;
+         use Concorde.Solar_System;
+         Name : constant String :=
+                  (if Is_Moon
+                   then Primary.Name
+                   & Character'Val (Character'Pos ('a') - 1 + Index)
+                   else Primary.Name & " "
+                   & Roman_Images.Roman_Image (Index));
+         Total_Mass : constant Non_Negative_Real :=
+                        Solid_Mass + Gas_Mass;
+      begin
+         World.System := System;
+         World.Primary := Primary;
+         World.Semimajor_Axis := Orbit * Earth_Orbit;
+         World.Eccentricity := 0.0;
+         World.Orbit_Progress :=
+           Concorde.Geometry.Degrees_To_Radians
+             (Concorde.Random.Unit_Random * 360.0);
+
+         World.Set_Name (Name);
+
+         World.Mass := Total_Mass * Earth_Mass;
+         World.Moon := Is_Moon;
+
+         World.Radius :=
+           1000.0 *
+             Calculate_Kothari_Radius
+               (Total_Mass, Is_Jovian,
+                Get_Orbit_Zone (Star.Luminosity, Star_Distance));
+
+         World.Density :=
+           Ada.Numerics.Pi * World.Radius ** 3 / World.Mass;
+
+         World.Solid_Mass := Solid_Mass * Earth_Mass;
+         World.Gas_Mass := Gas_Mass * Earth_Mass;
+
+         Set_Axial_Tilt (World);
+
+         World.Escape_Velocity :=
+           Calculate_Escape_Velocity
+             (Total_Mass,
+              World.Radius / Earth_Radius);
+
+         World.Surface_Acceleration :=
+           Concorde.Constants.Gravitational_Constant
+             * World.Mass / (World.Radius ** 2);
+
+         World.Surface_Gravity :=
+           World.Surface_Acceleration
+             / Concorde.Solar_System.Earth_Gravity;
+
+         World.Exospheric_Temp :=
+           Earth_Exospheric_Temp
+             / ((Star_Distance / Sqrt (Star.Luminosity)) ** 2);
+
+         Calculate_Day_Length (Primary, World);
+
+         if Is_Jovian then
+
+            World.Greenhouse_Effect := False;
+            World.Volatile_Gas_Inv := Real'Last;
+            World.Surface_Pressure := Real'Last;
+            World.Water_Boiling_Point := Real'Last;
+            World.Surface_Temp := Real'Last;
+            World.Greenhouse_Rise := 0.0;
+            World.Albedo := Gas_Giant_Albedo;
+            World.Hydrosphere := 1.0;
+            World.Cloud_Cover := 1.0;
+            World.Ice_Cover := 0.0;
+
+            World.Surface_Temp :=
+              Estimated_Temperature
+                (Star.Ecosphere, Star_Distance,
+                 World.Albedo);
+
+         else
+            World.RMS_Velocity :=
+              Calculate_RMS_Velocity (14.0, World.Exospheric_Temp);
+
+            World.Min_Molecular_Weight :=
+              Molecule_Limit
+                (Total_Mass,
+                 World.Radius / Earth_Radius,
+                 World.Exospheric_Temp);
+
+            World.Greenhouse_Effect :=
+              Has_Greenhouse (Star.Ecosphere, Star_Distance);
+
+            World.Volatile_Gas_Inv :=
+              Volatile_Inventory
+                (Total_Mass,
+                 World.Escape_Velocity,
+                 World.RMS_Velocity,
+                 Star.Solar_Masses,
+                 Get_Orbit_Zone
+                   (Star.Luminosity, Star_Distance),
+                 World.Greenhouse_Effect,
+                 False);
+
+            World.Surface_Pressure :=
+              Calculate_Surface_Pressure
+                (World.Volatile_Gas_Inv,
+                 World.Radius / Earth_Radius,
+                 World.Surface_Gravity);
+
+            World.Albedo := Earth_Albedo;
+
+            if World.Surface_Pressure = 0.0 then
+               World.Water_Boiling_Point := 0.0;
+            else
+               World.Water_Boiling_Point :=
+                 Calculate_Water_Boiling_Point
+                   (World.Surface_Pressure);
+            end if;
+
+            Iterate_Surface_Temperature (Star, World);
+
+            if World.Max_Temperature
+              >= Concorde.Constants.Freezing_Point_Of_Water
+              and then World.Min_Temperature
+                <= World.Water_Boiling_Point
+              and then World.Surface_Pressure > 0.0
+            then
+               Calculate_Gases (Star, World);
+            end if;
+
+         end if;
+
+         declare
+            Pressure : constant Non_Negative_Real :=
+                         World.Surface_Pressure;
+            Category : World_Category;
+         begin
+            if Is_Jovian then
+               Category := Jovian;
+            elsif Pressure < 1.0 then
+               Category := Rock;
+            elsif Pressure > 6000.0
+              and then World.Min_Molecular_Weight <= 2.0
+            then
+               Category := Sub_Jovian;
+            else
+               if World.Hydrosphere >= 0.95 then
+                  Category := Water;
+               elsif World.Ice_Cover >= 0.95 then
+                  Category := Ice;
+               elsif World.Hydrosphere >= 0.05 then
+                  Category := Terrestrial;
+               elsif World.Max_Temperature
+                 >= World.Water_Boiling_Point
+               then
+                  Category := Venusian;
+               elsif Pressure < 250.0 then
+                  Category := Martian;
+               elsif World.Surface_Temp
+                 < Concorde.Constants.Freezing_Point_Of_Water
+               then
+                  Category := Terrestrial;
+               else
+                  Ada.Text_IO.Put_Line
+                    (World.Name & ": can't categorise");
+                  Category := Rock;
+               end if;
+            end if;
+
+            World.Category := Category;
+
+         end;
+
+      end Create;
+
+      New_World : constant World_Type :=
+                    Concorde.Worlds.Db.Create (Create'Access);
+   begin
+      return New_World;
+   end Create_World;
+
    -------------------
    -- Create_Worlds --
    -------------------
@@ -1213,7 +1549,6 @@ package body Concorde.Worlds.Create is
       Density      : Real;
       Solid_Mass   : Real;
       Gas_Mass     : Real;
-      Total_Mass   : Real;
 
       Is_Jovian    : Boolean := False;
 
@@ -1306,8 +1641,6 @@ package body Concorde.Worlds.Create is
             Is_Jovian := True;
          end if;
 
-         Total_Mass := Solid_Mass + Gas_Mass;
-
          if not Is_Jovian and then not Have_Goldilocks_World
            and then abs (Current_Orbit / Goldilocks_Orbit - 1.0) < 0.4
            and then abs (Current_Orbit / Goldilocks_Orbit - 1.0) > 0.1
@@ -1321,192 +1654,21 @@ package body Concorde.Worlds.Create is
              or else abs (Current_Orbit / Goldilocks_Orbit - 1.0) < 0.1;
 
          declare
-
-            procedure Create
-              (World : in out Root_World_Type'Class);
-
-            ------------
-            -- Create --
-            ------------
-
-            procedure Create
-              (World : in out Root_World_Type'Class)
-            is
-            begin
-               World.System := System;
-               World.Primary := Star;
-               World.Semimajor_Axis := Current_Orbit;
-               World.Eccentricity := 0.0;
-               World.Orbit_Progress :=
-                 Concorde.Geometry.Degrees_To_Radians
-                   (Concorde.Random.Unit_Random * 360.0);
-
-               World.Set_Name
-                 (Star.Name & " "
-                  & Concorde.Roman_Images.Roman_Image (World_Index));
-
-               World.Mass := Total_Mass * Earth_Mass;
-               World.Semimajor_Axis := Current_Orbit * Earth_Orbit;
-
-               World.Radius :=
-                 1000.0 *
-                   Calculate_Kothari_Radius
-                     (Total_Mass, Is_Jovian,
-                      Get_Orbit_Zone (Star.Luminosity, Current_Orbit));
-               World.Density :=
-                 Ada.Numerics.Pi * World.Radius ** 3 / World.Mass;
-
-               World.Solid_Mass := Solid_Mass * Earth_Mass;
-               World.Gas_Mass := Gas_Mass * Earth_Mass;
-
-               Set_Axial_Tilt (World);
-
-               World.Escape_Velocity :=
-                 Calculate_Escape_Velocity
-                   (Total_Mass,
-                    World.Radius / Earth_Radius);
-
-               World.Surface_Acceleration :=
-                 Concorde.Constants.Gravitational_Constant
-                   * World.Mass / (World.Radius ** 2);
-
-               World.Surface_Gravity :=
-                 World.Surface_Acceleration
-                   / Concorde.Solar_System.Earth_Gravity;
-
-               World.Exospheric_Temp :=
-                 Earth_Exospheric_Temp
-                   / ((Current_Orbit / Sqrt (Star.Luminosity)) ** 2);
-
-               Calculate_Day_Length (Star, World);
-
-               if Is_Jovian then
-
-                  World.Greenhouse_Effect := False;
-                  World.Volatile_Gas_Inv := Real'Last;
-                  World.Surface_Pressure := Real'Last;
-                  World.Water_Boiling_Point := Real'Last;
-                  World.Surface_Temp := Real'Last;
-                  World.Greenhouse_Rise := 0.0;
-                  World.Albedo := Gas_Giant_Albedo;
-                  World.Hydrosphere := 1.0;
-                  World.Cloud_Cover := 1.0;
-                  World.Ice_Cover := 0.0;
-
-                  World.Surface_Temp :=
-                    Estimated_Temperature
-                      (Star.Ecosphere, Current_Orbit,
-                       World.Albedo);
-
-               else
-                  World.RMS_Velocity :=
-                    Calculate_RMS_Velocity (14.0, World.Exospheric_Temp);
-
-                  World.Min_Molecular_Weight :=
-                    Molecule_Limit
-                      (Total_Mass,
-                       World.Radius / Earth_Radius,
-                       World.Exospheric_Temp);
-
-                  World.Greenhouse_Effect :=
-                    Has_Greenhouse (Star.Ecosphere, Current_Orbit);
-
-                  World.Volatile_Gas_Inv :=
-                    Volatile_Inventory
-                      (Total_Mass,
-                       World.Escape_Velocity,
-                       World.RMS_Velocity,
-                       Star.Solar_Masses,
-                       Get_Orbit_Zone
-                         (Star.Luminosity, Current_Orbit),
-                       World.Greenhouse_Effect,
-                       False);
-
-                  World.Surface_Pressure :=
-                    Calculate_Surface_Pressure
-                      (World.Volatile_Gas_Inv,
-                       World.Radius / Earth_Radius,
-                       World.Surface_Gravity);
-
-                  World.Albedo := Earth_Albedo;
-
-                  if World.Surface_Pressure = 0.0 then
-                     World.Water_Boiling_Point := 0.0;
-                  else
-                     World.Water_Boiling_Point :=
-                       Calculate_Water_Boiling_Point
-                         (World.Surface_Pressure);
-                  end if;
-
-                  Iterate_Surface_Temperature (Star, World);
-
-                  if World.Max_Temperature
-                    >= Concorde.Constants.Freezing_Point_Of_Water
-                    and then World.Min_Temperature
-                      <= World.Water_Boiling_Point
-                    and then World.Surface_Pressure > 0.0
-                  then
-                     Calculate_Gases (Star, World);
-                  end if;
-
-               end if;
-
-               declare
-                  Pressure : constant Non_Negative_Real :=
-                               World.Surface_Pressure;
-                  Category : World_Category;
-               begin
-                  if Is_Jovian then
-                     Category := Jovian;
-                  elsif Pressure < 1.0 then
-                     Category := Rock;
-                  elsif Pressure > 6000.0
-                    and then World.Min_Molecular_Weight <= 2.0
-                  then
-                     Category := Sub_Jovian;
-                  else
-                     if World.Hydrosphere >= 0.95 then
-                        Category := Water;
-                     elsif World.Ice_Cover >= 0.95 then
-                        Category := Ice;
-                     elsif World.Hydrosphere >= 0.05 then
-                        Category := Terrestrial;
-                     elsif World.Max_Temperature
-                       >= World.Water_Boiling_Point
-                     then
-                        Category := Venusian;
-                     elsif Pressure < 250.0 then
-                        Category := Martian;
-                     elsif World.Surface_Temp
-                       < Concorde.Constants.Freezing_Point_Of_Water
-                     then
-                        Category := Terrestrial;
-                     else
-                        Ada.Text_IO.Put_Line
-                          (World.Name & ": can't categorise");
-                        Category := Rock;
-                     end if;
-                  end if;
-
-                  World.Category := Category;
-
---                    declare
---                       function To_Lower
---                         (S : String) return String
---                          renames Ada.Characters.Handling.To_Lower;
---                    begin
---                       Ada.Text_IO.Put
---                         (" " & To_Lower (World_Category'Image (Category)));
---                    end;
-
-               end;
-
-            end Create;
-
             New_World : constant World_Type :=
-                          Concorde.Worlds.Db.Create (Create'Access);
+                          Create_World
+                            (System        => System,
+                             Primary       => Star,
+                             Star          => Star,
+                             Index         => World_Index,
+                             Orbit         => Current_Orbit,
+                             Solid_Mass    => Solid_Mass,
+                             Gas_Mass      => Gas_Mass,
+                             Star_Distance => Current_Orbit,
+                             Is_Moon       => False,
+                             Is_Jovian     => Is_Jovian);
          begin
             List.Append (New_World);
+            Create_Moons (New_World, List);
             World_Index := World_Index + 1;
          end;
 
@@ -1780,14 +1942,14 @@ package body Concorde.Worlds.Create is
       Zone            : Orbit_Zone;
       Greenhouse      : Boolean;
       Accreted_Gas    : Boolean)
-     return Real
+     return Non_Negative_Real
    is
       use Concorde.Constants;
       use Concorde.Solar_System;
-      Velocity_Ratio : constant Real :=
+      Velocity_Ratio : constant Non_Negative_Real :=
         Escape_Velocity / RMS_Velocity;
-      Proportion : Real;
-      Result     : Real;
+      Proportion : Non_Negative_Real;
+      Result     : Non_Negative_Real;
    begin
       if Velocity_Ratio >= Gas_Retention_Threshold then
 
@@ -1801,7 +1963,7 @@ package body Concorde.Worlds.Create is
          end case;
 
          Result := Proportion * Earth_Masses / Stellar_Mass;
-         Result := Concorde.Random.About (Result, 0.2);
+         Result := Concorde.Random.About (Result, Result / 5.0);
          if Greenhouse or else Accreted_Gas then
             return Result;
          else
@@ -1820,7 +1982,7 @@ package body Concorde.Worlds.Create is
    function Volatile_Inventory
      (Star     : Concorde.Stars.Star_Type;
       World   : Root_World_Type'Class)
-      return Real
+      return Non_Negative_Real
    is
       use Concorde.Solar_System;
    begin
