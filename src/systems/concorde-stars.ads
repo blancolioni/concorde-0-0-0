@@ -48,8 +48,8 @@ package Concorde.Stars is
      (Star : Root_Star_Type'Class)
       return Non_Negative_Real;
 
-   function Age
-     (Star : Root_Star_Type'Class)
+   overriding function Age
+     (Star : Root_Star_Type)
       return Non_Negative_Real;
    --  Age of star in Earth years
 

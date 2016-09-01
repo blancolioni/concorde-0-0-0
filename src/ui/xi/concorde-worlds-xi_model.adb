@@ -286,6 +286,10 @@ package body Concorde.Worlds.Xi_Model is
          Entity := Xi.Shapes.Icosohedral_Sphere (3);
          Entity.Set_Material
            (Xi.Assets.Material ("Concorde/System/Gas_Giant"));
+      elsif World.Is_Moon then
+         Entity := Xi.Shapes.Icosohedral_Sphere (3);
+         Entity.Set_Material
+           (Xi.Assets.Material ("Concorde/System/Moon"));
       else
          Entity := Create_Tiles (World);
       end if;

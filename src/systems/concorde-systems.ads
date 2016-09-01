@@ -38,6 +38,10 @@ package Concorde.Systems is
                             return Non_Negative_Real
                             is abstract;
 
+   function Age (Object : Star_System_Object_Interface)
+                 return Non_Negative_Real
+                 is abstract;
+
    function Orbit_Progress
      (Object : Star_System_Object_Interface)
       return Concorde.Geometry.Radians

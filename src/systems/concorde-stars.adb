@@ -8,8 +8,8 @@ package body Concorde.Stars is
    -- Age --
    ---------
 
-   function Age
-     (Star : Root_Star_Type'Class)
+   overriding function Age
+     (Star : Root_Star_Type)
       return Non_Negative_Real
    is
    begin

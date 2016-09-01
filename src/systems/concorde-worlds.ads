@@ -75,6 +75,10 @@ package Concorde.Worlds is
      (World : Root_World_Type'Class)
       return World_Category;
 
+   function Is_Moon
+     (World : Root_World_Type'Class)
+      return Boolean;
+
    function Maximum_Temperature
      (World : Root_World_Type'Class)
       return Non_Negative_Real;
@@ -319,6 +323,7 @@ private
          Eccentricity          : Unit_Real;
          Orbit_Progress        : Concorde.Geometry.Radians;
          Category              : World_Category;
+         Moon                  : Boolean := False;
          Surface_Seed          : Integer;
          Sectors               : access Array_Of_Sectors;
          Surface               : Concorde.Surfaces.Surface_Type;
@@ -380,6 +385,11 @@ private
      (World : Root_World_Type)
       return access Concorde.Systems.Star_System_Object_Interface'Class
    is (World.Primary);
+
+   overriding function Age
+     (World : Root_World_Type)
+      return Non_Negative_Real
+   is (World.Primary.Age);
 
    overriding function Semimajor_Axis
      (World : Root_World_Type)
