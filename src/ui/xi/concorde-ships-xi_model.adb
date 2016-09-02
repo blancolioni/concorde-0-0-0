@@ -152,7 +152,6 @@ package body Concorde.Ships.Xi_Model is
                     New_Orientation_Transition
                       (Node, 20.0, 360.0, 0.0, 0.0, 1.0, Cyclic => True);
       begin
-         Rotate.Start;
          Scene.Add_Transition (Rotate);
       end;
 
