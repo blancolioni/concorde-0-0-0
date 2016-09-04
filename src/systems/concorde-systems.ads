@@ -3,6 +3,8 @@ private with Memor;
 
 with Lui.Colours;
 
+with Newton;
+
 limited with Concorde.Empires;
 
 with Concorde.Geometry;
@@ -53,6 +55,10 @@ package Concorde.Systems is
 
    function Period (Object : Star_System_Object_Interface'Class)
                     return Non_Negative_Real;
+
+   function Primary_Relative_Position
+     (Object : Star_System_Object_Interface'Class)
+      return Newton.Vector_3;
 
    type Root_Star_System_Type is
      new Concorde.Objects.Root_User_Named_Object_Type

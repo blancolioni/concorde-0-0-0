@@ -379,6 +379,22 @@ package body Concorde.Systems is
                                 * Object.Primary.Mass));
    end Period;
 
+   -------------------------------
+   -- Primary_Relative_Position --
+   -------------------------------
+
+   function Primary_Relative_Position
+     (Object : Star_System_Object_Interface'Class)
+      return Newton.Vector_3
+   is
+      use Newton.Matrices;
+      use Concorde.Geometry;
+      R     : constant Non_Negative_Real := Object.Semimajor_Axis;
+      Theta : constant Radians := Object.Orbit_Progress;
+   begin
+      return (R * Cos (Theta), 0.0, R * Sin (Theta));
+   end Primary_Relative_Position;
+
    -----------------------
    -- Remove_Dead_Ships --
    -----------------------
