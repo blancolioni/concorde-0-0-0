@@ -1,5 +1,7 @@
 with Xi.Assets;
+with Xi.Camera;
 with Xi.Entity;
+with Xi.Float_Arrays;
 with Xi.Materials.Material;
 with Xi.Materials.Pass;
 with Xi.Matrices;
@@ -8,6 +10,7 @@ with Xi.Scene;
 with Xi.Shapes;
 with Xi.Value;
 
+with Xi.Transition.Container.Sequential;
 with Xi.Transition.Translation;
 
 with Lui.Colours;
@@ -302,21 +305,53 @@ package body Concorde.Worlds.Xi_Model is
      (Handler : World_Ship_Selector)
    is
       use Xi;
+      use Xi.Float_Arrays;
       use Xi.Matrices;
+      use Xi.Transition.Container.Sequential;
       Ship_Position : constant Newton.Vector_3 :=
                         Handler.Ship.Primary_Relative_Position;
-      Target_Position : constant Vector_3 :=
+      Ship_Vector   : constant Vector_3 :=
                           (Xi_Float (Ship_Position (1)),
                            Xi_Float (Ship_Position (2)),
-                           Xi_Float (Ship_Position (3)) + 100.0);
-      Translation : constant Xi.Transition.Xi_Transition :=
-                      Xi.Transition.Translation.Translate
-                        (Node            => Handler.Model.Scene.Active_Camera,
-                         Transition_Time => 5.0,
-                         Target_Position => Target_Position,
-                         Cyclic          => False);
+                           Xi_Float (Ship_Position (3)));
+      Camera        : constant Xi.Camera.Xi_Camera :=
+                        Handler.Model.Scene.Active_Camera;
+      Translation_1 : constant Xi.Transition.Xi_Transition :=
+                        Xi.Transition.Translation.Translate
+                          (Node            => Camera,
+                           Transition_Time => 3.0,
+                           Target_Position =>
+                             Ship_Vector + (0.0, 0.0, 100_000.0),
+                           Cyclic          => False);
+      Translation_2 : constant Xi.Transition.Xi_Transition :=
+                        Xi.Transition.Translation.Translate
+                          (Node            => Camera,
+                           Transition_Time => 2.0,
+                           Target_Position =>
+                             Ship_Vector + (0.0, 0.0, 10_000.0),
+                           Cyclic          => False);
+      Translation_3 : constant Xi.Transition.Xi_Transition :=
+                        Xi.Transition.Translation.Translate
+                          (Node            => Camera,
+                           Transition_Time => 2.0,
+                           Target_Position =>
+                             Ship_Vector + (0.0, 0.0, 1_000.0),
+                           Cyclic          => False);
+      Translation_4 : constant Xi.Transition.Xi_Transition :=
+                        Xi.Transition.Translation.Translate
+                          (Node            => Camera,
+                           Transition_Time => 2.0,
+                           Target_Position =>
+                             Ship_Vector + (0.0, 0.0, 100.0),
+                           Cyclic          => False);
+      Transition    : constant Xi_Sequential_Transition :=
+                        New_Sequential_Transition;
    begin
-      Handler.Model.Scene.Add_Transition (Translation);
+      Transition.Append (Translation_1);
+      Transition.Append (Translation_2);
+      Transition.Append (Translation_3);
+      Transition.Append (Translation_4);
+      Handler.Model.Scene.Add_Transition (Transition);
    end On_Select;
 
    ------------------
