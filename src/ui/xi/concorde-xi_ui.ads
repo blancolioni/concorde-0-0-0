@@ -1,6 +1,7 @@
 private with Ada.Containers.Doubly_Linked_Lists;
 
 with Xi.Entity;
+with Xi.Node;
 with Xi.Scene_Renderer;
 with Xi.Scene;
 with Xi.Texture;
@@ -97,7 +98,40 @@ package Concorde.Xi_UI is
    function Selector_Texture return Xi.Texture.Xi_Texture;
    function Selector_Entity return Xi.Entity.Xi_Entity;
 
+   type Select_Handler_Interface is interface;
+
+   procedure On_Select
+     (Handler : Select_Handler_Interface)
+   is abstract;
+
+   type Select_Handler is access all Select_Handler_Interface'Class;
+
+   function Null_Selector return Select_Handler;
+
+   type Node_Select_Handler is abstract new
+     Select_Handler_Interface with private;
+
+   overriding procedure On_Select
+     (Handler : Node_Select_Handler);
+
+   procedure On_Node_Selected
+     (Handler : Node_Select_Handler;
+      Node    : Xi.Node.Xi_Node)
+   is abstract;
+
+   procedure Selector_With_Text
+     (Parent_Node : Xi.Node.Xi_Node;
+      Text        : String;
+      X, Y, Z     : Xi.Xi_Float;
+      On_Select   : Select_Handler);
+
 private
+
+   type Node_Select_Handler is abstract new
+     Select_Handler_Interface with
+      record
+         Node : Xi.Node.Xi_Node;
+      end record;
 
    package Active_Transition_Lists is
      new Ada.Containers.Doubly_Linked_Lists

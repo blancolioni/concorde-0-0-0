@@ -1,6 +1,8 @@
 with Xi.Assets;
 with Xi.Color;
+with Xi.Font;
 with Xi.Frame_Event;
+with Xi.Label;
 with Xi.Main;
 with Xi.Materials.Material;
 with Xi.Shapes;
@@ -27,6 +29,26 @@ package body Concorde.Xi_UI is
    overriding procedure Frame_Started
      (Listener : in out Model_Frame_Listener;
       Event    : Xi.Frame_Event.Xi_Frame_Event);
+
+   type Null_Selector_Record is new Select_Handler_Interface
+   with null record;
+
+   overriding procedure On_Select
+     (Handler : Null_Selector_Record)
+   is null;
+
+   Local_Null_Selector_Record : aliased Null_Selector_Record;
+
+   type Selector_Node is
+     new Xi.Node.Xi_Node_Record with
+      record
+         On_Select : Select_Handler;
+      end record;
+
+   type Selector_Node_Access is access all Selector_Node'Class;
+
+   procedure On_Selector_Clicked
+     (Selector : Xi.Node.Xi_Node);
 
    --------------
    -- Activate --
@@ -131,6 +153,15 @@ package body Concorde.Xi_UI is
       Model.Scene.Active_Camera.Translate (0.0, Scale, 0.0);
    end Move_Vertical;
 
+   -------------------
+   -- Null_Selector --
+   -------------------
+
+   function Null_Selector return Select_Handler is
+   begin
+      return Local_Null_Selector_Record'Access;
+   end Null_Selector;
+
    --------------------
    -- On_Frame_Start --
    --------------------
@@ -172,41 +203,29 @@ package body Concorde.Xi_UI is
          end;
       end if;
 
---        if Model.Active_Transition then
---           Model.Active_Transition.Update_Transition;
---           if Model.Active_Transition.Complete then
---
---           declare
---              use Ada.Calendar;
---              use Xi;
---              use Xi.Float_Arrays;
---              Now : constant Time := Clock;
---              Progress : constant Xi_Float :=
---                           Xi_Float (Now - Model.Start_Time)
---                           / Xi_Float (Model.Transition_Time);
---           begin
---              if Progress >= 1.0 then
---                 Model.Active_Transition := False;
---                 Model.Scene.Active_Camera.Set_Position
---                   (Model.Target_Position);
---                 Model.Scene.Active_Camera.Set_Orientation
---                   (Model.Target_Orientation);
---                 Model.Scene.Active_Camera.Set_Projection_Matrix
---                   (Model.Target_Projection);
---                 Root_Xi_Model'Class (Model).On_Transition_Complete;
---              else
---                 Model.Scene.Active_Camera.Set_Position
---                   (Model.Start_Position + Progress * Model.Position_Delta);
---                 Model.Scene.Active_Camera.Set_Orientation
---                   (Model.Start_Orientation
---                    + Progress * Model.Orientation_Delta);
---                 Model.Scene.Active_Camera.Set_Projection_Matrix
---                   (Model.Start_Projection
---                    + Progress * Model.Projection_Delta);
---              end if;
---           end;
---        end if;
    end On_Frame_Start;
+
+   ---------------
+   -- On_Select --
+   ---------------
+
+   overriding procedure On_Select
+     (Handler : Node_Select_Handler)
+   is
+   begin
+      Node_Select_Handler'Class (Handler).On_Node_Selected (Handler.Node);
+   end On_Select;
+
+   -------------------------
+   -- On_Selector_Clicked --
+   -------------------------
+
+   procedure On_Selector_Clicked
+     (Selector : Xi.Node.Xi_Node)
+   is
+   begin
+      Selector_Node_Access (Selector).On_Select.On_Select;
+   end On_Selector_Clicked;
 
    ---------------------
    -- On_User_Command --
@@ -346,6 +365,44 @@ package body Concorde.Xi_UI is
       end if;
       return Local_Selector_Texture;
    end Selector_Texture;
+
+   ------------------------
+   -- Selector_With_Text --
+   ------------------------
+
+   procedure Selector_With_Text
+     (Parent_Node : Xi.Node.Xi_Node;
+      Text        : String;
+      X, Y, Z     : Xi.Xi_Float;
+      On_Select   : Select_Handler)
+   is
+      use Xi;
+      Node : constant Xi.Node.Xi_Node :=
+               Parent_Node.Create_Child ("selector");
+      Label  : constant Xi.Label.Xi_Label :=
+                 Xi.Label.Create_Label
+                   ("selector-label",
+                    Text,
+                    Xi.Font.Get_Font ("Segoe UI", 10.0));
+      Target_Node : constant Selector_Node_Access :=
+                      new Selector_Node;
+      Text_Node   : constant Xi.Node.Xi_Node :=
+                      Node.Create_Child ("selector-text");
+   begin
+      Target_Node.Initialize ("selector-target");
+      Node.Append_Child (Target_Node);
+      Target_Node.On_Select := On_Select;
+      Target_Node.Set_Entity (Selector_Entity);
+      Target_Node.Set_Position (X / 2.0, Y / 2.0, Z / 2.0);
+      Target_Node.Set_Billboard (True);
+      Target_Node.Fixed_Pixel_Size (32.0, 32.0);
+      Text_Node.Set_Entity (Label);
+      Text_Node.Set_Position (X / 2.0, Y / 2.0, Z / 2.0);
+      Text_Node.Set_Billboard (True);
+      Text_Node.Fixed_Pixel_Size (Label.Width, Label.Height, 32.0, 16.0);
+
+      Target_Node.Add_Click_Handler (On_Selector_Clicked'Access);
+   end Selector_With_Text;
 
    ------------------
    -- Set_Renderer --
