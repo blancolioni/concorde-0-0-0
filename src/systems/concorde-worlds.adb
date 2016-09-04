@@ -341,6 +341,46 @@ package body Concorde.Worlds is
       return World.Min_Temperature;
    end Minimum_Temperature;
 
+   -----------
+   -- Moons --
+   -----------
+
+   function Moons (World : Root_World_Type'Class) return Array_Of_Worlds is
+
+      Result : Array_Of_Worlds (1 .. 20);
+      Count  : Natural := 0;
+
+      procedure Add_Moon
+        (Item : not null access constant
+           Concorde.Systems.Star_System_Object_Interface'Class);
+
+      --------------
+      -- Add_Moon --
+      --------------
+
+      procedure Add_Moon
+        (Item : not null access constant
+           Concorde.Systems.Star_System_Object_Interface'Class)
+      is
+         Primary : constant access constant
+           Concorde.Systems.Star_System_Object_Interface'Class :=
+             Item.Primary;
+      begin
+         if Primary /= null
+           and then Primary.all in Root_World_Type'Class
+           and then World_Type (Primary).Identifier = World.Identifier
+         then
+            Count := Count + 1;
+            Result (Count) := World_Type (Item);
+         end if;
+      end Add_Moon;
+
+   begin
+      World.System.Scan_System_Objects
+        (Add_Moon'Access);
+      return Result (1 .. Count);
+   end Moons;
+
    ---------------------
    -- Object_Database --
    ---------------------

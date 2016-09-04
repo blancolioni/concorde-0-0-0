@@ -254,6 +254,10 @@ package Concorde.Worlds is
 
    type World_Type is access constant Root_World_Type'Class;
 
+   type Array_Of_Worlds is array (Positive range <>) of World_Type;
+
+   function Moons (World : Root_World_Type'Class) return Array_Of_Worlds;
+
 private
 
    type Atmospheric_Element is
