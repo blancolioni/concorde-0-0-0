@@ -8,12 +8,14 @@ with Xi.Scene;
 with Xi.Shapes;
 with Xi.Value;
 
+with Xi.Transition.Translation;
+
 with Lui.Colours;
 
 with Newton;
 
 with Concorde.Hash_Table;
-with Concorde.Transitions;
+--  with Concorde.Transitions;
 
 with Concorde.Worlds.Tables;
 with Concorde.Ships.Xi_Model;
@@ -67,6 +69,11 @@ package body Concorde.Worlds.Xi_Model is
         Concorde.Objects.Root_Object_Type'Class)
    is null;
 
+   overriding function Base_Movement
+     (Model : Root_World_Model)
+      return Xi.Xi_Float
+   is (10_000_000.0);
+
    type World_Model_Access is access all Root_World_Model'Class;
 
    package World_Model_Table is
@@ -74,12 +81,28 @@ package body Concorde.Worlds.Xi_Model is
 
    World_Models : World_Model_Table.Map;
 
+   type World_Model_Selector is
+     abstract new Concorde.Xi_UI.Select_Handler_Interface with
+      record
+         Model : World_Model_Access;
+      end record;
+
+   type World_Ship_Selector is
+     new World_Model_Selector with
+      record
+         Ship : Concorde.Ships.Ship_Type;
+      end record;
+
+   overriding procedure On_Select
+     (Handler : World_Ship_Selector);
+
    function Create_Tiles
      (World       : World_Type)
       return Xi.Entity.Xi_Entity;
 
    function World_Scene
-     (World : World_Type)
+     (World : World_Type;
+      Model : World_Model_Access)
       return Xi.Scene.Xi_Scene;
 
    function World_Entity
@@ -235,41 +258,66 @@ package body Concorde.Worlds.Xi_Model is
    -- Transit_To_World --
    ----------------------
 
-   procedure Transit_To_World
-     (World     : Concorde.Worlds.World_Type;
-      Model     : in out Concorde.Xi_UI.Root_Xi_Model'Class)
+--     procedure Transit_To_World
+--       (World     : Concorde.Worlds.World_Type;
+--        Model     : in out Concorde.Xi_UI.Root_Xi_Model'Class)
+--     is
+--        use Xi;
+--        use type Xi.Scene.Xi_Scene;
+--        use Concorde.Geometry;
+--        use type Concorde.Worlds.World_Type;
+--        Scene : constant Xi.Scene.Xi_Scene := World_Scene (World);
+--        World_Transition : constant Concorde.Transitions.Transition_Type :=
+--                             new Concorde.Transitions.Root_Transition_Type;
+--        Target_Position : constant Xi.Matrices.Vector_3 :=
+--                            (0.0, Xi_Float (World.Radius),
+--                             Xi_Float (World.Radius) + 1_000_000.0);
+--     begin
+--        Scene.Active_Camera.Set_Viewport (Model.Renderer.Viewport);
+--        Scene.Active_Camera.Set_Position
+--          (0.0, 0.0, 224398100.0);
+--        Scene.Active_Camera.Perspective
+--          (60.0, 10.0, 1.0e9);
+--        Scene.Active_Camera.Look_At (0.0, 0.0, 0.0);
+--
+--        if True then
+--           World_Transition.Scene_Transition (Scene);
+--        else
+--           World_Transition.Create
+--             (Scene              => Scene,
+--              Target_Position    => Target_Position,
+--              Target_Orientation => Scene.Active_Camera.Orientation,
+--              Acceleration       => 7.0e6,
+--              Max_Velocity       => 35.0e6);
+--        end if;
+--
+--        Model.Add_Transition (World_Transition);
+--     end Transit_To_World;
+
+   ---------------
+   -- On_Select --
+   ---------------
+
+   overriding procedure On_Select
+     (Handler : World_Ship_Selector)
    is
       use Xi;
-      use type Xi.Scene.Xi_Scene;
-      use Concorde.Geometry;
-      use type Concorde.Worlds.World_Type;
-      Scene : constant Xi.Scene.Xi_Scene := World_Scene (World);
-      World_Transition : constant Concorde.Transitions.Transition_Type :=
-                           new Concorde.Transitions.Root_Transition_Type;
-      Target_Position : constant Xi.Matrices.Vector_3 :=
-                          (0.0, Xi_Float (World.Radius),
-                           Xi_Float (World.Radius) + 1_000_000.0);
+      use Xi.Matrices;
+      Ship_Position : constant Newton.Vector_3 :=
+                        Handler.Ship.Primary_Relative_Position;
+      Target_Position : constant Vector_3 :=
+                          (Xi_Float (Ship_Position (1)),
+                           Xi_Float (Ship_Position (2)),
+                           Xi_Float (Ship_Position (3)) + 100.0);
+      Translation : constant Xi.Transition.Xi_Transition :=
+                      Xi.Transition.Translation.Translate
+                        (Node            => Handler.Model.Scene.Active_Camera,
+                         Transition_Time => 5.0,
+                         Target_Position => Target_Position,
+                         Cyclic          => False);
    begin
-      Scene.Active_Camera.Set_Viewport (Model.Renderer.Viewport);
-      Scene.Active_Camera.Set_Position
-        (0.0, 0.0, 224398100.0);
-      Scene.Active_Camera.Perspective
-        (60.0, 10.0, 1.0e9);
-      Scene.Active_Camera.Look_At (0.0, 0.0, 0.0);
-
-      if True then
-         World_Transition.Scene_Transition (Scene);
-      else
-         World_Transition.Create
-           (Scene              => Scene,
-            Target_Position    => Target_Position,
-            Target_Orientation => Scene.Active_Camera.Orientation,
-            Acceleration       => 7.0e6,
-            Max_Velocity       => 35.0e6);
-      end if;
-
-      Model.Add_Transition (World_Transition);
-   end Transit_To_World;
+      Handler.Model.Scene.Add_Transition (Translation);
+   end On_Select;
 
    ------------------
    -- World_Entity --
@@ -315,7 +363,7 @@ package body Concorde.Worlds.Xi_Model is
          Model := new Root_World_Model;
          Model.Initialize (Target);
          Model.World := World;
-         Model.Set_Scene (World_Scene (World));
+         Model.Set_Scene (World_Scene (World, Model));
          Model.Scene.Active_Camera.Set_Position
            (0.0, 0.0, Xi.Xi_Float (World.Radius * 5.0));
          Model.Scene.Active_Camera.Look_At
@@ -334,7 +382,8 @@ package body Concorde.Worlds.Xi_Model is
    -----------------
 
    function World_Scene
-     (World : World_Type)
+     (World : World_Type;
+      Model : World_Model_Access)
       return Xi.Scene.Xi_Scene
    is
       use type Xi.Entity.Xi_Entity;
@@ -375,13 +424,32 @@ package body Concorde.Worlds.Xi_Model is
                         Scene.Create_Node (World.Identifier);
          Ships_Node : constant Xi.Node.Xi_Node :=
                         Scene.Create_Node (World.Identifier & " ships");
+         Moons_Node : constant Xi.Node.Xi_Node :=
+                        Scene.Create_Node (World.Identifier & " moons");
+         Moons      : constant Array_Of_Worlds := World.Moons;
          Ships      : Concorde.Ships.Lists.List;
+
       begin
-         if True then
-            World_Node.Set_Entity (Rec.Entity);
-            World_Node.Scale
+         World_Node.Set_Entity (Rec.Entity);
+         World_Node.Scale
               (Xi.Xi_Float (World.Radius));
-         end if;
+
+         for Moon of Moons loop
+            declare
+               use Xi;
+               Node : constant Xi.Node.Xi_Node :=
+                        Moons_Node.Create_Child
+                          (Moon.Name);
+               Pos  : constant Newton.Vector_3 :=
+                        Moon.Primary_Relative_Position;
+            begin
+               Node.Set_Position
+                 (Xi_Float (Pos (1)),
+                  Xi_Float (Pos (2)),
+                  Xi_Float (Pos (3)));
+               Node.Set_Entity (World_Entity (Moon));
+            end;
+         end loop;
 
          World.Get_Ships (Ships);
 
@@ -390,24 +458,40 @@ package body Concorde.Worlds.Xi_Model is
             Concorde.Ships.Xi_Model.Create_Ship_Node
               (Ship, Scene, Ships_Node);
 
-            if True then
-               declare
-                  use Xi;
-                  Node : constant Xi.Node.Xi_Node :=
-                           World_Node.Create_Child
-                             (Ship.Name & " selector");
-                  Pos  : constant Newton.Vector_3 :=
-                           Ship.Primary_Relative_Position;
-               begin
-                  Node.Set_Position
-                    (Xi_Float (Pos (1) / 2.0),
-                     Xi_Float (Pos (2) / 2.0),
-                     Xi_Float (Pos (3)) / 2.0);
-                  Node.Set_Entity (Concorde.Xi_UI.Selector_Entity);
-                  Node.Set_Billboard (True);
-                  Node.Fixed_Pixel_Size (32.0, 32.0);
-               end;
-            end if;
+            declare
+               use Xi;
+               Pos  : constant Newton.Vector_3 :=
+                        Ship.Primary_Relative_Position;
+               Selector : constant Concorde.Xi_UI.Select_Handler :=
+                            new World_Ship_Selector'
+                              (Model => Model,
+                               Ship  => Ship);
+            begin
+               Concorde.Xi_UI .Selector_With_Text
+                 (World_Node, Ship.Name,
+                  Xi_Float (Pos (1)),
+                  Xi_Float (Pos (2)),
+                  Xi_Float (Pos (3)),
+                  Selector);
+            end;
+--
+--              Node.Set_Position
+--                (Xi_Float (Pos (1) / 2.0),
+--                 Xi_Float (Pos (2) / 2.0),
+--                 Xi_Float (Pos (3)) / 2.0);
+--              Node.Set_Entity
+--                (Concorde.Xi_UI.Selector_With_Text
+--                   (Ship.Name));
+--              Node.Set_Billboard (True);
+--              Node.Fixed_Pixel_Size (32.0, 32.0);
+--              Text_Node.Set_Position
+--                (Xi_Float (Pos (1) / 2.0 + 32.0),
+--                 Xi_Float (Pos (2) / 2.0),
+--                 Xi_Float (Pos (3)) / 2.0);
+--              Text_Node.Set_Entity
+--                (Concorde.Xi_UI.Selector_Text (Ship.Name));
+--              Text_Node.Set_Billboard (True);
+--              Text_Node.Fixed_Pixel_Size (32.0, 128.0);
          end loop;
       end;
 

@@ -17,6 +17,7 @@ package Concorde.Worlds.Xi_Model is
 
    procedure Transit_To_World
      (World           : Concorde.Worlds.World_Type;
-      Model           : in out Concorde.Xi_UI.Root_Xi_Model'Class);
+      Model           : in out Concorde.Xi_UI.Root_Xi_Model'Class)
+   is null;
 
 end Concorde.Worlds.Xi_Model;
