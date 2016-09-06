@@ -10,7 +10,13 @@ with Xi.Shapes;
 with Xi.Float_Arrays;
 with Xi.Matrices;
 
+with Xtk.Grid;
+with Xtk.Label;
+
 with Concorde.Xi_UI.Key_Bindings;
+
+with Concorde.Dates;
+with Concorde.Updates;
 
 package body Concorde.Xi_UI is
 
@@ -23,7 +29,8 @@ package body Concorde.Xi_UI is
    type Model_Frame_Listener is
      new Xi.Frame_Event.Xi_Frame_Listener_Interface with
       record
-         Model : Xi_Model;
+         Model        : Xi_Model;
+         Current_Date : Xtk.Label.Xtk_Label;
       end record;
 
    overriding procedure Frame_Started
@@ -94,6 +101,10 @@ package body Concorde.Xi_UI is
       Event    : Xi.Frame_Event.Xi_Frame_Event)
    is
    begin
+      Concorde.Updates.Tick (Event.Time_Since_Last_Event);
+      Listener.Current_Date.Set_Label
+        (Concorde.Dates.To_Date_And_Time_String
+           (Concorde.Dates.Current_Date));
       Listener.Model.On_Frame_Start (Event.Time_Since_Last_Event);
    end Frame_Started;
 
@@ -106,12 +117,27 @@ package body Concorde.Xi_UI is
       Renderer : not null access
         Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
    is
+      Current_Date   : constant Xtk.Label.Xtk_Label :=
+                         Xtk.Label.Xtk_New ("current-date");
+      Date_Info_Grid : Xtk.Grid.Xtk_Grid;
+      Date_Panel     : Xtk.Panel.Xtk_Panel;
    begin
+
+      Xtk.Grid.Xtk_New (Date_Info_Grid);
+      Date_Info_Grid.Attach (Current_Date, 1, 1, 1, 1);
+
+      Xtk.Panel.Xtk_New (Date_Panel, Date_Info_Grid);
+      Date_Panel.Position_Anchor (Top => True, Right => True);
+      Date_Panel.Show_All;
+
       Model.Current_Renderer := Xi.Scene_Renderer.Xi_Scene_Renderer (Renderer);
+      Model.Current_Renderer.Add_Top_Level (Date_Panel);
 
       declare
          Listener : constant Xi.Frame_Event.Xi_Frame_Listener :=
-                      new Model_Frame_Listener'(Model => Xi_Model (Model));
+                      new Model_Frame_Listener'
+                        (Model        => Xi_Model (Model),
+                         Current_Date => Current_Date);
       begin
          Xi.Main.Add_Frame_Listener (Listener);
       end;
