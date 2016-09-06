@@ -166,6 +166,8 @@ begin
             Concorde.Xi_UI.Model_Manager.Model
               (Concorde.Galaxy.Capital_World, Window).Activate;
 
+            Concorde.Updates.Set_Time_Acceleration (60.0);
+
             Xi.Main.Main_Loop;
 
          end;
