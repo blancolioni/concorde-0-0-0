@@ -21,7 +21,7 @@ package body Concorde.Empires.Logging is
         Default_Value => List_Of_Log_Lines.Empty_List,
         "="           => List_Of_Log_Lines."=");
 
-   Current_Log_Date : Concorde.Dates.Date_Type := 0;
+   Current_Log_Date : Concorde.Dates.Date_Type := Concorde.Dates.Zero_Date;
    Current_Logs     : Empire_Log_Vectors.Vector;
 
    function Log_File_Path
@@ -109,7 +109,7 @@ package body Concorde.Empires.Logging is
          return;
       end if;
 
-      if Current_Log_Date = 0 then
+      if Current_Log_Date = Concorde.Dates.Zero_Date then
          null;
       elsif Current_Log_Date /= Today then
          Flush_Log;
@@ -173,7 +173,7 @@ package body Concorde.Empires.Logging is
               (Ada.Text_IO.Standard_Error,
                "Unabled to start logging; logging disabled");
          else
-            Current_Log_Date := 0;
+            Current_Log_Date := Concorde.Dates.Zero_Date;
             Started := True;
          end if;
 

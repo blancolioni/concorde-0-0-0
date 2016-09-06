@@ -10,7 +10,7 @@ package Concorde.Empires.History is
       Production);
 
    function Get_Metric
-     (Date   : Concorde.Dates.Date_Type;
+     (Date   : Concorde.Dates.Day_Index;
       Metric : Historical_Metric;
       Empire : Empire_Type)
       return Real;

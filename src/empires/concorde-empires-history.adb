@@ -16,7 +16,7 @@ package body Concorde.Empires.History is
 
    package History_Vectors is
      new Ada.Containers.Vectors
-       (Date_Type, History_Record_Vectors.Vector,
+       (Day_Index, History_Record_Vectors.Vector,
         History_Record_Vectors."=");
 
    History : History_Vectors.Vector;
@@ -26,13 +26,15 @@ package body Concorde.Empires.History is
    ----------------
 
    function Get_Metric
-     (Date   : Concorde.Dates.Date_Type;
+     (Date   : Concorde.Dates.Day_Index;
       Metric : Historical_Metric;
       Empire : Empire_Type)
       return Real
    is
+      Info : Metric_Record renames
+               History.Element (Date).Element (Empire.Reference);
    begin
-      return History.Element (Date).Element (Empire.Reference) (Metric);
+      return Info (Metric);
    end Get_Metric;
 
    --------------------
