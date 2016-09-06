@@ -9,9 +9,14 @@ package Concorde.Ships.Xi_Model is
      (Ship   : Ship_Type;
       Model  : in out Concorde.Xi_UI.Root_Xi_Model'Class);
 
-   procedure Create_Ship_Node
+   function Create_Ship_Node
      (Ship    : Ship_Type;
       Scene   : Xi.Scene.Xi_Scene;
-      Primary : Xi.Node.Xi_Node);
+      Primary : Xi.Node.Xi_Node)
+      return Xi.Node.Xi_Node;
+
+   procedure Update_Ship_Node
+     (Ship : Ship_Type;
+      Node : Xi.Node.Xi_Node);
 
 end Concorde.Ships.Xi_Model;

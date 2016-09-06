@@ -120,10 +120,11 @@ package body Concorde.Ships.Xi_Model is
    -- Create_Ship_Node --
    ----------------------
 
-   procedure Create_Ship_Node
+   function Create_Ship_Node
      (Ship    : Ship_Type;
       Scene   : Xi.Scene.Xi_Scene;
       Primary : Xi.Node.Xi_Node)
+      return Xi.Node.Xi_Node
    is
       use Xi;
       use Xi.Float_Arrays;
@@ -146,15 +147,18 @@ package body Concorde.Ships.Xi_Model is
 
       Create_Module_Nodes (Ship, Node);
 
-      declare
-         use Xi.Transition.Orientation;
-         Rotate : constant Xi_Orientation_Transition :=
-                    New_Orientation_Transition
-                      (Node, 20.0, 360.0, 0.0, 0.0, 1.0, Cyclic => True);
-      begin
-         Scene.Add_Transition (Rotate);
-      end;
+      if False then
+         declare
+            use Xi.Transition.Orientation;
+            Rotate : constant Xi_Orientation_Transition :=
+                       New_Orientation_Transition
+                         (Node, 120.0, 360.0, 0.0, 0.0, 1.0, Cyclic => True);
+         begin
+            Scene.Add_Transition (Rotate);
+         end;
+      end if;
 
+      return Node;
    end Create_Ship_Node;
 
    ---------------------------
@@ -232,5 +236,26 @@ package body Concorde.Ships.Xi_Model is
          Max_Velocity       => 5.0e6);
       Model.Add_Transition (Ship_Transition);
    end Transit_To_Ship;
+
+   ----------------------
+   -- Update_Ship_Node --
+   ----------------------
+
+   procedure Update_Ship_Node
+     (Ship : Ship_Type;
+      Node : Xi.Node.Xi_Node)
+   is
+      use Xi;
+      use Xi.Float_Arrays;
+      use type Xi.Entity.Xi_Entity;
+      Ship_Position : constant Newton.Vector_3 :=
+                        Ship.Primary_Relative_Position;
+      Node_Position : constant Xi.Matrices.Vector_3 :=
+                        (Xi_Float (Ship_Position (1)),
+                         Xi_Float (Ship_Position (2)),
+                         Xi_Float (Ship_Position (3)));
+   begin
+      Node.Set_Position (Node_Position);
+   end Update_Ship_Node;
 
 end Concorde.Ships.Xi_Model;
