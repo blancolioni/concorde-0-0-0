@@ -1,5 +1,6 @@
 with Newton;
 
+with Concorde.Dates;
 with Concorde.Geometry;
 
 with Concorde.Objects;
@@ -39,7 +40,7 @@ package Concorde.Locations is
 
    function Orbit
      (Primary        : not null access constant
-        Concorde.Objects.Root_Object_Type'Class;
+        Concorde.Objects.Massive_Object_Interface'Class;
       Position       : Newton.Vector_3;
       Velocity       : Newton.Vector_3)
       return Object_Location;
@@ -51,12 +52,12 @@ package Concorde.Locations is
 
    function Geosynchronous_Orbit
      (Primary        : not null access constant
-        Concorde.Objects.Root_Object_Type'Class)
+        Concorde.Objects.Massive_Object_Interface'Class)
       return Object_Location;
 
    function Orbit
      (Primary        : not null access constant
-        Concorde.Objects.Root_Object_Type'Class;
+        Concorde.Objects.Massive_Object_Interface'Class;
       Altitude       : Real)
       return Object_Location;
 
@@ -123,7 +124,9 @@ private
                Angle              : Concorde.Geometry.Radians;
                Apoapsis           : Newton.Vector_3;
                Periapsis          : Newton.Vector_3;
-               Offset             : Unit_Real;
+               Start_Time         : Concorde.Dates.Date_Type;
+               Start_Offset       : Unit_Real;
+               Period             : Duration;
                Clockwise          : Boolean;
             when World_Surface =>
                Sector             : Positive;
