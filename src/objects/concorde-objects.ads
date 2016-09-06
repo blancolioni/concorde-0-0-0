@@ -73,6 +73,11 @@ package Concorde.Objects is
      (Item      : in out Root_Localised_Object_Type'Class;
       Local_Tag : String);
 
+   type Massive_Object_Interface is limited interface;
+
+   function Mass (Object : Massive_Object_Interface) return Non_Negative_Real
+                  is abstract;
+
 private
 
    type Root_Object_Type is
