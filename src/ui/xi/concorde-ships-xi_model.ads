@@ -2,6 +2,8 @@ with Xi.Camera;
 with Xi.Node;
 with Xi.Scene;
 
+with Concorde.Scripts;
+
 with Concorde.Xi_UI;
 
 package Concorde.Ships.Xi_Model is
@@ -32,6 +34,14 @@ package Concorde.Ships.Xi_Model is
    function Ship_Node
      (Ship : Active_Ship)
       return Xi.Node.Xi_Node;
+
+   function Script
+     (Ship : Active_Ship)
+      return Concorde.Scripts.Concorde_Script;
+
+   procedure Set_Script
+     (Ship   : Active_Ship;
+      Script : Concorde.Scripts.Concorde_Script);
 
 private
 

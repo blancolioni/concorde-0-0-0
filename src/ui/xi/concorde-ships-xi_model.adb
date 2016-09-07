@@ -28,6 +28,7 @@ package body Concorde.Ships.Xi_Model is
          Node         : Xi.Node.Xi_Node;
          Local_Camera : Xi.Camera.Xi_Camera;
          Newton_Ship  : access Newton.Flight.Flight_Model'Class;
+         Script       : Concorde.Scripts.Concorde_Script;
       end record;
 
    package Active_Ship_Vectors is
@@ -109,7 +110,8 @@ package body Concorde.Ships.Xi_Model is
              (Ship, Node, Camera,
               Concorde.Ships.Flight.Create_Newtonian_Ship
                 (Ship, Ship.Primary_Relative_Position, (0.0, 0.0, 0.0),
-                 Newton.Matrices.Unit_Matrix (3)));
+                 Newton.Matrices.Unit_Matrix (3)),
+              Concorde.Scripts.Null_Script);
          Active_Ship_Vector.Replace_Element (Ship.Reference, Active);
       else
          Active.Node := Node;
@@ -376,6 +378,30 @@ package body Concorde.Ships.Xi_Model is
       return Ship.Local_Camera;
    end Local_Camera;
 
+   ------------
+   -- Script --
+   ------------
+
+   function Script
+     (Ship : Active_Ship)
+      return Concorde.Scripts.Concorde_Script
+   is
+   begin
+      return Ship.Script;
+   end Script;
+
+   ----------------
+   -- Set_Script --
+   ----------------
+
+   procedure Set_Script
+     (Ship   : Active_Ship;
+      Script : Concorde.Scripts.Concorde_Script)
+   is
+   begin
+      Ship.Script := Script;
+   end Set_Script;
+
    ---------------
    -- Ship_Node --
    ---------------
@@ -474,14 +500,22 @@ package body Concorde.Ships.Xi_Model is
       use Xi;
       use Xi.Float_Arrays;
       use type Xi.Entity.Xi_Entity;
-      Ship_Position : constant Newton.Vector_3 :=
-                        Ship.Ship.Primary_Relative_Position;
-      Node_Position : constant Xi.Matrices.Vector_3 :=
-                        (Ship_Position (1),
-                         Ship_Position (2),
-                         Ship_Position (3));
    begin
-      Ship.Node.Set_Position (Node_Position);
+      Concorde.Scripts.Execute (Ship.Script);
+      if Concorde.Scripts.Complete (Ship.Script) then
+         Ship.Script := Concorde.Scripts.Null_Script;
+      end if;
+
+      declare
+         Ship_Position : constant Newton.Vector_3 :=
+                           Ship.Ship.Primary_Relative_Position;
+         Node_Position : constant Xi.Matrices.Vector_3 :=
+                           (Ship_Position (1),
+                            Ship_Position (2),
+                            Ship_Position (3));
+      begin
+         Ship.Node.Set_Position (Node_Position);
+      end;
    end Update_Ship;
 
 end Concorde.Ships.Xi_Model;
