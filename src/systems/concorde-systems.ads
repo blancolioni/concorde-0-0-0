@@ -86,6 +86,16 @@ package Concorde.Systems is
      (System : Root_Star_System_Type'Class)
       return access Main_Star_System_Object_Interface'Class;
 
+   function Jump_Departure_Point
+     (From : Root_Star_System_Type'Class;
+      To   : not null access Root_Star_System_Type'Class)
+      return Newton.Vector_3;
+
+   function Jump_Arrival_Point
+     (Arrival_System   : Root_Star_System_Type'Class;
+      Departure_System : not null access Root_Star_System_Type'Class)
+      return Newton.Vector_3;
+
    procedure Scan_System_Objects
      (System : Root_Star_System_Type'Class;
       Process : not null access
