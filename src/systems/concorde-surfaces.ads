@@ -1,6 +1,8 @@
-with Ada.Numerics.Long_Real_Arrays;
 private with Ada.Containers.Doubly_Linked_Lists;
 private with Ada.Containers.Vectors;
+private with Xi.Float_Arrays;
+
+with Xi.Matrices;
 
 package Concorde.Surfaces is
 
@@ -53,16 +55,13 @@ package Concorde.Surfaces is
       Tile    : Surface_Tile_Index)
       return Real;
 
-   subtype Vector_3 is
-     Ada.Numerics.Long_Real_Arrays.Real_Vector (1 .. 3);
-
    type Tile_Vertex_Array is
-     array (Tile_Neighbour_Index range <>) of Vector_3;
+     array (Tile_Neighbour_Index range <>) of Xi.Matrices.Vector_3;
 
    function Tile_Centre
      (Surface : Root_Surface_Type'Class;
       Tile    : Surface_Tile_Index)
-      return Vector_3;
+      return Xi.Matrices.Vector_3;
 
    function Tile_Boundary
      (Surface : Root_Surface_Type'Class;
@@ -79,7 +78,7 @@ private
 
    type Vertex_Record is
       record
-         Position        : Vector_3;
+         Position        : Xi.Matrices.Vector_3;
          Neighbour_Count : Tile_Neighbour_Count;
          Neighbours      : Array_Of_Tile_Neighbours (Tile_Neighbour_Index);
       end record;
@@ -98,8 +97,8 @@ private
    type Tile_Vertex_Index is new Surface_Tile_Index;
 
    package Tile_Vertex_Vectors is
-     new Ada.Containers.Vectors (Tile_Vertex_Index, Vector_3,
-                                 Ada.Numerics.Long_Real_Arrays."=");
+     new Ada.Containers.Vectors (Tile_Vertex_Index, Xi.Matrices.Vector_3,
+                                 Xi.Float_Arrays."=");
 
    package Vertex_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Tile_Vertex_Index);

@@ -28,7 +28,7 @@ package body Concorde.Components.Configure is
                   (Config.Get ("shape", "cube"));
 
       function Get (Name : String) return Real
-      is (Config.Get (Name, 0.0));
+      is (Real (Float'(Config.Get (Name, 0.0))));
 
       Component : constant Component_Access :=
                     new Root_Component_Type'

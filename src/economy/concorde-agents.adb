@@ -2,6 +2,7 @@ with Ada.Exceptions;
 
 with Concorde.Logging;
 with Concorde.Random;
+with Concorde.Real_Images;
 
 package body Concorde.Agents is
 
@@ -184,7 +185,7 @@ package body Concorde.Agents is
                & "; mean "
                & Image (Mean)
                & "; favourability "
-               & Lui.Approximate_Image (Favourability)
+               & Concorde.Real_Images.Approximate_Image (Favourability)
                & "; buy price "
                & Image (Buy_Price)
                & "; limit price "
@@ -280,7 +281,7 @@ package body Concorde.Agents is
                & "; mean "
                & Image (Mean)
                & "; favourability "
-               & Lui.Approximate_Image (Favourability)
+               & Concorde.Real_Images.Approximate_Image (Favourability)
                & "; limit price "
                & Image (Limit_Price)
                & "; cash "

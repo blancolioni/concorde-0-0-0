@@ -42,7 +42,8 @@ package body Concorde.People.Skills.Configure is
       ------------
 
       procedure Create (Skill : in out Root_Pop_Skill'Class) is
-         Base_Pay : constant Real := Config.Get ("base_pay");
+         Base_Pay : constant Real :=
+                      Real (Float'(Config.Get ("base_pay")));
       begin
          Skill.Set_Local_Tag (Name);
          Skill.Base_Pay := Concorde.Money.To_Price (Base_Pay);

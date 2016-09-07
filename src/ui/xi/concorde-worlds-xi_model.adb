@@ -185,13 +185,6 @@ package body Concorde.Worlds.Xi_Model is
                       Surface.Tile_Boundary (Index);
          Result : Xi.Entity.Xi_Entity;
 
-         function Vertex
-           (V : Concorde.Surfaces.Vector_3)
-            return Xi.Matrices.Vector_3
-         is ((Xi_Float (V (1)),
-              Xi_Float (V (2)),
-              Xi_Float (V (3))));
-
          Normal : Xi.Matrices.Vector_3 := (others => 0.0);
 
       begin
@@ -202,7 +195,7 @@ package body Concorde.Worlds.Xi_Model is
          --  Result.Color (Concorde.Xi_UI.Colours.To_Xi_Color (Colour));
 
          for V of Boundary loop
-            Normal := Normal + Vertex (V);
+            Normal := Normal + V;
          end loop;
 
          Normal := Xi.Matrices.Normalise (Normal);
@@ -210,7 +203,7 @@ package body Concorde.Worlds.Xi_Model is
          for V of Boundary loop
             Result.Normal (Normal);
             Result.Color ((0.0, 0.0, 0.0, 0.0));
-            Result.Vertex (Vertex (V));
+            Result.Vertex (V);
          end loop;
 
          Result.End_Operation;
@@ -404,7 +397,7 @@ package body Concorde.Worlds.Xi_Model is
                           (Node            => Camera,
                            Transition_Time => 3.0,
                            Target_Node     => Ship_Node (Ship_Rec),
-                           Offset          => (0.0, 0.0, 100.0));
+                           Offset          => (0.0, 0.0, 50.0));
       Transition    : constant Xi_Sequential_Transition :=
                         New_Sequential_Transition;
       Callback      : constant Xi.Transition.Transition_Callback :=
@@ -421,7 +414,9 @@ package body Concorde.Worlds.Xi_Model is
       Transition.Append (Translation_2);
       Transition.Append (Translation_3);
       Transition.Append (Translation_4);
-      Transition.On_Complete (Callback);
+      if False then
+         Transition.On_Complete (Callback);
+      end if;
       Handler.Model.Scene.Add_Transition (Transition);
    end On_Select;
 

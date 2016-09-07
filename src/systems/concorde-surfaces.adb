@@ -1,10 +1,14 @@
+with Ada.Numerics;
+
 with Concorde.Elementary_Functions;
 
 package body Concorde.Surfaces is
 
    Max_Depth : constant := 5;
 
-   function Cross (Left, Right : Vector_3) return Vector_3;
+   function Cross
+     (Left, Right : Xi.Matrices.Vector_3)
+      return Xi.Matrices.Vector_3;
 
    type Vertex_Index_Map is
       record
@@ -24,7 +28,9 @@ package body Concorde.Surfaces is
      (Tile_Area : Non_Negative_Real)
       return Surface_Type
    is
-      use Ada.Numerics, Ada.Numerics.Long_Real_Arrays;
+      use Xi.Matrices, Xi.Float_Arrays;
+
+      Pi : constant := Ada.Numerics.Pi;
 
       Surface : constant Surface_Type := new Root_Surface_Type;
       Vs      : Vertex_Vectors.Vector renames Surface.Vertices;
@@ -34,7 +40,7 @@ package body Concorde.Surfaces is
 
       Vertex_Data                                    : constant array
         (Surface_Tile_Index range 1 .. 12)
-        of Vector_3 :=
+        of Xi.Matrices.Vector_3 :=
         ((-X, 0.0, Z), (X, 0.0, Z), (-X, 0.0, -Z), (X, 0.0, -Z),
          (0.0, Z, X), (0.0, Z, -X), (0.0, -Z, X), (0.0, -Z, -X),
          (Z, X, 0.0), (-Z, X, 0.0), (Z, -X, 0.0), (-Z, -X, 0.0));
@@ -236,7 +242,10 @@ package body Concorde.Surfaces is
    -- Cross --
    -----------
 
-   function Cross (Left, Right : Vector_3) return Vector_3 is
+   function Cross
+     (Left, Right : Xi.Matrices.Vector_3)
+      return Xi.Matrices.Vector_3
+   is
    begin
       return (Left (2) * Right (3) - Left (3) * Right (2),
               Left (3) * Right (1) - Left (1) * Right (3),
@@ -283,7 +292,7 @@ package body Concorde.Surfaces is
       return Real
    is
       use Concorde.Elementary_Functions;
-      V : constant Vector_3 :=
+      V : constant Xi.Matrices.Vector_3 :=
             Surface.Vertices.Element (Tile).Position;
    begin
       return Arctan (V (3), V (1), 360.0);
@@ -348,7 +357,7 @@ package body Concorde.Surfaces is
    function Tile_Centre
      (Surface : Root_Surface_Type'Class;
       Tile    : Surface_Tile_Index)
-      return Vector_3
+      return Xi.Matrices.Vector_3
    is
    begin
       return Surface.Vertices.Element (Tile).Position;
