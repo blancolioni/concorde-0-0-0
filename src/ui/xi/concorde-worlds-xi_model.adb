@@ -378,25 +378,25 @@ package body Concorde.Worlds.Xi_Model is
                         Xi.Transition.Translation.Translate
                           (Node            => Camera,
                            Transition_Time => 3.0,
-                           Target_Node     => Ship_Node (Ship_Rec),
+                           Target_Node     => Position_Node (Ship_Rec),
                            Offset          => (0.0, 0.0, 100_000.0));
       Translation_2 : constant Xi.Transition.Xi_Transition :=
                         Xi.Transition.Translation.Translate
                           (Node            => Camera,
                            Transition_Time => 3.0,
-                           Target_Node     => Ship_Node (Ship_Rec),
+                           Target_Node     => Position_Node (Ship_Rec),
                            Offset          => (0.0, 0.0, 10_000.0));
       Translation_3 : constant Xi.Transition.Xi_Transition :=
                         Xi.Transition.Translation.Translate
                           (Node            => Camera,
                            Transition_Time => 3.0,
-                           Target_Node     => Ship_Node (Ship_Rec),
+                           Target_Node     => Position_Node (Ship_Rec),
                            Offset          => (0.0, 0.0, 1_000.0));
       Translation_4 : constant Xi.Transition.Xi_Transition :=
                         Xi.Transition.Translation.Translate
                           (Node            => Camera,
                            Transition_Time => 3.0,
-                           Target_Node     => Ship_Node (Ship_Rec),
+                           Target_Node     => Position_Node (Ship_Rec),
                            Offset          => (0.0, 0.0, 50.0));
       Transition    : constant Xi_Sequential_Transition :=
                         New_Sequential_Transition;
@@ -414,9 +414,7 @@ package body Concorde.Worlds.Xi_Model is
       Transition.Append (Translation_2);
       Transition.Append (Translation_3);
       Transition.Append (Translation_4);
-      if False then
-         Transition.On_Complete (Callback);
-      end if;
+      Transition.On_Complete (Callback);
       Handler.Model.Scene.Add_Transition (Transition);
    end On_Select;
 

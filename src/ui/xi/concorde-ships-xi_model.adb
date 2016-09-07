@@ -25,7 +25,8 @@ package body Concorde.Ships.Xi_Model is
    type Active_Ship_Record is
       record
          Ship         : Ship_Type;
-         Node         : Xi.Node.Xi_Node;
+         Holder_Node  : Xi.Node.Xi_Node;
+         Ship_Node    : Xi.Node.Xi_Node;
          Local_Camera : Xi.Camera.Xi_Camera;
          Newton_Ship  : access Newton.Flight.Flight_Model'Class;
          Script       : Concorde.Scripts.Concorde_Script;
@@ -72,14 +73,16 @@ package body Concorde.Ships.Xi_Model is
                          Ship_Position (2),
                          Ship_Position (3));
       Node_Identity : constant String := Ship_Node_Identity (Ship);
-      Node          : Xi.Node.Xi_Node :=
+      Holder_Node   : Xi.Node.Xi_Node :=
                         Scene.Get_Node (Node_Identity);
+      Ship_Node     : Xi.Node.Xi_Node;
       Camera : Xi.Camera.Xi_Camera;
       Active : Active_Ship := Active_Ship_Vector.Element (Ship.Reference);
 
    begin
-      if Node = null then
-         Node := Primary.Create_Child (Node_Identity);
+      if Holder_Node = null then
+         Holder_Node := Primary.Create_Child (Node_Identity);
+         Ship_Node := Holder_Node.Create_Child;
       end if;
 
       Xi.Logging.Put ("created ship " & Ship.Name & " at ");
@@ -87,16 +90,18 @@ package body Concorde.Ships.Xi_Model is
       Xi.Logging.New_Line;
 
       --      Node.Rotate (90.0, 0.0, 1.0, 0.0);
-      Node.Set_Position (Node_Position & 1.0);
+      Holder_Node.Set_Position (Node_Position & 1.0);
 
-      Create_Module_Nodes (Ship, Node);
+      Create_Module_Nodes (Ship, Ship_Node);
 
       if True then
          declare
             use Xi.Transition.Orientation;
             Rotate : constant Xi_Orientation_Transition :=
                        New_Orientation_Transition
-                         (Node, 120.0, 360.0, 0.0, 1.0, 0.0, Cyclic => True);
+                         (Ship_Node, 120.0,
+                          360.0, 0.0, 1.0, 0.0,
+                          Cyclic => True);
          begin
             Scene.Add_Transition (Rotate);
          end;
@@ -104,17 +109,18 @@ package body Concorde.Ships.Xi_Model is
 
       if Active = null then
          Camera := Xi.Camera.Create;
-         Node.Append_Child (Camera);
+         Holder_Node.Append_Child (Camera);
          Active :=
            new Active_Ship_Record'
-             (Ship, Node, Camera,
+             (Ship, Holder_Node, Ship_Node, Camera,
               Concorde.Ships.Flight.Create_Newtonian_Ship
                 (Ship, Ship.Primary_Relative_Position, (0.0, 0.0, 0.0),
                  Newton.Matrices.Unit_Matrix (3)),
               Concorde.Scripts.Null_Script);
          Active_Ship_Vector.Replace_Element (Ship.Reference, Active);
       else
-         Active.Node := Node;
+         Active.Holder_Node := Holder_Node;
+         Active.Ship_Node := Ship_Node;
          Active.Newton_Ship.Set_Location
            (Ship.Primary_Relative_Position);
          Active.Newton_Ship.Set_Velocity ((0.0, 0.0, 0.0));
@@ -123,11 +129,9 @@ package body Concorde.Ships.Xi_Model is
          Camera := Active.Local_Camera;
       end if;
 
-      Camera.Set_Position (0.0, 0.0, -100.0);
+      Camera.Set_Position (0.0, 0.0, -50.0);
       Camera.Look_At (0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
       Camera.Perspective (45.0, 10.0, 1.0e9);
-
-      Active.Node := Node;
 
       return Active;
 
@@ -378,6 +382,18 @@ package body Concorde.Ships.Xi_Model is
       return Ship.Local_Camera;
    end Local_Camera;
 
+   -------------------
+   -- Position_Node --
+   -------------------
+
+   function Position_Node
+     (Ship : Active_Ship)
+      return Xi.Node.Xi_Node
+   is
+   begin
+      return Ship.Holder_Node;
+   end Position_Node;
+
    ------------
    -- Script --
    ------------
@@ -401,18 +417,6 @@ package body Concorde.Ships.Xi_Model is
    begin
       Ship.Script := Script;
    end Set_Script;
-
-   ---------------
-   -- Ship_Node --
-   ---------------
-
-   function Ship_Node
-     (Ship : Active_Ship)
-      return Xi.Node.Xi_Node
-   is
-   begin
-      return Ship.Node;
-   end Ship_Node;
 
    ---------------------------
    -- To_Orientation_Matrix --
@@ -514,7 +518,7 @@ package body Concorde.Ships.Xi_Model is
                             Ship_Position (2),
                             Ship_Position (3));
       begin
-         Ship.Node.Set_Position (Node_Position);
+         Ship.Holder_Node.Set_Position (Node_Position);
       end;
    end Update_Ship;
 

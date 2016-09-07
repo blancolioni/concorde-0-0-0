@@ -31,7 +31,7 @@ package Concorde.Ships.Xi_Model is
      (Ship : Active_Ship)
       return Xi.Camera.Xi_Camera;
 
-   function Ship_Node
+   function Position_Node
      (Ship : Active_Ship)
       return Xi.Node.Xi_Node;
 
