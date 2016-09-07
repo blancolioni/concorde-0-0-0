@@ -60,15 +60,17 @@ package body Concorde.Worlds.Xi_Model is
 
    Rendered_Worlds : Rendered_World_Table.Map;
 
-   type Rendered_Ship_Record is
-      record
-         Ship          : Concorde.Ships.Ship_Type;
-         Node          : Xi.Node.Xi_Node;
-         Follow_Camera : Xi.Camera.Xi_Camera;
-      end record;
+--     type Rendered_Ship_Record is
+--        record
+--           Ship          : Concorde.Ships.Ship_Type;
+--           Node          : Xi.Node.Xi_Node;
+--           Follow_Camera : Xi.Camera.Xi_Camera;
+--        end record;
 
    package Rendered_Ship_Lists is
-     new Ada.Containers.Doubly_Linked_Lists (Rendered_Ship_Record);
+     new Ada.Containers.Doubly_Linked_Lists
+       (Concorde.Ships.Xi_Model.Active_Ship,
+        Concorde.Ships.Xi_Model."=");
 
    type Root_World_Model is
      new Concorde.Xi_UI.Root_Xi_Model with
@@ -95,7 +97,7 @@ package body Concorde.Worlds.Xi_Model is
    function Ship_Record
      (Model : Root_World_Model'Class;
       Ship  : Concorde.Ships.Ship_Type)
-      return Rendered_Ship_Record;
+      return Concorde.Ships.Xi_Model.Active_Ship;
 
    type World_Model_Access is access all Root_World_Model'Class;
 
@@ -250,11 +252,11 @@ package body Concorde.Worlds.Xi_Model is
    overriding procedure Execute
      (Callback : in out Ship_Transition_Callback)
    is
-      Rec : constant Rendered_Ship_Record :=
+      Rec : constant Concorde.Ships.Xi_Model.Active_Ship :=
               Callback.Model.Ship_Record (Callback.Ship);
    begin
       Callback.Model.Scene.Use_Camera
-        (Rec.Follow_Camera);
+        (Concorde.Ships.Xi_Model.Local_Camera (Rec));
    end Execute;
 
    ---------------------
@@ -357,9 +359,8 @@ package body Concorde.Worlds.Xi_Model is
    begin
       Concorde.Xi_UI.Root_Xi_Model (Model).On_Frame_Start (Time_Delta);
       for Rendered_Ship of Model.Ships loop
-         Concorde.Ships.Xi_Model.Update_Ship_Node
-           (Rendered_Ship.Ship,
-            Rendered_Ship.Node);
+         Concorde.Ships.Xi_Model.Update_Ship
+           (Rendered_Ship);
       end loop;
    end On_Frame_Start;
 
@@ -374,8 +375,9 @@ package body Concorde.Worlds.Xi_Model is
       use Xi.Float_Arrays;
       use Xi.Matrices;
       use Xi.Transition.Container.Sequential;
+      use Concorde.Ships.Xi_Model;
 
-      Ship_Rec      : constant Rendered_Ship_Record :=
+      Ship_Rec      : constant Active_Ship :=
                         Handler.Model.Ship_Record (Handler.Ship);
       Camera        : constant Xi.Camera.Xi_Camera :=
                         Handler.Model.Scene.Default_Camera;
@@ -383,25 +385,25 @@ package body Concorde.Worlds.Xi_Model is
                         Xi.Transition.Translation.Translate
                           (Node            => Camera,
                            Transition_Time => 3.0,
-                           Target_Node     => Ship_Rec.Node,
+                           Target_Node     => Ship_Node (Ship_Rec),
                            Offset          => (0.0, 0.0, 100_000.0));
       Translation_2 : constant Xi.Transition.Xi_Transition :=
                         Xi.Transition.Translation.Translate
                           (Node            => Camera,
                            Transition_Time => 3.0,
-                           Target_Node     => Ship_Rec.Node,
+                           Target_Node     => Ship_Node (Ship_Rec),
                            Offset          => (0.0, 0.0, 10_000.0));
       Translation_3 : constant Xi.Transition.Xi_Transition :=
                         Xi.Transition.Translation.Translate
                           (Node            => Camera,
                            Transition_Time => 3.0,
-                           Target_Node     => Ship_Rec.Node,
+                           Target_Node     => Ship_Node (Ship_Rec),
                            Offset          => (0.0, 0.0, 1_000.0));
       Translation_4 : constant Xi.Transition.Xi_Transition :=
                         Xi.Transition.Translation.Translate
                           (Node            => Camera,
                            Transition_Time => 3.0,
-                           Target_Node     => Ship_Rec.Node,
+                           Target_Node     => Ship_Node (Ship_Rec),
                            Offset          => (0.0, 0.0, 100.0));
       Transition    : constant Xi_Sequential_Transition :=
                         New_Sequential_Transition;
@@ -430,16 +432,11 @@ package body Concorde.Worlds.Xi_Model is
    function Ship_Record
      (Model : Root_World_Model'Class;
       Ship  : Concorde.Ships.Ship_Type)
-      return Rendered_Ship_Record
+      return Concorde.Ships.Xi_Model.Active_Ship
    is
-      use type Concorde.Ships.Ship_Type;
+      pragma Unreferenced (Model);
    begin
-      for Rec of Model.Ships loop
-         if Rec.Ship = Ship then
-            return Rec;
-         end if;
-      end loop;
-      raise Constraint_Error with "ship not in model: " & Ship.Name;
+      return Concorde.Ships.Xi_Model.Get_Active_Ship (Ship);
    end Ship_Record;
 
    ------------------
@@ -580,21 +577,20 @@ package body Concorde.Worlds.Xi_Model is
          for Ship of Ships loop
 
             declare
-               Rec : constant Rendered_Ship_Record :=
-                       (Ship => Ship,
-                        Node => Concorde.Ships.Xi_Model.Create_Ship_Node
-                          (Ship, Scene, Ships_Node),
-                        Follow_Camera =>
-                          Xi.Camera.Create);
+               use Concorde.Ships.Xi_Model;
+               Rec : constant Active_Ship :=
+                       Activate_Ship
+                         (Ship, Scene, Ships_Node);
+               Camera : constant Xi.Camera.Xi_Camera :=
+                          Local_Camera (Rec);
             begin
-               Rec.Node.Append_Child (Rec.Follow_Camera);
-               Rec.Follow_Camera.Set_Position
+               Camera.Set_Position
                  (0.0, 0.0, 100.0);
-               Rec.Follow_Camera.Look_At
+               Camera.Look_At
                  (0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
-               Rec.Follow_Camera.Set_Viewport
+               Camera.Set_Viewport
                  (Model.Renderer.Full_Viewport);
-               Rec.Follow_Camera.Perspective
+               Camera.Perspective
                  (45.0, 10.0, 1.0e9);
 
                Model.Ships.Append (Rec);
