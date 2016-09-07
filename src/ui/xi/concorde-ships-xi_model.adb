@@ -9,6 +9,7 @@ with Xi.Float_Arrays;
 with Xi.Logging;
 with Xi.Materials.Material;
 with Xi.Matrices;
+with Xi.Render_Operation;
 with Xi.Shapes;
 --  with Xi.Value;
 
@@ -45,9 +46,13 @@ package body Concorde.Ships.Xi_Model is
    function Ship_Node_Identity (Ship : Ship_Type) return String
    is ("[ship]" & Ship.Identifier);
 
-   ----------------------
-   -- Create_Ship_Node --
-   ----------------------
+   procedure Create_Panel
+     (Entity     : Xi.Entity.Xi_Entity;
+      X1, X2     : Xi.Xi_Float;
+      Y1, Y2     : Xi.Xi_Float;
+      Z1, Z2     : Xi.Xi_Float;
+      Clockwise  : Boolean;
+      Panel_Size : Xi.Xi_Non_Negative_Float := 1.0);
 
    function Activate_Ship
      (Ship    : Ship_Type;
@@ -62,14 +67,13 @@ package body Concorde.Ships.Xi_Model is
       Ship_Position : constant Newton.Vector_3 :=
                         Ship.Primary_Relative_Position;
       Node_Position : constant Xi.Matrices.Vector_3 :=
-                        (Xi_Float (Ship_Position (1)),
-                         Xi_Float (Ship_Position (2)),
-                         Xi_Float (Ship_Position (3)));
+                        (Ship_Position (1),
+                         Ship_Position (2),
+                         Ship_Position (3));
       Node_Identity : constant String := Ship_Node_Identity (Ship);
       Node          : Xi.Node.Xi_Node :=
                         Scene.Get_Node (Node_Identity);
-      Camera : constant Xi.Camera.Xi_Camera :=
-                 Xi.Camera.Create;
+      Camera : Xi.Camera.Xi_Camera;
       Active : Active_Ship := Active_Ship_Vector.Element (Ship.Reference);
 
    begin
@@ -83,22 +87,23 @@ package body Concorde.Ships.Xi_Model is
 
       --      Node.Rotate (90.0, 0.0, 1.0, 0.0);
       Node.Set_Position (Node_Position & 1.0);
-      Node.Append_Child (Camera);
 
       Create_Module_Nodes (Ship, Node);
 
-      if False then
+      if True then
          declare
             use Xi.Transition.Orientation;
             Rotate : constant Xi_Orientation_Transition :=
                        New_Orientation_Transition
-                         (Node, 120.0, 360.0, 0.0, 0.0, 1.0, Cyclic => True);
+                         (Node, 120.0, 360.0, 0.0, 1.0, 0.0, Cyclic => True);
          begin
             Scene.Add_Transition (Rotate);
          end;
       end if;
 
       if Active = null then
+         Camera := Xi.Camera.Create;
+         Node.Append_Child (Camera);
          Active :=
            new Active_Ship_Record'
              (Ship, Node, Camera,
@@ -113,7 +118,12 @@ package body Concorde.Ships.Xi_Model is
          Active.Newton_Ship.Set_Velocity ((0.0, 0.0, 0.0));
          Active.Newton_Ship.Set_Orientation
            (Newton.Matrices.Unit_Matrix (3));
+         Camera := Active.Local_Camera;
       end if;
+
+      Camera.Set_Position (0.0, 0.0, -100.0);
+      Camera.Look_At (0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
+      Camera.Perspective (45.0, 10.0, 1.0e9);
 
       Active.Node := Node;
 
@@ -203,15 +213,144 @@ package body Concorde.Ships.Xi_Model is
                   Node.Scale (DX, DY, DZ);
 
                when Rectangular_Prism | Hexagonal_Prism | Cube =>
-                  Node.Set_Entity
-                    (Xi.Shapes.Cube);
-                  Node.Scale (DX, DY, DZ);
+                  declare
+                     Entity : constant Xi.Entity.Xi_Entity :=
+                                Xi.Entity.Create;
+                  begin
+
+                     Entity.Begin_Operation
+                       (Xi.Render_Operation.Triangle_List);
+
+                     Create_Panel (Entity, -DX, DX, -DY, DY, -DZ, -DZ, True);
+                     Create_Panel (Entity, -DX, DX, -DY, DY, DZ, DZ, False);
+                     Create_Panel (Entity, -DX, DX, -DY, -DY, -DZ, DZ, True);
+                     Create_Panel (Entity, -DX, DX, DY, DY, -DZ, DZ, False);
+                     Create_Panel (Entity, -DX, -DX, -DY, DY, -DZ, DZ, True);
+                     Create_Panel (Entity, DX, DX, -DY, DY, -DZ, DZ, False);
+
+                     Entity.End_Operation;
+
+                     Node.Set_Entity (Entity);
+                  end;
             end case;
 
             Node.Entity.Set_Material (Material);
+
          end;
       end loop;
    end Create_Module_Nodes;
+
+   ------------------
+   -- Create_Panel --
+   ------------------
+
+   procedure Create_Panel
+     (Entity     : Xi.Entity.Xi_Entity;
+      X1, X2     : Xi.Xi_Float;
+      Y1, Y2     : Xi.Xi_Float;
+      Z1, Z2     : Xi.Xi_Float;
+      Clockwise  : Boolean;
+      Panel_Size : Xi.Xi_Non_Negative_Float := 1.0)
+   is
+      use Xi;
+
+      DX : constant Xi_Float := X2 - X1;
+      DY : constant Xi_Float := Y2 - Y1;
+      DZ : constant Xi_Float := Z2 - Z1;
+
+      Step_X : constant Xi_Signed_Unit_Float :=
+                 (if DX < 0.0 then -1.0 elsif DX > 0.0 then 1.0 else 0.0);
+      Step_Y : constant Xi_Signed_Unit_Float :=
+                 (if DY < 0.0 then -1.0 elsif DY > 0.0 then 1.0 else 0.0);
+      Step_Z : constant Xi_Signed_Unit_Float :=
+                 (if DZ < 0.0 then -1.0 elsif DZ > 0.0 then 1.0 else 0.0);
+
+      X  : Xi_Float := Xi_Float'Min (X1, X2);
+      Y  : Xi_Float := Xi_Float'Min (Y1, Y2);
+      Z  : Xi_Float := Xi_Float'Min (Z1, Z2);
+
+      Pieces : constant Natural :=
+                 Natural (Xi_Float'Max (abs DX, 1.0)
+                          * Xi_Float'Max (abs DY, 1.0)
+                          * Xi_Float'Max (abs DZ, 1.0)
+                          / Panel_Size / Panel_Size);
+
+      procedure Vertex (A, B : Xi_Unit_Float);
+
+      ------------
+      -- Vertex --
+      ------------
+
+      procedure Vertex (A, B : Xi_Unit_Float) is
+         procedure V (X, Y, Z : Xi_Float);
+
+         -------
+         -- V --
+         -------
+
+         procedure V (X, Y, Z : Xi_Float) is
+         begin
+            Entity.Vertex (X, Y, Z);
+         end V;
+
+      begin
+         Entity.Texture_Coordinate (A, B);
+
+         if DX = 0.0 then
+            Entity.Normal (1.0, 0.0, 0.0);
+            V (X, Y + A * Panel_Size, Z + B * Panel_Size);
+         elsif DY = 0.0 then
+            Entity.Normal (0.0, 1.0, 0.0);
+            V (X + B * Panel_Size, Y, Z + A * Panel_Size);
+         else
+            Entity.Normal (0.0, 0.0, 1.0);
+            V (X + A * Panel_Size, Y + B * Panel_Size, Z);
+         end if;
+      end Vertex;
+
+   begin
+
+      for I in 1 .. Pieces loop
+         if Clockwise then
+            Vertex (0.0, 1.0);
+            Vertex (1.0, 0.0);
+            Vertex (0.0, 0.0);
+
+            Vertex (0.0, 1.0);
+            Vertex (1.0, 1.0);
+            Vertex (1.0, 0.0);
+         else
+            Vertex (0.0, 0.0);
+            Vertex (1.0, 0.0);
+            Vertex (0.0, 1.0);
+
+            Vertex (1.0, 0.0);
+            Vertex (1.0, 1.0);
+            Vertex (0.0, 1.0);
+         end if;
+
+         if Step_X = 0.0 then
+            Y := Y + Step_Y;
+            if Y >= Y2 then
+               Y := Y1;
+               Z := Z + Step_Z;
+            end if;
+         elsif Step_Y = 0.0 then
+            Z := Z + Step_Z;
+            if Z >= Z2 then
+               Z := Z1;
+               X := X + Step_X;
+            end if;
+         else
+            X := X + Step_X;
+            if X >= X2 then
+               X := X1;
+               Y := Y + Step_Y;
+            end if;
+         end if;
+
+      end loop;
+   end Create_Panel;
 
    ---------------------
    -- Get_Active_Ship --
@@ -308,9 +447,9 @@ package body Concorde.Ships.Xi_Model is
       Ship_Position      : constant Newton.Vector_3 :=
                              Ship.Primary_Relative_Position;
       Target_Position    : constant Xi.Matrices.Vector_3 :=
-                             (Xi_Float (Ship_Position (1) - 50.0),
-                              Xi_Float (Ship_Position (2)),
-                              Xi_Float (Ship_Position (3)));
+                             (Ship_Position (1) - 50.0,
+                              Ship_Position (2),
+                              Ship_Position (3));
       Target_Orientation : constant Xi.Matrices.Matrix_3 :=
                              Xi.Matrices.Rotation_Matrix
                                (-90.0, (0.0, 1.0, 0.0));
@@ -338,9 +477,9 @@ package body Concorde.Ships.Xi_Model is
       Ship_Position : constant Newton.Vector_3 :=
                         Ship.Ship.Primary_Relative_Position;
       Node_Position : constant Xi.Matrices.Vector_3 :=
-                        (Xi_Float (Ship_Position (1)),
-                         Xi_Float (Ship_Position (2)),
-                         Xi_Float (Ship_Position (3)));
+                        (Ship_Position (1),
+                         Ship_Position (2),
+                         Ship_Position (3));
    begin
       Ship.Node.Set_Position (Node_Position);
    end Update_Ship;
