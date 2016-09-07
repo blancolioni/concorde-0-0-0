@@ -1,5 +1,7 @@
 --  with Lui.Colours;
 
+with Memor.Element_Vectors;
+
 with Xi.Assets;
 --  with Xi.Color;
 with Xi.Entity;
@@ -11,10 +13,26 @@ with Xi.Shapes;
 --  with Xi.Value;
 
 with Concorde.Transitions;
+with Concorde.Ships.Flight;
 
 with Xi.Transition.Orientation;
 
+with Newton.Flight;
+
 package body Concorde.Ships.Xi_Model is
+
+   type Active_Ship_Record is
+      record
+         Ship         : Ship_Type;
+         Node         : Xi.Node.Xi_Node;
+         Local_Camera : Xi.Camera.Xi_Camera;
+         Newton_Ship  : access Newton.Flight.Flight_Model'Class;
+      end record;
+
+   package Active_Ship_Vectors is
+     new Memor.Element_Vectors (Active_Ship, null);
+
+   Active_Ship_Vector : Active_Ship_Vectors.Vector;
 
    procedure Create_Module_Nodes
      (Ship : Ship_Type;
@@ -23,6 +41,85 @@ package body Concorde.Ships.Xi_Model is
    function To_Orientation_Matrix
      (Orientation : Concorde.Ships.Module_Orientation)
       return Xi.Matrices.Matrix_4;
+
+   function Ship_Node_Identity (Ship : Ship_Type) return String
+   is ("[ship]" & Ship.Identifier);
+
+   ----------------------
+   -- Create_Ship_Node --
+   ----------------------
+
+   function Activate_Ship
+     (Ship    : Ship_Type;
+      Scene   : Xi.Scene.Xi_Scene;
+      Primary : Xi.Node.Xi_Node)
+      return Active_Ship
+   is
+      use Xi;
+      use Xi.Float_Arrays;
+      use type Xi.Entity.Xi_Entity;
+      use type Xi.Node.Xi_Node;
+      Ship_Position : constant Newton.Vector_3 :=
+                        Ship.Primary_Relative_Position;
+      Node_Position : constant Xi.Matrices.Vector_3 :=
+                        (Xi_Float (Ship_Position (1)),
+                         Xi_Float (Ship_Position (2)),
+                         Xi_Float (Ship_Position (3)));
+      Node_Identity : constant String := Ship_Node_Identity (Ship);
+      Node          : Xi.Node.Xi_Node :=
+                        Scene.Get_Node (Node_Identity);
+      Camera : constant Xi.Camera.Xi_Camera :=
+                 Xi.Camera.Create;
+      Active : Active_Ship := Active_Ship_Vector.Element (Ship.Reference);
+
+   begin
+      if Node = null then
+         Node := Primary.Create_Child (Node_Identity);
+      end if;
+
+      Xi.Logging.Put ("created ship " & Ship.Name & " at ");
+      Xi.Logging.Put (Node_Position);
+      Xi.Logging.New_Line;
+
+      --      Node.Rotate (90.0, 0.0, 1.0, 0.0);
+      Node.Set_Position (Node_Position & 1.0);
+      Node.Append_Child (Camera);
+
+      Create_Module_Nodes (Ship, Node);
+
+      if False then
+         declare
+            use Xi.Transition.Orientation;
+            Rotate : constant Xi_Orientation_Transition :=
+                       New_Orientation_Transition
+                         (Node, 120.0, 360.0, 0.0, 0.0, 1.0, Cyclic => True);
+         begin
+            Scene.Add_Transition (Rotate);
+         end;
+      end if;
+
+      if Active = null then
+         Active :=
+           new Active_Ship_Record'
+             (Ship, Node, Camera,
+              Concorde.Ships.Flight.Create_Newtonian_Ship
+                (Ship, Ship.Primary_Relative_Position, (0.0, 0.0, 0.0),
+                 Newton.Matrices.Unit_Matrix (3)));
+         Active_Ship_Vector.Replace_Element (Ship.Reference, Active);
+      else
+         Active.Node := Node;
+         Active.Newton_Ship.Set_Location
+           (Ship.Primary_Relative_Position);
+         Active.Newton_Ship.Set_Velocity ((0.0, 0.0, 0.0));
+         Active.Newton_Ship.Set_Orientation
+           (Newton.Matrices.Unit_Matrix (3));
+      end if;
+
+      Active.Node := Node;
+
+      return Active;
+
+   end Activate_Ship;
 
    -------------------------
    -- Create_Module_Nodes --
@@ -116,50 +213,41 @@ package body Concorde.Ships.Xi_Model is
       end loop;
    end Create_Module_Nodes;
 
-   ----------------------
-   -- Create_Ship_Node --
-   ----------------------
+   ---------------------
+   -- Get_Active_Ship --
+   ---------------------
 
-   function Create_Ship_Node
-     (Ship    : Ship_Type;
-      Scene   : Xi.Scene.Xi_Scene;
-      Primary : Xi.Node.Xi_Node)
+   function Get_Active_Ship
+     (Ship : Ship_Type)
+      return Active_Ship
+   is
+   begin
+      return Active_Ship_Vector.Element (Ship.Reference);
+   end Get_Active_Ship;
+
+   ------------------
+   -- Local_Camera --
+   ------------------
+
+   function Local_Camera
+     (Ship : Active_Ship)
+      return Xi.Camera.Xi_Camera
+   is
+   begin
+      return Ship.Local_Camera;
+   end Local_Camera;
+
+   ---------------
+   -- Ship_Node --
+   ---------------
+
+   function Ship_Node
+     (Ship : Active_Ship)
       return Xi.Node.Xi_Node
    is
-      use Xi;
-      use Xi.Float_Arrays;
-      use type Xi.Entity.Xi_Entity;
-      Ship_Position : constant Newton.Vector_3 :=
-                        Ship.Primary_Relative_Position;
-      Node_Position : constant Xi.Matrices.Vector_3 :=
-                        (Xi_Float (Ship_Position (1)),
-                         Xi_Float (Ship_Position (2)),
-                         Xi_Float (Ship_Position (3)));
-      Node          : constant Xi.Node.Xi_Node :=
-                        Primary.Create_Child (Ship.Name);
    begin
-      Xi.Logging.Put ("created ship " & Ship.Name & " at ");
-      Xi.Logging.Put (Node_Position);
-      Xi.Logging.New_Line;
-
---      Node.Rotate (90.0, 0.0, 1.0, 0.0);
-      Node.Set_Position (Node_Position & 1.0);
-
-      Create_Module_Nodes (Ship, Node);
-
-      if False then
-         declare
-            use Xi.Transition.Orientation;
-            Rotate : constant Xi_Orientation_Transition :=
-                       New_Orientation_Transition
-                         (Node, 120.0, 360.0, 0.0, 0.0, 1.0, Cyclic => True);
-         begin
-            Scene.Add_Transition (Rotate);
-         end;
-      end if;
-
-      return Node;
-   end Create_Ship_Node;
+      return Ship.Node;
+   end Ship_Node;
 
    ---------------------------
    -- To_Orientation_Matrix --
@@ -237,25 +325,24 @@ package body Concorde.Ships.Xi_Model is
       Model.Add_Transition (Ship_Transition);
    end Transit_To_Ship;
 
-   ----------------------
-   -- Update_Ship_Node --
-   ----------------------
+   -----------------
+   -- Update_Ship --
+   -----------------
 
-   procedure Update_Ship_Node
-     (Ship : Ship_Type;
-      Node : Xi.Node.Xi_Node)
+   procedure Update_Ship
+     (Ship : Active_Ship)
    is
       use Xi;
       use Xi.Float_Arrays;
       use type Xi.Entity.Xi_Entity;
       Ship_Position : constant Newton.Vector_3 :=
-                        Ship.Primary_Relative_Position;
+                        Ship.Ship.Primary_Relative_Position;
       Node_Position : constant Xi.Matrices.Vector_3 :=
                         (Xi_Float (Ship_Position (1)),
                          Xi_Float (Ship_Position (2)),
                          Xi_Float (Ship_Position (3)));
    begin
-      Node.Set_Position (Node_Position);
-   end Update_Ship_Node;
+      Ship.Node.Set_Position (Node_Position);
+   end Update_Ship;
 
 end Concorde.Ships.Xi_Model;
