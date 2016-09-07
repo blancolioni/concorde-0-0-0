@@ -40,7 +40,7 @@ package body Concorde.Locations is
             return null;
          when Interstellar =>
             return null;
-         when Orbit | World_Surface =>
+         when Orbit | World_Surface | System_Point =>
             return Concorde.Systems.Star_System_Object_Interface'Class
               (Location.Reference.all).System;
          when On_Ship =>
@@ -249,6 +249,10 @@ package body Concorde.Locations is
               & " -> "
               & Concorde.Systems.Star_System_Type
               (Location.Destination_System).Name;
+         when System_Point =>
+            return "near "
+              & Concorde.Systems.Star_System_Type
+              (Location.Destination_System).Name;
          when Orbit =>
             return "orbiting "
               & Concorde.Systems.Star_System_Object_Interface'Class
@@ -268,6 +272,22 @@ package body Concorde.Locations is
             return "in unit";
       end case;
    end Short_Name;
+
+   ------------------
+   -- System_Point --
+   ------------------
+
+   function System_Point
+     (Primary           : not null access constant
+        Concorde.Systems.Star_System_Object_Interface'Class;
+      Relative_Position : Newton.Vector_3;
+      Relative_Velocity : Newton.Vector_3)
+      return Object_Location
+   is
+   begin
+      return (System_Point, Concorde.Systems.Star_System_Type (Primary),
+              Relative_Position, Relative_Velocity);
+   end System_Point;
 
    ---------------------------
    -- System_Transfer_Orbit --

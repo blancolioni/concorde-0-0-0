@@ -10,7 +10,7 @@ package Concorde.Locations is
 
    type Location_Type is
      (Nowhere,
-      Interstellar, Orbit,
+      Interstellar, System_Point, Orbit,
       World_Surface, On_Ship, At_Installation, In_Unit);
 
    type Object_Location (Loc_Type : Location_Type := Nowhere) is private;
@@ -59,6 +59,13 @@ package Concorde.Locations is
      (Primary        : not null access constant
         Concorde.Objects.Massive_Object_Interface'Class;
       Altitude       : Real)
+      return Object_Location;
+
+   function System_Point
+     (Primary           : not null access constant
+        Concorde.Systems.Star_System_Object_Interface'Class;
+      Relative_Position : Newton.Vector_3;
+      Relative_Velocity : Newton.Vector_3)
       return Object_Location;
 
    function World_Surface
@@ -120,6 +127,9 @@ private
                Destination_System : access constant
                  Concorde.Objects.Root_Object_Type'Class;
                Progress           : Unit_Real;
+            when System_Point =>
+               Relative_Position  : Newton.Vector_3;
+               Relative_Velocity  : Newton.Vector_3;
             when Orbit =>
                Angle              : Concorde.Geometry.Radians;
                Apoapsis           : Newton.Vector_3;
