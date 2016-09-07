@@ -2,6 +2,8 @@ with Ada.Text_IO;
 with Ada.Exceptions;
 
 with Concorde.Constants;
+with Concorde.Solar_System;
+
 with Concorde.Elementary_Functions;
 
 with Concorde.Locations;
@@ -249,6 +251,54 @@ package body Concorde.Systems is
    begin
       return System.Boundary.all;
    end Influence_Boundary;
+
+   ------------------------
+   -- Jump_Arrival_Point --
+   ------------------------
+
+   function Jump_Arrival_Point
+     (Arrival_System   : Root_Star_System_Type'Class;
+      Departure_System : not null access Root_Star_System_Type'Class)
+      return Newton.Vector_3
+   is
+      use Newton.Matrices;
+      Start  : constant Newton.Vector_3 :=
+                 (Departure_System.X, Departure_System.Y, Departure_System.Z);
+      Finish : constant Newton.Vector_3 :=
+                 (Arrival_System.X, Arrival_System.Y, Arrival_System.Z);
+
+      Vector : constant Newton.Vector_3 := abs (Start - Finish);
+      Distance : constant Non_Negative_Real :=
+                   Arrival_System.Main_Object.Mass
+                     / Concorde.Solar_System.Solar_Mass
+                   * 5.0 * Concorde.Solar_System.Earth_Orbit;
+   begin
+      return Vector * Distance;
+   end Jump_Arrival_Point;
+
+   --------------------------
+   -- Jump_Departure_Point --
+   --------------------------
+
+   function Jump_Departure_Point
+     (From : Root_Star_System_Type'Class;
+      To   : not null access Root_Star_System_Type'Class)
+      return Newton.Vector_3
+   is
+      use Newton.Matrices;
+      Start  : constant Newton.Vector_3 :=
+                 (From.X, From.Y, From.Z);
+      Finish : constant Newton.Vector_3 :=
+                 (To.X, To.Y, To.Z);
+
+      Vector : constant Newton.Vector_3 := abs (Finish - Start);
+      Distance : constant Non_Negative_Real :=
+                   From.Main_Object.Mass
+                     / Concorde.Solar_System.Solar_Mass
+                   * 10.0 * Concorde.Solar_System.Earth_Orbit;
+   begin
+      return Vector * Distance;
+   end Jump_Departure_Point;
 
    -----------------
    -- Last_Battle --

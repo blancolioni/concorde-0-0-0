@@ -78,6 +78,11 @@ package body Concorde.Colonies.Configure is
 
       use Concorde.Quantities;
 
+      function Get (Name : String;
+                    Default : Real)
+                    return Real
+      is (Real (Float'(Template.Get (Name, Float (Default)))));
+
       package Skilled_Pop_Vectors is
         new Memor.Element_Vectors (Quantity, Zero);
 
@@ -557,7 +562,7 @@ package body Concorde.Colonies.Configure is
            Facility => Concorde.Facilities.Colony_Hub,
            Cash     =>
              Concorde.Money.To_Money
-               (Template.Get ("cash", 10_000.0)),
+               (Get ("cash", 10_000.0)),
            Owner    => World.Owner);
 
       Government :=
@@ -566,7 +571,7 @@ package body Concorde.Colonies.Configure is
              Concorde.Worlds.Db.Reference (World),
            Cash              =>
              Concorde.Money.To_Money
-               (Template.Get ("cash", 10_000.0)),
+               (Get ("cash", 10_000.0)),
            Owner             => World.Owner,
            Headquarters      => Hub,
            Basic_Living_Wage =>

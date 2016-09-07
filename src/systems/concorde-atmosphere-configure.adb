@@ -39,18 +39,22 @@ package body Concorde.Atmosphere.Configure is
       ------------
 
       procedure Create (Gas : in out Root_Gas_Type'Class) is
+
+         function Get (Name : String) return Real
+         is (Real (Float'(Config.Get (Name))));
+
       begin
          Gas.Set_Local_Tag (Config.Config_Name);
          Gas.Formula :=
            new String'(Config.Get ("formula", Config.Config_Name));
-         Gas.Molecular_Weight := Config.Get ("weight");
-         Gas.Melting_Point := Config.Get ("mp");
-         Gas.Boiling_Point := Config.Get ("bp");
-         Gas.Density := Config.Get ("density");
-         Gas.Abundance_E := Config.Get ("abunde");
-         Gas.Abundance_S := Config.Get ("abunds");
-         Gas.Reactivity := Config.Get ("react");
-         Gas.Max_IPP := Config.Get ("max_ipp");
+         Gas.Molecular_Weight := Get ("weight");
+         Gas.Melting_Point := Get ("mp");
+         Gas.Boiling_Point := Get ("bp");
+         Gas.Density := Get ("density");
+         Gas.Abundance_E := Get ("abunde");
+         Gas.Abundance_S := Get ("abunds");
+         Gas.Reactivity := Get ("react");
+         Gas.Max_IPP := Get ("max_ipp");
       end Create;
 
    begin

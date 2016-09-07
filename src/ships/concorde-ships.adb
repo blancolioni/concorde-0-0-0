@@ -4,6 +4,7 @@ with Concorde.Systems;
 
 with Concorde.Money;
 with Concorde.Random;
+with Concorde.Real_Images;
 
 with Concorde.Commodities.Db;
 with Concorde.Empires.Db;
@@ -962,7 +963,7 @@ package body Concorde.Ships is
             & ": repairing" & Remaining'Img
             & " damage from " & Module.Name
             & " with damage "
-            & Lui.Approximate_Image (Module.Damage));
+            & Concorde.Real_Images.Approximate_Image (Module.Damage));
          Module.Repair (Remaining);
       end Update;
 

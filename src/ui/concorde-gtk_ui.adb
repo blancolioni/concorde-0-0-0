@@ -234,7 +234,8 @@ package body Concorde.Gtk_UI is
    is
       pragma Unreferenced (Button);
    begin
-      Concorde.Updates.Set_Update_Speed (0);
+      null;
+--        Concorde.Updates.Set_Update_Speed (0);
    end On_Pause_Button_Clicked;
 
    ------------------------------
@@ -246,7 +247,8 @@ package body Concorde.Gtk_UI is
    is
       pragma Unreferenced (Button);
    begin
-      Concorde.Updates.Set_Update_Speed (1);
+      null;
+--        Concorde.Updates.Set_Update_Speed (1);
    end On_Play_1_Button_Clicked;
 
    ------------------------------
@@ -258,7 +260,8 @@ package body Concorde.Gtk_UI is
    is
       pragma Unreferenced (Button);
    begin
-      Concorde.Updates.Set_Update_Speed (4);
+      null;
+--        Concorde.Updates.Set_Update_Speed (4);
    end On_Play_2_Button_Clicked;
 
    ----------------------------
@@ -396,7 +399,7 @@ package body Concorde.Gtk_UI is
                            Info_Boxes     => Info_Boxes,
                            Property_List  => Property_List,
                            Date_Label     => Date_Label,
-                           Last_Date      => 0,
+                           Last_Date      => Concorde.Dates.Zero_Date,
                            Status_Bar     => Status_Bar,
                            Status_Context =>
                              Status_Bar.Get_Context_Id ("star mouseover"),

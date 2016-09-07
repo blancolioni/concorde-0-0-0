@@ -20,15 +20,20 @@ with Concorde.Empires.Logging;
 
 package body Concorde.Updates is
 
-   Update_Delay : constant array (Update_Speed) of Duration :=
-                    (0.1, 2.0, 1.0, 0.5, 0.2, 0.01);
+--     Update_Delay : constant array (Update_Speed) of Duration :=
+--                      (0.1, 2.0, 1.0, 0.5, 0.2, 0.01);
 
    task type Update_Task is
+      entry Daily_Update;
       entry Stop;
-      entry Set_Speed (New_Speed : Update_Speed);
    end Update_Task;
 
    type Update_Task_Access is access Update_Task;
+
+   task Date_Manager_Task is
+      entry Set_Speed_Factor (Factor : Non_Negative_Real);
+      entry Tick (Actual_Seconds : Duration);
+   end Date_Manager_Task;
 
    procedure Free is
      new Ada.Unchecked_Deallocation (Update_Task, Update_Task_Access);
@@ -49,6 +54,40 @@ package body Concorde.Updates is
       Render_Lock.Exclusive;
    end Begin_Render;
 
+   -----------------------
+   -- Date_Manager_Task --
+   -----------------------
+
+   task body Date_Manager_Task is
+      use type Concorde.Dates.Day_Index;
+      Current_Day : Concorde.Dates.Day_Index := 1;
+      Current_Acceleration : Non_Negative_Real := 0.0;
+   begin
+      loop
+         select
+            accept Tick (Actual_Seconds : in Duration) do
+               Concorde.Dates.Tick
+                 (Actual_Seconds * Duration (Current_Acceleration));
+            end Tick;
+
+            if Concorde.Dates.Get_Day (Concorde.Dates.Current_Date)
+              /= Current_Day
+            then
+               Current_Day :=
+                 Concorde.Dates.Get_Day (Concorde.Dates.Current_Date);
+               Current_Update_Task.Daily_Update;
+            end if;
+         or
+            accept Set_Speed_Factor (Factor : in Non_Negative_Real) do
+               Current_Acceleration := Factor;
+            end Set_Speed_Factor;
+         or
+            terminate;
+         end select;
+      end loop;
+
+   end Date_Manager_Task;
+
    -------------------
    -- Finish_Render --
    -------------------
@@ -68,7 +107,6 @@ package body Concorde.Updates is
    is
    begin
       Render_Lock.Exclusive;
-      Concorde.Dates.Tick;
 
       Concorde.Logging.Start_Update;
 
@@ -108,17 +146,14 @@ package body Concorde.Updates is
       Render_Lock.Unlock;
    end Perform_Update;
 
-   ----------------------
-   -- Set_Update_Speed --
-   ----------------------
+   ---------------------------
+   -- Set_Time_Acceleration --
+   ---------------------------
 
-   procedure Set_Update_Speed
-     (Speed : Update_Speed)
-   is
+   procedure Set_Time_Acceleration (Acceleration : Non_Negative_Real) is
    begin
-      Concorde.Galaxy.Complete_Battles;
-      Current_Update_Task.Set_Speed (Speed);
-   end Set_Update_Speed;
+      Date_Manager_Task.Set_Speed_Factor (Acceleration);
+   end Set_Time_Acceleration;
 
    -------------------
    -- Start_Updates --
@@ -142,34 +177,34 @@ package body Concorde.Updates is
       Free (Current_Update_Task);
    end Stop_Updates;
 
+   ----------
+   -- Tick --
+   ----------
+
+   procedure Tick
+     (Actual_Seconds : Duration)
+   is
+   begin
+      Date_Manager_Task.Tick (Actual_Seconds);
+   end Tick;
+
    -----------------
    -- Update_Task --
    -----------------
 
    task body Update_Task is
-      Speed : Update_Speed := 0;
    begin
       loop
          select
             accept Stop;
             exit;
          or
-            accept Set_Speed (New_Speed : in Update_Speed) do
-               Speed := New_Speed;
-            end Set_Speed;
-         else
-            delay Update_Delay (Speed);
-            if Speed > 0 then
-               Perform_Update
-                 (Execute_Battles  => not Show_Battle_Screen,
-                  Check_Invariants => Check_Invariants);
-
-               if Concorde.Galaxy.Battle_Count > 0
-                 and then Show_Battle_Screen
-               then
-                  Speed := 0;
-               end if;
-            end if;
+            accept Daily_Update;
+            Perform_Update
+              (Execute_Battles  => not Show_Battle_Screen,
+               Check_Invariants => Check_Invariants);
+         or
+            terminate;
          end select;
       end loop;
    end Update_Task;

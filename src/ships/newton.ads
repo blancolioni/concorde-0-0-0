@@ -1,11 +1,11 @@
-with Ada.Numerics.Long_Real_Arrays;
+with Xi.Float_Arrays;
 
 package Newton is
 
-   subtype Real is Long_Float;
+   subtype Real is Xi.Xi_Float;
    subtype Unit_Real is Real range 0.0 .. 1.0;
 
-   package Matrices renames Ada.Numerics.Long_Real_Arrays;
+   package Matrices renames Xi.Float_Arrays;
 
    subtype Vector_3 is Matrices.Real_Vector (1 .. 3);
 

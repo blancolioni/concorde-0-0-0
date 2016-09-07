@@ -1,5 +1,7 @@
 with Ada.Text_IO;
 
+with Concorde.Real_Images;
+
 with Concorde.Galaxy;
 with Concorde.Locations;
 with Concorde.Markets;
@@ -531,21 +533,21 @@ package body Concorde.Empires.Create is
                               Ada.Text_IO.Put_Line
                                 ("Rejecting " & W.Name &
                                    " because min temperature is "
-                                 & Lui.Approximate_Image
+                                 & Concorde.Real_Images.Approximate_Image
                                    (W.Minimum_Temperature - 273.0)
                                  & " degrees");
                            elsif W.Maximum_Temperature > 3730.0 then
                               Ada.Text_IO.Put_Line
                                 ("Rejecting " & W.Name &
                                    " because max temperature is "
-                                 & Lui.Approximate_Image
+                                 & Concorde.Real_Images.Approximate_Image
                                    (W.Maximum_Temperature - 273.0)
                                  & " degrees");
                            elsif W.Hydrosphere not in 0.2 .. 0.75 then
                               Ada.Text_IO.Put_Line
                                 ("Rejecting " & W.Name &
                                    " because hydrosphere is "
-                                 & Lui.Approximate_Image
+                                 & Concorde.Real_Images.Approximate_Image
                                    (W.Hydrosphere * 100.0)
                                  & "%");
                            else

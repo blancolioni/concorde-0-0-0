@@ -184,9 +184,11 @@ package body Concorde.Galaxy.Updates is
 
       Concorde.Worlds.Db.Iterate (Update_World'Access);
 
-      Concorde.Galaxy.Ships.Start_Ship_Moves;
-      Concorde.Ships.Updates.Update_Ship_Movement;
-      Concorde.Galaxy.Ships.Commit_Ship_Moves;
+      if False then
+         Concorde.Galaxy.Ships.Start_Ship_Moves;
+         Concorde.Ships.Updates.Update_Ship_Movement;
+         Concorde.Galaxy.Ships.Commit_Ship_Moves;
+      end if;
 
       Concorde.Worlds.Db.Iterate
         (Concorde.Worlds.Updates.Update_World'Access);

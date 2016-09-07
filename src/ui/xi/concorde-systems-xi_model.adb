@@ -209,11 +209,9 @@ package body Concorde.Systems.Xi_Model is
          Orbital_Offset : constant Radians :=
                             World.Orbit_Progress;
          Position : constant Xi.Matrices.Vector_3 :=
-                      (Xi_Float
-                         (AU * Cos (Orbital_Offset)),
+                      (AU * Cos (Orbital_Offset),
                        0.0,
-                       Xi_Float
-                         (AU * Sin (Orbital_Offset)));
+                       AU * Sin (Orbital_Offset));
          Target_Position : constant Xi.Matrices.Vector_3 :=
                              Position + (0.0, 0.0, 0.015);
          Target_Orientation : constant Xi.Matrices.Matrix_3 :=

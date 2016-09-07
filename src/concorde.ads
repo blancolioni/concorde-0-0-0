@@ -1,8 +1,10 @@
-with Lui;
+with Xi;
 
 package Concorde is
 
-   subtype Real is Lui.Real;
+   use type Xi.Xi_Float;
+
+   subtype Real is Xi.Xi_Float;
 
    subtype Unit_Real is Real range 0.0 .. 1.0;
    subtype Signed_Unit_Real is Real range -1.0 .. 1.0;

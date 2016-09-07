@@ -1,3 +1,4 @@
+with Concorde.Real_Images;
 with Concorde.Money;
 with Concorde.Quantities;
 
@@ -59,7 +60,8 @@ package body Concorde.Installations.Production is
                      & Image (Required)
                      & " " & Commodity.Name
                      & ": throughput = "
-                     & Lui.Approximate_Image (Throughput * 100.0)
+                     & Concorde.Real_Images.Approximate_Image
+                       (Throughput * 100.0)
                      & "%");
                end if;
 --                 Installation.Remove_Quantity (Commodity, Available);
@@ -98,7 +100,8 @@ package body Concorde.Installations.Production is
          if Throughput < 1.0 then
             Installation.Log_Production
               ("throughput limited to "
-               & Lui.Approximate_Image (Throughput * 100.0)
+               & Concorde.Real_Images.Approximate_Image
+                 (Throughput * 100.0)
                & "%; effective capacity " & Image (Effective_Capacity));
          end if;
 

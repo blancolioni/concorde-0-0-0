@@ -2,6 +2,8 @@ with Ada.Unchecked_Deallocation;
 
 with Lui.Colours;
 
+with Concorde.Real_Images;
+
 --  with Concorde.Dates;
 with Concorde.Elementary_Functions;
 
@@ -434,9 +436,10 @@ package body Concorde.Combat.Ship_Combat is
       Log (Model,
            Ship.Ship.Name & " fires " & Module.Name
            & " with charge "
-           & Lui.Approximate_Image (Module.Stored_Energy)
+           & Concorde.Real_Images.Approximate_Image (Module.Stored_Energy)
            & "/"
-           & Lui.Approximate_Image (Module.Maximum_Stored_Energy));
+           & Concorde.Real_Images.Approximate_Image
+             (Module.Maximum_Stored_Energy));
 
       Model.Events.Insert
         (Model.Events.First,
@@ -557,7 +560,6 @@ package body Concorde.Combat.Ship_Combat is
                                       + Projectile.Velocity,
                                       1.0);
                X          : constant Real :=
-
                             Projectile.Start.X + Projectile.DX * Progress;
                Y        : constant Real :=
                             Projectile.Start.Y + Projectile.DY * Progress;
@@ -573,13 +575,13 @@ package body Concorde.Combat.Ship_Combat is
                                     * Projectile.DY / Projectile.Distance;
                         Beam_X1, Beam_Y1 : Integer;
                         Beam_X2, Beam_Y2 : Integer;
-                        Beam_Z           : Real;
+                        Beam_Z           : Lui.Real;
                      begin
                         Model.Get_Screen_Coordinates
-                          (X - Beam_DX, Y - Beam_DY, 0.0,
+                          (Lui.Real (X - Beam_DX), Lui.Real (Y - Beam_DY), 0.0,
                            Beam_X1, Beam_Y1, Beam_Z);
                         Model.Get_Screen_Coordinates
-                          (X, Y, 0.0,
+                          (Lui.Real (X), Lui.Real (Y), 0.0,
                            Beam_X2, Beam_Y2, Beam_Z);
                         Renderer.Draw_Line
                           (X1         => Beam_X1,
@@ -650,7 +652,10 @@ package body Concorde.Combat.Ship_Combat is
                declare
                   Base   : constant Unit_Real := 0.1 + Shields * 0.8;
                   Colour : Lui.Colours.Colour_Type :=
-                             (Base, Base, Base, 1.0);
+                             (Lui.Unit_Real (Base),
+                              Lui.Unit_Real (Base),
+                              Lui.Unit_Real (Base),
+                              1.0);
                begin
                   if Combat_Ship.Hit then
                      Colour := (1.0, 1.0, 1.0, 1.0);
@@ -710,7 +715,8 @@ package body Concorde.Combat.Ship_Combat is
                                 (X          => X,
                                  Y          => Y,
                                  Radius     => Radius,
-                                 Colour     => (0.89, 0.34, 0.13, Alpha),
+                                 Colour     => (0.89, 0.34, 0.13,
+                                                Lui.Unit_Real (Alpha)),
                                  Filled     => True,
                                  Line_Width => 1);
                            end;
@@ -797,10 +803,13 @@ package body Concorde.Combat.Ship_Combat is
       Ship  : Ship_Record;
       X, Y  : out Integer)
    is
-      Z : Real;
+      S_X : constant Lui.Real := Lui.Real (Ship.Location.X);
+      S_Y : constant Lui.Real := Lui.Real (Ship.Location.Y);
+      Z : Lui.Real;
    begin
-      Model.Get_Screen_Coordinates (Ship.Location.X, Ship.Location.Y, 0.0,
-                                    X, Y, Z);
+      Model.Get_Screen_Coordinates
+        (S_X, S_Y, 0.0,
+         X, Y, Z);
    end Ship_Centre;
 
    ------------------
@@ -816,10 +825,12 @@ package body Concorde.Combat.Ship_Combat is
       Raw : constant array (Positive range <>) of Point_Type :=
               ((1.0, 0.0), (-0.5, -1.0), (0.0, 0.0), (-0.5, 1.0));
       Result : Lui.Rendering.Buffer_Points (Raw'Range);
+      S_X      : constant Lui.Real := Lui.Real (Ship.Location.X);
+      S_Y      : constant Lui.Real := Lui.Real (Ship.Location.Y);
       C_X, C_Y : Integer;
-      C_Z      : Real;
+      C_Z      : Lui.Real;
    begin
-      Model.Get_Screen_Coordinates (Ship.Location.X, Ship.Location.Y, 0.0,
+      Model.Get_Screen_Coordinates (S_X, S_Y, 0.0,
                                     C_X, C_Y, C_Z);
       for I in Raw'Range loop
          declare

@@ -1,13 +1,23 @@
+with Ada.Calendar;
 with Ada.Strings.Fixed;
 
 package body Concorde.Dates is
 
    protected Calendar is
       function Current_Date return Date_Type;
-      procedure Tick;
+      procedure Tick (Simulation_Seconds : Duration);
    private
-      Current : Date_Type := 1;
+      Current   : Date_Type := 1.0;
    end Calendar;
+
+   ---------
+   -- "-" --
+   ---------
+
+   function "-" (Left, Right : Date_Type) return Duration is
+   begin
+      return Duration (Date_Type'(Left - Right));
+   end "-";
 
    --------------
    -- Calendar --
@@ -28,9 +38,11 @@ package body Concorde.Dates is
       -- Tick --
       ----------
 
-      procedure Tick is
+      procedure Tick (Simulation_Seconds : Duration) is
       begin
-         Current := Current + 1;
+         Current := Current
+           + Date_Type (Simulation_Seconds)
+           / Date_Type (Ada.Calendar.Day_Duration'Last);
       end Tick;
 
    end Calendar;
@@ -53,14 +65,41 @@ package body Concorde.Dates is
       return To_String (Current_Date);
    end Current_Date_To_String;
 
+   -------------
+   -- Get_Day --
+   -------------
+
+   function Get_Day (Date : Date_Type) return Day_Index is
+   begin
+      return Day_Index (Date);
+   end Get_Day;
+
    ----------
    -- Tick --
    ----------
 
-   procedure Tick is
+   procedure Tick (Simulation_Seconds : Duration) is
    begin
-      Calendar.Tick;
+      Calendar.Tick (Simulation_Seconds);
    end Tick;
+
+   -----------------------------
+   -- To_Date_And_Time_String --
+   -----------------------------
+
+   function To_Date_And_Time_String (Date : Date_Type) return String is
+      Date_String : constant String := To_String (Date);
+      Days        : constant Date_Type := Date - Date_Type'Truncation (Date);
+      Hours       : constant Natural :=
+                      Natural (Days * 24.0);
+      Hour_Img    : constant String := Natural'Image (Hours + 100);
+      Minutes     : constant Natural :=
+                      Natural (Days * 24.0 * 60.0) mod 60;
+      Minutes_Img : constant String := Natural'Image (Minutes + 100);
+   begin
+      return Date_String & " " & Hour_Img (3 .. 4)
+        & ":" & Minutes_Img (3 .. 4) & ":00";
+   end To_Date_And_Time_String;
 
    ---------------
    -- To_String --
@@ -69,7 +108,7 @@ package body Concorde.Dates is
    function To_String (Date : Date_Type) return String is
       use Ada.Strings, Ada.Strings.Fixed;
 
-      Date_Index : constant Positive := Positive (Date);
+      Date_Index : constant Positive := Positive (Get_Day (Date));
       Year       : constant Positive := 3001 + Date_Index / 360;
       Month      : constant Positive := Date_Index mod 360 / 30 + 1;
       Day        : constant Positive := Date_Index mod 30 + 1;

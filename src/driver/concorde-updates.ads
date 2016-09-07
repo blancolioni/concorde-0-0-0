@@ -1,12 +1,9 @@
 package Concorde.Updates is
 
-   type Update_Speed is range 0 .. 5;
-
    procedure Start_Updates;
    procedure Stop_Updates;
 
-   procedure Set_Update_Speed
-     (Speed : Update_Speed);
+   procedure Set_Time_Acceleration (Acceleration : Non_Negative_Real);
 
    procedure Perform_Update
      (Execute_Battles  : Boolean;
@@ -14,5 +11,8 @@ package Concorde.Updates is
 
    procedure Begin_Render;
    procedure Finish_Render;
+
+   procedure Tick
+     (Actual_Seconds : Duration);
 
 end Concorde.Updates;

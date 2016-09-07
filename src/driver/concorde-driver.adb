@@ -26,7 +26,7 @@ with Concorde.Empires.Reports;
 with Concorde.Empires.Updates;
 with Concorde.Updates;
 
-with Concorde.Gtk_UI;
+--  with Concorde.Gtk_UI;
 with Concorde.Xi_UI.Model_Manager;
 with Concorde.Xi_UI.Key_Bindings;
 
@@ -135,7 +135,8 @@ begin
       Concorde.Updates.Start_Updates;
 
       if Use_Gtk then
-         Concorde.Gtk_UI.Start;
+         null;
+         --  Concorde.Gtk_UI.Start;
       elsif Use_Xi then
 
          declare
@@ -165,6 +166,8 @@ begin
 
             Concorde.Xi_UI.Model_Manager.Model
               (Concorde.Galaxy.Capital_World, Window).Activate;
+
+            Concorde.Updates.Set_Time_Acceleration (0.0);
 
             Xi.Main.Main_Loop;
 

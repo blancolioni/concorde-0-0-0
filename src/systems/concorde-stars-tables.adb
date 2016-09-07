@@ -90,11 +90,15 @@ package body Concorde.Stars.Tables is
       Tropos.Writer.Write_Config (Config, "test.txt");
       for Info_Config of Config loop
          declare
+
+            function Get (Name : String) return Real
+            is (Real (Float'(Info_Config.Get (Name))));
+
             Class        : constant String := Info_Config.Get ("type");
-            Surface_Temp : constant Real := Info_Config.Get ("surface-temp");
-            Radius       : constant Real := Info_Config.Get ("radius");
-            Mass         : constant Real := Info_Config.Get ("mass");
-            Luminosity   : constant Real := Info_Config.Get ("luminosity");
+            Surface_Temp : constant Real := Get ("surface-temp");
+            Radius       : constant Real := Get ("radius");
+            Mass         : constant Real := Get ("mass");
+            Luminosity   : constant Real := Get ("luminosity");
             Red          : constant Natural := Info_Config.Get ("r");
             Green        : constant Natural := Info_Config.Get ("g");
             Blue         : constant Natural := Info_Config.Get ("b");

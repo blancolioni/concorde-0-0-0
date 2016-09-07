@@ -398,11 +398,11 @@ package body Concorde.Xi_UI.Galaxies is
             Position_1 : constant Xi.Matrices.Vector_3 :=
                            (Xi.Xi_Float (System.X),
                             Xi.Xi_Float (System.Y),
-                            Xi.Xi_Float (System.Z + Camera_Near * 1.2));
+                            System.Z + Camera_Near * 1.2);
             Position_2   : constant Xi.Matrices.Vector_3 :=
                              (Xi.Xi_Float (System.X),
                               Xi.Xi_Float (System.Y),
-                              Xi.Xi_Float (System.Z + Camera_Near * 1.01));
+                              System.Z + Camera_Near * 1.01);
             Projection_1 : constant Xi.Matrices.Matrix_4 :=
                                 Xi.Matrices.Perspective_Matrix
                                   (Fovy         => Focus_Fov,

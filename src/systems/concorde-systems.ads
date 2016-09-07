@@ -22,11 +22,8 @@ with Concorde.Government;
 package Concorde.Systems is
 
    type Star_System_Object_Interface is limited interface
+     and Concorde.Objects.Massive_Object_Interface
      and Concorde.Objects.Named_Object_Interface;
-
-   function Mass (Object : Star_System_Object_Interface)
-                  return Non_Negative_Real
-                  is abstract;
 
    function Radius (Object : Star_System_Object_Interface)
                     return Non_Negative_Real
@@ -88,6 +85,16 @@ package Concorde.Systems is
    function Main_Object
      (System : Root_Star_System_Type'Class)
       return access Main_Star_System_Object_Interface'Class;
+
+   function Jump_Departure_Point
+     (From : Root_Star_System_Type'Class;
+      To   : not null access Root_Star_System_Type'Class)
+      return Newton.Vector_3;
+
+   function Jump_Arrival_Point
+     (Arrival_System   : Root_Star_System_Type'Class;
+      Departure_System : not null access Root_Star_System_Type'Class)
+      return Newton.Vector_3;
 
    procedure Scan_System_Objects
      (System : Root_Star_System_Type'Class;
@@ -245,7 +252,7 @@ private
          Arriving       : Concorde.Ships.Lists.List;
          Departing      : Concorde.Ships.Lists.List;
          Capital        : Boolean := False;
-         Last_Battle    : Concorde.Dates.Date_Type := 0;
+         Last_Battle    : Concorde.Dates.Date_Type := Concorde.Dates.Zero_Date;
          Battle_Size    : Natural := 0;
          Last_Attacker  : Star_System_Type := null;
          Owner          : access constant

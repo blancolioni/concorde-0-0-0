@@ -232,7 +232,7 @@ package body Concorde.Galaxy.Model is
 
    function Recent_Battle
      (System   : Concorde.Systems.Star_System_Type;
-      Max_Days : Natural)
+      Max_Days : Positive)
       return Boolean;
 
    Unexplored_Colour : constant Lui.Colours.Colour_Type :=
@@ -457,18 +457,19 @@ package body Concorde.Galaxy.Model is
       Renderer : in out Lui.Rendering.Root_Renderer'Class)
    is
       use Concorde.Dates;
-      Start : Date_Type := 1;
+      Start : Day_Index := 1;
+      Today : constant Day_Index := Get_Day (Current_Date);
       Width : constant := 100.0;
       package Relative_Power_Vectors is
         new Memor.Element_Vectors (Non_Negative_Real, 0.0);
       Total : Non_Negative_Real;
       X     : Integer;
    begin
-      if Natural (Current_Date) > Model.Height then
-         Start := Date_Type (Natural (Current_Date) - Model.Height + 1);
+      if Natural (Today) > Model.Height then
+         Start := Day_Index (Natural (Today) - Model.Height + 1);
       end if;
 
-      for Date in Date_Type range Start .. Current_Date - 2 loop
+      for Date in Day_Index range Start .. Today - 2 loop
          declare
             Xs    : Relative_Power_Vectors.Vector;
 
@@ -735,13 +736,14 @@ package body Concorde.Galaxy.Model is
 
    function Recent_Battle
      (System   : Concorde.Systems.Star_System_Type;
-      Max_Days : Natural)
+      Max_Days : Positive)
       return Boolean
    is
       use Concorde.Dates;
    begin
-      return System.Last_Battle > 0
-        and then Current_Date - System.Last_Battle <= Date_Type (Max_Days);
+      return System.Last_Battle /= Zero_Date
+        and then Get_Day (Current_Date) - Get_Day (System.Last_Battle)
+        <= Day_Index (Max_Days);
    end Recent_Battle;
 
    ------------
@@ -804,6 +806,7 @@ package body Concorde.Galaxy.Model is
 
                      if Recent_Battle (System, 5) then
                         declare
+                           use Concorde.Dates;
                            use Concorde.Elementary_Functions;
                            Size : constant Positive :=
                                     Positive'Max
@@ -812,8 +815,10 @@ package body Concorde.Galaxy.Model is
                                             (Real (System.Last_Battle_Size))),
                                        10);
                            Days : constant Natural :=
-                                    Natural (Concorde.Dates.Current_Date)
-                                    - Natural (System.Last_Battle);
+                                    Natural
+                                      (Get_Day (Concorde.Dates.Current_Date))
+                                    - Natural
+                                      (Get_Day (System.Last_Battle));
                         begin
                            if Days < Size then
                               Renderer.Draw_Circle
@@ -966,7 +971,7 @@ package body Concorde.Galaxy.Model is
          declare
             use Concorde.Dates;
          begin
-            if Current_Date > 10 then
+            if Get_Day (Current_Date) > 10 then
                Model.Draw_History (Renderer);
             end if;
          end;

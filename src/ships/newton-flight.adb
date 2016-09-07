@@ -1,5 +1,8 @@
 package body Newton.Flight is
 
+   use Xi;
+   use Matrices;
+
    procedure Compute_Forces
      (Model    : Flight_Model'Class;
       CM_Force : out Vector_3;
@@ -26,7 +29,6 @@ package body Newton.Flight is
       Time_Delta : in Real;
       Force      : in     Vector_3)
    is
-      use Ada.Numerics.Long_Real_Arrays;
    begin
       Object.Set_Velocity
         (Object.Velocity + Time_Delta / Object.Mass * Force);
@@ -61,7 +63,6 @@ package body Newton.Flight is
 
       for I in 1 .. Model.Engine_Count loop
          declare
-            use Ada.Numerics.Long_Real_Arrays;
             Force_Magnitude : constant Real :=
                                 Model.Engine (I).Power
                                 * Model.Engine (I).Maximum_Thrust;
@@ -105,7 +106,6 @@ package body Newton.Flight is
      (Manager : in out Flight_Manager;
       Model   : not null access Flight_Model'Class)
    is
-      use Matrices;
       Engine_Torque : array (1 .. Model.Engine_Count) of Vector_3;
       Engine_Force  : array (1 .. Model.Engine_Count) of Vector_3;
 
@@ -297,7 +297,6 @@ package body Newton.Flight is
      (Matrix : Matrix_3)
       return Matrix_3
    is
-      use Matrices;
       X : Vector_3 := (Matrix (1, 1), Matrix (2, 1), Matrix (3, 1));
       Y : Vector_3 := (Matrix (1, 2), Matrix (2, 2), Matrix (3, 2));
       Z : Vector_3;
@@ -379,7 +378,6 @@ package body Newton.Flight is
      (Model : in out Flight_Model'Class;
       Time_Delta : Real)
    is
-      use Matrices;
       CM_Force, Torque : Vector_3;
    begin
 
@@ -448,7 +446,6 @@ package body Newton.Flight is
             begin
                for E of Xform.Engines loop
                   declare
-                     use Matrices;
                      Engine : Engine_Component'Class renames
                                 Model.Engine (E.Engine);
                      Orientation : constant Vector_3 :=
@@ -496,7 +493,6 @@ package body Newton.Flight is
      (Object : in out Mobile_Object'Class;
       Time_Delta : in Real)
    is
-      use Ada.Numerics.Long_Real_Arrays;
    begin
       Object.Set_Location (Object.Location + Time_Delta * Object.Velocity);
    end Update_Location;
@@ -509,7 +505,6 @@ package body Newton.Flight is
      (Object : in out Spinning_Object'Class;
       Time_Delta : in Real)
    is
-      use Matrices;
       Skew_Matrix : constant Matrix_3 :=
                       Skew_Symmetric (Object.Radial_Velocity);
       Delta_Orientation : constant Matrix_3 :=

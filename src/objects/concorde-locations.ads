@@ -1,5 +1,6 @@
 with Newton;
 
+with Concorde.Dates;
 with Concorde.Geometry;
 
 with Concorde.Objects;
@@ -9,7 +10,7 @@ package Concorde.Locations is
 
    type Location_Type is
      (Nowhere,
-      Interstellar, Orbit,
+      Interstellar, System_Point, Orbit,
       World_Surface, On_Ship, At_Installation, In_Unit);
 
    type Object_Location (Loc_Type : Location_Type := Nowhere) is private;
@@ -39,7 +40,7 @@ package Concorde.Locations is
 
    function Orbit
      (Primary        : not null access constant
-        Concorde.Objects.Root_Object_Type'Class;
+        Concorde.Objects.Massive_Object_Interface'Class;
       Position       : Newton.Vector_3;
       Velocity       : Newton.Vector_3)
       return Object_Location;
@@ -51,13 +52,20 @@ package Concorde.Locations is
 
    function Geosynchronous_Orbit
      (Primary        : not null access constant
-        Concorde.Objects.Root_Object_Type'Class)
+        Concorde.Objects.Massive_Object_Interface'Class)
       return Object_Location;
 
    function Orbit
      (Primary        : not null access constant
-        Concorde.Objects.Root_Object_Type'Class;
+        Concorde.Objects.Massive_Object_Interface'Class;
       Altitude       : Real)
+      return Object_Location;
+
+   function System_Point
+     (Primary           : not null access constant
+        Concorde.Systems.Star_System_Object_Interface'Class;
+      Relative_Position : Newton.Vector_3;
+      Relative_Velocity : Newton.Vector_3)
       return Object_Location;
 
    function World_Surface
@@ -119,11 +127,16 @@ private
                Destination_System : access constant
                  Concorde.Objects.Root_Object_Type'Class;
                Progress           : Unit_Real;
+            when System_Point =>
+               Relative_Position  : Newton.Vector_3;
+               Relative_Velocity  : Newton.Vector_3;
             when Orbit =>
                Angle              : Concorde.Geometry.Radians;
                Apoapsis           : Newton.Vector_3;
                Periapsis          : Newton.Vector_3;
-               Offset             : Unit_Real;
+               Start_Time         : Concorde.Dates.Date_Type;
+               Start_Offset       : Unit_Real;
+               Period             : Duration;
                Clockwise          : Boolean;
             when World_Surface =>
                Sector             : Positive;

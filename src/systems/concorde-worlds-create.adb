@@ -1,13 +1,15 @@
 --  with Ada.Characters.Handling;
 with Ada.Numerics;
 with Ada.Text_IO;
-with Ada.Long_Float_Text_IO;
+--  with Ada.Long_Float_Text_IO;
 
 with WL.Random;
 
 with Tropos.Reader;
 
 with Memor.Element_Vectors;
+
+with Concorde.Real_Images;
 
 with Concorde.Options;
 with Concorde.Paths;
@@ -33,7 +35,7 @@ package body Concorde.Worlds.Create is
    Report_Worlds     : constant Boolean := False;
    pragma Unreferenced (Report_Worlds);
 
-   Verbose_Mode       : constant Boolean := False;
+--     Verbose_Mode       : constant Boolean := False;
 
    Write_World_Bitmaps : constant Boolean := True;
    pragma Unreferenced (Write_World_Bitmaps);
@@ -694,17 +696,17 @@ package body Concorde.Worlds.Create is
         * Effective_Temp * Convection_Factor;
    begin
 
-      if Verbose_Mode then
-         Ada.Text_IO.Put ("gh: optical depth = ");
-         Ada.Long_Float_Text_IO.Put (Optical_Depth, 1, 1, 0);
-         Ada.Text_IO.Put ("; eff temp = ");
-         Ada.Long_Float_Text_IO.Put (Effective_Temp - 273.0, 1, 1, 0);
-         Ada.Text_IO.Put ("; pressure = ");
-         Ada.Long_Float_Text_IO.Put (Surface_Pressure, 1, 1, 0);
-         Ada.Text_IO.Put ("; rise = ");
-         Ada.Long_Float_Text_IO.Put (Rise, 1, 1, 0);
-         Ada.Text_IO.New_Line;
-      end if;
+--        if Verbose_Mode then
+--           Ada.Text_IO.Put ("gh: optical depth = ");
+--           Ada.Long_Float_Text_IO.Put (Optical_Depth, 1, 1, 0);
+--           Ada.Text_IO.Put ("; eff temp = ");
+--           Ada.Long_Float_Text_IO.Put (Effective_Temp - 273.0, 1, 1, 0);
+--           Ada.Text_IO.Put ("; pressure = ");
+--           Ada.Long_Float_Text_IO.Put (Surface_Pressure, 1, 1, 0);
+--           Ada.Text_IO.Put ("; rise = ");
+--           Ada.Long_Float_Text_IO.Put (Rise, 1, 1, 0);
+--           Ada.Text_IO.New_Line;
+--        end if;
 
       return Real'Max (Rise, 0.0);
    end Calculate_Greenhouse_Rise;
@@ -1120,7 +1122,7 @@ package body Concorde.Worlds.Create is
          --  one large moon caused by cataclysmic collision
          Ada.Text_IO.Put_Line
            (World.Name & " (mass "
-            & Lui.Approximate_Image (Earth_Masses)
+            & Concorde.Real_Images.Approximate_Image (Earth_Masses)
             & ")"
             & ": single large moon");
          declare
@@ -1146,9 +1148,11 @@ package body Concorde.Worlds.Create is
          begin
             Ada.Text_IO.Put_Line
               (Moon.Name & ": mass = "
-               & Lui.Approximate_Image (Moon.Mass / Earth_Mass)
+               & Concorde.Real_Images.Approximate_Image
+                 (Moon.Mass / Earth_Mass)
                & "; orbit = "
-               & Lui.Approximate_Image (Moon.Semimajor_Axis / 1000.0));
+               & Concorde.Real_Images.Approximate_Image
+                 (Moon.Semimajor_Axis / 1000.0));
 
             List.Append (Moon);
          end;
@@ -1164,7 +1168,7 @@ package body Concorde.Worlds.Create is
             if Number_Of_Moons > 0 then
                Ada.Text_IO.Put_Line
                  (World.Name & " (mass "
-                  & Lui.Approximate_Image (Earth_Masses)
+                  & Concorde.Real_Images.Approximate_Image (Earth_Masses)
                   & ") has" & Number_Of_Moons'Img & " major moon"
                   & (if Number_Of_Moons > 1 then "s" else ""));
 
@@ -1197,9 +1201,10 @@ package body Concorde.Worlds.Create is
                   begin
                      Ada.Text_IO.Put_Line
                        (Moon.Name & ": mass = "
-                        & Lui.Approximate_Image (Moon.Mass / Moon_Mass)
+                        & Concorde.Real_Images.Approximate_Image (Moon
+                          .Mass / Moon_Mass)
                         & "; orbit = "
-                        & Lui.Approximate_Image
+                        & Concorde.Real_Images.Approximate_Image
                           (Moon.Semimajor_Axis / 1000.0));
 
                      List.Append (Moon);
