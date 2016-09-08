@@ -135,7 +135,7 @@ package body Concorde.Ships.Xi_Model is
          Camera := Active.Local_Camera;
       end if;
 
-      Camera.Set_Position (0.0, 0.0, -50.0);
+      Camera.Set_Position (0.0, 0.0, 50.0);
       Camera.Look_At (0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
       Camera.Perspective (45.0, 10.0, 1.0e9);
 
