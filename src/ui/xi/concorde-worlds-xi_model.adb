@@ -574,18 +574,7 @@ package body Concorde.Worlds.Xi_Model is
                Rec : constant Active_Ship :=
                        Activate_Ship
                          (Ship, Scene, Ships_Node);
-               Camera : constant Xi.Camera.Xi_Camera :=
-                          Local_Camera (Rec);
             begin
-               Camera.Set_Position
-                 (0.0, 0.0, 100.0);
-               Camera.Look_At
-                 (0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
-               Camera.Set_Viewport
-                 (Model.Renderer.Full_Viewport);
-               Camera.Perspective
-                 (45.0, 10.0, 1.0e9);
-
                Model.Ships.Append (Rec);
             end;
 
