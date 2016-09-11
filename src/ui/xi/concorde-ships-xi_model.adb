@@ -22,6 +22,8 @@ with Newton.Flight;
 
 package body Concorde.Ships.Xi_Model is
 
+   Use_Panels : constant Boolean := False;
+
    type Active_Ship_Record is
       record
          Ship         : Ship_Type;
@@ -55,6 +57,10 @@ package body Concorde.Ships.Xi_Model is
       Z1, Z2     : Xi.Xi_Float;
       Clockwise  : Boolean;
       Panel_Size : Xi.Xi_Non_Negative_Float := 1.0);
+
+   -------------------
+   -- Activate_Ship --
+   -------------------
 
    function Activate_Ship
      (Ship    : Ship_Type;
@@ -129,7 +135,7 @@ package body Concorde.Ships.Xi_Model is
          Camera := Active.Local_Camera;
       end if;
 
-      Camera.Set_Position (0.0, 0.0, -50.0);
+      Camera.Set_Position (0.0, 0.0, 50.0);
       Camera.Look_At (0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
       Camera.Perspective (45.0, 10.0, 1.0e9);
 
@@ -219,25 +225,36 @@ package body Concorde.Ships.Xi_Model is
                   Node.Scale (DX, DY, DZ);
 
                when Rectangular_Prism | Hexagonal_Prism | Cube =>
-                  declare
-                     Entity : constant Xi.Entity.Xi_Entity :=
-                                Xi.Entity.Create;
-                  begin
+                  if Use_Panels then
+                     declare
+                        Entity : constant Xi.Entity.Xi_Entity :=
+                                   Xi.Entity.Create;
+                     begin
 
-                     Entity.Begin_Operation
-                       (Xi.Render_Operation.Triangle_List);
+                        Entity.Begin_Operation
+                          (Xi.Render_Operation.Triangle_List);
 
-                     Create_Panel (Entity, -DX, DX, -DY, DY, -DZ, -DZ, True);
-                     Create_Panel (Entity, -DX, DX, -DY, DY, DZ, DZ, False);
-                     Create_Panel (Entity, -DX, DX, -DY, -DY, -DZ, DZ, True);
-                     Create_Panel (Entity, -DX, DX, DY, DY, -DZ, DZ, False);
-                     Create_Panel (Entity, -DX, -DX, -DY, DY, -DZ, DZ, True);
-                     Create_Panel (Entity, DX, DX, -DY, DY, -DZ, DZ, False);
+                        Create_Panel
+                          (Entity, -DX, DX, -DY, DY, -DZ, -DZ, True);
+                        Create_Panel
+                          (Entity, -DX, DX, -DY, DY, DZ, DZ, False);
+                        Create_Panel
+                          (Entity, -DX, DX, -DY, -DY, -DZ, DZ, True);
+                        Create_Panel
+                          (Entity, -DX, DX, DY, DY, -DZ, DZ, False);
+                        Create_Panel
+                          (Entity, -DX, -DX, -DY, DY, -DZ, DZ, True);
+                        Create_Panel
+                          (Entity, DX, DX, -DY, DY, -DZ, DZ, False);
 
-                     Entity.End_Operation;
+                        Entity.End_Operation;
 
-                     Node.Set_Entity (Entity);
-                  end;
+                        Node.Set_Entity (Entity);
+                     end;
+                  else
+                     Node.Set_Entity (Xi.Shapes.Cube);
+                     Node.Scale (DX, DY, DZ);
+                  end if;
             end case;
 
             Node.Entity.Set_Material (Material);
