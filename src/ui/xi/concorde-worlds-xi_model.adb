@@ -1,5 +1,6 @@
 with Xi.Assets;
 with Xi.Camera;
+with Xi.Color;
 with Xi.Entity;
 with Xi.Float_Arrays;
 with Xi.Materials.Material;
@@ -17,13 +18,15 @@ with Lui.Colours;
 
 with Newton;
 
+with Harriet.Brownian_Noise;
+
 with Concorde.Hash_Table;
 --  with Concorde.Transitions;
 
 with Concorde.Worlds.Tables;
 with Concorde.Ships.Xi_Model;
 
---  with Concorde.Xi_UI.Colours;
+with Concorde.Xi_UI.Colours;
 
 --  with Concorde.Solar_System;
 
@@ -440,7 +443,43 @@ package body Concorde.Worlds.Xi_Model is
      (World : World_Type)
       return Xi.Entity.Xi_Entity
    is
+      use Xi;
       Entity : Xi.Entity.Xi_Entity;
+
+      Noise  : Harriet.Brownian_Noise.Brownian_Noise_Type (3);
+
+      function Height_Noise (X, Y, Z : Xi_Signed_Unit_Float)
+                             return Xi.Color.Xi_Color;
+
+      ------------------
+      -- Height_Noise --
+      ------------------
+
+      function Height_Noise (X, Y, Z : Xi_Signed_Unit_Float)
+                             return Xi.Color.Xi_Color
+      is
+         Hydrosphere : constant Xi_Unit_Float :=
+                         Xi_Unit_Float (World.Hydrosphere);
+         Raw_Height : constant Xi_Unit_Float :=
+                         Noise.Get
+                           ((X * 2.0 + 2.0, Y * 2.0 + 2.0, Z * 2.0 + 2.0),
+                            5.0)
+                         / 2.0 + 0.5;
+         Map_Height : constant Xi_Float :=
+                        (if Raw_Height < Hydrosphere
+                         then (Hydrosphere - Raw_Height)
+                         / Hydrosphere
+                         * Xi_Float (Min_Height)
+                         else (Raw_Height - Hydrosphere)
+                           / (1.0 - Hydrosphere)
+                         * Xi_Float (Max_Height));
+         Height_Colour : constant Lui.Colours.Colour_Type :=
+                           Concorde.Worlds.Tables.Height_Colour
+                             (Height_Range (Map_Height));
+      begin
+         return Concorde.Xi_UI.Colours.To_Xi_Color (Height_Colour);
+      end Height_Noise;
+
    begin
       World.Check_Loaded;
       if World.Category in Jovian_World then
@@ -451,6 +490,11 @@ package body Concorde.Worlds.Xi_Model is
          Entity := Xi.Shapes.Icosohedral_Sphere (3);
          Entity.Set_Material
            (Xi.Assets.Material ("Concorde/System/Moon"));
+      elsif True then
+         Noise.Reset (World.Surface_Seed, 0.5, 2.0);
+         Entity :=
+           Xi.Shapes.Icosohedral_Sphere (5, Height_Noise'Access);
+         Entity.Set_Material (Xi.Assets.Material ("Xi.Black"));
       else
          Entity := Create_Tiles (World);
       end if;
