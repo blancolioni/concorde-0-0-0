@@ -1,0 +1,96 @@
+@define-color bg_color #000000;
+@define-color fg_color #fff;
+@define-color selected_bg_color #7e3878;
+@define-color selected_fg_color @fg_color;
+@define-color tooltip_bg_color @bg_color;
+@define-color tooltip_fg_color @fg_color;
+@define-color text_color @fg_color;
+@define-color border_color #ffc40d;
+@define-color button_border @border_color;
+@define-color progressbar_background_a #2d89ef;
+@define-color progressbar_background_b #2b5797;
+@define-color progressbar_border @border_color;
+@define-color button_gradient_color_a #000;
+@define-color button_gradient_color_b #000;
+
+/***************
+ * Base States *
+ ***************/
+*:hover {
+    background-color: shade (@bg_color, 1.02);
+    color: @fg_color;
+}
+
+*:selected {
+    background-color: @selected_bg_color;
+    color: @selected_fg_color;
+}
+
+*:focused {
+    background-color: @selected_bg_color;
+    color: @selected_fg_color;
+}
+
+*:insensitive {
+    background-color: @insensitive_bg_color;
+    color: @insensitive_fg_color;
+}
+
+*:active {
+    background-color: shade (@bg_color, 0.915);
+}
+
+Widget {
+    background-color: @bg_color;
+}
+
+
+
+Label {
+   foreground-color: @text_color;
+}
+
+Button {
+    border-radius: 2;
+    border-width: 1;
+    border-color: @button_border;
+    border-style: solid;
+    
+    background-image: -gtk-gradient (linear,
+				     left top, left bottom,
+                                     from (@button_gradient_color_a),
+                                     to (@button_gradient_color_b));
+}
+
+#pause-button {
+    background-image: "config/images/ui/pause.png";
+    width: 20px;
+    height: 20px;
+}
+
+#play-button {
+    background-image: "config/images/ui/play.png";
+    width: 20px;
+    height: 20px;
+}
+
+Button:hover {
+    background-color: shade (@bg_color, 1.02);
+    color: @fg_color;
+    border-color: @button_border;
+    background-image: -gtk-gradient (linear,
+				     left top, left bottom,
+				     from (@button_hover_gradient_color_a),
+				     to (@button_hover_gradient_color_b));
+}
+
+Progress_Bar {
+    background-image: -gtk-gradient (linear,
+                                     left top, left bottom,
+                                     from (@progressbar_background_a),
+                                     to (@progressbar_background_b));
+
+    border-radius: 3;
+    border-style: solid;
+    border-color: @progressbar_border;
+}

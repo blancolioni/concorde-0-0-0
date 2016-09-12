@@ -300,11 +300,13 @@ package body Concorde.Xi_UI.Galaxies is
       Renderer.On_Resize (On_Resize'Access);
 
       declare
+         use Xtk;
          FPS_Panel : Xtk.Panel.Xtk_Panel;
       begin
          Xtk.Panel.Xtk_New
-           (FPS_Panel, (20.0, 200.0, 200.0, 200.0),
+           (FPS_Panel,
             Xtk.FPS.Create_FPS_Widget);
+         FPS_Panel.Position_Anchor (Bottom, Left);
          Renderer.Add_Top_Level (FPS_Panel);
          FPS_Panel.Show_All;
       end;

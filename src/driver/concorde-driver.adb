@@ -11,7 +11,8 @@ with Xi.Main;
 with Xi.Render_Window;
 with Xi.Shader.Load;
 
-with Xtk;
+with Xtk.FPS;
+with Xtk.Panel;
 
 with Concorde.Paths;
 
@@ -144,7 +145,9 @@ begin
          begin
 
             Xi.Main.Init;
-            Xtk.Initialize;
+            Xtk.Initialize
+              (Css_Path =>
+                 Concorde.Paths.Config_File ("styles/concorde.css"));
 
             Xi.Assets.Add_Search_Path
               (Concorde.Paths.Config_Path);
@@ -162,7 +165,16 @@ begin
 
             Window.Set_Full_Screen (True);
 
---              Concorde.Xi_UI.Model_Manager.Load_Top_Model (Window);
+            declare
+               FPS_Panel : Xtk.Panel.Xtk_Panel;
+            begin
+               Xtk.Panel.Xtk_New
+                 (FPS_Panel,
+                  Xtk.FPS.Create_FPS_Widget);
+               Window.Add_Top_Level (FPS_Panel);
+               FPS_Panel.Position_Anchor (Xtk.Left, Xtk.Top);
+               FPS_Panel.Show_All;
+            end;
 
             Concorde.Xi_UI.Model_Manager.Model
               (Concorde.Galaxy.Capital_World, Window).Activate;
