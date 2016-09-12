@@ -9,6 +9,7 @@ with Xi.Matrices;
 with Xi.Render_Operation;
 with Xi.Scene;
 with Xi.Shapes;
+with Xi.Texture;
 with Xi.Value;
 
 with Xi.Transition.Container.Sequential;
@@ -492,9 +493,55 @@ package body Concorde.Worlds.Xi_Model is
            (Xi.Assets.Material ("Concorde/System/Moon"));
       elsif True then
          Noise.Reset (World.Surface_Seed, 0.5, 2.0);
-         Entity :=
-           Xi.Shapes.Icosohedral_Sphere (5, Height_Noise'Access);
-         Entity.Set_Material (Xi.Assets.Material ("Xi.Black"));
+         declare
+            Texture_Width : constant := 1024;
+            Texture_Height : constant := 512;
+            Texture_Data : Xi.Color.Xi_Color_2D_Array_Access :=
+                             new Xi.Color.Xi_Color_2D_Array
+                               (1 .. Texture_Width, 1 .. Texture_Height);
+            Texture      : Xi.Texture.Xi_Texture;
+         begin
+            for DY in Texture_Data'Range (2) loop
+               for DX in Texture_Data'Range (1) loop
+                  declare
+                     use Concorde.Geometry;
+                     Long : constant Radians :=
+                              Degrees_To_Radians
+                                ((Real (DX) - 1.0) * 360.0
+                                 / Xi_Float (Texture_Width));
+                     Lat  : constant Radians :=
+                              Degrees_To_Radians
+                                (Real (DY - Texture_Height / 2 - 1)
+                                 * 90.0
+                                 / Xi_Float (Texture_Height / 2));
+                     X    : constant Xi_Signed_Unit_Float :=
+                              Cos (Long) * Cos (Lat);
+                     Y    : constant Xi_Signed_Unit_Float :=
+                              Sin (Lat);
+                     Z    : constant Xi_Signed_Unit_Float :=
+                              Sin (Long) * Cos (Lat);
+                  begin
+                     if False then
+                        Texture_Data (DX, DY) :=
+                          (X / 2.0 + 0.5,
+                           Y / 2.0 + 0.5,
+                           Z / 2.0 + 0.5,
+                           1.0);
+                     else
+                        Texture_Data (DX, DY) :=
+                          Height_Noise (X, Y, Z);
+                     end if;
+                  end;
+               end loop;
+            end loop;
+
+            Texture :=
+              Xi.Texture.Create_From_Data
+                (World.Name, Texture_Data.all);
+            Entity := Xi.Shapes.Icosohedral_Sphere (3);
+            Entity.Set_Texture (Texture);
+            Xi.Color.Free (Texture_Data);
+         end;
       else
          Entity := Create_Tiles (World);
       end if;
