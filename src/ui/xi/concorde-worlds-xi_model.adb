@@ -2,6 +2,7 @@ with Xi.Assets;
 with Xi.Camera;
 with Xi.Entity;
 with Xi.Float_Arrays;
+with Xi.Float_Images;
 with Xi.Materials.Material;
 with Xi.Materials.Pass;
 with Xi.Matrices;
@@ -12,6 +13,8 @@ with Xi.Value;
 
 with Xi.Transition.Container.Sequential;
 with Xi.Transition.Translation;
+
+with Xi.Logging;
 
 with Lui.Colours;
 
@@ -75,8 +78,10 @@ package body Concorde.Worlds.Xi_Model is
    type Root_World_Model is
      new Concorde.Xi_UI.Root_Xi_Model with
       record
-         World : World_Type;
-         Ships : Rendered_Ship_Lists.List;
+         World         : World_Type;
+         Ships         : Rendered_Ship_Lists.List;
+         Selected_Ship : Concorde.Ships.Ship_Type;
+         World_Node    : Xi.Node.Xi_Node;
       end record;
 
    overriding procedure Transit_To_Object
@@ -250,6 +255,11 @@ package body Concorde.Worlds.Xi_Model is
    begin
       Callback.Model.Scene.Use_Camera
         (Concorde.Ships.Xi_Model.Local_Camera (Rec));
+      Xi.Logging.Put ("Switching to camera "
+                      & Callback.Model.Scene.Active_Camera.Name
+                      & " at ");
+      Xi.Logging.Put (Callback.Model.Scene.Active_Camera.Position_3);
+      Xi.Logging.New_Line;
    end Execute;
 
    ---------------------
@@ -349,12 +359,40 @@ package body Concorde.Worlds.Xi_Model is
      (Model      : in out Root_World_Model;
       Time_Delta : Duration)
    is
+      use type Concorde.Ships.Ship_Type;
    begin
       Concorde.Xi_UI.Root_Xi_Model (Model).On_Frame_Start (Time_Delta);
       for Rendered_Ship of Model.Ships loop
          Concorde.Ships.Xi_Model.Update_Ship
            (Rendered_Ship);
       end loop;
+
+      Model.World_Node.Set_Orientation
+        (Concorde.Geometry.Radians_To_Degrees (Model.World.Current_Local_Time),
+         0.0, 1.0, 0.0);
+
+      if Model.Selected_Ship /= null then
+         declare
+            use Xi.Float_Arrays;
+            Ship_Position : constant Newton.Vector_3 :=
+                              Model.Selected_Ship.Primary_Relative_Position;
+         begin
+            Model.Set_Status
+              (Model.Selected_Ship.Name
+               & " "
+               & Xi.Float_Images.Image
+                 (abs (Model.Scene.Default_Camera.Position_3
+                  - Ship_Position) / 1000.0)
+               & "km"
+               & ": ("
+               & Xi.Float_Images.Image (Ship_Position (1))
+               & ","
+               & Xi.Float_Images.Image (Ship_Position (2))
+               & ","
+               & Xi.Float_Images.Image (Ship_Position (3))
+               & ")");
+         end;
+      end if;
    end On_Frame_Start;
 
    ---------------
@@ -416,6 +454,7 @@ package body Concorde.Worlds.Xi_Model is
       Transition.Append (Translation_4);
       Transition.On_Complete (Callback);
       Handler.Model.Scene.Add_Transition (Transition);
+      Handler.Model.Selected_Ship := Handler.Ship;
    end On_Select;
 
    -----------------
@@ -477,6 +516,8 @@ package body Concorde.Worlds.Xi_Model is
          Model.Initialize (Target);
          Model.World := World;
          Model.Set_Scene (World_Scene (World, Model));
+         Model.World_Node :=
+           Model.Scene.Get_Node (World.Identifier);
          Model.Scene.Active_Camera.Set_Position
            (0.0, 0.0, Xi.Xi_Float (World.Radius * 5.0));
          Model.Scene.Active_Camera.Look_At
@@ -588,7 +629,7 @@ package body Concorde.Worlds.Xi_Model is
                                Ship  => Ship);
             begin
                Concorde.Xi_UI .Selector_With_Text
-                 (World_Node, Ship.Name,
+                 (Ships_Node, Ship.Name,
                   Xi_Float (Pos (1)),
                   Xi_Float (Pos (2)),
                   Xi_Float (Pos (3)),
