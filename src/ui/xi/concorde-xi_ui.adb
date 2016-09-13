@@ -13,8 +13,8 @@ with Xi.Float_Arrays;
 with Xi.Matrices;
 
 with Xtk.Button;
+with Xtk.FPS;
 with Xtk.Grid;
-with Xtk.Label;
 with Xtk.Orientable;
 
 with Concorde.Xi_UI.Key_Bindings;
@@ -141,12 +141,13 @@ package body Concorde.Xi_UI is
       Pause_Button : constant Xtk.Button.Xtk_Button :=
                        New_Speed_Button ("Pause", 0.0, "pause-button");
       Play_Button  : constant Xtk.Button.Xtk_Button :=
-                       New_Speed_Button ("Play", 60.0, "play-button");
+                       New_Speed_Button ("Play", 3600.0, "play-button");
 
       Current_Date   : constant Xtk.Label.Xtk_Label :=
                          Xtk.Label.Xtk_New ("current-date");
       Date_Info_Grid : Xtk.Grid.Xtk_Grid;
       Date_Panel     : Xtk.Panel.Xtk_Panel;
+      Status_Grid    : Xtk.Grid.Xtk_Grid;
    begin
       Xtk.Grid.Xtk_New (Date_Info_Grid);
       Date_Info_Grid.Set_Orientation (Xtk.Orientable.Across);
@@ -159,8 +160,28 @@ package body Concorde.Xi_UI is
       Date_Panel.Position_Anchor (Xtk.Top, Xtk.Right);
       Date_Panel.Show_All;
 
+      Model.Status_Label := Xtk.Label.Xtk_New ("Concorde");
+      Xtk.Grid.Xtk_New (Status_Grid);
+      Status_Grid.Set_Orientation (Xtk.Orientable.Across);
+      Status_Grid.Add (Model.Status_Label);
+      Xtk.Panel.Xtk_New (Model.Status, Status_Grid);
+      Model.Status.Position_Anchor (Xtk.Top, Xtk.Left, Xtk.Right);
+      Model.Status.Show_All;
+
       Model.Current_Renderer := Xi.Scene_Renderer.Xi_Scene_Renderer (Renderer);
       Model.Current_Renderer.Add_Top_Level (Date_Panel);
+      Model.Current_Renderer.Add_Top_Level (Model.Status);
+
+      declare
+         FPS_Panel : Xtk.Panel.Xtk_Panel;
+      begin
+         Xtk.Panel.Xtk_New
+           (FPS_Panel,
+            Xtk.FPS.Create_FPS_Widget);
+         Model.Current_Renderer.Add_Top_Level (FPS_Panel);
+         FPS_Panel.Position_Anchor (Xtk.Left, Xtk.Bottom);
+         FPS_Panel.Show_All;
+      end;
 
       declare
          Listener : constant Xi.Frame_Event.Xi_Frame_Listener :=
@@ -207,6 +228,10 @@ package body Concorde.Xi_UI is
    begin
       Model.Scene.Active_Camera.Translate (0.0, Scale, 0.0);
    end Move_Vertical;
+
+   ----------------------
+   -- New_Speed_Button --
+   ----------------------
 
    function New_Speed_Button
      (Tooltip : String;
@@ -513,6 +538,18 @@ package body Concorde.Xi_UI is
    begin
       Model.Current_Scene := Scene;
    end Set_Scene;
+
+   ----------------
+   -- Set_Status --
+   ----------------
+
+   procedure Set_Status
+     (Model   : in out Root_Xi_Model;
+      Message : String)
+   is
+   begin
+      Model.Status_Label.Set_Label (Message);
+   end Set_Status;
 
    ------------
    -- Window --

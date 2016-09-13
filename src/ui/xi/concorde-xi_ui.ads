@@ -6,6 +6,7 @@ with Xi.Scene_Renderer;
 with Xi.Scene;
 with Xi.Texture;
 
+with Xtk.Label;
 with Xtk.Panel;
 
 with Concorde.Objects;
@@ -59,6 +60,10 @@ package Concorde.Xi_UI is
    procedure On_Frame_Start
      (Model      : in out Root_Xi_Model;
       Time_Delta : Duration);
+
+   procedure Set_Status
+     (Model   : in out Root_Xi_Model;
+      Message : String);
 
    type Xi_Model is access all Root_Xi_Model'Class;
 
@@ -144,6 +149,8 @@ private
          Current_Renderer   : Xi.Scene_Renderer.Xi_Scene_Renderer;
          Active_Transitions : Active_Transition_Lists.List;
          Current_Transition : Concorde.Transitions.Transition_Type;
+         Status             : Xtk.Panel.Xtk_Panel;
+         Status_Label       : Xtk.Label.Xtk_Label;
       end record;
 
 end Concorde.Xi_UI;
