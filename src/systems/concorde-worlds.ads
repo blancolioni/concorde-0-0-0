@@ -2,7 +2,7 @@ private with Ada.Containers.Doubly_Linked_Lists;
 
 private with Memor;
 
-private with Concorde.Geometry;
+with Concorde.Geometry;
 
 with Concorde.Money;
 with Concorde.Quantities;
@@ -52,6 +52,10 @@ package Concorde.Worlds is
    function Day_Length
      (World : Root_World_Type'Class)
       return Non_Negative_Real;
+
+   function Current_Local_Time
+     (World : Root_World_Type'Class)
+     return Concorde.Geometry.Radians;
 
    function Owner
      (World : Root_World_Type'Class)

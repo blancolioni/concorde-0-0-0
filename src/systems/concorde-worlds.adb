@@ -9,6 +9,8 @@ with Concorde.Worlds.Db;
 
 with Concorde.Worlds.Create;
 
+with Concorde.Dates;
+
 package body Concorde.Worlds is
 
    ----------------------
@@ -124,6 +126,19 @@ package body Concorde.Worlds is
    begin
       return World.Category;
    end Category;
+
+   ------------------------
+   -- Current_Local_Time --
+   ------------------------
+
+   function Current_Local_Time
+     (World : Root_World_Type'Class)
+      return Concorde.Geometry.Radians
+   is
+   begin
+      return Concorde.Geometry.Degrees_To_Radians
+        (360.0 * Concorde.Dates.Elapsed_Seconds / World.Day_Length);
+   end Current_Local_Time;
 
    ----------------
    -- Day_Length --
