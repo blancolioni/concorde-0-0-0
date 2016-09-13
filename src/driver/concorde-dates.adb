@@ -65,6 +65,18 @@ package body Concorde.Dates is
       return To_String (Current_Date);
    end Current_Date_To_String;
 
+   ---------------------
+   -- Elapsed_Seconds --
+   ---------------------
+
+   function Elapsed_Seconds
+     return Non_Negative_Real
+   is
+   begin
+      return Non_Negative_Real (Current_Date)
+        * 24.0 * 60.0 * 60.0;
+   end Elapsed_Seconds;
+
    -------------
    -- Get_Day --
    -------------
