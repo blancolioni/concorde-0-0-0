@@ -194,6 +194,18 @@ package body Concorde.Geometry is
       return Real_To_Radians (D);
    end Degrees_To_Radians;
 
+   ------------------------
+   -- Radians_To_Degrees --
+   ------------------------
+
+   function Radians_To_Degrees
+     (Angle : Radians)
+      return Real
+   is
+   begin
+      return Real (Angle) * 180.0 / Ada.Numerics.Pi;
+   end Radians_To_Degrees;
+
    ---------------------
    -- Real_To_Radians --
    ---------------------

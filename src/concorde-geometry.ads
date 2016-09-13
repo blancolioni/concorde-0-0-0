@@ -8,6 +8,10 @@ package Concorde.Geometry is
      (Degrees : Real)
       return Radians;
 
+   function Radians_To_Degrees
+     (Angle : Radians)
+      return Real;
+
    Circle : constant Radians;
 
    function Bearing

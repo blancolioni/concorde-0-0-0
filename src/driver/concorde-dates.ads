@@ -15,6 +15,9 @@ package Concorde.Dates is
 
    function "-" (Left, Right : Date_Type) return Duration;
 
+   function Elapsed_Seconds
+     return Non_Negative_Real;
+
    type Day_Index is new Positive;
 
    function Get_Day (Date : Date_Type) return Day_Index;
