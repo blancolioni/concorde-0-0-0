@@ -22,7 +22,7 @@ with Lui.Colours;
 
 with Newton;
 
-with Harriet.Brownian_Noise;
+with Concorde.Brownian_Noise;
 
 with Concorde.Hash_Table;
 --  with Concorde.Transitions;
@@ -384,10 +384,10 @@ package body Concorde.Worlds.Xi_Model is
             Model.Set_Status
               (Model.Selected_Ship.Name
                & " "
-               & Xi.Float_Images.Image
-                 (abs (Model.Scene.Default_Camera.Position_3
-                  - Ship_Position) / 1000.0)
-               & "km"
+--                 & Xi.Float_Images.Image
+--                   (abs (Model.Scene.Default_Camera.Position_3
+--                    - Ship_Position) / 1000.0)
+--                 & "km"
                & ": ("
                & Xi.Float_Images.Image (Ship_Position (1))
                & ","
@@ -486,7 +486,7 @@ package body Concorde.Worlds.Xi_Model is
       use Xi;
       Entity : Xi.Entity.Xi_Entity;
 
-      Noise  : Harriet.Brownian_Noise.Brownian_Noise_Type (3);
+      Noise  : Concorde.Brownian_Noise.Brownian_Noise_Type (3);
 
       function Height_Noise (X, Y, Z : Xi_Signed_Unit_Float)
                              return Xi.Color.Xi_Color;
