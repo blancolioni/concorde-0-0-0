@@ -56,7 +56,7 @@ private
 
    overriding function Object_Database
      (Item : Root_Individual_Type)
-      return Memor.Root_Database_Type'Class;
+      return Memor.Memor_Database;
 
    overriding function Affiliation
      (Individual : Root_Individual_Type;

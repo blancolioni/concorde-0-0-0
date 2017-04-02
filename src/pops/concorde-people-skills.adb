@@ -41,7 +41,7 @@ package body Concorde.People.Skills is
 
    overriding function Object_Database
      (Item : Root_Pop_Skill)
-      return Memor.Root_Database_Type'Class
+      return Memor.Memor_Database
    is
       pragma Unreferenced (Item);
    begin

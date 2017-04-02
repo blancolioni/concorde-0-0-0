@@ -70,7 +70,7 @@ package body Concorde.Stars is
 
    overriding function Object_Database
      (Star : Root_Star_Type)
-      return Memor.Root_Database_Type'Class
+      return Memor.Memor_Database
    is
       pragma Unreferenced (Star);
    begin

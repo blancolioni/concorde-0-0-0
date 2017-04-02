@@ -68,6 +68,6 @@ private
 
    overriding function Object_Database
      (Gas : Root_Gas_Type)
-      return Memor.Root_Database_Type'Class;
+      return Memor.Memor_Database;
 
 end Concorde.Atmosphere;

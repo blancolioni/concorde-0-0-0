@@ -52,7 +52,7 @@ package body Concorde.Terrain is
 
    overriding function Object_Database
      (Terrain : Root_Terrain_Type)
-      return Memor.Root_Database_Type'Class
+      return Memor.Memor_Database
    is
       pragma Unreferenced (Terrain);
    begin

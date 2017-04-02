@@ -49,7 +49,7 @@ private
 
    overriding function Object_Database
      (Item : Root_Installation_Type)
-      return Memor.Root_Database_Type'Class;
+      return Memor.Memor_Database;
 
    overriding procedure Add_Trade_Offers
      (Item   : not null access constant Root_Installation_Type);

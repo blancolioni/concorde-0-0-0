@@ -33,6 +33,6 @@ private
 
    overriding function Object_Database
      (Feature : Root_Feature_Type)
-      return Memor.Root_Database_Type'Class;
+      return Memor.Memor_Database;
 
 end Concorde.Features;

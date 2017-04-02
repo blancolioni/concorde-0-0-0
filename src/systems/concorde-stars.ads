@@ -79,7 +79,7 @@ private
 
    overriding function Object_Database
      (Star : Root_Star_Type)
-      return Memor.Root_Database_Type'Class;
+      return Memor.Memor_Database;
 
    overriding function Mass
      (Star : Root_Star_Type)

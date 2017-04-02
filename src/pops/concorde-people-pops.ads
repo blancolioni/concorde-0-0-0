@@ -42,7 +42,7 @@ private
 
    overriding function Object_Database
      (Item : Root_Pop_Type)
-      return Memor.Root_Database_Type'Class;
+      return Memor.Memor_Database;
 
    overriding function Short_Name
      (Item : Root_Pop_Type)

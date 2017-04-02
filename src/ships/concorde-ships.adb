@@ -897,7 +897,7 @@ package body Concorde.Ships is
 
    overriding function Object_Database
      (Ship : Root_Ship_Type)
-      return Memor.Root_Database_Type'Class
+      return Memor.Memor_Database
    is
       pragma Unreferenced (Ship);
    begin

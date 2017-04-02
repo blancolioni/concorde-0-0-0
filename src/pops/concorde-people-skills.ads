@@ -39,6 +39,6 @@ private
 
    overriding function Object_Database
      (Item : Root_Pop_Skill)
-      return Memor.Root_Database_Type'Class;
+      return Memor.Memor_Database;
 
 end Concorde.People.Skills;

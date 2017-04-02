@@ -181,7 +181,7 @@ package body Concorde.Commodities is
 
    overriding function Object_Database
      (Item : Root_Commodity_Type)
-      return Memor.Root_Database_Type'Class
+      return Memor.Memor_Database
    is
       pragma Unreferenced (Item);
    begin

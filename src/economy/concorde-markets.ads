@@ -247,7 +247,7 @@ private
 
    overriding function Object_Database
      (Market : Root_Market_Type)
-      return Memor.Root_Database_Type'Class;
+      return Memor.Memor_Database;
 
    overriding procedure Update
      (Market : Root_Market_Type;

@@ -166,7 +166,7 @@ private
 
    overriding function Object_Database
      (Item : Root_Commodity_Type)
-      return Memor.Root_Database_Type'Class;
+      return Memor.Memor_Database;
 
    type Stock_Entry is
       record

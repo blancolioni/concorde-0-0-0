@@ -62,7 +62,7 @@ package body Concorde.Objects is
    is
       Class_Item : Root_Object_Type'Class renames
                      Root_Object_Type'Class (Item);
-      Db : Memor.Root_Database_Type'Class renames
+      Db : Memor.Memor_Database renames
              Class_Item.Object_Database;
    begin
       return Db.Database_Class_Name & "-"

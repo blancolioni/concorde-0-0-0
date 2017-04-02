@@ -266,7 +266,7 @@ package body Concorde.Modules is
 
    overriding function Object_Database
      (Module : Root_Module_Type)
-      return Memor.Root_Database_Type'Class
+      return Memor.Memor_Database
    is
       pragma Unreferenced (Module);
    begin

@@ -106,6 +106,6 @@ private
 
    overriding function Object_Database
      (Component : Root_Component_Type)
-      return Memor.Root_Database_Type'Class;
+      return Memor.Memor_Database;
 
 end Concorde.Components;

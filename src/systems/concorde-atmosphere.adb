@@ -129,7 +129,7 @@ package body Concorde.Atmosphere is
 
    overriding function Object_Database
      (Gas : Root_Gas_Type)
-      return Memor.Root_Database_Type'Class
+      return Memor.Memor_Database
    is
       pragma Unreferenced (Gas);
    begin

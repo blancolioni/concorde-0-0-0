@@ -85,7 +85,7 @@ private
 
    overriding function Object_Database
      (Government : Root_Government_Type)
-      return Memor.Root_Database_Type'Class;
+      return Memor.Memor_Database;
 
    overriding function Short_Name
      (Government : Root_Government_Type)

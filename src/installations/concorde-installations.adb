@@ -245,7 +245,7 @@ package body Concorde.Installations is
 
    overriding function Object_Database
      (Item : Root_Installation_Type)
-      return Memor.Root_Database_Type'Class
+      return Memor.Memor_Database
    is
       pragma Unreferenced (Item);
    begin

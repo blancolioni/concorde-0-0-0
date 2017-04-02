@@ -380,7 +380,7 @@ package body Concorde.Systems is
 
    overriding function Object_Database
      (Star_System : Root_Star_System_Type)
-      return Memor.Root_Database_Type'Class
+      return Memor.Memor_Database
    is
       pragma Unreferenced (Star_System);
    begin

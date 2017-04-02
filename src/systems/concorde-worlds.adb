@@ -402,7 +402,7 @@ package body Concorde.Worlds is
 
    overriding function Object_Database
      (World : Root_World_Type)
-      return Memor.Root_Database_Type'Class
+      return Memor.Memor_Database
    is
       pragma Unreferenced (World);
    begin
