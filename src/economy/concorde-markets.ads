@@ -231,7 +231,9 @@ private
    type Cached_Commodity is access Cached_Commodity_Record;
 
    package Cached_Commodity_Vectors is
-     new Memor.Element_Vectors (Cached_Commodity, null);
+     new Memor.Element_Vectors
+       (Concorde.Commodities.Root_Commodity_Type,
+        Cached_Commodity, null);
 
    type Root_Market_Type is
      new Concorde.Objects.Root_Object_Type

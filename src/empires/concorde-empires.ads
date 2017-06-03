@@ -312,8 +312,7 @@ private
          Relationship : Empire_Relationship_Range := 0;
       end record;
 
-   package Empire_Vectors is
-     new Memor.Element_Vectors (Empire_Data_Record, (Relationship => 0));
+   type Relation_Record;
 
    type Root_Empire_Type is
      new Concorde.Agents.Root_Agent_Type
@@ -324,7 +323,7 @@ private
          Empire_Name     : Ada.Strings.Unbounded.Unbounded_String;
          Colour          : Lui.Colours.Colour_Type;
          System_Data     : access System_Data_Array;
-         Empire_Data     : Empire_Vectors.Vector;
+         Empire_Data     : access Relation_Record;
          Player          : access Concorde.Players.Root_Player_Type'Class;
          Current_Ships   : Natural := 0;
          Current_Systems : Natural := 0;
@@ -360,5 +359,16 @@ private
    overriding procedure Add_Trade_Offers
      (Empire : not null access constant Root_Empire_Type)
    is null;
+
+   package Empire_Vectors is
+     new Memor.Element_Vectors
+       (Index_Type    => Root_Empire_Type,
+        Element_Type  => Empire_Data_Record,
+        Default_Value => (Relationship => 0));
+
+   type Relation_Record is
+      record
+         Vector : Empire_Vectors.Vector;
+      end record;
 
 end Concorde.Empires;

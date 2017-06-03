@@ -243,7 +243,7 @@ package body Concorde.Commodities is
         procedure (Commodity : Commodity_Type))
    is
       procedure Process_Stock
-        (Reference : Memor.Database_Reference;
+        (Commodity : not null access constant Root_Commodity_Type'Class;
          Info      : Stock_Entry);
 
       -------------------
@@ -251,18 +251,18 @@ package body Concorde.Commodities is
       -------------------
 
       procedure Process_Stock
-        (Reference : Memor.Database_Reference;
+        (Commodity : not null access constant Root_Commodity_Type'Class;
          Info      : Stock_Entry)
       is
          use Concorde.Quantities;
       begin
          if Info.Quantity > Zero then
-            Process (Db.Reference (Reference));
+            Process (Commodity_Type (Commodity));
          end if;
       end Process_Stock;
 
    begin
-      Stock.Vector.Iterate (Process_Stock'Access);
+      Stock.Vector.Scan (Process_Stock'Access);
    end Scan_Stock;
 
    ------------------
@@ -276,7 +276,7 @@ package body Concorde.Commodities is
       Value    : Concorde.Money.Money_Type)
    is
    begin
-      Stock.Vector.Replace_Element (Item.Reference, (Quantity, Value));
+      Stock.Vector.Replace_Element (Item, (Quantity, Value));
    end Set_Quantity;
 
    ----------------

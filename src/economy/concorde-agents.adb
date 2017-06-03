@@ -381,7 +381,7 @@ package body Concorde.Agents is
    begin
       case Agent.Offer_Strategy (Commodity) is
          when Belief_Based =>
-            if Agent.Belief.Element (Commodity.Reference) = null then
+            if Agent.Belief.Element (Commodity) = null then
                declare
                   Base : constant Price_Type :=
                            Market.Historical_Mean_Price (Commodity);
@@ -391,7 +391,7 @@ package body Concorde.Agents is
                           Strength => 0.5);
                end;
             else
-               return Agent.Belief.Element (Commodity.Reference).all;
+               return Agent.Belief.Element (Commodity).all;
             end if;
          when Fixed_Price =>
             return (Low => Commodity.Base_Price,
@@ -868,12 +868,12 @@ package body Concorde.Agents is
       Belief    :  Agent_Price_Belief_Record)
    is
    begin
-      if Agent.Belief.Element (Commodity.Reference) = null then
+      if Agent.Belief.Element (Commodity) = null then
          Agent.Belief.Replace_Element
-           (Commodity.Reference,
+           (Commodity,
             new Agent_Price_Belief_Record'(Belief));
       else
-         Agent.Belief.Element (Commodity.Reference).all := Belief;
+         Agent.Belief.Element (Commodity).all := Belief;
       end if;
    end Update_Price_Belief;
 

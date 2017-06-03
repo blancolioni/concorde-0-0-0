@@ -36,7 +36,7 @@ private
      and Concorde.People.Groups.Affiliation_Interface with
       record
          Size   : Pop_Size;
-         Groups : Concorde.People.Groups.Affiliation_Vectors.Vector;
+         Groups : Concorde.People.Groups.Affiliation_Vector;
          Skills : Concorde.People.Skills.Lists.List;
       end record;
 

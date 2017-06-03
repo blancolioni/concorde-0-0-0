@@ -67,7 +67,9 @@ private
      array (Concorde.Trades.Market_Tax_Category) of Concorde.Money.Money_Type;
 
    package Commodity_Tax_Rates is
-     new Memor.Element_Vectors (Array_Of_Tax_Rates, Default_Tax_Rates);
+     new Memor.Element_Vectors
+       (Concorde.Commodities.Root_Commodity_Type,
+        Array_Of_Tax_Rates, Default_Tax_Rates);
 
    type Root_Government_Type is
      new Concorde.Agents.Root_Agent_Type

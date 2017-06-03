@@ -547,7 +547,7 @@ package body Concorde.Empires is
       return Empire_Relationship_Range
    is
    begin
-      return Empire.Empire_Data.Element (To.Reference).Relationship;
+      return Empire.Empire_Data.Vector.Element (To).Relationship;
    end Relationship;
 
    -----------------
@@ -626,7 +626,8 @@ package body Concorde.Empires is
       To     : Root_Empire_Type'Class;
       Value  : Empire_Relationship_Range)
    is
-      Data : Empire_Data_Record := Empire.Empire_Data.Element (To.Reference);
+      Data : Empire_Data_Record :=
+               Empire.Empire_Data.Vector.Element (To);
    begin
       declare
          Relationship : Empire_Relationship_Range renames
@@ -642,7 +643,7 @@ package body Concorde.Empires is
          Relationship := Value;
       end;
 
-      Empire.Empire_Data.Replace_Element (To.Reference, Data);
+      Empire.Empire_Data.Vector.Replace_Element (To, Data);
 
    end Set_Relationship;
 

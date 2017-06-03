@@ -85,7 +85,7 @@ package body Concorde.Government is
       return Unit_Real
    is
    begin
-      return Government.Tax_Rates.Element (Commodity.Reference) (Category);
+      return Government.Tax_Rates.Element (Commodity) (Category);
    end Tax_Rate;
 
    -----------------

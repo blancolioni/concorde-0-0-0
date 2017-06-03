@@ -289,7 +289,8 @@ package body Concorde.Empires.Create is
          return Concorde.Systems.Star_System_Type
       is
          package Tried_Vectors is
-           new Memor.Element_Vectors (Boolean, False);
+           new Memor.Element_Vectors
+             (Concorde.Systems.Root_Star_System_Type, Boolean, False);
 
          Queue : Concorde.Systems.Lists.List;
          Tried : Tried_Vectors.Vector;
@@ -301,15 +302,15 @@ package body Concorde.Empires.Create is
                           Queue.First_Element;
             begin
                Queue.Delete_First;
-               if not Tried.Element (System.Reference) then
-                  Tried.Replace_Element (System.Reference, True);
+               if not Tried.Element (System) then
+                  Tried.Replace_Element (System, True);
 
                   if OK (System) then
                      return System;
                   else
                      Connect (System, 2, 4, 0.1);
                      for N of Concorde.Galaxy.Neighbours (System) loop
-                        if not Tried.Element (N.Reference) then
+                        if not Tried.Element (N) then
                            Queue.Append (N);
                         end if;
                      end loop;

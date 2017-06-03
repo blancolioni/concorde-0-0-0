@@ -215,7 +215,9 @@ private
    type Agent_Price_Belief_Access is access Agent_Price_Belief_Record;
 
    package Price_Belief_Vectors is
-     new Memor.Element_Vectors (Agent_Price_Belief_Access, null);
+     new Memor.Element_Vectors
+       (Concorde.Commodities.Root_Commodity_Type,
+        Agent_Price_Belief_Access, null);
 
    type Account_Entry is
       record

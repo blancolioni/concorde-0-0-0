@@ -44,7 +44,7 @@ package body Concorde.People.Pops is
       return Concorde.People.Groups.Affiliation_Range
    is
    begin
-      return Pop.Groups.Element (Group.Reference);
+      return Pop.Groups.Get_Affiliation_Range (Group);
    end Affiliation;
 
    -------------------

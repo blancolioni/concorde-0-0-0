@@ -44,8 +44,10 @@ package body Concorde.Worlds.Create is
    Subsector_Size : Natural := 0;
 
    package Terrain_Feature_Vectors is
-     new Memor.Element_Vectors (Concorde.Features.Feature_Type, null,
-                                Concorde.Features."=");
+     new Memor.Element_Vectors
+       (Concorde.Terrain.Root_Terrain_Type,
+        Concorde.Features.Feature_Type, null,
+        Concorde.Features."=");
 
    type Category_Terrain_Feature_Array is
      array (World_Category) of Terrain_Feature_Vectors.Vector;
@@ -1097,7 +1099,7 @@ package body Concorde.Worlds.Create is
                                    (Feature_Config.Value);
                   begin
                      Category_Terrain_Features (Category).Replace_Element
-                       (Terrain.Reference, Feature);
+                       (Terrain, Feature);
                   end;
                end loop;
             end if;

@@ -75,6 +75,19 @@ package body Concorde.People.Groups is
       return Get ("rich");
    end Rich;
 
+   ---------------------------
+   -- Set_Affiliation_Range --
+   ---------------------------
+
+   procedure Set_Affiliation_Range
+     (Vector : in out Affiliation_Vector'Class;
+      Group  : Pop_Group;
+      Value  : Affiliation_Range)
+   is
+   begin
+      Vector.Replace_Element (Group, Value);
+   end Set_Affiliation_Range;
+
    ------------------
    -- Wealth_Group --
    ------------------
