@@ -1,3 +1,5 @@
+with WL.Brownian_Noise;
+
 with Xi.Assets;
 with Xi.Camera;
 with Xi.Color;
@@ -22,7 +24,7 @@ with Lui.Colours;
 
 with Newton;
 
-with Concorde.Brownian_Noise;
+--  with WL.Brownian_Noise;
 
 with Concorde.Hash_Table;
 --  with Concorde.Transitions;
@@ -486,7 +488,7 @@ package body Concorde.Worlds.Xi_Model is
       use Xi;
       Entity : Xi.Entity.Xi_Entity;
 
-      Noise  : Concorde.Brownian_Noise.Brownian_Noise_Type (3);
+      Noise  : WL.Brownian_Noise.Brownian_Noise_Type (3);
 
       function Height_Noise (X, Y, Z : Xi_Signed_Unit_Float)
                              return Xi.Color.Xi_Color;
@@ -500,11 +502,14 @@ package body Concorde.Worlds.Xi_Model is
       is
          Hydrosphere : constant Xi_Unit_Float :=
                          Xi_Unit_Float (World.Hydrosphere);
-         Raw_Height : constant Xi_Unit_Float :=
-                         Noise.Get
-                           ((X * 2.0 + 2.0, Y * 2.0 + 2.0, Z * 2.0 + 2.0),
-                            5.0)
-                         / 2.0 + 0.5;
+         Raw_Height  : constant Xi_Unit_Float :=
+                         Xi_Unit_Float
+                           (Noise.Get
+                              ((Float (X) * 2.0 + 2.0,
+                               Float (Y) * 2.0 + 2.0,
+                               Float (Z) * 2.0 + 2.0),
+                               5.0)
+                            / 2.0 + 0.5);
          Map_Height : constant Xi_Float :=
                         (if Raw_Height < Hydrosphere
                          then (Hydrosphere - Raw_Height)
