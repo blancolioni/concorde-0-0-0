@@ -11,6 +11,7 @@ with Xi.Materials.Pass;
 with Xi.Matrices;
 with Xi.Render_Operation;
 with Xi.Scene;
+with Xi.Shader.Noise;
 with Xi.Shapes;
 with Xi.Texture;
 with Xi.Value;
@@ -24,20 +25,13 @@ with Lui.Colours;
 
 with Newton;
 
---  with WL.Brownian_Noise;
-
 with Concorde.Hash_Table;
---  with Concorde.Transitions;
 
 with Concorde.Worlds.Tables;
 with Concorde.Ships.Xi_Model;
 
 with Concorde.Xi_UI.Colours;
-
---  with Concorde.Solar_System;
-
---  with Concorde.Money;
---  with Concorde.Quantities;
+with Concorde.Xi_UI.Noise;
 
 with Concorde.Empires;
 
@@ -535,6 +529,22 @@ package body Concorde.Worlds.Xi_Model is
          Entity := Xi.Shapes.Icosohedral_Sphere (3);
          Entity.Set_Material
            (Xi.Assets.Material ("Concorde/System/Moon"));
+      elsif True then
+         declare
+            Sphere_Near    : constant Xi.Entity.Xi_Entity :=
+                               Xi.Shapes.Icosohedral_Sphere (5);
+            Noise_Shader   : constant Xi.Shader.Noise.Xi_Noise_Shader :=
+                               Concorde.Xi_UI.Noise.Create_Noise_Shader
+                                 ("star-systems/palettes/"
+                                  & "terrestrial-palette.txt",
+                                  World.Surface_Seed);
+            Material       : constant Xi.Materials.Material.Xi_Material :=
+                               Noise_Shader.Material;
+         begin
+            Noise_Shader.Set_Octaves (10.0);
+            Sphere_Near.Set_Material (Material);
+            Entity := Sphere_Near;
+         end;
       elsif True then
          Noise.Reset (World.Surface_Seed, 0.5, 2.0);
          declare
