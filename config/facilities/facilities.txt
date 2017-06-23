@@ -43,7 +43,7 @@ consulate = { class = consulate
             }
             
 hq = { class = Corporate_Hq
-       name = "Coporate Headquarters"
+       name = "Corporate Headquarters"
        power = 10
        workers = { executive = 5
                    tech = 5
