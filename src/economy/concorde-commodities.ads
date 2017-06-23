@@ -176,7 +176,8 @@ private
 
    package Stock_Vectors is
      new Memor.Element_Vectors
-       (Stock_Entry,
+       (Concorde.Commodities.Root_Commodity_Type,
+        Stock_Entry,
         (Concorde.Quantities.Zero, Concorde.Money.Zero));
 
    type Root_Stock_Type is new Stock_Interface with
@@ -194,13 +195,13 @@ private
      (Stock : Root_Stock_Type;
       Item  : Commodity_Type)
       return Concorde.Quantities.Quantity
-   is (Stock.Vector.Element (Item.Reference).Quantity);
+   is (Stock.Vector.Element (Item).Quantity);
 
    overriding function Get_Value
      (Stock : Root_Stock_Type;
       Item  : Commodity_Type)
       return Concorde.Money.Money_Type
-   is (Stock.Vector.Element (Item.Reference).Value);
+   is (Stock.Vector.Element (Item).Value);
 
    overriding procedure Set_Quantity
      (Stock    : in out Root_Stock_Type;

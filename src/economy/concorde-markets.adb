@@ -64,7 +64,7 @@ package body Concorde.Markets is
       is
          use Concorde.Quantities;
          Item : constant Cached_Commodity :=
-                  Market.Commodities.Element (Commodity.Reference);
+                  Market.Commodities.Element (Commodity);
       begin
          if Item /= null then
             Item.Offers.Clear;
@@ -170,7 +170,7 @@ package body Concorde.Markets is
       Commodity : Concorde.Commodities.Commodity_Type)
    is
    begin
-      if Market.Commodities.Element (Commodity.Reference) = null then
+      if Market.Commodities.Element (Commodity) = null then
          declare
             New_Cached : constant Cached_Commodity :=
                            new Cached_Commodity_Record'
@@ -192,7 +192,7 @@ package body Concorde.Markets is
                               Offers                => new Commodity_Offers);
          begin
             Market.Commodities.Replace_Element
-              (Commodity.Reference, New_Cached);
+              (Commodity, New_Cached);
          end;
       end if;
    end Check_Commodity;
@@ -786,7 +786,7 @@ package body Concorde.Markets is
    is
    begin
       Market.Check_Commodity (Commodity);
-      return Market.Commodities.Element (Commodity.Reference);
+      return Market.Commodities.Element (Commodity);
    end Get_Commodity;
 
    ---------------------------

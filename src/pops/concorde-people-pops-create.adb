@@ -24,7 +24,7 @@ package body Concorde.People.Pops.Create is
       procedure Create (Pop : in out Root_Pop_Type'Class) is
          use Concorde.Quantities;
       begin
-         Pop.Groups.Replace_Element (Wealth_Group.Reference, 1.0);
+         Pop.Groups.Set_Affiliation_Range (Wealth_Group, 1.0);
          Pop.Skills.Append (Skill);
          Pop.Size := Size;
          Pop.Set_Cash (Cash);

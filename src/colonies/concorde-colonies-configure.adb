@@ -29,7 +29,6 @@ with Concorde.Government.Create;
 
 with Concorde.Facilities.Db;
 
-with Concorde.People.Skills.Db;
 with Concorde.Installations.Db;
 
 with Concorde.Features;
@@ -84,7 +83,8 @@ package body Concorde.Colonies.Configure is
       is (Real (Float'(Template.Get (Name, Float (Default)))));
 
       package Skilled_Pop_Vectors is
-        new Memor.Element_Vectors (Quantity, Zero);
+        new Memor.Element_Vectors
+          (Concorde.People.Skills.Root_Pop_Skill, Quantity, Zero);
 
       Skilled_Pop : Skilled_Pop_Vectors.Vector;
 
@@ -124,7 +124,8 @@ package body Concorde.Colonies.Configure is
          Sector : Concorde.Surfaces.Surface_Tile_Index);
 
       procedure Create_Pop_From_Skill
-        (Reference : Memor.Database_Reference;
+        (Skill     : not null access constant
+           Concorde.People.Skills.Root_Pop_Skill'Class;
          Element   : Quantity);
 
       procedure Create_Pop
@@ -201,10 +202,10 @@ package body Concorde.Colonies.Configure is
                Quant : constant Quantity :=
                          Installation.Facility.Worker_Quantity (I);
                Current : constant Quantity  :=
-                           Skilled_Pop.Element (Skill.Reference);
+                           Skilled_Pop.Element (Skill);
             begin
                Skilled_Pop.Replace_Element
-                 (Skill.Reference, Current + Quant);
+                 (Skill, Current + Quant);
             end;
          end loop;
       end Add_Population;
@@ -320,13 +321,13 @@ package body Concorde.Colonies.Configure is
       ---------------------------
 
       procedure Create_Pop_From_Skill
-        (Reference : Memor.Database_Reference;
+        (Skill     : not null access constant
+           Concorde.People.Skills.Root_Pop_Skill'Class;
          Element   : Quantity)
       is
-         Skill : constant Concorde.People.Skills.Pop_Skill :=
-                   Concorde.People.Skills.Db.Element (Reference);
       begin
-         Create_Pop (Capital_Tile, Skill.Wealth_Group, Skill,
+         Create_Pop (Capital_Tile, Skill.Wealth_Group,
+                     Concorde.People.Skills.Pop_Skill (Skill),
                      Concorde.People.Pops.Pop_Size
                        (Quantities.To_Real (Element)));
       end Create_Pop_From_Skill;
@@ -694,7 +695,7 @@ package body Concorde.Colonies.Configure is
 
       World.Add_Installation (Current_Tile, Port);
 
-      Skilled_Pop.Iterate (Create_Pop_From_Skill'Access);
+      Skilled_Pop.Scan (Create_Pop_From_Skill'Access);
 
    end Create_Colony_From_Template;
 

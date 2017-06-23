@@ -1,3 +1,5 @@
+with WL.Brownian_Noise;
+
 with Xi.Assets;
 with Xi.Camera;
 with Xi.Color;
@@ -9,6 +11,7 @@ with Xi.Materials.Pass;
 with Xi.Matrices;
 with Xi.Render_Operation;
 with Xi.Scene;
+with Xi.Shader.Noise;
 with Xi.Shapes;
 with Xi.Texture;
 with Xi.Value;
@@ -22,20 +25,13 @@ with Lui.Colours;
 
 with Newton;
 
-with Concorde.Brownian_Noise;
-
 with Concorde.Hash_Table;
---  with Concorde.Transitions;
 
 with Concorde.Worlds.Tables;
 with Concorde.Ships.Xi_Model;
 
 with Concorde.Xi_UI.Colours;
-
---  with Concorde.Solar_System;
-
---  with Concorde.Money;
---  with Concorde.Quantities;
+with Concorde.Xi_UI.Noise;
 
 with Concorde.Empires;
 
@@ -486,7 +482,7 @@ package body Concorde.Worlds.Xi_Model is
       use Xi;
       Entity : Xi.Entity.Xi_Entity;
 
-      Noise  : Concorde.Brownian_Noise.Brownian_Noise_Type (3);
+      Noise  : WL.Brownian_Noise.Brownian_Noise_Type (3);
 
       function Height_Noise (X, Y, Z : Xi_Signed_Unit_Float)
                              return Xi.Color.Xi_Color;
@@ -500,11 +496,14 @@ package body Concorde.Worlds.Xi_Model is
       is
          Hydrosphere : constant Xi_Unit_Float :=
                          Xi_Unit_Float (World.Hydrosphere);
-         Raw_Height : constant Xi_Unit_Float :=
-                         Noise.Get
-                           ((X * 2.0 + 2.0, Y * 2.0 + 2.0, Z * 2.0 + 2.0),
-                            5.0)
-                         / 2.0 + 0.5;
+         Raw_Height  : constant Xi_Unit_Float :=
+                         Xi_Unit_Float
+                           (Noise.Get
+                              ((Float (X) * 2.0 + 2.0,
+                               Float (Y) * 2.0 + 2.0,
+                               Float (Z) * 2.0 + 2.0),
+                               5.0)
+                            / 2.0 + 0.5);
          Map_Height : constant Xi_Float :=
                         (if Raw_Height < Hydrosphere
                          then (Hydrosphere - Raw_Height)
@@ -530,6 +529,22 @@ package body Concorde.Worlds.Xi_Model is
          Entity := Xi.Shapes.Icosohedral_Sphere (3);
          Entity.Set_Material
            (Xi.Assets.Material ("Concorde/System/Moon"));
+      elsif True then
+         declare
+            Sphere_Near    : constant Xi.Entity.Xi_Entity :=
+                               Xi.Shapes.Icosohedral_Sphere (5);
+            Noise_Shader   : constant Xi.Shader.Noise.Xi_Noise_Shader :=
+                               Concorde.Xi_UI.Noise.Create_Noise_Shader
+                                 ("star-systems/palettes/"
+                                  & "terrestrial-palette.txt",
+                                  World.Surface_Seed);
+            Material       : constant Xi.Materials.Material.Xi_Material :=
+                               Noise_Shader.Material;
+         begin
+            Noise_Shader.Set_Octaves (10.0);
+            Sphere_Near.Set_Material (Material);
+            Entity := Sphere_Near;
+         end;
       elsif True then
          Noise.Reset (World.Surface_Seed, 0.5, 2.0);
          declare

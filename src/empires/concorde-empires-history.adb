@@ -12,7 +12,8 @@ package body Concorde.Empires.History is
      array (Historical_Metric) of Real;
 
    package History_Record_Vectors is
-     new Memor.Element_Vectors (Metric_Record, (others => 0.0));
+     new Memor.Element_Vectors
+       (Root_Empire_Type, Metric_Record, (others => 0.0));
 
    package History_Vectors is
      new Ada.Containers.Vectors
@@ -32,7 +33,7 @@ package body Concorde.Empires.History is
       return Real
    is
       Info : Metric_Record renames
-               History.Element (Date).Element (Empire.Reference);
+               History.Element (Date).Element (Empire);
    begin
       return Info (Metric);
    end Get_Metric;
@@ -57,7 +58,7 @@ package body Concorde.Empires.History is
                 Ship_Count         => Real (Empire.Current_Ships),
                 Production         => 0.0);
       begin
-         R.Replace_Element (Empire.Reference, M);
+         R.Replace_Element (Empire, M);
       end Update;
 
    begin

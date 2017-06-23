@@ -60,8 +60,17 @@ package Concorde.People.Groups is
       return Boolean
    is (Affiliator.Affiliated (Groups.Rich));
 
-   package Affiliation_Vectors is
-     new Memor.Element_Vectors (Affiliation_Range, 0.0);
+   type Affiliation_Vector is tagged private;
+
+   function Get_Affiliation_Range
+     (Vector : Affiliation_Vector'Class;
+      Group  : Pop_Group)
+      return Affiliation_Range;
+
+   procedure Set_Affiliation_Range
+     (Vector : in out Affiliation_Vector'Class;
+      Group  : Pop_Group;
+      Value  : Affiliation_Range);
 
 private
 
@@ -75,5 +84,16 @@ private
    overriding function Object_Database
      (Item : Root_Pop_Group)
       return Memor.Memor_Database;
+
+   package Affiliation_Vectors is
+     new Memor.Element_Vectors (Root_Pop_Group, Affiliation_Range, 0.0);
+
+   type Affiliation_Vector is new Affiliation_Vectors.Vector with null record;
+
+   function Get_Affiliation_Range
+     (Vector : Affiliation_Vector'Class;
+      Group  : Pop_Group)
+      return Affiliation_Range
+   is (Vector.Element (Group));
 
 end Concorde.People.Groups;

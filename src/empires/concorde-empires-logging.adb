@@ -17,7 +17,8 @@ package body Concorde.Empires.Logging is
 
    package Empire_Log_Vectors is
      new Memor.Element_Vectors
-       (Element_Type  => List_Of_Log_Lines.List,
+       (Index_Type    => Root_Empire_Type,
+        Element_Type  => List_Of_Log_Lines.List,
         Default_Value => List_Of_Log_Lines.Empty_List,
         "="           => List_Of_Log_Lines."=");
 
@@ -45,7 +46,7 @@ package body Concorde.Empires.Logging is
 
       procedure Flush (Empire : Empire_Type) is
          Lines : constant List_Of_Log_Lines.List :=
-                   Current_Logs.Element (Empire.Reference);
+                   Current_Logs.Element (Empire);
       begin
          if not Lines.Is_Empty then
             declare
@@ -66,7 +67,7 @@ package body Concorde.Empires.Logging is
                   Put_Line (File, Line);
                end loop;
                Close (File);
-               Current_Logs.Replace_Element (Empire.Reference,
+               Current_Logs.Replace_Element (Empire,
                                              List_Of_Log_Lines.Empty_List);
             end;
          end if;
@@ -132,7 +133,7 @@ package body Concorde.Empires.Logging is
 
       begin
 
-         Current_Logs.Update_Element (Empire.Reference, Append'Access);
+         Current_Logs.Update_Element (Empire, Append'Access);
       end;
 
    end Log;

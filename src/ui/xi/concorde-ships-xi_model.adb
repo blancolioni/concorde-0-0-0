@@ -35,7 +35,7 @@ package body Concorde.Ships.Xi_Model is
       end record;
 
    package Active_Ship_Vectors is
-     new Memor.Element_Vectors (Active_Ship, null);
+     new Memor.Element_Vectors (Root_Ship_Type, Active_Ship, null);
 
    Active_Ship_Vector : Active_Ship_Vectors.Vector;
 
@@ -83,7 +83,7 @@ package body Concorde.Ships.Xi_Model is
                         Scene.Get_Node (Node_Identity);
       Ship_Node     : Xi.Node.Xi_Node;
       Camera : Xi.Camera.Xi_Camera;
-      Active : Active_Ship := Active_Ship_Vector.Element (Ship.Reference);
+      Active : Active_Ship := Active_Ship_Vector.Element (Ship);
 
    begin
       if Holder_Node = null then
@@ -123,7 +123,7 @@ package body Concorde.Ships.Xi_Model is
                 (Ship, Ship.Primary_Relative_Position, (0.0, 0.0, 0.0),
                  Newton.Matrices.Unit_Matrix (3)),
               Concorde.Scripts.Null_Script);
-         Active_Ship_Vector.Replace_Element (Ship.Reference, Active);
+         Active_Ship_Vector.Replace_Element (Ship, Active);
       else
          Active.Holder_Node := Holder_Node;
          Active.Ship_Node := Ship_Node;
@@ -384,7 +384,7 @@ package body Concorde.Ships.Xi_Model is
       return Active_Ship
    is
    begin
-      return Active_Ship_Vector.Element (Ship.Reference);
+      return Active_Ship_Vector.Element (Ship);
    end Get_Active_Ship;
 
    ------------------

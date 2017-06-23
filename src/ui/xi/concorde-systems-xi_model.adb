@@ -34,7 +34,8 @@ package body Concorde.Systems.Xi_Model is
 
    package System_Scene_Vectors is
      new Memor.Element_Vectors
-       (Element_Type  => Xi.Scene.Xi_Scene,
+       (Index_Type    => Concorde.Systems.Root_Star_System_Type,
+        Element_Type  => Xi.Scene.Xi_Scene,
         Default_Value => null,
         "="           => Xi.Scene."=");
 
@@ -188,7 +189,7 @@ package body Concorde.Systems.Xi_Model is
       use Concorde.Geometry;
       use type Concorde.Worlds.World_Type;
       Scene             : Xi.Scene.Xi_Scene :=
-                            Created_Scenes.Element (World.System.Reference);
+                            Created_Scenes.Element (World.System);
 --        System_Transition : constant Transitions.Transition_Type :=
 --                              new Transitions.Root_Transition_Type;
       World_Transition  : constant Transitions.Transition_Type :=
@@ -199,7 +200,7 @@ package body Concorde.Systems.Xi_Model is
    begin
       if Scene = null then
          Scene := System_Scene (World.System, Model.Renderer.Viewport);
-         Created_Scenes.Replace_Element (World.System.Reference, Scene);
+         Created_Scenes.Replace_Element (World.System, Scene);
       end if;
 
       Scene.Active_Camera.Set_Viewport (Model.Renderer.Viewport);
