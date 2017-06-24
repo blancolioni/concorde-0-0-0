@@ -2,7 +2,7 @@ with Xi.Assets;
 with Xi.Color;
 with Xi.Font;
 with Xi.Frame_Event;
-with Xi.Keyboard;
+--  with Xi.Keyboard;
 with Xi.Label;
 with Xi.Main;
 with Xi.Materials.Material;
@@ -64,10 +64,10 @@ package body Concorde.Xi_UI is
          Target_Speed : Xi.Xi_Float;
       end record;
 
-   overriding procedure On_Click
-     (Button  : in out Update_Speed_Button;
-      Mouse   : in Xi.Mouse.Mouse_Button;
-      Control : in Xi.Keyboard.Control_Mask);
+--     overriding procedure On_Click
+--       (Button  : in out Update_Speed_Button;
+--        Mouse   : in Xi.Mouse.Mouse_Button;
+--        Control : in Xi.Keyboard.Control_Mask);
 
    function New_Speed_Button
      (Tooltip : String;
@@ -246,16 +246,16 @@ package body Concorde.Xi_UI is
    -- On_Click --
    --------------
 
-   overriding procedure On_Click
-     (Button  : in out Update_Speed_Button;
-      Mouse   : in Xi.Mouse.Mouse_Button;
-      Control : in Xi.Keyboard.Control_Mask)
-   is
-      pragma Unreferenced (Mouse);
-      pragma Unreferenced (Control);
-   begin
-      Concorde.Updates.Set_Time_Acceleration (Button.Target_Speed);
-   end On_Click;
+--     overriding procedure On_Click
+--       (Button  : in out Update_Speed_Button;
+--        Mouse   : in Xi.Mouse.Mouse_Button;
+--        Control : in Xi.Keyboard.Control_Mask)
+--     is
+--        pragma Unreferenced (Mouse);
+--        pragma Unreferenced (Control);
+--     begin
+--        Concorde.Updates.Set_Time_Acceleration (Button.Target_Speed);
+--     end On_Click;
 
    --------------------
    -- On_Frame_Start --
