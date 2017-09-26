@@ -19,8 +19,6 @@ with Xi.Shader;
 with Xi.Shapes;
 with Xi.Texture;
 
-with Xtk.FPS;
-
 with Lui.Colours;
 
 with Concorde.Galaxy;
@@ -298,18 +296,6 @@ package body Concorde.Xi_UI.Galaxies is
 --           Far          => Camera_Far);
 
       Renderer.On_Resize (On_Resize'Access);
-
-      declare
-         use Xtk;
-         FPS_Panel : Xtk.Panel.Xtk_Panel;
-      begin
-         Xtk.Panel.Xtk_New
-           (FPS_Panel,
-            Xtk.FPS.Create_FPS_Widget);
-         FPS_Panel.Position_Anchor (Bottom, Left);
-         Renderer.Add_Top_Level (FPS_Panel);
-         FPS_Panel.Show_All;
-      end;
 
       declare
          Listener : constant Xi.Frame_Event.Xi_Frame_Listener :=

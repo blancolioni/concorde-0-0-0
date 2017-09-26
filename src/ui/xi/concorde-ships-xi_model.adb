@@ -31,7 +31,7 @@ package body Concorde.Ships.Xi_Model is
          Ship_Node    : Xi.Node.Xi_Node;
          Local_Camera : Xi.Camera.Xi_Camera;
          Newton_Ship  : access Newton.Flight.Flight_Model'Class;
-         Script       : Concorde.Scripts.Concorde_Script;
+--           Script       : Concorde.Scripts.Concorde_Script;
       end record;
 
    package Active_Ship_Vectors is
@@ -121,8 +121,8 @@ package body Concorde.Ships.Xi_Model is
              (Ship, Holder_Node, Ship_Node, Camera,
               Concorde.Ships.Flight.Create_Newtonian_Ship
                 (Ship, Ship.Primary_Relative_Position, (0.0, 0.0, 0.0),
-                 Newton.Matrices.Unit_Matrix (3)),
-              Concorde.Scripts.Null_Script);
+                 Newton.Matrices.Unit_Matrix (3)));
+--                Concorde.Scripts.Null_Script);
          Active_Ship_Vector.Replace_Element (Ship, Active);
       else
          Active.Holder_Node := Holder_Node;
@@ -415,25 +415,25 @@ package body Concorde.Ships.Xi_Model is
    -- Script --
    ------------
 
-   function Script
-     (Ship : Active_Ship)
-      return Concorde.Scripts.Concorde_Script
-   is
-   begin
-      return Ship.Script;
-   end Script;
+--     function Script
+--       (Ship : Active_Ship)
+--        return Concorde.Scripts.Concorde_Script
+--     is
+--     begin
+--        return Ship.Script;
+--     end Script;
 
    ----------------
    -- Set_Script --
    ----------------
 
-   procedure Set_Script
-     (Ship   : Active_Ship;
-      Script : Concorde.Scripts.Concorde_Script)
-   is
-   begin
-      Ship.Script := Script;
-   end Set_Script;
+--     procedure Set_Script
+--       (Ship   : Active_Ship;
+--        Script : Concorde.Scripts.Concorde_Script)
+--     is
+--     begin
+--        Ship.Script := Script;
+--     end Set_Script;
 
    ---------------------------
    -- To_Orientation_Matrix --
@@ -522,10 +522,10 @@ package body Concorde.Ships.Xi_Model is
       use Xi.Float_Arrays;
       use type Xi.Entity.Xi_Entity;
    begin
-      Concorde.Scripts.Execute (Ship.Script);
-      if Concorde.Scripts.Complete (Ship.Script) then
-         Ship.Script := Concorde.Scripts.Null_Script;
-      end if;
+--        Concorde.Scripts.Execute (Ship.Script);
+--        if Concorde.Scripts.Complete (Ship.Script) then
+--           Ship.Script := Concorde.Scripts.Null_Script;
+--        end if;
 
       declare
          Ship_Position : constant Newton.Vector_3 :=
