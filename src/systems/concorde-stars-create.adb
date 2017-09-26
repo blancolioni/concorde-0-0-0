@@ -1,6 +1,5 @@
 with Concorde.Elementary_Functions;
 
-with Concorde.Stars.Db;
 with Concorde.Stars.Tables;
 
 package body Concorde.Stars.Create is

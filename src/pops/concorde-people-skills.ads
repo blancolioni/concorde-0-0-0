@@ -1,3 +1,5 @@
+private with Memor.Database;
+
 with Memor;
 
 with Concorde.Money;
@@ -40,5 +42,9 @@ private
    overriding function Object_Database
      (Item : Root_Pop_Skill)
       return Memor.Memor_Database;
+
+   package Db is
+     new Memor.Database
+       ("skill", Root_Pop_Skill, Pop_Skill);
 
 end Concorde.People.Skills;

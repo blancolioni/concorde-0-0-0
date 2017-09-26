@@ -4,8 +4,6 @@ with Concorde.Paths;
 
 with Concorde.Commodities.Configure;
 
-with Concorde.People.Skills.Db;
-
 package body Concorde.People.Skills.Configure is
 
    procedure Create_Pop_Skill

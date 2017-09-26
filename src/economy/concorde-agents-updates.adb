@@ -1,8 +1,3 @@
-with Concorde.Empires.Db;
-with Concorde.Installations.Db;
-with Concorde.People.Pops.Db;
-with Concorde.Ships.Db;
-
 package body Concorde.Agents.Updates is
 
    -------------------
@@ -37,22 +32,24 @@ package body Concorde.Agents.Updates is
         procedure (Agent : in out Root_Agent_Type'Class))
    is
 
-      procedure Update_Rec (Rec : in out Memor.Root_Record_Type'Class);
+      procedure Update_Rec (Rec : not null access
+                              Memor.Root_Record_Type'Class);
 
       ----------------
       -- Update_Rec --
       ----------------
 
-      procedure Update_Rec (Rec : in out Memor.Root_Record_Type'Class) is
+      procedure Update_Rec (Rec : not null access
+                              Memor.Root_Record_Type'Class)
+      is
       begin
-         Update (Root_Agent_Type'Class (Rec));
+         Update (Root_Agent_Type'Class (Rec.all));
       end Update_Rec;
 
    begin
-      Concorde.Empires.Db.Iterate (Update_Rec'Access);
-      Concorde.Installations.Db.Iterate (Update_Rec'Access);
-      Concorde.People.Pops.Db.Iterate (Update_Rec'Access);
-      Concorde.Ships.Db.Iterate (Update_Rec'Access);
+      for Agent of Agent_List loop
+         Agent.Object_Database.Update (Agent.Reference, Update_Rec'Access);
+      end loop;
    end Update_Agents;
 
 end Concorde.Agents.Updates;

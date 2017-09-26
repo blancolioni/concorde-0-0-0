@@ -1,4 +1,7 @@
+private with Ada.Containers.Vectors;
+
 private with Memor;
+private with Memor.Database;
 private with Memor.Element_Vectors;
 
 with Concorde.Money;
@@ -51,6 +54,9 @@ package Concorde.Commodities is
 
    function Get (Name : String) return Commodity_Type;
 
+   procedure Scan (Process : not null access
+                     procedure (Commodity : Commodity_Type));
+
    type Array_Of_Commodities is array (Positive range <>) of Commodity_Type;
 
    function Get (Class : Commodity_Class) return Array_Of_Commodities;
@@ -60,6 +66,8 @@ package Concorde.Commodities is
    function Get (Class   : Commodity_Class;
                  Quality : Commodity_Quality)
                  return Array_Of_Commodities;
+
+   function All_Commodities return Array_Of_Commodities;
 
    type Stock_Interface is limited interface;
 
@@ -216,5 +224,14 @@ private
      (Stock   : Root_Stock_Type;
       Process : not null access
         procedure (Commodity : Commodity_Type));
+
+   package Db is
+     new Memor.Database
+       ("commodity", Root_Commodity_Type, Commodity_Type);
+
+   package Commodity_Vectors is
+     new Ada.Containers.Vectors (Positive, Commodity_Type);
+
+   Commodity_Vector : Commodity_Vectors.Vector;
 
 end Concorde.Commodities;

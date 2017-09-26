@@ -32,18 +32,19 @@ package body Concorde.Objects is
 
    procedure Check_Loaded (Item : Root_Object_Type'Class) is
 
-      procedure Perform_Load (RW_Item : in out Memor.Root_Record_Type'Class);
+      procedure Perform_Load
+        (RW_Item : not null access Memor.Root_Record_Type'Class);
 
       ------------------
       -- Perform_Load --
       ------------------
 
       procedure Perform_Load
-        (RW_Item : in out Memor.Root_Record_Type'Class)
+        (RW_Item : not null access Memor.Root_Record_Type'Class)
       is
       begin
-         Root_Object_Type'Class (RW_Item).Load;
-         Root_Object_Type'Class (RW_Item).Loaded := True;
+         Root_Object_Type'Class (RW_Item.all).Load;
+         Root_Object_Type'Class (RW_Item.all).Loaded := True;
       end Perform_Load;
 
    begin

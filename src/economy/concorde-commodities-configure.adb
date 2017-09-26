@@ -4,8 +4,6 @@ with Tropos.Reader;
 
 with Concorde.Paths;
 
-with Concorde.Commodities.Db;
-
 package body Concorde.Commodities.Configure is
 
    procedure Configure_Commodity
@@ -185,7 +183,11 @@ package body Concorde.Commodities.Configure is
       end Create;
 
    begin
-      return Concorde.Commodities.Db.Create (Create'Access);
+      return Commodity : constant Commodity_Type :=
+        Concorde.Commodities.Db.Create (Create'Access)
+      do
+         Commodity_Vector.Append (Commodity);
+      end return;
    end Create;
 
    -------------------------

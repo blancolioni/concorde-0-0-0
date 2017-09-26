@@ -4,8 +4,6 @@ with Tropos.Reader;
 
 with Concorde.Paths;
 
-with Concorde.Facilities.Db;
-
 with Concorde.Commodities.Configure;
 
 package body Concorde.Facilities.Configure is

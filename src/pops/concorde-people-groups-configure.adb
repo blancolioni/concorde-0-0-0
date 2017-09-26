@@ -2,8 +2,6 @@ with Tropos.Reader;
 
 with Concorde.Paths;
 
-with Concorde.People.Groups.Db;
-
 package body Concorde.People.Groups.Configure is
 
    procedure Configure_Pop_Group

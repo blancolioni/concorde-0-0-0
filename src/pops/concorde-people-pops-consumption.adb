@@ -3,6 +3,18 @@ with Concorde.Money;
 
 package body Concorde.People.Pops.Consumption is
 
+   procedure Execute_Consumption
+     (Pop : in out Root_Pop_Type'Class);
+
+   -------------------------
+   -- Execute_Consumption --
+   -------------------------
+
+   procedure Execute_Consumption is
+   begin
+      Db.Iterate (Execute_Consumption'Access);
+   end Execute_Consumption;
+
    -------------------------
    -- Execute_Consumption --
    -------------------------

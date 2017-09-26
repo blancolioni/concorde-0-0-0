@@ -1,4 +1,5 @@
 private with Memor;
+private with Memor.Database;
 
 with Concorde.Components;
 with Concorde.Objects;
@@ -114,6 +115,13 @@ package Concorde.Modules is
 
    type Array_Of_Modules is array (Positive range <>) of Module_Type;
 
+   type Updateable_Reference (Item : not null access Root_Module_Type'Class)
+   is private with Implicit_Dereference => Item;
+
+   function Update
+     (Item : not null access constant Root_Module_Type'Class)
+      return Updateable_Reference;
+
 private
 
    type Root_Module_Type is
@@ -135,5 +143,16 @@ private
    overriding function Object_Database
      (Module : Root_Module_Type)
       return Memor.Memor_Database;
+
+   package Db is
+     new Memor.Database
+       ("module", Root_Module_Type, Module_Type);
+
+   type Updateable_Reference
+     (Item : not null access Root_Module_Type'Class)
+   is
+      record
+         Update : Db.Updateable_Reference (Item);
+      end record;
 
 end Concorde.Modules;

@@ -4,8 +4,6 @@ with Lui.Colours.Config;
 
 with Concorde.Paths;
 
-with Concorde.Features.Db;
-
 package body Concorde.Features.Configure is
 
    procedure Configure_Feature

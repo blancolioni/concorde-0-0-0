@@ -19,7 +19,8 @@ package Concorde.Players is
    procedure On_System_Colonised
      (Player : in out Root_Player_Type;
       Empire : in out Concorde.Empires.Root_Empire_Type'Class;
-      System : Concorde.Systems.Root_Star_System_Type'Class;
+      System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
       Ship   : not null access constant
         Concorde.Ships.Root_Ship_Type'Class)
    is null;
@@ -27,14 +28,16 @@ package Concorde.Players is
    procedure On_System_Captured
      (Player : in out Root_Player_Type;
       Empire : in out Concorde.Empires.Root_Empire_Type'Class;
-      System : Concorde.Systems.Root_Star_System_Type'Class;
+      System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
       From   : Concorde.Empires.Empire_Type)
    is null;
 
    procedure On_System_Lost
      (Player : in out Root_Player_Type;
       Empire : in out Concorde.Empires.Root_Empire_Type'Class;
-      System : Concorde.Systems.Root_Star_System_Type'Class;
+      System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
       To     : Concorde.Empires.Empire_Type)
    is null;
 

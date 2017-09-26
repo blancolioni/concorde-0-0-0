@@ -4,8 +4,6 @@ with Concorde.Empires.Logging;
 with Concorde.Galaxy;
 with Concorde.Systems.Graphs;
 
-with Concorde.Empires.Db;
-
 package body Concorde.Empires is
 
    function Image
@@ -479,18 +477,6 @@ package body Concorde.Empires is
       return Data.Next_Node (To.Index).Path_Length;
    end Path_Length;
 
-   ------------
-   -- Player --
-   ------------
-
-   function Player
-     (Empire : Root_Empire_Type'Class)
-      return access Concorde.Players.Root_Player_Type'Class
-   is
-   begin
-      return Empire.Player;
-   end Player;
-
    ----------
    -- Rank --
    ----------
@@ -547,7 +533,11 @@ package body Concorde.Empires is
       return Empire_Relationship_Range
    is
    begin
-      return Empire.Empire_Data.Vector.Element (To).Relationship;
+      if Empire.Empire_Data = null then
+         return 0;
+      else
+         return Empire.Empire_Data.Vector.Element (To).Relationship;
+      end if;
    end Relationship;
 
    -----------------
@@ -575,6 +565,18 @@ package body Concorde.Empires is
    begin
       return Empire.System_Data (System.Index).Required;
    end Required;
+
+   ------------------
+   -- Scan_Empires --
+   ------------------
+
+   procedure Scan_Empires
+     (Process : not null access
+        procedure (Empire : Empire_Type))
+   is
+   begin
+      Db.Scan (Process);
+   end Scan_Empires;
 
    ---------
    -- Set --
@@ -784,6 +786,19 @@ package body Concorde.Empires is
 --           end;
 --        end if;
 --     end System_Lost;
+
+   ------------
+   -- Update --
+   ------------
+
+   function Update
+     (Item : not null access constant Root_Empire_Type'Class)
+      return Updateable_Reference
+   is
+      Base_Update : constant Db.Updateable_Reference := Db.Update (Item);
+   begin
+      return Updateable_Reference'(Base_Update.Element, Base_Update);
+   end Update;
 
    -------------------------
    -- Update_System_Owner --

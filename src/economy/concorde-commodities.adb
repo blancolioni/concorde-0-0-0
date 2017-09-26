@@ -1,8 +1,8 @@
 with Ada.Text_IO;
 
-with Concorde.Commodities.Db;
-
 package body Concorde.Commodities is
+
+   Local_Commodity_Array : access Array_Of_Commodities;
 
    ------------------
    -- Add_Quantity --
@@ -22,6 +22,23 @@ package body Concorde.Commodities is
          Stock.Get_Quantity (Item) + Quantity,
          Stock.Get_Value (Item) + Value);
    end Add_Quantity;
+
+   ---------------------
+   -- All_Commodities --
+   ---------------------
+
+   function All_Commodities return Array_Of_Commodities is
+   begin
+      if Local_Commodity_Array = null then
+         Local_Commodity_Array :=
+           new Array_Of_Commodities (1 .. Commodity_Vector.Last_Index);
+         for I in Local_Commodity_Array'Range loop
+            Local_Commodity_Array (I) := Commodity_Vector (I);
+         end loop;
+      end if;
+
+      return Local_Commodity_Array.all;
+   end All_Commodities;
 
    ----------------
    -- Base_Price --
@@ -236,6 +253,23 @@ package body Concorde.Commodities is
       Stock.Set_Quantity
         (Item, New_Quantity, New_Value);
    end Remove_Quantity;
+
+   ----------
+   -- Scan --
+   ----------
+
+   procedure Scan (Process : not null access
+                     procedure (Commodity : Commodity_Type))
+   is
+   begin
+      for Commodity of Commodity_Vector loop
+         Process (Commodity);
+      end loop;
+   end Scan;
+
+   ----------------
+   -- Scan_Stock --
+   ----------------
 
    overriding procedure Scan_Stock
      (Stock   : Root_Stock_Type;

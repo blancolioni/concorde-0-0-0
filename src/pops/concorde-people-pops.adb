@@ -1,8 +1,6 @@
 with Concorde.Commodities;
 with Concorde.Money;
 
-with Concorde.People.Pops.Db;
-
 package body Concorde.People.Pops is
 
    ----------------------

@@ -1,5 +1,3 @@
-with Concorde.Stars.Db;
-
 with Concorde.Solar_System;
 
 package body Concorde.Stars is

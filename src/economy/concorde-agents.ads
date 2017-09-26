@@ -1,4 +1,6 @@
 private with Ada.Containers.Vectors;
+private with Ada.Containers.Doubly_Linked_Lists;
+private with WL.String_Maps;
 
 private with Memor.Element_Vectors;
 
@@ -20,6 +22,9 @@ package Concorde.Agents is
      and Concorde.Commodities.Stock_Interface
      and Concorde.Locations.Located_Interface
      and Concorde.Trades.Trader_Interface with private;
+
+   function Class_Name (Agent : Root_Agent_Type) return String
+                        is abstract;
 
    procedure New_Agent
      (Agent          : in out Root_Agent_Type'Class;
@@ -62,9 +67,10 @@ package Concorde.Agents is
       Cost      : Concorde.Money.Money_Type);
 
    overriding procedure Update_Trader
-     (Agent : Root_Agent_Type;
+     (Agent  : Root_Agent_Type;
       Update : not null access
-        procedure (Agent : in out Concorde.Trades.Trader_Interface'Class));
+        procedure (Agent : not null access
+                     Concorde.Trades.Trader_Interface'Class));
 
    overriding procedure Clear_Stock
      (Agent    : in out Root_Agent_Type);
@@ -202,7 +208,23 @@ package Concorde.Agents is
      (Agent     : in out Root_Agent_Type'Class;
       Guarantor : access constant Root_Agent_Type'Class);
 
-   type Agent_Type is access all Root_Agent_Type'Class;
+   type Agent_Type is access constant Root_Agent_Type'Class;
+
+   function Get_Agent_Access (Agent : Root_Agent_Type'Class) return Agent_Type;
+
+   procedure Scan_Agents
+     (Process : not null access procedure
+        (Agent : Agent_Type));
+
+   procedure Update_Agents
+     (Update : not null access procedure
+        (Agent : not null access Root_Agent_Type'Class));
+
+   procedure Save_Agent
+     (Agent : not null access constant Root_Agent_Type'Class);
+
+   procedure Remove_Agent
+     (Agent : not null access constant Root_Agent_Type'Class);
 
 private
 
@@ -238,14 +260,14 @@ private
      and Concorde.Locations.Located_Interface
      and Concorde.Trades.Trader_Interface with
       record
-         Market    : access Concorde.Trades.Trade_Interface'Class;
-         Stock     : Concorde.Commodities.Root_Stock_Type;
-         Cash      : Concorde.Money.Money_Type;
-         Belief    : access Price_Belief_Vectors.Vector;
-         Location  : Concorde.Locations.Object_Location;
-         Age       : Natural := 0;
-         Guarantor : access constant Root_Agent_Type'Class;
-         Account   : Account_Entry_Vectors.Vector;
+         Market       : access Concorde.Trades.Trade_Interface'Class;
+         Stock        : Concorde.Commodities.Root_Stock_Type;
+         Cash         : Concorde.Money.Money_Type;
+         Belief       : access Price_Belief_Vectors.Vector;
+         Location     : Concorde.Locations.Object_Location;
+         Age          : Natural := 0;
+         Guarantor    : access constant Root_Agent_Type'Class;
+         Account      : Account_Entry_Vectors.Vector;
       end record;
 
    function Get_Price_Belief
@@ -258,5 +280,13 @@ private
      (Agent     : Root_Agent_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
       Belief    :  Agent_Price_Belief_Record);
+
+   package Agent_Lists is new Ada.Containers.Doubly_Linked_Lists (Agent_Type);
+
+   package Agent_Maps is
+     new WL.String_Maps (Agent_Lists.Cursor, Agent_Lists."=");
+
+   Agent_List : Agent_Lists.List;
+   Agent_Map  : Agent_Maps.Map;
 
 end Concorde.Agents;

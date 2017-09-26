@@ -9,7 +9,7 @@ package body Concorde.Agents.Reports is
    --------------------
 
    procedure Write_Accounts
-     (Agent : Root_Agent_Type'Class)
+     (Agent : Agent_Type)
    is
       use Ada.Text_IO;
    begin

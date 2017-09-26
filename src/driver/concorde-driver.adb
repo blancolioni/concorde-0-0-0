@@ -6,16 +6,18 @@ with WL.Work;
 
 with Memor;
 
-with Xi.Assets;
-with Xi.Main;
-with Xi.Render_Window;
-with Xi.Shader.Load;
-
-with Xtk;
+--  with Xi.Assets;
+--  with Xi.Main;
+--  with Xi.Render_Window;
+--  with Xi.Shader.Load;
+--
+--  with Xtk;
 
 with Concorde.Paths;
 
 with Concorde.Logging;
+
+with Concorde.Dates;
 
 with Concorde.Empires.Configure;
 with Concorde.Galaxy.Create;
@@ -26,16 +28,13 @@ with Concorde.Empires.Reports;
 with Concorde.Empires.Updates;
 with Concorde.Updates;
 
---  with Concorde.Gtk_UI;
-with Concorde.Xi_UI.Model_Manager;
-with Concorde.Xi_UI.Key_Bindings;
+--  with Concorde.Xi_UI.Model_Manager;
+--  with Concorde.Xi_UI.Key_Bindings;
 
 with Concorde.Empires.Logging;
 
 with Concorde.Options;
 with Concorde.Reports;
-
-with Concorde.Players.Registry;
 
 with Concorde.Configure;
 
@@ -66,8 +65,6 @@ begin
    if Concorde.Options.Randomise then
       WL.Random.Randomise;
    end if;
-
-   Concorde.Players.Registry.Register_Players;
 
    Concorde.Configure.Load_Configuration;
 
@@ -125,6 +122,7 @@ begin
             Concorde.Updates.Perform_Update
               (Execute_Battles  => True,
                Check_Invariants => Check_Invariants);
+            Concorde.Dates.Tick (84600.0);
             Process.Tick;
          end loop;
          Process.Finish;
@@ -138,40 +136,41 @@ begin
          null;
          --  Concorde.Gtk_UI.Start;
       elsif Use_Xi then
+         null;
 
-         declare
-            Window : Xi.Render_Window.Xi_Render_Window;
-         begin
-
-            Xi.Main.Init;
-            Xtk.Initialize
-              (Css_Path =>
-                 Concorde.Paths.Config_File ("styles/concorde.css"));
-
-            Xi.Assets.Add_Search_Path
-              (Concorde.Paths.Config_Path);
-
-            Xi.Assets.Add_Image_Path
-              (Concorde.Paths.Config_Path);
-
-            Concorde.Xi_UI.Key_Bindings.Load_Key_Bindings;
-
-            Xi.Shader.Load.Add_Search_Path
-              (Concorde.Paths.Config_File ("shaders"));
-
-            Window :=
-              Xi.Main.Current_Renderer.Create_Top_Level_Window;
-
-            Window.Set_Full_Screen (True);
-
-            Concorde.Xi_UI.Model_Manager.Model
-              (Concorde.Galaxy.Capital_World, Window).Activate;
-
-            Concorde.Updates.Set_Time_Acceleration (0.0);
-
-            Xi.Main.Main_Loop;
-
-         end;
+--           declare
+--              Window : Xi.Render_Window.Xi_Render_Window;
+--           begin
+--
+--              Xi.Main.Init;
+--              Xtk.Initialize
+--                (Css_Path =>
+--                   Concorde.Paths.Config_File ("styles/concorde.css"));
+--
+--              Xi.Assets.Add_Search_Path
+--                (Concorde.Paths.Config_Path);
+--
+--              Xi.Assets.Add_Image_Path
+--                (Concorde.Paths.Config_Path);
+--
+--              Concorde.Xi_UI.Key_Bindings.Load_Key_Bindings;
+--
+--              Xi.Shader.Load.Add_Search_Path
+--                (Concorde.Paths.Config_File ("shaders"));
+--
+--              Window :=
+--                Xi.Main.Current_Renderer.Create_Top_Level_Window;
+--
+--              Window.Set_Full_Screen (True);
+--
+--              Concorde.Xi_UI.Model_Manager.Model
+--                (Concorde.Galaxy.Capital_World, Window).Activate;
+--
+--              Concorde.Updates.Set_Time_Acceleration (0.0);
+--
+--              Xi.Main.Main_Loop;
+--
+--           end;
 
       else
          Ada.Text_IO.Put_Line

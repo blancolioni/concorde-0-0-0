@@ -1,6 +1,7 @@
 private with Ada.Containers.Doubly_Linked_Lists;
 
 private with Memor;
+private with Memor.Database;
 
 with Concorde.Geometry;
 
@@ -258,9 +259,24 @@ package Concorde.Worlds is
 
    type World_Type is access constant Root_World_Type'Class;
 
+   procedure Scan_Market_Worlds
+     (Process : not null access
+        procedure (World : World_Type));
+
+   procedure Scan_Worlds
+     (Process : not null access
+        procedure (World : World_Type));
+
    type Array_Of_Worlds is array (Positive range <>) of World_Type;
 
    function Moons (World : Root_World_Type'Class) return Array_Of_Worlds;
+
+   type Updateable_Reference (Item : not null access Root_World_Type'Class)
+   is private with Implicit_Dereference => Item;
+
+   function Update
+     (Item : not null access constant Root_World_Type'Class)
+      return Updateable_Reference;
 
 private
 
@@ -448,5 +464,14 @@ private
    is (World.System);
 
    overriding procedure Load (World : in out Root_World_Type);
+
+   package Db is
+     new Memor.Database
+       ("world", Root_World_Type, World_Type);
+
+   type Updateable_Reference (Item : not null access Root_World_Type'Class) is
+      record
+         Update : Db.Updateable_Reference (Item);
+      end record;
 
 end Concorde.Worlds;

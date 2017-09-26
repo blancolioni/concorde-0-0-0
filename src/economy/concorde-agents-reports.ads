@@ -1,6 +1,6 @@
 package Concorde.Agents.Reports is
 
    procedure Write_Accounts
-     (Agent : Root_Agent_Type'Class);
+     (Agent : Agent_Type);
 
 end Concorde.Agents.Reports;

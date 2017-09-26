@@ -12,11 +12,6 @@ with Xi.Shapes;
 with Xi.Float_Arrays;
 with Xi.Matrices;
 
-with Xtk.Button;
-with Xtk.FPS;
-with Xtk.Grid;
-with Xtk.Orientable;
-
 with Concorde.Xi_UI.Key_Bindings;
 
 with Concorde.Dates;

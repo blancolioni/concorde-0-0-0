@@ -1,5 +1,3 @@
-with Concorde.Atmosphere.Db;
-
 package body Concorde.Atmosphere is
 
    -----------------

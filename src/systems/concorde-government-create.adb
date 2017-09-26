@@ -1,7 +1,5 @@
 with Concorde.Locations;
 
-with Concorde.Government.Db;
-
 package body Concorde.Government.Create is
 
    -----------------------

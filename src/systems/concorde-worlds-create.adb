@@ -28,8 +28,6 @@ with Concorde.Terrain;
 
 with Concorde.Worlds.Maps;
 
-with Concorde.Worlds.Db;
-
 package body Concorde.Worlds.Create is
 
    Report_Worlds     : constant Boolean := False;

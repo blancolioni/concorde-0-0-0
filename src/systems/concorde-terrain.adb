@@ -1,5 +1,3 @@
-with Concorde.Terrain.Db;
-
 package body Concorde.Terrain is
 
    Local_Mountain : Terrain_Type;

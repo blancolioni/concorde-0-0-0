@@ -1,5 +1,3 @@
-with Concorde.Components.Db;
-
 package body Concorde.Components is
 
    -----------

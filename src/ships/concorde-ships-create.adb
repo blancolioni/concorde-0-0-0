@@ -4,14 +4,9 @@ with Concorde.Worlds;
 
 with Concorde.Roman_Images;
 
-with Concorde.Empires.Db;
 with Concorde.Empires.Logging;
 
-with Concorde.Ships.Db;
 with Concorde.Ships.Designs;
-
-with Concorde.Systems.Db;
-with Concorde.Worlds.Db;
 
 with Concorde.Money;
 with Concorde.Quantities;
@@ -26,7 +21,7 @@ package body Concorde.Ships.Create is
      (Owner  : not null access constant
         Concorde.Empires.Root_Empire_Type'Class;
       Name   : String;
-      World  : in out Concorde.Worlds.Root_World_Type'Class;
+      World  : Concorde.Worlds.World_Type;
       Design : String)
       return Ship_Type
    is
@@ -43,27 +38,12 @@ package body Concorde.Ships.Create is
       is
          use Concorde.Quantities;
 
-         procedure Update_System
-           (System : in out Concorde.Systems.Root_Star_System_Type'Class);
-
-         -------------------
-         -- Update_System --
-         -------------------
-
-         procedure Update_System
-           (System : in out Concorde.Systems.Root_Star_System_Type'Class)
-         is
-         begin
-            System.Add_Ship
-              (Concorde.Ships.Db.Reference (Ship));
-         end Update_System;
-
       begin
          Concorde.Ships.Designs.Create_Ship_From_Design
            (Design, Ship);
          Ship.New_Agent
            (Concorde.Locations.Geosynchronous_Orbit
-              (Concorde.Worlds.Db.Reference (World)),
+              (World),
             World.Market,
             To_Quantity (Ship.Hold_Size));
 
@@ -84,8 +64,9 @@ package body Concorde.Ships.Create is
          Ship.Set_Cash (Concorde.Money.To_Money (10_000.0));
          Ship.Set_Location
            (Concorde.Locations.Orbit
-              (Concorde.Worlds.Db.Reference (World), 300_000.0));
-         Ship.Dest_Reference := Memor.Null_Database_Reference;
+              (World, 300_000.0));
+         Ship.Dest_World := null;
+         Ship.Dest_System := null;
          Ship.Alive := True;
 
          declare
@@ -95,34 +76,16 @@ package body Concorde.Ships.Create is
             Ship.Identity := "1" & Id (Id'Last - 4 .. Id'Last);
          end;
 
-         declare
-            procedure Set_New_Ship
-              (Empire : in out Concorde.Empires.Root_Empire_Type'Class);
-
-            ------------------
-            -- Set_New_Ship --
-            ------------------
-
-            procedure Set_New_Ship
-              (Empire : in out Concorde.Empires.Root_Empire_Type'Class)
-            is
-            begin
-               Empire.New_Ship;
-            end Set_New_Ship;
-
-         begin
-            Concorde.Empires.Db.Update (Owner.Reference, Set_New_Ship'Access);
-         end;
-
-         Concorde.Systems.Db.Update
-           (World.System.Reference, Update_System'Access);
+         Owner.Update.New_Ship;
 
          Concorde.Empires.Logging.Log
            (Owner, World.Name & ": new ship: " & Ship.Name);
       end Create;
 
+      Ship : constant Ship_Type := Db.Create (Create'Access);
    begin
-      return Db.Create (Create'Access);
+      World.System.Update.Add_Ship (Ship);
+      return Ship;
    end New_Ship;
 
 end Concorde.Ships.Create;

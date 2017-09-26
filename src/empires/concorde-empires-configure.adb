@@ -1,19 +1,15 @@
+with Ada.Text_IO;
+
 with Tropos.Reader;
 with Concorde.Paths;
 
 with Concorde.Options;
-with Concorde.Scenarios;
-
-with Concorde.Players.Registry;
 
 with Concorde.Empires.Create;
 
 with Lui.Colours;
 
 with Concorde.Worlds.Tests;
-
-with Concorde.Empires.Db;
-with Concorde.Worlds.Db;
 
 package body Concorde.Empires.Configure is
 
@@ -33,6 +29,7 @@ package body Concorde.Empires.Configure is
    begin
       for Config of Empire_Config loop
          exit when Current >= Count;
+         Ada.Text_IO.Put_Line ("New empire: " & Config.Config_Name);
          declare
             Name : constant String :=
                      Config.Get ("name", Config.Config_Name);
@@ -43,11 +40,6 @@ package body Concorde.Empires.Configure is
             Red     : constant Natural := Colour.Get (1);
             Green   : constant Natural := Colour.Get (2);
             Blue    : constant Natural := Colour.Get (3);
-            Player  : constant String :=
-                        (if Concorde.Scenarios.Imperial_Centre
-                         and then Current = 0
-                         then "null"
-                         else Config.Get ("player", "simple"));
             E       : Empire_Type;
          begin
             E :=
@@ -60,9 +52,7 @@ package body Concorde.Empires.Configure is
                       Lui.Colours.Colour_Byte (Green),
                       Lui.Colours.Colour_Byte (Blue)),
                  Default_Ship_Design =>
-                   Config.Get ("design", "defender"),
-                 Player              =>
-                   Concorde.Players.Registry.Get (Player));
+                   Config.Get ("design", "defender"));
             if E1 = null then
                E1 := E;
             elsif E2 = null then
@@ -88,7 +78,7 @@ package body Concorde.Empires.Configure is
    is
 
       procedure Add_Test_Ships
-        (World : in out Concorde.Worlds.Root_World_Type'Class);
+        (World : Concorde.Worlds.Updateable_Reference);
 
       procedure Bad_Relationship
         (Empire : in out Root_Empire_Type'Class);
@@ -98,12 +88,12 @@ package body Concorde.Empires.Configure is
       --------------------
 
       procedure Add_Test_Ships
-        (World : in out Concorde.Worlds.Root_World_Type'Class)
+        (World : Concorde.Worlds.Updateable_Reference)
       is
       begin
          for I in 1 .. 8 loop
             Concorde.Worlds.Tests.New_Test_Ship
-              (Defender, World, Design => "defender");
+              (Defender, World.Item.all, Design => "defender");
          end loop;
 
          for I in 1 .. 8 loop
@@ -128,8 +118,7 @@ package body Concorde.Empires.Configure is
       end Bad_Relationship;
 
    begin
-      Concorde.Worlds.Db.Update
-        (Defender.Capital_World.Reference, Add_Test_Ships'Access);
+      Add_Test_Ships (Defender.Capital_World.Update);
 
       Db.Update (Attacker.Reference, Bad_Relationship'Access);
       Db.Update (Defender.Reference, Bad_Relationship'Access);

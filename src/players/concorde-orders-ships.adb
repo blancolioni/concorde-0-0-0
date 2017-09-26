@@ -1,5 +1,3 @@
-with Concorde.Ships.Db;
-
 package body Concorde.Orders.Ships is
 
    type Root_Ship_Order_Record is
@@ -63,26 +61,11 @@ package body Concorde.Orders.Ships is
    is
       use type Concorde.Empires.Empire_Type;
 
-      procedure Set_Destination
-        (Ship : in out Concorde.Ships.Root_Ship_Type'Class);
-
-      ---------------------
-      -- Set_Destination --
-      ---------------------
-
-      procedure Set_Destination
-        (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
-      is
-      begin
-         Ship.Set_Destination (Order.Destination);
-      end Set_Destination;
-
    begin
       if Order.Ship.Alive
         and then Order.Ship.Owner = Order.Empire
       then
-         Concorde.Ships.Db.Update
-           (Order.Ship.Reference, Set_Destination'Access);
+         Order.Ship.Update.Set_Destination (Order.Destination);
       end if;
    end Execute;
 
@@ -95,26 +78,11 @@ package body Concorde.Orders.Ships is
    is
       use type Concorde.Empires.Empire_Type;
 
-      procedure Set_Destination
-        (Ship : in out Concorde.Ships.Root_Ship_Type'Class);
-
-      ---------------------
-      -- Set_Destination --
-      ---------------------
-
-      procedure Set_Destination
-        (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
-      is
-      begin
-         Ship.Set_Destination (Order.Destination);
-      end Set_Destination;
-
    begin
       if Order.Ship.Alive
         and then Order.Ship.Owner = Order.Empire
       then
-         Concorde.Ships.Db.Update
-           (Order.Ship.Reference, Set_Destination'Access);
+         Order.Ship.Update.Set_Destination (Order.Destination);
       end if;
    end Execute;
 
@@ -126,8 +94,7 @@ package body Concorde.Orders.Ships is
      (Order : Colonise_Order_Record)
    is
    begin
-      Concorde.Ships.Db.Update
-        (Order.Ship.Reference, Concorde.Ships.Set_Colonisation_Order'Access);
+      Order.Ship.Update.Set_Colonisation_Order;
    end Execute;
 
    ---------------------

@@ -4,17 +4,11 @@ with Concorde.Worlds.Updates;
 with Concorde.Galaxy.Ships;
 
 with Concorde.Empires;
-with Concorde.Empires.Db;
 with Concorde.Empires.Logging;
 with Concorde.Empires.Relations;
 
 with Concorde.Ships.Battles;
 with Concorde.Ships.Lists;
---  with Concorde.Ships.Db;
---  with Concorde.Systems.Db;
-with Concorde.Worlds.Db;
-
---  with Concorde.Players;
 
 package body Concorde.Galaxy.Updates is
 
@@ -25,14 +19,14 @@ package body Concorde.Galaxy.Updates is
    procedure Update_Galaxy is
 
       procedure Update_World
-        (World : in out Concorde.Worlds.Root_World_Type'Class);
+        (World : Concorde.Worlds.World_Type);
 
       ------------------
       -- Update_World --
       ------------------
 
       procedure Update_World
-        (World : in out Concorde.Worlds.Root_World_Type'Class)
+        (World : Concorde.Worlds.World_Type)
       is
       begin
          Concorde.Worlds.Updates.Update_World (World);
@@ -111,57 +105,10 @@ package body Concorde.Galaxy.Updates is
                         end loop;
 
                         if New_Owner /= null then
+--                             Current_Owner.Update.World_Lost (World);
+--                             New_Owner.Update.World_Acqured (World);
 
-                           declare
-                              procedure Update_World_Acquired
-                                (Empire : in out Root_Empire_Type'Class);
-
-                              procedure Update_World_Lost
-                                (Empire : in out Root_Empire_Type'Class);
-
-                              ----------------------------
-                              -- Update_World_Acquired --
-                              ----------------------------
-
-                              procedure Update_World_Acquired
-                                (Empire : in out Root_Empire_Type'Class)
-                              is
-                              begin
-
-                                 null;
-
---                                   Empire.World_Acquired (World);
---                                   Empire.Player.On_World_Captured
---                                     (Empire, World, Current_Owner);
-                              end Update_World_Acquired;
-
-                              ------------------------
-                              -- Update_World_Lost --
-                              ------------------------
-
-                              procedure Update_World_Lost
-                                (Empire : in out Root_Empire_Type'Class)
-                              is
-                              begin
-                                 null;
-
---                                   Empire.World_Lost (World);
---                                   Empire.Player.On_World_Lost
---                                     (Empire, World, New_Owner);
-                              end Update_World_Lost;
-
-                           begin
-                              Concorde.Empires.Db.Update
-                                (Current_Owner.Reference,
-                                 Update_World_Lost'Access);
-
-                              Concorde.Empires.Db.Update
-                                (New_Owner.Reference,
-                                 Update_World_Acquired'Access);
-
-                           end;
-
-                           World.Set_Owner (New_Owner);
+                           World.Update.Set_Owner (New_Owner);
                            Concorde.Empires.Logging.Log
                              (Current_Owner,
                               "loses control of " & World.Name & " to "
@@ -182,16 +129,13 @@ package body Concorde.Galaxy.Updates is
 
 --        Concorde.Empires.Clear_Battles;
 
-      Concorde.Worlds.Db.Iterate (Update_World'Access);
+      Concorde.Worlds.Scan_Worlds (Update_World'Access);
 
       if False then
          Concorde.Galaxy.Ships.Start_Ship_Moves;
          Concorde.Ships.Updates.Update_Ship_Movement;
          Concorde.Galaxy.Ships.Commit_Ship_Moves;
       end if;
-
-      Concorde.Worlds.Db.Iterate
-        (Concorde.Worlds.Updates.Update_World'Access);
 
    end Update_Galaxy;
 

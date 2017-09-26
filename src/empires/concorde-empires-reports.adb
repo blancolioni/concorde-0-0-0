@@ -1,7 +1,5 @@
 with Ada.Text_IO;
 
-with Concorde.Empires.Db;
-
 package body Concorde.Empires.Reports is
 
    --------------------

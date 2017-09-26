@@ -1,5 +1,3 @@
-with Concorde.People.Groups.Db;
-
 package body Concorde.People.Groups is
 
    ---------

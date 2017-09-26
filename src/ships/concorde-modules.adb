@@ -1,5 +1,3 @@
-with Concorde.Modules.Db;
-
 package body Concorde.Modules is
 
    ------------
@@ -336,6 +334,19 @@ package body Concorde.Modules is
    begin
       return Module.Stored_Energy;
    end Stored_Energy;
+
+   ------------
+   -- Update --
+   ------------
+
+   function Update
+     (Item : not null access constant Root_Module_Type'Class)
+      return Updateable_Reference
+   is
+      Base_Update : constant Db.Updateable_Reference := Db.Update (Item);
+   begin
+      return Updateable_Reference'(Base_Update.Element, Base_Update);
+   end Update;
 
    -------------------
    -- Update_Damage --

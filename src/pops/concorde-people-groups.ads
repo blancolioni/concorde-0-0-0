@@ -1,3 +1,5 @@
+private with Memor.Database;
+
 with Memor;
 with Memor.Element_Vectors;
 
@@ -95,5 +97,9 @@ private
       Group  : Pop_Group)
       return Affiliation_Range
    is (Vector.Element (Group));
+
+   package Db is
+     new Memor.Database
+       ("pop-group", Root_Pop_Group, Pop_Group);
 
 end Concorde.People.Groups;

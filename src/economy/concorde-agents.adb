@@ -145,7 +145,7 @@ package body Concorde.Agents is
                             then Belief.Low
                             elsif Agent.Offer_Strategy (Commodity)
                             = Average_Price
-                            then Market.Last_Average_Ask (Commodity)
+                            then Mean
                             else Create_Bid_Price
                               (Belief.Low, Belief.High, Agent.Age));
          Limit_Price   : constant Price_Type :=
@@ -201,9 +201,7 @@ package body Concorde.Agents is
               (Offer     => Concorde.Trades.Buy,
                Trader    => Agent,
                Commodity => Commodity,
-               Quantity  => Final,
-               Price     => Buy_Price,
-               Limit     => Limit_Price);
+               Quantity  => Final);
          end if;
       end Update;
 
@@ -263,7 +261,7 @@ package body Concorde.Agents is
                             then Limit_Price
                             elsif Agent.Offer_Strategy (Commodity)
                             = Average_Price
-                            then Market.Last_Average_Bid (Commodity)
+                            then Mean
                             else Create_Ask_Price
                               (Max (Belief.Low, Limit_Price),
                                Belief.High, Agent.Age));
@@ -297,9 +295,7 @@ package body Concorde.Agents is
               (Offer     => Concorde.Trades.Sell,
                Trader    => Agent,
                Commodity => Commodity,
-               Quantity  => Sell_Quantity,
-               Price     => Sell_Price,
-               Limit     => Limit_Price);
+               Quantity  => Sell_Quantity);
          end if;
       end Update;
 
@@ -367,6 +363,18 @@ package body Concorde.Agents is
    end Execute_Trade;
 
    ----------------------
+   -- Get_Agent_Access --
+   ----------------------
+
+   function Get_Agent_Access
+     (Agent : Root_Agent_Type'Class)
+      return Agent_Type
+   is
+   begin
+      return Agent_Type (Agent.Object_Database.Element (Agent.Reference));
+   end Get_Agent_Access;
+
+   ----------------------
    -- Get_Price_Belief --
    ----------------------
 
@@ -398,8 +406,8 @@ package body Concorde.Agents is
                     High => Commodity.Base_Price,
                     Strength => 1.0);
          when Average_Price =>
-            return (Low      => Market.Last_Average_Bid (Commodity),
-                    High     => Market.Last_Average_Ask (Commodity),
+            return (Low      => Market.Historical_Mean_Price (Commodity),
+                    High     => Market.Historical_Mean_Price (Commodity),
                     Strength => 1.0);
       end case;
    end Get_Price_Belief;
@@ -615,6 +623,20 @@ package body Concorde.Agents is
       end if;
    end Price_Position_In_Range;
 
+   ------------------
+   -- Remove_Agent --
+   ------------------
+
+   procedure Remove_Agent
+     (Agent : not null access constant Root_Agent_Type'Class)
+   is
+      Position : Agent_Lists.Cursor :=
+                   Agent_Map.Element (Agent.Identifier);
+   begin
+      Agent_List.Delete (Position);
+      Agent_Map.Delete (Agent.Identifier);
+   end Remove_Agent;
+
    -----------------
    -- Remove_Cash --
    -----------------
@@ -627,6 +649,32 @@ package body Concorde.Agents is
    begin
       Agent.Set_Cash (Agent.Cash - Amount);
    end Remove_Cash;
+
+   ----------------
+   -- Save_Agent --
+   ----------------
+
+   procedure Save_Agent
+     (Agent : not null access constant Root_Agent_Type'Class)
+   is
+   begin
+      Agent_List.Append (Agent_Type (Agent));
+      Agent_Map.Insert (Agent.Identifier, Agent_List.Last);
+   end Save_Agent;
+
+   -----------------
+   -- Scan_Agents --
+   -----------------
+
+   procedure Scan_Agents
+     (Process : not null access procedure
+        (Agent : Agent_Type))
+   is
+   begin
+      for Agent of Agent_List loop
+         Process (Agent);
+      end loop;
+   end Scan_Agents;
 
    ----------------
    -- Scan_Stock --
@@ -703,6 +751,34 @@ package body Concorde.Agents is
    begin
       Agent.Stock.Set_Quantity (Item, Quantity, Value);
    end Set_Quantity;
+
+   -------------------
+   -- Update_Agents --
+   -------------------
+
+   procedure Update_Agents
+     (Update : not null access procedure
+        (Agent : not null access Root_Agent_Type'Class))
+   is
+      procedure Local_Update
+        (Rec : not null access Memor.Root_Record_Type'Class);
+
+      ------------------
+      -- Local_Update --
+      ------------------
+
+      procedure Local_Update
+        (Rec : not null access Memor.Root_Record_Type'Class)
+      is
+      begin
+         Update (Root_Agent_Type'Class (Rec.all)'Access);
+      end Local_Update;
+
+   begin
+      for Agent of Agent_List loop
+         Agent.Object_Database.Update (Agent.Reference, Local_Update'Access);
+      end loop;
+   end Update_Agents;
 
    -------------------------
    -- Update_Price_Belief --
@@ -884,17 +960,21 @@ package body Concorde.Agents is
    overriding procedure Update_Trader
      (Agent  : Root_Agent_Type;
       Update : not null access
-        procedure (Agent : in out Concorde.Trades.Trader_Interface'Class))
+        procedure (Agent : not null access
+                     Concorde.Trades.Trader_Interface'Class))
    is
-      procedure Do_Update (Rec : in out Memor.Root_Record_Type'Class);
+      procedure Do_Update (Rec : not null access
+                             Memor.Root_Record_Type'Class);
 
       ---------------
       -- Do_Update --
       ---------------
 
-      procedure Do_Update (Rec : in out Memor.Root_Record_Type'Class) is
+      procedure Do_Update (Rec : not null access
+                             Memor.Root_Record_Type'Class)
+      is
       begin
-         Update (Root_Agent_Type'Class (Rec));
+         Update (Root_Agent_Type'Class (Rec.all)'Access);
       end Do_Update;
 
    begin

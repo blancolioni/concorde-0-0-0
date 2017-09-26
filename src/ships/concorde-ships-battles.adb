@@ -6,10 +6,6 @@ with Concorde.Empires;
 with Concorde.Empires.Logging;
 with Concorde.Empires.Relations;
 
-with Concorde.Empires.Db;
-with Concorde.Modules.Db;
-with Concorde.Systems.Db;
-
 with Concorde.Options;
 
 package body Concorde.Ships.Battles is
@@ -36,7 +32,7 @@ package body Concorde.Ships.Battles is
    ------------------
 
    function Create_Arena
-     (System : in out Concorde.Systems.Root_Star_System_Type'Class;
+     (System : Concorde.Systems.Star_System_Type;
       Ships  : Concorde.Ships.Lists.List)
      return Concorde.Combat.Ship_Combat.Space_Combat_Arena
    is
@@ -88,11 +84,7 @@ package body Concorde.Ships.Battles is
             end if;
 
             for Mount of Ship.Structure loop
-
-               Concorde.Modules.Db.Update
-                 (Mount.Module.Reference,
-                  Concorde.Modules.Initial_State'Access);
-
+               Mount.Module.Update.Initial_State;
             end loop;
 
             declare
@@ -117,25 +109,8 @@ package body Concorde.Ships.Battles is
       for Team of Teams loop
          declare
             Size : constant Positive := Team.Count;
-
-            procedure Set_Battle
-              (Empire : in out Concorde.Empires.Root_Empire_Type'Class);
-
-            ----------------
-            -- Set_Battle --
-            ----------------
-
-            procedure Set_Battle
-              (Empire : in out Concorde.Empires.Root_Empire_Type'Class)
-            is
-            begin
-               Empire.Set (Concorde.Systems.Db.Reference (System),
-                           Concorde.Empires.Active_Battle);
-            end Set_Battle;
-
          begin
-            Concorde.Empires.Db.Update
-              (Team.Empire.Reference, Set_Battle'Access);
+            Team.Empire.Update.Set (System, Concorde.Empires.Active_Battle);
 
             if Size < Min_Team_Size then
                Min_Team_Size := Size;
@@ -143,7 +118,7 @@ package body Concorde.Ships.Battles is
          end;
       end loop;
 
-      System.Battle (Min_Team_Size);
+      System.Update.Battle (Min_Team_Size);
 
       declare
          use Ada.Strings.Unbounded;

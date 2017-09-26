@@ -1,8 +1,5 @@
 with Concorde.Galaxy;
 
-with Concorde.Empires.Db;
-with Concorde.Systems.Db;
-
 with Concorde.Ships.Lists;
 with Concorde.Systems.Lists;
 
@@ -35,13 +32,14 @@ package body Concorde.Players.Simple_Player is
    overriding procedure On_System_Colonised
      (Player : in out Root_Simple_Player_Type;
       Empire : in out Concorde.Empires.Root_Empire_Type'Class;
-      System : Concorde.Systems.Root_Star_System_Type'Class;
+      System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
       Ship   : not null access constant
         Concorde.Ships.Root_Ship_Type'Class);
 
    procedure Check_Idle_Ships
      (Player : in out Root_Simple_Player_Type'Class;
-      Empire : Concorde.Empires.Root_Empire_Type'Class);
+      Empire : Concorde.Empires.Empire_Type);
 
    procedure Idle_Ship
      (Player : in out Root_Simple_Player_Type'Class;
@@ -55,7 +53,7 @@ package body Concorde.Players.Simple_Player is
 
    procedure Check_Idle_Ships
      (Player : in out Root_Simple_Player_Type'Class;
-      Empire : Concorde.Empires.Root_Empire_Type'Class)
+      Empire : Concorde.Empires.Empire_Type)
    is
    begin
       while not Player.Idle_Ship_List.Is_Empty
@@ -104,8 +102,8 @@ package body Concorde.Players.Simple_Player is
             pragma Assert (Skip or else Has_Element (Closest_Ship));
 
             if not Skip then
-               Player.Order_Explore_System
-                 (Concorde.Empires.Db.Reference (Empire),
+               Concorde.Players.Order_Explore_System
+                 (Player, Empire,
                   Element (Closest_Ship),
                   Destination);
                Player.Idle_Ship_List.Delete (Closest_Ship);
@@ -222,13 +220,13 @@ package body Concorde.Players.Simple_Player is
    overriding procedure On_System_Colonised
      (Player : in out Root_Simple_Player_Type;
       Empire : in out Concorde.Empires.Root_Empire_Type'Class;
-      System : Concorde.Systems.Root_Star_System_Type'Class;
+      System : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
       Ship   : not null access constant
         Concorde.Ships.Root_Ship_Type'Class)
    is
    begin
-      Player.Owned_Systems.Append
-        (Concorde.Systems.Db.Reference (System));
+      Player.Owned_Systems.Append (System);
 
       Player.Idle_Ship (Ship);
 

@@ -1,4 +1,5 @@
 private with Memor;
+private with Memor.Database;
 private with Concorde.People.Skills.Lists;
 
 with Concorde.Agents;
@@ -40,6 +41,10 @@ private
          Skills : Concorde.People.Skills.Lists.List;
       end record;
 
+   overriding function Class_Name
+     (Pop : Root_Pop_Type) return String
+   is ("pop");
+
    overriding function Object_Database
      (Item : Root_Pop_Type)
       return Memor.Memor_Database;
@@ -59,5 +64,9 @@ private
 
    overriding procedure Before_Market
      (Pop : in out Root_Pop_Type);
+
+   package Db is
+     new Memor.Database
+       ("pop", Root_Pop_Type, Pop_Type);
 
 end Concorde.People.Pops;

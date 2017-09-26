@@ -1,5 +1,3 @@
-with Concorde.Government.Db;
-
 package body Concorde.Government is
 
    ----------------------
@@ -93,7 +91,7 @@ package body Concorde.Government is
    -----------------
 
    overriding procedure Tax_Receipt
-     (Government : in out Root_Government_Type;
+     (Government : Root_Government_Type;
       Commodity  : Concorde.Commodities.Commodity_Type;
       Quantity   : Concorde.Quantities.Quantity;
       Price      : Concorde.Money.Price_Type;
@@ -111,8 +109,8 @@ package body Concorde.Government is
          & Concorde.Money.Image (Price)
          & ", tax receipt is "
          & Concorde.Money.Image (Receipt));
-      Government.Add_Cash (Receipt);
-      Government.Tax_Receipts (Category) :=
+      Government.Update.Add_Cash (Receipt);
+      Government.Update.Tax_Receipts (Category) :=
         Government.Tax_Receipts (Category) + Receipt;
    end Tax_Receipt;
 
@@ -128,5 +126,18 @@ package body Concorde.Government is
    begin
       return Government.Tax_Receipts (Category);
    end Tax_Receipts;
+
+   ------------
+   -- Update --
+   ------------
+
+   function Update
+     (Item : not null access constant Root_Government_Type'Class)
+      return Updateable_Reference
+   is
+      Base_Update : constant Db.Updateable_Reference := Db.Update (Item);
+   begin
+      return Updateable_Reference'(Base_Update.Element, Base_Update);
+   end Update;
 
 end Concorde.Government;

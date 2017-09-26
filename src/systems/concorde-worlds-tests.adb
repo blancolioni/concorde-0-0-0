@@ -14,7 +14,7 @@ package body Concorde.Worlds.Tests is
    is
       Ship : constant Concorde.Ships.Ship_Type :=
                Concorde.Ships.Create.New_Ship
-                 (Owner, "", World, Design);
+                 (Owner, "", Db.Reference (World.Reference), Design);
    begin
       World.Ships.Append (Ship);
    end New_Test_Ship;

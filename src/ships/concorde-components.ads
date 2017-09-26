@@ -1,4 +1,5 @@
 private with Memor;
+private with Memor.Database;
 
 with Lui.Colours;
 
@@ -107,5 +108,9 @@ private
    overriding function Object_Database
      (Component : Root_Component_Type)
       return Memor.Memor_Database;
+
+   package Db is
+     new Memor.Database
+       ("component", Root_Component_Type, Component_Type);
 
 end Concorde.Components;

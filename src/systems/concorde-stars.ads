@@ -1,4 +1,5 @@
 private with Memor;
+private with Memor.Database;
 
 with Lui.Colours;
 
@@ -113,5 +114,9 @@ private
      (Star : Root_Star_Type)
       return access constant Concorde.Systems.Root_Star_System_Type'Class
    is (Star.System);
+
+   package Db is
+     new Memor.Database
+       ("star", Root_Star_Type, Star_Type);
 
 end Concorde.Stars;

@@ -2,6 +2,8 @@ private with Ada.Containers.Vectors;
 private with Ada.Containers.Doubly_Linked_Lists;
 private with Ada.Strings.Unbounded;
 
+private with Memor.Database;
+
 with Memor;
 
 limited with Concorde.Empires;
@@ -254,11 +256,21 @@ package Concorde.Ships is
 
    type Ship_Type is access constant Root_Ship_Type'Class;
 
+   procedure On_Arrival
+     (Ship : in out Root_Ship_Type'Class);
+
    function Count_Ships
      (Test : not null access function
         (Ship : Ship_Type)
       return Boolean)
       return Natural;
+
+   type Updateable_Reference (Item : not null access Root_Ship_Type'Class)
+   is private with Implicit_Dereference => Item;
+
+   function Update
+     (Item : not null access constant Root_Ship_Type'Class)
+      return Updateable_Reference;
 
 private
 
@@ -300,8 +312,9 @@ private
          Owner                 : access constant
            Concorde.Empires.Root_Empire_Type'Class;
          Location              : Concorde.Locations.Object_Location;
-         Dest_Reference        : Memor.Database_Reference;
-         Dest_System_Reference : Memor.Database_Reference;
+         Dest_World            : access constant Worlds.Root_World_Type'Class;
+         Dest_System           : access constant
+           Concorde.Systems.Root_Star_System_Type'Class;
          Orders                : List_Of_Orders.List;
          Buy_Requirements      : Concorde.Commodities.Root_Stock_Type;
          Cycle_Orders          : Boolean := False;
@@ -321,6 +334,9 @@ private
 
    package Ship_Vectors is
      new Ada.Containers.Vectors (Positive, Ship_Type);
+
+   overriding function Class_Name (Ship : Root_Ship_Type) return String
+   is ("ship");
 
    overriding function Object_Database
      (Ship : Root_Ship_Type)
@@ -361,5 +377,16 @@ private
 
    overriding procedure On_Update_Start
      (Ship : in out Root_Ship_Type);
+
+   package Db is
+     new Memor.Database
+       ("ship", Root_Ship_Type, Ship_Type);
+
+   type Updateable_Reference
+     (Item : not null access Root_Ship_Type'Class)
+   is
+      record
+         Update : Db.Updateable_Reference (Item);
+      end record;
 
 end Concorde.Ships;

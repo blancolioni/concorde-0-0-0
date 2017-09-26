@@ -11,11 +11,6 @@ package Concorde.Galaxy is
       return Boolean)
       return Concorde.Systems.Star_System_Type;
 
-   procedure Update_System
-     (System : Concorde.Systems.Star_System_Type;
-      Update : not null access
-        procedure (System : in out Systems.Root_Star_System_Type'Class));
-
    type Array_Of_Star_Systems is
      array (Positive range <>) of Concorde.Systems.Star_System_Type;
 

@@ -1,6 +1,7 @@
 private with Ada.Strings.Unbounded;
 
 private with Memor;
+private with Memor.Database;
 private with Memor.Element_Vectors;
 private with Concorde.People.Skills.Lists;
 
@@ -82,5 +83,9 @@ private
 
    overriding procedure Before_Market
      (Individual : in out Root_Individual_Type);
+
+   package Db is
+     new Memor.Database
+       ("individual", Root_Individual_Type, Individual_Type);
 
 end Concorde.People.Individuals;

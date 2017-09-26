@@ -1,5 +1,3 @@
-with Concorde.People.Pops.Db;
-
 package body Concorde.People.Pops.Create is
 
    -------------
@@ -33,7 +31,9 @@ package body Concorde.People.Pops.Create is
       end Create;
 
    begin
-      return Db.Create (Create'Access);
+      return Pop : constant Pop_Type := Db.Create (Create'Access) do
+         Pop.Save_Agent;
+      end return;
    end New_Pop;
 
 end Concorde.People.Pops.Create;

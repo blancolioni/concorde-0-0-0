@@ -6,6 +6,18 @@ with Concorde.Commodities;
 
 package body Concorde.Installations.Production is
 
+   procedure Execute_Production
+     (Installation : in out Root_Installation_Type'Class);
+
+   ------------------------
+   -- Execute_Production --
+   ------------------------
+
+   procedure Execute_Production is
+   begin
+      Db.Iterate (Execute_Production'Access);
+   end Execute_Production;
+
    ------------------------
    -- Execute_Production --
    ------------------------

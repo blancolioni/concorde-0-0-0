@@ -1,4 +1,5 @@
 private with Memor;
+private with Memor.Database;
 
 with Concorde.Objects;
 
@@ -69,5 +70,9 @@ private
    overriding function Object_Database
      (Gas : Root_Gas_Type)
       return Memor.Memor_Database;
+
+   package Db is
+     new Memor.Database
+       ("gas", Root_Gas_Type, Gas_Type);
 
 end Concorde.Atmosphere;

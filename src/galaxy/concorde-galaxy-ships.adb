@@ -6,9 +6,6 @@ with Concorde.Empires.Logging;
 with Concorde.Ships.Battles;
 with Concorde.Ships.Lists;
 
-with Concorde.Ships.Db;
-with Concorde.Systems.Db;
-
 package body Concorde.Galaxy.Ships is
 
    -----------------
@@ -35,17 +32,17 @@ package body Concorde.Galaxy.Ships is
    procedure Commit_Ship_Moves is
 
       procedure Update_System
-        (System : in out Concorde.Systems.Root_Star_System_Type'Class);
+        (System : Concorde.Systems.Star_System_Type);
 
       -------------------
       -- Update_System --
       -------------------
 
       procedure Update_System
-        (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+        (System : Concorde.Systems.Star_System_Type)
       is
       begin
-         System.Commit_Ship_Movement;
+         System.Update.Commit_Ship_Movement;
          declare
             Ship_List : Concorde.Ships.Lists.List;
          begin
@@ -66,7 +63,7 @@ package body Concorde.Galaxy.Ships is
       end Update_System;
 
    begin
-      Concorde.Systems.Db.Iterate (Update_System'Access);
+      Concorde.Systems.Scan_Systems (Update_System'Access);
    end Commit_Ship_Moves;
 
    ---------------
@@ -74,7 +71,7 @@ package body Concorde.Galaxy.Ships is
    ---------------
 
    procedure Move_Ship
-     (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
+     (Ship : Concorde.Ships.Ship_Type)
    is
       use Concorde.Systems.Graphs;
       use Concorde.Systems;
@@ -98,61 +95,28 @@ package body Concorde.Galaxy.Ships is
             & " to "
             & Ship.Destination.Name
             & " is blocked");
-         Ship.Clear_Destination;
+         Ship.Update.Clear_Destination;
          return;
       end if;
 
       if From.Index < To.Index then
-         Locking.Lock_System (From.all, True);
-         Locking.Lock_System (To.all, True);
+         Locking.Lock_System (From, True);
+         Locking.Lock_System (To, True);
       else
-         Locking.Lock_System (To.all, True);
-         Locking.Lock_System (From.all, True);
+         Locking.Lock_System (To, True);
+         Locking.Lock_System (From, True);
       end if;
 
-      declare
-         Reference : constant Concorde.Ships.Ship_Type :=
-                       Concorde.Ships.Db.Reference (Ship);
-
-         procedure Arrive
-           (System : in out Concorde.Systems.Root_Star_System_Type'Class);
-         procedure Depart
-           (System : in out Concorde.Systems.Root_Star_System_Type'Class);
-
-         ------------
-         -- Arrive --
-         ------------
-
-         procedure Arrive
-           (System : in out Concorde.Systems.Root_Star_System_Type'Class)
-         is
-         begin
-            System.Arriving (Reference);
-         end Arrive;
-
-         ------------
-         -- Depart --
-         ------------
-
-         procedure Depart
-           (System : in out Concorde.Systems.Root_Star_System_Type'Class)
-         is
-         begin
-            System.Departing (Reference);
-            System.Add_Traffic (To);
-         end Depart;
-
-      begin
-         Concorde.Systems.Db.Update (From.Reference, Depart'Access);
-         Concorde.Systems.Db.Update (To.Reference, Arrive'Access);
-      end;
+      From.Update.Departing (Ship);
+      From.Update.Add_Traffic (To);
+      To.Update.Arriving (Ship);
 
       if From.Index < To.Index then
-         Locking.Unlock_System (To.all);
-         Locking.Unlock_System (From.all);
+         Locking.Unlock_System (To);
+         Locking.Unlock_System (From);
       else
-         Locking.Unlock_System (From.all);
-         Locking.Unlock_System (To.all);
+         Locking.Unlock_System (From);
+         Locking.Unlock_System (To);
       end if;
 
    end Move_Ship;
@@ -164,23 +128,23 @@ package body Concorde.Galaxy.Ships is
    procedure Start_Ship_Moves is
 
       procedure Update
-        (System : in out Concorde.Systems.Root_Star_System_Type'Class);
+        (System : Concorde.Systems.Star_System_Type);
 
       ------------
       -- Update --
       ------------
 
       procedure Update
-        (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+        (System : Concorde.Systems.Star_System_Type)
       is
       begin
          Concorde.Galaxy.Locking.Lock_System (System, True);
-         System.Clear_Ship_Movement;
+         System.Update.Clear_Ship_Movement;
          Concorde.Galaxy.Locking.Unlock_System (System);
       end Update;
 
    begin
-      Concorde.Systems.Db.Iterate (Update'Access);
+      Concorde.Systems.Scan_Systems (Update'Access);
    end Start_Ship_Moves;
 
 end Concorde.Galaxy.Ships;

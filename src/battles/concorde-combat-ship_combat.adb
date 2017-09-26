@@ -12,10 +12,6 @@ with Concorde.Random;
 with Concorde.Empires.Logging;
 with Concorde.Empires.Relations;
 
-with Concorde.Empires.Db;
-with Concorde.Modules.Db;
-with Concorde.Ships.Db;
-
 package body Concorde.Combat.Ship_Combat is
 
 --     Log_File : Ada.Text_IO.File_Type;
@@ -189,46 +185,6 @@ package body Concorde.Combat.Ship_Combat is
 
          Captured_Ships : Natural := 0;
 
-         procedure Update_Owner
-           (Ship : in out Concorde.Ships.Root_Ship_Type'Class);
-
-         procedure Update_Ship_Count
-           (Empire : in out Concorde.Empires.Root_Empire_Type'Class;
-            Change : Integer);
-
-         procedure Update_Empire is
-           new Concorde.Empires.Db.Generic_Update (Integer);
-
-         ------------------
-         -- Update_Owner --
-         ------------------
-
-         procedure Update_Owner
-           (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
-         is
-         begin
-            Concorde.Empires.Logging.Log
-              (Ship.Owner,
-               Ship.Short_Description & " captured by " & Winner.Name);
-            Concorde.Empires.Logging.Log
-              (Winner,
-               Ship.Short_Description & " captured from "
-               & Ship.Owner.Name);
-            Ship.Set_Owner (Winner);
-         end Update_Owner;
-
-         -----------------------
-         -- Update_Ship_Count --
-         -----------------------
-
-         procedure Update_Ship_Count
-           (Empire : in out Concorde.Empires.Root_Empire_Type'Class;
-            Change : Integer)
-         is
-         begin
-            Empire.Change_Ships (Change);
-         end Update_Ship_Count;
-
       begin
          if Winner /= null then
             for Team of Arena.Teams loop
@@ -243,18 +199,22 @@ package body Concorde.Combat.Ship_Combat is
                         if Ship.Alive
                           and then not Ship.Has_Effective_Engine
                         then
-                           Concorde.Ships.Db.Update
-                             (Ship.Reference,
-                              Update_Owner'Access);
+                           Concorde.Empires.Logging.Log
+                             (Ship.Owner,
+                              Ship.Short_Description
+                              & " captured by " & Winner.Name);
+                           Concorde.Empires.Logging.Log
+                             (Winner,
+                              Ship.Short_Description & " captured from "
+                              & Ship.Owner.Name);
+                           Ship.Update.Set_Owner (Winner);
                            Captured_Ships := Captured_Ships + 1;
                         end if;
                      end;
                   end loop;
                   if Captured_Ships > 0 then
-                     Update_Empire (Winner.Reference, Captured_Ships,
-                                    Update_Ship_Count'Access);
-                     Update_Empire (Team.Leader.Reference, -Captured_Ships,
-                                    Update_Ship_Count'Access);
+                     Winner.Update.Change_Ships (Captured_Ships);
+                     Team.Leader.Update.Change_Ships (-Captured_Ships);
                   end if;
                end if;
             end loop;
@@ -359,27 +319,12 @@ package body Concorde.Combat.Ship_Combat is
                                    Effectiveness => Event.Effectiveness,
                                    At_Range      => Event.Distance);
 
-                     procedure Hit
-                       (Ship : in out Concorde.Ships.Root_Ship_Type'Class);
-
-                     ---------
-                     -- Hit --
-                     ---------
-
-                     procedure Hit
-                       (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
-                     is
-                     begin
-                        Ship.Hit (Damage);
-                     end Hit;
-
                   begin
                      Log (Model,
                           Model.Ships (Event.Target).Ship.Name
                           & " takes" & Damage'Img & " damage");
-                     Concorde.Ships.Db.Update
-                       (Model.Ships (Event.Target).Ship.Reference,
-                        Hit'Access);
+                     Model.Ships.Element (Event.Target)
+                       .Ship.Update.Hit (Damage);
                      Model.Ships (Event.Target).Hit := True;
                   end;
 
@@ -418,20 +363,6 @@ package body Concorde.Combat.Ship_Combat is
       Ship   : in out Ship_Record;
       Module : Concorde.Modules.Module_Type)
    is
-      procedure Update_Module
-        (Module : in out Concorde.Modules.Root_Module_Type'Class);
-
-      -------------------
-      -- Update_Module --
-      -------------------
-
-      procedure Update_Module
-        (Module : in out Concorde.Modules.Root_Module_Type'Class)
-      is
-      begin
-         Module.Execute;
-      end Update_Module;
-
    begin
       Log (Model,
            Ship.Ship.Name & " fires " & Module.Name
@@ -447,8 +378,7 @@ package body Concorde.Combat.Ship_Combat is
           Module, Module.Component, Module.Stored_Energy,
           Module.Effectiveness, Model.Ship_Range (Ship.Index, Ship.Target)));
 
-      Concorde.Modules.Db.Update
-        (Module.Reference, Update_Module'Access);
+      Module.Update.Execute;
 
    end Fire_Weapon;
 

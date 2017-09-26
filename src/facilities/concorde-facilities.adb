@@ -1,13 +1,42 @@
-with Concorde.Facilities.Db;
-
 package body Concorde.Facilities is
 
    Local_Colony_Hub : Facility_Type := null;
+
+   Local_Facility_Array : access Array_Of_Facilities;
 
    function Get_By_Match
      (Match : not null access
         function (Facility : Facility_Type) return Boolean)
       return Array_Of_Facilities;
+
+   --------------------
+   -- All_Facilities --
+   --------------------
+
+   function All_Facilities return Array_Of_Facilities is
+   begin
+      if Local_Facility_Array = null then
+         Local_Facility_Array :=
+           new Array_Of_Facilities (1 .. Db.Active_Count);
+         declare
+            Count : Natural := 0;
+            procedure Add (Facility : Facility_Type);
+
+            ---------
+            -- Add --
+            ---------
+
+            procedure Add (Facility : Facility_Type) is
+            begin
+               Count := Count + 1;
+               Local_Facility_Array (Count) := Facility;
+            end Add;
+         begin
+            Db.Scan (Add'Access);
+         end;
+      end if;
+      return Local_Facility_Array.all;
+   end All_Facilities;
 
    -------------------------
    -- Base_Service_Charge --

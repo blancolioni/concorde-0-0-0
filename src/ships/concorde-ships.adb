@@ -6,15 +6,10 @@ with Concorde.Money;
 with Concorde.Random;
 with Concorde.Real_Images;
 
-with Concorde.Commodities.Db;
-with Concorde.Empires.Db;
-with Concorde.Modules.Db;
-with Concorde.Ships.Db;
-with Concorde.Worlds.Db;
-
 with Concorde.Empires.Logging;
 
 with Concorde.Markets;
+with Concorde.Worlds;
 
 package body Concorde.Ships is
 
@@ -170,9 +165,9 @@ package body Concorde.Ships is
                         Demand : constant Quantity :=
                                    To.Current_Import_Demand (Commodity);
                         Buy_At : constant Concorde.Money.Price_Type :=
-                                   From.Last_Average_Ask (Commodity);
+                                   From.Historical_Mean_Price (Commodity);
                         Sell_At : constant Concorde.Money.Price_Type :=
-                                    To.Last_Average_Ask (Commodity);
+                                    To.Historical_Mean_Price (Commodity);
                         Score   : constant Integer :=
                                     Score_Trade
                                       (Supply, Demand, Buy_At, Sell_At);
@@ -312,20 +307,6 @@ package body Concorde.Ships is
                           Mount.Module.Stored_Energy;
                Blocked : Non_Negative_Real;
 
-               procedure Update
-                 (Module : in out Concorde.Modules.Root_Module_Type'Class);
-
-               ------------
-               -- Update --
-               ------------
-
-               procedure Update
-                 (Module : in out Concorde.Modules.Root_Module_Type'Class)
-               is
-               begin
-                  Module.Execute (Blocked);
-               end Update;
-
             begin
                if Remaining < Shield / 5.0 then
                   Blocked := Remaining;
@@ -334,8 +315,7 @@ package body Concorde.Ships is
                end if;
 
                Remaining := Remaining - Blocked;
-               Concorde.Modules.Db.Update
-                 (Mount.Module.Reference, Update'Access);
+               Mount.Module.Update.Execute (Blocked);
             end;
          end if;
       end loop;
@@ -346,61 +326,26 @@ package body Concorde.Ships is
          Index  : constant Positive :=
                     WL.Random.Random_Number
                       (Mounts'First, Mounts'Last);
-
-         procedure Update
-           (Module : in out Concorde.Modules.Root_Module_Type'Class);
-
-         ------------
-         -- Update --
-         ------------
-
-         procedure Update
-           (Module : in out Concorde.Modules.Root_Module_Type'Class)
-         is
-         begin
-            Module.Hit (Natural (Remaining));
-            declare
-               Chance : constant Unit_Real :=
-                          Module.Explosion_Chance;
-            begin
-               if Concorde.Random.Unit_Random < Chance then
-                  Module.Start_Explosion;
-               end if;
-            end;
-         end Update;
+         Module : constant Concorde.Modules.Module_Type :=
+                    Ship.Structure
+                      (Positive (Mounts (Index))).Module;
 
       begin
 
-         Concorde.Modules.Db.Update
-           (Ship.Structure
-              (Positive (Mounts (Index))).Module.Reference,
-            Update'Access);
+         Module.Update.Hit (Natural (Remaining));
+
+         if Concorde.Random.Unit_Random < Module.Explosion_Chance then
+            Module.Update.Start_Explosion;
+         end if;
       end;
 
       Calculate_Damage (Ship);
       Ship.Alive := Ship.Current_Damage < 0.95;
 
       if not Ship.Alive then
-         declare
-            procedure Remove
-              (Empire : in out Concorde.Empires.Root_Empire_Type'Class);
-
-            ------------
-            -- Remove --
-            ------------
-
-            procedure Remove
-              (Empire : in out Concorde.Empires.Root_Empire_Type'Class)
-            is
-            begin
-               Empire.Remove_Ship;
-            end Remove;
-
-         begin
-            Concorde.Empires.Db.Update
-              (Ship.Owner.Reference, Remove'Access);
-         end;
+         Ship.Owner.Update.Remove_Ship;
       end if;
+
    end Apply_Hit;
 
    ----------------------
@@ -461,7 +406,8 @@ package body Concorde.Ships is
      (Ship   : in out Root_Ship_Type'Class)
    is
    begin
-      Ship.Dest_Reference := Memor.Null_Database_Reference;
+      Ship.Dest_World := null;
+      Ship.Dest_System := null;
    end Clear_Destination;
 
    ------------------
@@ -550,7 +496,7 @@ package body Concorde.Ships is
       return access constant Concorde.Worlds.Root_World_Type'Class
    is
    begin
-      return Concorde.Worlds.Db.Reference (Ship.Dest_Reference);
+      return Ship.Dest_World;
    end Destination;
 
    ----------------
@@ -757,7 +703,7 @@ package body Concorde.Ships is
    is
       use type Memor.Database_Reference;
    begin
-      return Ship.Dest_Reference /= Memor.Null_Database_Reference;
+      return Ship.Dest_World /= null;
    end Has_Destination;
 
    --------------------------
@@ -904,6 +850,22 @@ package body Concorde.Ships is
       return Db.Get_Database;
    end Object_Database;
 
+   ----------------
+   -- On_Arrival --
+   ----------------
+
+   procedure On_Arrival
+     (Ship : in out Root_Ship_Type'Class)
+   is
+   begin
+      Ship.Set_Location
+        (Concorde.Locations.Geosynchronous_Orbit
+           (Ship.Destination));
+      Ship.Set_Market (Ship.Destination.Market);
+      Ship.Clear_Destination;
+      Ship.Execute_Arrival_Orders;
+   end On_Arrival;
+
    ---------------------
    -- On_Update_Start --
    ---------------------
@@ -946,32 +908,21 @@ package body Concorde.Ships is
 
       Remaining : Natural := Points;
 
-      procedure Update
-        (Module : in out Concorde.Modules.Root_Module_Type'Class);
-
-      ------------
-      -- Update --
-      ------------
-
-      procedure Update
-        (Module : in out Concorde.Modules.Root_Module_Type'Class)
-      is
-      begin
-         Concorde.Empires.Logging.Log
-           (Ship.Owner,
-            Ship.Short_Description
-            & ": repairing" & Remaining'Img
-            & " damage from " & Module.Name
-            & " with damage "
-            & Concorde.Real_Images.Approximate_Image (Module.Damage));
-         Module.Repair (Remaining);
-      end Update;
-
    begin
       for Mount of Mounts loop
-         Concorde.Modules.Db.Update
-           (Ref     => Ship.Structure (Positive (Mount)).Module.Reference,
-            Updater => Update'Access);
+         declare
+            Module : constant Concorde.Modules.Module_Type :=
+                       Ship.Structure (Positive (Mount)).Module;
+         begin
+            Concorde.Empires.Logging.Log
+              (Ship.Owner,
+               Ship.Short_Description
+               & ": repairing" & Remaining'Img
+               & " damage from " & Module.Name
+               & " with damage "
+               & Concorde.Real_Images.Approximate_Image (Module.Damage));
+            Module.Update.Repair (Remaining);
+         end;
          exit when Remaining = 0;
       end loop;
       Calculate_Damage (Ship);
@@ -1000,8 +951,8 @@ package body Concorde.Ships is
         Concorde.Worlds.Root_World_Type'Class)
    is
    begin
-      Ship.Dest_System_Reference := World.System.Reference;
-      Ship.Dest_Reference := World.Reference;
+      Ship.Dest_World := World;
+      Ship.Dest_System := World.System;
    end Set_Destination;
 
    ---------------------
@@ -1014,8 +965,8 @@ package body Concorde.Ships is
         Concorde.Systems.Root_Star_System_Type'Class)
    is
    begin
-      Ship.Dest_Reference := Memor.Null_Database_Reference;
-      Ship.Dest_System_Reference := System.Reference;
+      Ship.Dest_World := null;
+      Ship.Dest_System := System;
    end Set_Destination;
 
    --------------
@@ -1143,9 +1094,9 @@ package body Concorde.Ships is
          Demand : constant Quantity :=
                     To.Current_Import_Demand (Commodity);
          Buy_At : constant Concorde.Money.Price_Type :=
-                    From.Last_Average_Ask (Commodity);
+                    From.Historical_Mean_Price (Commodity);
          Sell_At : constant Concorde.Money.Price_Type :=
-                     To.Last_Average_Bid (Commodity);
+                     To.Historical_Mean_Price (Commodity);
       begin
          if Supply > Zero and then Demand > Zero
            and then Sell_At > Buy_At
@@ -1173,7 +1124,7 @@ package body Concorde.Ships is
       end Check;
 
    begin
-      Concorde.Commodities.Db.Scan (Check'Access);
+      Concorde.Commodities.Scan (Check'Access);
    end Ship_Check_Requirements;
 
    ---------------------------
@@ -1270,6 +1221,19 @@ package body Concorde.Ships is
       return Result;
    end Tank_Size;
 
+   ------------
+   -- Update --
+   ------------
+
+   function Update
+     (Item : not null access constant Root_Ship_Type'Class)
+      return Updateable_Reference
+   is
+      Base_Update : constant Db.Updateable_Reference := Db.Update (Item);
+   begin
+      return Updateable_Reference'(Base_Update.Element, Base_Update);
+   end Update;
+
    -------------------
    -- Update_Damage --
    -------------------
@@ -1287,30 +1251,12 @@ package body Concorde.Ships is
          New_Hits : Natural := 0;
       begin
          for Mount of Ship.Structure loop
-            declare
-               procedure Update_Module
-                 (Module : in out Concorde.Modules.Root_Module_Type'Class);
-
-               -------------------
-               -- Update_Module --
-               -------------------
-
-               procedure Update_Module
-                 (Module : in out Concorde.Modules.Root_Module_Type'Class)
-               is
-               begin
-                  Module.Update_Damage;
-                  if Module.Exploding then
-                     if Module.Explosion_Timer = 0 then
-                        New_Hits := New_Hits + Module.Explosion_Size;
-                     end if;
-                  end if;
-               end Update_Module;
-
-            begin
-               Concorde.Modules.Db.Update
-                 (Mount.Module.Reference, Update_Module'Access);
-            end;
+            Mount.Module.Update.Update_Damage;
+            if Mount.Module.Exploding then
+               if Mount.Module.Explosion_Timer = 0 then
+                  New_Hits := New_Hits + Mount.Module.Explosion_Size;
+               end if;
+            end if;
          end loop;
 
          if New_Hits > 0 then
@@ -1340,26 +1286,11 @@ package body Concorde.Ships is
       begin
          for Mount of Ship.Structure loop
             declare
-               procedure Update_Module
-                 (Module : in out Concorde.Modules.Root_Module_Type'Class);
-
-               -------------------
-               -- Update_Module --
-               -------------------
-
-               procedure Update_Module
-                 (Module : in out Concorde.Modules.Root_Module_Type'Class)
-               is
-               begin
-                  Module.Draw_Power
-                    (Module.Maximum_Power_Draw);
-               end Update_Module;
-
+               Upd : constant Concorde.Modules.Updateable_Reference :=
+                       Mount.Module.Update;
             begin
-               Concorde.Modules.Db.Update
-                 (Mount.Module.Reference, Update_Module'Access);
+               Upd.Draw_Power (Upd.Maximum_Power_Draw);
             end;
-
          end loop;
 
          Calculate_Damage (Ship);

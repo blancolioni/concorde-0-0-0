@@ -6,8 +6,6 @@ with Memor.Element_Vectors;
 with Concorde.Dates;
 with Concorde.Paths;
 
-with Concorde.Empires.Db;
-
 package body Concorde.Empires.Logging is
 
    Started : Boolean := False;

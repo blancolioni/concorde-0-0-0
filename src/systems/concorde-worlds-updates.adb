@@ -4,12 +4,8 @@ with Concorde.Empires;
 --  with Concorde.Empires.Db;
 --  with Concorde.Empires.Logging;
 
-with Concorde.Government.Db;
-
 --  with Concorde.Ships.Create;
 --  with Concorde.Ships.Db;
-
-with Concorde.Markets.Db;
 
 --  with Concorde.Players;
 
@@ -21,44 +17,11 @@ package body Concorde.Worlds.Updates is
    -- Execute_Trades --
    --------------------
 
-   procedure Execute_Trades (World : Root_World_Type'Class) is
-
-      procedure Execute
-        (Government : in out Concorde.Government.Root_Government_Type'Class);
-
-      -------------
-      -- Execute --
-      -------------
-
-      procedure Execute
-        (Government : in out Concorde.Government.Root_Government_Type'Class)
-      is
-
-         procedure Execute_Market
-           (Market : in out Concorde.Markets.Root_Market_Type'Class);
-
-         --------------------
-         -- Execute_Market --
-         --------------------
-
-         procedure Execute_Market
-           (Market : in out Concorde.Markets.Root_Market_Type'Class)
-         is
-         begin
-            Market.Execute (Government);
-         end Execute_Market;
-
-      begin
-         Concorde.Markets.Db.Update
-           (World.Market.Reference, Execute_Market'Access);
-      end Execute;
-
+   procedure Execute_Trades (World : World_Type) is
    begin
       if World.Has_Government then
-         Concorde.Government.Db.Update
-           (World.Government.Reference, Execute'Access);
-         Concorde.Markets.Db.Update
-           (World.Market.Reference, Concorde.Markets.After_Trading'Access);
+         World.Market.Update.Execute (World.Government);
+         World.Market.Update.After_Trading;
       end if;
    end Execute_Trades;
 
@@ -66,7 +29,7 @@ package body Concorde.Worlds.Updates is
    -- Update_World --
    -------------------
 
-   procedure Update_World (World : in out Root_World_Type'Class) is null;
+   procedure Update_World (World : World_Type) is null;
 
 --     begin
 --        if World.Owned then
@@ -177,7 +140,7 @@ package body Concorde.Worlds.Updates is
    ------------------------------
 
    procedure Update_World_Government
-     (World : Root_World_Type'Class)
+     (World : World_Type)
    is null;
 --     begin
 --

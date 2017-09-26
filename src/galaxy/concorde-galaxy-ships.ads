@@ -5,7 +5,7 @@ package Concorde.Galaxy.Ships is
    procedure Start_Ship_Moves;
 
    procedure Move_Ship
-     (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
+     (Ship : Concorde.Ships.Ship_Type)
      with Pre => Ship.Has_Destination;
 
    procedure Commit_Ship_Moves;

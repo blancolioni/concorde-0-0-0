@@ -1,5 +1,7 @@
 private with Ada.Containers.Doubly_Linked_Lists;
+private with Ada.Containers.Vectors;
 private with Memor;
+private with Memor.Database;
 
 with Lui.Colours;
 
@@ -153,7 +155,7 @@ package Concorde.Systems is
       Ship   : Concorde.Ships.Ship_Type);
 
    procedure Commit_Ship_Movement
-     (System : not null access Root_Star_System_Type'Class);
+     (System : in out Root_Star_System_Type'Class);
 
    procedure Clear_Ship_Movement
      (System : in out Root_Star_System_Type'Class);
@@ -197,6 +199,10 @@ package Concorde.Systems is
 
    type Star_System_Type is access constant Root_Star_System_Type'Class;
 
+   function System_Count return Natural;
+   function Get (Index : Positive) return Star_System_Type
+     with Pre => Index <= System_Count;
+
    procedure Battle
      (System : in out Root_Star_System_Type'Class;
       Size   : Positive);
@@ -209,6 +215,34 @@ package Concorde.Systems is
      (System : Star_System_Type)
       return Positive
    is (System.Index);
+
+   procedure Scan_Systems
+     (Test : not null access
+        function (System : Star_System_Type) return Boolean;
+      Process : not null access
+        procedure (System : Star_System_Type));
+
+   procedure Scan_Systems
+     (Process : not null access
+        procedure (System : Star_System_Type));
+
+   procedure Update_Systems
+     (Test    : not null access
+        function (System : Root_Star_System_Type'Class) return Boolean;
+      Update  : not null access
+        procedure (System : in out Root_Star_System_Type'Class));
+
+   procedure Update_Systems
+     (Update : not null access
+        procedure (System : in out Root_Star_System_Type'Class));
+
+   type Updateable_Reference
+     (Item : not null access Root_Star_System_Type'Class)
+   is private with Implicit_Dereference => Item;
+
+   function Update
+     (Item : not null access constant Root_Star_System_Type'Class)
+      return Updateable_Reference;
 
 private
 
@@ -271,5 +305,27 @@ private
 
    overriding procedure Load
      (Star_System : in out Root_Star_System_Type);
+
+   package System_Vectors is
+     new Ada.Containers.Vectors (Positive, Star_System_Type);
+
+   System_Vector : System_Vectors.Vector;
+
+   function System_Count return Natural
+   is (System_Vector.Last_Index);
+
+   function Get (Index : Positive) return Star_System_Type
+   is (System_Vector.Element (Index));
+
+   package Db is
+     new Memor.Database
+       ("system", Root_Star_System_Type, Star_System_Type);
+
+   type Updateable_Reference
+     (Item : not null access Root_Star_System_Type'Class)
+   is
+      record
+         Update : Db.Updateable_Reference (Item);
+      end record;
 
 end Concorde.Systems;

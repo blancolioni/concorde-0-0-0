@@ -1,4 +1,5 @@
 private with Memor;
+private with Memor.Database;
 
 with Concorde.Agents;
 with Concorde.Trades;
@@ -31,6 +32,14 @@ package Concorde.Installations is
 
    type Installation_Type is access constant Root_Installation_Type'Class;
 
+   type Updateable_Reference
+     (Item : not null access Root_Installation_Type'Class)
+   is private with Implicit_Dereference => Item;
+
+   function Update
+     (Item : not null access constant Root_Installation_Type'Class)
+      return Updateable_Reference;
+
 private
 
    type Root_Installation_Type is
@@ -40,6 +49,10 @@ private
          Facility : Concorde.Facilities.Facility_Type;
          Owner    : access constant Concorde.Agents.Root_Agent_Type'Class;
       end record;
+
+   overriding function Class_Name
+     (Installation : Root_Installation_Type) return String
+   is ("installation");
 
    overriding function Short_Name
      (Installation : Root_Installation_Type)
@@ -62,5 +75,16 @@ private
    overriding procedure On_Update_Start
      (Installation : in out Root_Installation_Type)
    is null;
+
+   package Db is
+     new Memor.Database
+       ("installation", Root_Installation_Type, Installation_Type);
+
+   type Updateable_Reference
+     (Item : not null access Root_Installation_Type'Class)
+   is
+      record
+         Update : Db.Updateable_Reference (Item);
+      end record;
 
 end Concorde.Installations;

@@ -1,5 +1,3 @@
-with Concorde.People.Skills.Db;
-
 package body Concorde.People.Skills is
 
    --------------

@@ -31,7 +31,6 @@ with Concorde.Worlds.Tables;
 with Concorde.Ships.Xi_Model;
 
 with Concorde.Xi_UI.Colours;
-with Concorde.Xi_UI.Noise;
 
 with Concorde.Empires;
 
@@ -534,10 +533,12 @@ package body Concorde.Worlds.Xi_Model is
             Sphere_Near    : constant Xi.Entity.Xi_Entity :=
                                Xi.Shapes.Icosohedral_Sphere (5);
             Noise_Shader   : constant Xi.Shader.Noise.Xi_Noise_Shader :=
-                               Concorde.Xi_UI.Noise.Create_Noise_Shader
-                                 ("star-systems/palettes/"
-                                  & "terrestrial-palette.txt",
-                                  World.Surface_Seed);
+                               Xi.Shader.Noise.Create_Noise_Shader
+                                 (Initiator  => World.Surface_Seed,
+                                  Octaves    => 10.0,
+                                  Roughness  => 0.8,
+                                  Lacunarity => 4.0,
+                                  Palette    => (1 => (0.5, 0.5, 0.5, 1.0)));
             Material       : constant Xi.Materials.Material.Xi_Material :=
                                Noise_Shader.Material;
          begin

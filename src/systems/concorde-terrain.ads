@@ -1,4 +1,5 @@
 private with Memor;
+private with Memor.Database;
 
 with Lui.Colours;
 
@@ -39,5 +40,9 @@ private
    overriding function Object_Database
      (Terrain : Root_Terrain_Type)
       return Memor.Memor_Database;
+
+   package Db is
+     new Memor.Database
+       ("terrain", Root_Terrain_Type, Terrain_Type);
 
 end Concorde.Terrain;

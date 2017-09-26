@@ -48,13 +48,7 @@ package Concorde.Trades is
       return Concorde.Quantities.Quantity
       is abstract;
 
-   function Last_Average_Ask
-     (Trade     : Trade_Interface;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Money.Price_Type
-      is abstract;
-
-   function Last_Average_Bid
+   function Last_Price
      (Trade     : Trade_Interface;
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Money.Price_Type
@@ -118,7 +112,7 @@ package Concorde.Trades is
       is abstract;
 
    procedure Tax_Receipt
-     (Manager   : in out Trade_Manager_Interface;
+     (Manager   : Trade_Manager_Interface;
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity;
       Price     : Concorde.Money.Price_Type;
@@ -167,9 +161,7 @@ package Concorde.Trades is
       Offer     : Offer_Type;
       Trader    : not null access constant Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity;
-      Price     : Concorde.Money.Price_Type;
-      Limit     : Concorde.Money.Price_Type)
+      Quantity  : Concorde.Quantities.Quantity)
    is abstract;
 
    procedure Execute_Trade
@@ -183,7 +175,7 @@ package Concorde.Trades is
    procedure Update_Trader
      (Trader : Trader_Interface;
       Update : not null access
-        procedure (Trader : in out Trader_Interface'Class))
+        procedure (Trader : not null access Trader_Interface'Class))
    is abstract;
 
    function Maximum_Offer_Quantity

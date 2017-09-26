@@ -1,8 +1,6 @@
+with Concorde.Commodities;
 with Concorde.Money;
 with Concorde.Quantities;
-
-with Concorde.Commodities.Db;
-with Concorde.Installations.Db;
 
 package body Concorde.Installations is
 
@@ -166,9 +164,13 @@ package body Concorde.Installations is
       end loop;
 
       if Item.Is_Colony_Hub then
-         Concorde.Commodities.Db.Scan (Add_Hub_Trade_Offer'Access);
+         for Commodity of Concorde.Commodities.All_Commodities loop
+            Add_Hub_Trade_Offer (Commodity);
+         end loop;
       elsif Item.Is_Port then
-         Concorde.Commodities.Db.Scan (Add_Port_Trade_Offer'Access);
+         for Commodity of Concorde.Commodities.All_Commodities loop
+            Add_Port_Trade_Offer (Commodity);
+         end loop;
       else
          if Item.Facility.Has_Output
            and then Item.Get_Quantity (Item.Facility.Output) > Zero
@@ -178,17 +180,13 @@ package body Concorde.Installations is
                Item.Get_Quantity (Item.Facility.Output),
                Concorde.Money.Zero);
          elsif Item.Facility.Is_Resource_Generator then
-            declare
-               function Match
-                 (Commodity : Concorde.Commodities.Commodity_Type)
-                  return Boolean
-               is (Item.Facility.Can_Produce (Commodity)
-                   and then Item.Get_Quantity (Commodity) > Zero);
-            begin
-               Concorde.Commodities.Db.Scan
-                 (Match'Access,
-                  Add_Sell_Offer'Access);
-            end;
+            for Commodity of Concorde.Commodities.All_Commodities loop
+               if Item.Facility.Can_Produce (Commodity)
+                 and then Item.Get_Quantity (Commodity) > Zero
+               then
+                  Add_Sell_Offer (Commodity);
+               end if;
+            end loop;
          end if;
       end if;
    end Add_Trade_Offers;
@@ -263,5 +261,18 @@ package body Concorde.Installations is
    begin
       return Installation.Owner;
    end Owner;
+
+   ------------
+   -- Update --
+   ------------
+
+   function Update
+     (Item : not null access constant Root_Installation_Type'Class)
+      return Updateable_Reference
+   is
+      Base_Update : constant Db.Updateable_Reference := Db.Update (Item);
+   begin
+      return Updateable_Reference'(Base_Update.Element, Base_Update);
+   end Update;
 
 end Concorde.Installations;

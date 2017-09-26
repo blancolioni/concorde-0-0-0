@@ -1,4 +1,5 @@
 private with Ada.Containers.Vectors;
+private with Memor.Database;
 private with Memor.Element_Vectors;
 
 with Concorde.Objects;
@@ -41,12 +42,7 @@ package Concorde.Markets is
       Item     : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity;
 
-   overriding function Last_Average_Ask
-     (Market    : Root_Market_Type;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Money.Price_Type;
-
-   overriding function Last_Average_Bid
+   overriding function Last_Price
      (Market    : Root_Market_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Money.Price_Type;
@@ -82,9 +78,7 @@ package Concorde.Markets is
       Agent     : not null access constant
         Concorde.Trades.Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity;
-      Price     : Concorde.Money.Price_Type;
-      Limit     : Concorde.Money.Price_Type);
+      Quantity  : Concorde.Quantities.Quantity);
 
    overriding procedure Add_Export_Supply
      (Market    : in out Root_Market_Type;
@@ -116,7 +110,8 @@ package Concorde.Markets is
 
    procedure Execute
      (Market  : in out Root_Market_Type'Class;
-      Manager : in out Concorde.Trades.Trade_Manager_Interface'Class);
+      Manager : not null access constant
+        Concorde.Trades.Trade_Manager_Interface'Class);
 
    type Market_Type is access constant Root_Market_Type'Class;
 
@@ -132,6 +127,17 @@ package Concorde.Markets is
      (Market    : in out Root_Market_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
       Price     : Concorde.Money.Price_Type);
+
+   type Updateable_Reference (Item : not null access Root_Market_Type'Class)
+   is private with Implicit_Dereference => Item;
+
+   function Update
+     (Item : not null access constant Root_Market_Type'Class)
+      return Updateable_Reference;
+
+   procedure Update_Markets
+     (Process : not null access
+        procedure (Market : in out Root_Market_Type'Class));
 
 private
 
@@ -211,8 +217,7 @@ private
       record
          Current_Price         : Concorde.Money.Price_Type;
          Historical_Mean_Price : Concorde.Money.Price_Type;
-         Last_Average_Ask      : Concorde.Money.Price_Type;
-         Last_Average_Bid      : Concorde.Money.Price_Type;
+         Last_Price            : Concorde.Money.Price_Type;
          Local_Supply          : Concorde.Quantities.Quantity;
          Local_Demand          : Concorde.Quantities.Quantity;
          Last_Supply           : Concorde.Quantities.Quantity;
@@ -272,7 +277,8 @@ private
 
    procedure Execute_Commodity_Trades
      (Market    : in out Root_Market_Type'Class;
-      Manager   : in out Concorde.Trades.Trade_Manager_Interface'Class;
+      Manager   : not null access constant
+        Concorde.Trades.Trade_Manager_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type);
 
    procedure Log_Offer
@@ -280,5 +286,16 @@ private
       Message   : String;
       Commodity : Concorde.Commodities.Commodity_Type;
       Offer     : Offer_Info);
+
+   package Db is
+     new Memor.Database
+       ("market", Root_Market_Type, Market_Type);
+
+   type Updateable_Reference
+     (Item : not null access Root_Market_Type'Class)
+   is
+      record
+         Update : Db.Updateable_Reference (Item);
+      end record;
 
 end Concorde.Markets;

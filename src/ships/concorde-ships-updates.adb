@@ -6,19 +6,16 @@ with Concorde.Systems;
 
 with Concorde.Empires.Logging;
 
-with Concorde.Ships.Db;
-with Concorde.Systems.Db;
-
 package body Concorde.Ships.Updates is
 
-   function Is_Alive (Ship : Root_Ship_Type'Class) return Boolean
+   function Is_Alive (Ship : Ship_Type) return Boolean
    is (Ship.Alive);
 
    package List_Of_References is
      new Ada.Containers.Doubly_Linked_Lists
        (Memor.Database_Reference, Memor."=");
 
-   procedure Update_Ship (Ship : in out Root_Ship_Type'Class)
+   procedure Update_Ship (Ship : Ship_Type)
      with Pre => Ship.Alive;
 
    -----------------------
@@ -32,7 +29,7 @@ package body Concorde.Ships.Updates is
         (Ship : Root_Ship_Type'Class);
 
       procedure Remove_Dead_Ships
-        (System : in out Concorde.Systems.Root_Star_System_Type'Class);
+        (System : Concorde.Systems.Star_System_Type);
 
       -------------------
       -- Add_Dead_Ship --
@@ -55,15 +52,15 @@ package body Concorde.Ships.Updates is
       -----------------------
 
       procedure Remove_Dead_Ships
-        (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+        (System : Concorde.Systems.Star_System_Type)
       is
       begin
-         System.Remove_Dead_Ships;
+         System.Update.Remove_Dead_Ships;
       end Remove_Dead_Ships;
 
    begin
 
-      Concorde.Systems.Db.Iterate (Remove_Dead_Ships'Access);
+      Concorde.Systems.Scan_Systems (Remove_Dead_Ships'Access);
 
       Concorde.Ships.Db.Scan (Add_Dead_Ship'Access);
 
@@ -76,7 +73,7 @@ package body Concorde.Ships.Updates is
    -- Update_Ship --
    -----------------
 
-   procedure Update_Ship (Ship : in out Root_Ship_Type'Class) is
+   procedure Update_Ship (Ship : Ship_Type) is
 
    begin
 
@@ -102,7 +99,7 @@ package body Concorde.Ships.Updates is
 
    procedure Update_Ship_Movement is
    begin
-      Concorde.Ships.Db.Iterate (Is_Alive'Access, Update_Ship'Access);
+      Concorde.Ships.Db.Scan (Is_Alive'Access, Update_Ship'Access);
    end Update_Ship_Movement;
 
    ------------------------
@@ -241,7 +238,8 @@ package body Concorde.Ships.Updates is
                   Ship.Log_Trade
                     ("Finished trading; heading to "
                      & Order.World.Name);
-                  Ship.Dest_Reference := Order.World.Reference;
+                  Ship.Dest_World := Order.World;
+                  Ship.Dest_System := Order.World.System;
                   exit;
                end if;
             end;

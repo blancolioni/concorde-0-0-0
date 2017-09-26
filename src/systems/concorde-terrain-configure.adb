@@ -4,8 +4,6 @@ with Lui.Colours.Config;
 
 with Concorde.Paths;
 
-with Concorde.Terrain.Db;
-
 package body Concorde.Terrain.Configure is
 
    procedure Configure_Terrain

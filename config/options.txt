@@ -22,7 +22,7 @@ empire_logging = yes
 market_logging = yes
 minimum_battle_size = 6
 
-console = no
+console = yes
 update_count = 20
 
 show_capital_names = yes

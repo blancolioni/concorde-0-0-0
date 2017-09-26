@@ -2,8 +2,6 @@ with Tropos.Reader;
 
 with Concorde.Paths;
 
-with Concorde.Atmosphere.Db;
-
 package body Concorde.Atmosphere.Configure is
 
    procedure Configure_Gas

@@ -2,8 +2,6 @@ with Ada.Containers.Vectors;
 
 with Memor.Element_Vectors;
 
-with Concorde.Empires.Db;
-
 package body Concorde.Empires.History is
 
    use Concorde.Dates;

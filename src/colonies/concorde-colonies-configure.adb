@@ -27,15 +27,9 @@ with Concorde.Installations.Create;
 with Concorde.People.Pops.Create;
 with Concorde.Government.Create;
 
-with Concorde.Facilities.Db;
-
-with Concorde.Installations.Db;
-
 with Concorde.Features;
 with Concorde.Terrain;
 with Concorde.Surfaces;
-
-with Concorde.Worlds.Db;
 
 package body Concorde.Colonies.Configure is
 
@@ -45,7 +39,7 @@ package body Concorde.Colonies.Configure is
    procedure Read_Config;
 
    procedure Create_Colony_From_Template
-     (World    : in out Concorde.Worlds.Root_World_Type'Class;
+     (World    : Concorde.Worlds.World_Type;
       Template : Tropos.Configuration);
 
    ---------------------------------
@@ -53,7 +47,7 @@ package body Concorde.Colonies.Configure is
    ---------------------------------
 
    procedure Create_Colony_From_Template
-     (World         : in out Concorde.Worlds.Root_World_Type'Class;
+     (World         : Concorde.Worlds.World_Type;
       Template_Name : String)
    is
    begin
@@ -71,7 +65,7 @@ package body Concorde.Colonies.Configure is
    ---------------------------------
 
    procedure Create_Colony_From_Template
-     (World    : in out Concorde.Worlds.Root_World_Type'Class;
+     (World    : Concorde.Worlds.World_Type;
       Template : Tropos.Configuration)
    is
 
@@ -88,9 +82,6 @@ package body Concorde.Colonies.Configure is
 
       Skilled_Pop : Skilled_Pop_Vectors.Vector;
 
-      World_Reference : constant Concorde.Worlds.World_Type :=
-                          Concorde.Worlds.Db.Reference
-                            (World);
       Tiles            : Concorde.Maps.List_Of_Tiles.List;
       Start_Tiles      : Concorde.Maps.List_Of_Tiles.List;
       Used_Tiles       : Concorde.Maps.List_Of_Tiles.List;
@@ -166,23 +157,8 @@ package body Concorde.Colonies.Configure is
                             Concorde.Money.Total
                               (Need.Base_Price, Quant);
 
-               procedure Add_Stock
-                 (To : in out Installations.Root_Installation_Type'Class);
-
-               ---------------
-               -- Add_Stock --
-               ---------------
-
-               procedure Add_Stock
-                 (To : in out Installations.Root_Installation_Type'Class)
-               is
-               begin
-                  To.Add_Quantity (Need, Quant, Value);
-               end Add_Stock;
-
             begin
-               Concorde.Installations.Db.Update
-                 (Hub.Reference, Add_Stock'Access);
+               Hub.Update.Add_Quantity (Need, Quant, Value);
             end;
          end loop;
       end Add_Inputs;
@@ -220,7 +196,7 @@ package body Concorde.Colonies.Configure is
       is
          Location     : constant Concorde.Locations.Object_Location :=
                           Concorde.Locations.World_Surface
-                            (World_Reference, Positive (Sector));
+                            (World, Positive (Sector));
          Installation : constant Concorde.Installations.Installation_Type :=
                           Concorde.Installations.Create.Create
                             (Location => Location,
@@ -229,7 +205,7 @@ package body Concorde.Colonies.Configure is
                              Cash     => Concorde.Money.To_Money (1.0E5),
                              Owner    => World.Owner);
       begin
-         World.Add_Installation (Sector, Installation);
+         World.Update.Add_Installation (Sector, Installation);
          Add_Population (Installation);
          Add_Inputs (Installation);
       end Create_Installation;
@@ -249,7 +225,7 @@ package body Concorde.Colonies.Configure is
                    Real (Size) * Real (Group.Initial_Cash_Factor);
          Location : constant Concorde.Locations.Object_Location :=
                       Concorde.Locations.World_Surface
-                        (World_Reference, Positive (Sector));
+                        (World, Positive (Sector));
          Pop   : constant Concorde.People.Pops.Pop_Type :=
                       Concorde.People.Pops.Create.New_Pop
                         (Location     => Location,
@@ -262,35 +238,18 @@ package body Concorde.Colonies.Configure is
                    Concorde.Commodities.Get
                      (Consumer, Group.Preferred_Quality);
       begin
-         World.Add_Pop (Sector, Pop);
+         World.Update.Add_Pop (Sector, Pop);
 
          for Need of Needs loop
             declare
-               procedure Add_Hub_Stock
-                 (Installation : in out
-                    Concorde.Installations.Root_Installation_Type'Class);
-
-               -------------------
-               -- Add_Hub_Stock --
-               -------------------
-
-               procedure Add_Hub_Stock
-                 (Installation : in out
-                    Concorde.Installations.Root_Installation_Type'Class)
-               is
-                  Quantity : constant Concorde.Quantities.Quantity :=
-                               Concorde.Quantities.To_Quantity
-                                 (Real (Pop.Size) * 30.0);
-                  Value    : constant Concorde.Money.Money_Type :=
-                               Concorde.Money.Total
-                                 (Need.Base_Price, Quantity);
-               begin
-                  Installation.Add_Quantity (Need, Quantity, Value);
-               end Add_Hub_Stock;
-
+               Quantity : constant Concorde.Quantities.Quantity :=
+                            Concorde.Quantities.To_Quantity
+                              (Real (Pop.Size) * 30.0);
+               Value    : constant Concorde.Money.Money_Type :=
+                            Concorde.Money.Total
+                              (Need.Base_Price, Quantity);
             begin
-               Concorde.Installations.Db.Update
-                 (Hub.Reference, Add_Hub_Stock'Access);
+               Hub.Update.Add_Quantity (Need, Quantity, Value);
             end;
          end loop;
 
@@ -557,7 +516,7 @@ package body Concorde.Colonies.Configure is
         Concorde.Installations.Create.Create
           (Location =>
              Concorde.Locations.World_Surface
-               (Concorde.Worlds.Db.Reference (World),
+               (World,
                 Tiles.First_Element),
            Market => null,
            Facility => Concorde.Facilities.Colony_Hub,
@@ -568,8 +527,7 @@ package body Concorde.Colonies.Configure is
 
       Government :=
         Concorde.Government.Create.Create_Government
-          (Governed          =>
-             Concorde.Worlds.Db.Reference (World),
+          (Governed          => World,
            Cash              =>
              Concorde.Money.To_Money
                (Get ("cash", 10_000.0)),
@@ -578,30 +536,10 @@ package body Concorde.Colonies.Configure is
            Basic_Living_Wage =>
              Template.Get ("basic_living_wage", False));
 
-      World.Add_Installation (Current_Tile, Hub);
-      World.Set_Government (Government);
+      World.Update.Add_Installation (Current_Tile, Hub);
+      World.Update.Set_Government (Government);
 
-      declare
-         procedure Set_Market
-           (Installation :
-            in out Concorde.Installations.Root_Installation_Type'Class);
-
-         ----------------
-         -- Set_Market --
-         ----------------
-
-         procedure Set_Market
-           (Installation :
-            in out Concorde.Installations.Root_Installation_Type'Class)
-         is
-         begin
-            Installation.Set_Market (World.Market);
-         end Set_Market;
-
-      begin
-         Concorde.Installations.Db.Update
-           (Hub.Reference, Set_Market'Access);
-      end;
+      Hub.Update.Set_Market (World.Market);
 
       Add_Population (Hub);
 
@@ -615,30 +553,6 @@ package body Concorde.Colonies.Configure is
       declare
          Install_Config : constant Tropos.Configuration :=
                             Template.Child ("installations");
-
-         procedure Configure_Installation
-           (Facility : Concorde.Facilities.Facility_Type);
-
-         ----------------------------
-         -- Configure_Installation --
-         ----------------------------
-
-         procedure Configure_Installation
-           (Facility : Concorde.Facilities.Facility_Type)
-         is
-            Id : constant String := Facility.Identifier;
-         begin
-            if Install_Config.Contains (Id) then
-               Ada.Text_IO.Put_Line
-                 (Install_Config.Get (Id) & " x " & Id);
-            end if;
-
-            for I in 1 .. Install_Config.Get (Facility.Identifier, 0) loop
-               Create_Installation (Facility, Current_Tile);
-               Next_Tile;
-            end loop;
-         end Configure_Installation;
-
       begin
          for I in 1 .. Install_Config.Get ("resource_generator", 0) loop
             declare
@@ -675,7 +589,21 @@ package body Concorde.Colonies.Configure is
             end;
          end loop;
 
-         Concorde.Facilities.Db.Scan (Configure_Installation'Access);
+         for Facility of Concorde.Facilities.All_Facilities loop
+            declare
+               Id : constant String := Facility.Identifier;
+            begin
+               if Install_Config.Contains (Id) then
+                  Ada.Text_IO.Put_Line
+                    (Install_Config.Get (Id) & " x " & Id);
+               end if;
+
+               for I in 1 .. Install_Config.Get (Facility.Identifier, 0) loop
+                  Create_Installation (Facility, Current_Tile);
+                  Next_Tile;
+               end loop;
+            end;
+         end loop;
 
       end;
 
@@ -685,15 +613,14 @@ package body Concorde.Colonies.Configure is
         Concorde.Installations.Create.Create
           (Location =>
              Concorde.Locations.World_Surface
-               (Concorde.Worlds.Db.Reference (World),
-                Positive (Current_Tile)),
+               (World, Positive (Current_Tile)),
            Market   => World.Market,
            Facility => Concorde.Facilities.Get ("port"),
            Cash     =>
              Concorde.Money.To_Money (10_000.0),
            Owner    => World.Owner);
 
-      World.Add_Installation (Current_Tile, Port);
+      World.Update.Add_Installation (Current_Tile, Port);
 
       Skilled_Pop.Scan (Create_Pop_From_Skill'Access);
 

@@ -1,4 +1,5 @@
 private with Memor;
+private with Memor.Database;
 private with Memor.Element_Vectors;
 
 with Concorde.Agents;
@@ -35,7 +36,7 @@ package Concorde.Government is
       return Unit_Real;
 
    overriding procedure Tax_Receipt
-     (Government : in out Root_Government_Type;
+     (Government : Root_Government_Type;
       Commodity  : Concorde.Commodities.Commodity_Type;
       Quantity   : Concorde.Quantities.Quantity;
       Price      : Concorde.Money.Price_Type;
@@ -52,6 +53,14 @@ package Concorde.Government is
       return Boolean;
 
    type Government_Type is access constant Root_Government_Type'Class;
+
+   type Updateable_Reference
+     (Item : not null access Root_Government_Type'Class)
+   is private with Implicit_Dereference => Item;
+
+   function Update
+     (Item : not null access constant Root_Government_Type'Class)
+      return Updateable_Reference;
 
 private
 
@@ -85,6 +94,11 @@ private
          Basic_Living_Wage : Boolean := False;
       end record;
 
+   overriding function Class_Name
+     (Government : Root_Government_Type)
+      return String
+   is ("government");
+
    overriding function Object_Database
      (Government : Root_Government_Type)
       return Memor.Memor_Database;
@@ -99,5 +113,16 @@ private
 
    overriding procedure On_Update_Start
      (Government : in out Root_Government_Type);
+
+   package Db is
+     new Memor.Database
+       ("government", Root_Government_Type, Government_Type);
+
+   type Updateable_Reference
+     (Item : not null access Root_Government_Type'Class)
+   is
+      record
+         Update : Db.Updateable_Reference (Item);
+      end record;
 
 end Concorde.Government;

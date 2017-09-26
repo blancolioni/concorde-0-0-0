@@ -1,11 +1,6 @@
 with Concorde.Empires;
 with Concorde.Facilities;
-with Concorde.Government.Db;
-with Concorde.Markets.Db;
 with Concorde.Options;
-
-with Concorde.Installations.Db;
-with Concorde.Worlds.Db;
 
 with Concorde.Worlds.Create;
 
@@ -76,24 +71,17 @@ package body Concorde.Worlds is
       Cash : constant Money_Type :=
                        Total (World.Buy_Price (Commodity), New_Quantity);
 
-      procedure Update_Port
-        (Port : in out Concorde.Installations.Root_Installation_Type'Class);
-
-      -----------------
-      -- Update_Port --
-      -----------------
-
-      procedure Update_Port
-        (Port : in out Concorde.Installations.Root_Installation_Type'Class)
-      is
-      begin
-         Port.Remove_Cash (Cash);
-         Port.Add_Quantity (Commodity, New_Quantity, Cash);
-      end Update_Port;
-
    begin
-      Concorde.Installations.Db.Update
-        (World.Port.Reference, Update_Port'Access);
+
+      declare
+         Upd : constant Concorde.Installations.Updateable_Reference :=
+                 World.Port.Update;
+      begin
+         Upd.Remove_Cash (Cash);
+         Upd.Add_Quantity (Commodity, New_Quantity, Cash);
+
+      end;
+
       Quantity := New_Quantity;
    end Buy;
 
@@ -109,7 +97,7 @@ package body Concorde.Worlds is
    begin
       return Concorde.Money.Adjust_Price
         (Concorde.Money.Without_Tax
-           (World.Market.Last_Average_Bid (Commodity),
+           (World.Market.Last_Price (Commodity),
             World.Government.Tax_Rate
               (Concorde.Trades.Import, Commodity)),
          0.9);
@@ -468,6 +456,39 @@ package body Concorde.Worlds is
       end return;
    end Resources;
 
+   procedure Scan_Market_Worlds
+     (Process : not null access
+        procedure (World : World_Type))
+   is
+      procedure Local_Process (World : World_Type);
+
+      -------------------
+      -- Local_Process --
+      -------------------
+
+      procedure Local_Process (World : World_Type) is
+      begin
+         if World.Has_Market then
+            Process (World);
+         end if;
+      end Local_Process;
+
+   begin
+      Db.Scan (Local_Process'Access);
+   end Scan_Market_Worlds;
+
+   -----------------
+   -- Scan_Worlds --
+   -----------------
+
+   procedure Scan_Worlds
+     (Process : not null access
+        procedure (World : World_Type))
+   is
+   begin
+      Db.Scan (Process);
+   end Scan_Worlds;
+
    --------------------
    -- Sector_Feature --
    --------------------
@@ -601,25 +622,17 @@ package body Concorde.Worlds is
                        Min (Quantity, World.Export_Market_Size (Commodity));
       Cash         : constant Money_Type :=
                        Total (World.Sell_Price (Commodity), New_Quantity);
-
-      procedure Update_Port
-        (Port : in out Concorde.Installations.Root_Installation_Type'Class);
-
-      -----------------
-      -- Update_Port --
-      -----------------
-
-      procedure Update_Port
-        (Port : in out Concorde.Installations.Root_Installation_Type'Class)
-      is
-      begin
-         Port.Add_Cash (Cash);
-         Port.Remove_Quantity (Commodity, New_Quantity, Cash);
-      end Update_Port;
-
    begin
-      Concorde.Installations.Db.Update
-        (World.Port.Reference, Update_Port'Access);
+
+      declare
+         Upd : constant Concorde.Installations.Updateable_Reference :=
+                 World.Port.Update;
+      begin
+         Upd.Add_Cash (Cash);
+         Upd.Remove_Quantity (Commodity, New_Quantity, Cash);
+
+      end;
+
       Quantity := New_Quantity;
    end Sell;
 
@@ -637,7 +650,7 @@ package body Concorde.Worlds is
       Base_Price : constant Concorde.Money.Price_Type :=
                      (if World.Port.Get_Quantity (Commodity) > Zero
                       then World.Port.Get_Average_Price (Commodity)
-                      else World.Market.Last_Average_Bid (Commodity));
+                      else World.Market.Last_Price (Commodity));
    begin
 --        World.Port.Log_Price
 --          (Commodity.Name & ": stock price "
@@ -682,17 +695,14 @@ package body Concorde.Worlds is
    is
 
       procedure Set_Initial_Prices
-        (Market : in out Concorde.Markets.Root_Market_Type'Class);
-
-      procedure Set_Market
-        (Government : in out Concorde.Government.Root_Government_Type'Class);
+        (Market : Concorde.Markets.Updateable_Reference);
 
       ------------------------
       -- Set_Initial_Prices --
       ------------------------
 
       procedure Set_Initial_Prices
-        (Market : in out Concorde.Markets.Root_Market_Type'Class)
+        (Market : Concorde.Markets.Updateable_Reference)
       is
          Factor : Non_Negative_Real := 0.1;
       begin
@@ -705,17 +715,6 @@ package body Concorde.Worlds is
          end loop;
       end Set_Initial_Prices;
 
-      ----------------
-      -- Set_Market --
-      ----------------
-
-      procedure Set_Market
-        (Government : in out Concorde.Government.Root_Government_Type'Class)
-      is
-      begin
-         Government.Set_Market (World.Market);
-      end Set_Market;
-
    begin
       World.Government := Government;
       World.Market :=
@@ -723,10 +722,11 @@ package body Concorde.Worlds is
           (Concorde.Worlds.Db.Reference (World.Reference),
            World.Government,
            Enable_Logging => Concorde.Options.Enable_Market_Logging);
-      Concorde.Government.Db.Update
-        (Government.Reference, Set_Market'Access);
-      Concorde.Markets.Db.Update
-        (World.Market.Reference, Set_Initial_Prices'Access);
+
+      Government.Update.Set_Market (World.Market);
+
+      Set_Initial_Prices (World.Market.Update);
+
    end Set_Government;
 
    ----------------
@@ -759,5 +759,18 @@ package body Concorde.Worlds is
    begin
       World.Owner := Concorde.Empires.Empire_Type (Empire);
    end Set_Owner;
+
+   ------------
+   -- Update --
+   ------------
+
+   function Update
+     (Item : not null access constant Root_World_Type'Class)
+      return Updateable_Reference
+   is
+      Base_Update : constant Db.Updateable_Reference := Db.Update (Item);
+   begin
+      return Updateable_Reference'(Base_Update.Element, Base_Update);
+   end Update;
 
 end Concorde.Worlds;

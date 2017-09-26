@@ -4,8 +4,6 @@ with Concorde.Scenarios;
 with Concorde.Commodities;
 with Concorde.Stars.Create;
 
-with Concorde.Systems.Db;
-
 package body Concorde.Systems.Create is
 
    function Random_Star_Mass return Non_Negative_Real;
@@ -72,6 +70,8 @@ package body Concorde.Systems.Create is
                  Concorde.Systems.Db.Create (Create'Access);
 
    begin
+
+      System_Vector.Append (System);
 
       return System;
 

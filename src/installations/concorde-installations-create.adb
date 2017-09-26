@@ -1,7 +1,5 @@
 with Concorde.Quantities;
 
-with Concorde.Installations.Db;
-
 package body Concorde.Installations.Create is
 
    ------------
@@ -41,8 +39,11 @@ package body Concorde.Installations.Create is
       end Initialise;
 
    begin
-      return Concorde.Installations.Db.Create
-        (Initialise'Access);
+      return Installation : constant Installation_Type :=
+        Db.Create (Initialise'Access)
+      do
+         Installation.Save_Agent;
+      end return;
    end Create;
 
 end Concorde.Installations.Create;

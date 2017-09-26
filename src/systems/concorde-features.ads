@@ -1,4 +1,5 @@
 private with Memor;
+private with Memor.Database;
 
 with Lui.Colours;
 
@@ -34,5 +35,9 @@ private
    overriding function Object_Database
      (Feature : Root_Feature_Type)
       return Memor.Memor_Database;
+
+   package Db is
+     new Memor.Database
+       ("feature", Root_Feature_Type, Feature_Type);
 
 end Concorde.Features;

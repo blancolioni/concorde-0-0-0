@@ -1,7 +1,5 @@
 with Concorde.Worlds;
 
-with Concorde.Ships.Db;
-
 package body Concorde.Ships.Invariants is
 
    ----------------------

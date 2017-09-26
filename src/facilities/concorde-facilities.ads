@@ -1,4 +1,5 @@
 private with Memor;
+private with Memor.Database;
 
 with Concorde.Money;
 with Concorde.Quantities;
@@ -133,6 +134,8 @@ package Concorde.Facilities is
      (Class : Facility_Class)
       return Array_Of_Facilities;
 
+   function All_Facilities return Array_Of_Facilities;
+
    function Colony_Hub return Facility_Type;
 
    function Resource_Generator
@@ -187,5 +190,9 @@ private
      (Item : Root_Facility_Type)
       return String
    is (Item.Tag.all);
+
+   package Db is
+     new Memor.Database
+       ("facility", Root_Facility_Type, Facility_Type);
 
 end Concorde.Facilities;

@@ -1,5 +1,4 @@
 with Ada.Text_IO;
-with Ada.Exceptions;
 
 with Concorde.Constants;
 with Concorde.Solar_System;
@@ -10,11 +9,7 @@ with Concorde.Locations;
 with Concorde.Worlds;
 with Concorde.Stars;
 
-with Concorde.Ships.Db;
-with Concorde.Systems.Db;
-
 with Concorde.Empires;
-with Concorde.Players;
 
 with Concorde.Worlds.Lists;
 with Concorde.Worlds.Create;
@@ -131,7 +126,7 @@ package body Concorde.Systems is
    --------------------------
 
    procedure Commit_Ship_Movement
-     (System : not null access Root_Star_System_Type'Class)
+     (System : in out Root_Star_System_Type'Class)
    is
    begin
       for Ship of System.Departing loop
@@ -140,51 +135,9 @@ package body Concorde.Systems is
       for Ship of System.Arriving loop
          System.Add_Ship (Ship);
 
-         declare
-            procedure Update_System
-              (Ship : in out Concorde.Ships.Root_Ship_Type'Class);
-
-            -------------------
-            -- Update_System --
-            -------------------
-
-            procedure Update_System
-              (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
-            is
-               use type Memor.Database_Reference;
-            begin
-               if System.Reference = Ship.Destination.System.Reference then
-                  Ship.Set_Location
-                    (Concorde.Locations.Geosynchronous_Orbit
-                       (Ship.Destination));
-                  Ship.Set_Market (Ship.Destination.Market);
-                  Ship.Clear_Destination;
-                  Ship.Execute_Arrival_Orders;
-                  Ship.Owner.Player.On_Ship_Arrived
-                    (Ship.Owner, Concorde.Ships.Db.Reference (Ship));
-               else
-                  Ship.Set_Location
-                    (Concorde.Locations.System_Transfer_Orbit (System));
-               end if;
-
-            end Update_System;
-
-         begin
-            Concorde.Ships.Db.Update (Ship.Reference, Update_System'Access);
-         exception
-            when E : others =>
-               Ada.Text_IO.Put_Line
-                 (Ada.Text_IO.Standard_Error,
-                  "while updating system for " & Ship.Short_Description
-                  & " to " & System.Name & ":");
-                  Ada.Text_IO.Put_Line
-                 (Ada.Text_IO.Standard_Error,
-                  Ada.Exceptions.Exception_Name (E)
-                  & ": "
-                  & Ada.Exceptions.Exception_Message (E));
-
-         end;
-
+         if Ship.Destination.System.Index = System.Index then
+            Ship.Update.On_Arrival;
+         end if;
       end loop;
    end Commit_Ship_Movement;
 
@@ -515,6 +468,32 @@ package body Concorde.Systems is
       end loop;
    end Scan_System_Objects;
 
+   ------------------
+   -- Scan_Systems --
+   ------------------
+
+   procedure Scan_Systems
+     (Test    : not null access
+        function (System : Star_System_Type) return Boolean;
+      Process : not null access
+        procedure (System : Star_System_Type))
+   is
+   begin
+      Db.Scan (Test, Process);
+   end Scan_Systems;
+
+   ------------------
+   -- Scan_Systems --
+   ------------------
+
+   procedure Scan_Systems
+     (Process : not null access
+        procedure (System : Star_System_Type))
+   is
+   begin
+      Db.Scan (Process);
+   end Scan_Systems;
+
    -----------------
    -- Set_Capital --
    -----------------
@@ -585,6 +564,45 @@ package body Concorde.Systems is
       end loop;
       return 0;
    end Traffic;
+
+   ------------
+   -- Update --
+   ------------
+
+   function Update
+     (Item : not null access constant Root_Star_System_Type'Class)
+      return Updateable_Reference
+   is
+      Base_Update : constant Db.Updateable_Reference := Db.Update (Item);
+   begin
+      return Updateable_Reference'(Base_Update.Element, Base_Update);
+   end Update;
+
+   --------------------
+   -- Update_Systems --
+   --------------------
+
+   procedure Update_Systems
+     (Test    : not null access
+        function (System : Root_Star_System_Type'Class) return Boolean;
+      Update  : not null access
+        procedure (System : in out Root_Star_System_Type'Class))
+   is
+   begin
+      Db.Iterate (Test, Update);
+   end Update_Systems;
+
+   --------------------
+   -- Update_Systems --
+   --------------------
+
+   procedure Update_Systems
+     (Update : not null access
+        procedure (System : in out Root_Star_System_Type'Class))
+   is
+   begin
+      Db.Iterate (Update);
+   end Update_Systems;
 
    -------
    -- X --

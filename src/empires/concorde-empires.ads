@@ -2,11 +2,11 @@ private with Ada.Containers.Doubly_Linked_Lists;
 private with Ada.Strings.Unbounded;
 
 --  private with Concorde.Protected_Lists;
+private with Memor.Database;
 private with Memor.Element_Vectors;
 
 with Memor;
 
-limited with Concorde.Players;
 limited with Concorde.Worlds;
 
 with Lui.Colours;
@@ -52,10 +52,6 @@ package Concorde.Empires is
      (Empire  : in out Root_Empire_Type'Class;
       To      : Root_Empire_Type'Class;
       Change  : Empire_Relationship_Range);
-
-   function Player
-     (Empire : Root_Empire_Type'Class)
-      return access Concorde.Players.Root_Player_Type'Class;
 
    function Current_Ships
      (Empire : Root_Empire_Type'Class)
@@ -261,6 +257,17 @@ package Concorde.Empires is
       System : Concorde.Systems.Root_Star_System_Type'Class)
      with Pre => Owner.Identifier = System.Owner.Identifier;
 
+   procedure Scan_Empires
+     (Process : not null access
+        procedure (Empire : Empire_Type));
+
+   type Updateable_Reference (Item : not null access Root_Empire_Type'Class)
+   is private with Implicit_Dereference => Item;
+
+   function Update
+     (Item : not null access constant Root_Empire_Type'Class)
+      return Updateable_Reference;
+
 private
 
    type Star_System_Flag_Values is
@@ -324,7 +331,6 @@ private
          Colour          : Lui.Colours.Colour_Type;
          System_Data     : access System_Data_Array;
          Empire_Data     : access Relation_Record;
-         Player          : access Concorde.Players.Root_Player_Type'Class;
          Current_Ships   : Natural := 0;
          Current_Systems : Natural := 0;
          Built_Ships     : Natural := 0;
@@ -336,6 +342,9 @@ private
            Concorde.Worlds.Root_World_Type'Class;
          Default_Ship    : access String;
       end record;
+
+   overriding function Class_Name (Empire : Root_Empire_Type) return String
+   is ("empire");
 
    overriding function Object_Database
      (Empire : Root_Empire_Type)
@@ -369,6 +378,17 @@ private
    type Relation_Record is
       record
          Vector : Empire_Vectors.Vector;
+      end record;
+
+   package Db is
+     new Memor.Database
+       ("empire", Root_Empire_Type, Empire_Type);
+
+   type Updateable_Reference
+     (Item : not null access Root_Empire_Type'Class)
+   is
+      record
+         Update : Db.Updateable_Reference (Item);
       end record;
 
 end Concorde.Empires;

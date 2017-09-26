@@ -1,7 +1,5 @@
 with Ada.Containers.Vectors;
 
-with Concorde.Systems.Db;
-
 with Concorde.Scenarios;
 
 package body Concorde.Galaxy is
@@ -509,18 +507,5 @@ package body Concorde.Galaxy is
    begin
       return Galaxy_Graph.Last_Vertex_Index;
    end System_Count;
-
-   -------------------
-   -- Update_System --
-   -------------------
-
-   procedure Update_System
-     (System : Concorde.Systems.Star_System_Type;
-      Update : not null access
-        procedure (System : in out Systems.Root_Star_System_Type'Class))
-   is
-   begin
-      Concorde.Systems.Db.Update (System.Reference, Update);
-   end Update_System;
 
 end Concorde.Galaxy;

@@ -1,12 +1,7 @@
 with Concorde.Galaxy;
 
-with Concorde.Empires.Db;
 with Concorde.Empires.History;
 with Concorde.Empires.Logging;
-
-with Concorde.Systems.Db;
-
-with Concorde.Players;
 
 package body Concorde.Empires.Updates is
 
@@ -39,7 +34,7 @@ package body Concorde.Empires.Updates is
      (Empire : in out Root_Empire_Type'Class);
 
    procedure Update_System_Flags
-     (System : Concorde.Systems.Root_Star_System_Type'Class);
+     (System : in out Concorde.Systems.Root_Star_System_Type'Class);
 
    ---------------------
    -- Add_Move_Orders --
@@ -114,23 +109,8 @@ package body Concorde.Empires.Updates is
    -----------
 
    procedure Start is
-
-      procedure Do_Start
-        (Empire : in out Concorde.Empires.Root_Empire_Type'Class);
-
-      --------------
-      -- Do_Start --
-      --------------
-
-      procedure Do_Start
-        (Empire : in out Concorde.Empires.Root_Empire_Type'Class)
-      is
-      begin
-         Empire.Player.On_Start (Empire);
-      end Do_Start;
-
    begin
-      Db.Iterate (Do_Start'Access);
+      null;
    end Start;
 
    -------------------
@@ -154,7 +134,7 @@ package body Concorde.Empires.Updates is
       procedure On_Update_Start (Empire : in out Root_Empire_Type'Class);
 
       procedure Update_System_Owner
-        (System : Concorde.Systems.Root_Star_System_Type'Class);
+        (System : in out Concorde.Systems.Root_Star_System_Type'Class);
 
       ---------------------
       -- On_Update_Start --
@@ -163,7 +143,6 @@ package body Concorde.Empires.Updates is
       procedure On_Update_Start (Empire : in out Root_Empire_Type'Class) is
       begin
          Empire.Border_Change := False;
-         Empire.Player.Execute_Orders;
       end On_Update_Start;
 
       -------------------------
@@ -171,35 +150,24 @@ package body Concorde.Empires.Updates is
       -------------------------
 
       procedure Update_System_Owner
-        (System : Concorde.Systems.Root_Star_System_Type'Class)
-      is
-
-         procedure Update (Empire : in out Root_Empire_Type'Class);
-
-         ------------
-         -- Update --
-         ------------
-
-         procedure Update (Empire : in out Root_Empire_Type'Class) is
-            pragma Unreferenced (Empire);
-         begin
---              Empire.Max_Ships := Empire.Max_Ships
---                + System.Capacity * System.Loyalty;
-            null;
-         end Update;
-
-      begin
-         Db.Update (System.Owner.Reference, Update'Access);
-      end Update_System_Owner;
+        (System : in out Concorde.Systems.Root_Star_System_Type'Class)
+      is null;
 
    begin
       Db.Iterate (On_Update_Start'Access);
 
-      Concorde.Systems.Db.Scan
-        (Concorde.Systems.Owned'Access,
-         Update_System_Owner'Access);
+      declare
+         function Has_Owner
+           (System : Concorde.Systems.Root_Star_System_Type'Class)
+            return Boolean
+         is (System.Owned);
+      begin
+         Concorde.Systems.Update_Systems
+           (Has_Owner'Access,
+            Update_System_Owner'Access);
+      end;
 
-      Concorde.Systems.Db.Scan
+      Concorde.Systems.Update_Systems
         (Update_System_Flags'Access);
 
       Db.Iterate (Update_Empire'Access);
@@ -208,8 +176,12 @@ package body Concorde.Empires.Updates is
 
    end Update_Empires;
 
+   -------------------------
+   -- Update_System_Flags --
+   -------------------------
+
    procedure Update_System_Flags
-     (System : Concorde.Systems.Root_Star_System_Type'Class)
+     (System : in out Concorde.Systems.Root_Star_System_Type'Class)
    is
 
       procedure Clear_System_Flags

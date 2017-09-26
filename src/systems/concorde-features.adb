@@ -1,5 +1,3 @@
-with Concorde.Features.Db;
-
 package body Concorde.Features is
 
    Local_Ice    : Feature_Type := null;
