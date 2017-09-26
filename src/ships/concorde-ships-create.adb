@@ -22,7 +22,8 @@ package body Concorde.Ships.Create is
         Concorde.Factions.Root_Faction_Type'Class;
       Name   : String;
       World  : Concorde.Worlds.World_Type;
-      Design : String)
+      Design : String;
+      Suffix : Natural := 0)
       return Ship_Type
    is
 
@@ -48,16 +49,21 @@ package body Concorde.Ships.Create is
             To_Quantity (Ship.Hold_Size));
 
          if Name = "" then
-            if Owner.Current_Ships = 0 then
+            if Suffix = 0 then
                Ship.Set_Name (Owner.Name);
             else
                Ship.Set_Name
                  (Owner.Name & " "
-                  & Concorde.Roman_Images.Roman_Image
-                    (Owner.Current_Ships + 1));
+                  & Concorde.Roman_Images.Roman_Image (Suffix));
             end if;
          else
-            Ship.Set_Name (Name);
+            if Suffix = 0 then
+               Ship.Set_Name (Name);
+            else
+               Ship.Set_Name
+                 (Name & " "
+                  & Concorde.Roman_Images.Roman_Image (Suffix));
+            end if;
          end if;
          Ship.Owner := Owner;
          Ship.Set_Guarantor (Owner);

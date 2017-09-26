@@ -9,7 +9,7 @@ with Tropos.Reader;
 
 with Memor.Element_Vectors;
 
-with Concorde.Real_Images;
+--  with Concorde.Real_Images;
 
 with Concorde.Options;
 with Concorde.Paths;
@@ -1120,11 +1120,11 @@ package body Concorde.Worlds.Create is
         and then Concorde.Random.Unit_Random <= 0.1
       then
          --  one large moon caused by cataclysmic collision
-         Ada.Text_IO.Put_Line
-           (World.Name & " (mass "
-            & Concorde.Real_Images.Approximate_Image (Earth_Masses)
-            & ")"
-            & ": single large moon");
+--           Ada.Text_IO.Put_Line
+--             (World.Name & " (mass "
+--              & Concorde.Real_Images.Approximate_Image (Earth_Masses)
+--              & ")"
+--              & ": single large moon");
          declare
             use Concorde.Solar_System;
             Orbit : constant Non_Negative_Real :=
@@ -1146,13 +1146,13 @@ package body Concorde.Worlds.Create is
                          Is_Moon       => True,
                          Is_Jovian     => False);
          begin
-            Ada.Text_IO.Put_Line
-              (Moon.Name & ": mass = "
-               & Concorde.Real_Images.Approximate_Image
-                 (Moon.Mass / Earth_Mass)
-               & "; orbit = "
-               & Concorde.Real_Images.Approximate_Image
-                 (Moon.Semimajor_Axis / 1000.0));
+--              Ada.Text_IO.Put_Line
+--                (Moon.Name & ": mass = "
+--                 & Concorde.Real_Images.Approximate_Image
+--                   (Moon.Mass / Earth_Mass)
+--                 & "; orbit = "
+--                 & Concorde.Real_Images.Approximate_Image
+--                   (Moon.Semimajor_Axis / 1000.0));
 
             List.Append (Moon);
          end;
@@ -1166,11 +1166,11 @@ package body Concorde.Worlds.Create is
                                    * Concorde.Random.Unit_Random + 0.4);
          begin
             if Number_Of_Moons > 0 then
-               Ada.Text_IO.Put_Line
-                 (World.Name & " (mass "
-                  & Concorde.Real_Images.Approximate_Image (Earth_Masses)
-                  & ") has" & Number_Of_Moons'Img & " major moon"
-                  & (if Number_Of_Moons > 1 then "s" else ""));
+--                 Ada.Text_IO.Put_Line
+--                   (World.Name & " (mass "
+--                    & Concorde.Real_Images.Approximate_Image (Earth_Masses)
+--                    & ") has" & Number_Of_Moons'Img & " major moon"
+--                    & (if Number_Of_Moons > 1 then "s" else ""));
 
                for I in 1 .. Number_Of_Moons loop
                   declare
@@ -1199,13 +1199,13 @@ package body Concorde.Worlds.Create is
                                   Is_Moon       => True,
                                   Is_Jovian     => False);
                   begin
-                     Ada.Text_IO.Put_Line
-                       (Moon.Name & ": mass = "
-                        & Concorde.Real_Images.Approximate_Image (Moon
-                          .Mass / Moon_Mass)
-                        & "; orbit = "
-                        & Concorde.Real_Images.Approximate_Image
-                          (Moon.Semimajor_Axis / 1000.0));
+--                       Ada.Text_IO.Put_Line
+--                         (Moon.Name & ": mass = "
+--                          & Concorde.Real_Images.Approximate_Image (Moon
+--                            .Mass / Moon_Mass)
+--                          & "; orbit = "
+--                          & Concorde.Real_Images.Approximate_Image
+--                            (Moon.Semimajor_Axis / 1000.0));
 
                      List.Append (Moon);
                   end;

@@ -4,7 +4,7 @@ interface = xi
 randomise = no
 create_voronoi = no
 
-faction_count = 3
+faction_count = 99
 system_count = 5000
 
 create_galaxy = yes

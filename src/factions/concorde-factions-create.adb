@@ -41,14 +41,6 @@ package body Concorde.Factions.Create is
    procedure Create_Initial_Ships
      (World : Concorde.Worlds.World_Type)
    is
-      Trader   : constant Concorde.Ships.Ship_Type :=
-                   Concorde.Ships.Create.New_Ship
-                     (Owner  => World.Owner,
-                      Name   =>
-                        World.Owner.Name
-                      & " Trader",
-                      World  => World,
-                      Design => "trader");
       Defender : constant Concorde.Ships.Ship_Type :=
                    Concorde.Ships.Create.New_Ship
                      (Owner  => World.Owner,
@@ -59,7 +51,8 @@ package body Concorde.Factions.Create is
                       Design => "defender");
 
       procedure Initial_Trade_Route
-        (Ship : Concorde.Ships.Ship_Type);
+        (Ship : Concorde.Ships.Ship_Type)
+        with Unreferenced;
 
       -------------------------
       -- Initial_Trade_Route --
@@ -131,12 +124,10 @@ package body Concorde.Factions.Create is
       end Initial_Trade_Route;
 
    begin
-      Initial_Trade_Route (Trader);
 
-      World.Update.Add_Ship (Trader);
       World.Update.Add_Ship (Defender);
 
-      for I in 1 .. 4 loop
+      for I in 1 .. 20 loop
          declare
             Capital : constant Concorde.Worlds.World_Type :=
                         Concorde.Galaxy.Capital_World;
@@ -144,16 +135,14 @@ package body Concorde.Factions.Create is
                          Concorde.Ships.Create.New_Ship
                            (Owner  => World.Owner,
                             Name   =>
-                              World.Owner.Name
-                            & " Trader"
-                            & Positive'Image (I + 1),
+                              World.Owner.Name & " Trader" & I'Img,
                             World  => Capital,
                             Design => "trader");
-
          begin
             Trader.Update.Set_Trade_Route
               (Capital, World);
             Capital.Update.Add_Ship (Trader);
+            Trader.Log_Trade ("new trade ship");
          end;
       end loop;
 

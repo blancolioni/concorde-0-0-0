@@ -1005,8 +1005,8 @@ package body Concorde.Ships is
       To     : not null access constant Concorde.Worlds.Root_World_Type'Class)
    is
    begin
-      Ship.Trade_From := From.Reference;
-      Ship.Trade_To := To.Reference;
+      Ship.Trade_From := From;
+      Ship.Trade_To := To;
       Ship.Is_Trader := True;
       Ship.Have_Trade_Orders := False;
       if not Ship.Orbiting (From) then

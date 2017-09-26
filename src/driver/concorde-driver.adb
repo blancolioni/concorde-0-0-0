@@ -66,6 +66,8 @@ begin
       WL.Random.Randomise;
    end if;
 
+   Concorde.Logging.Start_Logging;
+
    Concorde.Configure.Load_Configuration;
 
    if Concorde.Options.Create_Galaxy then
@@ -102,7 +104,6 @@ begin
          end if;
 
          Concorde.Agents.Enable_Offer_Logging (Enabled => True);
-         Concorde.Logging.Start_Logging;
 
          Concorde.Factions.Updates.Start;
       end if;

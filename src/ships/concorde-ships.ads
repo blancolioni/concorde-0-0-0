@@ -321,8 +321,8 @@ private
          Alive                 : Boolean := True;
          Is_Trader             : Boolean := False;
          Have_Trade_Orders     : Boolean := False;
-         Trade_From            : Memor.Database_Reference;
-         Trade_To              : Memor.Database_Reference;
+         Trade_From            : access constant Worlds.Root_World_Type'Class;
+         Trade_To              : access constant Worlds.Root_World_Type'Class;
          Structure             : Module_Vectors.Vector;
          Size                  : Size_Type;
          Current_Damage        : Unit_Real := 0.0;

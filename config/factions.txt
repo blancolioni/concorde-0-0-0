@@ -1,5 +1,6 @@
 imperium = {
    name = Imperium
+   adjective = Imperial
    capital = "Byzantium Secundus"
    colour = { 102 2 60 }
    }
@@ -30,12 +31,14 @@ corrino = {
 
 paleologos = {
    name = Paleologos
+   adjective = Paleologian
    capital = Constantinople
    colour = { 0 120 0 }
 }
 
 komnenos = {
    name = Komnenos
+   adjective = Komnenon
    capital = Antioch
    colour = { 135 206 250 }
 }

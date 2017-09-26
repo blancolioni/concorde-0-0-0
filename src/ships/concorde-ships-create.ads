@@ -5,7 +5,8 @@ package Concorde.Ships.Create is
         Concorde.Factions.Root_Faction_Type'Class;
       Name   : String;
       World  : Concorde.Worlds.World_Type;
-      Design : String)
+      Design : String;
+      Suffix : Natural := 0)
       return Ship_Type;
 
 end Concorde.Ships.Create;
