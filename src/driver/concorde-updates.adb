@@ -3,6 +3,8 @@ with Ada.Unchecked_Deallocation;
 with Concorde.Dates;
 with Concorde.Logging;
 
+with Concorde.Objects.Queues;
+
 with Concorde.Agents.Updates;
 with Concorde.Economy.Updates;
 with Concorde.Factions.Updates;
@@ -116,6 +118,8 @@ package body Concorde.Updates is
       end if;
 
       Concorde.Ships.Updates.Delete_Dead_Ships;
+
+      Concorde.Objects.Queues.Scan_Queue;
 
       Concorde.Agents.Updates.Update_Agents
         (Concorde.Agents.Updates.Start_Of_Update'Access);

@@ -3,6 +3,39 @@ with Concorde.Localisation;
 package body Concorde.Objects is
 
    -----------------
+   -- Add_Handler --
+   -----------------
+
+   procedure Add_Handler
+     (Object  : in out Root_Object_Type'Class;
+      Signal  : Concorde.Signals.Signal_Type;
+      Handler : Object_Signal_Handler)
+   is
+   begin
+      Object.Add_Handler
+        (Signal,
+         new Base_Handler_Type'(Handler => Handler));
+   end Add_Handler;
+
+   -----------------
+   -- Add_Handler --
+   -----------------
+
+   procedure Add_Handler
+     (Object  : in out Root_Object_Type'Class;
+      Signal  : Concorde.Signals.Signal_Type;
+      Handler : not null access Object_Handler_Interface'Class)
+   is
+      Key : constant String := String (Signal);
+   begin
+      if not Object.Handlers.Contains (Key) then
+         Object.Handlers.Insert (Key, Signal_Handler_Lists.Empty_List);
+      end if;
+
+      Object.Handlers (Key).Append (Handler);
+   end Add_Handler;
+
+   -----------------
    -- Add_Watcher --
    -----------------
 
@@ -52,6 +85,36 @@ package body Concorde.Objects is
          Item.Object_Database.Update (Item.Reference, Perform_Load'Access);
       end if;
    end Check_Loaded;
+
+   --------------------
+   -- Delete_Handler --
+   --------------------
+
+   procedure Delete_Handler
+     (Object  : in out Root_Object_Type'Class;
+      Signal  : Concorde.Signals.Signal_Type;
+      Handler : not null access Object_Handler_Interface'Class)
+   is
+      Key : constant String := String (Signal);
+      Position : Signal_Handler_Lists.Cursor :=
+                   Object.Handlers (Key).Find (Handler);
+   begin
+      pragma Assert (Signal_Handler_Lists.Has_Element (Position));
+      Object.Handlers (Key).Delete (Position);
+   end Delete_Handler;
+
+   ------------
+   -- Handle --
+   ------------
+
+   overriding procedure Handle
+     (Handler : in out Base_Handler_Type;
+      Event   : Concorde.Events.Root_Event_Type'Class;
+      Object  : not null access constant Root_Object_Type'Class)
+   is
+   begin
+      Handler.Handler (Event, Object);
+   end Handle;
 
    ----------------
    -- Identifier --
@@ -130,5 +193,32 @@ package body Concorde.Objects is
    begin
       Item.Object_Name := Ada.Strings.Unbounded.To_Unbounded_String (Name);
    end Set_Name;
+
+   ------------
+   -- Signal --
+   ------------
+
+   procedure Signal
+     (Object : not null access constant Root_Object_Type'Class;
+      Sig    : Concorde.Signals.Signal_Type;
+      Event  : Concorde.Events.Root_Event_Type'Class)
+   is
+   begin
+      for Item of Object.Handlers (String (Sig)) loop
+         Item.Handle (Event, Object);
+      end loop;
+   end Signal;
+
+   ------------
+   -- Signal --
+   ------------
+
+   procedure Signal
+     (Object : not null access constant Root_Object_Type'Class;
+      Sig    : Concorde.Signals.Signal_Type)
+   is
+   begin
+      Object.Signal (Sig, Concorde.Events.Null_Event);
+   end Signal;
 
 end Concorde.Objects;

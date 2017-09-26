@@ -1,6 +1,10 @@
 with Ada.Text_IO;
 
+with Concorde.Random;
 with Concorde.Real_Images;
+
+with Concorde.Dates;
+with Concorde.Objects.Queues;
 
 with Concorde.Galaxy;
 with Concorde.Locations;
@@ -19,6 +23,8 @@ with Concorde.Money;
 with Concorde.Quantities;
 
 with Concorde.Systems.Lists;
+
+with Concorde.Managers.Ships.Trade;
 
 package body Concorde.Factions.Create is
 
@@ -136,12 +142,33 @@ package body Concorde.Factions.Create is
                            (Owner  => World.Owner,
                             Name   =>
                               World.Owner.Name & " Trader" & I'Img,
-                            World  => Capital,
+                            World  =>
+                              (if I mod 2 = 1 then World else Capital),
                             Design => "trader");
          begin
-            Trader.Update.Set_Trade_Route
-              (Capital, World);
-            Capital.Update.Add_Ship (Trader);
+
+            declare
+               use Concorde.Managers.Ships.Trade;
+               Manager  : constant Ship_Trade_Manager :=
+                            (if I mod 2 = 1
+                             then Create_Manager (Trader, World, Capital)
+                             else Create_Manager (Trader, Capital, World));
+            begin
+               Manager.Activate;
+            end;
+
+            if I mod 2 = 1 then
+               World.Update.Add_Ship (Trader);
+            else
+               Capital.Update.Add_Ship (Trader);
+            end if;
+
+            Concorde.Objects.Queues.Next_Event
+              (Trader,
+               Concorde.Dates.Add_Seconds
+                 (Concorde.Dates.Current_Date,
+                  Float (Concorde.Random.Unit_Random) * 86_400.0));
+
             Trader.Log_Trade ("new trade ship");
          end;
       end loop;
@@ -394,22 +421,25 @@ package body Concorde.Factions.Create is
                      begin
                         if W.Category = Terrestrial then
                            if W.Minimum_Temperature < 220.0 then
-                              Ada.Text_IO.Put_Line
-                                ("Rejecting " & W.Name &
+                              New_Faction.Log
+                                ("setup",
+                                 "Rejecting " & W.Name &
                                    " because min temperature is "
                                  & Concorde.Real_Images.Approximate_Image
                                    (W.Minimum_Temperature - 273.0)
                                  & " degrees");
                            elsif W.Maximum_Temperature > 3730.0 then
-                              Ada.Text_IO.Put_Line
-                                ("Rejecting " & W.Name &
+                              New_Faction.Log
+                                ("setup",
+                                 "Rejecting " & W.Name &
                                    " because max temperature is "
                                  & Concorde.Real_Images.Approximate_Image
                                    (W.Maximum_Temperature - 273.0)
                                  & " degrees");
                            elsif W.Hydrosphere not in 0.2 .. 0.75 then
-                              Ada.Text_IO.Put_Line
-                                ("Rejecting " & W.Name &
+                              New_Faction.Log
+                                ("setup",
+                                 "Rejecting " & W.Name &
                                    " because hydrosphere is "
                                  & Concorde.Real_Images.Approximate_Image
                                    (W.Hydrosphere * 100.0)

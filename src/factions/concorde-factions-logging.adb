@@ -26,7 +26,7 @@ package body Concorde.Factions.Logging is
    function Log_File_Path
      (Faction : Faction_Type)
       return String
-   is (Concorde.Paths.Config_Path & "/../log/Factions/"
+   is (Concorde.Paths.Config_Path & "/../log/factions/"
        & Faction.Name
        & ".txt");
 
@@ -170,7 +170,7 @@ package body Concorde.Factions.Logging is
          if Failed then
             Ada.Text_IO.Put_Line
               (Ada.Text_IO.Standard_Error,
-               "Unabled to start logging; logging disabled");
+               "Unable to start faction logging; logging disabled");
          else
             Current_Log_Date := Concorde.Dates.Zero_Date;
             Started := True;
