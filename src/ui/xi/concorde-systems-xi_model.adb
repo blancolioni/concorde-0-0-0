@@ -16,7 +16,6 @@ with Concorde.Solar_System;
 
 with Concorde.Stars;
 
-with Concorde.Worlds.Db;
 with Concorde.Worlds.Xi_Model;
 
 package body Concorde.Systems.Xi_Model is
@@ -61,15 +60,17 @@ package body Concorde.Systems.Xi_Model is
       System_Node : constant Xi.Node.Xi_Node :=
                       Scene.Create_Node (System.Name);
       Selector_Node : constant Xi.Node.Xi_Node :=
-                         Scene.Create_Node ("selectors");
+                        Scene.Create_Node ("selectors");
+
       procedure Create_Node
-        (Object   : Star_System_Object_Interface'Class);
+        (Object   : not null access constant
+           Star_System_Object_Interface'Class);
 
       procedure Create_Star
-        (Star      : Concorde.Stars.Root_Star_Type'Class);
+        (Star      : Concorde.Stars.Star_Type);
 
       procedure Create_World
-        (World     : Concorde.Worlds.Root_World_Type'Class;
+        (World     : Concorde.Worlds.World_Type;
          Primary   : access Star_System_Object_Interface'Class);
 
       -----------------
@@ -77,15 +78,16 @@ package body Concorde.Systems.Xi_Model is
       -----------------
 
       procedure Create_Node
-        (Object   : Star_System_Object_Interface'Class)
+        (Object   : not null access constant
+           Star_System_Object_Interface'Class)
       is
       begin
-         if Object in Concorde.Stars.Root_Star_Type'Class then
+         if Object.all in Concorde.Stars.Root_Star_Type'Class then
             Create_Star
-              (Concorde.Stars.Root_Star_Type'Class (Object));
+              (Concorde.Stars.Star_Type (Object));
          else
             Create_World
-              (Concorde.Worlds.Root_World_Type'Class (Object),
+              (Concorde.Worlds.World_Type (Object),
                Object.Primary);
          end if;
       end Create_Node;
@@ -95,7 +97,7 @@ package body Concorde.Systems.Xi_Model is
       -----------------
 
       procedure Create_Star
-        (Star      : Concorde.Stars.Root_Star_Type'Class)
+        (Star      : Concorde.Stars.Star_Type)
       is
          use Xi;
          Star_Node : constant Xi.Node.Xi_Node :=
@@ -125,7 +127,7 @@ package body Concorde.Systems.Xi_Model is
       ------------------
 
       procedure Create_World
-        (World     : Concorde.Worlds.Root_World_Type'Class;
+        (World     : Concorde.Worlds.World_Type;
          Primary   : access Star_System_Object_Interface'Class)
       is
          pragma Unreferenced (Primary);
@@ -147,7 +149,7 @@ package body Concorde.Systems.Xi_Model is
             Y => 0.0,
             Z => Orbit_Radius * Xi_Float (Sin (Position)));
          Concorde.Worlds.Xi_Model.Load_World
-           (World       => Concorde.Worlds.Db.Reference (World),
+           (World       => World,
             Parent_Node => World_Node);
 
          declare
@@ -165,7 +167,7 @@ package body Concorde.Systems.Xi_Model is
 
    begin
       for Object of System.Objects loop
-         Create_Node (Object.Object.all);
+         Create_Node (Object.Object);
       end loop;
 
       Camera.Set_Position (0.0, 0.0, Camera_Start_Far / 5.0);

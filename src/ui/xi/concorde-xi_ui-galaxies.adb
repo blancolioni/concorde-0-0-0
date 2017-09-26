@@ -22,7 +22,7 @@ with Xi.Texture;
 with Lui.Colours;
 
 with Concorde.Galaxy;
-with Concorde.Ships.Db;
+with Concorde.Ships;
 with Concorde.Worlds;
 
 with Concorde.Systems.Xi_Model;
@@ -127,7 +127,8 @@ package body Concorde.Xi_UI.Galaxies is
             Second_Ship : Concorde.Ships.Ship_Type := null;
 
             procedure Visit_Ship
-              (Ship : Concorde.Ships.Ship_Type);
+              (Ship : Concorde.Ships.Ship_Type)
+              with Unreferenced;
 
             procedure Visit_Object
               (Object : not null access constant
@@ -165,7 +166,8 @@ package body Concorde.Xi_UI.Galaxies is
             end Visit_Ship;
 
          begin
-            Concorde.Ships.Db.Scan (Visit_Ship'Access);
+--            Concorde.Ships.Scan (Visit_Ship'Access);
+
             if False then
                Concorde.Galaxy.Get_System (1).Scan_System_Objects
                  (Visit_Object'Access);
