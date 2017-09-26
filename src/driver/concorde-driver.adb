@@ -15,6 +15,7 @@ with Xtk;
 
 with Concorde.Paths;
 
+with Concorde.Dates;
 with Concorde.Logging;
 
 with Concorde.Empires.Configure;
@@ -122,6 +123,7 @@ begin
               (Execute_Battles  => True,
                Check_Invariants => Check_Invariants);
             Process.Tick;
+            Concorde.Dates.Tick (86_400.0);
          end loop;
          Process.Finish;
       end;

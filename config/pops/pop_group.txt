@@ -1,5 +1,5 @@
 poor = {
-   initial_cash = 10
+   initial_cash = 20
    socialist = 10
    capitalist = 5
    conservative = 30

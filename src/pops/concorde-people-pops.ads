@@ -1,6 +1,7 @@
 private with Memor;
 private with Memor.Database;
 private with Concorde.People.Skills.Lists;
+private with Concorde.Locations;
 
 with Concorde.Agents;
 with Concorde.Trades;
@@ -44,6 +45,12 @@ private
    overriding function Class_Name
      (Pop : Root_Pop_Type) return String
    is ("pop");
+
+   overriding function Identifier
+     (Pop : Root_Pop_Type) return String
+   is (Concorde.Agents.Root_Agent_Type (Pop).Identifier
+       & "--" & Concorde.Locations.Short_Name (Pop.Current_Location)
+       & Integer'Image (-1 * Integer (Pop.Size)));
 
    overriding function Object_Database
      (Item : Root_Pop_Type)

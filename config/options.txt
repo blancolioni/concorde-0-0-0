@@ -23,7 +23,7 @@ market_logging = yes
 minimum_battle_size = 6
 
 console = yes
-update_count = 20
+update-count = 20
 
 show_capital_names = yes
 show_system_names = no
@@ -37,3 +37,5 @@ world_detail_factor = 5   # ratio of coarse sector size to detail sector size
 world_sector_size = 1000  # size of sector in world map, in kilometres
 
 display_language = english
+
+write-accounts = yes

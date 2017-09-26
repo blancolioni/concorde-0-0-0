@@ -60,6 +60,12 @@ private
    is ("[" & Memor.To_String (Installation.Reference) & "]"
        & " " & Installation.Facility.Name);
 
+   overriding function Identifier
+     (Item : Root_Installation_Type)
+      return String
+   is (Concorde.Agents.Root_Agent_Type (Item).Identifier
+       & "--" & Item.Facility.Identifier);
+
    overriding function Object_Database
      (Item : Root_Installation_Type)
       return Memor.Memor_Database;
