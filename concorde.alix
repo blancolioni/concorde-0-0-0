@@ -9,16 +9,21 @@ source_dir = src/economy
 source_dir = src/empires
 source_dir = src/facilities
 source_dir = src/galaxy
+source_dir = src/generation
+source_dir = src/governments
 source_dir = src/graphs
 source_dir = src/installations
 source_dir = src/localisation
 source_dir = src/objects
 source_dir = src/pops
+source_dir = src/stars
+source_dir = src/surfaces
 source_dir = src/systems
 source_dir = src/ships
-source_dir = src/voronoi
 source_dir = src/ui
 source_dir = src/ui/xi
+source_dir = src/voronoi
+source_dir = src/worlds
 depend = { project = Tropos version = any }
 depend = { project = Lui version = any }
 depend = { project = Wlib version = any }
