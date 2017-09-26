@@ -16,7 +16,7 @@ with Concorde.Money;
 with Concorde.Quantities;
 
 with Concorde.Commodities;
-with Concorde.Empires;
+with Concorde.Factions;
 with Concorde.Facilities;
 with Concorde.Installations;
 

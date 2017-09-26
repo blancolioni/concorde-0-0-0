@@ -114,13 +114,13 @@ package body Concorde.Options is
    end Console;
 
    --------------------
-   -- Create_Empires --
+   -- Create_Factions --
    --------------------
 
-   function Create_Empires return Boolean is
+   function Create_Factions return Boolean is
    begin
-      return Boolean_Value ("create-empires");
-   end Create_Empires;
+      return Boolean_Value ("create-factions");
+   end Create_Factions;
 
    -------------------
    -- Create_Galaxy --
@@ -159,13 +159,13 @@ package body Concorde.Options is
    end Enable_Detailed_Battle_Logging;
 
    ---------------------------
-   -- Enable_Empire_Logging --
+   -- Enable_Faction_Logging --
    ---------------------------
 
-   function Enable_Empire_Logging return Boolean is
+   function Enable_Faction_Logging return Boolean is
    begin
-      return Boolean_Value ("empire-logging", 'E');
-   end Enable_Empire_Logging;
+      return Boolean_Value ("faction-logging", 'E');
+   end Enable_Faction_Logging;
 
    ---------------------------
    -- Enable_Market_Logging --
@@ -236,13 +236,13 @@ package body Concorde.Options is
    end Minimum_Size_For_Battle;
 
    -----------------------
-   -- Number_Of_Empires --
+   -- Number_Of_Factions --
    -----------------------
 
-   function Number_Of_Empires return Positive is
+   function Number_Of_Factions return Positive is
    begin
-      return Integer_Value ("empire-count", 'e', 99);
-   end Number_Of_Empires;
+      return Integer_Value ("faction-count", 'e', 99);
+   end Number_Of_Factions;
 
    -----------------------
    -- Number_Of_Systems --

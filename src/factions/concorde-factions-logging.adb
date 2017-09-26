@@ -6,28 +6,28 @@ with Memor.Element_Vectors;
 with Concorde.Dates;
 with Concorde.Paths;
 
-package body Concorde.Empires.Logging is
+package body Concorde.Factions.Logging is
 
    Started : Boolean := False;
 
    package List_Of_Log_Lines is
      new Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 
-   package Empire_Log_Vectors is
+   package Faction_Log_Vectors is
      new Memor.Element_Vectors
-       (Index_Type    => Root_Empire_Type,
+       (Index_Type    => Root_Faction_Type,
         Element_Type  => List_Of_Log_Lines.List,
         Default_Value => List_Of_Log_Lines.Empty_List,
         "="           => List_Of_Log_Lines."=");
 
    Current_Log_Date : Concorde.Dates.Date_Type := Concorde.Dates.Zero_Date;
-   Current_Logs     : Empire_Log_Vectors.Vector;
+   Current_Logs     : Faction_Log_Vectors.Vector;
 
    function Log_File_Path
-     (Empire : Empire_Type)
+     (Faction : Faction_Type)
       return String
-   is (Concorde.Paths.Config_Path & "/../log/empires/"
-       & Empire.Name
+   is (Concorde.Paths.Config_Path & "/../log/Factions/"
+       & Faction.Name
        & ".txt");
 
    ---------------
@@ -36,22 +36,22 @@ package body Concorde.Empires.Logging is
 
    procedure Flush_Log is
 
-      procedure Flush (Empire : Empire_Type);
+      procedure Flush (Faction : Faction_Type);
 
       -----------
       -- Flush --
       -----------
 
-      procedure Flush (Empire : Empire_Type) is
+      procedure Flush (Faction : Faction_Type) is
          Lines : constant List_Of_Log_Lines.List :=
-                   Current_Logs.Element (Empire);
+                   Current_Logs.Element (Faction);
       begin
          if not Lines.Is_Empty then
             declare
                use Ada.Text_IO;
                File : File_Type;
             begin
-               Open (File, Append_File, Log_File_Path (Empire));
+               Open (File, Append_File, Log_File_Path (Faction));
                New_Line (File);
                Put_Line (File, "----------------");
                Put_Line (File,
@@ -65,7 +65,7 @@ package body Concorde.Empires.Logging is
                   Put_Line (File, Line);
                end loop;
                Close (File);
-               Current_Logs.Replace_Element (Empire,
+               Current_Logs.Replace_Element (Faction,
                                              List_Of_Log_Lines.Empty_List);
             end;
          end if;
@@ -85,11 +85,11 @@ package body Concorde.Empires.Logging is
    ---------
 
    procedure Log
-     (Empire  : not null access constant Root_Empire_Type'Class;
+     (Faction  : not null access constant Root_Faction_Type'Class;
       Message : String)
    is
    begin
-      Log (Empire.all, Message);
+      Log (Faction.all, Message);
    end Log;
 
    ---------
@@ -97,7 +97,7 @@ package body Concorde.Empires.Logging is
    ---------
 
    procedure Log
-     (Empire  : Root_Empire_Type'Class;
+     (Faction  : Root_Faction_Type'Class;
       Message : String)
    is
       use type Concorde.Dates.Date_Type;
@@ -131,7 +131,7 @@ package body Concorde.Empires.Logging is
 
       begin
 
-         Current_Logs.Update_Element (Empire, Append'Access);
+         Current_Logs.Update_Element (Faction, Append'Access);
       end;
 
    end Log;
@@ -144,28 +144,28 @@ package body Concorde.Empires.Logging is
 
       Failed : Boolean := False;
 
-      procedure Start_Empire_Logging (Empire : Empire_Type);
+      procedure Start_Faction_Logging (Faction : Faction_Type);
 
       --------------------------
-      -- Start_Empire_Logging --
+      -- Start_Faction_Logging --
       --------------------------
 
-      procedure Start_Empire_Logging (Empire : Empire_Type) is
+      procedure Start_Faction_Logging (Faction : Faction_Type) is
          File : Ada.Text_IO.File_Type;
       begin
          Ada.Text_IO.Create (File, Ada.Text_IO.Out_File,
-                             Log_File_Path (Empire));
+                             Log_File_Path (Faction));
          Ada.Text_IO.Close (File);
       exception
          when Ada.Text_IO.Name_Error =>
             Failed := True;
-      end Start_Empire_Logging;
+      end Start_Faction_Logging;
 
    begin
       if not Started then
          Current_Logs.Clear;
 
-         Db.Scan (Start_Empire_Logging'Access);
+         Db.Scan (Start_Faction_Logging'Access);
 
          if Failed then
             Ada.Text_IO.Put_Line
@@ -191,4 +191,4 @@ package body Concorde.Empires.Logging is
       end if;
    end Stop_Logging;
 
-end Concorde.Empires.Logging;
+end Concorde.Factions.Logging;

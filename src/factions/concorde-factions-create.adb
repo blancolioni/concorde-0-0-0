@@ -20,7 +20,7 @@ with Concorde.Quantities;
 
 with Concorde.Systems.Lists;
 
-package body Concorde.Empires.Create is
+package body Concorde.Factions.Create is
 
    Imperial_Centre : Boolean := True;
 
@@ -283,15 +283,15 @@ package body Concorde.Empires.Create is
    end Find_System;
 
    ----------------
-   -- New_Empire --
+   -- New_Faction --
    ----------------
 
-   function New_Empire
+   function New_Faction
      (Name                : String;
       Capital             : String;
       Colour              : Lui.Colours.Colour_Type;
       Default_Ship_Design : String)
-      return Empire_Type
+      return Faction_Type
    is
 
       Taken : Concorde.Galaxy.Star_System_Set;
@@ -300,24 +300,24 @@ package body Concorde.Empires.Create is
       Start_System : Concorde.Systems.Star_System_Type;
 
       procedure Add_Taken_Systems
-        (Empire : Root_Empire_Type'Class);
+        (Faction : Root_Faction_Type'Class);
 
       procedure Set_Initial_Prices
         (Market : Concorde.Markets.Updateable_Reference);
 
       procedure Create
-        (New_Empire : in out Root_Empire_Type'Class);
+        (New_Faction : in out Root_Faction_Type'Class);
 
       -----------------------
       -- Add_Taken_Systems --
       -----------------------
 
       procedure Add_Taken_Systems
-        (Empire : Root_Empire_Type'Class)
+        (Faction : Root_Faction_Type'Class)
       is
       begin
          Concorde.Galaxy.Add_Systems
-           (Taken, Empire.Capital.System, 0.4);
+           (Taken, Faction.Capital.System, 0.4);
       end Add_Taken_Systems;
 
       ------------
@@ -325,7 +325,7 @@ package body Concorde.Empires.Create is
       ------------
 
       procedure Create
-        (New_Empire : in out Root_Empire_Type'Class)
+        (New_Faction : in out Root_Faction_Type'Class)
       is
 
          function OK_For_Start
@@ -458,26 +458,26 @@ package body Concorde.Empires.Create is
              (Concorde.Galaxy.Get_System (1),
               OK_For_Start'Access);
 
-         New_Empire.New_Agent
+         New_Faction.New_Agent
            (Concorde.Locations.Nowhere,
             null,
             Concorde.Quantities.Zero);
 
-         New_Empire.Set_Cash (Concorde.Money.To_Money (1_000_000.0));
-         New_Empire.Identifier :=
+         New_Faction.Set_Cash (Concorde.Money.To_Money (1_000_000.0));
+         New_Faction.Identifier :=
            Ada.Strings.Unbounded.To_Unbounded_String (Name);
-         New_Empire.Set_Name (Name);
-         New_Empire.System_Data :=
+         New_Faction.Set_Name (Name);
+         New_Faction.System_Data :=
            new System_Data_Array (1 .. Galaxy.System_Count);
-         New_Empire.Colour := Colour;
-         New_Empire.Capital_World := Start_World;
+         New_Faction.Colour := Colour;
+         New_Faction.Capital_World := Start_World;
 
          if Imperial_Centre then
             Galaxy.Set_Capital_World (Start_World);
          end if;
 
-         New_Empire.Current_Systems := 1;
-         New_Empire.Default_Ship := new String'(Default_Ship_Design);
+         New_Faction.Current_Systems := 1;
+         New_Faction.Default_Ship := new String'(Default_Ship_Design);
 
          if False
            and then Concorde.Scenarios.Imperial_Centre
@@ -541,13 +541,13 @@ package body Concorde.Empires.Create is
       end if;
 
       declare
-         Empire : constant Empire_Type :=
+         Faction : constant Faction_Type :=
                     Db.Create (Create'Access);
       begin
-         Start_System.Update.Set_Owner (Empire);
+         Start_System.Update.Set_Owner (Faction);
          Start_System.Update.Set_Capital (True);
 
-         Start_World.Update.Set_Owner (Empire);
+         Start_World.Update.Set_Owner (Faction);
          Start_World.Update.Set_Capital (True);
          Start_World.Update.Set_Name (Capital);
 
@@ -572,12 +572,12 @@ package body Concorde.Empires.Create is
                & Start_World.Name);
          end if;
 
-         Empire.Save_Agent;
+         Faction.Save_Agent;
 
-         return Empire;
+         return Faction;
 
       end;
 
-   end New_Empire;
+   end New_Faction;
 
-end Concorde.Empires.Create;
+end Concorde.Factions.Create;

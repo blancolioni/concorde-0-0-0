@@ -1,7 +1,7 @@
 with Concorde.Galaxy.Locking;
 
-with Concorde.Empires;
-with Concorde.Empires.Logging;
+with Concorde.Factions;
+with Concorde.Factions.Logging;
 
 with Concorde.Ships.Battles;
 with Concorde.Ships.Lists;
@@ -87,7 +87,7 @@ package body Concorde.Galaxy.Ships is
    begin
 
       if Next_Index = 0 then
-         Concorde.Empires.Logging.Log
+         Concorde.Factions.Logging.Log
            (Ship.Owner,
             Ship.Short_Description &
             ": movement canceled because path from "

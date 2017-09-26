@@ -1,10 +1,10 @@
 with Ada.Containers.Doubly_Linked_Lists;
 
 with Concorde.Galaxy.Ships;
-with Concorde.Empires;
+with Concorde.Factions;
 with Concorde.Systems;
 
-with Concorde.Empires.Logging;
+with Concorde.Factions.Logging;
 
 package body Concorde.Ships.Updates is
 
@@ -40,7 +40,7 @@ package body Concorde.Ships.Updates is
       is
       begin
          if not Ship.Alive then
-            Concorde.Empires.Logging.Log
+            Concorde.Factions.Logging.Log
               (Ship.Owner,
                Ship.Short_Description & " destroyed");
             List.Append (Ship.Reference);
@@ -78,7 +78,7 @@ package body Concorde.Ships.Updates is
    begin
 
       if Ship.Has_Destination then
-         Concorde.Empires.Logging.Log
+         Concorde.Factions.Logging.Log
            (Ship.Owner,
             Ship.Short_Description
             & " on its way to "

@@ -18,20 +18,20 @@ with Concorde.Paths;
 with Concorde.Dates;
 with Concorde.Logging;
 
-with Concorde.Empires.Configure;
+with Concorde.Factions.Configure;
 with Concorde.Galaxy.Create;
 
 with Concorde.Galaxy.Locking;
 
-with Concorde.Empires.Reports;
-with Concorde.Empires.Updates;
+with Concorde.Factions.Reports;
+with Concorde.Factions.Updates;
 with Concorde.Updates;
 
 --  with Concorde.Gtk_UI;
 with Concorde.Xi_UI.Model_Manager;
 with Concorde.Xi_UI.Key_Bindings;
 
-with Concorde.Empires.Logging;
+with Concorde.Factions.Logging;
 
 with Concorde.Options;
 with Concorde.Reports;
@@ -93,18 +93,18 @@ begin
          end;
       end if;
 
-      if Concorde.Options.Create_Empires then
-         Concorde.Empires.Configure.Create_Empires
-           (Count => Concorde.Options.Number_Of_Empires);
+      if Concorde.Options.Create_Factions then
+         Concorde.Factions.Configure.Create_Factions
+           (Count => Concorde.Options.Number_Of_Factions);
 
-         if Concorde.Options.Enable_Empire_Logging then
-            Concorde.Empires.Logging.Start_Logging;
+         if Concorde.Options.Enable_Faction_Logging then
+            Concorde.Factions.Logging.Start_Logging;
          end if;
 
          Concorde.Agents.Enable_Offer_Logging (Enabled => True);
          Concorde.Logging.Start_Logging;
 
-         Concorde.Empires.Updates.Start;
+         Concorde.Factions.Updates.Start;
       end if;
    end if;
 
@@ -183,7 +183,7 @@ begin
 
    WL.Work.Stop_Work_Tasks;
 
-   Concorde.Empires.Reports.Report_Empires;
+   Concorde.Factions.Reports.Report_Factions;
 
    if Concorde.Options.Write_Accounts then
       Concorde.Reports.Write_Accounts;
@@ -191,15 +191,15 @@ begin
 
    Concorde.Logging.Stop_Logging;
 
-   if Concorde.Options.Enable_Empire_Logging then
-      Concorde.Empires.Logging.Stop_Logging;
+   if Concorde.Options.Enable_Faction_Logging then
+      Concorde.Factions.Logging.Stop_Logging;
    end if;
 
 exception
 
    when others =>
-      if Concorde.Options.Enable_Empire_Logging then
-         Concorde.Empires.Logging.Stop_Logging;
+      if Concorde.Options.Enable_Faction_Logging then
+         Concorde.Factions.Logging.Stop_Logging;
       end if;
       Concorde.Logging.Stop_Logging;
       WL.Work.Stop_Work_Tasks;

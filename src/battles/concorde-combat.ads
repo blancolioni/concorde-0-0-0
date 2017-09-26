@@ -1,6 +1,6 @@
 with Lui.Models;
 
-with Concorde.Empires;
+with Concorde.Factions;
 
 package Concorde.Combat is
 
@@ -16,7 +16,7 @@ package Concorde.Combat is
 
    function Winner
      (Arena : Root_Combat_Arena)
-      return Concorde.Empires.Empire_Type;
+      return Concorde.Factions.Faction_Type;
 
 private
 
@@ -24,7 +24,7 @@ private
      abstract new Lui.Models.Root_Object_Model with
       record
          Finished : Boolean := False;
-         Winner   : Concorde.Empires.Empire_Type;
+         Winner   : Concorde.Factions.Faction_Type;
       end record;
 
 end Concorde.Combat;

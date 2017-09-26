@@ -7,7 +7,7 @@ with Concorde.Solar_System;
 with Concorde.Hash_Table;
 with Concorde.Watchers;
 
-with Concorde.Empires;
+with Concorde.Factions;
 
 with Concorde.Systems.Db;
 

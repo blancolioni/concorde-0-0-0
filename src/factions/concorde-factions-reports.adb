@@ -1,35 +1,35 @@
 with Ada.Text_IO;
 
-package body Concorde.Empires.Reports is
+package body Concorde.Factions.Reports is
 
    --------------------
-   -- Report_Empires --
+   -- Report_Factions --
    --------------------
 
-   procedure Report_Empires is
+   procedure Report_Factions is
       use Ada.Text_IO;
 
-      procedure Report (Empire : Empire_Type);
+      procedure Report (Faction : Faction_Type);
 
       ------------
       -- Report --
       ------------
 
-      procedure Report (Empire : Empire_Type) is
+      procedure Report (Faction : Faction_Type) is
       begin
-         Put (Empire.Name);
+         Put (Faction.Name);
          Set_Col (24);
-         Put (Lui.Approximate_Image (Empire.Current_Systems));
+         Put (Lui.Approximate_Image (Faction.Current_Systems));
          Set_Col (32);
-         Put (Lui.Approximate_Image (Empire.Current_Ships));
+         Put (Lui.Approximate_Image (Faction.Current_Ships));
          Set_Col (40);
-         Put (Lui.Approximate_Image (Empire.Built_Ships));
+         Put (Lui.Approximate_Image (Faction.Built_Ships));
          Set_Col (48);
-         Put (Lui.Approximate_Image (Empire.Captured_Ships));
+         Put (Lui.Approximate_Image (Faction.Captured_Ships));
          Set_Col (56);
-         Put (Lui.Approximate_Image (Empire.Lost_Ships));
+         Put (Lui.Approximate_Image (Faction.Lost_Ships));
          Set_Col (64);
-         Put (Lui.Approximate_Image (Empire.Destroyed_Ships));
+         Put (Lui.Approximate_Image (Faction.Destroyed_Ships));
          New_Line;
       end Report;
 
@@ -51,6 +51,6 @@ package body Concorde.Empires.Reports is
 
       Db.Scan (Report'Access);
 
-   end Report_Empires;
+   end Report_Factions;
 
-end Concorde.Empires.Reports;
+end Concorde.Factions.Reports;

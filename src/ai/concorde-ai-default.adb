@@ -2,8 +2,8 @@ with WL.Random;
 
 with Memor;
 
-with Concorde.Empires.Logging;
-with Concorde.Empires.Relations;
+with Concorde.Factions.Logging;
+with Concorde.Factions.Relations;
 
 with Concorde.Galaxy;
 
@@ -28,7 +28,7 @@ package body Concorde.AI.Default is
 
    overriding procedure Allocate_Ships
      (AI : in out Root_Default_AI_Type;
-      Empire : in out Concorde.Empires.Root_Empire_Type'Class);
+      Faction : in out Concorde.Factions.Root_Faction_Type'Class);
 
    overriding function Awake (AI : Root_Default_AI_Type) return Boolean;
 
@@ -38,26 +38,26 @@ package body Concorde.AI.Default is
 
    overriding procedure Order_Ship
      (AI     : in out Root_Default_AI_Type;
-      Empire : in out Concorde.Empires.Root_Empire_Type'Class;
+      Faction : in out Concorde.Factions.Root_Faction_Type'Class;
       Ship   : in out Concorde.Ships.Root_Ship_Type'Class);
 
    overriding procedure Start
      (AI     : in out Root_Default_AI_Type;
-      Empire : in out Concorde.Empires.Root_Empire_Type'Class);
+      Faction : in out Concorde.Factions.Root_Faction_Type'Class);
 
    overriding procedure System_Acquired
      (AI           : in out Root_Default_AI_Type;
-      Empire       : in out Concorde.Empires.Root_Empire_Type'Class;
+      Faction       : in out Concorde.Factions.Root_Faction_Type'Class;
       System       : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
-      Former_Owner : Concorde.Empires.Empire_Type);
+      Former_Owner : Concorde.Factions.Faction_Type);
 
    overriding procedure System_Lost
      (AI        : in out Root_Default_AI_Type;
-      Empire    : in out Concorde.Empires.Root_Empire_Type'Class;
+      Faction    : in out Concorde.Factions.Root_Faction_Type'Class;
       System    : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
-      New_Owner : Concorde.Empires.Empire_Type);
+      New_Owner : Concorde.Factions.Faction_Type);
 
    overriding procedure Wake (AI : in out Root_Default_AI_Type);
 
@@ -71,12 +71,12 @@ package body Concorde.AI.Default is
 
    overriding procedure Allocate_Ships
      (AI     : in out Root_Default_AI_Type;
-      Empire : in out Concorde.Empires.Root_Empire_Type'Class)
+      Faction : in out Concorde.Factions.Root_Faction_Type'Class)
    is
       use type Concorde.Systems.Star_System_Type;
 
-      Total_Systems      : constant Natural := Empire.Current_Systems;
-      Total_Ships        : constant Natural := Empire.Current_Ships;
+      Total_Systems      : constant Natural := Faction.Current_Systems;
+      Total_Ships        : constant Natural := Faction.Current_Ships;
 
       function Destination_Planned_Offensive
         (Ship : Concorde.Ships.Ship_Type)
@@ -116,17 +116,17 @@ package body Concorde.AI.Default is
                        Concorde.Galaxy.Get_System (I);
          begin
 
-            Empire.Set_Required (System, 0);
+            Faction.Set_Required (System, 0);
 
-            if Empire.Has_Battle (System) then
+            if Faction.Has_Battle (System) then
                declare
                   use type Memor.Database_Reference;
                   List : Concorde.Ships.Lists.List;
                   Us   : Non_Negative_Real := 0.0;
                   Them : Non_Negative_Real := 0.0;
                begin
-                  Empires.Logging.Log
-                    (Empire,
+                  Factions.Logging.Log
+                    (Faction,
                      "continuing battle at " & System.Name);
 
                   AI.Battle_Systems := AI.Battle_Systems + 1;
@@ -134,23 +134,23 @@ package body Concorde.AI.Default is
 
                   System.Get_Ships (List);
                   for Ship of List loop
-                     if Ship.Owner.Reference = Empire.Reference then
+                     if Ship.Owner.Reference = Faction.Reference then
                         Us := Us + 1.0 - Ship.Damage;
-                     elsif Concorde.Empires.Relations.At_War
-                       (Empire, Ship.Owner.all)
+                     elsif Concorde.Factions.Relations.At_War
+                       (Faction, Ship.Owner.all)
                      then
                         Them := Them + 1.0 - Ship.Damage;
                      end if;
                   end loop;
 
                   if Them > Us * 0.8 then
-                     Empire.Set_Required
+                     Faction.Set_Required
                        (System, 1 + Natural (Them - Us * 0.8));
                      AI.Reinforce_Ships :=
-                       AI.Reinforce_Ships + Empire.Required (System);
+                       AI.Reinforce_Ships + Faction.Required (System);
                   end if;
                end;
-            elsif Empire.Is_Neighbour (System) then
+            elsif Faction.Is_Neighbour (System) then
                if System.Owned then
                   AI.Threat_Systems := AI.Threat_Systems + 1;
                   declare
@@ -162,9 +162,9 @@ package body Concorde.AI.Default is
                         AI.Opportunity_Destinations.Append
                           (System);
                      end if;
-                     if Enemy_Ships < Empire.Current_Ships then
+                     if Enemy_Ships < Faction.Current_Ships then
                         Threat_Ships := Threat_Ships
-                          * Enemy_Ships / Empire.Current_Ships;
+                          * Enemy_Ships / Faction.Current_Ships;
                      end if;
                      AI.Enemy_Strength := AI.Enemy_Strength + Threat_Ships;
                   end;
@@ -172,18 +172,18 @@ package body Concorde.AI.Default is
                else
                   AI.Unexplored_Systems := AI.Unexplored_Systems + 1;
                   AI.Explore_Destinations.Append (System);
-                  Empire.Change_Required (System, 1);
-                  Empire.Set (System, Concorde.Empires.Claim);
+                  Faction.Change_Required (System, 1);
+                  Faction.Set (System, Concorde.Factions.Claim);
                end if;
-            elsif Empire.Is_Border (System) then
+            elsif Faction.Is_Border (System) then
                AI.Border_Systems := AI.Border_Systems + 1;
                declare
                   Required : Natural := 1;
                begin
                   for N of Galaxy.Neighbours (System.Index) loop
-                     if N.Owned and then not Empire.Owned_System (N) then
-                        Concorde.Empires.Logging.Log
-                          (Empire,
+                     if N.Owned and then not Faction.Owned_System (N) then
+                        Concorde.Factions.Logging.Log
+                          (Faction,
                            N.Name & " owned by " & N.Owner.Name
                            & " threatens " & System.Name
                            & " with" & Natural'Image (N.Ships)
@@ -194,28 +194,28 @@ package body Concorde.AI.Default is
 
                   if Required > 0 then
                      AI.Defense_Destinations.Append (System);
-                     Empire.Change_Required (System, Required);
+                     Faction.Change_Required (System, Required);
 
-                     Concorde.Empires.Logging.Log
-                       (Empire,
+                     Concorde.Factions.Logging.Log
+                       (Faction,
                         System.Name & ": threat level"
                         & Required'Img);
                   end if;
                end;
-            elsif Empire.Is_Frontier (System) then
+            elsif Faction.Is_Frontier (System) then
                AI.Frontier_Systems := AI.Frontier_Systems + 1;
-               Empire.Set_Required (System, -System.Ships);
-            elsif Empire.Is_Internal (System) then
+               Faction.Set_Required (System, -System.Ships);
+            elsif Faction.Is_Internal (System) then
                AI.Internal_Systems := AI.Internal_Systems + 1;
-               Empire.Set_Required (System, -System.Ships);
+               Faction.Set_Required (System, -System.Ships);
             else
-               Empire.Set_Required (System, -System.Ships);
+               Faction.Set_Required (System, -System.Ships);
             end if;
          end;
       end loop;
 
-      Concorde.Empires.Logging.Log
-        (Empire,
+      Concorde.Factions.Logging.Log
+        (Faction,
          "contested systems:" & AI.Battle_Systems'Img
          & "; border systems:" & AI.Border_Systems'Img
          & "; frontier systems:" & AI.Frontier_Systems'Img
@@ -248,15 +248,15 @@ package body Concorde.AI.Default is
                Info : Concorde.Systems.Star_System_Type renames
                         AI.Battle_Destinations (I);
             begin
-               Empire.Set_Required
+               Faction.Set_Required
                  (Info,
-                  Empire.Required (Info)
+                  Faction.Required (Info)
                   * AI.Reinforce_Ships / AI.Nominal_Reinforce_Ships);
-               Concorde.Empires.Logging.Log
-                 (Empire,
+               Concorde.Factions.Logging.Log
+                 (Faction,
                   Info.Name
                   & " allocated"
-                  & Integer'Image (Empire.Required (Info))
+                  & Integer'Image (Faction.Required (Info))
                   & " ships for reinforcement; currently has"
                   & Natural'Image (Info.Ships));
             end;
@@ -268,18 +268,18 @@ package body Concorde.AI.Default is
             Info : Concorde.Systems.Star_System_Type renames
                      AI.Defense_Destinations (I);
          begin
-            Empire.Set_Required
+            Faction.Set_Required
               (Info,
-               Empire.Required (Info)
+               Faction.Required (Info)
                * AI.Defense_Ships / AI.Nominal_Defense_Ships);
-            Concorde.Empires.Logging.Log
-              (Empire,
+            Concorde.Factions.Logging.Log
+              (Faction,
                Info.Name
                & " allocated"
-               & Integer'Image (Empire.Required (Info))
+               & Integer'Image (Faction.Required (Info))
                & " ships for defence; currently has"
                & Natural'Image (Info.Ships));
-            Empire.Change_Required
+            Faction.Change_Required
               (Info, -Info.Ships);
          end;
       end loop;
@@ -291,8 +291,8 @@ package body Concorde.AI.Default is
       AI.Offense_Ships :=
         Total_Ships - AI.Defense_Ships - AI.Exploration_Ships;
 
-      Concorde.Empires.Logging.Log
-        (Empire,
+      Concorde.Factions.Logging.Log
+        (Faction,
          "total ships:" & Total_Ships'Img
          & "; enemy strength:" & AI.Enemy_Strength'Img
          & "; defense ships:" & AI.Defense_Ships'Img
@@ -305,34 +305,34 @@ package body Concorde.AI.Default is
       Shuffle (AI.Attack_Destinations);
 
       if AI.Planned_Offensive then
-         if Empire.Owned_System (AI.Target)
-           or else not Empire.Owned_System (AI.Attack_From)
-           or else (AI.Attack_From /= Empire.Capital
-                    and then Empire.Next_Path_Node_Index
-                      (Empire.Capital, AI.Attack_From) = 0)
-           or else Empire.Next_Path_Node_Index
+         if Faction.Owned_System (AI.Target)
+           or else not Faction.Owned_System (AI.Attack_From)
+           or else (AI.Attack_From /= Faction.Capital
+                    and then Faction.Next_Path_Node_Index
+                      (Faction.Capital, AI.Attack_From) = 0)
+           or else Faction.Next_Path_Node_Index
              (AI.Attack_From, AI.Target) = 0
            or else AI.Target.Ships > AI.Offense_Ships
          then
-            Concorde.Empires.Logging.Log
-              (Empire,
+            Concorde.Factions.Logging.Log
+              (Faction,
                "stop " & (if AI.Launch_Offensive then "active" else "planned")
                & " offensive against "
                & AI.Target.Owner.Name
                & " at "
                & AI.Attack_From.Name
                & " because "
-               & (if Empire.Owned_System (AI.Target)
+               & (if Faction.Owned_System (AI.Target)
                  then "we own the system"
-                 elsif not Empire.Owned_System (AI.Attack_From)
+                 elsif not Faction.Owned_System (AI.Attack_From)
                  then "we have lost control of launch site "
                  & AI.Attack_From.Name
-                 elsif AI.Attack_From /= Empire.Capital
-                 and then Empire.Next_Path_Node_Index
-                   (Empire.Capital, AI.Attack_From) = 0
+                 elsif AI.Attack_From /= Faction.Capital
+                 and then Faction.Next_Path_Node_Index
+                   (Faction.Capital, AI.Attack_From) = 0
                  then "we are not connected to the launch site "
                  & AI.Attack_From.Name
-                   elsif Empire.Next_Path_Node_Index
+                   elsif Faction.Next_Path_Node_Index
                    (AI.Attack_From, AI.Target) = 0
                  then "the launch site is no longer connected to the target"
                  elsif AI.Target.Ships > AI.Offense_Ships
@@ -342,7 +342,7 @@ package body Concorde.AI.Default is
                    "unknown reason for canceling offensive"));
             AI.Planned_Offensive := False;
             AI.Launch_Offensive := False;
-            Empire.Clear (AI.Target, Concorde.Empires.Attack_Target);
+            Faction.Clear (AI.Target, Concorde.Factions.Attack_Target);
          end if;
       end if;
 
@@ -360,15 +360,15 @@ package body Concorde.AI.Default is
          begin
             for Info of AI.Attack_Destinations loop
                declare
-                  use Concorde.Empires;
+                  use Concorde.Factions;
                   Relation_Factor : constant Natural :=
                                       Integer
-                                        (Empire.Relationship
+                                        (Faction.Relationship
                                            (Info.Owner.all))
                                       - Minimum_Relationship;
                   D               : constant Natural :=
-                                      Empire.Path_Length
-                                        (Empire.Capital, Info)
+                                      Faction.Path_Length
+                                        (Faction.Capital, Info)
                                         + Relation_Factor;
                   Opp             : constant Natural :=
                                       Info.Ships
@@ -388,7 +388,7 @@ package body Concorde.AI.Default is
             end loop;
 
             if Found then
-               if Empire.Path_Length (Empire.Capital, Easiest_System)
+               if Faction.Path_Length (Faction.Capital, Easiest_System)
                  > Shortest_Distance + 3
                then
                   AI.Target := Closest_System;
@@ -400,16 +400,16 @@ package body Concorde.AI.Default is
                Closest_System := null;
                Shortest_Distance := Natural'Last;
 
-               if Galaxy.Neighbours (AI.Target, Empire.Capital) then
-                  Closest_System := Empire.Capital;
+               if Galaxy.Neighbours (AI.Target, Faction.Capital) then
+                  Closest_System := Faction.Capital;
                   Found := True;
                else
                   for N of Galaxy.Neighbours (AI.Target) loop
-                     if Empire.Owned_System (N) then
+                     if Faction.Owned_System (N) then
                         declare
                            D    : constant Natural :=
-                                    Empire.Path_Length
-                                      (Empire.Capital, N);
+                                    Faction.Path_Length
+                                      (Faction.Capital, N);
                         begin
                            if D < Shortest_Distance then
                               Shortest_Distance := D;
@@ -429,7 +429,7 @@ package body Concorde.AI.Default is
                         OK : Boolean := True;
                      begin
                         for M of Galaxy.Neighbours (N) loop
-                           if not Empire.Owned_System (M) then
+                           if not Faction.Owned_System (M) then
                               OK := False;
                               exit;
                            end if;
@@ -449,17 +449,17 @@ package body Concorde.AI.Default is
          end;
 
          if AI.Planned_Offensive then
-            Concorde.Empires.Logging.Log
-              (Empire,
+            Concorde.Factions.Logging.Log
+              (Faction,
                "planning attack on " & AI.Target.Name
                & " owned by " & AI.Target.Owner.Name
                & " from " & AI.Attack_From.Name
                & " (distance"
                & Natural'Image
-                 (Empire.Path_Length (AI.Attack_From, AI.Target))
+                 (Faction.Path_Length (AI.Attack_From, AI.Target))
                & ")");
 
-            Empire.Set (AI.Target, Concorde.Empires.Attack_Target);
+            Faction.Set (AI.Target, Concorde.Factions.Attack_Target);
          end if;
       end if;
 
@@ -492,13 +492,13 @@ package body Concorde.AI.Default is
             AI.Required_Strength :=
               Natural'Max
                 (Natural (Opposition_Strength * AI.Minimum_Attack_Factor)
-                 + Empire.Required (AI.Attack_From) + 1,
+                 + Faction.Required (AI.Attack_From) + 1,
                  5);
 
             if Committed_Ships >= AI.Required_Strength then
                AI.Launch_Offensive := True;
-               Concorde.Empires.Logging.Log
-                 (Empire,
+               Concorde.Factions.Logging.Log
+                 (Faction,
                   "launching attack from "
                   & AI.Attack_From.Name
                   & " with"
@@ -515,14 +515,14 @@ package body Concorde.AI.Default is
                end loop;
 
                declare
-                  use type Concorde.Empires.Empire_Relationship_Range;
+                  use type Concorde.Factions.Faction_Relationship_Range;
                begin
-                  Empire.Set_Relationship (AI.Target.Owner.all, -100);
+                  Faction.Set_Relationship (AI.Target.Owner.all, -100);
                end;
 
             else
-               Concorde.Empires.Logging.Log
-                 (Empire,
+               Concorde.Factions.Logging.Log
+                 (Faction,
                   "building attack from "
                   & AI.Attack_From.Name
                   & " on " & AI.Target.Name
@@ -578,7 +578,7 @@ package body Concorde.AI.Default is
 
    overriding procedure Order_Ship
      (AI     : in out Root_Default_AI_Type;
-      Empire : in out Concorde.Empires.Root_Empire_Type'Class;
+      Faction : in out Concorde.Factions.Root_Faction_Type'Class;
       Ship   : in out Concorde.Ships.Root_Ship_Type'Class)
    is
 
@@ -604,10 +604,10 @@ package body Concorde.AI.Default is
                Dest : Concorde.Systems.Star_System_Type renames
                         V.Element (I);
                Hops : constant Natural :=
-                        Empire.Path_Length
+                        Faction.Path_Length
                           (Ship.System, Dest);
             begin
-               if Empire.Required (Dest) > 0
+               if Faction.Required (Dest) > 0
                  and then Hops < Minimum_Hops
                then
                   Closest_Index := I;
@@ -624,18 +624,18 @@ package body Concorde.AI.Default is
                            V (Closest_Index);
                begin
                   Ship.Set_Destination (Dest);
-                  Empire.Change_Required (Dest, -1);
+                  Faction.Change_Required (Dest, -1);
 
-                  Empires.Logging.Log
-                    (Empire,
+                  Factions.Logging.Log
+                    (Faction,
                      "ordering " & Ship.Name & " to "
                      & Dest.Name
                      & " at distance"
                      & Minimum_Hops'Img);
                end;
             else
-               Empires.Logging.Log
-                 (Empire,
+               Factions.Logging.Log
+                 (Faction,
                   "ordering " & Ship.Name & " to remain at "
                   & Ship.System.Name);
             end if;
@@ -649,27 +649,27 @@ package body Concorde.AI.Default is
 
    begin
 
-      if Empire.Has_Battle (Ship.System) then
+      if Faction.Has_Battle (Ship.System) then
          Ship.Clear_Destination;
          Stop := True;
-         Empires.Logging.Log
-           (Empire,
+         Factions.Logging.Log
+           (Faction,
             Ship.Short_Description & " fighting at "
             & AI.Target.Name);
       else
          for Opportunity of AI.Opportunity_Destinations loop
 
             if Galaxy.Neighbours (Ship.System, Opportunity)
-              and then Empires.Relations.At_War (Empire, Opportunity.Owner.all)
-              and then not Empire.Is_Opportunity_Target (Opportunity)
+              and then Factions.Relations.At_War (Faction, Opportunity.Owner.all)
+              and then not Faction.Is_Opportunity_Target (Opportunity)
               and then not Ship.Has_Destination
             then
-               Empire.Set
-                 (AI.Target, Concorde.Empires.Opportunity_Target);
+               Faction.Set
+                 (AI.Target, Concorde.Factions.Opportunity_Target);
                Ship.Set_Destination (Opportunity);
                Opportunity_Attack := True;
-               Empires.Logging.Log
-                 (Empire,
+               Factions.Logging.Log
+                 (Faction,
                   Ship.Short_Description & " sees attack opportunity at "
                   & Opportunity.Name);
                exit;
@@ -678,9 +678,9 @@ package body Concorde.AI.Default is
 
          if Ship.Has_Destination and then not Opportunity_Attack
            and then (Ship.System = Ship.Destination
-                     or else Empire.Next_Path_Node_Index
+                     or else Faction.Next_Path_Node_Index
                        (Ship.System, Ship.Destination) = 0
-                     or else (not Empire.Owned_System (Ship.Destination)
+                     or else (not Faction.Owned_System (Ship.Destination)
                               and then Ship.Destination /= AI.Target
                               and then Ship.Destination.Owned))
          then
@@ -694,24 +694,24 @@ package body Concorde.AI.Default is
         and then Ship.System = AI.Attack_From
       then
          if AI.Launch_Offensive then
-            Empires.Logging.Log
-              (Empire,
+            Factions.Logging.Log
+              (Faction,
                Ship.Short_Description & " delays offensive because "
                & " no attack order was given");
          else
-            Empires.Logging.Log
-              (Empire,
+            Factions.Logging.Log
+              (Faction,
                Ship.Short_Description & " waits at "
                & Ship.System.Name
                & " for attack order");
          end if;
          Ship.Clear_Destination;
-      elsif Empire.Required (Ship.System) > 0 then
-         Empire.Change_Required (Ship.System, -1);
+      elsif Faction.Required (Ship.System) > 0 then
+         Faction.Change_Required (Ship.System, -1);
          Ship.Clear_Destination;
          Stop := True;
-         Empires.Logging.Log
-           (Empire,
+         Factions.Logging.Log
+           (Faction,
             Ship.Short_Description & " required to remain at "
             & Ship.System.Name);
       else
@@ -720,8 +720,8 @@ package body Concorde.AI.Default is
            and then Ship.System = AI.Attack_From
            and then Ship.Damage < Max_Battle_Damage
          then
-            Empires.Logging.Log
-              (Empire,
+            Factions.Logging.Log
+              (Faction,
                Ship.Short_Description & " joins attack on "
                & AI.Target.Name);
             Ship.Set_Destination (AI.Target);
@@ -731,8 +731,8 @@ package body Concorde.AI.Default is
          if AI.Launch_Offensive
            and then Ship.System = AI.Target
          then
-            Empires.Logging.Log
-              (Empire,
+            Factions.Logging.Log
+              (Faction,
                Ship.Short_Description & " continues the battle at "
                & AI.Target.Name);
             Ship.Clear_Destination;
@@ -752,8 +752,8 @@ package body Concorde.AI.Default is
          end if;
 
          if False and then not Stop and then AI.Planned_Offensive then
-            Empires.Logging.Log
-              (Empire,
+            Factions.Logging.Log
+              (Faction,
                "checking planned offensive: required ="
                & AI.Required_Strength'Img
                & "; available ="
@@ -761,21 +761,21 @@ package body Concorde.AI.Default is
                & "; connected: "
                & (if Ship.System = AI.Attack_From
                  then "yes"
-                 elsif Empire.Next_Path_Node_Index
+                 elsif Faction.Next_Path_Node_Index
                    (Ship.System, AI.Attack_From) /= 0
                  then "yes" else "no"));
 
             if AI.Required_Strength > AI.Available_Strength
               and then (Ship.System = AI.Attack_From
-                        or else Empire.Next_Path_Node_Index
+                        or else Faction.Next_Path_Node_Index
                           (Ship.System, AI.Attack_From) /= 0)
             then
                Stop := True;
                if Ship.System = AI.Attack_From then
                   null;
                else
-                  Empires.Logging.Log
-                    (Empire,
+                  Factions.Logging.Log
+                    (Faction,
                      Ship.Short_Description & " heads to "
                      & AI.Attack_From.Name
                      & " for offensive against "
@@ -787,40 +787,40 @@ package body Concorde.AI.Default is
          end if;
 
          if not Stop
-           and then Ship.System /= Empire.Capital
+           and then Ship.System /= Faction.Capital
          then
             Stop := True;
             declare
                use Concorde.Systems;
             begin
-               if Empire.Capital = null then
-                  Empires.Logging.Log
-                    (Empire,
+               if Faction.Capital = null then
+                  Factions.Logging.Log
+                    (Faction,
                      "no capital (current systems ="
-                     & Natural'Image (Empire.Current_Systems)
+                     & Natural'Image (Faction.Current_Systems)
                      & ")");
                else
-                  Ship.Set_Destination (Empire.Capital);
-                  Empires.Logging.Log
-                    (Empire,
+                  Ship.Set_Destination (Faction.Capital);
+                  Factions.Logging.Log
+                    (Faction,
                      Ship.Short_Description
-                     & " returns to capital " & Empire.Capital.Name);
+                     & " returns to capital " & Faction.Capital.Name);
                end if;
             end;
          end if;
 
          if Stop then
-            if Empire.Required (Ship.System) < 0 then
-               Empire.Change_Required (Ship.System, 1);
+            if Faction.Required (Ship.System) < 0 then
+               Faction.Change_Required (Ship.System, 1);
             end if;
          elsif Ship.Damage > 0.0 then
-            Empires.Logging.Log
-              (Empire,
+            Factions.Logging.Log
+              (Faction,
                Ship.Short_Description
                & " making repairs at " & Ship.System.Name);
          else
-            Empires.Logging.Log
-              (Empire,
+            Factions.Logging.Log
+              (Faction,
                Ship.Short_Description & " has no orders");
          end if;
       end if;
@@ -856,9 +856,9 @@ package body Concorde.AI.Default is
 
    overriding procedure Start
      (AI     : in out Root_Default_AI_Type;
-      Empire : in out Concorde.Empires.Root_Empire_Type'Class)
+      Faction : in out Concorde.Factions.Root_Faction_Type'Class)
    is
-      pragma Unreferenced (Empire);
+      pragma Unreferenced (Faction);
    begin
       AI.Current_Defense_Factor :=
         0.5 + Concorde.Random.Unit_Random;
@@ -870,15 +870,15 @@ package body Concorde.AI.Default is
 
    overriding procedure System_Acquired
      (AI           : in out Root_Default_AI_Type;
-      Empire       : in out Concorde.Empires.Root_Empire_Type'Class;
+      Faction       : in out Concorde.Factions.Root_Faction_Type'Class;
       System       : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
-      Former_Owner : Concorde.Empires.Empire_Type)
+      Former_Owner : Concorde.Factions.Faction_Type)
    is
-      use Concorde.Empires;
+      use Concorde.Factions;
    begin
       if Former_Owner /= null then
-         AI.Update_Attack_Factor (Empire, Former_Owner);
+         AI.Update_Attack_Factor (Faction, Former_Owner);
       end if;
 
       if AI.Planned_Offensive
@@ -888,7 +888,7 @@ package body Concorde.AI.Default is
          AI.Launch_Offensive := False;
       end if;
 
-      Empire.Clear (System, Concorde.Empires.Attack_Target);
+      Faction.Clear (System, Concorde.Factions.Attack_Target);
       AI.Awake := True;
 
    end System_Acquired;
@@ -899,20 +899,20 @@ package body Concorde.AI.Default is
 
    overriding procedure System_Lost
      (AI        : in out Root_Default_AI_Type;
-      Empire    : in out Concorde.Empires.Root_Empire_Type'Class;
+      Faction    : in out Concorde.Factions.Root_Faction_Type'Class;
       System    : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
-      New_Owner : Concorde.Empires.Empire_Type)
+      New_Owner : Concorde.Factions.Faction_Type)
    is
    begin
-      AI.Update_Attack_Factor (Empire, New_Owner, Can_Decrease => False);
+      AI.Update_Attack_Factor (Faction, New_Owner, Can_Decrease => False);
 
       if AI.Planned_Offensive
         and then AI.Attack_From.Index = System.Index
       then
          AI.Planned_Offensive := False;
          AI.Launch_Offensive := False;
-         Empire.Clear (System, Concorde.Empires.Attack_Target);
+         Faction.Clear (System, Concorde.Factions.Attack_Target);
       end if;
 
       AI.Awake := True;

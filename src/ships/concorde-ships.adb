@@ -6,7 +6,7 @@ with Concorde.Money;
 with Concorde.Random;
 with Concorde.Real_Images;
 
-with Concorde.Empires.Logging;
+with Concorde.Factions.Logging;
 
 with Concorde.Markets;
 with Concorde.Worlds;
@@ -889,7 +889,7 @@ package body Concorde.Ships is
 
    function Owner
      (Ship : Root_Ship_Type'Class)
-      return access constant Concorde.Empires.Root_Empire_Type'Class
+      return access constant Concorde.Factions.Root_Faction_Type'Class
    is
    begin
       return Ship.Owner;
@@ -914,7 +914,7 @@ package body Concorde.Ships is
             Module : constant Concorde.Modules.Module_Type :=
                        Ship.Structure (Positive (Mount)).Module;
          begin
-            Concorde.Empires.Logging.Log
+            Concorde.Factions.Logging.Log
               (Ship.Owner,
                Ship.Short_Description
                & ": repairing" & Remaining'Img
@@ -989,7 +989,7 @@ package body Concorde.Ships is
    procedure Set_Owner
      (Ship      : in out Root_Ship_Type'Class;
       New_Owner : not null access constant
-        Concorde.Empires.Root_Empire_Type'Class)
+        Concorde.Factions.Root_Faction_Type'Class)
    is
    begin
       Ship.Owner := New_Owner;

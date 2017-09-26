@@ -1,33 +1,33 @@
 with Ada.Containers.Vectors;
 
-with Concorde.Empires.Logging;
+with Concorde.Factions.Logging;
 with Concorde.Galaxy;
 with Concorde.Systems.Graphs;
 
-package body Concorde.Empires is
+package body Concorde.Factions is
 
    function Image
      (Path : Concorde.Systems.Graphs.Array_Of_Vertices)
       return String;
 
-   function All_Empires return Array_Of_Empires;
+   function All_Factions return Array_Of_Factions;
 
    -----------------
-   -- All_Empires --
+   -- All_Factions --
    -----------------
 
-   function All_Empires return Array_Of_Empires is
+   function All_Factions return Array_Of_Factions is
 
-      package Vectors is new Ada.Containers.Vectors (Positive, Empire_Type);
+      package Vectors is new Ada.Containers.Vectors (Positive, Faction_Type);
       V : Vectors.Vector;
 
-      procedure Add (E : Empire_Type);
+      procedure Add (E : Faction_Type);
 
       ---------
       -- Add --
       ---------
 
-      procedure Add (E : Empire_Type) is
+      procedure Add (E : Faction_Type) is
       begin
          V.Append (E);
       end Add;
@@ -36,7 +36,7 @@ package body Concorde.Empires is
       Db.Scan (Add'Access);
 
       declare
-         Result : Array_Of_Empires (1 .. V.Last_Index);
+         Result : Array_Of_Factions (1 .. V.Last_Index);
       begin
          for I in Result'Range loop
             Result (I) := V (I);
@@ -44,18 +44,18 @@ package body Concorde.Empires is
          return Result;
       end;
 
-   end All_Empires;
+   end All_Factions;
 
    -------------
    -- Capital --
    -------------
 
    function Capital
-     (Empire : Root_Empire_Type'Class)
+     (Faction : Root_Faction_Type'Class)
       return access constant Concorde.Worlds.Root_World_Type'Class
    is
    begin
-      return Empire.Capital_World;
+      return Faction.Capital_World;
    end Capital;
 
    -------------------------
@@ -63,22 +63,22 @@ package body Concorde.Empires is
    -------------------------
 
    procedure Change_Relationship
-     (Empire  : in out Root_Empire_Type'Class;
-      To      : Root_Empire_Type'Class;
-      Change  : Empire_Relationship_Range)
+     (Faction  : in out Root_Faction_Type'Class;
+      To      : Root_Faction_Type'Class;
+      Change  : Faction_Relationship_Range)
    is
       Current_Value : constant Integer :=
-                        Integer (Empire.Relationship (To));
+                        Integer (Faction.Relationship (To));
       New_Value     : constant Integer :=
                         Current_Value + Integer (Change);
-      New_Relationship : constant Empire_Relationship_Range :=
+      New_Relationship : constant Faction_Relationship_Range :=
                            (if New_Value < Minimum_Relationship
                             then Minimum_Relationship
                             elsif New_Value > Maximum_Relationship
                             then Maximum_Relationship
-                            else Empire_Relationship_Range (New_Value));
+                            else Faction_Relationship_Range (New_Value));
    begin
-      Empire.Set_Relationship (To, New_Relationship);
+      Faction.Set_Relationship (To, New_Relationship);
    end Change_Relationship;
 
    ---------------------
@@ -86,12 +86,12 @@ package body Concorde.Empires is
    ---------------------
 
    procedure Change_Required
-     (Empire   : in out Root_Empire_Type'Class;
+     (Faction   : in out Root_Faction_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
       Change   : Integer)
    is
-      R : Integer renames Empire.System_Data (System.Index).Required;
+      R : Integer renames Faction.System_Data (System.Index).Required;
    begin
       R := R + Change;
    end Change_Required;
@@ -101,15 +101,15 @@ package body Concorde.Empires is
    ------------------
 
    procedure Change_Ships
-     (Empire : in out Root_Empire_Type'Class;
+     (Faction : in out Root_Faction_Type'Class;
       Change : Integer)
    is
    begin
-      Empire.Current_Ships := Empire.Current_Ships + Change;
+      Faction.Current_Ships := Faction.Current_Ships + Change;
       if Change < 0 then
-         Empire.Lost_Ships := Empire.Lost_Ships - Change;
+         Faction.Lost_Ships := Faction.Lost_Ships - Change;
       else
-         Empire.Captured_Ships := Empire.Captured_Ships + Change;
+         Faction.Captured_Ships := Faction.Captured_Ships + Change;
       end if;
    end Change_Ships;
 
@@ -118,12 +118,12 @@ package body Concorde.Empires is
    -----------------
 
    procedure Check_Cache
-     (Empire   : Root_Empire_Type'Class;
+     (Faction   : Root_Faction_Type'Class;
       From, To : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
    is
-      Data : Empire_Star_System_Record renames
-               Empire.System_Data (From.Index);
+      Data : Faction_Star_System_Record renames
+               Faction.System_Data (From.Index);
    begin
       if Data.Next_Node = null
         or else Data.Next_Node (To.Index).Next_Node = -1
@@ -134,8 +134,8 @@ package body Concorde.Empires is
                return Boolean
             is (True);
 --              is (not System.Owned
---                  or else Empire.Owned_System (System)
---                  or else not Relations.At_War (Empire, System.Owner.all));
+--                  or else Faction.Owned_System (System)
+--                  or else not Relations.At_War (Faction, System.Owner.all));
 
             Path : constant Concorde.Systems.Graphs.Array_Of_Vertices :=
                      Concorde.Galaxy.Shortest_Path
@@ -144,15 +144,15 @@ package body Concorde.Empires is
          begin
 
             if False and then Path'Length > 2 then
-               Logging.Log (Empire,
+               Logging.Log (Faction,
                             "from" & From.Name & " to " & To.Name & ":"
                             & Image (Path));
             end if;
 
             for I in Path'First .. Path'Last loop
                declare
-                  D : Empire_Star_System_Record renames
-                        Empire.System_Data (Path (I));
+                  D : Faction_Star_System_Record renames
+                        Faction.System_Data (Path (I));
                begin
                   if D.Next_Node = null then
                      D.Next_Node :=
@@ -168,7 +168,7 @@ package body Concorde.Empires is
             end loop;
 
             if Path'Length <= 1 then
-               Empire.System_Data (From.Index).Next_Node (To.Index) :=
+               Faction.System_Data (From.Index).Next_Node (To.Index) :=
                  (Natural'Last / 2, 0);
             end if;
 
@@ -182,25 +182,25 @@ package body Concorde.Empires is
 
    procedure Check_Invariants is
 
-      procedure Check (Empire : Root_Empire_Type'Class);
+      procedure Check (Faction : Root_Faction_Type'Class);
 
       -----------
       -- Check --
       -----------
 
-      procedure Check (Empire : Root_Empire_Type'Class) is
+      procedure Check (Faction : Root_Faction_Type'Class) is
          use type Memor.Database_Reference;
          use type Concorde.Systems.Star_System_Type;
       begin
-         if Empire.Current_Systems > 0 then
-            pragma Assert (Empire.Capital_World /= null,
-                           Empire.Name & ": no capital");
-            pragma Assert (Empire.Owned_World
-                           (Empire.Capital),
-                           Empire.Name & " does not own capital system "
-                           & Empire.Capital.Name);
-            pragma Assert (Empire.Capital.Is_Capital,
-                           Empire.Name & ": capital system is not a capital");
+         if Faction.Current_Systems > 0 then
+            pragma Assert (Faction.Capital_World /= null,
+                           Faction.Name & ": no capital");
+            pragma Assert (Faction.Owned_World
+                           (Faction.Capital),
+                           Faction.Name & " does not own capital system "
+                           & Faction.Capital.Name);
+            pragma Assert (Faction.Capital.Is_Capital,
+                           Faction.Name & ": capital system is not a capital");
          end if;
       end Check;
    begin
@@ -212,12 +212,12 @@ package body Concorde.Empires is
    -----------
 
    procedure Clear
-     (Empire   : in out Root_Empire_Type'Class;
+     (Faction   : in out Root_Faction_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
       Flag     : Star_System_Flag)
    is
-      Data : System_Data_Array renames Empire.System_Data.all;
+      Data : System_Data_Array renames Faction.System_Data.all;
    begin
       Data (System.Index).Flags (Flag) := False;
    end Clear;
@@ -228,15 +228,15 @@ package body Concorde.Empires is
 
    procedure Clear_Battles is
 
-      procedure Clear (Empire : in out Root_Empire_Type'Class);
+      procedure Clear (Faction : in out Root_Faction_Type'Class);
 
       -----------
       -- Clear --
       -----------
 
-      procedure Clear (Empire : in out Root_Empire_Type'Class) is null;
+      procedure Clear (Faction : in out Root_Faction_Type'Class) is null;
 --        begin
---           Empire.Battles.Clear;
+--           Faction.Battles.Clear;
 --        end Clear;
 
    begin
@@ -247,11 +247,11 @@ package body Concorde.Empires is
    -- Clear_Path_Cache --
    ----------------------
 
-   procedure Clear_Path_Cache (Empire : in out Root_Empire_Type'Class) is
+   procedure Clear_Path_Cache (Faction : in out Root_Faction_Type'Class) is
    begin
-      for I in Empire.System_Data'Range loop
-         if Empire.System_Data (I).Next_Node /= null then
-            Empire.System_Data (I).Next_Node.all :=
+      for I in Faction.System_Data'Range loop
+         if Faction.System_Data (I).Next_Node /= null then
+            Faction.System_Data (I).Next_Node.all :=
               (others => (0, -1));
          end if;
       end loop;
@@ -262,11 +262,11 @@ package body Concorde.Empires is
    ------------------------
 
    procedure Clear_System_Flags
-     (Empire   : in out Root_Empire_Type'Class;
+     (Faction   : in out Root_Faction_Type'Class;
       System   : Concorde.Systems.Root_Star_System_Type'Class)
    is
-      System_Data : Empire_Star_System_Record renames
-                      Empire.System_Data (System.Index);
+      System_Data : Faction_Star_System_Record renames
+                      Faction.System_Data (System.Index);
    begin
       System_Data.Flags (Internal) := False;
       System_Data.Flags (Frontier) := False;
@@ -279,11 +279,11 @@ package body Concorde.Empires is
    ------------
 
    function Colour
-     (Empire : Root_Empire_Type'Class)
+     (Faction : Root_Faction_Type'Class)
       return Lui.Colours.Colour_Type
    is
    begin
-      return Empire.Colour;
+      return Faction.Colour;
    end Colour;
 
    --------------------
@@ -291,11 +291,11 @@ package body Concorde.Empires is
    --------------------
 
    function Current_Ships
-     (Empire : Root_Empire_Type'Class)
+     (Faction : Root_Faction_Type'Class)
       return Natural
    is
    begin
-      return Empire.Current_Ships;
+      return Faction.Current_Ships;
    end Current_Ships;
 
    ---------------------
@@ -303,11 +303,11 @@ package body Concorde.Empires is
    ---------------------
 
    function Current_Systems
-     (Empire : Root_Empire_Type'Class)
+     (Faction : Root_Faction_Type'Class)
       return Natural
    is
    begin
-      return Empire.Current_Systems;
+      return Faction.Current_Systems;
    end Current_Systems;
 
    -------------------------
@@ -315,11 +315,11 @@ package body Concorde.Empires is
    -------------------------
 
    function Default_Ship_Design
-     (Empire : Root_Empire_Type'Class)
+     (Faction : Root_Faction_Type'Class)
       return String
    is
    begin
-      return Empire.Default_Ship.all;
+      return Faction.Default_Ship.all;
    end Default_Ship_Design;
 
    ---------
@@ -329,12 +329,12 @@ package body Concorde.Empires is
    function Get
      (Rank_Type : Ranking;
       Index     : Positive)
-      return Empire_Type
+      return Faction_Type
    is
-      Ranked_Empires : constant Array_Of_Empires :=
+      Ranked_Factions : constant Array_Of_Factions :=
                          Rank (Rank_Type);
    begin
-      return Ranked_Empires (Index);
+      return Ranked_Factions (Index);
    end Get;
 
    -----------
@@ -361,14 +361,14 @@ package body Concorde.Empires is
    --------------
 
    function Is_Clear
-     (Empire   : Root_Empire_Type'Class;
+     (Faction   : Root_Faction_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
       Flag     : Star_System_Flag)
       return Boolean
    is
    begin
-      return not Empire.Is_Set (System, Flag);
+      return not Faction.Is_Set (System, Flag);
    end Is_Clear;
 
    ------------
@@ -376,14 +376,14 @@ package body Concorde.Empires is
    ------------
 
    function Is_Set
-     (Empire   : Root_Empire_Type'Class;
+     (Faction   : Root_Faction_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
       Flag     : Star_System_Flag)
       return Boolean
    is
    begin
-      return Empire.System_Data (System.Index).Flags (Flag);
+      return Faction.System_Data (System.Index).Flags (Flag);
    end Is_Set;
 
    ----------------
@@ -391,11 +391,11 @@ package body Concorde.Empires is
    ----------------
 
    procedure New_Ship
-     (Empire : in out Root_Empire_Type'Class)
+     (Faction : in out Root_Faction_Type'Class)
    is
    begin
-      Empire.Current_Ships := Empire.Current_Ships + 1;
-      Empire.Built_Ships := Empire.Built_Ships + 1;
+      Faction.Current_Ships := Faction.Current_Ships + 1;
+      Faction.Built_Ships := Faction.Built_Ships + 1;
    end New_Ship;
 
    --------------------------
@@ -403,15 +403,15 @@ package body Concorde.Empires is
    --------------------------
 
    function Next_Path_Node_Index
-     (Empire : Root_Empire_Type'Class;
+     (Faction : Root_Faction_Type'Class;
       From, To : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
       return Natural
    is
-      Data : Empire_Star_System_Record renames
-               Empire.System_Data (From.Index);
+      Data : Faction_Star_System_Record renames
+               Faction.System_Data (From.Index);
    begin
-      Empire.Check_Cache (From, To);
+      Faction.Check_Cache (From, To);
 
       return Data.Next_Node (To.Index).Next_Node;
    end Next_Path_Node_Index;
@@ -421,10 +421,10 @@ package body Concorde.Empires is
    ---------------------
 
    overriding function Object_Database
-     (Empire : Root_Empire_Type)
+     (Faction : Root_Faction_Type)
       return Memor.Memor_Database
    is
-      pragma Unreferenced (Empire);
+      pragma Unreferenced (Faction);
    begin
       return Db.Get_Database;
    end Object_Database;
@@ -434,7 +434,7 @@ package body Concorde.Empires is
    ------------------
 
 --     function Owned_System
---       (Empire : Root_Empire_Type'Class;
+--       (Faction : Root_Faction_Type'Class;
 --        System : not null access constant
 --          Concorde.Systems.Root_Star_System_Type'Class)
 --        return Boolean
@@ -442,7 +442,7 @@ package body Concorde.Empires is
 --        use type Memor.Database_Reference;
 --     begin
 --        return System.Owned
---  and then System.Owner.Reference = Empire.Reference;
+--  and then System.Owner.Reference = Faction.Reference;
 --     end Owned_System;
 
    -----------------
@@ -450,13 +450,13 @@ package body Concorde.Empires is
    -----------------
 
    function Owned_World
-     (Empire : Root_Empire_Type'Class;
+     (Faction : Root_Faction_Type'Class;
       World  : not null access constant
         Concorde.Worlds.Root_World_Type'Class)
       return Boolean
    is
    begin
-      return World.Owned_By (Empire);
+      return World.Owned_By (Faction);
    end Owned_World;
 
    -----------------
@@ -464,15 +464,15 @@ package body Concorde.Empires is
    -----------------
 
    function Path_Length
-     (Empire : Root_Empire_Type'Class;
+     (Faction : Root_Faction_Type'Class;
       From, To : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
       return Natural
    is
-      Data : Empire_Star_System_Record renames
-               Empire.System_Data (From.Index);
+      Data : Faction_Star_System_Record renames
+               Faction.System_Data (From.Index);
    begin
-      Empire.Check_Cache (From, To);
+      Faction.Check_Cache (From, To);
 
       return Data.Next_Node (To.Index).Path_Length;
    end Path_Length;
@@ -483,20 +483,20 @@ package body Concorde.Empires is
 
    function Rank
      (Rank_Type : Ranking)
-      return Array_Of_Empires
+      return Array_Of_Factions
    is
-      Es : constant Array_Of_Empires := All_Empires;
-      Rank  : Array_Of_Empires (Es'Range);
+      Es : constant Array_Of_Factions := All_Factions;
+      Rank  : Array_Of_Factions (Es'Range);
       Count : Natural := 0;
       Target : Natural;
 
-      function Higher (X, Y : Empire_Type) return Boolean;
+      function Higher (X, Y : Faction_Type) return Boolean;
 
       ------------
       -- Higher --
       ------------
 
-      function Higher (X, Y : Empire_Type) return Boolean is
+      function Higher (X, Y : Faction_Type) return Boolean is
       begin
          case Rank_Type is
             when Normal =>
@@ -528,15 +528,15 @@ package body Concorde.Empires is
    ------------------
 
    function Relationship
-     (Empire : Root_Empire_Type'Class;
-      To     : Root_Empire_Type'Class)
-      return Empire_Relationship_Range
+     (Faction : Root_Faction_Type'Class;
+      To     : Root_Faction_Type'Class)
+      return Faction_Relationship_Range
    is
    begin
-      if Empire.Empire_Data = null then
+      if Faction.Faction_Data = null then
          return 0;
       else
-         return Empire.Empire_Data.Vector.Element (To).Relationship;
+         return Faction.Faction_Data.Vector.Element (To).Relationship;
       end if;
    end Relationship;
 
@@ -545,11 +545,11 @@ package body Concorde.Empires is
    -----------------
 
    procedure Remove_Ship
-     (Empire : in out Root_Empire_Type'Class)
+     (Faction : in out Root_Faction_Type'Class)
    is
    begin
-      Empire.Current_Ships := Empire.Current_Ships - 1;
-      Empire.Destroyed_Ships := Empire.Destroyed_Ships + 1;
+      Faction.Current_Ships := Faction.Current_Ships - 1;
+      Faction.Destroyed_Ships := Faction.Destroyed_Ships + 1;
    end Remove_Ship;
 
    --------------
@@ -557,37 +557,37 @@ package body Concorde.Empires is
    --------------
 
    function Required
-     (Empire : Root_Empire_Type'Class;
+     (Faction : Root_Faction_Type'Class;
       System : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
       return Integer
    is
    begin
-      return Empire.System_Data (System.Index).Required;
+      return Faction.System_Data (System.Index).Required;
    end Required;
 
    ------------------
-   -- Scan_Empires --
+   -- Scan_Factions --
    ------------------
 
-   procedure Scan_Empires
+   procedure Scan_Factions
      (Process : not null access
-        procedure (Empire : Empire_Type))
+        procedure (Faction : Faction_Type))
    is
    begin
       Db.Scan (Process);
-   end Scan_Empires;
+   end Scan_Factions;
 
    ---------
    -- Set --
    ---------
 
    procedure Set
-     (Empire   : in out Root_Empire_Type'Class;
+     (Faction   : in out Root_Faction_Type'Class;
       System   : Concorde.Systems.Root_Star_System_Type'Class;
       Flag     : Star_System_Flag)
    is
-      Data : System_Data_Array renames Empire.System_Data.all;
+      Data : System_Data_Array renames Faction.System_Data.all;
    begin
       Data (System.Index).Flags (Flag) := True;
    end Set;
@@ -597,13 +597,13 @@ package body Concorde.Empires is
    ---------
 
    procedure Set
-     (Empire   : in out Root_Empire_Type'Class;
+     (Faction   : in out Root_Faction_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
       Flag     : Star_System_Flag)
    is
    begin
-      Empire.Set (System.all, Flag);
+      Faction.Set (System.all, Flag);
    end Set;
 
    --------------
@@ -611,11 +611,11 @@ package body Concorde.Empires is
    --------------
 
    overriding procedure Set_Name
-     (Empire : in out Root_Empire_Type;
+     (Faction : in out Root_Faction_Type;
       Name   : String)
    is
    begin
-      Empire.Empire_Name :=
+      Faction.Faction_Name :=
         Ada.Strings.Unbounded.To_Unbounded_String (Name);
    end Set_Name;
 
@@ -624,28 +624,28 @@ package body Concorde.Empires is
    ----------------------
 
    procedure Set_Relationship
-     (Empire : in out Root_Empire_Type'Class;
-      To     : Root_Empire_Type'Class;
-      Value  : Empire_Relationship_Range)
+     (Faction : in out Root_Faction_Type'Class;
+      To     : Root_Faction_Type'Class;
+      Value  : Faction_Relationship_Range)
    is
-      Data : Empire_Data_Record :=
-               Empire.Empire_Data.Vector.Element (To);
+      Data : Faction_Data_Record :=
+               Faction.Faction_Data.Vector.Element (To);
    begin
       declare
-         Relationship : Empire_Relationship_Range renames
+         Relationship : Faction_Relationship_Range renames
                           Data.Relationship;
       begin
          if Relationship >= 0
            and then Value < 0
          then
-            Concorde.Empires.Logging.Log
-              (Empire, "now at war with " & To.Name);
+            Concorde.Factions.Logging.Log
+              (Faction, "now at war with " & To.Name);
          end if;
 
          Relationship := Value;
       end;
 
-      Empire.Empire_Data.Vector.Replace_Element (To, Data);
+      Faction.Faction_Data.Vector.Replace_Element (To, Data);
 
    end Set_Relationship;
 
@@ -654,12 +654,12 @@ package body Concorde.Empires is
    ------------------
 
    procedure Set_Required
-     (Empire   : in out Root_Empire_Type'Class;
+     (Faction   : in out Root_Faction_Type'Class;
       System   : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
       Required : Integer)
    is
-      R : Integer renames Empire.System_Data (System.Index).Required;
+      R : Integer renames Faction.System_Data (System.Index).Required;
    begin
       R := Required;
    end Set_Required;
@@ -669,26 +669,26 @@ package body Concorde.Empires is
    ---------------------
 
 --     procedure System_Acquired
---       (Empire : in out Root_Empire_Type'Class;
+--       (Faction : in out Root_Faction_Type'Class;
 --        System : in out Concorde.Systems.Root_Star_System_Type'Class)
 --     is
 --        use type Concorde.Systems.Star_System_Type;
 --     begin
---        Empire.Current_Systems := Empire.Current_Systems + 1;
---        Concorde.Empires.Logging.Log
---          (Empire,
+--        Faction.Current_Systems := Faction.Current_Systems + 1;
+--        Concorde.Factions.Logging.Log
+--          (Faction,
 --           "new system count:"
---           & Empire.Current_Systems'Img);
---        Empire.Clear_Path_Cache;
---        if Empire.Capital = null then
---           Empire.Capital_World := Concorde.Systems.Db.Reference (System);
+--           & Faction.Current_Systems'Img);
+--        Faction.Clear_Path_Cache;
+--        if Faction.Capital = null then
+--           Faction.Capital_World := Concorde.Systems.Db.Reference (System);
 --           System.Set_Capital (True);
---           Concorde.Empires.Logging.Log
---             (Empire,
+--           Concorde.Factions.Logging.Log
+--             (Faction,
 --              System.Name & " is our new capital");
 --        end if;
 --
---        Empire.Update_System_Owner (System);
+--        Faction.Update_System_Owner (System);
 --
 --     end System_Acquired;
 
@@ -697,20 +697,20 @@ package body Concorde.Empires is
    -----------------
 
 --     procedure System_Lost
---       (Empire : in out Root_Empire_Type'Class;
+--       (Faction : in out Root_Faction_Type'Class;
 --        System : in out Concorde.Systems.Root_Star_System_Type'Class)
 --     is
 --     begin
---        Empire.Current_Systems := Empire.Current_Systems - 1;
---        Empire.Clear_Path_Cache;
+--        Faction.Current_Systems := Faction.Current_Systems - 1;
+--        Faction.Clear_Path_Cache;
 --
---        Concorde.Empires.Logging.Log
---          (Empire,
+--        Concorde.Factions.Logging.Log
+--          (Faction,
 --           "new system count:"
---           & Empire.Current_Systems'Img);
+--           & Faction.Current_Systems'Img);
 --        if System.Capital then
---           Empires.Logging.Log
---             (Empire,
+--           Factions.Logging.Log
+--             (Faction,
 --              "lost its capital " & System.Name);
 --           System.Set_Capital (False);
 --           declare
@@ -734,17 +734,17 @@ package body Concorde.Empires is
 --                 use type Memor.Database_Reference;
 --                 Result : Natural := 0;
 --              begin
---                 if Empire.Owned_System (Test)
+--                 if Faction.Owned_System (Test)
 --                   and then Test.Reference /= System.Reference
 --                 then
 --                    Result := 100 + Test.Ships;
 --
 --                    for N of Concorde.Galaxy.Neighbours (Test.Index) loop
---                       if Empire.Owned_System (N) then
+--                       if Faction.Owned_System (N) then
 --                          Result := Result + 5;
 --                       elsif N.Owned then
---                          if Concorde.Empires.Relations.At_War
---                            (Empire, N.Owner.all)
+--                          if Concorde.Factions.Relations.At_War
+--                            (Faction, N.Owner.all)
 --                          then
 --                             Result := Result - 10;
 --                          else
@@ -775,13 +775,13 @@ package body Concorde.Empires is
 --              if New_Capital /= null then
 --                 Concorde.Systems.Db.Update (New_Capital.Reference,
 --                                             Set_Capital'Access);
---                 Empire.Capital := New_Capital;
---                 Empires.Logging.Log
---                   (Empire, "new capital: " & New_Capital.Name);
+--                 Faction.Capital := New_Capital;
+--                 Factions.Logging.Log
+--                   (Faction, "new capital: " & New_Capital.Name);
 --              else
---                 Empires.Logging.Log
---                   (Empire, "eliminated");
---                 Empire.Capital := null;
+--                 Factions.Logging.Log
+--                   (Faction, "eliminated");
+--                 Faction.Capital := null;
 --              end if;
 --           end;
 --        end if;
@@ -792,7 +792,7 @@ package body Concorde.Empires is
    ------------
 
    function Update
-     (Item : not null access constant Root_Empire_Type'Class)
+     (Item : not null access constant Root_Faction_Type'Class)
       return Updateable_Reference
    is
       Base_Update : constant Db.Updateable_Reference := Db.Update (Item);
@@ -805,7 +805,7 @@ package body Concorde.Empires is
    -------------------------
 
    procedure Update_System_Owner
-     (Owner  : in out Root_Empire_Type'Class;
+     (Owner  : in out Root_Faction_Type'Class;
       System : Concorde.Systems.Root_Star_System_Type'Class)
    is
       use Concorde.Galaxy;
@@ -814,21 +814,21 @@ package body Concorde.Empires is
       for N of Neighbours (System.Index) loop
          if System.Owner /= N.Owner then
             Border := True;
-            Owner.Set (N, Concorde.Empires.Neighbour);
+            Owner.Set (N, Concorde.Factions.Neighbour);
             if N.Owned then
                if N.Owner /= System.Owner then
-                  Owner.Set (System, Concorde.Empires.Border);
-                  Owner.Set (N, Concorde.Empires.Neighbour);
+                  Owner.Set (System, Concorde.Factions.Border);
+                  Owner.Set (N, Concorde.Factions.Neighbour);
                end if;
             else
-               Owner.Set (System, Concorde.Empires.Frontier);
-               Owner.Set (N, Concorde.Empires.Neighbour);
+               Owner.Set (System, Concorde.Factions.Frontier);
+               Owner.Set (N, Concorde.Factions.Neighbour);
             end if;
          end if;
       end loop;
       if not Border then
-         Owner.Set (System, Concorde.Empires.Internal);
+         Owner.Set (System, Concorde.Factions.Internal);
       end if;
    end Update_System_Owner;
 
-end Concorde.Empires;
+end Concorde.Factions;

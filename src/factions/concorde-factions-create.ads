@@ -1,10 +1,10 @@
-package Concorde.Empires.Create is
+package Concorde.Factions.Create is
 
-   function New_Empire
+   function New_Faction
      (Name                : String;
       Capital             : String;
       Colour              : Lui.Colours.Colour_Type;
       Default_Ship_Design : String)
-      return Empire_Type;
+      return Faction_Type;
 
-end Concorde.Empires.Create;
+end Concorde.Factions.Create;

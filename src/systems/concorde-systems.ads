@@ -7,7 +7,7 @@ with Lui.Colours;
 
 with Newton;
 
-limited with Concorde.Empires;
+limited with Concorde.Factions;
 
 with Concorde.Geometry;
 with Concorde.Quantities;
@@ -112,11 +112,11 @@ package Concorde.Systems is
 
    function Owner
      (System : Root_Star_System_Type'Class)
-      return access constant Concorde.Empires.Root_Empire_Type'Class;
+      return access constant Concorde.Factions.Root_Faction_Type'Class;
 
    function Owned_By
      (System : Root_Star_System_Type'Class;
-      Empire : Concorde.Empires.Root_Empire_Type'Class)
+      Faction : Concorde.Factions.Root_Faction_Type'Class)
       return Boolean;
 
    function Loyalty
@@ -184,7 +184,7 @@ package Concorde.Systems is
    procedure Set_Owner
      (System : in out Root_Star_System_Type'Class;
       New_Owner : not null access constant
-        Concorde.Empires.Root_Empire_Type'Class);
+        Concorde.Factions.Root_Faction_Type'Class);
 
    procedure Set_Capital
      (System     : in out Root_Star_System_Type'Class;
@@ -290,9 +290,9 @@ private
          Battle_Size    : Natural := 0;
          Last_Attacker  : Star_System_Type := null;
          Owner          : access constant
-           Concorde.Empires.Root_Empire_Type'Class;
+           Concorde.Factions.Root_Faction_Type'Class;
          Original_Owner : access constant
-           Concorde.Empires.Root_Empire_Type'Class;
+           Concorde.Factions.Root_Faction_Type'Class;
          Government     : Concorde.Government.Government_Type;
          Loyalty        : Unit_Real := 1.0;
          Edges          : Edge_Info_Lists.List;

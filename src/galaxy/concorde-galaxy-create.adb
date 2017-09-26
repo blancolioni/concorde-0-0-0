@@ -474,7 +474,7 @@ package body Concorde.Galaxy.Create is
 
    procedure Create_Scenario_Links is
    begin
-      if Concorde.Options.Create_Empires
+      if Concorde.Options.Create_Factions
         and then Concorde.Scenarios.Imperial_Centre
       then
          declare

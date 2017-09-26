@@ -4,12 +4,12 @@ with Concorde.Ships.Lists;
 
 package Concorde.Ships.Battles is
 
-   function Empires_Present
+   function Factions_Present
      (Ships : Concorde.Ships.Lists.List)
-      return Concorde.Empires.Array_Of_Empires;
+      return Concorde.Factions.Array_Of_Factions;
 
-   function Empire_Ship_Count
-     (Empire : Concorde.Empires.Empire_Type;
+   function Faction_Ship_Count
+     (Faction : Concorde.Factions.Faction_Type;
       Ships  : Concorde.Ships.Lists.List)
       return Natural;
 

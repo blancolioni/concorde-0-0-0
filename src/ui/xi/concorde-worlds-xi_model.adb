@@ -32,7 +32,7 @@ with Concorde.Ships.Xi_Model;
 
 with Concorde.Xi_UI.Colours;
 
-with Concorde.Empires;
+with Concorde.Factions;
 
 package body Concorde.Worlds.Xi_Model is
 

@@ -1,6 +1,6 @@
 with Concorde.Dates;
 
-package Concorde.Empires.History is
+package Concorde.Factions.History is
 
    procedure Update_History;
 
@@ -12,7 +12,7 @@ package Concorde.Empires.History is
    function Get_Metric
      (Date   : Concorde.Dates.Day_Index;
       Metric : Historical_Metric;
-      Empire : Empire_Type)
+      Faction : Faction_Type)
       return Real;
 
-end Concorde.Empires.History;
+end Concorde.Factions.History;

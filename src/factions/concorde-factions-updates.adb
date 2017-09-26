@@ -1,9 +1,9 @@
 with Concorde.Galaxy;
 
-with Concorde.Empires.History;
-with Concorde.Empires.Logging;
+with Concorde.Factions.History;
+with Concorde.Factions.Logging;
 
-package body Concorde.Empires.Updates is
+package body Concorde.Factions.Updates is
 
    type Move_Order is
       record
@@ -25,13 +25,13 @@ package body Concorde.Empires.Updates is
      array (Positive range <>) of System_Orders;
 
    procedure Add_Move_Orders
-     (Empire : Empire_Type;
+     (Faction : Faction_Type;
       Target : Concorde.Systems.Star_System_Type;
       Orders : in out Array_Of_System_Orders)
      with Unreferenced;
 
-   procedure Update_Empire
-     (Empire : in out Root_Empire_Type'Class);
+   procedure Update_Faction
+     (Faction : in out Root_Faction_Type'Class);
 
    procedure Update_System_Flags
      (System : in out Concorde.Systems.Root_Star_System_Type'Class);
@@ -41,7 +41,7 @@ package body Concorde.Empires.Updates is
    ---------------------
 
    procedure Add_Move_Orders
-     (Empire : Empire_Type;
+     (Faction : Faction_Type;
       Target : Concorde.Systems.Star_System_Type;
       Orders : in out Array_Of_System_Orders)
    is
@@ -62,7 +62,7 @@ package body Concorde.Empires.Updates is
                (others => False);
 
    begin
-      Logging.Log (Empire, "adding move orders for target " & Target.Name);
+      Logging.Log (Faction, "adding move orders for target " & Target.Name);
 
       Queue.Append ((Target, 1.0));
 
@@ -77,14 +77,14 @@ package body Concorde.Empires.Updates is
             if not Seen (Front.System.Index) then
                Seen (Front.System.Index) := True;
 
-               Logging.Log (Empire, "   checking " & Front.System.Name);
+               Logging.Log (Faction, "   checking " & Front.System.Name);
 
                for N of Ns loop
                   if not Seen (N.Index)
-                    and then N.Owner = Empire
+                    and then N.Owner = Faction
                   then
                      Logging.Log
-                       (Empire,
+                       (Faction,
                         "    moving from "
                         & N.Name & " to "
                         & Front.System.Name
@@ -114,24 +114,24 @@ package body Concorde.Empires.Updates is
    end Start;
 
    -------------------
-   -- Update_Empire --
+   -- Update_Faction --
    -------------------
 
-   procedure Update_Empire
-     (Empire : in out Root_Empire_Type'Class)
+   procedure Update_Faction
+     (Faction : in out Root_Faction_Type'Class)
    is
-      pragma Unreferenced (Empire);
+      pragma Unreferenced (Faction);
    begin
       null;
-   end Update_Empire;
+   end Update_Faction;
 
    --------------------
-   -- Update_Empires --
+   -- Update_Factions --
    --------------------
 
-   procedure Update_Empires is
+   procedure Update_Factions is
 
-      procedure On_Update_Start (Empire : in out Root_Empire_Type'Class);
+      procedure On_Update_Start (Faction : in out Root_Faction_Type'Class);
 
       procedure Update_System_Owner
         (System : in out Concorde.Systems.Root_Star_System_Type'Class);
@@ -140,9 +140,9 @@ package body Concorde.Empires.Updates is
       -- On_Update_Start --
       ---------------------
 
-      procedure On_Update_Start (Empire : in out Root_Empire_Type'Class) is
+      procedure On_Update_Start (Faction : in out Root_Faction_Type'Class) is
       begin
-         Empire.Border_Change := False;
+         Faction.Border_Change := False;
       end On_Update_Start;
 
       -------------------------
@@ -170,11 +170,11 @@ package body Concorde.Empires.Updates is
       Concorde.Systems.Update_Systems
         (Update_System_Flags'Access);
 
-      Db.Iterate (Update_Empire'Access);
+      Db.Iterate (Update_Faction'Access);
 
       History.Update_History;
 
-   end Update_Empires;
+   end Update_Factions;
 
    -------------------------
    -- Update_System_Flags --
@@ -185,20 +185,20 @@ package body Concorde.Empires.Updates is
    is
 
       procedure Clear_System_Flags
-        (Empire : in out Root_Empire_Type'Class);
+        (Faction : in out Root_Faction_Type'Class);
 
       procedure Update_Owner
-        (Owner : in out Root_Empire_Type'Class);
+        (Owner : in out Root_Faction_Type'Class);
 
       ------------------------
       -- Clear_System_Flags --
       ------------------------
 
       procedure Clear_System_Flags
-        (Empire : in out Root_Empire_Type'Class)
+        (Faction : in out Root_Faction_Type'Class)
       is null;
 --        begin
---           Empire.Clear_System_Flags (System);
+--           Faction.Clear_System_Flags (System);
 --        end Clear_System_Flags;
 
       ------------------
@@ -206,7 +206,7 @@ package body Concorde.Empires.Updates is
       ------------------
 
       procedure Update_Owner
-        (Owner : in out Root_Empire_Type'Class)
+        (Owner : in out Root_Faction_Type'Class)
       is null;
 --        begin
 --           Owner.Update_System_Owner (System);
@@ -221,4 +221,4 @@ package body Concorde.Empires.Updates is
 
    end Update_System_Flags;
 
-end Concorde.Empires.Updates;
+end Concorde.Factions.Updates;

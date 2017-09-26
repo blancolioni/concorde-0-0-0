@@ -1,10 +1,10 @@
-with Concorde.Empires;
+with Concorde.Factions;
 with Concorde.Systems;
 with Concorde.Worlds;
 
 with Concorde.Roman_Images;
 
-with Concorde.Empires.Logging;
+with Concorde.Factions.Logging;
 
 with Concorde.Ships.Designs;
 
@@ -19,7 +19,7 @@ package body Concorde.Ships.Create is
 
    function New_Ship
      (Owner  : not null access constant
-        Concorde.Empires.Root_Empire_Type'Class;
+        Concorde.Factions.Root_Faction_Type'Class;
       Name   : String;
       World  : Concorde.Worlds.World_Type;
       Design : String)
@@ -78,7 +78,7 @@ package body Concorde.Ships.Create is
 
          Owner.Update.New_Ship;
 
-         Concorde.Empires.Logging.Log
+         Concorde.Factions.Logging.Log
            (Owner, World.Name & ": new ship: " & Ship.Name);
       end Create;
 

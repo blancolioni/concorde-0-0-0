@@ -2,7 +2,7 @@ with Ada.Containers.Vectors;
 
 with Memor.Element_Vectors;
 
-package body Concorde.Empires.History is
+package body Concorde.Factions.History is
 
    use Concorde.Dates;
 
@@ -11,7 +11,7 @@ package body Concorde.Empires.History is
 
    package History_Record_Vectors is
      new Memor.Element_Vectors
-       (Root_Empire_Type, Metric_Record, (others => 0.0));
+       (Root_Faction_Type, Metric_Record, (others => 0.0));
 
    package History_Vectors is
      new Ada.Containers.Vectors
@@ -27,11 +27,11 @@ package body Concorde.Empires.History is
    function Get_Metric
      (Date   : Concorde.Dates.Day_Index;
       Metric : Historical_Metric;
-      Empire : Empire_Type)
+      Faction : Faction_Type)
       return Real
    is
       Info : Metric_Record renames
-               History.Element (Date).Element (Empire);
+               History.Element (Date).Element (Faction);
    begin
       return Info (Metric);
    end Get_Metric;
@@ -44,19 +44,19 @@ package body Concorde.Empires.History is
 
       R : History_Record_Vectors.Vector;
 
-      procedure Update (Empire : Root_Empire_Type'Class);
+      procedure Update (Faction : Root_Faction_Type'Class);
 
       ------------
       -- Update --
       ------------
 
-      procedure Update (Empire : Root_Empire_Type'Class) is
+      procedure Update (Faction : Root_Faction_Type'Class) is
          M : constant Metric_Record :=
-               (Controlled_Systems => Real (Empire.Current_Systems),
-                Ship_Count         => Real (Empire.Current_Ships),
+               (Controlled_Systems => Real (Faction.Current_Systems),
+                Ship_Count         => Real (Faction.Current_Ships),
                 Production         => 0.0);
       begin
-         R.Replace_Element (Empire, M);
+         R.Replace_Element (Faction, M);
       end Update;
 
    begin
@@ -65,4 +65,4 @@ package body Concorde.Empires.History is
 
    end Update_History;
 
-end Concorde.Empires.History;
+end Concorde.Factions.History;

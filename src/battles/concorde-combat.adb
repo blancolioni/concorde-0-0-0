@@ -26,7 +26,7 @@ package body Concorde.Combat is
 
    function Winner
      (Arena : Root_Combat_Arena)
-      return Concorde.Empires.Empire_Type
+      return Concorde.Factions.Faction_Type
    is
    begin
       return Arena.Winner;

@@ -1,6 +1,6 @@
 private with Ada.Containers.Vectors;
 
-with Concorde.Empires;
+with Concorde.Factions;
 with Concorde.Ships;
 with Concorde.Systems;
 
@@ -10,23 +10,23 @@ package Concorde.AI is
 
    procedure Start
      (AI     : in out Root_AI_Type;
-      Empire : in out Concorde.Empires.Root_Empire_Type'Class)
+      Faction : in out Concorde.Factions.Root_Faction_Type'Class)
    is abstract;
 
    procedure System_Acquired
      (AI           : in out Root_AI_Type;
-      Empire       : in out Concorde.Empires.Root_Empire_Type'Class;
+      Faction       : in out Concorde.Factions.Root_Faction_Type'Class;
       System       : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
-      Former_Owner : Concorde.Empires.Empire_Type)
+      Former_Owner : Concorde.Factions.Faction_Type)
    is abstract;
 
    procedure System_Lost
      (AI        : in out Root_AI_Type;
-      Empire    : in out Concorde.Empires.Root_Empire_Type'Class;
+      Faction    : in out Concorde.Factions.Root_Faction_Type'Class;
       System    : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
-      New_Owner : Concorde.Empires.Empire_Type)
+      New_Owner : Concorde.Factions.Faction_Type)
    is abstract;
 
    function Minimum_Attack_Factor
@@ -40,12 +40,12 @@ package Concorde.AI is
 
    procedure Allocate_Ships
      (AI     : in out Root_AI_Type;
-      Empire : in out Concorde.Empires.Root_Empire_Type'Class)
+      Faction : in out Concorde.Factions.Root_Faction_Type'Class)
    is abstract;
 
    procedure Order_Ship
      (AI     : in out Root_AI_Type;
-      Empire : in out Concorde.Empires.Root_Empire_Type'Class;
+      Faction : in out Concorde.Factions.Root_Faction_Type'Class;
       Ship   : in out Concorde.Ships.Root_Ship_Type'Class)
    is abstract;
 
@@ -102,8 +102,8 @@ private
 
    procedure Update_Attack_Factor
      (AI           : in out Root_AI_Type'Class;
-      Empire       : in out Concorde.Empires.Root_Empire_Type'Class;
-      Enemy        : Concorde.Empires.Empire_Type;
+      Faction       : in out Concorde.Factions.Root_Faction_Type'Class;
+      Enemy        : Concorde.Factions.Faction_Type;
       Can_Increase : Boolean := True;
       Can_Decrease : Boolean := True);
 

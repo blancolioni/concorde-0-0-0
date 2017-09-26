@@ -5,7 +5,7 @@ with Concorde.Logging;
 
 with Concorde.Agents.Updates;
 with Concorde.Economy.Updates;
-with Concorde.Empires.Updates;
+with Concorde.Factions.Updates;
 with Concorde.Galaxy.Updates;
 with Concorde.Ships.Updates;
 
@@ -16,7 +16,7 @@ with Concorde.Galaxy.Locking;
 with Concorde.Locking;
 with Concorde.Options;
 
-with Concorde.Empires.Logging;
+with Concorde.Factions.Logging;
 
 package body Concorde.Updates is
 
@@ -111,7 +111,7 @@ package body Concorde.Updates is
       Concorde.Logging.Start_Update;
 
       if Check_Invariants then
-         Concorde.Empires.Check_Invariants;
+         Concorde.Factions.Check_Invariants;
          Concorde.Ships.Invariants.Check_Invariants;
       end if;
 
@@ -120,7 +120,7 @@ package body Concorde.Updates is
       Concorde.Agents.Updates.Update_Agents
         (Concorde.Agents.Updates.Start_Of_Update'Access);
 
-      Concorde.Empires.Updates.Update_Empires;
+      Concorde.Factions.Updates.Update_Factions;
       Concorde.Galaxy.Updates.Update_Galaxy;
 
       Concorde.Economy.Updates.Daily_Update;
@@ -134,10 +134,10 @@ package body Concorde.Updates is
       Concorde.Agents.Updates.Update_Agents
         (Concorde.Agents.Updates.End_Of_Update'Access);
 
-      Concorde.Empires.Logging.Flush_Log;
+      Concorde.Factions.Logging.Flush_Log;
 
       if Check_Invariants then
-         Concorde.Empires.Check_Invariants;
+         Concorde.Factions.Check_Invariants;
          Concorde.Ships.Invariants.Check_Invariants;
       end if;
 

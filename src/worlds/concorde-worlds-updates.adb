@@ -1,8 +1,8 @@
 with Concorde.Agents;
 
-with Concorde.Empires;
---  with Concorde.Empires.Db;
---  with Concorde.Empires.Logging;
+with Concorde.Factions;
+--  with Concorde.Factions.Db;
+--  with Concorde.Factions.Logging;
 
 --  with Concorde.Ships.Create;
 --  with Concorde.Ships.Db;
@@ -82,13 +82,13 @@ package body Concorde.Worlds.Updates is
 --                         and then Ship.Alive
 --                         and then Ship.Damage > 0.0
 --                       then
---                          Concorde.Empires.Logging.Log
+--                          Concorde.Factions.Logging.Log
 --                            (Ship.Owner,
 --                             Ship.Short_Description
 --                             & ": repairing" & Pts'Img);
 --                          Concorde.Ships.Db.Update
 --                            (Ship.Reference, Repair'Access);
---                          Concorde.Empires.Logging.Log
+--                          Concorde.Factions.Logging.Log
 --                            (Ship.Owner,
 --                             Ship.Short_Description
 --                             & ": repaired");
@@ -110,23 +110,23 @@ package body Concorde.Worlds.Updates is
 --                             Design => World.Owner.Default_Ship_Design);
 --
 --                 procedure Notify
---                   (Empire : in out Concorde.Empires.Root_Empire_Type'Class);
+--               (Faction : in out Concorde.Factions.Root_Faction_Type'Class);
 --
 --                 ------------
 --                 -- Notify --
 --                 ------------
 --
 --                 procedure Notify
---                   (Empire : in out Concorde.Empires.Root_Empire_Type'Class)
+--              (Faction : in out Concorde.Factions.Root_Faction_Type'Class)
 --                 is
 --                 begin
---                    Empire.Player.On_Ship_Completed
---                      (Empire, Ship);
+--                    Faction.Player.On_Ship_Completed
+--                      (Faction, Ship);
 --                 end Notify;
 --
 --              begin
 --                 World.Ships.Append (Ship);
---                 Concorde.Empires.Db.Update
+--                 Concorde.Factions.Db.Update
 --                   (World.Owner.Reference, Notify'Access);
 --              end;
 --

@@ -26,7 +26,7 @@ with Concorde.Installations;
 with Concorde.Markets;
 with Concorde.Trades;
 
-limited with Concorde.Empires;
+limited with Concorde.Factions;
 with Concorde.Ships.Lists;
 
 with Concorde.Locations;
@@ -60,7 +60,7 @@ package Concorde.Worlds is
 
    function Owner
      (World : Root_World_Type'Class)
-      return access constant Concorde.Empires.Root_Empire_Type'Class;
+      return access constant Concorde.Factions.Root_Faction_Type'Class;
 
    function Owned
      (World : Root_World_Type'Class)
@@ -68,13 +68,13 @@ package Concorde.Worlds is
 
    function Owned_By
      (World : Root_World_Type'Class;
-      Empire : Concorde.Empires.Root_Empire_Type'Class)
+      Faction : Concorde.Factions.Root_Faction_Type'Class)
       return Boolean;
 
    procedure Set_Owner
      (World  : in out Root_World_Type'Class;
-      Empire : not null access constant
-        Concorde.Empires.Root_Empire_Type'Class);
+      Faction : not null access constant
+        Concorde.Factions.Root_Faction_Type'Class);
 
    function Category
      (World : Root_World_Type'Class)
@@ -340,7 +340,7 @@ private
       record
          System                : Concorde.Systems.Star_System_Type;
          Owner                 : access constant
-           Concorde.Empires.Root_Empire_Type'Class;
+           Concorde.Factions.Root_Faction_Type'Class;
          Primary               : access constant
            Concorde.Systems.Star_System_Object_Interface'Class;
          Semimajor_Axis        : Non_Negative_Real;

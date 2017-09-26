@@ -13,7 +13,7 @@ with Concorde.Solar_System;
 with Concorde.Money;
 with Concorde.Quantities;
 
-with Concorde.Empires;
+with Concorde.Factions;
 with Concorde.Ships.Models;
 
 with Concorde.Commodities.Db;
@@ -812,7 +812,7 @@ package body Concorde.Worlds.Tile_Models is
             Terrain       : constant Concorde.Terrain.Terrain_Type :=
                               Model.World.Sectors (I).Terrain;
             Owner : constant access constant
-              Concorde.Empires.Root_Empire_Type'Class :=
+              Concorde.Factions.Root_Faction_Type'Class :=
                 (if not Model.World.Sectors (I).Installations.Is_Empty
                  then Model.World.Owner
                  else null);

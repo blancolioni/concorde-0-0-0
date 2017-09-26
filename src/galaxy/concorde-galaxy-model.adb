@@ -10,9 +10,9 @@ with Concorde.Watchers;
 
 with Concorde.Dates;
 with Concorde.Elementary_Functions;
-with Concorde.Empires;
-with Concorde.Empires.Db;
-with Concorde.Empires.History;
+with Concorde.Factions;
+with Concorde.Factions.Db;
+with Concorde.Factions.History;
 
 with Concorde.Ships.Battles;
 with Concorde.Ships.Lists;
@@ -38,22 +38,22 @@ package body Concorde.Galaxy.Model is
      (Count : Natural)
       return String;
 
-   subtype Empire_Column is Integer range 1 .. 3;
+   subtype Faction_Column is Integer range 1 .. 3;
 
-   type Empire_Table is
+   type Faction_Table is
      new Lui.Tables.Root_Model_Table with null record;
 
    overriding function Heading_Column_Text
-     (Table : Empire_Table;
+     (Table : Faction_Table;
       Col   : Positive)
       return String
-   is ((case Empire_Column (Col) is
+   is ((case Faction_Column (Col) is
            when 1 => "Name",
            when 2 => "Systems",
            when 3 => "Ships"));
 
    overriding function Cell_Text
-     (Table : Empire_Table;
+     (Table : Faction_Table;
       Row   : Positive;
       Col   : Positive)
       return String;
@@ -114,9 +114,9 @@ package body Concorde.Galaxy.Model is
       return String
    is ((case Battle_Column (Col) is
            when 1 => "System",
-           when 2 => "Empire 1",
+           when 2 => "Faction 1",
            when 3 => "Fleet 1",
-           when 4 => "Empire 2",
+           when 4 => "Faction 2",
            when 5 => "Fleet 2"));
 
    overriding function Cell_Text
@@ -268,17 +268,17 @@ package body Concorde.Galaxy.Model is
    ---------------
 
    overriding function Cell_Text
-     (Table : Empire_Table;
+     (Table : Faction_Table;
       Row   : Positive;
       Col   : Positive)
       return String
    is
       pragma Unreferenced (Table);
-      use Concorde.Empires;
-      E : constant Empire_Type :=
+      use Concorde.Factions;
+      E : constant Faction_Type :=
             Get (By_Star_Systems, Row);
    begin
-      case Empire_Column (Col) is
+      case Faction_Column (Col) is
          when 1 =>
             return E.Name;
          when 2 =>
@@ -348,15 +348,15 @@ package body Concorde.Galaxy.Model is
          when 1 =>
             return Arena.Name;
          when 2 =>
-            return Arena.Empires (1).Name;
+            return Arena.Factions (1).Name;
          when 3 =>
             return Lui.Approximate_Image
-              (Arena.Fleet_Size (Arena.Empires (1)));
+              (Arena.Fleet_Size (Arena.Factions (1)));
          when 4 =>
-            return Arena.Empires (2).Name;
+            return Arena.Factions (2).Name;
          when 5 =>
             return Lui.Approximate_Image
-              (Arena.Fleet_Size (Arena.Empires (2)));
+              (Arena.Fleet_Size (Arena.Factions (2)));
       end case;
    end Cell_Text;
 
@@ -422,12 +422,12 @@ package body Concorde.Galaxy.Model is
       Renderer : in out Lui.Rendering.Root_Renderer'Class;
       A, B     : Positive)
    is
-      use Concorde.Empires;
+      use Concorde.Factions;
       use Concorde.Systems;
       A_System : constant Star_System_Type := Galaxy_Graph.Vertex (A);
       B_System : constant Star_System_Type := Galaxy_Graph.Vertex (B);
-      A_Owner  : constant Concorde.Empires.Empire_Type := A_System.Owner;
-      B_Owner  : constant Concorde.Empires.Empire_Type := B_System.Owner;
+      A_Owner  : constant Concorde.Factions.Faction_Type := A_System.Owner;
+      B_Owner  : constant Concorde.Factions.Faction_Type := B_System.Owner;
 
       Link_Colour    : constant Lui.Colours.Colour_Type :=
                          (if A_Owner /= null and then B_Owner = A_Owner
@@ -474,21 +474,21 @@ package body Concorde.Galaxy.Model is
             Xs    : Relative_Power_Vectors.Vector;
 
             procedure Draw_Power
-              (Empire : Concorde.Empires.Empire_Type);
+              (Faction : Concorde.Factions.Faction_Type);
 
             procedure Update_Power
-              (Empire : Concorde.Empires.Empire_Type);
+              (Faction : Concorde.Factions.Faction_Type);
 
             ----------------
             -- Draw_Power --
             ----------------
 
             procedure Draw_Power
-              (Empire : Concorde.Empires.Empire_Type)
+              (Faction : Concorde.Factions.Faction_Type)
             is
                New_X : constant Natural :=
                          X +
-                           Natural (Xs.Element (Empire.Reference)
+                           Natural (Xs.Element (Faction.Reference)
                                     / Total * Width);
             begin
                Renderer.Draw_Line
@@ -496,7 +496,7 @@ package body Concorde.Galaxy.Model is
                   Y1         => Natural (Date - Start),
                   X2         => New_X,
                   Y2         => Natural (Date - Start),
-                  Colour     => Empire.Colour,
+                  Colour     => Faction.Colour,
                   Line_Width => 1);
                X := New_X;
             end Draw_Power;
@@ -506,25 +506,25 @@ package body Concorde.Galaxy.Model is
             ------------------
 
             procedure Update_Power
-              (Empire : Concorde.Empires.Empire_Type)
+              (Faction : Concorde.Factions.Faction_Type)
             is
                Power : constant Non_Negative_Real :=
-                         Concorde.Empires.History.Get_Metric
+                         Concorde.Factions.History.Get_Metric
                            (Date,
-                            Concorde.Empires.History.Controlled_Systems,
-                            Empire);
+                            Concorde.Factions.History.Controlled_Systems,
+                            Faction);
             begin
                Xs.Replace_Element
-                 (Empire.Reference, Power);
+                 (Faction.Reference, Power);
                Total := Total + Power;
             end Update_Power;
 
          begin
             Total := 0.0;
-            Concorde.Empires.Db.Scan (Update_Power'Access);
+            Concorde.Factions.Db.Scan (Update_Power'Access);
 
             X := Model.Width - Natural (Width);
-            Concorde.Empires.Db.Scan (Draw_Power'Access);
+            Concorde.Factions.Db.Scan (Draw_Power'Access);
 
          end;
       end loop;
@@ -575,8 +575,8 @@ package body Concorde.Galaxy.Model is
       System_Radius : Positive;
       Ships         : Concorde.Ships.Lists.List)
    is
-      Es   : constant Concorde.Empires.Array_Of_Empires :=
-               Concorde.Ships.Battles.Empires_Present (Ships);
+      Es   : constant Concorde.Factions.Array_Of_Factions :=
+               Concorde.Ships.Battles.Factions_Present (Ships);
       X, Y : Integer;
    begin
       Model.Star_System_Screen (System, X, Y);
@@ -585,7 +585,7 @@ package body Concorde.Galaxy.Model is
          Renderer.Draw_String
            (X, Y, 10, E.Colour,
             Ship_Count_Image
-              (Concorde.Ships.Battles.Empire_Ship_Count
+              (Concorde.Ships.Battles.Faction_Ship_Count
                    (E, Ships)));
          Y := Y + 12;
       end loop;
@@ -604,7 +604,7 @@ package body Concorde.Galaxy.Model is
       if Local_Model = null then
          declare
             Result  : Root_Galaxy_Model;
-            E_Table : Empire_Table;
+            E_Table : Faction_Table;
             B_Table : Battle_Table;
             S_Table : System_Table;
             E, S, B : Lui.Tables.Model_Table;
@@ -626,33 +626,33 @@ package body Concorde.Galaxy.Model is
 
          begin
             E_Table.Initialise
-              (Name     => "Empires",
-               Num_Rows => Concorde.Empires.Db.Active_Count,
-               Num_Cols => Empire_Column'Last);
-            E := new Empire_Table'(E_Table);
+              (Name     => "Factions",
+               Num_Rows => Concorde.Factions.Db.Active_Count,
+               Num_Cols => Faction_Column'Last);
+            E := new Faction_Table'(E_Table);
 
             S_Table.Initialise
               (Name     => "Systems",
-               Num_Rows => Concorde.Empires.Db.Active_Count,
+               Num_Rows => Concorde.Factions.Db.Active_Count,
                Num_Cols => System_Column_Count);
 
 --              declare
 --                 procedure Add_Capital
---                   (Empire : Concorde.Empires.Empire_Type);
+--                   (Faction : Concorde.Factions.Faction_Type);
 --
 --                 -----------------
 --                 -- Add_Capital --
 --                 -----------------
 --
 --                 procedure Add_Capital
---                   (Empire : Concorde.Empires.Empire_Type)
+--                   (Faction : Concorde.Factions.Faction_Type)
 --                 is
 --                 begin
---                    S_Table.Rows.Append (Empire.Capital);
+--                    S_Table.Rows.Append (Faction.Capital);
 --                 end Add_Capital;
 --
 --              begin
---                 Concorde.Empires.Db.Scan (Add_Capital'Access);
+--                 Concorde.Factions.Db.Scan (Add_Capital'Access);
 --              end;
 
             S := new System_Table'(S_Table);
@@ -762,7 +762,7 @@ package body Concorde.Galaxy.Model is
          for Star_Pass in Boolean loop
             for I in 1 .. Galaxy_Graph.Last_Vertex_Index loop
                declare
-                  use type Concorde.Empires.Empire_Type;
+                  use type Concorde.Factions.Faction_Type;
                   use Concorde.Systems;
                   System : constant Star_System_Type :=
                              Galaxy_Graph.Vertex (I);
@@ -777,7 +777,7 @@ package body Concorde.Galaxy.Model is
                   Screen_X : Integer;
                   Screen_Y : Integer;
                   Screen_Z : Real;
-                  Owner    : constant Concorde.Empires.Empire_Type :=
+                  Owner    : constant Concorde.Factions.Faction_Type :=
                                System.Owner;
                   Colour   : Lui.Colours.Colour_Type :=
                                (if Owner /= null
@@ -884,25 +884,25 @@ package body Concorde.Galaxy.Model is
                         --  Radius : Positive := 8;
 
                         procedure Draw_Claims
-                          (Empire : Concorde.Empires.Root_Empire_Type'Class);
+                          (Faction : Concorde.Factions.Root_Faction_Type'Class);
 
                         -----------------
                         -- Draw_Claims --
                         -----------------
 
                         procedure Draw_Claims
-                          (Empire : Concorde.Empires.Root_Empire_Type'Class)
+                          (Faction : Concorde.Factions.Root_Faction_Type'Class)
                         is null;
---                             use Concorde.Empires;
+--                             use Concorde.Factions;
 --                          begin
---                           if Empire.Is_Set (System, Claim) then
---                               and then not Empire.Owned_System (System)
+--                           if Faction.Is_Set (System, Claim) then
+--                               and then not Faction.Owned_System (System)
 --                             then
 --                                Renderer.Draw_Circle
 --                                  (X          => Screen_X,
 --                                   Y          => Screen_Y,
 --                                   Radius     => Radius,
---                                   Colour     => Empire.Colour,
+--                                   Colour     => Faction.Colour,
 --                                   Filled     => False,
 --                                   Line_Width => 1);
 --                                Radius := Radius + 2;
@@ -910,7 +910,7 @@ package body Concorde.Galaxy.Model is
 --                          end Draw_Claims;
 
                      begin
-                        Concorde.Empires.Db.Scan (Draw_Claims'Access);
+                        Concorde.Factions.Db.Scan (Draw_Claims'Access);
                      end;
 
                      if False and then Owner /= null then

@@ -9,8 +9,8 @@ with Concorde.Elementary_Functions;
 
 with Concorde.Random;
 
-with Concorde.Empires.Logging;
-with Concorde.Empires.Relations;
+with Concorde.Factions.Logging;
+with Concorde.Factions.Relations;
 
 package body Concorde.Combat.Ship_Combat is
 
@@ -51,11 +51,11 @@ package body Concorde.Combat.Ship_Combat is
    procedure Add_Combatant
      (Arena     : in out Root_Space_Combat_Arena'Class;
       Combatant : Concorde.Ships.Ship_Type;
-      Empire    : Concorde.Empires.Empire_Type;
+      Faction    : Concorde.Factions.Faction_Type;
       X, Y      : Real;
       Facing    : Concorde.Geometry.Radians)
    is
-      use Concorde.Empires;
+      use Concorde.Factions;
       use Concorde.Ships;
       New_Team : Boolean := True;
    begin
@@ -68,7 +68,7 @@ package body Concorde.Combat.Ship_Combat is
             Facing => Facing));
 
       for I in 1 .. Arena.Teams.Last_Index loop
-         if Arena.Teams (I).Leader = Empire then
+         if Arena.Teams (I).Leader = Faction then
             Arena.Teams (I).Ships.Append (Arena.Ships.Last_Index);
             New_Team := False;
             exit;
@@ -80,7 +80,7 @@ package body Concorde.Combat.Ship_Combat is
             Ss : Ship_Index_Vectors.Vector;
          begin
             Ss.Append (Arena.Ships.Last_Index);
-            Arena.Teams.Append ((Empire, Ss));
+            Arena.Teams.Append ((Faction, Ss));
          end;
       end if;
 
@@ -94,7 +94,7 @@ package body Concorde.Combat.Ship_Combat is
      (Arena : in out Root_Space_Combat_Arena'Class)
    is
       Active_Team : Boolean := False;
-      Winner      : Concorde.Empires.Empire_Type;
+      Winner      : Concorde.Factions.Faction_Type;
    begin
       if Arena.Finished then
          return;
@@ -104,7 +104,7 @@ package body Concorde.Combat.Ship_Combat is
          Arena.Finished := True;
          Arena.Winner := null;
          for Team of Arena.Teams loop
-            Concorde.Empires.Logging.Log
+            Concorde.Factions.Logging.Log
               (Team.Leader,
                "The battle continues");
          end loop;
@@ -167,7 +167,7 @@ package body Concorde.Combat.Ship_Combat is
 
       if not Active_Team then
          for Team of Arena.Teams loop
-            Concorde.Empires.Logging.Log
+            Concorde.Factions.Logging.Log
               (Team.Leader,
                "Mutual annihilation");
          end loop;
@@ -175,13 +175,13 @@ package body Concorde.Combat.Ship_Combat is
       end if;
 
       for Team of Arena.Teams loop
-         Concorde.Empires.Logging.Log
+         Concorde.Factions.Logging.Log
            (Team.Leader,
             "Victory to " & Arena.Winner.Name);
       end loop;
 
       declare
-         use type Concorde.Empires.Empire_Type;
+         use type Concorde.Factions.Faction_Type;
 
          Captured_Ships : Natural := 0;
 
@@ -199,11 +199,11 @@ package body Concorde.Combat.Ship_Combat is
                         if Ship.Alive
                           and then not Ship.Has_Effective_Engine
                         then
-                           Concorde.Empires.Logging.Log
+                           Concorde.Factions.Logging.Log
                              (Ship.Owner,
                               Ship.Short_Description
                               & " captured by " & Winner.Name);
-                           Concorde.Empires.Logging.Log
+                           Concorde.Factions.Logging.Log
                              (Winner,
                               Ship.Short_Description & " captured from "
                               & Ship.Owner.Name);
@@ -235,7 +235,7 @@ package body Concorde.Combat.Ship_Combat is
    begin
       for Team of Model.Teams loop
          if not Team.Ships.Is_Empty
-           and then Concorde.Empires.Relations.At_War
+           and then Concorde.Factions.Relations.At_War
              (Ship.Ship.Owner.all, Team.Leader.all)
          then
             declare
@@ -338,21 +338,21 @@ package body Concorde.Combat.Ship_Combat is
    end Commit_Event;
 
    -------------
-   -- Empires --
+   -- Factions --
    -------------
 
-   function Empires
+   function Factions
      (Arena : Root_Space_Combat_Arena'Class)
-      return Concorde.Empires.Array_Of_Empires
+      return Concorde.Factions.Array_Of_Factions
    is
-      use Concorde.Empires;
-      Result : Array_Of_Empires (1 .. Arena.Teams.Last_Index);
+      use Concorde.Factions;
+      Result : Array_Of_Factions (1 .. Arena.Teams.Last_Index);
    begin
       for I in Result'Range loop
          Result (I) := Arena.Teams (I).Leader;
       end loop;
       return Result;
-   end Empires;
+   end Factions;
 
    -----------------
    -- Fire_Weapon --
@@ -388,13 +388,13 @@ package body Concorde.Combat.Ship_Combat is
 
    function Fleet_Size
      (Arena  : Root_Space_Combat_Arena'Class;
-      Empire : Concorde.Empires.Empire_Type)
+      Faction : Concorde.Factions.Faction_Type)
       return Natural
    is
-      use type Concorde.Empires.Empire_Type;
+      use type Concorde.Factions.Faction_Type;
    begin
       for Team of Arena.Teams loop
-         if Team.Leader = Empire then
+         if Team.Leader = Faction then
             return Team.Ships.Last_Index;
          end if;
       end loop;
@@ -692,7 +692,7 @@ package body Concorde.Combat.Ship_Combat is
 
       if Model.Done then
          declare
-            use type Concorde.Empires.Empire_Type;
+            use type Concorde.Factions.Faction_Type;
          begin
             Renderer.Draw_String
               (10, 10, 16, Lui.Colours.White,

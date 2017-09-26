@@ -1,4 +1,4 @@
-with Concorde.Empires;
+with Concorde.Factions;
 with Concorde.Facilities;
 with Concorde.Options;
 
@@ -405,7 +405,7 @@ package body Concorde.Worlds is
      (World : Root_World_Type'Class)
       return Boolean
    is
-      use type Concorde.Empires.Empire_Type;
+      use type Concorde.Factions.Faction_Type;
    begin
       return World.Owner /= null;
    end Owned;
@@ -416,12 +416,12 @@ package body Concorde.Worlds is
 
    function Owned_By
      (World  : Root_World_Type'Class;
-      Empire : Concorde.Empires.Root_Empire_Type'Class)
+      Faction : Concorde.Factions.Root_Faction_Type'Class)
       return Boolean
    is
       use type Memor.Database_Reference;
    begin
-      return World.Owner.Reference = Empire.Reference;
+      return World.Owner.Reference = Faction.Reference;
    end Owned_By;
 
    -----------
@@ -430,7 +430,7 @@ package body Concorde.Worlds is
 
    function Owner
      (World : Root_World_Type'Class)
-      return access constant Concorde.Empires.Root_Empire_Type'Class
+      return access constant Concorde.Factions.Root_Faction_Type'Class
    is
    begin
       return World.Owner;
@@ -753,11 +753,11 @@ package body Concorde.Worlds is
 
    procedure Set_Owner
      (World  : in out Root_World_Type'Class;
-      Empire : not null access constant
-        Concorde.Empires.Root_Empire_Type'Class)
+      Faction : not null access constant
+        Concorde.Factions.Root_Faction_Type'Class)
    is
    begin
-      World.Owner := Concorde.Empires.Empire_Type (Empire);
+      World.Owner := Concorde.Factions.Faction_Type (Faction);
    end Set_Owner;
 
    ------------

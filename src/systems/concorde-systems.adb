@@ -9,7 +9,7 @@ with Concorde.Locations;
 with Concorde.Worlds;
 with Concorde.Stars;
 
-with Concorde.Empires;
+with Concorde.Factions;
 
 with Concorde.Worlds.Lists;
 with Concorde.Worlds.Create;
@@ -346,13 +346,13 @@ package body Concorde.Systems is
 
    function Owned_By
      (System : Root_Star_System_Type'Class;
-      Empire : Concorde.Empires.Root_Empire_Type'Class)
+      Faction : Concorde.Factions.Root_Faction_Type'Class)
       return Boolean
    is
       use type Memor.Database_Reference;
    begin
       return System.Owned
-        and then System.Owner.Reference = Empire.Reference;
+        and then System.Owner.Reference = Faction.Reference;
    end Owned_By;
 
    -----------
@@ -361,7 +361,7 @@ package body Concorde.Systems is
 
    function Owner
      (System : Root_Star_System_Type'Class)
-      return access constant Concorde.Empires.Root_Empire_Type'Class
+      return access constant Concorde.Factions.Root_Faction_Type'Class
    is
    begin
       return System.Owner;
@@ -515,7 +515,7 @@ package body Concorde.Systems is
    procedure Set_Owner
      (System : in out Root_Star_System_Type'Class;
       New_Owner : not null access constant
-        Concorde.Empires.Root_Empire_Type'Class)
+        Concorde.Factions.Root_Faction_Type'Class)
    is
    begin
       if System.Owner /= null then

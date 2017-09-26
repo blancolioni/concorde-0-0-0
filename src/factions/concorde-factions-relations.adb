@@ -1,11 +1,11 @@
-package body Concorde.Empires.Relations is
+package body Concorde.Factions.Relations is
 
    ------------
    -- At_War --
    ------------
 
    function At_War
-     (E1, E2 : Root_Empire_Type'Class)
+     (E1, E2 : Root_Faction_Type'Class)
       return Boolean
    is
    begin
@@ -18,7 +18,7 @@ package body Concorde.Empires.Relations is
    ------------------
 
    function Has_Conflict
-     (Es : Array_Of_Empires)
+     (Es : Array_Of_Factions)
       return Boolean
    is
    begin
@@ -34,4 +34,4 @@ package body Concorde.Empires.Relations is
       return False;
    end Has_Conflict;
 
-end Concorde.Empires.Relations;
+end Concorde.Factions.Relations;

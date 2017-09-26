@@ -6,7 +6,7 @@ private with Memor.Database;
 
 with Memor;
 
-limited with Concorde.Empires;
+limited with Concorde.Factions;
 limited with Concorde.Systems;
 limited with Concorde.Worlds;
 
@@ -41,7 +41,7 @@ package Concorde.Ships is
 
    function Owner
      (Ship : Root_Ship_Type'Class)
-      return access constant Concorde.Empires.Root_Empire_Type'Class;
+      return access constant Concorde.Factions.Root_Faction_Type'Class;
 
    function Has_Destination
      (Ship : Root_Ship_Type'Class)
@@ -105,7 +105,7 @@ package Concorde.Ships is
    procedure Set_Owner
      (Ship   : in out Root_Ship_Type'Class;
       New_Owner : not null access constant
-        Concorde.Empires.Root_Empire_Type'Class);
+        Concorde.Factions.Root_Faction_Type'Class);
 
    procedure Set_Destination
      (Ship   : in out Root_Ship_Type'Class;
@@ -310,7 +310,7 @@ private
          Identity              : String (1 .. 6);
          Ship_Name             : Ada.Strings.Unbounded.Unbounded_String;
          Owner                 : access constant
-           Concorde.Empires.Root_Empire_Type'Class;
+           Concorde.Factions.Root_Faction_Type'Class;
          Location              : Concorde.Locations.Object_Location;
          Dest_World            : access constant Worlds.Root_World_Type'Class;
          Dest_System           : access constant

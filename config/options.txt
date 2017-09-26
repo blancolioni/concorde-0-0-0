@@ -4,11 +4,11 @@ interface = xi
 randomise = no
 create_voronoi = no
 
-empire_count = 3
+faction_count = 3
 system_count = 5000
 
 create_galaxy = yes
-create_empires = yes
+create_factions = yes
 
 galaxy_shape = spiral
 galaxy_sub_shape = archimedes
@@ -18,12 +18,12 @@ system_z_deviation = 0.02
 
 average_connections = 4
 detailed_battle_logging = no
-empire_logging = yes
+faction_logging = yes
 market_logging = yes
 minimum_battle_size = 6
 
 console = yes
-update-count = 20
+update-count = 100
 
 show_capital_names = yes
 show_system_names = no

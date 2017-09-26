@@ -2,9 +2,9 @@ with Ada.Strings.Unbounded;
 
 with Concorde.Geometry;
 
-with Concorde.Empires;
-with Concorde.Empires.Logging;
-with Concorde.Empires.Relations;
+with Concorde.Factions;
+with Concorde.Factions.Logging;
+with Concorde.Factions.Relations;
 
 with Concorde.Options;
 
@@ -18,7 +18,7 @@ package body Concorde.Ships.Battles is
 
    type Ship_Team is
       record
-         Empire : access constant Concorde.Empires.Root_Empire_Type'Class;
+         Faction : access constant Concorde.Factions.Root_Faction_Type'Class;
          X, Y   : Real;
          Facing : Concorde.Geometry.Radians;
          Count  : Natural;
@@ -36,7 +36,7 @@ package body Concorde.Ships.Battles is
       Ships  : Concorde.Ships.Lists.List)
      return Concorde.Combat.Ship_Combat.Space_Combat_Arena
    is
-      use Concorde.Empires;
+      use Concorde.Factions;
       Teams         : Team_Vectors.Vector;
       Min_Team_Size : Natural := Natural'Last;
 
@@ -55,13 +55,13 @@ package body Concorde.Ships.Battles is
 
       for Ship of Ships loop
          declare
-            Owner      : constant Empire_Type := Empire_Type (Ship.Owner);
+            Owner      : constant Faction_Type := Faction_Type (Ship.Owner);
             New_Team   : Boolean := True;
             Team_Index : Positive;
             Team       : Ship_Team;
          begin
             for I in 1 .. Teams.Last_Index loop
-               if Teams (I).Empire = Owner then
+               if Teams (I).Faction = Owner then
                   Team := Teams (I);
                   Team_Index := I;
                   New_Team := False;
@@ -70,7 +70,7 @@ package body Concorde.Ships.Battles is
 
             if New_Team then
                Team :=
-                 (Empire => Ship.Owner,
+                 (Faction => Ship.Owner,
                   Count  => 0,
                   X      =>
                     (if Teams.Last_Index = 0 then -1000.0 else 1000.0),
@@ -94,7 +94,7 @@ package body Concorde.Ships.Battles is
             begin
                Arena.Add_Combatant
                  (Combatant => Ship,
-                  Empire    => Owner,
+                  Faction    => Owner,
                   X         => Team.X,
                   Y         => Team.Y + DY,
                   Facing    => Team.Facing);
@@ -110,7 +110,7 @@ package body Concorde.Ships.Battles is
          declare
             Size : constant Positive := Team.Count;
          begin
-            Team.Empire.Update.Set (System, Concorde.Empires.Active_Battle);
+            Team.Faction.Update.Set (System, Concorde.Factions.Active_Battle);
 
             if Size < Min_Team_Size then
                Min_Team_Size := Size;
@@ -125,13 +125,13 @@ package body Concorde.Ships.Battles is
          Ts : Unbounded_String;
       begin
          for Team of Teams loop
-            Ts := Ts & " " & Team.Empire.Name;
+            Ts := Ts & " " & Team.Faction.Name;
          end loop;
 
          for Team of Teams loop
             if Min_Team_Size > 5 then
-               Concorde.Empires.Logging.Log
-                 (Empire  => Team.Empire,
+               Concorde.Factions.Logging.Log
+                 (Faction  => Team.Faction,
                   Message =>
                     "The Battle of " & System.Name
                   & (if System.Owned
@@ -139,8 +139,8 @@ package body Concorde.Ships.Battles is
                     else ", disputed system")
                   & " involving" & To_String (Ts));
             else
-               Concorde.Empires.Logging.Log
-                 (Empire  => Team.Empire,
+               Concorde.Factions.Logging.Log
+                 (Faction  => Team.Faction,
                   Message => "Skirmish at " & System.Name & " involving"
                   & To_String (Ts));
             end if;
@@ -149,9 +149,9 @@ package body Concorde.Ships.Battles is
 
       for Team of Teams loop
          for Log_Team of Teams loop
-            Concorde.Empires.Logging.Log
-              (Log_Team.Empire,
-               Team.Empire.Name
+            Concorde.Factions.Logging.Log
+              (Log_Team.Faction,
+               Team.Faction.Name
                & " fleet size:"
                & Natural'Image (Team.Count));
          end loop;
@@ -168,53 +168,54 @@ package body Concorde.Ships.Battles is
    end Create_Arena;
 
    -----------------------
-   -- Empire_Ship_Count --
+   -- Faction_Ship_Count --
    -----------------------
 
-   function Empire_Ship_Count
-     (Empire : Concorde.Empires.Empire_Type;
+   function Faction_Ship_Count
+     (Faction : Concorde.Factions.Faction_Type;
       Ships  : Concorde.Ships.Lists.List)
       return Natural
    is
       Count : Natural := 0;
    begin
       for Ship of Ships loop
-         if Ship.Owner = Empire then
+         if Ship.Owner = Faction then
             Count := Count + 1;
          end if;
       end loop;
       return Count;
-   end Empire_Ship_Count;
+   end Faction_Ship_Count;
 
    ---------------------
-   -- Empires_Present --
+   -- Factions_Present --
    ---------------------
 
-   function Empires_Present
+   function Factions_Present
      (Ships : Concorde.Ships.Lists.List)
-      return Concorde.Empires.Array_Of_Empires
+      return Concorde.Factions.Array_Of_Factions
    is
-      Result : Concorde.Empires.Array_Of_Empires (1 .. Natural (Ships.Length));
+      Result : Concorde.Factions.Array_Of_Factions
+        (1 .. Natural (Ships.Length));
       Count  : Natural := 0;
    begin
       for Ship of Ships loop
          declare
-            use Concorde.Empires;
+            use Concorde.Factions;
             Found : Boolean := False;
          begin
             for I in 1 .. Count loop
-               if Empire_Type (Ship.Owner) = Result (I) then
+               if Faction_Type (Ship.Owner) = Result (I) then
                   Found := True;
                end if;
             end loop;
             if not Found then
                Count := Count + 1;
-               Result (Count) := Empire_Type (Ship.Owner);
+               Result (Count) := Faction_Type (Ship.Owner);
             end if;
          end;
       end loop;
       return Result (1 .. Count);
-   end Empires_Present;
+   end Factions_Present;
 
    ------------------
    -- Has_Conflict --
@@ -224,11 +225,11 @@ package body Concorde.Ships.Battles is
      (Ships : Concorde.Ships.Lists.List)
       return Boolean
    is
-      use Concorde.Empires;
-      Es : constant Array_Of_Empires :=
-             Empires_Present (Ships);
+      use Concorde.Factions;
+      Es : constant Array_Of_Factions :=
+             Factions_Present (Ships);
    begin
-      return Concorde.Empires.Relations.Has_Conflict (Es);
+      return Concorde.Factions.Relations.Has_Conflict (Es);
    end Has_Conflict;
 
    ---------

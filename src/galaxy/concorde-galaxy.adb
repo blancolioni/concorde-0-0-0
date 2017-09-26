@@ -293,7 +293,7 @@ package body Concorde.Galaxy is
 --       (From, To : Concorde.Systems.Star_System_Type;
 --        Count    : Natural)
 --     is
---        use type Concorde.Empires.Empire_Type;
+--        use type Concorde.Factions.Faction_Type;
 --        use Concorde.Systems;
 --        From_Index : constant Positive := From.Index;
 --        To_Index   : constant Positive := To.Index;
@@ -301,7 +301,7 @@ package body Concorde.Galaxy is
 --                       Galaxy_Vector.Element (From_Index);
 --        T          : constant Star_System_Access :=
 --                       Galaxy_Vector.Element (To_Index);
---        Old_Owner  : constant Concorde.Empires.Empire_Type := T.Owner;
+--        Old_Owner  : constant Concorde.Factions.Faction_Type := T.Owner;
 --     begin
 --        F.Set_Fleets (F.Fleets - Count);
 --        if Count > 0 and then T.Fleets = 0

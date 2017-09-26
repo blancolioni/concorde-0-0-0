@@ -198,6 +198,21 @@ package body Concorde.Installations.Production is
                      & " for "
                      & Image (Production_Cost));
 
+                  if Effective_Capacity + Installation.Total_Quantity
+                    > Installation.Maximum_Quantity
+                  then
+                     declare
+                        Lose : constant Quantity :=
+                                 Effective_Capacity
+                                   + Installation.Total_Quantity
+                                 - Installation.Maximum_Quantity;
+                     begin
+                        Installation.Log_Production
+                          ("loses " & Image (Lose) & " due to full storage");
+                        Effective_Capacity := Effective_Capacity - Lose;
+                     end;
+                  end if;
+
                   Installation.Add_Quantity
                     (Resource,
                      Effective_Capacity, Production_Cost);

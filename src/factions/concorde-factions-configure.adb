@@ -5,31 +5,31 @@ with Concorde.Paths;
 
 with Concorde.Options;
 
-with Concorde.Empires.Create;
+with Concorde.Factions.Create;
 
 with Lui.Colours;
 
 with Concorde.Worlds.Tests;
 
-package body Concorde.Empires.Configure is
+package body Concorde.Factions.Configure is
 
    procedure Create_Test_Battle
-     (Attacker, Defender : Empire_Type);
+     (Attacker, Defender : Faction_Type);
 
    --------------------
-   -- Create_Empires --
+   -- Create_Factions --
    --------------------
 
-   procedure Create_Empires (Count : Natural) is
-      Empire_Config : constant Tropos.Configuration :=
+   procedure Create_Factions (Count : Natural) is
+      Faction_Config : constant Tropos.Configuration :=
                         Tropos.Reader.Read_Config
-                          (Concorde.Paths.Config_File ("empires.txt"));
+                          (Concorde.Paths.Config_File ("factions.txt"));
       Current       : Natural := 0;
-      E1, E2        : Empire_Type := null;
+      E1, E2        : Faction_Type := null;
    begin
-      for Config of Empire_Config loop
+      for Config of Faction_Config loop
          exit when Current >= Count;
-         Ada.Text_IO.Put_Line ("New empire: " & Config.Config_Name);
+         Ada.Text_IO.Put_Line ("New Faction: " & Config.Config_Name);
          declare
             Name : constant String :=
                      Config.Get ("name", Config.Config_Name);
@@ -40,10 +40,10 @@ package body Concorde.Empires.Configure is
             Red     : constant Natural := Colour.Get (1);
             Green   : constant Natural := Colour.Get (2);
             Blue    : constant Natural := Colour.Get (3);
-            E       : Empire_Type;
+            E       : Faction_Type;
          begin
             E :=
-              Concorde.Empires.Create.New_Empire
+              Concorde.Factions.Create.New_Faction
                 (Name    => Name,
                  Capital => Capital,
                  Colour  =>
@@ -67,21 +67,21 @@ package body Concorde.Empires.Configure is
          Create_Test_Battle (E1, E2);
       end if;
 
-   end Create_Empires;
+   end Create_Factions;
 
    ------------------------
    -- Create_Test_Battle --
    ------------------------
 
    procedure Create_Test_Battle
-     (Attacker, Defender : Empire_Type)
+     (Attacker, Defender : Faction_Type)
    is
 
       procedure Add_Test_Ships
         (World : Concorde.Worlds.Updateable_Reference);
 
       procedure Bad_Relationship
-        (Empire : in out Root_Empire_Type'Class);
+        (Faction : in out Root_Faction_Type'Class);
 
       --------------------
       -- Add_Test_Ships --
@@ -107,13 +107,13 @@ package body Concorde.Empires.Configure is
       ----------------------
 
       procedure Bad_Relationship
-        (Empire : in out Root_Empire_Type'Class)
+        (Faction : in out Root_Faction_Type'Class)
       is
       begin
-         if Empire.Name = Attacker.Name then
-            Empire.Set_Relationship (Defender.all, -100);
+         if Faction.Name = Attacker.Name then
+            Faction.Set_Relationship (Defender.all, -100);
          else
-            Empire.Set_Relationship (Attacker.all, -100);
+            Faction.Set_Relationship (Attacker.all, -100);
          end if;
       end Bad_Relationship;
 
@@ -124,4 +124,4 @@ package body Concorde.Empires.Configure is
       Db.Update (Defender.Reference, Bad_Relationship'Access);
    end Create_Test_Battle;
 
-end Concorde.Empires.Configure;
+end Concorde.Factions.Configure;

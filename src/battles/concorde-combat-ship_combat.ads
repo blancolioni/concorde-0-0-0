@@ -5,7 +5,7 @@ private with Lui.Rendering;
 
 with Concorde.Geometry;
 
-with Concorde.Empires;
+with Concorde.Factions;
 with Concorde.Modules;
 with Concorde.Ships;
 
@@ -19,17 +19,17 @@ package Concorde.Combat.Ship_Combat is
    procedure Add_Combatant
      (Arena     : in out Root_Space_Combat_Arena'Class;
       Combatant : Concorde.Ships.Ship_Type;
-      Empire    : Concorde.Empires.Empire_Type;
+      Faction    : Concorde.Factions.Faction_Type;
       X, Y      : Real;
       Facing    : Concorde.Geometry.Radians);
 
-   function Empires
+   function Factions
      (Arena : Root_Space_Combat_Arena'Class)
-      return Concorde.Empires.Array_Of_Empires;
+      return Concorde.Factions.Array_Of_Factions;
 
    function Fleet_Size
      (Arena : Root_Space_Combat_Arena'Class;
-      Empire : Concorde.Empires.Empire_Type)
+      Faction : Concorde.Factions.Faction_Type)
       return Natural;
 
    function Total_Combatants
@@ -70,7 +70,7 @@ private
 
    type Team_Record is
       record
-         Leader : Concorde.Empires.Empire_Type;
+         Leader : Concorde.Factions.Faction_Type;
          Ships  : Ship_Index_Vectors.Vector;
       end record;
 
