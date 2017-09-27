@@ -505,8 +505,6 @@ package body Concorde.Factions.Create is
             Concorde.Galaxy.Connect (1, Start_System.Index);
          end if;
 
-         Imperial_Centre := False;
-
       end Create;
 
       ------------------------
@@ -592,6 +590,8 @@ package body Concorde.Factions.Create is
          end if;
 
          Faction.Save_Agent;
+
+         Imperial_Centre := False;
 
          return Faction;
 
