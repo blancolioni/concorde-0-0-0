@@ -42,7 +42,7 @@ private
      (Day     : Date_Type;
       Seconds : Float)
       return Date_Type
-   is (Day + Date_Type (Seconds));
+   is (Day + Date_Type (Seconds / 86400.0));
 
    pragma Import (Intrinsic, "<");
    pragma Import (Intrinsic, "<=");
