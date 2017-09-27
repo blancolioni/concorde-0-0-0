@@ -31,6 +31,13 @@ package Concorde.People.Pops is
 
    type Pop_Type is access constant Root_Pop_Type'Class;
 
+   type Updateable_Reference (Item : not null access Root_Pop_Type'Class)
+   is private with Implicit_Dereference => Item;
+
+   function Update
+     (Item : not null access constant Root_Pop_Type'Class)
+      return Updateable_Reference;
+
 private
 
    type Root_Pop_Type is
@@ -75,5 +82,12 @@ private
    package Db is
      new Memor.Database
        ("pop", Root_Pop_Type, Pop_Type);
+
+   type Updateable_Reference
+     (Item : not null access Root_Pop_Type'Class)
+   is
+      record
+         Update : Db.Updateable_Reference (Item);
+      end record;
 
 end Concorde.People.Pops;
