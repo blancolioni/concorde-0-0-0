@@ -202,6 +202,10 @@ package Concorde.Agents is
      (Agent   : Root_Agent_Type'Class;
       Message : String);
 
+   procedure Log_Movement
+     (Agent   : Root_Agent_Type'Class;
+      Message : String);
+
    procedure Enable_Offer_Logging (Enabled : Boolean := True);
 
    procedure Set_Guarantor
