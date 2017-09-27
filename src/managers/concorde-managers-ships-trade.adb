@@ -112,6 +112,9 @@ package body Concorde.Managers.Ships.Trade is
       Manager.Ship.Log_Trade
         ("activated at " & Concorde.Dates.To_Date_And_Time_String (Time)
          & "; trading from " & From_World.Name & " to " & To_World.Name);
+
+      Manager.Set_Destination (Time, To_World);
+
    end On_Activated;
 
    -------------

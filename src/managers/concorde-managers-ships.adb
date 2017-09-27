@@ -1,6 +1,8 @@
 with Concorde.Signals.Standard;
 
 with Concorde.Dates;
+with Concorde.Random;
+
 with Concorde.Objects.Queues;
 
 package body Concorde.Managers.Ships is
@@ -66,13 +68,15 @@ package body Concorde.Managers.Ships is
 
    procedure Set_Destination
      (Manager : not null access Root_Ship_Manager'Class;
+      Time    : Concorde.Dates.Date_Type;
       World   : not null access constant
         Concorde.Worlds.Root_World_Type'Class)
    is
       use Concorde.Dates;
       Arrival_Date : constant Date_Type :=
                        Add_Seconds
-                         (Current_Date, 100_000.0);
+                         (Time,
+                          Float (1.0e5 * (0.5 + Concorde.Random.Unit_Random)));
    begin
       Manager.Ship.Log_Movement
         ("moving to " & World.Name & "; arrival "

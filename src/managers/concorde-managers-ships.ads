@@ -16,6 +16,7 @@ package Concorde.Managers.Ships is
 
    procedure Set_Destination
      (Manager : not null access Root_Ship_Manager'Class;
+      Time    : Concorde.Dates.Date_Type;
       World   : not null access constant
         Concorde.Worlds.Root_World_Type'Class);
 
