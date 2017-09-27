@@ -31,14 +31,18 @@ package body Concorde.Objects.Queues is
       Now : constant Date_Type := Concorde.Dates.Current_Date;
    begin
       while not Queue.Is_Empty
-        and then Queue.Maximum_Key >= Now
+        and then Queue.Maximum_Key <= Now
       loop
          declare
-            Object : constant Object_Type :=
-                       Queue.Maximum_Element;
+            Time_Stamp : constant Concorde.Dates.Date_Type :=
+                           Queue.Maximum_Key;
+            Object     : constant Object_Type :=
+                           Queue.Maximum_Element;
          begin
             Queue.Delete_Maximum;
-            Object.Signal (Concorde.Signals.Standard.Object_Activated);
+            Object.Signal
+              (Sig   => Concorde.Signals.Standard.Object_Activated,
+               Event => Concorde.Events.Null_Event (Time_Stamp));
          end;
       end loop;
    end Scan_Queue;
