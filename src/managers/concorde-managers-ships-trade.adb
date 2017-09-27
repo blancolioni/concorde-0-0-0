@@ -37,6 +37,7 @@ package body Concorde.Managers.Ships.Trade is
       do
          Manager.Create (Ship);
          Manager.Route.Append (Start);
+         Manager.Current := Manager.Route.First;
          Ship.Update.Add_Handler
            (Concorde.Signals.Standard.Object_Arrived,
             new Ship_Arrival_Handler);
@@ -97,9 +98,20 @@ package body Concorde.Managers.Ships.Trade is
      (Manager : in out Root_Ship_Trade_Manager;
       Time    : Concorde.Dates.Date_Type)
    is
+      use Concorde.Worlds, World_Lists;
+      From_World : constant World_Type := Element (Manager.Current);
+      To_World   : World_Type;
    begin
+      Next (Manager.Current);
+      if not Has_Element (Manager.Current) then
+         Manager.Current := Manager.Route.First;
+      end if;
+
+      To_World := Element (Manager.Current);
+
       Manager.Ship.Log_Trade
-        ("activated at " & Concorde.Dates.To_Date_And_Time_String (Time));
+        ("activated at " & Concorde.Dates.To_Date_And_Time_String (Time)
+         & "; trading from " & From_World.Name & " to " & To_World.Name);
    end On_Activated;
 
    -------------

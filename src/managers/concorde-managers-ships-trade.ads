@@ -36,7 +36,8 @@ private
    type Root_Ship_Trade_Manager is
      new Root_Ship_Manager with
       record
-         Route : World_Lists.List;
+         Route   : World_Lists.List;
+         Current : World_Lists.Cursor;
       end record;
 
    overriding procedure On_Activated
