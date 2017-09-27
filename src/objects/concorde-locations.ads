@@ -5,6 +5,7 @@ with Concorde.Geometry;
 
 with Concorde.Objects;
 limited with Concorde.Systems;
+limited with Concorde.Worlds;
 
 package Concorde.Locations is
 
@@ -109,6 +110,15 @@ package Concorde.Locations is
      (Located : Located_Interface'Class)
       return access constant Concorde.Systems.Root_Star_System_Type'Class
    is (Current_System (Located.Current_Location));
+
+   function Orbiting_World
+     (Located : Located_Interface'Class)
+      return Boolean;
+
+   function Current_World
+     (Located : Located_Interface'Class)
+      return access constant Concorde.Worlds.Root_World_Type'Class
+     with Pre => Located.Orbiting_World;
 
    function Primary_Relative_Position
      (Located : Located_Interface'Class)

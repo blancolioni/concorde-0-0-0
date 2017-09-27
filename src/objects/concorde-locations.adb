@@ -55,6 +55,15 @@ package body Concorde.Locations is
       end case;
    end Current_System;
 
+   -------------------
+   -- Current_World --
+   -------------------
+
+   function Current_World
+     (Located : Located_Interface'Class)
+      return access constant Concorde.Worlds.Root_World_Type'Class
+   is (Concorde.Worlds.Root_World_Type'Class (Located.Orbiting.all)'Access);
+
    --------------------------
    -- Geosynchronous_Orbit --
    --------------------------
@@ -198,6 +207,17 @@ package body Concorde.Locations is
    begin
       return Located.Current_Location.Reference;
    end Orbiting;
+
+   --------------------
+   -- Orbiting_World --
+   --------------------
+
+   function Orbiting_World
+     (Located : Located_Interface'Class)
+      return Boolean
+   is (Located.Current_Location.Loc_Type = Orbit
+       and then Located.Current_Location.Reference.all
+       in Concorde.Worlds.Root_World_Type'Class);
 
    -------------
    -- Primary --
