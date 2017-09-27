@@ -209,16 +209,4 @@ package body Concorde.Objects is
       end loop;
    end Signal;
 
-   ------------
-   -- Signal --
-   ------------
-
-   procedure Signal
-     (Object : not null access constant Root_Object_Type'Class;
-      Sig    : Concorde.Signals.Signal_Type)
-   is
-   begin
-      Object.Signal (Sig, Concorde.Events.Null_Event);
-   end Signal;
-
 end Concorde.Objects;

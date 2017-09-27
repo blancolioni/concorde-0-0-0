@@ -115,10 +115,6 @@ package Concorde.Objects is
       Sig    : Concorde.Signals.Signal_Type;
       Event  : Concorde.Events.Root_Event_Type'Class);
 
-   procedure Signal
-     (Object : not null access constant Root_Object_Type'Class;
-      Sig    : Concorde.Signals.Signal_Type);
-
 private
 
    type Object_Handler_Access is access all Object_Handler_Interface'Class;
