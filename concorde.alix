@@ -4,6 +4,7 @@ source_dir = src/ai
 source_dir = src/battles
 source_dir = src/codes
 source_dir = src/colonies
+source_dir = src/configure
 source_dir = src/driver
 source_dir = src/economy
 source_dir = src/facilities
@@ -23,6 +24,7 @@ source_dir = src/systems
 source_dir = src/ships
 source_dir = src/ui
 source_dir = src/ui/xi
+source_dir = src/update
 source_dir = src/voronoi
 source_dir = src/worlds
 depend = { project = Tropos version = any }
