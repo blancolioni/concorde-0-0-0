@@ -1,6 +1,7 @@
 private with Concorde.Events;
 
 with Concorde.Ships;
+with Concorde.Worlds;
 
 package Concorde.Managers.Ships is
 
@@ -12,6 +13,11 @@ package Concorde.Managers.Ships is
    procedure Create
      (Manager : not null access Root_Ship_Manager'Class;
       Ship    : Concorde.Ships.Ship_Type);
+
+   procedure Set_Destination
+     (Manager : not null access Root_Ship_Manager'Class;
+      World   : not null access constant
+        Concorde.Worlds.Root_World_Type'Class);
 
    type Ship_Manager is access all Root_Ship_Manager'Class;
 
