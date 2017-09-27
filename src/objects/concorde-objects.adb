@@ -203,10 +203,13 @@ package body Concorde.Objects is
       Sig    : Concorde.Signals.Signal_Type;
       Event  : Concorde.Events.Root_Event_Type'Class)
    is
+      Key : constant String := String (Sig);
    begin
-      for Item of Object.Handlers (String (Sig)) loop
-         Item.Handle (Event, Object);
-      end loop;
+      if Object.Handlers.Contains (Key) then
+         for Item of Object.Handlers (Key) loop
+            Item.Handle (Event, Object);
+         end loop;
+      end if;
    end Signal;
 
    ------------
