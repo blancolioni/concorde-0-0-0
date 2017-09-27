@@ -119,15 +119,17 @@ package body Concorde.Updates is
 
       Concorde.Ships.Updates.Delete_Dead_Ships;
 
-      Concorde.Objects.Queues.Scan_Queue;
-
       Concorde.Agents.Updates.Update_Agents
         (Concorde.Agents.Updates.Start_Of_Update'Access);
+
+      Concorde.Objects.Queues.Scan_Queue;
 
       Concorde.Factions.Updates.Update_Factions;
       Concorde.Galaxy.Updates.Update_Galaxy;
 
-      Concorde.Economy.Updates.Daily_Update;
+      if False then
+         Concorde.Economy.Updates.Daily_Update;
+      end if;
 
       Concorde.Ships.Updates.Update_Ship_Orders;
 
