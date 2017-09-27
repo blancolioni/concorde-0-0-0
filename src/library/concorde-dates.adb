@@ -103,14 +103,14 @@ package body Concorde.Dates is
       Date_String : constant String := To_String (Date);
       Days        : constant Date_Type := Date - Date_Type'Truncation (Date);
       Hours       : constant Natural :=
-                      Natural (Days * 24.0);
+                      Natural (Date_Type'Truncation (Days * 24.0));
       Hour_Img    : constant String := Natural'Image (Hours + 100);
       Minutes     : constant Natural :=
                       Natural (Days * 24.0 * 60.0) mod 60;
       Minutes_Img : constant String := Natural'Image (Minutes + 100);
    begin
       return Date_String & " " & Hour_Img (3 .. 4)
-        & ":" & Minutes_Img (3 .. 4) & ":00";
+        & ":" & Minutes_Img (3 .. 4); --  & ":00";
    end To_Date_And_Time_String;
 
    ---------------
