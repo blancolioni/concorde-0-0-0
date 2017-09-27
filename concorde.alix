@@ -14,6 +14,7 @@ source_dir = src/generation
 source_dir = src/governments
 source_dir = src/graphs
 source_dir = src/installations
+source_dir = src/library
 source_dir = src/localisation
 source_dir = src/managers
 source_dir = src/objects
