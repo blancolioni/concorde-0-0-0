@@ -1,3 +1,4 @@
+with Concorde.Dates;
 with Concorde.Events;
 with Concorde.Objects;
 
@@ -9,7 +10,8 @@ package Concorde.Managers is
    procedure Activate (Manager : not null access Root_Manager_Type'Class);
 
    procedure On_Activated
-     (Manager : in out Root_Manager_Type)
+     (Manager : in out Root_Manager_Type;
+      Time    : Concorde.Dates.Date_Type)
    is null;
 
    type Manager_Type is access all Root_Manager_Type'Class;

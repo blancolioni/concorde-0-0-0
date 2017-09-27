@@ -40,7 +40,8 @@ private
       end record;
 
    overriding procedure On_Activated
-     (Manager : in out Root_Ship_Trade_Manager);
+     (Manager : in out Root_Ship_Trade_Manager;
+      Time    : Concorde.Dates.Date_Type);
 
    overriding procedure On_Idle
      (Manager : in out Root_Ship_Trade_Manager);

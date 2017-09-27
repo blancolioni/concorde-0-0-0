@@ -39,9 +39,9 @@ package body Concorde.Managers is
       Object  : not null access constant
         Concorde.Objects.Root_Object_Type'Class)
    is
-      pragma Unreferenced (Event, Object);
+      pragma Unreferenced (Object);
    begin
-      Handler.Manager.On_Activated;
+      Handler.Manager.On_Activated (Event.Time_Stamp);
    end Handle;
 
 end Concorde.Managers;

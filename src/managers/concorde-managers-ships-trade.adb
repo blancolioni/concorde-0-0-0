@@ -94,10 +94,12 @@ package body Concorde.Managers.Ships.Trade is
    ------------------
 
    overriding procedure On_Activated
-     (Manager : in out Root_Ship_Trade_Manager)
+     (Manager : in out Root_Ship_Trade_Manager;
+      Time    : Concorde.Dates.Date_Type)
    is
    begin
-      Manager.Ship.Log_Trade ("activated");
+      Manager.Ship.Log_Trade
+        ("activated at " & Concorde.Dates.To_Date_And_Time_String (Time));
    end On_Activated;
 
    -------------
