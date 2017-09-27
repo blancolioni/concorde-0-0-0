@@ -1,5 +1,8 @@
 with Concorde.Signals.Standard;
 
+with Concorde.Dates;
+with Concorde.Objects.Queues;
+
 package body Concorde.Managers.Ships is
 
    type Ship_Idle_Handler is
@@ -56,5 +59,26 @@ package body Concorde.Managers.Ships is
    begin
       Handler.Manager.On_Idle;
    end Handle_Ship_Event;
+
+   ---------------------
+   -- Set_Destination --
+   ---------------------
+
+   procedure Set_Destination
+     (Manager : not null access Root_Ship_Manager'Class;
+      World   : not null access constant
+        Concorde.Worlds.Root_World_Type'Class)
+   is
+      use Concorde.Dates;
+      Arrival_Date : constant Date_Type :=
+                       Add_Seconds
+                         (Current_Date, 100_000.0);
+   begin
+      Manager.Ship.Log_Movement
+        ("moving to " & World.Name & "; arrival "
+         & To_Date_And_Time_String (Arrival_Date));
+      Concorde.Objects.Queues.Next_Event
+        (Manager.Ship, Arrival_Date);
+   end Set_Destination;
 
 end Concorde.Managers.Ships;
