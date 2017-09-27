@@ -506,6 +506,18 @@ package body Concorde.Agents is
          Category, Message);
    end Log;
 
+   ------------------
+   -- Log_Movement --
+   ------------------
+
+   procedure Log_Movement
+     (Agent   : Root_Agent_Type'Class;
+      Message : String)
+   is
+   begin
+      Agent.Log ("move", Message);
+   end Log_Movement;
+
    ---------------
    -- Log_Price --
    ---------------
