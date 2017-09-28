@@ -9,7 +9,6 @@ package Concorde.Galaxy.Create is
       Shape               : Galaxy_Shape;
       DX, DY, DZ          : Real;
       Average_Connections : Positive;
-      Reset_Seed          : Boolean;
       Name_Generator      : WL.Random.Names.Name_Generator);
    --  Create System_Count systems using the given shape to guide their
    --  positions.  If the given shape (e.g. a spiral) defines a linear

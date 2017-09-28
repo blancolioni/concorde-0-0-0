@@ -4,8 +4,6 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Ada.Float_Text_IO;
 
-with Ada.Numerics.Float_Random;
-
 with WL.Work;
 
 with Tropos.Reader;
@@ -15,6 +13,7 @@ with Tropos.Reader;
 
 with Concorde.Elementary_Functions;
 with Concorde.Geometry;
+with Concorde.Random;
 with Concorde.Voronoi_Diagrams;
 
 with Concorde.Options;
@@ -30,21 +29,19 @@ package body Concorde.Galaxy.Create is
    Connect_Systems : constant Boolean := False;
 
    procedure Cartesian_Location
-     (Gen     : Ada.Numerics.Float_Random.Generator;
-      X, Y, Z : out Real);
+     (X, Y, Z : out Real);
 
    procedure Spherical_Location
-     (Gen     : Ada.Numerics.Float_Random.Generator;
-      X, Y, Z : out Real);
+     (X, Y, Z : out Real);
 
    procedure Spiral_Location
-     (Gen     : Ada.Numerics.Float_Random.Generator;
-      X, Y, Z : out Real);
+     (X, Y, Z : out Real);
 
    function Random_Normal
-     (Gen           : Ada.Numerics.Float_Random.Generator;
-      Std_Deviation : Non_Negative_Real)
+     (Std_Deviation : Non_Negative_Real)
       return Real;
+
+   function Random_Star_Mass return Non_Negative_Real;
 
    function Clamp
      (X          : Real;
@@ -60,14 +57,13 @@ package body Concorde.Galaxy.Create is
    ------------------------
 
    procedure Cartesian_Location
-     (Gen     : Ada.Numerics.Float_Random.Generator;
-      X, Y, Z : out Real)
+     (X, Y, Z : out Real)
    is
-      use Ada.Numerics.Float_Random;
+      use Concorde.Random;
    begin
-      X := Real (Random (Gen) * 2.0 - 1.0);
-      Y := Real (Random (Gen) * 2.0 - 1.0);
-      Z := Real (Random (Gen) * 2.0 - 1.0);
+      X := Unit_Random * 2.0 - 1.0;
+      Y := Unit_Random * 2.0 - 1.0;
+      Z := Unit_Random * 2.0 - 1.0;
    end Cartesian_Location;
 
    ------------------------------
@@ -157,17 +153,17 @@ package body Concorde.Galaxy.Create is
          declare
             use Ada.Strings.Unbounded;
             Rec : Catalogue_Star renames Catalogue_Stars (I);
-            Star : constant Concorde.Stars.Star_Type :=
-                     Concorde.Stars.Create.New_Main_Sequence_Star
-                       (To_String (Rec.Name),
-                        Concorde.Stars.Classification.Solar_Masses
-                          (Rec.Classification));
             System : constant Concorde.Systems.Star_System_Type :=
                        Concorde.Systems.Create.New_System
                          (I, To_String (Rec.Name),
-                          Rec.X / Max_X, Rec.Y / Max_Y, Rec.Z / Max_Z,
-                          Primary => Star);
+                          Rec.X / Max_X, Rec.Y / Max_Y, Rec.Z / Max_Z);
+            Star   : constant Concorde.Stars.Star_Type :=
+                       Concorde.Stars.Create.New_Main_Sequence_Star
+                         (System, To_String (Rec.Name),
+                          Concorde.Stars.Classification.Solar_Masses
+                            (Rec.Classification));
          begin
+            System.Update.Add_Object (Star);
             Galaxy_Graph.Append (System);
          end;
       end loop;
@@ -185,15 +181,12 @@ package body Concorde.Galaxy.Create is
       Shape               : Galaxy_Shape;
       DX, DY, DZ          : Real;
       Average_Connections : Positive;
-      Reset_Seed          : Boolean;
       Name_Generator      : WL.Random.Names.Name_Generator)
    is
-      use Ada.Numerics.Float_Random;
       use Concorde.Systems;
       Min_Distance      : constant Non_Negative_Real :=
                             (1.0 / (2.0 * Real (System_Count)));
       Total_Connections : Natural := 0;
-      Gen               : Generator;
       Influence         : Concorde.Voronoi_Diagrams.Voronoi_Diagram;
       Create_Voronoi    : constant Boolean :=
                             Concorde.Options.Create_Voronoi_Diagram;
@@ -205,10 +198,6 @@ package body Concorde.Galaxy.Create is
         of Natural := (others => 0);
 
    begin
-      if Reset_Seed then
-         Reset (Gen);
-      end if;
-
       Ada.Text_IO.Put_Line ("System count:" & System_Count'Img);
       Ada.Text_IO.Put ("Minimum distance: ");
       Ada.Float_Text_IO.Put (Float (Min_Distance), 1, 8, 0);
@@ -222,22 +211,25 @@ package body Concorde.Galaxy.Create is
          declare
             D : Non_Negative_Real := 0.0;
             X, Y, Z : Real := 0.0;
+            Imperial_Centre : constant Boolean :=
+                                I = 1 and then
+                                    Concorde.Scenarios.Imperial_Centre;
          begin
             Xs (I) := 0.0;
             Ys (I) := 0.0;
 
-            while D < Min_Distance loop
+            while not Imperial_Centre and then D < Min_Distance loop
                Retries := Retries + 1;
                D :=  Non_Negative_Real'Last;
                case Shape is
                   when Cube =>
-                     Cartesian_Location (Gen, X, Y, Z);
+                     Cartesian_Location (X, Y, Z);
                   when Sphere =>
-                     Spherical_Location (Gen, X, Y, Z);
+                     Spherical_Location (X, Y, Z);
                   when Spiral =>
-                     Spiral_Location (Gen, X, Y, Z);
-                     X := X + Random_Normal (Gen, DX);
-                     Y := Y + Random_Normal (Gen, DY);
+                     Spiral_Location (X, Y, Z);
+                     X := X + Random_Normal (DX);
+                     Y := Y + Random_Normal (DY);
 
                      declare
                         use Concorde.Elementary_Functions;
@@ -248,7 +240,7 @@ package body Concorde.Galaxy.Create is
                                        then 1.2 * DZ
                                        else (1.2 / (Orbit + 0.9)) * DZ);
                      begin
-                        Z := Z + Random_Normal (Gen, Radius_DZ);
+                        Z := Z + Random_Normal (Radius_DZ);
                      end;
 
                end case;
@@ -306,7 +298,11 @@ package body Concorde.Galaxy.Create is
               (1 .. Vertex_Count);
             Name     : constant String :=
                          WL.Random.Names.Random_Name
-                           (Name_Generator);
+                               (Name_Generator);
+            Imperial_Centre : constant Boolean :=
+                                I = 1 and then
+                                    Concorde.Scenarios.Imperial_Centre;
+
          begin
             for J in Boundary'Range loop
                Boundary (J) :=
@@ -318,11 +314,17 @@ package body Concorde.Galaxy.Create is
                           Concorde.Systems.Create.New_System
                             (I, Name,
                              Xs (I), Ys (I), Zs (I));
-               Count  : Natural renames
-                          Class_Count
-                            (Concorde.Stars.Star_Type
-                               (System.Main_Object).Stellar_Class);
+               Main_Star : constant Concorde.Stars.Star_Type :=
+                             Concorde.Stars.Create.New_Main_Sequence_Star
+                               (System, Name,
+                                (if Imperial_Centre
+                                 then 1.0
+                                 else Random_Star_Mass));
+               Count     : Natural renames
+                             Class_Count
+                               (Main_Star.Stellar_Class);
             begin
+               System.Update.Add_Object (Main_Star);
                Galaxy_Graph.Append (System);
                Count := Count + 1;
             end;
@@ -541,35 +543,57 @@ package body Concorde.Galaxy.Create is
    -------------------
 
    function Random_Normal
-     (Gen           : Ada.Numerics.Float_Random.Generator;
-      Std_Deviation : Non_Negative_Real)
+     (Std_Deviation : Non_Negative_Real)
       return Real
    is
       Samples : constant := 12;
       T       : Real := 0.0;
    begin
       for I in 1 .. Samples loop
-         T := T + Real (Ada.Numerics.Float_Random.Random (Gen));
+         T := T + Concorde.Random.Unit_Random;
       end loop;
       T := T - Real (Samples) / 2.0;
       T := T * Std_Deviation;
       return T;
    end Random_Normal;
 
+   ----------------------
+   -- Random_Star_Mass --
+   ----------------------
+
+   function Random_Star_Mass return Non_Negative_Real is
+      Seed             : constant Unit_Real := Concorde.Random.Unit_Random;
+      Solar_Mass_Count : Real;
+   begin
+      if Seed <= 0.99 then
+         Solar_Mass_Count :=
+           0.1 + 6.0 * Seed - 15.0 * Seed ** 2
+             + 11.0 * Seed ** 3;
+      else
+         declare
+            X : constant Real := (Seed - 0.99) * 1.0E4;
+            A : constant Real := 0.110833;
+            B : constant Real := -14.0358;
+            C : constant Real := 445.25;
+         begin
+            Solar_Mass_Count := A * X ** 2 + B * X + C;
+         end;
+      end if;
+      return Solar_Mass_Count;
+   end Random_Star_Mass;
+
    ------------------------
    -- Spherical_Location --
    ------------------------
 
    procedure Spherical_Location
-     (Gen     : Ada.Numerics.Float_Random.Generator;
-      X, Y, Z : out Real)
+     (X, Y, Z : out Real)
    is
       use Concorde.Elementary_Functions;
-      R : constant Non_Negative_Real :=
-            Real (Ada.Numerics.Float_Random.Random (Gen));
+      R : constant Non_Negative_Real := Concorde.Random.Unit_Random;
       D : Non_Negative_Real;
    begin
-      Cartesian_Location (Gen, X, Y, Z);
+      Cartesian_Location (X, Y, Z);
       D := Sqrt (X ** 2 + Y ** 2 + Z ** 2);
       X := X / D * R;
       Y := Y / D * R;
@@ -581,20 +605,18 @@ package body Concorde.Galaxy.Create is
    ---------------------
 
    procedure Spiral_Location
-     (Gen     : Ada.Numerics.Float_Random.Generator;
-      X, Y, Z : out Real)
+     (X, Y, Z : out Real)
    is
-      use Ada.Numerics.Float_Random;
+      use Concorde.Random;
       use Concorde.Elementary_Functions;
       use Concorde.Geometry;
-      Degrees     : constant Real :=
-                      (Real (Random (Gen)) * 1440.0);
+      Degrees     : constant Real := Unit_Random * 1440.0;
       Fermat_R    : constant Real :=
                       Sqrt (Degrees) / 40.0
-                      * (if Random (Gen) < 0.5 then -1.0 else 1.0);
+                      * (if Unit_Random < 0.5 then -1.0 else 1.0);
       Archimedes_R : constant Real :=
                       Degrees / 1440.0
-                        * (if Random (Gen) < 0.5 then -1.0 else 1.0);
+                        * (if Unit_Random < 0.5 then -1.0 else 1.0);
       Theta       : constant Radians := Degrees_To_Radians (Degrees);
       R           : constant Real :=
                        (if True then Archimedes_R else Fermat_R);
