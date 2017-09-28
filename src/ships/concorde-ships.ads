@@ -22,6 +22,7 @@ with Concorde.Trades;
 with Concorde.Quantities;
 
 private with Newton;
+with Concorde.Dates;
 
 package Concorde.Ships is
 
@@ -42,24 +43,6 @@ package Concorde.Ships is
    function Owner
      (Ship : Root_Ship_Type'Class)
       return access constant Concorde.Factions.Root_Faction_Type'Class;
-
-   function Has_Destination
-     (Ship : Root_Ship_Type'Class)
-      return Boolean;
-
-   function Destination
-     (Ship : Root_Ship_Type'Class)
-      return access constant Concorde.Worlds.Root_World_Type'Class
-     with Pre => Ship.Has_Destination;
-
-   function Is_Trader
-     (Ship : Root_Ship_Type'Class)
-      return Boolean;
-
-   procedure Set_Trade_Route
-     (Ship   : in out Root_Ship_Type'Class;
-      From   : not null access constant Concorde.Worlds.Root_World_Type'Class;
-      To     : not null access constant Concorde.Worlds.Root_World_Type'Class);
 
    procedure Cycle_Orders
      (Ship  : in out Root_Ship_Type'Class;
@@ -108,14 +91,24 @@ package Concorde.Ships is
         Concorde.Factions.Root_Faction_Type'Class);
 
    procedure Set_Destination
-     (Ship   : in out Root_Ship_Type'Class;
-      World  : not null access constant
-        Concorde.Worlds.Root_World_Type'Class);
+     (Ship         : in out Root_Ship_Type'Class;
+      World        : not null access constant
+        Concorde.Worlds.Root_World_Type'Class;
+      Start_Time   : Concorde.Dates.Date_Type;
+      Arrival_Time : Concorde.Dates.Date_Type);
 
    procedure Set_Destination
-     (Ship   : in out Root_Ship_Type'Class;
-      System  : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class);
+     (Ship         : in out Root_Ship_Type'Class;
+      Destination  : Concorde.Locations.Object_Location;
+      Start_Time   : Concorde.Dates.Date_Type;
+      Arrival_Time : Concorde.Dates.Date_Type);
+
+   procedure Set_Jump_Destination
+     (Ship         : in out Root_Ship_Type'Class;
+      System       : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Start_Time   : Concorde.Dates.Date_Type;
+      Arrival_Time : Concorde.Dates.Date_Type);
 
    procedure Clear_Destination
      (Ship   : in out Root_Ship_Type'Class);
@@ -256,9 +249,6 @@ package Concorde.Ships is
 
    type Ship_Type is access constant Root_Ship_Type'Class;
 
-   procedure On_Arrival
-     (Ship : in out Root_Ship_Type'Class);
-
    function Count_Ships
      (Test : not null access function
         (Ship : Ship_Type)
@@ -311,16 +301,17 @@ private
          Ship_Name             : Ada.Strings.Unbounded.Unbounded_String;
          Owner                 : access constant
            Concorde.Factions.Root_Faction_Type'Class;
-         Location              : Concorde.Locations.Object_Location;
-         Dest_World            : access constant Worlds.Root_World_Type'Class;
-         Dest_System           : access constant
-           Concorde.Systems.Root_Star_System_Type'Class;
-         Orders                : List_Of_Orders.List;
-         Buy_Requirements      : Concorde.Commodities.Root_Stock_Type;
+         Destination           : Concorde.Locations.Object_Location;
+         Start_Time            : Concorde.Dates.Date_Type;
+         Arrival_Time          : Concorde.Dates.Date_Type;
+         Moving                : Boolean := False;
+         Jumping               : Boolean := False;
          Cycle_Orders          : Boolean := False;
          Alive                 : Boolean := True;
          Is_Trader             : Boolean := False;
          Have_Trade_Orders     : Boolean := False;
+         Orders                : List_Of_Orders.List;
+         Buy_Requirements      : Concorde.Commodities.Root_Stock_Type;
          Trade_From            : access constant Worlds.Root_World_Type'Class;
          Trade_To              : access constant Worlds.Root_World_Type'Class;
          Structure             : Module_Vectors.Vector;
@@ -368,6 +359,17 @@ private
 
    overriding procedure Add_Trade_Offers
      (Ship : not null access constant Root_Ship_Type);
+
+   overriding function Location_At
+     (Ship : Root_Ship_Type;
+      Time : Concorde.Dates.Date_Type)
+      return Concorde.Locations.Object_Location
+   is (if Ship.Moving
+       then Concorde.Locations.Intermediate_Location
+         (Ship.Current_Location, Ship.Destination,
+          Concorde.Dates.Relative_Time
+            (Ship.Start_Time, Ship.Arrival_Time, Time))
+       else Ship.Current_Location);
 
    overriding function Offer_Strategy
      (Ship : Root_Ship_Type;

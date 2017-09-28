@@ -15,6 +15,8 @@ with Concorde.Agents;
 with Concorde.Trades;
 with Concorde.Objects;
 with Concorde.Systems;
+with Concorde.Dates;
+with Concorde.Locations;
 
 package Concorde.Factions is
 
@@ -364,6 +366,12 @@ private
    overriding procedure Set_Name
      (Faction : in out Root_Faction_Type;
       Name   : String);
+
+   overriding function Location_At
+     (Faction : Root_Faction_Type;
+      Time    : Concorde.Dates.Date_Type)
+      return Concorde.Locations.Object_Location
+   is (Root_Faction_Type'Class (Faction).Current_Location);
 
    overriding procedure Add_Trade_Offers
      (Faction : not null access constant Root_Faction_Type)

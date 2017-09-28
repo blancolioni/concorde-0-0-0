@@ -15,7 +15,6 @@ with Xtk;
 
 with Concorde.Paths;
 
-with Concorde.Dates;
 with Concorde.Logging;
 
 with Concorde.Factions.Configure;
@@ -43,9 +42,6 @@ with Concorde.Agents;
 procedure Concorde.Driver is
 
    Name_Generator : WL.Random.Names.Name_Generator;
-
-   Check_Invariants : constant Boolean :=
-                        Concorde.Options.Check_Invariants;
 
    Interface_Name   : constant String :=
                         Concorde.Options.Interface_Name;
@@ -120,11 +116,8 @@ begin
          Concorde.Galaxy.Locking.Init_Locking;
 
          for I in 1 .. Concorde.Options.Number_Of_Updates loop
-            Concorde.Updates.Perform_Update
-              (Execute_Battles  => True,
-               Check_Invariants => Check_Invariants);
+            Concorde.Updates.Advance (86_400.0);
             Process.Tick;
-            Concorde.Dates.Tick (86_400.0);
          end loop;
          Process.Finish;
       end;

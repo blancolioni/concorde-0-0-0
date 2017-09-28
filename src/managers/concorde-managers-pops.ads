@@ -26,8 +26,7 @@ private
       end record;
 
    overriding procedure On_Activated
-     (Manager : in out Root_Pop_Manager;
-      Time    : Concorde.Dates.Date_Type);
+     (Manager : in out Root_Pop_Manager);
 
    type Root_Pop_Event_Handler is
      abstract new Concorde.Objects.Object_Handler_Interface with

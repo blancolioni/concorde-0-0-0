@@ -88,6 +88,18 @@ package body Concorde.Stars is
    end Radius;
 
    ------------------
+   -- Set_Location --
+   ------------------
+
+   overriding procedure Set_Location
+     (Star     : in out Root_Star_Type;
+      Location : Concorde.Locations.Object_Location)
+   is
+   begin
+      Star.Location := Location;
+   end Set_Location;
+
+   ------------------
    -- Solar_Masses --
    ------------------
 

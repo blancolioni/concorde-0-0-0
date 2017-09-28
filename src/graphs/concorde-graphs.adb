@@ -319,10 +319,9 @@ package body Concorde.Graphs is
    --------------
 
    function Get_Path (P         : Path) return Array_Of_Vertices is
-      Result : Array_Of_Vertices (1 .. Natural (P.Edges.Length) + 1);
-      Count  : Positive := 1;
+      Result : Array_Of_Vertices (1 .. Natural (P.Edges.Length));
+      Count  : Natural := 0;
    begin
-      Result (Count) := P.Start;
       for Edge of P.Edges loop
          Count := Count + 1;
          Result (Count) := Edge.To;

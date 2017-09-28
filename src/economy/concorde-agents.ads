@@ -110,6 +110,12 @@ package Concorde.Agents is
      (Agent : Root_Agent_Type)
       return Concorde.Locations.Object_Location;
 
+   overriding function Location_At
+     (Agent : Root_Agent_Type;
+      Time  : Concorde.Dates.Date_Type)
+      return Concorde.Locations.Object_Location
+   is (Root_Agent_Type'Class (Agent).Current_Location);
+
    overriding procedure Set_Location
      (Agent    : in out Root_Agent_Type;
       Location : Concorde.Locations.Object_Location);

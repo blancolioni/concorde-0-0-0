@@ -13,6 +13,7 @@ with Concorde.Geometry;
 with Concorde.Quantities;
 
 with Concorde.Dates;
+with Concorde.Locations;
 with Concorde.Objects;
 with Concorde.Ships;
 
@@ -25,7 +26,8 @@ package Concorde.Systems is
 
    type Star_System_Object_Interface is limited interface
      and Concorde.Objects.Massive_Object_Interface
-     and Concorde.Objects.Named_Object_Interface;
+     and Concorde.Objects.Named_Object_Interface
+     and Concorde.Locations.Located_Interface;
 
    function Radius (Object : Star_System_Object_Interface)
                     return Non_Negative_Real
@@ -55,9 +57,9 @@ package Concorde.Systems is
    function Period (Object : Star_System_Object_Interface'Class)
                     return Non_Negative_Real;
 
-   function Primary_Relative_Position
-     (Object : Star_System_Object_Interface'Class)
-      return Newton.Vector_3;
+--     function Primary_Relative_Position
+--       (Object : Star_System_Object_Interface'Class)
+--        return Newton.Vector_3;
 
    type Root_Star_System_Type is
      new Concorde.Objects.Root_User_Named_Object_Type

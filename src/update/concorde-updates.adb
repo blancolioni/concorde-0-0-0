@@ -1,24 +1,21 @@
 with Ada.Unchecked_Deallocation;
 
 with Concorde.Dates;
-with Concorde.Logging;
+--  with Concorde.Logging;
 
 with Concorde.Objects.Queues;
 
-with Concorde.Agents.Updates;
-with Concorde.Economy.Updates;
-with Concorde.Factions.Updates;
-with Concorde.Galaxy.Updates;
-with Concorde.Ships.Updates;
-
-with Concorde.Ships.Invariants;
+--  with Concorde.Agents.Updates;
+--  with Concorde.Economy.Updates;
+--  with Concorde.Factions.Updates;
+--
+--  with Concorde.Ships.Invariants;
 
 with Concorde.Galaxy.Locking;
 
 with Concorde.Locking;
-with Concorde.Options;
 
-with Concorde.Factions.Logging;
+--  with Concorde.Factions.Logging;
 
 package body Concorde.Updates is
 
@@ -26,7 +23,7 @@ package body Concorde.Updates is
 --                      (0.1, 2.0, 1.0, 0.5, 0.2, 0.01);
 
    task type Update_Task is
-      entry Daily_Update;
+      entry Update;
       entry Stop;
    end Update_Task;
 
@@ -44,8 +41,17 @@ package body Concorde.Updates is
 
    Render_Lock : Concorde.Locking.Lock;
 
-   Check_Invariants   : Boolean := False;
-   Show_Battle_Screen : Boolean := True;
+   -------------
+   -- Advance --
+   -------------
+
+   procedure Advance (Interval : Duration) is
+   begin
+      Render_Lock.Exclusive;
+      Concorde.Dates.Tick (Interval);
+      Concorde.Objects.Queues.Scan_Queue;
+      Render_Lock.Unlock;
+   end Advance;
 
    ------------------
    -- Begin_Render --
@@ -61,8 +67,6 @@ package body Concorde.Updates is
    -----------------------
 
    task body Date_Manager_Task is
-      use type Concorde.Dates.Day_Index;
-      Current_Day : Concorde.Dates.Day_Index := 1;
       Current_Acceleration : Non_Negative_Real := 0.0;
    begin
       loop
@@ -72,13 +76,8 @@ package body Concorde.Updates is
                  (Actual_Seconds * Duration (Current_Acceleration));
             end Tick;
 
-            if Concorde.Dates.Get_Day (Concorde.Dates.Current_Date)
-              /= Current_Day
-            then
-               Current_Day :=
-                 Concorde.Dates.Get_Day (Concorde.Dates.Current_Date);
-               Current_Update_Task.Daily_Update;
-            end if;
+            Current_Update_Task.Update;
+
          or
             accept Set_Speed_Factor (Factor : in Non_Negative_Real) do
                Current_Acceleration := Factor;
@@ -103,54 +102,54 @@ package body Concorde.Updates is
    -- Perform_Update --
    --------------------
 
-   procedure Perform_Update
-     (Execute_Battles  : Boolean;
-      Check_Invariants : Boolean)
-   is
-   begin
-      Render_Lock.Exclusive;
-
-      Concorde.Logging.Start_Update;
-
-      if Check_Invariants then
-         Concorde.Factions.Check_Invariants;
-         Concorde.Ships.Invariants.Check_Invariants;
-      end if;
-
-      Concorde.Ships.Updates.Delete_Dead_Ships;
-
-      Concorde.Agents.Updates.Update_Agents
-        (Concorde.Agents.Updates.Start_Of_Update'Access);
-
-      Concorde.Objects.Queues.Scan_Queue;
-
-      Concorde.Factions.Updates.Update_Factions;
-      Concorde.Galaxy.Updates.Update_Galaxy;
-
-      if False then
-         Concorde.Economy.Updates.Daily_Update;
-      end if;
-
-      Concorde.Ships.Updates.Update_Ship_Orders;
-
-      if Execute_Battles then
-         Concorde.Galaxy.Complete_Battles;
-      end if;
-
-      Concorde.Agents.Updates.Update_Agents
-        (Concorde.Agents.Updates.End_Of_Update'Access);
-
-      Concorde.Factions.Logging.Flush_Log;
-
-      if Check_Invariants then
-         Concorde.Factions.Check_Invariants;
-         Concorde.Ships.Invariants.Check_Invariants;
-      end if;
-
-      Concorde.Logging.Finish_Update;
-
-      Render_Lock.Unlock;
-   end Perform_Update;
+--     procedure Perform_Update
+--       (Execute_Battles  : Boolean;
+--        Check_Invariants : Boolean)
+--     is
+--     begin
+--        Render_Lock.Exclusive;
+--
+--        Concorde.Logging.Start_Update;
+--
+--        if Check_Invariants then
+--           Concorde.Factions.Check_Invariants;
+--           Concorde.Ships.Invariants.Check_Invariants;
+--        end if;
+--
+--  --      Concorde.Ships.Updates.Delete_Dead_Ships;
+--
+--        Concorde.Agents.Updates.Update_Agents
+--          (Concorde.Agents.Updates.Start_Of_Update'Access);
+--
+--        Concorde.Objects.Queues.Scan_Queue;
+--
+--        Concorde.Factions.Updates.Update_Factions;
+--  --        Concorde.Galaxy.Updates.Update_Galaxy;
+--
+--        if False then
+--           Concorde.Economy.Updates.Daily_Update;
+--        end if;
+--
+--  --      Concorde.Ships.Updates.Update_Ship_Orders;
+--
+--        if Execute_Battles then
+--           Concorde.Galaxy.Complete_Battles;
+--        end if;
+--
+--        Concorde.Agents.Updates.Update_Agents
+--          (Concorde.Agents.Updates.End_Of_Update'Access);
+--
+--        Concorde.Factions.Logging.Flush_Log;
+--
+--        if Check_Invariants then
+--           Concorde.Factions.Check_Invariants;
+--           Concorde.Ships.Invariants.Check_Invariants;
+--        end if;
+--
+--        Concorde.Logging.Finish_Update;
+--
+--        Render_Lock.Unlock;
+--     end Perform_Update;
 
    ---------------------------
    -- Set_Time_Acceleration --
@@ -167,8 +166,6 @@ package body Concorde.Updates is
 
    procedure Start_Updates is
    begin
-      Check_Invariants := Concorde.Options.Check_Invariants;
-      Show_Battle_Screen := Concorde.Options.Show_Battle_Screen;
       Concorde.Galaxy.Locking.Init_Locking;
       Current_Update_Task := new Update_Task;
    end Start_Updates;
@@ -205,10 +202,8 @@ package body Concorde.Updates is
             accept Stop;
             exit;
          or
-            accept Daily_Update;
-            Perform_Update
-              (Execute_Battles  => not Show_Battle_Screen,
-               Check_Invariants => Check_Invariants);
+            accept Update;
+            Concorde.Objects.Queues.Scan_Queue;
          or
             terminate;
          end select;

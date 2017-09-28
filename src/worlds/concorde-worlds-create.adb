@@ -1367,6 +1367,9 @@ package body Concorde.Worlds.Create is
          World.Orbit_Progress :=
            Concorde.Geometry.Degrees_To_Radians
              (Concorde.Random.Unit_Random * 360.0);
+         World.Location :=
+           Concorde.Locations.Circular_Orbit
+             (Primary, World.Semimajor_Axis);
 
          World.Set_Name (Name);
 

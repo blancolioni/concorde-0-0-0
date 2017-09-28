@@ -44,7 +44,8 @@ package body Concorde.Managers.Pops is
    is
       pragma Unreferenced (Object);
    begin
-      Handler.Manager.On_Activated (Event.Time_Stamp);
+      Handler.Manager.Time := Event.Time_Stamp;
+      Handler.Manager.On_Activated;
    end Handle;
 
    ------------------
@@ -52,13 +53,13 @@ package body Concorde.Managers.Pops is
    ------------------
 
    overriding procedure On_Activated
-     (Manager : in out Root_Pop_Manager;
-      Time    : Concorde.Dates.Date_Type)
+     (Manager : in out Root_Pop_Manager)
    is
    begin
       Manager.Pop.Log_Trade
         ("activated at "
-         & Concorde.Dates.To_Date_And_Time_String (Time));
+         & Concorde.Dates.To_Date_And_Time_String
+           (Manager.Time));
       Manager.Pop.Add_Trade_Offers;
    end On_Activated;
 

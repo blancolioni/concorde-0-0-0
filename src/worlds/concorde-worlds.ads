@@ -34,6 +34,7 @@ with Concorde.Locations;
 private with Concorde.Commodities.Lists;
 private with Concorde.Installations.Lists;
 private with Concorde.People.Pops.Lists;
+with Concorde.Dates;
 
 package Concorde.Worlds is
 
@@ -343,6 +344,7 @@ private
            Concorde.Factions.Root_Faction_Type'Class;
          Primary               : access constant
            Concorde.Systems.Star_System_Object_Interface'Class;
+         Location              : Concorde.Locations.Object_Location;
          Semimajor_Axis        : Non_Negative_Real;
          Eccentricity          : Unit_Real;
          Orbit_Progress        : Concorde.Geometry.Radians;
@@ -409,6 +411,21 @@ private
      (World : Root_World_Type)
       return access Concorde.Systems.Star_System_Object_Interface'Class
    is (World.Primary);
+
+   overriding function Current_Location
+     (World : Root_World_Type)
+      return Concorde.Locations.Object_Location
+   is (World.Location);
+
+   overriding function Location_At
+     (World : Root_World_Type;
+      Time    : Concorde.Dates.Date_Type)
+      return Concorde.Locations.Object_Location
+   is (Concorde.Locations.Location_At (World.Location, Time));
+
+   overriding procedure Set_Location
+     (World    : in out Root_World_Type;
+      Location : Concorde.Locations.Object_Location);
 
    overriding function Age
      (World : Root_World_Type)

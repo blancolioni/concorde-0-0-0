@@ -10,6 +10,8 @@ with Concorde.Systems;
 with Concorde.Commodities;
 
 private with Concorde.Geometry;
+with Concorde.Locations;
+with Concorde.Dates;
 
 package Concorde.Stars is
 
@@ -67,6 +69,7 @@ private
      and Concorde.Systems.Main_Star_System_Object_Interface with
       record
          System       : Concorde.Systems.Star_System_Type;
+         Location     : Concorde.Locations.Object_Location;
          Class        : Stellar_Class_Type;
          Subclass     : Stellar_Subclass_Type;
          Size         : Stellar_Size_Type;
@@ -94,6 +97,21 @@ private
      (Star : Root_Star_Type)
       return access Concorde.Systems.Star_System_Object_Interface'Class
    is (null);
+
+   overriding function Current_Location
+     (Star : Root_Star_Type)
+      return Concorde.Locations.Object_Location
+   is (Star.Location);
+
+   overriding function Location_At
+     (Star : Root_Star_Type;
+      Time    : Concorde.Dates.Date_Type)
+      return Concorde.Locations.Object_Location
+   is (Concorde.Locations.Location_At (Star.Location, Time));
+
+   overriding procedure Set_Location
+     (Star    : in out Root_Star_Type;
+      Location : Concorde.Locations.Object_Location);
 
    overriding function Semimajor_Axis
      (Star : Root_Star_Type)

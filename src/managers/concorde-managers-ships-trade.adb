@@ -95,26 +95,29 @@ package body Concorde.Managers.Ships.Trade is
    ------------------
 
    overriding procedure On_Activated
-     (Manager : in out Root_Ship_Trade_Manager;
-      Time    : Concorde.Dates.Date_Type)
+     (Manager : in out Root_Ship_Trade_Manager)
    is
       use Concorde.Worlds, World_Lists;
       From_World : constant World_Type := Element (Manager.Current);
       To_World   : World_Type;
    begin
-      Next (Manager.Current);
-      if not Has_Element (Manager.Current) then
-         Manager.Current := Manager.Route.First;
+      if not Manager.Journey.Is_Empty then
+         Root_Ship_Manager (Manager).On_Activated;
+      else
+         Next (Manager.Current);
+         if not Has_Element (Manager.Current) then
+            Manager.Current := Manager.Route.First;
+         end if;
+
+         To_World := Element (Manager.Current);
+
+         Manager.Ship.Log_Trade
+           ("activated at "
+            & Concorde.Dates.To_Date_And_Time_String (Manager.Time)
+            & "; trading from " & From_World.Name & " to " & To_World.Name);
+
+         Manager.Set_Destination (To_World);
       end if;
-
-      To_World := Element (Manager.Current);
-
-      Manager.Ship.Log_Trade
-        ("activated at " & Concorde.Dates.To_Date_And_Time_String (Time)
-         & "; trading from " & From_World.Name & " to " & To_World.Name);
-
-      Manager.Set_Destination (Time, To_World);
-
    end On_Activated;
 
    -------------

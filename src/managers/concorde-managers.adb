@@ -41,7 +41,8 @@ package body Concorde.Managers is
    is
       pragma Unreferenced (Object);
    begin
-      Handler.Manager.On_Activated (Event.Time_Stamp);
+      Handler.Manager.Time := Event.Time_Stamp;
+      Handler.Manager.On_Activated;
    end Handle;
 
 end Concorde.Managers;

@@ -4,8 +4,6 @@ with Concorde.Options;
 
 with Concorde.Worlds.Create;
 
-with Concorde.Dates;
-
 package body Concorde.Worlds is
 
    ----------------------
@@ -746,6 +744,18 @@ package body Concorde.Worlds is
       Sector.Height :=
         Height_Range (Height + Min_Height - 1);
    end Set_Height;
+
+   ------------------
+   -- Set_Location --
+   ------------------
+
+   overriding procedure Set_Location
+     (World    : in out Root_World_Type;
+      Location : Concorde.Locations.Object_Location)
+   is
+   begin
+      World.Location := Location;
+   end Set_Location;
 
    ---------------
    -- Set_Owner --

@@ -19,6 +19,11 @@ package Concorde.Locations is
    function Short_Name (Location : Object_Location) return String;
    function Long_Name (Location : Object_Location) return String;
 
+   function Location_At
+     (Location : Object_Location;
+      Time     : Concorde.Dates.Date_Type)
+      return Object_Location;
+
    function Primary
      (Location : Object_Location)
       return Concorde.Objects.Object_Type;
@@ -30,6 +35,18 @@ package Concorde.Locations is
    function Current_System
      (Location : Object_Location)
       return access constant Concorde.Systems.Root_Star_System_Type'Class;
+
+   subtype Orbital_Location is Object_Location (Orbit);
+   subtype System_Point_Location is Object_Location (System_Point);
+
+   function Get_Orbit_Location
+     (Orbit_Loc : Orbital_Location;
+      Time      : Concorde.Dates.Date_Type)
+      return System_Point_Location;
+
+   function To_System_Point
+     (Loc : Object_Location)
+      return System_Point_Location;
 
    function Nowhere return Object_Location;
 
@@ -47,7 +64,7 @@ package Concorde.Locations is
       return Object_Location;
 
    function System_Transfer_Orbit
-     (System : not null access constant
+     (From_System, To_System : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
       return Object_Location;
 
@@ -56,15 +73,21 @@ package Concorde.Locations is
         Concorde.Objects.Massive_Object_Interface'Class)
       return Object_Location;
 
-   function Orbit
+   function Altitude_Orbit
+     (Primary        : not null access constant
+        Concorde.Systems.Star_System_Object_Interface'Class;
+      Altitude       : Non_Negative_Real)
+      return Object_Location;
+
+   function Circular_Orbit
      (Primary        : not null access constant
         Concorde.Objects.Massive_Object_Interface'Class;
-      Altitude       : Real)
+      Radius         : Non_Negative_Real)
       return Object_Location;
 
    function System_Point
      (Primary           : not null access constant
-        Concorde.Systems.Star_System_Object_Interface'Class;
+        Concorde.Systems.Root_Star_System_Type'Class;
       Relative_Position : Newton.Vector_3;
       Relative_Velocity : Newton.Vector_3)
       return Object_Location;
@@ -73,6 +96,11 @@ package Concorde.Locations is
      (World  : not null access constant
         Concorde.Objects.Root_Object_Type'Class;
       Sector : Positive)
+      return Object_Location;
+
+   function Intermediate_Location
+     (Start, Finish : Object_Location;
+      Progress      : Unit_Real)
       return Object_Location;
 
    function World_Sector
@@ -84,10 +112,20 @@ package Concorde.Locations is
         Concorde.Objects.Root_Object_Type'Class)
       return Object_Location;
 
+   function System_Distance
+     (From, To : Object_Location)
+      return Non_Negative_Real;
+
    type Located_Interface is limited interface;
 
    function Current_Location
      (Located : Located_Interface)
+      return Object_Location
+      is abstract;
+
+   function Location_At
+     (Located : Located_Interface;
+      Time    : Concorde.Dates.Date_Type)
       return Object_Location
       is abstract;
 

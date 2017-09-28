@@ -406,8 +406,7 @@ package body Concorde.Ships is
      (Ship   : in out Root_Ship_Type'Class)
    is
    begin
-      Ship.Dest_World := null;
-      Ship.Dest_System := null;
+      Ship.Moving := False;
    end Clear_Destination;
 
    ------------------
@@ -486,18 +485,6 @@ package body Concorde.Ships is
    begin
       return Ship.Current_Damage;
    end Damage;
-
-   -----------------
-   -- Destination --
-   -----------------
-
-   function Destination
-     (Ship : Root_Ship_Type'Class)
-      return access constant Concorde.Worlds.Root_World_Type'Class
-   is
-   begin
-      return Ship.Dest_World;
-   end Destination;
 
    ----------------
    -- Empty_Mass --
@@ -693,19 +680,6 @@ package body Concorde.Ships is
       return False;
    end Has_Colonisation_Order;
 
-   ---------------------
-   -- Has_Destination --
-   ---------------------
-
-   function Has_Destination
-     (Ship : Root_Ship_Type'Class)
-      return Boolean
-   is
-      use type Memor.Database_Reference;
-   begin
-      return Ship.Dest_World /= null;
-   end Has_Destination;
-
    --------------------------
    -- Has_Effective_Engine --
    --------------------------
@@ -789,18 +763,6 @@ package body Concorde.Ships is
    end Hold_Size;
 
    ---------------
-   -- Is_Trader --
-   ---------------
-
-   function Is_Trader
-     (Ship : Root_Ship_Type'Class)
-      return Boolean
-   is
-   begin
-      return Ship.Is_Trader;
-   end Is_Trader;
-
-   ---------------
    -- Long_Name --
    ---------------
 
@@ -849,22 +811,6 @@ package body Concorde.Ships is
    begin
       return Db.Get_Database;
    end Object_Database;
-
-   ----------------
-   -- On_Arrival --
-   ----------------
-
-   procedure On_Arrival
-     (Ship : in out Root_Ship_Type'Class)
-   is
-   begin
-      Ship.Set_Location
-        (Concorde.Locations.Geosynchronous_Orbit
-           (Ship.Destination));
-      Ship.Set_Market (Ship.Destination.Market);
-      Ship.Clear_Destination;
-      Ship.Execute_Arrival_Orders;
-   end On_Arrival;
 
    ---------------------
    -- On_Update_Start --
@@ -946,13 +892,16 @@ package body Concorde.Ships is
    ---------------------
 
    procedure Set_Destination
-     (Ship   : in out Root_Ship_Type'Class;
-      World : not null access constant
-        Concorde.Worlds.Root_World_Type'Class)
+     (Ship         : in out Root_Ship_Type'Class;
+      World        : not null access constant
+        Concorde.Worlds.Root_World_Type'Class;
+      Start_Time   : Concorde.Dates.Date_Type;
+      Arrival_Time : Concorde.Dates.Date_Type)
    is
    begin
-      Ship.Dest_World := World;
-      Ship.Dest_System := World.System;
+      Ship.Set_Destination
+        (Concorde.Locations.Geosynchronous_Orbit (World),
+         Start_Time, Arrival_Time);
    end Set_Destination;
 
    ---------------------
@@ -960,14 +909,39 @@ package body Concorde.Ships is
    ---------------------
 
    procedure Set_Destination
-     (Ship    : in out Root_Ship_Type'Class;
-      System  : not null access constant
-        Concorde.Systems.Root_Star_System_Type'Class)
+     (Ship         : in out Root_Ship_Type'Class;
+      Destination  : Concorde.Locations.Object_Location;
+      Start_Time   : Concorde.Dates.Date_Type;
+      Arrival_Time : Concorde.Dates.Date_Type)
    is
    begin
-      Ship.Dest_World := null;
-      Ship.Dest_System := System;
+      Ship.Destination := Destination;
+      Ship.Moving := True;
+      Ship.Jumping := False;
+      Ship.Start_Time := Start_Time;
+      Ship.Arrival_Time := Arrival_Time;
    end Set_Destination;
+
+   --------------------------
+   -- Set_Jump_Destination --
+   --------------------------
+
+   procedure Set_Jump_Destination
+     (Ship         : in out Root_Ship_Type'Class;
+      System       : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Start_Time   : Concorde.Dates.Date_Type;
+      Arrival_Time : Concorde.Dates.Date_Type)
+   is
+   begin
+      Ship.Destination :=
+        Concorde.Locations.System_Transfer_Orbit
+          (System, Ship.Current_System);
+      Ship.Moving := True;
+      Ship.Jumping := True;
+      Ship.Start_Time := Start_Time;
+      Ship.Arrival_Time := Arrival_Time;
+   end Set_Jump_Destination;
 
    --------------
    -- Set_Name --
@@ -994,25 +968,6 @@ package body Concorde.Ships is
    begin
       Ship.Owner := New_Owner;
    end Set_Owner;
-
-   ---------------------
-   -- Set_Trade_Route --
-   ---------------------
-
-   procedure Set_Trade_Route
-     (Ship   : in out Root_Ship_Type'Class;
-      From   : not null access constant Concorde.Worlds.Root_World_Type'Class;
-      To     : not null access constant Concorde.Worlds.Root_World_Type'Class)
-   is
-   begin
-      Ship.Trade_From := From;
-      Ship.Trade_To := To;
-      Ship.Is_Trader := True;
-      Ship.Have_Trade_Orders := False;
-      if not Ship.Orbiting (From) then
-         Ship.Set_Destination (From);
-      end if;
-   end Set_Trade_Route;
 
    -------------
    -- Shields --

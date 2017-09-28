@@ -14,14 +14,14 @@ package body Concorde.Ships.Invariants is
       -- Check --
       -----------
 
-      procedure Check (Ship : Ship_Type) is
-      begin
-         pragma Assert
-           (not Ship.Has_Destination
-            or else not Ship.Orbiting (Ship.Destination),
-            Ship.Short_Description
-            & " has current system as destination");
-      end Check;
+      procedure Check (Ship : Ship_Type) is null;
+--        begin
+--           pragma Assert
+--             (not Ship.Has_Destination
+--              or else not Ship.Orbiting (Ship.Destination),
+--              Ship.Short_Description
+--              & " has current system as destination");
+--        end Check;
 
    begin
       Concorde.Ships.Db.Scan (Check'Access);

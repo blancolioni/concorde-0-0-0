@@ -9,7 +9,7 @@ package Concorde.Dates is
 
    function Add_Seconds
      (Day     : Date_Type;
-      Seconds : Float)
+      Seconds : Real)
       return Date_Type;
 
    procedure Tick (Simulation_Seconds : Duration);
@@ -19,6 +19,9 @@ package Concorde.Dates is
    function To_Date_And_Time_String (Date : Date_Type) return String;
 
    function "-" (Left, Right : Date_Type) return Duration;
+   function "+" (Left : Date_Type;
+                 Interval : Duration)
+                 return Date_Type;
 
    function "<" (Left, Right : Date_Type) return Boolean;
    function "<=" (Left, Right : Date_Type) return Boolean;
@@ -32,6 +35,11 @@ package Concorde.Dates is
 
    function Get_Day (Date : Date_Type) return Day_Index;
 
+   function Relative_Time
+     (Start, Finish : Date_Type;
+      Current       : Date_Type)
+      return Real;
+
 private
 
    type Date_Type is new Long_Float;
@@ -40,9 +48,20 @@ private
 
    function Add_Seconds
      (Day     : Date_Type;
-      Seconds : Float)
+      Seconds : Real)
       return Date_Type
    is (Day + Date_Type (Seconds / 86400.0));
+
+   function "+" (Left     : Date_Type;
+                 Interval : Duration)
+                 return Date_Type
+   is (Left + Date_Type (Interval) / 86400.0);
+
+   function Relative_Time
+     (Start, Finish : Date_Type;
+      Current       : Date_Type)
+      return Real
+   is ((Real (Current) - Real (Start)) / (Real (Finish) - Real (Start)));
 
    pragma Import (Intrinsic, "<");
    pragma Import (Intrinsic, "<=");

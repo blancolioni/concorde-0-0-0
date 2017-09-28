@@ -45,7 +45,7 @@ package body Concorde.People.Pops.Create is
            (Pop,
             Concorde.Dates.Add_Seconds
               (Concorde.Dates.Current_Date,
-               Float (Concorde.Random.Unit_Random) * 86_400.0));
+               Concorde.Random.Unit_Random * 86_400.0));
       end return;
    end New_Pop;
 

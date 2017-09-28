@@ -10,8 +10,7 @@ package Concorde.Managers is
    procedure Activate (Manager : not null access Root_Manager_Type'Class);
 
    procedure On_Activated
-     (Manager : in out Root_Manager_Type;
-      Time    : Concorde.Dates.Date_Type)
+     (Manager : in out Root_Manager_Type)
    is null;
 
    type Manager_Type is access all Root_Manager_Type'Class;
@@ -22,6 +21,7 @@ private
       record
          Active : Boolean := True;
          Object : access constant Concorde.Objects.Root_Object_Type'Class;
+         Time   : Concorde.Dates.Date_Type;
       end record;
 
    type Object_Activated_Handler is

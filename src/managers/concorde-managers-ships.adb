@@ -5,6 +5,11 @@ with Concorde.Random;
 
 with Concorde.Objects.Queues;
 
+with Concorde.Galaxy;
+with Concorde.Systems.Graphs;
+
+with Concorde.Ships.Navigation;
+
 package body Concorde.Managers.Ships is
 
    type Ship_Idle_Handler is
@@ -43,8 +48,8 @@ package body Concorde.Managers.Ships is
       Object  : not null access constant
         Concorde.Objects.Root_Object_Type'Class)
    is
-      pragma Unreferenced (Event);
    begin
+      Handler.Manager.Time := Event.Time_Stamp;
       Root_Ship_Event_Handler'Class (Handler).Handle_Ship_Event
         (Concorde.Ships.Ship_Type (Object));
    end Handle;
@@ -62,27 +67,136 @@ package body Concorde.Managers.Ships is
       Handler.Manager.On_Idle;
    end Handle_Ship_Event;
 
+   -------------------
+   -- Next_Waypoint --
+   -------------------
+
+   procedure Next_Waypoint
+     (Manager : in out Root_Ship_Manager'Class)
+   is
+      use Concorde.Dates;
+      Waypoint : constant Journey_Element_Type :=
+                   Manager.Journey.First_Element;
+      Departure    : constant Date_Type := Manager.Time;
+      Journey_Time : constant Duration :=
+                       (case Waypoint.Class is
+                           when World_Element =>
+                              Concorde.Ships.Navigation.Journey_Time
+                          (Manager.Ship, Departure,
+                           Waypoint.World.Current_Location),
+                           when System_Element =>
+                              Concorde.Ships.Navigation.Journey_Time
+                          (Manager.Ship, Manager.Time,
+                           Waypoint.Point),
+                           when Jump_Element   =>
+                              Duration
+                          (100_000.0
+                           * (Concorde.Random.Unit_Random + 0.5)));
+      Arrival      : constant Date_Type := Departure + Journey_Time;
+   begin
+      Manager.Journey.Delete_First;
+
+      case Waypoint.Class is
+         when World_Element =>
+            Manager.Ship.Log_Movement
+              ("heading to world: " & Waypoint.World.Name);
+            Manager.Ship.Update.Set_Destination
+              (Waypoint.World, Departure, Arrival);
+
+         when System_Element =>
+            Manager.Ship.Log_Movement
+              ("heading to system orbit: "
+               & Concorde.Locations.Short_Name
+                 (Waypoint.Point));
+
+            Manager.Ship.Update.Set_Destination
+              (Waypoint.Point, Departure, Arrival);
+
+         when Jump_Element =>
+            Manager.Ship.Log_Movement
+              ("jumping to " & Waypoint.Target.Name);
+
+            Manager.Ship.Update.Set_Jump_Destination
+              (Waypoint.Target, Departure, Arrival);
+      end case;
+
+      Manager.Ship.Log_Movement
+        ("journey time"
+         & Natural'Image (Natural (Real (Journey_Time) / 86400.0 - 0.5))
+         & " days; arrival at "
+         & To_Date_And_Time_String (Arrival));
+
+      Concorde.Objects.Queues.Next_Event
+        (Manager.Ship, Arrival);
+
+   end Next_Waypoint;
+
+   ------------------
+   -- On_Activated --
+   ------------------
+
+   overriding procedure On_Activated (Manager : in out Root_Ship_Manager) is
+   begin
+      if not Manager.Journey.Is_Empty then
+         Manager.Next_Waypoint;
+      end if;
+   end On_Activated;
+
    ---------------------
    -- Set_Destination --
    ---------------------
 
    procedure Set_Destination
      (Manager : not null access Root_Ship_Manager'Class;
-      Time    : Concorde.Dates.Date_Type;
       World   : not null access constant
         Concorde.Worlds.Root_World_Type'Class)
    is
       use Concorde.Dates;
-      Arrival_Date : constant Date_Type :=
-                       Add_Seconds
-                         (Time,
-                          Float (1.0e5 * (0.5 + Concorde.Random.Unit_Random)));
+      use type Concorde.Systems.Star_System_Type;
+      Target_System : constant Concorde.Systems.Star_System_Type :=
+                        World.System;
+      Current_System : constant Concorde.Systems.Star_System_Type :=
+                         Manager.Ship.Current_System;
+      Journey : Journey_Element_Lists.List;
    begin
-      Manager.Ship.Log_Movement
-        ("moving to " & World.Name & "; arrival "
-         & To_Date_And_Time_String (Arrival_Date));
-      Concorde.Objects.Queues.Next_Event
-        (Manager.Ship, Arrival_Date);
+      if Target_System /= Current_System then
+         declare
+            use Concorde.Galaxy;
+            Path : constant Concorde.Systems.Graphs.Array_Of_Vertices :=
+                     Shortest_Path (Current_System, Target_System);
+            Current : Concorde.Systems.Star_System_Type := Current_System;
+         begin
+            for Waypoint_Vertex of Path loop
+               declare
+                  Waypoint : constant Concorde.Systems.Star_System_Type :=
+                               Concorde.Systems.Get (Waypoint_Vertex);
+               begin
+                  Manager.Ship.Log_Movement
+                    ("waypoint: " & Waypoint.Name);
+                  Journey.Append
+                    (Journey_Element_Type'
+                       (Class  => System_Element,
+                        Point  =>
+                          Concorde.Locations.System_Transfer_Orbit
+                            (Current, Waypoint)));
+                  Journey.Append
+                    (Journey_Element_Type'
+                       (Class  => Jump_Element,
+                        Target => Waypoint));
+                  Current := Waypoint;
+               end;
+            end loop;
+         end;
+      end if;
+
+      Journey.Append
+        (Journey_Element_Type'
+           (Class  => World_Element,
+            World  => Concorde.Worlds.World_Type (World)));
+      Manager.Journey := Journey;
+
+      Manager.Next_Waypoint;
+
    end Set_Destination;
 
 end Concorde.Managers.Ships;

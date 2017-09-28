@@ -83,7 +83,7 @@ package body Concorde.Dates is
 
    function Get_Day (Date : Date_Type) return Day_Index is
    begin
-      return Day_Index (Date);
+      return Day_Index (Date_Type'Truncation (Date));
    end Get_Day;
 
    ----------
@@ -106,7 +106,8 @@ package body Concorde.Dates is
                       Natural (Date_Type'Truncation (Days * 24.0));
       Hour_Img    : constant String := Natural'Image (Hours + 100);
       Minutes     : constant Natural :=
-                      Natural (Days * 24.0 * 60.0) mod 60;
+                      Natural
+                        (Date_Type'Truncation (Days * 24.0 * 60.0)) mod 60;
       Minutes_Img : constant String := Natural'Image (Minutes + 100);
    begin
       return Date_String & " " & Hour_Img (3 .. 4)

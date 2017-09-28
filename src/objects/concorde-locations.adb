@@ -1,9 +1,12 @@
 with Ada.Numerics;
 
+with Xi.Float_Arrays;
+
 with Concorde.Constants;
 with Concorde.Solar_System;
 with Concorde.Elementary_Functions;
 with Concorde.Random;
+with Concorde.Real_Images;
 
 with Concorde.Installations;
 with Concorde.Ships;
@@ -12,6 +15,25 @@ with Concorde.Systems;
 with Concorde.Worlds;
 
 package body Concorde.Locations is
+
+   --------------------
+   -- Altitude_Orbit --
+   --------------------
+
+   function Altitude_Orbit
+     (Primary        : not null access constant
+        Concorde.Systems.Star_System_Object_Interface'Class;
+      Altitude       : Non_Negative_Real)
+      return Object_Location
+   is
+      Primary_Radius : constant Non_Negative_Real := Primary.Radius;
+      Radius         : constant Non_Negative_Real :=
+                         Primary_Radius + Altitude;
+      Result         : constant Object_Location :=
+                         Circular_Orbit (Primary, Radius);
+   begin
+      return Result;
+   end Altitude_Orbit;
 
    ---------------------
    -- At_Installation --
@@ -27,6 +49,26 @@ package body Concorde.Locations is
    end At_Installation;
 
    --------------------
+   -- Circular_Orbit --
+   --------------------
+
+   function Circular_Orbit
+     (Primary        : not null access constant
+        Concorde.Objects.Massive_Object_Interface'Class;
+      Radius         : Non_Negative_Real)
+      return Object_Location
+   is
+      use Concorde.Elementary_Functions;
+      V       : constant Non_Negative_Real :=
+                  Sqrt (Concorde.Constants.Gravitational_Constant
+                        * Primary.Mass / Radius);
+   begin
+      return Orbit (Primary,
+                    Position => (Radius, 0.0, 0.0),
+                    Velocity => (0.0, V, 0.0));
+   end Circular_Orbit;
+
+   --------------------
    -- Current_System --
    --------------------
 
@@ -40,7 +82,9 @@ package body Concorde.Locations is
             return null;
          when Interstellar =>
             return null;
-         when Orbit | World_Surface | System_Point =>
+         when System_Point =>
+            return Concorde.Systems.Star_System_Type (Location.Reference);
+         when Orbit | World_Surface =>
             return Concorde.Systems.Star_System_Object_Interface'Class
               (Location.Reference.all).System;
          when On_Ship =>
@@ -93,6 +137,35 @@ package body Concorde.Locations is
                     Velocity => (0.0, V, 0.0));
    end Geosynchronous_Orbit;
 
+   ------------------------
+   -- Get_Orbit_Location --
+   ------------------------
+
+   function Get_Orbit_Location
+     (Orbit_Loc : Orbital_Location;
+      Time      : Concorde.Dates.Date_Type)
+      return System_Point_Location
+   is
+      pragma Unreferenced (Time);
+   begin
+      return (System_Point, Orbit_Loc.Reference,
+              Relative_Position => Orbit_Loc.Apoapsis,
+              Relative_Velocity => (0.0, 1.0, 0.0));
+   end Get_Orbit_Location;
+
+   ---------------------------
+   -- Intermediate_Location --
+   ---------------------------
+
+   function Intermediate_Location
+     (Start, Finish : Object_Location;
+      Progress      : Unit_Real)
+      return Object_Location
+   is
+   begin
+      return (if Progress < 1.0 then Start else Finish);
+   end Intermediate_Location;
+
    ---------------------------
    -- Interstellar_Location --
    ---------------------------
@@ -109,6 +182,36 @@ package body Concorde.Locations is
               Concorde.Objects.Object_Type (System_2),
               Progress);
    end Interstellar_Location;
+
+   -----------------
+   -- Location_At --
+   -----------------
+
+   function Location_At
+     (Location : Object_Location;
+      Time     : Concorde.Dates.Date_Type)
+      return Object_Location
+   is
+   begin
+      case Location.Loc_Type is
+         when Nowhere =>
+            return Location;
+         when Interstellar =>
+            return Location;
+         when System_Point =>
+            return Location;
+         when Orbit =>
+            return Get_Orbit_Location (Location, Time);
+         when World_Surface =>
+            return Location;
+         when On_Ship =>
+            return Location;
+         when At_Installation =>
+            return Location;
+         when In_Unit =>
+            return Location;
+      end case;
+   end Location_At;
 
    ---------------
    -- Long_Name --
@@ -155,30 +258,6 @@ package body Concorde.Locations is
               Position, -Position,
               Concorde.Dates.Current_Date,
               Concorde.Random.Unit_Random, Duration (Period), True);
-   end Orbit;
-
-   -----------
-   -- Orbit --
-   -----------
-
-   function Orbit
-     (Primary        : not null access constant
-        Concorde.Objects.Massive_Object_Interface'Class;
-      Altitude       : Real)
-      return Object_Location
-   is
-      use Concorde.Elementary_Functions;
-      World   : constant Concorde.Worlds.World_Type :=
-                  Concorde.Worlds.World_Type (Primary);
-      R       : constant Non_Negative_Real :=
-                  World.Radius + Altitude;
-      V       : constant Non_Negative_Real :=
-                  2.0 * Ada.Numerics.Pi * R
-                    / World.Day_Length;
-   begin
-      return Orbit (Primary,
-                    Position => (R, 0.0, 0.0),
-                    Velocity => (0.0, V, 0.0));
    end Orbit;
 
    --------------
@@ -270,9 +349,12 @@ package body Concorde.Locations is
               & Concorde.Systems.Star_System_Type
               (Location.Destination_System).Name;
          when System_Point =>
-            return "near "
+            return Concorde.Real_Images.Approximate_Image
+              (Xi.Float_Arrays."abs" (Location.Relative_Position)
+               / Concorde.Solar_System.Earth_Orbit)
+              & " AU from "
               & Concorde.Systems.Star_System_Type
-              (Location.Destination_System).Name;
+              (Location.Reference).Name;
          when Orbit =>
             return "orbiting "
               & Concorde.Systems.Star_System_Object_Interface'Class
@@ -293,13 +375,28 @@ package body Concorde.Locations is
       end case;
    end Short_Name;
 
+   ---------------------
+   -- System_Distance --
+   ---------------------
+
+   function System_Distance
+     (From, To : Object_Location)
+      return Non_Negative_Real
+   is
+      use Xi.Float_Arrays;
+      pragma Assert (From in System_Point_Location);
+      pragma Assert (To in System_Point_Location);
+   begin
+      return abs (From.Relative_Position - To.Relative_Position);
+   end System_Distance;
+
    ------------------
    -- System_Point --
    ------------------
 
    function System_Point
      (Primary           : not null access constant
-        Concorde.Systems.Star_System_Object_Interface'Class;
+        Concorde.Systems.Root_Star_System_Type'Class;
       Relative_Position : Newton.Vector_3;
       Relative_Velocity : Newton.Vector_3)
       return Object_Location
@@ -314,22 +411,63 @@ package body Concorde.Locations is
    ---------------------------
 
    function System_Transfer_Orbit
-     (System : not null access constant
+     (From_System, To_System : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class)
       return Object_Location
    is
+      use Xi.Float_Arrays;
       Star : constant Concorde.Stars.Star_Type :=
                Concorde.Stars.Star_Type
-                 (System.Main_Object);
+                 (From_System.Main_Object);
       Distance : constant Non_Negative_Real :=
-                   Star.Mass / Concorde.Solar_System.Earth_Mass
+                   Star.Mass / Concorde.Solar_System.Solar_Mass
                      * Concorde.Solar_System.Earth_Orbit * 10.0;
+      X1       : constant Real := From_System.X;
+      X2       : constant Real := To_System.X;
+      Y1       : constant Real := From_System.Y;
+      Y2       : constant Real := To_System.Y;
+      Z1       : constant Real := From_System.Z;
+      Z2       : constant Real := To_System.Z;
+      V        : constant Real_Vector :=
+                   (X1, Y1, Z1) - (X2, Y2, Z2);
+      U        : constant Real_Vector := V / abs V;
    begin
-      return Orbit
-        (Primary  => Star,
-         Position => (Distance, 0.0, 0.0),
-         Velocity => (1.0, 0.0, 0.0));
+
+      return System_Point
+        (Primary           => From_System,
+         Relative_Position => Distance * U,
+         Relative_Velocity => U);
    end System_Transfer_Orbit;
+
+   ---------------------
+   -- To_System_Point --
+   ---------------------
+
+   function To_System_Point
+     (Loc : Object_Location)
+      return System_Point_Location
+   is
+   begin
+      case Loc.Loc_Type is
+         when Nowhere =>
+            raise Constraint_Error
+              with "cannot convert nowhere to a system point";
+         when Interstellar =>
+            raise Constraint_Error
+              with "cannot convert " & Short_Name (Loc)
+              & " to a system point";
+         when System_Point =>
+            return Loc;
+         when Orbit =>
+            return (System_Point, Loc.Reference,
+                    Relative_Position => Loc.Apoapsis,
+                    Relative_Velocity => (0.0, 1.0, 0.0));
+         when World_Surface | On_Ship | At_Installation | In_Unit =>
+            return To_System_Point
+              (Located_Interface'Class
+                 (Loc.Reference.all).Current_Location);
+      end case;
+   end To_System_Point;
 
    ------------------
    -- World_Sector --

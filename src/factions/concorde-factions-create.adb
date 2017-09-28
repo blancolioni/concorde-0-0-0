@@ -1,7 +1,7 @@
 with Ada.Text_IO;
 
 with Concorde.Random;
-with Concorde.Real_Images;
+--  with Concorde.Real_Images;
 
 with Concorde.Dates;
 with Concorde.Objects.Queues;
@@ -56,79 +56,6 @@ package body Concorde.Factions.Create is
                       World  => World,
                       Design => "defender");
 
-      procedure Initial_Trade_Route
-        (Ship : Concorde.Ships.Ship_Type)
-        with Unreferenced;
-
-      -------------------------
-      -- Initial_Trade_Route --
-      -------------------------
-
-      procedure Initial_Trade_Route
-        (Ship : Concorde.Ships.Ship_Type)
-      is
-         Capital  : constant Concorde.Worlds.World_Type :=
-                      Galaxy.Capital_World;
-         Food     : constant Commodities.Array_Of_Commodities :=
-                      Commodities.Get (Commodities.Food);
-         Clothing  : constant Commodities.Array_Of_Commodities :=
-                       Commodities.Get (Commodities.Clothing);
-         Resources : constant Commodities.Array_Of_Commodities :=
-                       World.Resources;
-         Organics  : constant Commodities.Array_Of_Commodities :=
-                       Concorde.Commodities.Get
-                         (Concorde.Commodities.Organic);
-      begin
-
-         if True then
-            Ship.Update.Set_Trade_Route (World, Capital);
-         else
-
-            for Item of Food loop
-               Ship.Update.Add_Sell_Order (World, Item);
-            end loop;
-
-            for Item of Clothing loop
-               Ship.Update.Add_Sell_Order (World, Item);
-            end loop;
-
-            for Item of Organics loop
-               Ship.Update.Add_Buy_Order (World, Item, Ship.Hold_Quantity);
-            end loop;
-
-            for R of Resources loop
-               Ship.Update.Add_Buy_Order (World, R, Ship.Hold_Quantity);
-            end loop;
-
-            for Item of Organics loop
-               Ship.Update.Add_Sell_Order (Capital, Item);
-            end loop;
-
-            for R of Resources loop
-               Ship.Update.Add_Sell_Order (Capital, R);
-            end loop;
-
-            declare
-               Buy_Factor : Unit_Real := 0.4;
-            begin
-               for Item of Food loop
-                  Ship.Update.Add_Buy_Order
-                    (Capital, Item,
-                     Quantities.Scale (Ship.Hold_Quantity, Buy_Factor));
-                  Buy_Factor := Buy_Factor / 4.0;
-               end loop;
-
-               for Item of Clothing loop
-                  Ship.Update.Add_Buy_Order
-                    (Capital, Item,
-                     Quantities.Scale (Ship.Hold_Quantity, Buy_Factor));
-               end loop;
-            end;
-         end if;
-
-         Ship.Update.Cycle_Orders (True);
-      end Initial_Trade_Route;
-
    begin
 
       World.Update.Add_Ship (Defender);
@@ -167,7 +94,7 @@ package body Concorde.Factions.Create is
               (Trader,
                Concorde.Dates.Add_Seconds
                  (Concorde.Dates.Current_Date,
-                  Float (Concorde.Random.Unit_Random) * 86_400.0));
+                  Concorde.Random.Unit_Random * 86_400.0));
 
             Trader.Log_Trade ("new trade ship");
          end;
@@ -421,29 +348,32 @@ package body Concorde.Factions.Create is
                      begin
                         if W.Category = Terrestrial then
                            if W.Minimum_Temperature < 220.0 then
-                              New_Faction.Log
-                                ("setup",
-                                 "Rejecting " & W.Name &
-                                   " because min temperature is "
-                                 & Concorde.Real_Images.Approximate_Image
-                                   (W.Minimum_Temperature - 273.0)
-                                 & " degrees");
+                              null;
+--                                New_Faction.Log
+--                                  ("setup",
+--                                   "Rejecting " & W.Name &
+--                                     " because min temperature is "
+--                                   & Concorde.Real_Images.Approximate_Image
+--                                     (W.Minimum_Temperature - 273.0)
+--                                   & " degrees");
                            elsif W.Maximum_Temperature > 3730.0 then
-                              New_Faction.Log
-                                ("setup",
-                                 "Rejecting " & W.Name &
-                                   " because max temperature is "
-                                 & Concorde.Real_Images.Approximate_Image
-                                   (W.Maximum_Temperature - 273.0)
-                                 & " degrees");
+                              null;
+--                                New_Faction.Log
+--                                  ("setup",
+--                                   "Rejecting " & W.Name &
+--                                     " because max temperature is "
+--                                   & Concorde.Real_Images.Approximate_Image
+--                                     (W.Maximum_Temperature - 273.0)
+--                                   & " degrees");
                            elsif W.Hydrosphere not in 0.2 .. 0.75 then
-                              New_Faction.Log
-                                ("setup",
-                                 "Rejecting " & W.Name &
-                                   " because hydrosphere is "
-                                 & Concorde.Real_Images.Approximate_Image
-                                   (W.Hydrosphere * 100.0)
-                                 & "%");
+                              null;
+--                                New_Faction.Log
+--                                  ("setup",
+--                                   "Rejecting " & W.Name &
+--                                     " because hydrosphere is "
+--                                   & Concorde.Real_Images.Approximate_Image
+--                                     (W.Hydrosphere * 100.0)
+--                                   & "%");
                            else
                               Good_Starting_World := True;
                               Start_World := W;
@@ -478,7 +408,7 @@ package body Concorde.Factions.Create is
               OK_For_Start'Access);
 
          New_Faction.New_Agent
-           (Concorde.Locations.Nowhere,
+           (Concorde.Locations.World_Surface (Start_World, 1),
             null,
             Concorde.Quantities.Zero);
 
@@ -566,7 +496,9 @@ package body Concorde.Factions.Create is
 
          Start_World.Update.Set_Owner (Faction);
          Start_World.Update.Set_Capital (True);
-         Start_World.Update.Set_Name (Capital);
+         if True then
+            Start_World.Update.Set_Name (Capital);
+         end if;
 
          Start_World.Check_Loaded;
 

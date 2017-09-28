@@ -4,7 +4,7 @@ interface = xi
 randomise = no
 create_voronoi = no
 
-faction_count = 99
+faction_count = 3
 system_count = 5000
 
 create_galaxy = yes
@@ -23,7 +23,7 @@ market_logging = yes
 minimum_battle_size = 6
 
 console = yes
-update-count = 100
+update-count = 10
 
 show_capital_names = yes
 show_system_names = no

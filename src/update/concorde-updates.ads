@@ -5,9 +5,7 @@ package Concorde.Updates is
 
    procedure Set_Time_Acceleration (Acceleration : Non_Negative_Real);
 
-   procedure Perform_Update
-     (Execute_Battles  : Boolean;
-      Check_Invariants : Boolean);
+   procedure Advance (Interval : Duration);
 
    procedure Begin_Render;
    procedure Finish_Render;

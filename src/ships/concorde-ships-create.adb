@@ -69,10 +69,8 @@ package body Concorde.Ships.Create is
          Ship.Set_Guarantor (Owner);
          Ship.Set_Cash (Concorde.Money.To_Money (10_000.0));
          Ship.Set_Location
-           (Concorde.Locations.Orbit
-              (World, 300_000.0));
-         Ship.Dest_World := null;
-         Ship.Dest_System := null;
+           (Concorde.Locations.Circular_Orbit
+              (World, World.Radius + 300_000.0));
          Ship.Alive := True;
 
          declare

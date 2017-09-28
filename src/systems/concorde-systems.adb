@@ -5,7 +5,6 @@ with Concorde.Solar_System;
 
 with Concorde.Elementary_Functions;
 
-with Concorde.Locations;
 with Concorde.Worlds;
 with Concorde.Stars;
 
@@ -135,9 +134,9 @@ package body Concorde.Systems is
       for Ship of System.Arriving loop
          System.Add_Ship (Ship);
 
-         if Ship.Destination.System.Index = System.Index then
-            Ship.Update.On_Arrival;
-         end if;
+--           if Ship.Destination.System.Index = System.Index then
+--              Ship.Update.On_Arrival;
+--           end if;
       end loop;
    end Commit_Ship_Movement;
 
@@ -386,17 +385,17 @@ package body Concorde.Systems is
    -- Primary_Relative_Position --
    -------------------------------
 
-   function Primary_Relative_Position
-     (Object : Star_System_Object_Interface'Class)
-      return Newton.Vector_3
-   is
-      use Newton.Matrices;
-      use Concorde.Geometry;
-      R     : constant Non_Negative_Real := Object.Semimajor_Axis;
-      Theta : constant Radians := Object.Orbit_Progress;
-   begin
-      return (R * Cos (Theta), 0.0, R * Sin (Theta));
-   end Primary_Relative_Position;
+--     function Primary_Relative_Position
+--       (Object : Star_System_Object_Interface'Class)
+--        return Newton.Vector_3
+--     is
+--        use Newton.Matrices;
+--        use Concorde.Geometry;
+--        R     : constant Non_Negative_Real := Object.Semimajor_Axis;
+--        Theta : constant Radians := Object.Orbit_Progress;
+--     begin
+--        return (R * Cos (Theta), 0.0, R * Sin (Theta));
+--     end Primary_Relative_Position;
 
    -----------------------
    -- Remove_Dead_Ships --
