@@ -18,7 +18,7 @@ package body Concorde.Ships.Navigation is
       D    : constant Non_Negative_Real :=
                System_Distance (From, To);
    begin
-      return Duration (D / 10_000_000.0);
+      return Duration (D / 5_000_000.0);
    end Journey_Time;
 
 end Concorde.Ships.Navigation;

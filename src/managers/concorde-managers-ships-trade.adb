@@ -90,45 +90,26 @@ package body Concorde.Managers.Ships.Trade is
                   (Ship.Current_Location));
    end Handle_Ship_Event;
 
-   ------------------
-   -- On_Activated --
-   ------------------
-
-   overriding procedure On_Activated
+   overriding procedure On_Idle
      (Manager : in out Root_Ship_Trade_Manager)
    is
       use Concorde.Worlds, World_Lists;
       From_World : constant World_Type := Element (Manager.Current);
       To_World   : World_Type;
    begin
-      if not Manager.Journey.Is_Empty then
-         Root_Ship_Manager (Manager).On_Activated;
-      else
-         Next (Manager.Current);
-         if not Has_Element (Manager.Current) then
-            Manager.Current := Manager.Route.First;
-         end if;
-
-         To_World := Element (Manager.Current);
-
-         Manager.Ship.Log_Trade
-           ("activated at "
-            & Concorde.Dates.To_Date_And_Time_String (Manager.Time)
-            & "; trading from " & From_World.Name & " to " & To_World.Name);
-
-         Manager.Set_Destination (To_World);
+      Next (Manager.Current);
+      if not Has_Element (Manager.Current) then
+         Manager.Current := Manager.Route.First;
       end if;
-   end On_Activated;
 
-   -------------
-   -- On_Idle --
-   -------------
+      To_World := Element (Manager.Current);
 
-   overriding procedure On_Idle
-     (Manager : in out Root_Ship_Trade_Manager)
-   is
-   begin
-      Manager.Ship.Log_Trade ("idle");
+      Manager.Ship.Log_Trade
+        ("activated at "
+         & Concorde.Dates.To_Date_And_Time_String (Manager.Time)
+         & "; trading from " & From_World.Name & " to " & To_World.Name);
+
+      Manager.Set_Destination (To_World);
    end On_Idle;
 
 end Concorde.Managers.Ships.Trade;

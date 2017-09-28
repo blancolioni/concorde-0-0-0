@@ -896,12 +896,12 @@ package body Concorde.Ships is
       World        : not null access constant
         Concorde.Worlds.Root_World_Type'Class;
       Start_Time   : Concorde.Dates.Date_Type;
-      Arrival_Time : Concorde.Dates.Date_Type)
+      Journey_Time : Duration)
    is
    begin
       Ship.Set_Destination
         (Concorde.Locations.Geosynchronous_Orbit (World),
-         Start_Time, Arrival_Time);
+         Start_Time, Journey_Time);
    end Set_Destination;
 
    ---------------------
@@ -912,14 +912,15 @@ package body Concorde.Ships is
      (Ship         : in out Root_Ship_Type'Class;
       Destination  : Concorde.Locations.Object_Location;
       Start_Time   : Concorde.Dates.Date_Type;
-      Arrival_Time : Concorde.Dates.Date_Type)
+      Journey_Time : Duration)
    is
+      use Concorde.Dates;
    begin
       Ship.Destination := Destination;
       Ship.Moving := True;
       Ship.Jumping := False;
       Ship.Start_Time := Start_Time;
-      Ship.Arrival_Time := Arrival_Time;
+      Ship.Arrival_Time := Start_Time + Journey_Time;
    end Set_Destination;
 
    --------------------------
@@ -931,8 +932,9 @@ package body Concorde.Ships is
       System       : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
       Start_Time   : Concorde.Dates.Date_Type;
-      Arrival_Time : Concorde.Dates.Date_Type)
+      Journey_Time : Duration)
    is
+      use Concorde.Dates;
    begin
       Ship.Destination :=
         Concorde.Locations.System_Transfer_Orbit
@@ -940,7 +942,7 @@ package body Concorde.Ships is
       Ship.Moving := True;
       Ship.Jumping := True;
       Ship.Start_Time := Start_Time;
-      Ship.Arrival_Time := Arrival_Time;
+      Ship.Arrival_Time := Start_Time + Journey_Time;
    end Set_Jump_Destination;
 
    --------------

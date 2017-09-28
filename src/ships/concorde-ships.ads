@@ -90,25 +90,29 @@ package Concorde.Ships is
       New_Owner : not null access constant
         Concorde.Factions.Root_Faction_Type'Class);
 
+   function Destination
+     (Ship : Root_Ship_Type'Class)
+      return Concorde.Locations.Object_Location;
+
    procedure Set_Destination
      (Ship         : in out Root_Ship_Type'Class;
       World        : not null access constant
         Concorde.Worlds.Root_World_Type'Class;
       Start_Time   : Concorde.Dates.Date_Type;
-      Arrival_Time : Concorde.Dates.Date_Type);
+      Journey_Time : Duration);
 
    procedure Set_Destination
      (Ship         : in out Root_Ship_Type'Class;
       Destination  : Concorde.Locations.Object_Location;
       Start_Time   : Concorde.Dates.Date_Type;
-      Arrival_Time : Concorde.Dates.Date_Type);
+      Journey_Time : Duration);
 
    procedure Set_Jump_Destination
      (Ship         : in out Root_Ship_Type'Class;
       System       : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
       Start_Time   : Concorde.Dates.Date_Type;
-      Arrival_Time : Concorde.Dates.Date_Type);
+      Journey_Time : Duration);
 
    procedure Clear_Destination
      (Ship   : in out Root_Ship_Type'Class);
@@ -379,6 +383,11 @@ private
 
    overriding procedure On_Update_Start
      (Ship : in out Root_Ship_Type);
+
+   function Destination
+     (Ship : Root_Ship_Type'Class)
+      return Concorde.Locations.Object_Location
+   is (Ship.Destination);
 
    package Db is
      new Memor.Database

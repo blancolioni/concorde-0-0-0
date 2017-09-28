@@ -78,21 +78,7 @@ package body Concorde.Managers.Ships is
       Waypoint : constant Journey_Element_Type :=
                    Manager.Journey.First_Element;
       Departure    : constant Date_Type := Manager.Time;
-      Journey_Time : constant Duration :=
-                       (case Waypoint.Class is
-                           when World_Element =>
-                              Concorde.Ships.Navigation.Journey_Time
-                          (Manager.Ship, Departure,
-                           Waypoint.World.Current_Location),
-                           when System_Element =>
-                              Concorde.Ships.Navigation.Journey_Time
-                          (Manager.Ship, Manager.Time,
-                           Waypoint.Point),
-                           when Jump_Element   =>
-                              Duration
-                          (100_000.0
-                           * (Concorde.Random.Unit_Random + 0.5)));
-      Arrival      : constant Date_Type := Departure + Journey_Time;
+      Journey_Time : Duration;
    begin
       Manager.Journey.Delete_First;
 
@@ -100,34 +86,48 @@ package body Concorde.Managers.Ships is
          when World_Element =>
             Manager.Ship.Log_Movement
               ("heading to world: " & Waypoint.World.Name);
+            Journey_Time :=
+              Concorde.Ships.Navigation.Journey_Time
+                (Manager.Ship, Departure,
+                 Waypoint.World.Current_Location);
             Manager.Ship.Update.Set_Destination
-              (Waypoint.World, Departure, Arrival);
+              (Waypoint.World, Departure, Journey_Time);
 
          when System_Element =>
             Manager.Ship.Log_Movement
               ("heading to system orbit: "
                & Concorde.Locations.Short_Name
                  (Waypoint.Point));
-
+            Journey_Time :=
+              Concorde.Ships.Navigation.Journey_Time
+                (Manager.Ship, Manager.Time,
+                 Waypoint.Point);
             Manager.Ship.Update.Set_Destination
-              (Waypoint.Point, Departure, Arrival);
+              (Waypoint.Point, Departure, Journey_Time);
 
          when Jump_Element =>
             Manager.Ship.Log_Movement
               ("jumping to " & Waypoint.Target.Name);
 
+            Journey_Time :=
+              Duration (100_000.0
+                        * (Concorde.Random.Unit_Random + 0.5));
             Manager.Ship.Update.Set_Jump_Destination
-              (Waypoint.Target, Departure, Arrival);
+              (Waypoint.Target, Departure, Journey_Time);
       end case;
 
-      Manager.Ship.Log_Movement
-        ("journey time"
-         & Natural'Image (Natural (Real (Journey_Time) / 86400.0 - 0.5))
-         & " days; arrival at "
-         & To_Date_And_Time_String (Arrival));
+      declare
+         Arrival      : constant Date_Type := Departure + Journey_Time;
+      begin
+         Manager.Ship.Log_Movement
+           ("journey time"
+            & Natural'Image (Natural (Real (Journey_Time) / 86400.0 - 0.5))
+            & " days; arrival at "
+            & To_Date_And_Time_String (Arrival));
 
-      Concorde.Objects.Queues.Next_Event
-        (Manager.Ship, Arrival);
+         Concorde.Objects.Queues.Next_Event
+           (Manager.Ship, Arrival);
+      end;
 
    end Next_Waypoint;
 
@@ -138,7 +138,10 @@ package body Concorde.Managers.Ships is
    overriding procedure On_Activated (Manager : in out Root_Ship_Manager) is
    begin
       if not Manager.Journey.Is_Empty then
+         Manager.Ship.Update.Set_Location (Manager.Ship.Destination);
          Manager.Next_Waypoint;
+      else
+         Root_Ship_Manager'Class (Manager).On_Idle;
       end if;
    end On_Activated;
 

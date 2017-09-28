@@ -86,7 +86,6 @@ begin
                DY                  => Concorde.Options.System_Y_Deviation,
                DZ                  => Concorde.Options.System_Z_Deviation,
                Average_Connections => Concorde.Options.Average_Connections,
-               Reset_Seed          => Concorde.Options.Randomise,
                Name_Generator      => Name_Generator);
          end;
       end if;
