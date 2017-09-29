@@ -5,12 +5,12 @@ randomise = no
 create_voronoi = no
 
 faction_count = 3
-system_count = 5000
+system_count = 100
 
 create_galaxy = yes
 create_factions = yes
 
-galaxy_shape = spiral
+galaxy_shape = sphere
 galaxy_sub_shape = archimedes
 system_x_deviation = 0.018
 system_y_deviation = 0.018
@@ -22,8 +22,8 @@ faction_logging = yes
 market_logging = yes
 minimum_battle_size = 6
 
-console = yes
-update-count = 10
+console = no
+update-count = 40
 
 show_capital_names = yes
 show_system_names = no
