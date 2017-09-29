@@ -78,7 +78,7 @@ package body Concorde.Colonies.Configure is
 
       package Skilled_Pop_Vectors is
         new Memor.Element_Vectors
-          (Concorde.People.Skills.Root_Pop_Skill, Quantity, Zero);
+          (Concorde.People.Skills.Root_Pop_Skill, Quantity_Type, Zero);
 
       Skilled_Pop : Skilled_Pop_Vectors.Vector;
 
@@ -117,7 +117,7 @@ package body Concorde.Colonies.Configure is
       procedure Create_Pop_From_Skill
         (Skill     : not null access constant
            Concorde.People.Skills.Root_Pop_Skill'Class;
-         Element   : Quantity);
+         Element   : Quantity_Type);
 
       procedure Create_Pop
         (Sector : Concorde.Surfaces.Surface_Tile_Index;
@@ -149,7 +149,7 @@ package body Concorde.Colonies.Configure is
             declare
                Need : constant Concorde.Commodities.Commodity_Type :=
                         Installation.Facility.Input_Commodity (I);
-               Quant : constant Quantity :=
+               Quant : constant Quantity_Type :=
                          Installation.Facility.Input_Quantity (I)
                          * Installation.Facility.Capacity_Quantity
                          * To_Quantity (5.0);
@@ -175,9 +175,9 @@ package body Concorde.Colonies.Configure is
             declare
                Skill : constant Concorde.People.Skills.Pop_Skill :=
                          Installation.Facility.Worker_Skill (I);
-               Quant : constant Quantity :=
+               Quant : constant Quantity_Type :=
                          Installation.Facility.Worker_Quantity (I);
-               Current : constant Quantity  :=
+               Current : constant Quantity_Type  :=
                            Skilled_Pop.Element (Skill);
             begin
                Skilled_Pop.Replace_Element
@@ -242,7 +242,7 @@ package body Concorde.Colonies.Configure is
 
          for Need of Needs loop
             declare
-               Quantity : constant Concorde.Quantities.Quantity :=
+               Quantity : constant Concorde.Quantities.Quantity_Type :=
                             Concorde.Quantities.To_Quantity
                               (Real (Pop.Size) * 30.0);
                Value    : constant Concorde.Money.Money_Type :=
@@ -282,7 +282,7 @@ package body Concorde.Colonies.Configure is
       procedure Create_Pop_From_Skill
         (Skill     : not null access constant
            Concorde.People.Skills.Root_Pop_Skill'Class;
-         Element   : Quantity)
+         Element   : Quantity_Type)
       is
       begin
          Create_Pop (Capital_Tile, Skill.Wealth_Group,

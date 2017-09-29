@@ -55,7 +55,7 @@ package body Concorde.Commodities.Configure is
             declare
                Input : constant Commodity_Type :=
                          Facility.Input_Commodity (I);
-               Quant : constant Quantities.Quantity :=
+               Quant : constant Quantities.Quantity_Type :=
                          Facility.Input_Quantity (I);
             begin
                if Not_Priced (Input.all) then

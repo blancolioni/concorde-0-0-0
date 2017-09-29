@@ -42,18 +42,18 @@ package body Concorde.Installations.Production is
       declare
          use Concorde.Money;
          use Concorde.Quantities;
-         Raw_Capacity       : constant Quantity :=
+         Raw_Capacity       : constant Quantity_Type :=
                                 Facility.Capacity_Quantity;
          Throughput         : Unit_Real := 1.0;
-         Effective_Capacity : Quantity := Raw_Capacity;
+         Effective_Capacity : Quantity_Type := Raw_Capacity;
       begin
          for I in 1 .. Facility.Worker_Count loop
             declare
                Commodity : constant Commodity_Type :=
                              Facility.Worker_Skill (I).Commodity;
-               Available : constant Quantity :=
+               Available : constant Quantity_Type :=
                              Installation.Get_Quantity (Commodity);
-               Required  : constant Quantity :=
+               Required  : constant Quantity_Type :=
                              Facility.Worker_Quantity (I);
             begin
                Production_Cost :=
@@ -89,10 +89,10 @@ package body Concorde.Installations.Production is
                declare
                   Commodity : constant Commodity_Type :=
                                 Facility.Input_Commodity (Input_Index);
-                  Required : constant Quantity :=
+                  Required : constant Quantity_Type :=
                                 Facility.Input_Quantity (Input_Index)
                                 * Raw_Capacity;
-                  Available : constant Quantity :=
+                  Available : constant Quantity_Type :=
                                 Installation.Get_Quantity (Commodity);
                begin
                   if Available < Required then
@@ -132,7 +132,7 @@ package body Concorde.Installations.Production is
                declare
                   Commodity : constant Commodity_Type :=
                                 Facility.Input_Commodity (Input_Index);
-                  Required  : constant Quantity :=
+                  Required  : constant Quantity_Type :=
                                 Facility.Input_Quantity (Input_Index)
                                 * Effective_Capacity;
                   Price_Per : constant Price_Type :=
@@ -202,7 +202,7 @@ package body Concorde.Installations.Production is
                     > Installation.Maximum_Quantity
                   then
                      declare
-                        Lose : constant Quantity :=
+                        Lose : constant Quantity_Type :=
                                  Effective_Capacity
                                    + Installation.Total_Quantity
                                  - Installation.Maximum_Quantity;

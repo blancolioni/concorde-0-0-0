@@ -25,22 +25,22 @@ package Concorde.Markets is
    overriding function Current_Demand
      (Market   : Root_Market_Type;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Current_Supply
      (Market   : Root_Market_Type;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Current_Local_Demand
      (Market   : Root_Market_Type;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Current_Local_Supply
      (Market   : Root_Market_Type;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Last_Price
      (Market    : Root_Market_Type;
@@ -50,22 +50,22 @@ package Concorde.Markets is
    overriding function Last_Demand
      (Market   : Root_Market_Type;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Last_Supply
      (Market   : Root_Market_Type;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Current_Import_Demand
      (Market    : Root_Market_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Current_Export_Supply
      (Market    : Root_Market_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Historical_Mean_Price
      (Market    : Root_Market_Type;
@@ -78,17 +78,17 @@ package Concorde.Markets is
       Agent     : not null access constant
         Concorde.Trades.Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity);
+      Quantity  : Concorde.Quantities.Quantity_Type);
 
    overriding procedure Add_Export_Supply
      (Market    : in out Root_Market_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity);
+      Quantity  : Concorde.Quantities.Quantity_Type);
 
    overriding procedure Add_Import_Demand
      (Market    : in out Root_Market_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity);
+      Quantity  : Concorde.Quantities.Quantity_Type);
 
    procedure Enable_Logging
      (Market  : in out Root_Market_Type'Class;
@@ -152,10 +152,10 @@ private
       record
          Agent              : access constant
            Concorde.Trades.Trader_Interface'Class;
-         Offered_Quantity   : Concorde.Quantities.Quantity;
-         Remaining_Quantity : Concorde.Quantities.Quantity;
-         Closed_At_Price    : Concorde.Quantities.Quantity;
-         Closed_At_Limit    : Concorde.Quantities.Quantity;
+         Offered_Quantity   : Concorde.Quantities.Quantity_Type;
+         Remaining_Quantity : Concorde.Quantities.Quantity_Type;
+         Closed_At_Price    : Concorde.Quantities.Quantity_Type;
+         Closed_At_Limit    : Concorde.Quantities.Quantity_Type;
          Offer_Price        : Concorde.Money.Price_Type;
          Current_Price      : Concorde.Money.Price_Type;
          Limit_Price        : Concorde.Money.Price_Type;
@@ -174,7 +174,7 @@ private
    function Make_Offer
      (Agent    : not null access constant
         Concorde.Trades.Trader_Interface'Class;
-      Quantity : Concorde.Quantities.Quantity;
+      Quantity : Concorde.Quantities.Quantity_Type;
       Price    : Concorde.Money.Price_Type;
       Limit    : Concorde.Money.Price_Type)
       return Offer_Info
@@ -186,25 +186,25 @@ private
       Buy_Or_Sell  : Concorde.Trades.Offer_Type;
       Commodity    : Concorde.Commodities.Commodity_Type;
       Offer        : Offer_Info)
-      return Concorde.Quantities.Quantity;
+      return Concorde.Quantities.Quantity_Type;
 
    protected type Commodity_Offers is
       procedure Add_Buy_Offer
         (Agent     : not null access constant
            Concorde.Trades.Trader_Interface'Class;
-         Quantity  : Concorde.Quantities.Quantity;
+         Quantity  : Concorde.Quantities.Quantity_Type;
          Price     : Concorde.Money.Price_Type;
          Limit     : Concorde.Money.Price_Type);
       procedure Add_Sell_Offer
         (Agent     : not null access constant
            Concorde.Trades.Trader_Interface'Class;
-         Quantity  : Concorde.Quantities.Quantity;
+         Quantity  : Concorde.Quantities.Quantity_Type;
          Price     : Concorde.Money.Price_Type;
          Limit     : Concorde.Money.Price_Type);
-      function Total_Demand return Concorde.Quantities.Quantity;
-      function Total_Supply return Concorde.Quantities.Quantity;
-      function Local_Demand return Concorde.Quantities.Quantity;
-      function Local_Supply return Concorde.Quantities.Quantity;
+      function Total_Demand return Concorde.Quantities.Quantity_Type;
+      function Total_Supply return Concorde.Quantities.Quantity_Type;
+      function Local_Demand return Concorde.Quantities.Quantity_Type;
+      function Local_Supply return Concorde.Quantities.Quantity_Type;
       function Buy_Offers return Offer_Vectors.Vector;
       function Sell_Offers return Offer_Vectors.Vector;
       procedure Clear;
@@ -218,17 +218,17 @@ private
          Current_Price         : Concorde.Money.Price_Type;
          Historical_Mean_Price : Concorde.Money.Price_Type;
          Last_Price            : Concorde.Money.Price_Type;
-         Local_Supply          : Concorde.Quantities.Quantity;
-         Local_Demand          : Concorde.Quantities.Quantity;
-         Last_Supply           : Concorde.Quantities.Quantity;
-         Last_Demand           : Concorde.Quantities.Quantity;
-         Export_Supply         : Concorde.Quantities.Quantity;
-         Import_Demand         : Concorde.Quantities.Quantity;
-         New_Export_Supply     : Concorde.Quantities.Quantity;
-         New_Import_Demand     : Concorde.Quantities.Quantity;
-         Supply, Demand        : Concorde.Quantities.Quantity :=
+         Local_Supply          : Concorde.Quantities.Quantity_Type;
+         Local_Demand          : Concorde.Quantities.Quantity_Type;
+         Last_Supply           : Concorde.Quantities.Quantity_Type;
+         Last_Demand           : Concorde.Quantities.Quantity_Type;
+         Export_Supply         : Concorde.Quantities.Quantity_Type;
+         Import_Demand         : Concorde.Quantities.Quantity_Type;
+         New_Export_Supply     : Concorde.Quantities.Quantity_Type;
+         New_Import_Demand     : Concorde.Quantities.Quantity_Type;
+         Supply, Demand        : Concorde.Quantities.Quantity_Type :=
                                    Quantities.Zero;
-         Traded_Quantity       : Concorde.Quantities.Quantity :=
+         Traded_Quantity       : Concorde.Quantities.Quantity_Type :=
                                    Quantities.Zero;
          Offers                : access Commodity_Offers;
       end record;

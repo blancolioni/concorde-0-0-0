@@ -27,7 +27,7 @@ package body Concorde.Installations.Create is
         (Installation : in out Root_Installation_Type'Class)
       is
          use Concorde.Quantities;
-         Storage : constant Quantity :=
+         Storage : constant Quantity_Type :=
                      Facility.Capacity_Quantity
                        * To_Quantity (100.0);
       begin

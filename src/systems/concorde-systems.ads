@@ -269,8 +269,8 @@ private
          Resource      : Concorde.Commodities.Commodity_Type;
          Accessibility : Unit_Real;
          Concentration : Unit_Real;
-         Size          : Concorde.Quantities.Quantity;
-         Original_Size : Concorde.Quantities.Quantity;
+         Size          : Concorde.Quantities.Quantity_Type;
+         Original_Size : Concorde.Quantities.Quantity_Type;
       end record;
 
    type System_Object_Record is

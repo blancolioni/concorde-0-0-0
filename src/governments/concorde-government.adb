@@ -93,7 +93,7 @@ package body Concorde.Government is
    overriding procedure Tax_Receipt
      (Government : Root_Government_Type;
       Commodity  : Concorde.Commodities.Commodity_Type;
-      Quantity   : Concorde.Quantities.Quantity;
+      Quantity   : Concorde.Quantities.Quantity_Type;
       Price      : Concorde.Money.Price_Type;
       Category   : Concorde.Trades.Market_Tax_Category;
       Receipt    : Concorde.Money.Money_Type)

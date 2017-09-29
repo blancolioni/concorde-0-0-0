@@ -248,7 +248,7 @@ package body Concorde.Facilities is
    function Input_Quantity
      (Facility : Root_Facility_Type'Class;
       Index    : Positive)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return Facility.Inputs (Index).Quantity;
@@ -347,7 +347,7 @@ package body Concorde.Facilities is
    function Worker_Quantity
      (Facility : Root_Facility_Type'Class;
       Index    : Positive)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return Facility.Workers (Index).Quantity;

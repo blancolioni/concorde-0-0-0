@@ -12,9 +12,9 @@ package body Concorde.Quantities is
    -- Around --
    ------------
 
-   function Around (X : Quantity) return Quantity is
+   function Around (X : Quantity_Type) return Quantity_Type is
    begin
-      return Quantity
+      return Quantity_Type
         (Real (X - X / 10)
          + (Concorde.Random.Unit_Random
            * Real (X) / 5.0));
@@ -24,7 +24,7 @@ package body Concorde.Quantities is
    -- Image --
    -----------
 
-   function Image (Item : Quantity) return String is
+   function Image (Item : Quantity_Type) return String is
 
       Factors    : constant array (1 .. 3) of Non_Negative_Real :=
         (1.0E9, 1.0E6, 1.0E3);
@@ -38,7 +38,7 @@ package body Concorde.Quantities is
       end loop;
 
       return Ada.Strings.Fixed.Trim
-        (Quantity'Image (Item), Ada.Strings.Left);
+        (Quantity_Type'Image (Item), Ada.Strings.Left);
 --
 --        declare
 --           Result : constant String :=
@@ -57,18 +57,18 @@ package body Concorde.Quantities is
    -- Max --
    ---------
 
-   function Max (Left, Right : Quantity) return Quantity is
+   function Max (Left, Right : Quantity_Type) return Quantity_Type is
    begin
-      return Quantity'Max (Left, Right);
+      return Quantity_Type'Max (Left, Right);
    end Max;
 
    ---------
    -- Min --
    ---------
 
-   function Min (Left, Right : Quantity) return Quantity is
+   function Min (Left, Right : Quantity_Type) return Quantity_Type is
    begin
-      return Quantity'Min (Left, Right);
+      return Quantity_Type'Min (Left, Right);
    end Min;
 
    -----------
@@ -76,12 +76,12 @@ package body Concorde.Quantities is
    -----------
 
    function Scale
-     (X      : Quantity;
+     (X      : Quantity_Type;
       Factor : Real)
-      return Quantity
+      return Quantity_Type
    is
    begin
-      return Quantity (Real (X) * Factor);
+      return Quantity_Type (Real (X) * Factor);
    end Scale;
 
    ----------------
@@ -89,10 +89,10 @@ package body Concorde.Quantities is
    ----------------
 
    function Scale_Down
-     (Value       : Quantity;
-      Numerator   : Quantity;
-      Denominator : Quantity)
-      return Quantity
+     (Value       : Quantity_Type;
+      Numerator   : Quantity_Type;
+      Denominator : Quantity_Type)
+      return Quantity_Type
    is
    begin
       return Value * Numerator / Denominator;
@@ -149,7 +149,7 @@ package body Concorde.Quantities is
    -- To_Natural --
    ----------------
 
-   function To_Natural (Value : Quantity) return Natural is
+   function To_Natural (Value : Quantity_Type) return Natural is
    begin
       return Natural (Value);
    end To_Natural;
@@ -158,16 +158,16 @@ package body Concorde.Quantities is
    -- To_Quantity --
    -----------------
 
-   function To_Quantity (Value : Real) return Quantity is
+   function To_Quantity (Value : Real) return Quantity_Type is
    begin
-      return Quantity (Value);
+      return Quantity_Type (Value);
    end To_Quantity;
 
    --------------
    -- To_Real --
    --------------
 
-   function To_Real (Value : Quantity) return Real is
+   function To_Real (Value : Quantity_Type) return Real is
    begin
       return Real (Value);
    end To_Real;
@@ -176,7 +176,7 @@ package body Concorde.Quantities is
    -- Unit --
    ----------
 
-   function Unit return Quantity is
+   function Unit return Quantity_Type is
    begin
       return 1;
    end Unit;
@@ -185,16 +185,16 @@ package body Concorde.Quantities is
    -- Value --
    -----------
 
-   function Value (Image : String) return Quantity is
+   function Value (Image : String) return Quantity_Type is
    begin
-      return Quantity'Value (Image);
+      return Quantity_Type'Value (Image);
    end Value;
 
    ----------
    -- Zero --
    ----------
 
-   function Zero return Quantity is
+   function Zero return Quantity_Type is
    begin
       return 0;
    end Zero;

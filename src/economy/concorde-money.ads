@@ -71,17 +71,17 @@ package Concorde.Money is
    function Min (X, Y : Price_Type) return Price_Type;
 
    function Total (Price    : Price_Type;
-                   Quantity : Quantities.Quantity)
+                   Quantity : Quantities.Quantity_Type)
                   return Money_Type;
 
    function Price (Total    : Money_Type;
-                   Quantity : Quantities.Quantity)
+                   Quantity : Quantities.Quantity_Type)
                    return Price_Type;
 
    function Get_Quantity
      (Total_Cash : Money_Type;
       Price      : Price_Type)
-      return Quantities.Quantity;
+      return Quantities.Quantity_Type;
 
    function Image (Item : Money_Type) return String;
    function Image (Item : Price_Type) return String;

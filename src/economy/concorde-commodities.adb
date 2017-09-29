@@ -11,7 +11,7 @@ package body Concorde.Commodities is
    procedure Add_Quantity
      (Stock    : in out Stock_Interface'Class;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity;
+      Quantity : Concorde.Quantities.Quantity_Type;
       Value    : Concorde.Money.Money_Type)
    is
       use type Concorde.Money.Money_Type;
@@ -81,7 +81,7 @@ package body Concorde.Commodities is
 
    procedure Create_Stock
      (Stock   : in out Root_Stock_Type'Class;
-      Maximum : Concorde.Quantities.Quantity)
+      Maximum : Concorde.Quantities.Quantity_Type)
    is
    begin
       Stock.Maximum := Maximum;
@@ -224,7 +224,7 @@ package body Concorde.Commodities is
    procedure Remove_Quantity
      (Stock    : in out Stock_Interface'Class;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity;
+      Quantity : Concorde.Quantities.Quantity_Type;
       Earn     : Concorde.Money.Money_Type)
    is
       use type Concorde.Money.Money_Type;
@@ -242,10 +242,10 @@ package body Concorde.Commodities is
    procedure Remove_Quantity
      (Stock    : in out Stock_Interface'Class;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity)
+      Quantity : Concorde.Quantities.Quantity_Type)
    is
       use type Concorde.Money.Money_Type;
-      New_Quantity : constant Concorde.Quantities.Quantity :=
+      New_Quantity : constant Concorde.Quantities.Quantity_Type :=
                        Stock.Get_Quantity (Item) - Quantity;
       New_Value : constant Money.Money_Type :=
                     Money.Total (Stock.Get_Average_Price (Item), New_Quantity);
@@ -306,7 +306,7 @@ package body Concorde.Commodities is
    overriding procedure Set_Quantity
      (Stock    : in out Root_Stock_Type;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity;
+      Quantity : Concorde.Quantities.Quantity_Type;
       Value    : Concorde.Money.Money_Type)
    is
    begin
@@ -347,9 +347,9 @@ package body Concorde.Commodities is
 
    function Total_Quantity
      (Stock    : Stock_Interface'Class)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
-      Result : Quantities.Quantity := Quantities.Zero;
+      Result : Quantities.Quantity_Type := Quantities.Zero;
 
       procedure Update (Commodity : Commodity_Type);
 

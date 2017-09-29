@@ -29,19 +29,19 @@ package body Concorde.Installations is
       procedure Add_Hub_Trade_Offer
         (Commodity : Concorde.Commodities.Commodity_Type)
       is
-         Local_Demand : constant Quantity :=
+         Local_Demand : constant Quantity_Type :=
                           Item.Market.Current_Local_Demand (Commodity);
-         Local_Supply : constant Quantity :=
+         Local_Supply : constant Quantity_Type :=
                           Item.Market.Current_Local_Supply (Commodity);
-         Demand : constant Quantity :=
+         Demand : constant Quantity_Type :=
                     Item.Market.Current_Demand (Commodity);
-         Supply : constant Quantity :=
+         Supply : constant Quantity_Type :=
                     Item.Market.Current_Supply (Commodity);
       begin
          if not Commodity.Is_Set (Concorde.Commodities.Virtual) then
             if Local_Demand > Supply then
                declare
-                  Sell_Quantity : constant Quantity :=
+                  Sell_Quantity : constant Quantity_Type :=
                                     Min (Item.Get_Quantity (Commodity),
                                          Demand - Supply);
 
@@ -69,7 +69,7 @@ package body Concorde.Installations is
                end;
             elsif Local_Supply > Demand then
                declare
-                  Buy_Quantity : constant Quantity :=
+                  Buy_Quantity : constant Quantity_Type :=
                                    Item.Get_Quantity (Commodity)
                                    + Supply - Demand;
 
@@ -104,11 +104,11 @@ package body Concorde.Installations is
       procedure Add_Port_Trade_Offer
         (Commodity : Concorde.Commodities.Commodity_Type)
       is
-         Import_Demand : constant Quantity :=
+         Import_Demand : constant Quantity_Type :=
                            Item.Market.Current_Import_Demand (Commodity);
-         Export_Supply : constant Quantity :=
+         Export_Supply : constant Quantity_Type :=
                            Item.Market.Current_Export_Supply (Commodity);
-         In_Stock      : constant Quantity :=
+         In_Stock      : constant Quantity_Type :=
                            Item.Get_Quantity (Commodity);
       begin
          if Import_Demand > Zero and then In_Stock > Zero then
@@ -142,7 +142,7 @@ package body Concorde.Installations is
          declare
             Commodity : constant Concorde.Commodities.Commodity_Type :=
                           Item.Facility.Input_Commodity (I);
-            Required  : constant Quantity :=
+            Required  : constant Quantity_Type :=
                           Item.Facility.Input_Quantity (I)
                           * Item.Facility.Capacity_Quantity;
          begin
@@ -155,7 +155,7 @@ package body Concorde.Installations is
          declare
             Commodity : constant Concorde.Commodities.Commodity_Type :=
                           Item.Facility.Worker_Skill (I).Commodity;
-            Required  : constant Quantity :=
+            Required  : constant Quantity_Type :=
                           Item.Facility.Worker_Quantity (I);
          begin
             Item.Create_Buy_Offer

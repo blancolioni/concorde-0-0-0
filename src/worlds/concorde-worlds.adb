@@ -61,10 +61,10 @@ package body Concorde.Worlds is
    procedure Buy
      (World     : in out Root_World_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : in out Concorde.Quantities.Quantity)
+      Quantity  : in out Concorde.Quantities.Quantity_Type)
    is
       use Concorde.Money, Concorde.Quantities;
-      New_Quantity : constant Quantities.Quantity :=
+      New_Quantity : constant Quantities.Quantity_Type :=
                        Min (Quantity, World.Import_Market_Size (Commodity));
       Cash : constant Money_Type :=
                        Total (World.Buy_Price (Commodity), New_Quantity);
@@ -145,7 +145,7 @@ package body Concorde.Worlds is
    function Export_Market_Size
      (World     : Root_World_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return World.Port.Get_Quantity (Commodity);
@@ -261,7 +261,7 @@ package body Concorde.Worlds is
    function Import_Market_Size
      (World     : Root_World_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return World.Market.Current_Import_Demand (Commodity);
@@ -613,10 +613,10 @@ package body Concorde.Worlds is
    procedure Sell
      (World     : in out Root_World_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : in out Concorde.Quantities.Quantity)
+      Quantity  : in out Concorde.Quantities.Quantity_Type)
    is
       use Concorde.Money, Concorde.Quantities;
-      New_Quantity : constant Quantities.Quantity :=
+      New_Quantity : constant Quantities.Quantity_Type :=
                        Min (Quantity, World.Export_Market_Size (Commodity));
       Cash         : constant Money_Type :=
                        Total (World.Sell_Price (Commodity), New_Quantity);

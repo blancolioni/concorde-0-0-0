@@ -15,37 +15,37 @@ package Concorde.Trades is
    function Current_Demand
      (Trade : Trade_Interface;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
       is abstract;
 
    function Current_Supply
      (Trade : Trade_Interface;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
       is abstract;
 
    function Current_Local_Demand
      (Trade    : Trade_Interface;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
       is abstract;
 
    function Current_Local_Supply
      (Trade    : Trade_Interface;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
       is abstract;
 
    function Current_Import_Demand
      (Trade    : Trade_Interface;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
       is abstract;
 
    function Current_Export_Supply
      (Trade    : Trade_Interface;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
       is abstract;
 
    function Last_Price
@@ -57,13 +57,13 @@ package Concorde.Trades is
    function Last_Demand
      (Trade : Trade_Interface;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
       is abstract;
 
    function Last_Supply
      (Trade : Trade_Interface;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
       is abstract;
 
    function Historical_Mean_Price
@@ -80,13 +80,13 @@ package Concorde.Trades is
    procedure Add_Export_Supply
      (Market    : in out Trade_Interface;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity)
+      Quantity  : Concorde.Quantities.Quantity_Type)
    is abstract;
 
    procedure Add_Import_Demand
      (Market    : in out Trade_Interface;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity)
+      Quantity  : Concorde.Quantities.Quantity_Type)
    is abstract;
 
    procedure Update
@@ -114,7 +114,7 @@ package Concorde.Trades is
    procedure Tax_Receipt
      (Manager   : Trade_Manager_Interface;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity;
+      Quantity  : Concorde.Quantities.Quantity_Type;
       Price     : Concorde.Money.Price_Type;
       Category  : Market_Tax_Category;
       Receipt   : Concorde.Money.Money_Type)
@@ -161,14 +161,14 @@ package Concorde.Trades is
       Offer     : Offer_Type;
       Trader    : not null access constant Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity)
+      Quantity  : Concorde.Quantities.Quantity_Type)
    is abstract;
 
    procedure Execute_Trade
      (Trader    : in out Trader_Interface;
       Offer     : Offer_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity;
+      Quantity  : Concorde.Quantities.Quantity_Type;
       Cost      : Concorde.Money.Money_Type)
    is abstract;
 
@@ -182,7 +182,7 @@ package Concorde.Trades is
      (Trader    : Trader_Interface;
       Offer     : Offer_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
       is abstract;
 
    procedure Update_Price_Belief
@@ -190,14 +190,14 @@ package Concorde.Trades is
       Trade             : Trade_Interface'Class;
       Offer             : Offer_Type;
       Commodity         : Concorde.Commodities.Commodity_Type;
-      Total_Traded      : Concorde.Quantities.Quantity;
-      Total_Supply      : Concorde.Quantities.Quantity;
-      Total_Demand      : Concorde.Quantities.Quantity;
+      Total_Traded      : Concorde.Quantities.Quantity_Type;
+      Total_Supply      : Concorde.Quantities.Quantity_Type;
+      Total_Demand      : Concorde.Quantities.Quantity_Type;
       Average_Price     : Concorde.Money.Price_Type;
       Historical_Price  : Concorde.Money.Price_Type;
       Trader_Price      : Concorde.Money.Price_Type;
-      Trader_Offered    : Concorde.Quantities.Quantity;
-      Trader_Traded     : Concorde.Quantities.Quantity;
+      Trader_Offered    : Concorde.Quantities.Quantity_Type;
+      Trader_Traded     : Concorde.Quantities.Quantity_Type;
       Total_Money       : Concorde.Money.Money_Type)
    is abstract;
 

@@ -29,12 +29,12 @@ package body Concorde.People.Pops.Consumption is
       Needs : constant Array_Of_Commodities :=
                 Concorde.Commodities.Get
                   (Consumer, Quality);
-      Minimum : constant Concorde.Quantities.Quantity :=
+      Minimum : constant Concorde.Quantities.Quantity_Type :=
                   Pop.Size_Quantity;
    begin
       for Need of Needs loop
          declare
-            Available : constant Quantity :=
+            Available : constant Quantity_Type :=
                           Pop.Get_Quantity (Need);
          begin
             if Available >= Minimum then

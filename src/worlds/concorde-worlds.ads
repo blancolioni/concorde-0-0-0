@@ -241,22 +241,22 @@ package Concorde.Worlds is
    function Import_Market_Size
      (World     : Root_World_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity;
+      return Concorde.Quantities.Quantity_Type;
 
    function Export_Market_Size
      (World     : Root_World_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity;
+      return Concorde.Quantities.Quantity_Type;
 
    procedure Buy
      (World     : in out Root_World_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : in out Concorde.Quantities.Quantity);
+      Quantity  : in out Concorde.Quantities.Quantity_Type);
 
    procedure Sell
      (World     : in out Root_World_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : in out Concorde.Quantities.Quantity);
+      Quantity  : in out Concorde.Quantities.Quantity_Type);
 
    type World_Type is access constant Root_World_Type'Class;
 

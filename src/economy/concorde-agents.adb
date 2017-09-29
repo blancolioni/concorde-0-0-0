@@ -110,8 +110,8 @@ package body Concorde.Agents is
    procedure Create_Buy_Offer
      (Agent     : not null access constant Root_Agent_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Desired   : Concorde.Quantities.Quantity;
-      Minimum   : Concorde.Quantities.Quantity)
+      Desired   : Concorde.Quantities.Quantity_Type;
+      Minimum   : Concorde.Quantities.Quantity_Type)
    is
 
       procedure Update
@@ -128,7 +128,7 @@ package body Concorde.Agents is
          use Concorde.Quantities;
          use Concorde.Trades;
 
-         Current       : constant Quantity :=
+         Current       : constant Quantity_Type :=
                            Agent.Get_Quantity (Commodity);
          Mean          : constant Price_Type :=
                            Market.Historical_Mean_Price
@@ -154,17 +154,17 @@ package body Concorde.Agents is
                                 = Average_Price
                                 then Adjust_Price (Belief.High, 0.1)
                                 else Zero);
-         Favoured      : constant Quantity :=
+         Favoured      : constant Quantity_Type :=
                            (if Current >= Desired
                             then Zero
                             elsif Current >= Minimum
                             then Scale (Desired - Minimum, Favourability)
                             else Minimum - Current
                             + Scale (Desired - Minimum, Favourability));
-         Possible      : constant Quantity :=
+         Possible      : constant Quantity_Type :=
                            Max (Get_Quantity (Agent.Limit_Cash, Buy_Price),
                                 Zero);
-         Final         : constant Quantity :=
+         Final         : constant Quantity_Type :=
                            Min (Favoured, Possible);
       begin
          if Log_Offers then
@@ -222,7 +222,7 @@ package body Concorde.Agents is
    procedure Create_Sell_Offer
      (Agent     : not null access constant Root_Agent_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Available : Concorde.Quantities.Quantity;
+      Available : Concorde.Quantities.Quantity_Type;
       Minimum   : Concorde.Money.Money_Type)
    is
       pragma Unreferenced (Minimum);
@@ -265,7 +265,7 @@ package body Concorde.Agents is
                             else Create_Ask_Price
                               (Max (Belief.Low, Limit_Price),
                                Belief.High, Agent.Age));
-         Sell_Quantity : constant Quantity := Available;
+         Sell_Quantity : constant Quantity_Type := Available;
       begin
          if Log_Offers then
             Agent.Log_Trade
@@ -338,7 +338,7 @@ package body Concorde.Agents is
      (Agent     : in out Root_Agent_Type;
       Offer     : Concorde.Trades.Offer_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity;
+      Quantity  : Concorde.Quantities.Quantity_Type;
       Cost      : Concorde.Money.Money_Type)
    is
    begin
@@ -419,7 +419,7 @@ package body Concorde.Agents is
    overriding function Get_Quantity
      (Agent : Root_Agent_Type;
       Item  : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return Agent.Stock.Get_Quantity (Item);
@@ -574,9 +574,9 @@ package body Concorde.Agents is
      (Agent  : Root_Agent_Type;
       Offer  : Concorde.Trades.Offer_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
-      use type Concorde.Quantities.Quantity;
+      use type Concorde.Quantities.Quantity_Type;
    begin
       case Offer is
          when Concorde.Trades.Buy =>
@@ -592,7 +592,7 @@ package body Concorde.Agents is
 
    overriding function Maximum_Quantity
      (Agent : Root_Agent_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return Agent.Stock.Maximum_Quantity;
@@ -607,7 +607,7 @@ package body Concorde.Agents is
       Location       : Concorde.Locations.Object_Location;
       Market         : access constant
         Concorde.Trades.Trade_Interface'Class;
-      Stock_Capacity : Concorde.Quantities.Quantity)
+      Stock_Capacity : Concorde.Quantities.Quantity_Type)
    is
    begin
       Agent.Stock.Create_Stock (Stock_Capacity);
@@ -757,7 +757,7 @@ package body Concorde.Agents is
    overriding procedure Set_Quantity
      (Agent    : in out Root_Agent_Type;
       Item     : Concorde.Commodities.Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity;
+      Quantity : Concorde.Quantities.Quantity_Type;
       Value    : Concorde.Money.Money_Type)
    is
    begin
@@ -801,14 +801,14 @@ package body Concorde.Agents is
       Market            : Concorde.Trades.Trade_Interface'Class;
       Offer             : Concorde.Trades.Offer_Type;
       Commodity         : Concorde.Commodities.Commodity_Type;
-      Total_Traded      : Concorde.Quantities.Quantity;
-      Total_Supply      : Concorde.Quantities.Quantity;
-      Total_Demand      : Concorde.Quantities.Quantity;
+      Total_Traded      : Concorde.Quantities.Quantity_Type;
+      Total_Supply      : Concorde.Quantities.Quantity_Type;
+      Total_Demand      : Concorde.Quantities.Quantity_Type;
       Average_Price     : Concorde.Money.Price_Type;
       Historical_Price  : Concorde.Money.Price_Type;
       Trader_Price      : Concorde.Money.Price_Type;
-      Trader_Offered    : Concorde.Quantities.Quantity;
-      Trader_Traded     : Concorde.Quantities.Quantity;
+      Trader_Offered    : Concorde.Quantities.Quantity_Type;
+      Trader_Traded     : Concorde.Quantities.Quantity_Type;
       Total_Money       : Concorde.Money.Money_Type)
    is
       pragma Unreferenced (Historical_Price);
@@ -827,11 +827,11 @@ package body Concorde.Agents is
 
       Mean_Belief    : constant Price_Type :=
                          Adjust_Price (High - Low, 0.5) + Low;
-      Trade_Offers   : constant Quantity :=
+      Trade_Offers   : constant Quantity_Type :=
                          (case Offer is
                              when Buy => Total_Demand,
                              when Sell => Total_Supply);
-      Available_Offers : constant Quantity :=
+      Available_Offers : constant Quantity_Type :=
                            (case Offer is
                                when Buy  => Total_Supply,
                                when Sell => Total_Demand);

@@ -68,7 +68,7 @@ package body Concorde.Money is
    function Get_Quantity
      (Total_Cash : Money_Type;
       Price      : Price_Type)
-      return Quantities.Quantity
+      return Quantities.Quantity_Type
    is
    begin
       return Quantities.To_Quantity
@@ -148,10 +148,10 @@ package body Concorde.Money is
    -----------
 
    function Price (Total    : Money_Type;
-                   Quantity : Quantities.Quantity)
+                   Quantity : Quantities.Quantity_Type)
                    return Price_Type
    is
-      use type Quantities.Quantity;
+      use type Quantities.Quantity_Type;
    begin
       if Quantity = Quantities.Zero then
          return Zero;
@@ -242,7 +242,7 @@ package body Concorde.Money is
    -----------
 
    function Total (Price  : Price_Type;
-                   Quantity : Quantities.Quantity)
+                   Quantity : Quantities.Quantity_Type)
                   return Money_Type
    is
       use Quantities;

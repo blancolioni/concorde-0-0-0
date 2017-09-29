@@ -11,7 +11,7 @@ with Concorde.Objects;
 
 package Concorde.Commodities is
 
-   use type Concorde.Quantities.Quantity;
+   use type Concorde.Quantities.Quantity_Type;
 
    type Commodity_Class is
      (Resource, Consumer, Industrial, Building_Component, Skill, Service);
@@ -73,7 +73,7 @@ package Concorde.Commodities is
 
    function Total_Quantity
      (Stock    : Stock_Interface'Class)
-      return Concorde.Quantities.Quantity;
+      return Concorde.Quantities.Quantity_Type;
 
    function Total_Mass
      (Stock    : Stock_Interface'Class)
@@ -81,18 +81,18 @@ package Concorde.Commodities is
 
    function Maximum_Quantity
      (Stock : Stock_Interface)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
       is abstract;
 
    function Available_Quantity
      (Stock    : Stock_Interface'Class)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is (Stock.Maximum_Quantity - Stock.Total_Quantity);
 
    function Get_Quantity
      (Stock : Stock_Interface;
       Item  : Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
       is abstract;
 
    function Get_Value
@@ -111,7 +111,7 @@ package Concorde.Commodities is
    procedure Set_Quantity
      (Stock    : in out Stock_Interface;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity;
+      Quantity : Concorde.Quantities.Quantity_Type;
       Value    : Concorde.Money.Money_Type)
    is abstract;
 --       with Pre'Class =>
@@ -132,7 +132,7 @@ package Concorde.Commodities is
    procedure Add_Quantity
      (Stock    : in out Stock_Interface'Class;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity;
+      Quantity : Concorde.Quantities.Quantity_Type;
       Value    : Concorde.Money.Money_Type)
      with Pre => Stock.Total_Quantity + Quantity
        <= Stock.Maximum_Quantity;
@@ -140,14 +140,14 @@ package Concorde.Commodities is
    procedure Remove_Quantity
      (Stock    : in out Stock_Interface'Class;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity;
+      Quantity : Concorde.Quantities.Quantity_Type;
       Earn     : Concorde.Money.Money_Type)
      with Pre => Stock.Get_Quantity (Item) >= Quantity;
 
    procedure Remove_Quantity
      (Stock    : in out Stock_Interface'Class;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity)
+      Quantity : Concorde.Quantities.Quantity_Type)
      with Pre => Stock.Get_Quantity (Item) >= Quantity;
 
    function Total_Value
@@ -158,7 +158,7 @@ package Concorde.Commodities is
 
    procedure Create_Stock
      (Stock   : in out Root_Stock_Type'Class;
-      Maximum : Concorde.Quantities.Quantity);
+      Maximum : Concorde.Quantities.Quantity_Type);
 
 private
 
@@ -178,7 +178,7 @@ private
 
    type Stock_Entry is
       record
-         Quantity : Concorde.Quantities.Quantity;
+         Quantity : Concorde.Quantities.Quantity_Type;
          Value    : Concorde.Money.Money_Type;
       end record;
 
@@ -190,19 +190,19 @@ private
 
    type Root_Stock_Type is new Stock_Interface with
       record
-         Maximum : Quantities.Quantity   := Quantities.Zero;
+         Maximum : Quantities.Quantity_Type   := Quantities.Zero;
          Vector  : Stock_Vectors.Vector;
       end record;
 
    overriding function Maximum_Quantity
      (Stock : Root_Stock_Type)
-      return Quantities.Quantity
+      return Quantities.Quantity_Type
    is (Stock.Maximum);
 
    overriding function Get_Quantity
      (Stock : Root_Stock_Type;
       Item  : Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is (Stock.Vector.Element (Item).Quantity);
 
    overriding function Get_Value
@@ -214,7 +214,7 @@ private
    overriding procedure Set_Quantity
      (Stock    : in out Root_Stock_Type;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity;
+      Quantity : Concorde.Quantities.Quantity_Type;
       Value    : Concorde.Money.Money_Type);
 
    overriding procedure Clear_Stock

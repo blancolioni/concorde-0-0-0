@@ -19,9 +19,9 @@ package body Concorde.Markets is
    overriding procedure Add_Export_Supply
      (Market    : in out Root_Market_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity)
+      Quantity  : Concorde.Quantities.Quantity_Type)
    is
-      use type Quantities.Quantity;
+      use type Quantities.Quantity_Type;
       Info : constant Cached_Commodity := Get_Commodity (Market, Commodity);
    begin
       Info.New_Export_Supply := Info.New_Export_Supply + Quantity;
@@ -34,9 +34,9 @@ package body Concorde.Markets is
    overriding procedure Add_Import_Demand
      (Market    : in out Root_Market_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity)
+      Quantity  : Concorde.Quantities.Quantity_Type)
    is
-      use type Quantities.Quantity;
+      use type Quantities.Quantity_Type;
       Info : constant Cached_Commodity := Get_Commodity (Market, Commodity);
    begin
       Info.New_Import_Demand := Info.New_Import_Demand + Quantity;
@@ -108,7 +108,7 @@ package body Concorde.Markets is
       Buy_Or_Sell  : Concorde.Trades.Offer_Type;
       Commodity    : Concorde.Commodities.Commodity_Type;
       Offer        : Offer_Info)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
       use Concorde.Money;
       use Concorde.Quantities;
@@ -149,9 +149,9 @@ package body Concorde.Markets is
       end if;
 
       declare
-         Adjusted_Result : constant Quantity :=
+         Adjusted_Result : constant Quantity_Type :=
                              Scale (Offer.Remaining_Quantity, Factor);
-         Maximum_Result  : constant Quantity :=
+         Maximum_Result  : constant Quantity_Type :=
                              Offer.Agent.Maximum_Offer_Quantity
                                (Buy_Or_Sell, Commodity);
       begin
@@ -235,7 +235,7 @@ package body Concorde.Markets is
       Agent     : not null access constant
         Concorde.Trades.Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity)
+      Quantity  : Concorde.Quantities.Quantity_Type)
    is
       Info : constant Cached_Commodity :=
                Market.Get_Commodity (Commodity);
@@ -261,7 +261,7 @@ package body Concorde.Markets is
    overriding function Current_Demand
      (Market   : Root_Market_Type;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return Market.Get_Commodity (Item).Offers.Total_Demand;
@@ -274,7 +274,7 @@ package body Concorde.Markets is
    overriding function Current_Export_Supply
      (Market    : Root_Market_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return Market.Get_Commodity (Commodity).Export_Supply;
@@ -287,7 +287,7 @@ package body Concorde.Markets is
    overriding function Current_Import_Demand
      (Market    : Root_Market_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return Market.Get_Commodity (Commodity).Import_Demand;
@@ -300,7 +300,7 @@ package body Concorde.Markets is
    overriding function Current_Local_Demand
      (Market   : Root_Market_Type;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return Market.Get_Commodity (Item).Offers.Local_Demand;
@@ -313,7 +313,7 @@ package body Concorde.Markets is
    overriding function Current_Local_Supply
      (Market   : Root_Market_Type;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return Market.Get_Commodity (Item).Offers.Local_Supply;
@@ -339,7 +339,7 @@ package body Concorde.Markets is
    overriding function Current_Supply
      (Market   : Root_Market_Type;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return Market.Get_Commodity (Item).Offers.Total_Supply;
@@ -434,10 +434,10 @@ package body Concorde.Markets is
                          Market.Get_Commodity (Commodity);
       Bids           : Offer_Vectors.Vector := Info.Offers.Buy_Offers;
       Asks           : Offer_Vectors.Vector := Info.Offers.Sell_Offers;
-      Total_Quantity : Quantity := Zero;
+      Total_Quantity : Quantity_Type := Zero;
       Mean_Price     : Price_Type;
-      Supply         : constant Quantity := Info.Offers.Total_Supply;
-      Demand         : constant Quantity := Info.Offers.Total_Demand;
+      Supply         : constant Quantity_Type := Info.Offers.Total_Supply;
+      Demand         : constant Quantity_Type := Info.Offers.Total_Demand;
       Total_Money    : Money_Type := Zero;
       Total_Ask      : Money_Type := Zero;
       Total_Bid      : Money_Type := Zero;
@@ -490,11 +490,11 @@ package body Concorde.Markets is
                                      Sales_Tax_Rate + Import_Tax_Rate
                                        + Export_Tax_Rate;
                Buyer_Price       : constant Price_Type := Info.Last_Price;
-               Ask_Quantity      : constant Quantity :=
+               Ask_Quantity      : constant Quantity_Type :=
                                      Ask.Remaining_Quantity;
-               Bid_Quantity      : constant Quantity :=
+               Bid_Quantity      : constant Quantity_Type :=
                                      Bid.Remaining_Quantity;
-               Traded_Quantity   : constant Quantity :=
+               Traded_Quantity   : constant Quantity_Type :=
                                      Min (Ask_Quantity, Bid_Quantity);
                Money_With_Tax    : constant Money_Type :=
                                      Total (Buyer_Price, Traded_Quantity);
@@ -814,7 +814,7 @@ package body Concorde.Markets is
    overriding function Last_Demand
      (Market   : Root_Market_Type;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return Market.Get_Commodity (Item).Last_Demand;
@@ -840,7 +840,7 @@ package body Concorde.Markets is
    overriding function Last_Supply
      (Market   : Root_Market_Type;
       Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return Market.Get_Commodity (Item).Last_Supply;
@@ -945,7 +945,7 @@ package body Concorde.Markets is
       procedure Add_Buy_Offer
         (Agent     : not null access constant
            Concorde.Trades.Trader_Interface'Class;
-         Quantity  : Concorde.Quantities.Quantity;
+         Quantity  : Concorde.Quantities.Quantity_Type;
          Price     : Concorde.Money.Price_Type;
          Limit     : Concorde.Money.Price_Type)
       is
@@ -960,7 +960,7 @@ package body Concorde.Markets is
       procedure Add_Sell_Offer
         (Agent     : not null access constant
            Concorde.Trades.Trader_Interface'Class;
-         Quantity  : Concorde.Quantities.Quantity;
+         Quantity  : Concorde.Quantities.Quantity_Type;
          Price     : Concorde.Money.Price_Type;
          Limit     : Concorde.Money.Price_Type)
       is
@@ -991,9 +991,9 @@ package body Concorde.Markets is
       -- Local_Demand --
       ------------------
 
-      function Local_Demand return Concorde.Quantities.Quantity is
+      function Local_Demand return Concorde.Quantities.Quantity_Type is
          use Concorde.Quantities;
-         Result : Quantity := Zero;
+         Result : Quantity_Type := Zero;
       begin
          for Offer of Buys loop
             if Offer.Agent.Market_Resident then
@@ -1007,9 +1007,9 @@ package body Concorde.Markets is
       -- Local_Supply --
       ------------------
 
-      function Local_Supply return Concorde.Quantities.Quantity is
+      function Local_Supply return Concorde.Quantities.Quantity_Type is
          use Concorde.Quantities;
-         Result : Quantity := Zero;
+         Result : Quantity_Type := Zero;
       begin
          for Offer of Sells loop
             if Offer.Agent.Market_Resident then
@@ -1032,9 +1032,9 @@ package body Concorde.Markets is
       -- Total_Demand --
       ------------------
 
-      function Total_Demand return Concorde.Quantities.Quantity is
+      function Total_Demand return Concorde.Quantities.Quantity_Type is
          use Concorde.Quantities;
-         Result : Quantity := Zero;
+         Result : Quantity_Type := Zero;
       begin
          for Offer of Buys loop
             Result := Result + Offer.Offered_Quantity;
@@ -1046,9 +1046,9 @@ package body Concorde.Markets is
       -- Total_Supply --
       ------------------
 
-      function Total_Supply return Concorde.Quantities.Quantity is
+      function Total_Supply return Concorde.Quantities.Quantity_Type is
          use Concorde.Quantities;
-         Result : Quantity := Zero;
+         Result : Quantity_Type := Zero;
       begin
          for Offer of Sells loop
             Result := Result + Offer.Offered_Quantity;

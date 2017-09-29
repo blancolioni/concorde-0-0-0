@@ -49,7 +49,7 @@ package Concorde.Facilities is
 
    function Capacity_Quantity
      (Facility : Root_Facility_Type'Class)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is (Quantities.To_Quantity (Real (Facility.Capacity)));
 
    function Input_Count
@@ -65,7 +65,7 @@ package Concorde.Facilities is
    function Input_Quantity
      (Facility : Root_Facility_Type'Class;
       Index    : Positive)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
      with Pre => Index <= Facility.Input_Count;
 
    function Worker_Count
@@ -88,7 +88,7 @@ package Concorde.Facilities is
    function Worker_Quantity
      (Facility : Root_Facility_Type'Class;
       Index    : Positive)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
      with Pre => Index <= Facility.Worker_Count;
 
    function Is_Resource_Generator
@@ -151,7 +151,7 @@ private
    type Input_Record is
       record
          Commodity : Concorde.Commodities.Commodity_Type;
-         Quantity  : Concorde.Quantities.Quantity;
+         Quantity  : Concorde.Quantities.Quantity_Type;
       end record;
 
    type Array_Of_Inputs is array (Positive range <>) of Input_Record;
@@ -159,7 +159,7 @@ private
    type Worker_Record is
       record
          Skill     : Concorde.People.Skills.Pop_Skill;
-         Quantity  : Concorde.Quantities.Quantity;
+         Quantity  : Concorde.Quantities.Quantity_Type;
       end record;
 
    type Array_Of_Workers is
@@ -173,7 +173,7 @@ private
          Template            : Boolean;
          Flags               : Array_Of_Flags;
          Quality             : Concorde.Commodities.Commodity_Quality;
-         Power               : Concorde.Quantities.Quantity;
+         Power               : Concorde.Quantities.Quantity_Type;
          Capacity            : Facility_Capacity;
          Commodity_Flags     : Concorde.Commodities.Array_Of_Flags;
          Inputs              : access Array_Of_Inputs;

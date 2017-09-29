@@ -182,8 +182,8 @@ package body Concorde.Managers.Ships is
       begin
          Manager.Ship.Log_Movement
            ("journey time"
-            & Natural'Image (Natural (Real (Journey_Time) / 86400.0 - 0.5))
-            & " days; arrival at "
+            & Natural'Image (Natural (Real (Journey_Time) / 3600.0 - 0.5))
+            & " hours; arrival at "
             & To_Date_And_Time_String (Arrival));
 
          Concorde.Objects.Queues.Next_Event

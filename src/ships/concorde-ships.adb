@@ -38,7 +38,7 @@ package body Concorde.Ships is
       World    : not null access constant
         Concorde.Worlds.Root_World_Type'Class;
       Item     : Concorde.Commodities.Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity)
+      Quantity : Concorde.Quantities.Quantity_Type)
    is
    begin
       Ship.Orders.Append
@@ -69,18 +69,18 @@ package body Concorde.Ships is
    is
       use Concorde.Quantities;
       use type Memor.Database_Reference;
-      Hold  : constant Quantity := Ship.Hold_Quantity;
-      Space : constant Quantity := Hold - Ship.Total_Quantity;
+      Hold  : constant Quantity_Type := Ship.Hold_Quantity;
+      Space : constant Quantity_Type := Hold - Ship.Total_Quantity;
 
       type Buy_Commodity is
          record
             Market    : Concorde.Markets.Market_Type;
             Commodity : Concorde.Commodities.Commodity_Type;
-            Supply    : Quantity;
-            Demand    : Quantity;
+            Supply    : Quantity_Type;
+            Demand    : Quantity_Type;
             Buy_At    : Concorde.Money.Price_Type;
             Sell_At   : Concorde.Money.Price_Type;
-            Quantity  : Quantities.Quantity;
+            Quantity  : Quantities.Quantity_Type;
             Score     : Natural;
          end record;
 
@@ -94,7 +94,7 @@ package body Concorde.Ships is
          return Concorde.Worlds.World_Type;
 
       function Score_Trade
-        (Supply, Demand  : Quantity;
+        (Supply, Demand  : Quantity_Type;
          Buy_At, Sell_At : Concorde.Money.Price_Type)
          return Integer;
 
@@ -123,7 +123,7 @@ package body Concorde.Ships is
       -----------------
 
       function Score_Trade
-        (Supply, Demand  : Quantity;
+        (Supply, Demand  : Quantity_Type;
          Buy_At, Sell_At : Concorde.Money.Price_Type)
          return Integer
       is
@@ -159,10 +159,10 @@ package body Concorde.Ships is
                                  Current_Order.World.Market;
                         To   : constant Concorde.Markets.Market_Type :=
                                  Destination.Market;
-                        Supply : constant Quantity :=
+                        Supply : constant Quantity_Type :=
                                    From.Current_Export_Supply
                                      (Commodity);
-                        Demand : constant Quantity :=
+                        Demand : constant Quantity_Type :=
                                    To.Current_Import_Demand (Commodity);
                         Buy_At : constant Concorde.Money.Price_Type :=
                                    From.Historical_Mean_Price (Commodity);
@@ -210,7 +210,7 @@ package body Concorde.Ships is
                end;
             when Sell =>
                declare
-                  Available : constant Quantity :=
+                  Available : constant Quantity_Type :=
                                 Ship.Get_Quantity (Current_Order.Commodity);
                begin
                   if Available > Zero then
@@ -233,13 +233,13 @@ package body Concorde.Ships is
 
          for Trade of Buy_List loop
             declare
-               Raw_Desired : constant Quantity :=
+               Raw_Desired : constant Quantity_Type :=
                                (if Trade.Quantity < Ship.Hold_Quantity
                                 then Trade.Quantity
                                 else Scale
                                   (Trade.Quantity,
                                    Real (Trade.Score) / Real (Total_Score)));
-               Actual_Desired : constant Quantity :=
+               Actual_Desired : constant Quantity_Type :=
                                   Min (Raw_Desired,
                                        Trade.Market.Current_Import_Demand
                                          (Trade.Commodity));
@@ -992,7 +992,7 @@ package body Concorde.Ships is
    is
       use Concorde.Quantities;
 
-      Space : constant Quantity :=
+      Space : constant Quantity_Type :=
                 Ship.Hold_Quantity - Ship.Total_Quantity;
 
       procedure Check (Commodity : Concorde.Commodities.Commodity_Type);
@@ -1045,10 +1045,10 @@ package body Concorde.Ships is
                   Ship.Orders.First_Element.World.Market;
          To   : constant Concorde.Markets.Market_Type :=
                   Ship.Orders.First_Element.Next.Market;
-         Supply : constant Quantity :=
+         Supply : constant Quantity_Type :=
                     From.Current_Export_Supply
                       (Commodity);
-         Demand : constant Quantity :=
+         Demand : constant Quantity_Type :=
                     To.Current_Import_Demand (Commodity);
          Buy_At : constant Concorde.Money.Price_Type :=
                     From.Historical_Mean_Price (Commodity);
@@ -1071,7 +1071,7 @@ package body Concorde.Ships is
                & " @ "
                & Money.Image (Sell_At));
             declare
-               Wanted : constant Quantity :=
+               Wanted : constant Quantity_Type :=
                           Min (Ship.Hold_Quantity, Min (Supply, Demand));
             begin
                Ship.Buy_Requirements.Set_Quantity

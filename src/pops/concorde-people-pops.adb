@@ -17,9 +17,9 @@ package body Concorde.People.Pops is
       Needs : constant Array_Of_Commodities :=
                 Concorde.Commodities.Get
                   (Consumer, Quality);
-      Minimum : constant Concorde.Quantities.Quantity :=
+      Minimum : constant Concorde.Quantities.Quantity_Type :=
                   Item.Size_Quantity;
-      Desired : constant Concorde.Quantities.Quantity :=
+      Desired : constant Concorde.Quantities.Quantity_Type :=
                   Minimum * Quantities.To_Quantity (7.0);
       Min_Budget : Money_Type := Zero;
       Max_Budget : Money_Type := Zero;
@@ -28,7 +28,7 @@ package body Concorde.People.Pops is
                        (Item.Market.Current_Price
                           (Item.Skills.First_Element.Commodity),
                         Item.Size_Quantity);
-      type Need_Orders is array (Needs'Range) of Quantity;
+      type Need_Orders is array (Needs'Range) of Quantity_Type;
       Min_Order   : Need_Orders;
       Max_Order   : Need_Orders;
       Final_Order : Need_Orders;
@@ -38,10 +38,10 @@ package body Concorde.People.Pops is
             Need  : constant Commodity_Type := Needs (I);
             Price : constant Price_Type :=
                       Item.Market.Current_Price (Need);
-            Min   : constant Quantity :=
+            Min   : constant Quantity_Type :=
                       (if Minimum < Item.Get_Quantity (Need)
                        then Zero else Minimum - Item.Get_Quantity (Need));
-            Max   : constant Quantity :=
+            Max   : constant Quantity_Type :=
                       (if Desired < Item.Get_Quantity (Need)
                        then Zero else Desired - Item.Get_Quantity (Need));
          begin
@@ -151,7 +151,7 @@ package body Concorde.People.Pops is
 
    function Size_Quantity
      (Pop : Root_Pop_Type'Class)
-      return Concorde.Quantities.Quantity
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return Concorde.Quantities.To_Quantity (Real (Pop.Size));
