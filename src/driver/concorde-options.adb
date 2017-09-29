@@ -291,6 +291,15 @@ package body Concorde.Options is
          return Default;
    end Real_Value;
 
+   ---------------------------------
+   -- Realistic_Star_Distribution --
+   ---------------------------------
+
+   function Realistic_Star_Distribution return Boolean is
+   begin
+      return Boolean_Value ("realistic-star-distribution");
+   end Realistic_Star_Distribution;
+
    --------------
    -- Scenario --
    --------------
