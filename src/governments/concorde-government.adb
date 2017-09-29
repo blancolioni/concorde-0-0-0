@@ -4,13 +4,13 @@ package body Concorde.Government is
    -- Add_Trade_Offers --
    ----------------------
 
-   overriding procedure Add_Trade_Offers
-     (Item   : not null access constant Root_Government_Type)
-   is
-      pragma Unreferenced (Item);
-   begin
-      null;
-   end Add_Trade_Offers;
+--     overriding procedure Add_Trade_Offers
+--       (Item   : not null access constant Root_Government_Type)
+--     is
+--        pragma Unreferenced (Item);
+--     begin
+--        null;
+--     end Add_Trade_Offers;
 
    -----------------------
    -- Basic_Living_Wage --
@@ -60,17 +60,6 @@ package body Concorde.Government is
    begin
       return Db.Get_Database;
    end Object_Database;
-
-   ---------------------
-   -- On_Update_Start --
-   ---------------------
-
-   overriding procedure On_Update_Start
-     (Government : in out Root_Government_Type)
-   is
-   begin
-      Government.Tax_Receipts := (others => Concorde.Money.Zero);
-   end On_Update_Start;
 
    ------------------
    -- Set_Governor --

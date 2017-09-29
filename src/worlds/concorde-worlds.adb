@@ -95,7 +95,7 @@ package body Concorde.Worlds is
    begin
       return Concorde.Money.Adjust_Price
         (Concorde.Money.Without_Tax
-           (World.Market.Last_Price (Commodity),
+           (World.Market.Current_Price (Commodity),
             World.Government.Tax_Rate
               (Concorde.Trades.Import, Commodity)),
          0.9);
@@ -263,8 +263,19 @@ package body Concorde.Worlds is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity_Type
    is
+      use Concorde.Quantities;
+      Supply : constant Quantity_Type :=
+                 World.Market.Get_Daily_Quantity
+                   (Commodity, Concorde.Trades.Total_Supply, 7);
+      Demand : constant Quantity_Type :=
+                 World.Market.Get_Daily_Quantity
+                   (Commodity, Concorde.Trades.Total_Demand, 7);
    begin
-      return World.Market.Current_Import_Demand (Commodity);
+      if Supply < Demand then
+         return Demand - Supply;
+      else
+         return Zero;
+      end if;
    end Import_Market_Size;
 
    ----------------
@@ -648,7 +659,7 @@ package body Concorde.Worlds is
       Base_Price : constant Concorde.Money.Price_Type :=
                      (if World.Port.Get_Quantity (Commodity) > Zero
                       then World.Port.Get_Average_Price (Commodity)
-                      else World.Market.Last_Price (Commodity));
+                      else World.Market.Current_Price (Commodity));
    begin
 --        World.Port.Log_Price
 --          (Commodity.Name & ": stock price "

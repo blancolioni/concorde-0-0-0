@@ -122,11 +122,13 @@ private
       return String
    is (Government.Governed.Name & " Government");
 
-   overriding procedure Add_Trade_Offers
-     (Item   : not null access constant Root_Government_Type);
+--     overriding procedure Add_Trade_Offers
+--       (Item   : not null access constant Root_Government_Type);
 
-   overriding procedure On_Update_Start
-     (Government : in out Root_Government_Type);
+   overriding function Variable_Reference
+     (Government : not null access constant Root_Government_Type)
+      return access Concorde.Agents.Root_Agent_Type'Class
+   is (Government.Update.Item);
 
    function Governor
      (Government : Root_Government_Type'Class)

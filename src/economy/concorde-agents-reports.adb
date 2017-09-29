@@ -32,9 +32,9 @@ package body Concorde.Agents.Reports is
          Put (Concorde.Dates.To_String (Transaction.Date));
          Set_Col (12);
          case Transaction.Entry_Type is
-            when Concorde.Trades.Buy =>
+            when Concorde.Trades.Bid =>
                Put ("Bid");
-            when Concorde.Trades.Sell =>
+            when Concorde.Trades.Ask =>
                Put ("Ask");
          end case;
          Set_Col (20);

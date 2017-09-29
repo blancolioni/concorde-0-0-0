@@ -373,8 +373,9 @@ private
       return Boolean
    is (False);
 
-   overriding procedure Add_Trade_Offers
-     (Ship : not null access constant Root_Ship_Type);
+--     overriding procedure Add_Trade_Offers
+--       (Ship : not null access constant Root_Ship_Type)
+--     is null;
 
    overriding function Location_At
      (Ship : Root_Ship_Type;
@@ -393,8 +394,10 @@ private
       return Concorde.Trades.Offer_Price_Strategy
    is (Concorde.Trades.Average_Price);
 
-   overriding procedure On_Update_Start
-     (Ship : in out Root_Ship_Type);
+   overriding function Variable_Reference
+     (Ship : not null access constant Root_Ship_Type)
+      return access Concorde.Agents.Root_Agent_Type'Class
+   is (Ship.Update.Item);
 
    function Destination
      (Ship : Root_Ship_Type'Class)

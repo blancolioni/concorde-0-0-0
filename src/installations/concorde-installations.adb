@@ -1,5 +1,5 @@
 with Concorde.Commodities;
-with Concorde.Quantities;
+--  with Concorde.Quantities;
 
 package body Concorde.Installations is
 
@@ -7,182 +7,182 @@ package body Concorde.Installations is
    -- Add_Trade_Offers --
    ----------------------
 
-   overriding procedure Add_Trade_Offers
-     (Item   : not null access constant Root_Installation_Type)
-   is
-      use Concorde.Quantities;
-
-      procedure Add_Hub_Trade_Offer
-        (Commodity : Concorde.Commodities.Commodity_Type);
-
-      procedure Add_Port_Trade_Offer
-        (Commodity : Concorde.Commodities.Commodity_Type);
-
-      procedure Add_Sell_Offer
-        (Commodity : Concorde.Commodities.Commodity_Type);
-
-      -------------------------
-      -- Add_Hub_Trade_Offer --
-      -------------------------
-
-      procedure Add_Hub_Trade_Offer
-        (Commodity : Concorde.Commodities.Commodity_Type)
-      is
-         Local_Demand : constant Quantity_Type :=
-                          Item.Market.Current_Local_Demand (Commodity);
-         Local_Supply : constant Quantity_Type :=
-                          Item.Market.Current_Local_Supply (Commodity);
-         Demand : constant Quantity_Type :=
-                    Item.Market.Current_Demand (Commodity);
-         Supply : constant Quantity_Type :=
-                    Item.Market.Current_Supply (Commodity);
-      begin
-         if not Commodity.Is_Set (Concorde.Commodities.Virtual) then
-            if Local_Demand > Supply then
-               declare
-                  Sell_Quantity : constant Quantity_Type :=
-                                    Min (Item.Get_Quantity (Commodity),
-                                         Demand - Supply);
-
-                  procedure Update_Import_Demand
-                    (Market : in out Concorde.Trades.Trade_Interface'Class);
-
-                  --------------------------
-                  -- Update_Import_Demand --
-                  --------------------------
-
-                  procedure Update_Import_Demand
-                    (Market : in out Concorde.Trades.Trade_Interface'Class)
-                  is
-                  begin
-                     Market.Add_Import_Demand
-                       (Commodity, Local_Demand - Supply);
-                  end Update_Import_Demand;
-
-               begin
-                  if Sell_Quantity > Zero then
-                     Item.Create_Ask
-                       (Commodity, Sell_Quantity);
-                  end if;
-                  Item.Market.Update (Update_Import_Demand'Access);
-               end;
-            elsif Local_Supply > Demand then
-               declare
-                  Buy_Quantity : constant Quantity_Type :=
-                                   Item.Get_Quantity (Commodity)
-                                   + Supply - Demand;
-
-                  procedure Update_Export_Supply
-                    (Market : in out Concorde.Trades.Trade_Interface'Class);
-
-                  --------------------------
-                  -- Update_Export_Supply --
-                  --------------------------
-
-                  procedure Update_Export_Supply
-                    (Market : in out Concorde.Trades.Trade_Interface'Class)
-                  is
-                  begin
-                     Market.Add_Export_Supply
-                       (Commodity, Local_Supply - Demand);
-                  end Update_Export_Supply;
-
-               begin
-                  Item.Create_Bid
-                    (Commodity, Buy_Quantity);
-                  Item.Market.Update (Update_Export_Supply'Access);
-               end;
-            end if;
-         end if;
-      end Add_Hub_Trade_Offer;
-
-      --------------------------
-      -- Add_Port_Trade_Offer --
-      --------------------------
-
-      procedure Add_Port_Trade_Offer
-        (Commodity : Concorde.Commodities.Commodity_Type)
-      is
-         Import_Demand : constant Quantity_Type :=
-                           Item.Market.Current_Import_Demand (Commodity);
-         Export_Supply : constant Quantity_Type :=
-                           Item.Market.Current_Export_Supply (Commodity);
-         In_Stock      : constant Quantity_Type :=
-                           Item.Get_Quantity (Commodity);
-      begin
-         if Import_Demand > Zero and then In_Stock > Zero then
-            Item.Create_Ask
-              (Commodity, Min (Import_Demand, In_Stock));
-         elsif Export_Supply > Zero then
-            Item.Create_Bid (Commodity, Export_Supply);
-         end if;
-      end Add_Port_Trade_Offer;
-
-      --------------------
-      -- Add_Sell_Offer --
-      --------------------
-
-      procedure Add_Sell_Offer
-        (Commodity : Concorde.Commodities.Commodity_Type)
-      is
-      begin
-         Item.Create_Ask
-           (Commodity, Item.Get_Quantity (Commodity));
-      end Add_Sell_Offer;
-
-   begin
-
-      for I in 1 .. Item.Facility.Input_Count loop
-         declare
-            Commodity : constant Concorde.Commodities.Commodity_Type :=
-                          Item.Facility.Input_Commodity (I);
-            Required  : constant Quantity_Type :=
-                          Item.Facility.Input_Quantity (I)
-                          * Item.Facility.Capacity_Quantity;
-         begin
-            Item.Create_Bid
-              (Commodity, Required);
-         end;
-      end loop;
-
-      for I in 1 .. Item.Facility.Worker_Count loop
-         declare
-            Commodity : constant Concorde.Commodities.Commodity_Type :=
-                          Item.Facility.Worker_Skill (I).Commodity;
-            Required  : constant Quantity_Type :=
-                          Item.Facility.Worker_Quantity (I);
-         begin
-            Item.Create_Ask
-              (Commodity, Required);
-         end;
-      end loop;
-
-      if Item.Is_Colony_Hub then
-         for Commodity of Concorde.Commodities.All_Commodities loop
-            Add_Hub_Trade_Offer (Commodity);
-         end loop;
-      elsif Item.Is_Port then
-         for Commodity of Concorde.Commodities.All_Commodities loop
-            Add_Port_Trade_Offer (Commodity);
-         end loop;
-      else
-         if Item.Facility.Has_Output
-           and then Item.Get_Quantity (Item.Facility.Output) > Zero
-         then
-            Item.Create_Bid
-              (Item.Facility.Output,
-               Item.Get_Quantity (Item.Facility.Output));
-         elsif Item.Facility.Is_Resource_Generator then
-            for Commodity of Concorde.Commodities.All_Commodities loop
-               if Item.Facility.Can_Produce (Commodity)
-                 and then Item.Get_Quantity (Commodity) > Zero
-               then
-                  Add_Sell_Offer (Commodity);
-               end if;
-            end loop;
-         end if;
-      end if;
-   end Add_Trade_Offers;
+--     overriding procedure Add_Trade_Offers
+--       (Item   : not null access constant Root_Installation_Type)
+--     is
+--        use Concorde.Quantities;
+--
+--        procedure Add_Hub_Trade_Offer
+--          (Commodity : Concorde.Commodities.Commodity_Type);
+--
+--        procedure Add_Port_Trade_Offer
+--          (Commodity : Concorde.Commodities.Commodity_Type);
+--
+--        procedure Add_Sell_Offer
+--          (Commodity : Concorde.Commodities.Commodity_Type);
+--
+--        -------------------------
+--        -- Add_Hub_Trade_Offer --
+--        -------------------------
+--
+--        procedure Add_Hub_Trade_Offer
+--          (Commodity : Concorde.Commodities.Commodity_Type)
+--        is
+--           Local_Demand : constant Quantity_Type :=
+--                            Item.Market.Current_Local_Demand (Commodity);
+--           Local_Supply : constant Quantity_Type :=
+--                            Item.Market.Current_Local_Supply (Commodity);
+--           Demand : constant Quantity_Type :=
+--                      Item.Market.Current_Demand (Commodity);
+--           Supply : constant Quantity_Type :=
+--                      Item.Market.Current_Supply (Commodity);
+--        begin
+--           if not Commodity.Is_Set (Concorde.Commodities.Virtual) then
+--              if Local_Demand > Supply then
+--                 declare
+--                    Sell_Quantity : constant Quantity_Type :=
+--                                      Min (Item.Get_Quantity (Commodity),
+--                                           Demand - Supply);
+--
+--                    procedure Update_Import_Demand
+--                 (Market : in out Concorde.Trades.Trade_Interface'Class);
+--
+--                    --------------------------
+--                    -- Update_Import_Demand --
+--                    --------------------------
+--
+--                    procedure Update_Import_Demand
+--                      (Market : in out Concorde.Trades.Trade_Interface'Class)
+--                    is
+--                    begin
+--                       Market.Add_Import_Demand
+--                         (Commodity, Local_Demand - Supply);
+--                    end Update_Import_Demand;
+--
+--                 begin
+--                    if Sell_Quantity > Zero then
+--                       Item.Create_Ask
+--                         (Commodity, Sell_Quantity);
+--                    end if;
+--                    Item.Market.Update (Update_Import_Demand'Access);
+--                 end;
+--              elsif Local_Supply > Demand then
+--                 declare
+--                    Buy_Quantity : constant Quantity_Type :=
+--                                     Item.Get_Quantity (Commodity)
+--                                     + Supply - Demand;
+--
+--                    procedure Update_Export_Supply
+--                  (Market : in out Concorde.Trades.Trade_Interface'Class);
+--
+--                    --------------------------
+--                    -- Update_Export_Supply --
+--                    --------------------------
+--
+--                    procedure Update_Export_Supply
+--                      (Market : in out Concorde.Trades.Trade_Interface'Class)
+--                    is
+--                    begin
+--                       Market.Add_Export_Supply
+--                         (Commodity, Local_Supply - Demand);
+--                    end Update_Export_Supply;
+--
+--                 begin
+--                    Item.Create_Bid
+--                      (Commodity, Buy_Quantity);
+--                    Item.Market.Update (Update_Export_Supply'Access);
+--                 end;
+--              end if;
+--           end if;
+--        end Add_Hub_Trade_Offer;
+--
+--        --------------------------
+--        -- Add_Port_Trade_Offer --
+--        --------------------------
+--
+--        procedure Add_Port_Trade_Offer
+--          (Commodity : Concorde.Commodities.Commodity_Type)
+--        is
+--           Import_Demand : constant Quantity_Type :=
+--                             Item.Market.Current_Import_Demand (Commodity);
+--           Export_Supply : constant Quantity_Type :=
+--                             Item.Market.Current_Export_Supply (Commodity);
+--           In_Stock      : constant Quantity_Type :=
+--                             Item.Get_Quantity (Commodity);
+--        begin
+--           if Import_Demand > Zero and then In_Stock > Zero then
+--              Item.Create_Ask
+--                (Commodity, Min (Import_Demand, In_Stock));
+--           elsif Export_Supply > Zero then
+--              Item.Create_Bid (Commodity, Export_Supply);
+--           end if;
+--        end Add_Port_Trade_Offer;
+--
+--        --------------------
+--        -- Add_Sell_Offer --
+--        --------------------
+--
+--        procedure Add_Sell_Offer
+--          (Commodity : Concorde.Commodities.Commodity_Type)
+--        is
+--        begin
+--           Item.Create_Ask
+--             (Commodity, Item.Get_Quantity (Commodity));
+--        end Add_Sell_Offer;
+--
+--     begin
+--
+--        for I in 1 .. Item.Facility.Input_Count loop
+--           declare
+--              Commodity : constant Concorde.Commodities.Commodity_Type :=
+--                            Item.Facility.Input_Commodity (I);
+--              Required  : constant Quantity_Type :=
+--                            Item.Facility.Input_Quantity (I)
+--                            * Item.Facility.Capacity_Quantity;
+--           begin
+--              Item.Create_Bid
+--                (Commodity, Required);
+--           end;
+--        end loop;
+--
+--        for I in 1 .. Item.Facility.Worker_Count loop
+--           declare
+--              Commodity : constant Concorde.Commodities.Commodity_Type :=
+--                            Item.Facility.Worker_Skill (I).Commodity;
+--              Required  : constant Quantity_Type :=
+--                            Item.Facility.Worker_Quantity (I);
+--           begin
+--              Item.Create_Ask
+--                (Commodity, Required);
+--           end;
+--        end loop;
+--
+--        if Item.Is_Colony_Hub then
+--           for Commodity of Concorde.Commodities.All_Commodities loop
+--              Add_Hub_Trade_Offer (Commodity);
+--           end loop;
+--        elsif Item.Is_Port then
+--           for Commodity of Concorde.Commodities.All_Commodities loop
+--              Add_Port_Trade_Offer (Commodity);
+--           end loop;
+--        else
+--           if Item.Facility.Has_Output
+--             and then Item.Get_Quantity (Item.Facility.Output) > Zero
+--           then
+--              Item.Create_Bid
+--                (Item.Facility.Output,
+--                 Item.Get_Quantity (Item.Facility.Output));
+--           elsif Item.Facility.Is_Resource_Generator then
+--              for Commodity of Concorde.Commodities.All_Commodities loop
+--                 if Item.Facility.Can_Produce (Commodity)
+--                   and then Item.Get_Quantity (Commodity) > Zero
+--                 then
+--                    Add_Sell_Offer (Commodity);
+--                 end if;
+--              end loop;
+--           end if;
+--        end if;
+--     end Add_Trade_Offers;
 
    --------------
    -- Facility --

@@ -1,7 +1,11 @@
-private with Ada.Containers.Vectors;
+private with Ada.Containers.Doubly_Linked_Lists;
+
+private with WL.Heaps;
+
 private with Memor.Database;
 private with Memor.Element_Vectors;
 
+with Concorde.Dates;
 with Concorde.Objects;
 
 with Concorde.Money;
@@ -22,73 +26,19 @@ package Concorde.Markets is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Money.Price_Type;
 
-   overriding function Current_Demand
-     (Market   : Root_Market_Type;
-      Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type;
-
-   overriding function Current_Supply
-     (Market   : Root_Market_Type;
-      Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type;
-
-   overriding function Current_Local_Demand
-     (Market   : Root_Market_Type;
-      Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type;
-
-   overriding function Current_Local_Supply
-     (Market   : Root_Market_Type;
-      Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type;
-
-   overriding function Last_Price
-     (Market    : Root_Market_Type;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Money.Price_Type;
-
-   overriding function Last_Demand
-     (Market   : Root_Market_Type;
-      Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type;
-
-   overriding function Last_Supply
-     (Market   : Root_Market_Type;
-      Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type;
-
-   overriding function Current_Import_Demand
-     (Market    : Root_Market_Type;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type;
-
-   overriding function Current_Export_Supply
-     (Market    : Root_Market_Type;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type;
-
    overriding function Historical_Mean_Price
      (Market    : Root_Market_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Money.Price_Type;
 
    overriding procedure Create_Offer
-     (Market    : in out Root_Market_Type;
+     (Market    : Root_Market_Type;
       Offer     : Concorde.Trades.Offer_Type;
       Agent     : not null access constant
         Concorde.Trades.Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity_Type);
-
-   overriding procedure Add_Export_Supply
-     (Market    : in out Root_Market_Type;
-      Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity_Type);
-
-   overriding procedure Add_Import_Demand
-     (Market    : in out Root_Market_Type;
-      Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity_Type);
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type);
 
    procedure Enable_Logging
      (Market  : in out Root_Market_Type'Class;
@@ -101,17 +51,6 @@ package Concorde.Markets is
    function Name
      (Market : Root_Market_Type'Class)
       return String;
-
-   procedure Before_Trading
-     (Market : in out Root_Market_Type'Class);
-
-   procedure After_Trading
-     (Market : in out Root_Market_Type'Class);
-
-   procedure Execute
-     (Market  : in out Root_Market_Type'Class;
-      Manager : not null access constant
-        Concorde.Trades.Trade_Manager_Interface'Class);
 
    type Market_Type is access constant Root_Market_Type'Class;
 
@@ -135,10 +74,6 @@ package Concorde.Markets is
      (Item : not null access constant Root_Market_Type'Class)
       return Updateable_Reference;
 
-   procedure Update_Markets
-     (Process : not null access
-        procedure (Market : in out Root_Market_Type'Class));
-
 private
 
    use type Concorde.Money.Price_Type;
@@ -148,89 +83,66 @@ private
       Proportional,
       Quadratic);
 
+   type Quantity_Metric_Array is
+     array (Concorde.Trades.Trade_Metric) of Concorde.Quantities.Quantity_Type;
+
+   type Historical_Quantity_Record is
+      record
+         Date       : Concorde.Dates.Date_Type;
+         Quantities : Quantity_Metric_Array :=
+                        (others => Concorde.Quantities.Zero);
+      end record;
+
+   package Quantity_Metric_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Historical_Quantity_Record);
+
    type Offer_Info is
       record
          Agent              : access constant
            Concorde.Trades.Trader_Interface'Class;
          Offered_Quantity   : Concorde.Quantities.Quantity_Type;
          Remaining_Quantity : Concorde.Quantities.Quantity_Type;
-         Closed_At_Price    : Concorde.Quantities.Quantity_Type;
-         Closed_At_Limit    : Concorde.Quantities.Quantity_Type;
          Offer_Price        : Concorde.Money.Price_Type;
-         Current_Price      : Concorde.Money.Price_Type;
-         Limit_Price        : Concorde.Money.Price_Type;
-         Limit_Quantity     : Price_Quantity_Function;
-         Total_Cost         : Concorde.Money.Money_Type;
       end record;
 
    function "<" (Left, Right : Offer_Info) return Boolean
-   is (Left.Current_Price < Right.Current_Price);
+   is (Left.Offer_Price < Right.Offer_Price);
 
-   package Offer_Vectors is
-     new Ada.Containers.Vectors (Positive, Offer_Info);
+   function ">" (Left, Right : Offer_Info) return Boolean
+   is (Left.Offer_Price > Right.Offer_Price);
 
-   package Offer_Sorting is new Offer_Vectors.Generic_Sorting;
+   package Bid_Queues is
+     new WL.Heaps
+       (Key_Type     => Concorde.Money.Price_Type,
+        Element_Type => Offer_Info,
+        "<"          => "<");
+
+   package Ask_Queues is
+     new WL.Heaps
+       (Key_Type     => Concorde.Money.Price_Type,
+        Element_Type => Offer_Info,
+        "<"          => ">");
 
    function Make_Offer
      (Agent    : not null access constant
         Concorde.Trades.Trader_Interface'Class;
       Quantity : Concorde.Quantities.Quantity_Type;
-      Price    : Concorde.Money.Price_Type;
-      Limit    : Concorde.Money.Price_Type)
+      Price    : Concorde.Money.Price_Type)
       return Offer_Info
-   is (Agent, Quantity, Quantity, Quantities.Zero, Quantities.Zero,
-       Price, Price, Limit, Proportional, Money.Zero);
-
-   function Calculate_Quantity
-     (Agreed_Price : Concorde.Money.Price_Type;
-      Buy_Or_Sell  : Concorde.Trades.Offer_Type;
-      Commodity    : Concorde.Commodities.Commodity_Type;
-      Offer        : Offer_Info)
-      return Concorde.Quantities.Quantity_Type;
-
-   protected type Commodity_Offers is
-      procedure Add_Buy_Offer
-        (Agent     : not null access constant
-           Concorde.Trades.Trader_Interface'Class;
-         Quantity  : Concorde.Quantities.Quantity_Type;
-         Price     : Concorde.Money.Price_Type;
-         Limit     : Concorde.Money.Price_Type);
-      procedure Add_Sell_Offer
-        (Agent     : not null access constant
-           Concorde.Trades.Trader_Interface'Class;
-         Quantity  : Concorde.Quantities.Quantity_Type;
-         Price     : Concorde.Money.Price_Type;
-         Limit     : Concorde.Money.Price_Type);
-      function Total_Demand return Concorde.Quantities.Quantity_Type;
-      function Total_Supply return Concorde.Quantities.Quantity_Type;
-      function Local_Demand return Concorde.Quantities.Quantity_Type;
-      function Local_Supply return Concorde.Quantities.Quantity_Type;
-      function Buy_Offers return Offer_Vectors.Vector;
-      function Sell_Offers return Offer_Vectors.Vector;
-      procedure Clear;
-   private
-      Buys  : Offer_Vectors.Vector;
-      Sells : Offer_Vectors.Vector;
-   end Commodity_Offers;
+   is (Offer_Info'
+         (Agent              => Agent,
+          Offered_Quantity   => Quantity,
+          Remaining_Quantity => Quantity,
+          Offer_Price        => Price));
 
    type Cached_Commodity_Record is
       record
+         Metrics               : Quantity_Metric_Lists.List;
          Current_Price         : Concorde.Money.Price_Type;
          Historical_Mean_Price : Concorde.Money.Price_Type;
          Last_Price            : Concorde.Money.Price_Type;
-         Local_Supply          : Concorde.Quantities.Quantity_Type;
-         Local_Demand          : Concorde.Quantities.Quantity_Type;
-         Last_Supply           : Concorde.Quantities.Quantity_Type;
-         Last_Demand           : Concorde.Quantities.Quantity_Type;
-         Export_Supply         : Concorde.Quantities.Quantity_Type;
-         Import_Demand         : Concorde.Quantities.Quantity_Type;
-         New_Export_Supply     : Concorde.Quantities.Quantity_Type;
-         New_Import_Demand     : Concorde.Quantities.Quantity_Type;
-         Supply, Demand        : Concorde.Quantities.Quantity_Type :=
-                                   Quantities.Zero;
-         Traded_Quantity       : Concorde.Quantities.Quantity_Type :=
-                                   Quantities.Zero;
-         Offers                : access Commodity_Offers;
+         Bids                  : Bid_Queues.Heap;
+         Asks                  : Ask_Queues.Heap;
       end record;
 
    type Cached_Commodity is access Cached_Commodity_Record;
@@ -256,15 +168,18 @@ private
      (Market : Root_Market_Type)
       return Memor.Memor_Database;
 
-   overriding procedure Update
-     (Market : Root_Market_Type;
-      Perform_Update : not null access
-        procedure (M : in out Concorde.Trades.Trade_Interface'Class));
-
    overriding function Manager
      (Market : Root_Market_Type)
       return access constant Concorde.Trades.Trade_Manager_Interface'Class
    is (Market.Manager);
+
+   overriding function Get_Quantity
+     (Market    : Root_Market_Type;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Metric    : Concorde.Trades.Trade_Metric;
+      Start     : Concorde.Dates.Date_Type;
+      Finish    : Concorde.Dates.Date_Type)
+      return Concorde.Quantities.Quantity_Type;
 
    procedure Check_Commodity
      (Market    : Root_Market_Type'Class;
@@ -274,12 +189,6 @@ private
      (Market : Root_Market_Type'Class;
       Commodity : Commodities.Commodity_Type)
       return Cached_Commodity;
-
-   procedure Execute_Commodity_Trades
-     (Market    : in out Root_Market_Type'Class;
-      Manager   : not null access constant
-        Concorde.Trades.Trade_Manager_Interface'Class;
-      Commodity : Concorde.Commodities.Commodity_Type);
 
    procedure Log_Offer
      (Market    : Root_Market_Type'Class;

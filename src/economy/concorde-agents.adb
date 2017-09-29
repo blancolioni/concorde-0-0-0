@@ -7,7 +7,7 @@ with Concorde.Real_Images;
 package body Concorde.Agents is
 
    Log_Offers : Boolean := False;
-   Log_Price_Updates : constant Boolean := True;
+--   Log_Price_Updates : constant Boolean := True;
 
    function Price_Position_In_Range
      (Value, Low, High : Concorde.Money.Price_Type)
@@ -123,80 +123,72 @@ package body Concorde.Agents is
       Ask_Quantity : Concorde.Quantities.Quantity_Type)
    is
 
-      procedure Update
-        (Market : in out Concorde.Trades.Trade_Interface'Class);
+      use Concorde.Money;
+      use Concorde.Quantities;
+      use Concorde.Trades;
 
-      ------------
-      -- Update --
-      ------------
+      Market : constant access constant
+        Concorde.Trades.Trade_Interface'Class :=
+          Agent.Market;
 
-      procedure Update
-        (Market : in out Concorde.Trades.Trade_Interface'Class)
-      is
-         use Concorde.Money;
-         use Concorde.Quantities;
-         use Concorde.Trades;
-
-         Mean          : constant Price_Type :=
-                           Market.Historical_Mean_Price
-                             (Commodity);
-         Belief        : constant Agent_Price_Belief_Record :=
-                           Agent.Get_Price_Belief (Market, Commodity);
-         Favourability : constant Unit_Real :=
-                           (if Belief.Low = Belief.High
-                            then 1.0
-                            else Price_Position_In_Range
-                              (Mean, Belief.Low, Belief.High));
-         Limit_Price   : constant Price_Type :=
-                           Add_Tax (Agent.Get_Average_Price (Commodity),
-                                    Market.Manager.Tax_Rate
-                                      (Concorde.Trades.Sales,
-                                       Commodity));
-         Sell_Price    : constant Price_Type :=
-                           (if Belief.High < Limit_Price
-                            then Limit_Price
-                            elsif Agent.Offer_Strategy (Commodity)
-                            = Average_Price
-                            then Mean
-                            else Create_Ask_Price
-                              (Max (Belief.Low, Limit_Price),
-                               Belief.High, Agent.Age));
-         Sell_Quantity : constant Quantity_Type := Ask_Quantity;
-      begin
-         if Log_Offers then
-            Agent.Log_Trade
-              (Commodity.Name
-               & ": have "
-               & Image (Ask_Quantity)
-               & "; price belief "
-               & Image (Belief.Low)
-               & "/"
-               & Image (Belief.High)
-               & "; mean "
-               & Image (Mean)
-               & "; favourability "
-               & Concorde.Real_Images.Approximate_Image (Favourability)
-               & "; limit price "
-               & Image (Limit_Price)
-               & "; cash "
-               & Image (Agent.Cash)
-               & "; sell price "
-               & Image (Sell_Price)
-               & "; quantity "
-               & Image (Sell_Quantity));
-         end if;
-
-         if Sell_Quantity > Zero then
-            Market.Create_Offer
-              (Offer     => Concorde.Trades.Sell,
-               Trader    => Agent,
-               Commodity => Commodity,
-               Quantity  => Sell_Quantity);
-         end if;
-      end Update;
-
+      Mean          : constant Price_Type :=
+                        Market.Historical_Mean_Price
+                          (Commodity);
+      Belief        : constant Agent_Price_Belief_Record :=
+                        Agent.Get_Price_Belief (Market, Commodity);
+      Favourability : constant Unit_Real :=
+                        (if Belief.Low = Belief.High
+                         then 1.0
+                         else Price_Position_In_Range
+                           (Mean, Belief.Low, Belief.High));
+      Limit_Price   : constant Price_Type :=
+                        Add_Tax (Agent.Get_Average_Price (Commodity),
+                                 Market.Manager.Tax_Rate
+                                   (Concorde.Trades.Sales,
+                                    Commodity));
+      Sell_Price    : constant Price_Type :=
+                        (if Belief.High < Limit_Price
+                         then Limit_Price
+                         elsif Agent.Offer_Strategy (Commodity)
+                         = Average_Price
+                         then Mean
+                         else Create_Ask_Price
+                           (Max (Belief.Low, Limit_Price),
+                            Belief.High, Agent.Age));
+      Sell_Quantity : constant Quantity_Type := Ask_Quantity;
    begin
-      Agent.Market.Update (Update'Access);
+      if Log_Offers then
+         Agent.Log_Trade
+           (Commodity.Name
+            & ": have "
+            & Image (Ask_Quantity)
+            & "; price belief "
+            & Image (Belief.Low)
+            & "/"
+            & Image (Belief.High)
+            & "; mean "
+            & Image (Mean)
+            & "; favourability "
+            & Concorde.Real_Images.Approximate_Image (Favourability)
+            & "; limit price "
+            & Image (Limit_Price)
+            & "; cash "
+            & Image (Agent.Cash)
+            & "; sell price "
+            & Image (Sell_Price)
+            & "; quantity "
+            & Image (Sell_Quantity));
+      end if;
+
+      if Sell_Quantity > Zero then
+         Market.Create_Offer
+           (Offer     => Concorde.Trades.Ask,
+            Trader    => Agent,
+            Commodity => Commodity,
+            Quantity  => Sell_Quantity,
+            Price     => Sell_Price);
+      end if;
+
    exception
       when E : others =>
          Agent.Log_Trade
@@ -235,70 +227,63 @@ package body Concorde.Agents is
       Bid_Quantity : Concorde.Quantities.Quantity_Type)
    is
 
-      procedure Update
-        (Market : in out Concorde.Trades.Trade_Interface'Class);
+      use Concorde.Money;
+      use Concorde.Quantities;
+      use Concorde.Trades;
 
-      ------------
-      -- Update --
-      ------------
+      Market : constant access constant
+        Concorde.Trades.Trade_Interface'Class :=
+          Agent.Market;
 
-      procedure Update
-        (Market : in out Concorde.Trades.Trade_Interface'Class)
-      is
-         use Concorde.Money;
-         use Concorde.Quantities;
-         use Concorde.Trades;
-
-         Current       : constant Quantity_Type :=
-                           Agent.Get_Quantity (Commodity);
-         Mean          : constant Price_Type :=
-                           Market.Historical_Mean_Price
-                             (Commodity);
-         Belief        : constant Agent_Price_Belief_Record :=
-                           Agent.Get_Price_Belief (Market, Commodity);
-         Favourability : constant Unit_Real :=
-                           (if Belief.Low = Belief.High
-                            then 1.0
-                            else 1.0 - Price_Position_In_Range
-                              (Mean, Belief.Low, Belief.High));
-         Buy_Price     : constant Price_Type :=
-                           (if Agent.Offer_Strategy (Commodity)
-                            = Average_Price
-                            then Mean
-                            else Create_Bid_Price
-                              (Belief.Low, Belief.High, Agent.Age));
-      begin
-         if Log_Offers then
-            Agent.Log_Trade
-              (Commodity.Name
-               & ": desire "
-               & Image (Bid_Quantity)
-               & ": have "
-               & Image (Current)
-               & "; price belief "
-               & Image (Belief.Low)
-               & "/"
-               & Image (Belief.High)
-               & "; mean "
-               & Image (Mean)
-               & "; favourability "
-               & Concorde.Real_Images.Approximate_Image (Favourability)
-               & "; buy price "
-               & Image (Buy_Price));
-         end if;
-
-         if Bid_Quantity > Zero then
-            Market.Create_Offer
-              (Offer     => Concorde.Trades.Buy,
-               Trader    => Agent,
-               Commodity => Commodity,
-               Quantity  => Bid_Quantity);
-         end if;
-      end Update;
-
+      Current       : constant Quantity_Type :=
+                        Agent.Get_Quantity (Commodity);
+      Mean          : constant Price_Type :=
+                        Market.Historical_Mean_Price
+                          (Commodity);
+      Belief        : constant Agent_Price_Belief_Record :=
+                        Agent.Get_Price_Belief (Market, Commodity);
+      Favourability : constant Unit_Real :=
+                        (if Belief.Low = Belief.High
+                         then 1.0
+                         else 1.0 - Price_Position_In_Range
+                           (Mean, Belief.Low, Belief.High));
+      Buy_Price     : constant Price_Type :=
+                        (if Agent.Offer_Strategy (Commodity)
+                         = Average_Price
+                         then Mean
+                         else Create_Bid_Price
+                           (Belief.Low, Belief.High, Agent.Age));
    begin
-      Agent.Market.Update (Update'Access);
+      if Log_Offers then
+         Agent.Log_Trade
+           (Commodity.Name
+            & ": desire "
+            & Image (Bid_Quantity)
+            & ": have "
+            & Image (Current)
+            & "; price belief "
+            & Image (Belief.Low)
+            & "/"
+            & Image (Belief.High)
+            & "; mean "
+            & Image (Mean)
+            & "; favourability "
+            & Concorde.Real_Images.Approximate_Image (Favourability)
+            & "; buy price "
+            & Image (Buy_Price));
+      end if;
+
+      if Bid_Quantity > Zero then
+         Market.Create_Offer
+           (Offer     => Concorde.Trades.Bid,
+            Trader    => Agent,
+            Commodity => Commodity,
+            Quantity  => Bid_Quantity,
+            Price     => Buy_Price);
+      end if;
+
    exception
+
       when E : others =>
          Agent.Log_Trade
            ("while creating bid for " & Commodity.Name
@@ -352,24 +337,76 @@ package body Concorde.Agents is
    -------------------
 
    overriding procedure Execute_Trade
-     (Agent     : in out Root_Agent_Type;
+     (Agent     : not null access constant Root_Agent_Type;
       Offer     : Concorde.Trades.Offer_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity_Type;
       Cost      : Concorde.Money.Money_Type)
    is
+
+      procedure Execute_Ask
+        (A : not null access Root_Agent_Type'Class);
+
+      procedure Execute_Bid
+        (A : not null access Root_Agent_Type'Class);
+
+      -----------------
+      -- Execute_Ask --
+      -----------------
+
+      procedure Execute_Ask
+        (A : not null access Root_Agent_Type'Class)
+      is
+      begin
+         A.Remove_Quantity (Commodity, Quantity, Cost);
+         A.Add_Cash (Cost);
+      end Execute_Ask;
+
+      -----------------
+      -- Execute_Bid --
+      -----------------
+
+      procedure Execute_Bid
+        (A : not null access Root_Agent_Type'Class)
+      is
+      begin
+         A.Add_Quantity (Commodity, Quantity, Cost);
+         A.Remove_Cash (Cost);
+      end Execute_Bid;
+
    begin
 
+      declare
+         use Concorde.Money;
+         use Concorde.Quantities;
+         use Concorde.Trades;
+         Offered_Text : constant String :=
+                          (case Offer is
+                              when Ask => "buys",
+                              when Bid => "sells");
+         Trader_Price : constant Price_Type :=
+                          Concorde.Money.Price
+                            (Cost, Quantity);
+      begin
+         Agent.Log_Price
+           (Commodity.Name
+            & ": " & Offered_Text & " "
+            & Image (Quantity)
+            & " @ "
+            & Image (Trader_Price)
+            & "; total " & Image (Cost));
+      end;
+
       case Offer is
-         when Concorde.Trades.Buy =>
-            Agent.Add_Quantity (Commodity, Quantity, Cost);
-            Agent.Remove_Cash (Cost);
-         when Concorde.Trades.Sell =>
-            Agent.Remove_Quantity (Commodity, Quantity, Cost);
-            Agent.Add_Cash (Cost);
+         when Concorde.Trades.Bid =>
+            Execute_Bid
+              (Root_Agent_Type'Class (Agent.all).Variable_Reference);
+         when Concorde.Trades.Ask =>
+            Execute_Ask
+              (Root_Agent_Type'Class (Agent.all).Variable_Reference);
       end case;
 
-      Agent.Account.Append
+      Root_Agent_Type'Class (Agent.all).Variable_Reference.Account.Append
         ((Date       => Concorde.Dates.Current_Date,
           Item       => Commodity,
           Entry_Type => Offer,
@@ -397,7 +434,8 @@ package body Concorde.Agents is
 
    function Get_Price_Belief
      (Agent     : Root_Agent_Type'Class;
-      Market    : Concorde.Trades.Trade_Interface'Class;
+      Market    : not null access constant
+        Concorde.Trades.Trade_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
       return Agent_Price_Belief_Record
    is
@@ -582,26 +620,6 @@ package body Concorde.Agents is
    begin
       return Agent.Market;
    end Market;
-
-   ----------------------------
-   -- Maximum_Offer_Quantity --
-   ----------------------------
-
-   overriding function Maximum_Offer_Quantity
-     (Agent  : Root_Agent_Type;
-      Offer  : Concorde.Trades.Offer_Type;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type
-   is
-      use type Concorde.Quantities.Quantity_Type;
-   begin
-      case Offer is
-         when Concorde.Trades.Buy =>
-            return Agent.Maximum_Quantity - Agent.Total_Quantity;
-         when Concorde.Trades.Sell =>
-            return Agent.Get_Quantity (Commodity);
-      end case;
-   end Maximum_Offer_Quantity;
 
    ----------------------
    -- Maximum_Quantity --
@@ -813,155 +831,155 @@ package body Concorde.Agents is
    -- Update_Price_Belief --
    -------------------------
 
-   overriding procedure Update_Price_Belief
-     (Agent             : Root_Agent_Type;
-      Market            : Concorde.Trades.Trade_Interface'Class;
-      Offer             : Concorde.Trades.Offer_Type;
-      Commodity         : Concorde.Commodities.Commodity_Type;
-      Total_Traded      : Concorde.Quantities.Quantity_Type;
-      Total_Supply      : Concorde.Quantities.Quantity_Type;
-      Total_Demand      : Concorde.Quantities.Quantity_Type;
-      Average_Price     : Concorde.Money.Price_Type;
-      Historical_Price  : Concorde.Money.Price_Type;
-      Trader_Price      : Concorde.Money.Price_Type;
-      Trader_Offered    : Concorde.Quantities.Quantity_Type;
-      Trader_Traded     : Concorde.Quantities.Quantity_Type;
-      Total_Money       : Concorde.Money.Money_Type)
-   is
-      pragma Unreferenced (Historical_Price);
-      pragma Unreferenced (Total_Money);
-
-      use Concorde.Money;
-      use Concorde.Quantities;
-
-      use all type Concorde.Trades.Offer_Type;
-
-      Price_Belief   : Agent_Price_Belief_Record :=
-                         Agent.Get_Price_Belief (Market, Commodity);
-      Low            : Price_Type := Price_Belief.Low;
-      High           : Price_Type := Price_Belief.High;
-      Strength       : Unit_Real := Price_Belief.Strength;
-
-      Mean_Belief    : constant Price_Type :=
-                         Adjust_Price (High - Low, 0.5) + Low;
-      Trade_Offers   : constant Quantity_Type :=
-                         (case Offer is
-                             when Buy => Total_Demand,
-                             when Sell => Total_Supply);
-      Available_Offers : constant Quantity_Type :=
-                           (case Offer is
-                               when Buy  => Total_Supply,
-                               when Sell => Total_Demand);
-      Offer_Share    : constant Unit_Real :=
-                         To_Real (Trader_Offered) / To_Real (Trade_Offers);
-      Closed_Share     : constant Unit_Real :=
-                           (if Total_Traded = Zero
-                            then 0.0
-                            else To_Real (Trader_Traded)
-                            / To_Real (Total_Traded));
-
-      Competing      : constant Boolean :=
-                         Trader_Offered < Trade_Offers;
-
-   begin
-      if Closed_Share > Offer_Share
-        or else (not Competing and then Trader_Traded = Available_Offers)
-      then
-         Low := Low + Adjust_Price (Mean_Belief - Low, 0.05);
-         High := High - Adjust_Price (High - Mean_Belief, 0.05);
-         Strength := Strength + (1.0 - Strength) * 0.1;
-
-         case Offer is
-            when Buy =>
-               if Mean_Belief > Average_Price then
-                  Low := Low
-                    - Adjust_Price (Mean_Belief - Average_Price, 0.1);
-                  High := High
-                    - Adjust_Price (Mean_Belief - Average_Price, 0.1);
-               end if;
-            when Sell =>
-               if Mean_Belief < Average_Price then
-                  Low := Low
-                    + Adjust_Price (Average_Price - Mean_Belief, 0.1);
-                  High := High
-                    + Adjust_Price (Average_Price - Mean_Belief, 0.1);
-               end if;
-         end case;
-
-      elsif Closed_Share < Offer_Share
-        or else (not Competing and then Trader_Traded < Available_Offers)
-      then
-         Strength := Strength * 0.9;
-         High := Adjust_Price (High, 1.05);
-         case Offer is
-            when Buy =>
-               if Mean_Belief < Average_Price then
-                  Low := Low
-                    + Adjust_Price (Average_Price - Mean_Belief, 0.1);
-                  High := High
-                    + Adjust_Price (Average_Price - Mean_Belief, 0.1);
-               end if;
-            when Sell =>
-               if not Competing then
-                  declare
-                     Share : constant Unit_Real :=
-                               To_Real (Trader_Traded)
-                               / To_Real (Available_Offers);
-                  begin
-                     Low := Adjust_Price
-                       (Average_Price, 0.5 + Share / 2.0);
-                  end;
-               else
-                  Low := Adjust_Price (Low, 0.95);
-               end if;
-         end case;
-      end if;
-
-      if Log_Price_Updates then
-         declare
-            Offered_Text : constant String :=
-                             (case Offer is
-                                 when Buy => "wanted",
-                                 when Sell => "offered");
-            Closed_Text  : constant String :=
-                             (case Offer is
-                                 when Buy => "bought",
-                                 when Sell => "sold");
-         begin
-            Agent.Log_Price
-              (Commodity.Name
-               & ": " & Offered_Text & " "
-               & Image (Trader_Offered)
-               & " @ "
-               & Image (Trader_Price)
-               & "; " & Closed_Text & " "
-               & Image (Trader_Traded)
-               & "; market demand/supply/traded "
-               & Image (Total_Demand)
-               & "/"
-               & Image (Total_Supply)
-               & "/"
-               & Image (Total_Traded)
-               & " @ "
-               & Image (Average_Price)
-               & "; old price belief "
-               & Image (Price_Belief.Low)
-               & "/"
-               & Image (Price_Belief.High)
-               & "; mean "
-               & Image (Mean_Belief)
-               & "; new price belief "
-               & Image (Low)
-               & "/"
-               & Image (High)
-               & "; mean "
-               & Image (Adjust_Price (Low + High, 0.5)));
-         end;
-      end if;
-
-      Price_Belief := (Low, High, Strength);
-      Agent.Update_Price_Belief (Commodity, Price_Belief);
-   end Update_Price_Belief;
+--     overriding procedure Update_Price_Belief
+--       (Agent             : Root_Agent_Type;
+--        Market            : Concorde.Trades.Trade_Interface'Class;
+--        Offer             : Concorde.Trades.Offer_Type;
+--        Commodity         : Concorde.Commodities.Commodity_Type;
+--        Total_Traded      : Concorde.Quantities.Quantity_Type;
+--        Total_Supply      : Concorde.Quantities.Quantity_Type;
+--        Total_Demand      : Concorde.Quantities.Quantity_Type;
+--        Average_Price     : Concorde.Money.Price_Type;
+--        Historical_Price  : Concorde.Money.Price_Type;
+--        Trader_Price      : Concorde.Money.Price_Type;
+--        Trader_Offered    : Concorde.Quantities.Quantity_Type;
+--        Trader_Traded     : Concorde.Quantities.Quantity_Type;
+--        Total_Money       : Concorde.Money.Money_Type)
+--     is
+--        pragma Unreferenced (Historical_Price);
+--        pragma Unreferenced (Total_Money);
+--
+--        use Concorde.Money;
+--        use Concorde.Quantities;
+--
+--        use all type Concorde.Trades.Offer_Type;
+--
+--        Price_Belief   : Agent_Price_Belief_Record :=
+--                           Agent.Get_Price_Belief (Market, Commodity);
+--        Low            : Price_Type := Price_Belief.Low;
+--        High           : Price_Type := Price_Belief.High;
+--        Strength       : Unit_Real := Price_Belief.Strength;
+--
+--        Mean_Belief    : constant Price_Type :=
+--                           Adjust_Price (High - Low, 0.5) + Low;
+--        Trade_Offers   : constant Quantity_Type :=
+--                           (case Offer is
+--                               when Buy => Total_Demand,
+--                               when Sell => Total_Supply);
+--        Available_Offers : constant Quantity_Type :=
+--                             (case Offer is
+--                                 when Buy  => Total_Supply,
+--                                 when Sell => Total_Demand);
+--        Offer_Share    : constant Unit_Real :=
+--                           To_Real (Trader_Offered) / To_Real (Trade_Offers);
+--        Closed_Share     : constant Unit_Real :=
+--                             (if Total_Traded = Zero
+--                              then 0.0
+--                              else To_Real (Trader_Traded)
+--                              / To_Real (Total_Traded));
+--
+--        Competing      : constant Boolean :=
+--                           Trader_Offered < Trade_Offers;
+--
+--     begin
+--        if Closed_Share > Offer_Share
+--          or else (not Competing and then Trader_Traded = Available_Offers)
+--        then
+--           Low := Low + Adjust_Price (Mean_Belief - Low, 0.05);
+--           High := High - Adjust_Price (High - Mean_Belief, 0.05);
+--           Strength := Strength + (1.0 - Strength) * 0.1;
+--
+--           case Offer is
+--              when Buy =>
+--                 if Mean_Belief > Average_Price then
+--                    Low := Low
+--                      - Adjust_Price (Mean_Belief - Average_Price, 0.1);
+--                    High := High
+--                      - Adjust_Price (Mean_Belief - Average_Price, 0.1);
+--                 end if;
+--              when Sell =>
+--                 if Mean_Belief < Average_Price then
+--                    Low := Low
+--                      + Adjust_Price (Average_Price - Mean_Belief, 0.1);
+--                    High := High
+--                      + Adjust_Price (Average_Price - Mean_Belief, 0.1);
+--                 end if;
+--           end case;
+--
+--        elsif Closed_Share < Offer_Share
+--          or else (not Competing and then Trader_Traded < Available_Offers)
+--        then
+--           Strength := Strength * 0.9;
+--           High := Adjust_Price (High, 1.05);
+--           case Offer is
+--              when Buy =>
+--                 if Mean_Belief < Average_Price then
+--                    Low := Low
+--                      + Adjust_Price (Average_Price - Mean_Belief, 0.1);
+--                    High := High
+--                      + Adjust_Price (Average_Price - Mean_Belief, 0.1);
+--                 end if;
+--              when Sell =>
+--                 if not Competing then
+--                    declare
+--                       Share : constant Unit_Real :=
+--                                 To_Real (Trader_Traded)
+--                                 / To_Real (Available_Offers);
+--                    begin
+--                       Low := Adjust_Price
+--                         (Average_Price, 0.5 + Share / 2.0);
+--                    end;
+--                 else
+--                    Low := Adjust_Price (Low, 0.95);
+--                 end if;
+--           end case;
+--        end if;
+--
+--        if Log_Price_Updates then
+--           declare
+--              Offered_Text : constant String :=
+--                               (case Offer is
+--                                   when Buy => "wanted",
+--                                   when Sell => "offered");
+--              Closed_Text  : constant String :=
+--                               (case Offer is
+--                                   when Buy => "bought",
+--                                   when Sell => "sold");
+--           begin
+--              Agent.Log_Price
+--                (Commodity.Name
+--                 & ": " & Offered_Text & " "
+--                 & Image (Trader_Offered)
+--                 & " @ "
+--                 & Image (Trader_Price)
+--                 & "; " & Closed_Text & " "
+--                 & Image (Trader_Traded)
+--                 & "; market demand/supply/traded "
+--                 & Image (Total_Demand)
+--                 & "/"
+--                 & Image (Total_Supply)
+--                 & "/"
+--                 & Image (Total_Traded)
+--                 & " @ "
+--                 & Image (Average_Price)
+--                 & "; old price belief "
+--                 & Image (Price_Belief.Low)
+--                 & "/"
+--                 & Image (Price_Belief.High)
+--                 & "; mean "
+--                 & Image (Mean_Belief)
+--                 & "; new price belief "
+--                 & Image (Low)
+--                 & "/"
+--                 & Image (High)
+--                 & "; mean "
+--                 & Image (Adjust_Price (Low + High, 0.5)));
+--           end;
+--        end if;
+--
+--        Price_Belief := (Low, High, Strength);
+--        Agent.Update_Price_Belief (Commodity, Price_Belief);
+--     end Update_Price_Belief;
 
    -------------------------
    -- Update_Price_Belief --

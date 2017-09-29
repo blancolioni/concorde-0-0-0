@@ -33,6 +33,14 @@ package Concorde.People.Individuals is
 
    type Individual_Type is access constant Root_Individual_Type'Class;
 
+   type Updateable_Reference
+     (Item : not null access Root_Individual_Type'Class)
+   is private with Implicit_Dereference => Item;
+
+   function Update
+     (Item : not null access constant Root_Individual_Type'Class)
+      return Updateable_Reference;
+
 private
 
    type Ability_Score_Array is array (Ability_Type) of Score_Range;
@@ -82,13 +90,10 @@ private
       return String
    is (Item.Name);
 
-   overriding procedure Add_Trade_Offers
-     (Item   : not null access constant Root_Individual_Type)
-   is null;
-
-   overriding procedure Before_Market
-     (Individual : in out Root_Individual_Type)
-   is null;
+   overriding function Variable_Reference
+     (Individual : not null access constant Root_Individual_Type)
+      return access Concorde.Agents.Root_Agent_Type'Class
+   is (Individual.Update.Item);
 
    function Score
      (Individual : Root_Individual_Type'Class;
@@ -104,5 +109,12 @@ private
      (Item : Root_Individual_Type)
       return Memor.Memor_Database
    is (Db.Get_Database);
+
+   type Updateable_Reference
+     (Item : not null access Root_Individual_Type'Class)
+   is
+      record
+         Update : Db.Updateable_Reference (Item);
+      end record;
 
 end Concorde.People.Individuals;

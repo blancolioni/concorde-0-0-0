@@ -60,7 +60,7 @@ package Concorde.Agents is
       Value    : Concorde.Money.Money_Type);
 
    overriding procedure Execute_Trade
-     (Agent     : in out Root_Agent_Type;
+     (Agent     : not null access constant Root_Agent_Type;
       Offer     : Concorde.Trades.Offer_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity_Type;
@@ -79,27 +79,6 @@ package Concorde.Agents is
      (Agent    : Root_Agent_Type;
       Process  : not null access
         procedure (Commodity : Concorde.Commodities.Commodity_Type));
-
-   overriding function Maximum_Offer_Quantity
-     (Agent     : Root_Agent_Type;
-      Offer     : Concorde.Trades.Offer_Type;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type;
-
-   overriding procedure Update_Price_Belief
-     (Agent             : Root_Agent_Type;
-      Market            : Concorde.Trades.Trade_Interface'Class;
-      Offer             : Concorde.Trades.Offer_Type;
-      Commodity         : Concorde.Commodities.Commodity_Type;
-      Total_Traded      : Concorde.Quantities.Quantity_Type;
-      Total_Supply      : Concorde.Quantities.Quantity_Type;
-      Total_Demand      : Concorde.Quantities.Quantity_Type;
-      Average_Price     : Concorde.Money.Price_Type;
-      Historical_Price  : Concorde.Money.Price_Type;
-      Trader_Price      : Concorde.Money.Price_Type;
-      Trader_Offered    : Concorde.Quantities.Quantity_Type;
-      Trader_Traded     : Concorde.Quantities.Quantity_Type;
-      Total_Money       : Concorde.Money.Money_Type);
 
    overriding function Market_Resident
      (Agent : Root_Agent_Type)
@@ -120,13 +99,10 @@ package Concorde.Agents is
      (Agent    : in out Root_Agent_Type;
       Location : Concorde.Locations.Object_Location);
 
-   procedure On_Update_Start
-     (Agent : in out Root_Agent_Type)
-   is null;
-
-   procedure On_Update_End
-     (Agent : in out Root_Agent_Type)
-   is null;
+   function Variable_Reference
+     (Agent : not null access constant Root_Agent_Type)
+      return access Root_Agent_Type'Class
+      is abstract;
 
    procedure Set_Market
      (Agent  : in out Root_Agent_Type'Class;
@@ -180,9 +156,9 @@ package Concorde.Agents is
    procedure Check_Offers
      (Agent : in out Root_Agent_Type'Class);
 
-   procedure Add_Trade_Offers
-     (Agent  : not null access constant Root_Agent_Type)
-   is abstract;
+--     procedure Add_Trade_Offers
+--       (Agent  : not null access constant Root_Agent_Type)
+--     is abstract;
 
    procedure Before_Market
      (Agent : in out Root_Agent_Type)
@@ -298,7 +274,8 @@ private
 
    function Get_Price_Belief
      (Agent     : Root_Agent_Type'Class;
-      Market    : Concorde.Trades.Trade_Interface'Class;
+      Market    : not null access constant
+        Concorde.Trades.Trade_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
       return Agent_Price_Belief_Record;
 

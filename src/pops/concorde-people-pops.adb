@@ -7,7 +7,7 @@ package body Concorde.People.Pops is
    -- Add_Trade_Offers --
    ----------------------
 
-   overriding procedure Add_Trade_Offers
+   procedure Add_Trade_Offers
      (Item   : not null access constant Root_Pop_Type)
    is
       use Concorde.Commodities, Concorde.Money, Concorde.Quantities;
@@ -108,20 +108,6 @@ package body Concorde.People.Pops is
    begin
       return Pop.Groups.Get_Affiliation_Range (Group);
    end Affiliation;
-
-   -------------------
-   -- Before_Market --
-   -------------------
-
-   overriding procedure Before_Market
-     (Pop : in out Root_Pop_Type)
-   is
-   begin
-      for Skill of Pop.Skills loop
-         Pop.Add_Quantity (Skill.Commodity, Pop.Size_Quantity,
-                           Concorde.Money.Zero);
-      end loop;
-   end Before_Market;
 
    ---------------------
    -- Object_Database --

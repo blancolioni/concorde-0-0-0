@@ -408,9 +408,10 @@ private
       return Concorde.Locations.Object_Location
    is (Root_Faction_Type'Class (Faction).Current_Location);
 
-   overriding procedure Add_Trade_Offers
+   overriding function Variable_Reference
      (Faction : not null access constant Root_Faction_Type)
-   is null;
+      return access Concorde.Agents.Root_Agent_Type'Class
+   is (Faction.Update.Item);
 
    function Has_Minister
      (Faction    : Root_Faction_Type'Class;

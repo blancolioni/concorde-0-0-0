@@ -53,6 +53,9 @@ package Concorde.Installations is
        with Pre => Installation.Has_Manager,
          Post => not Installation.Has_Manager;
 
+--     procedure Add_Trade_Offers
+--       (Item   : in out Root_Installation_Type);
+
    type Installation_Type is access constant Root_Installation_Type'Class;
 
    type Updateable_Reference
@@ -95,17 +98,15 @@ private
      (Item : Root_Installation_Type)
       return Memor.Memor_Database;
 
-   overriding procedure Add_Trade_Offers
-     (Item   : not null access constant Root_Installation_Type);
-
    overriding function Delayed_Trade_Offers
      (Installation : Root_Installation_Type)
       return Boolean
    is (Installation.Is_Colony_Hub);
 
-   overriding procedure On_Update_Start
-     (Installation : in out Root_Installation_Type)
-   is null;
+   overriding function Variable_Reference
+     (Installation : not null access constant Root_Installation_Type)
+      return access Concorde.Agents.Root_Agent_Type'Class
+   is (Installation.Update.Item);
 
    function Has_Manager
      (Installation : Root_Installation_Type'Class)

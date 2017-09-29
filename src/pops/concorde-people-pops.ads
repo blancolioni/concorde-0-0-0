@@ -29,6 +29,9 @@ package Concorde.People.Pops is
       Group : Concorde.People.Groups.Pop_Group)
       return Concorde.People.Groups.Affiliation_Range;
 
+   procedure Add_Trade_Offers
+     (Item   : not null access constant Root_Pop_Type);
+
    type Pop_Type is access constant Root_Pop_Type'Class;
 
    type Updateable_Reference (Item : not null access Root_Pop_Type'Class)
@@ -73,11 +76,10 @@ private
        & " "
        & Item.Wealth_Group.Name);
 
-   overriding procedure Add_Trade_Offers
-     (Item   : not null access constant Root_Pop_Type);
-
-   overriding procedure Before_Market
-     (Pop : in out Root_Pop_Type);
+   overriding function Variable_Reference
+     (Pop : not null access constant Root_Pop_Type)
+      return access Concorde.Agents.Root_Agent_Type'Class
+   is (Pop.Update.Item);
 
    package Db is
      new Memor.Database

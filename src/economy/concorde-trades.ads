@@ -1,8 +1,14 @@
 with Concorde.Commodities;
+with Concorde.Dates;
 with Concorde.Money;
 with Concorde.Quantities;
 
 package Concorde.Trades is
+
+   type Trade_Metric is
+     (Total_Demand, Total_Supply, Total_Traded,
+      Total_Imported, Total_Exported,
+      Local_Demand, Local_Supply);
 
    type Trade_Interface is limited interface;
 
@@ -12,88 +18,32 @@ package Concorde.Trades is
       return Concorde.Money.Price_Type
       is abstract;
 
-   function Current_Demand
-     (Trade : Trade_Interface;
-      Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type
-      is abstract;
-
-   function Current_Supply
-     (Trade : Trade_Interface;
-      Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type
-      is abstract;
-
-   function Current_Local_Demand
-     (Trade    : Trade_Interface;
-      Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type
-      is abstract;
-
-   function Current_Local_Supply
-     (Trade    : Trade_Interface;
-      Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type
-      is abstract;
-
-   function Current_Import_Demand
-     (Trade    : Trade_Interface;
-      Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type
-      is abstract;
-
-   function Current_Export_Supply
-     (Trade    : Trade_Interface;
-      Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type
-      is abstract;
-
-   function Last_Price
+   function Historical_Mean_Price
      (Trade     : Trade_Interface;
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Money.Price_Type
       is abstract;
 
-   function Last_Demand
-     (Trade : Trade_Interface;
-      Item     : Concorde.Commodities.Commodity_Type)
+   function Get_Quantity
+     (Trade    : Trade_Interface;
+      Item     : Concorde.Commodities.Commodity_Type;
+      Metric   : Trade_Metric;
+      Start    : Concorde.Dates.Date_Type;
+      Finish   : Concorde.Dates.Date_Type)
       return Concorde.Quantities.Quantity_Type
       is abstract;
 
-   function Last_Supply
-     (Trade : Trade_Interface;
-      Item     : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type
-      is abstract;
-
-   function Historical_Mean_Price
-     (Trade : Trade_Interface;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Money.Price_Type
-      is abstract;
+   function Get_Daily_Quantity
+     (Trade    : Trade_Interface'Class;
+      Item     : Concorde.Commodities.Commodity_Type;
+      Metric   : Trade_Metric;
+      Days     : Positive := 1)
+      return Concorde.Quantities.Quantity_Type;
 
    procedure Log
      (Trade   : Trade_Interface;
       Message : String)
    is null;
-
-   procedure Add_Export_Supply
-     (Market    : in out Trade_Interface;
-      Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity_Type)
-   is abstract;
-
-   procedure Add_Import_Demand
-     (Market    : in out Trade_Interface;
-      Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity_Type)
-   is abstract;
-
-   procedure Update
-     (Market         : Trade_Interface;
-      Perform_Update : not null access
-        procedure (M : in out Trade_Interface'Class))
-   is abstract;
 
    type Market_Tax_Category is (Sales, Export, Import);
 
@@ -125,7 +75,7 @@ package Concorde.Trades is
       return access constant Trade_Manager_Interface'Class
       is abstract;
 
-   type Offer_Type is (Buy, Sell);
+   type Offer_Type is (Ask, Bid);
 
    type Offer_Price_Strategy is
      (Belief_Based, Fixed_Price, Average_Price);
@@ -157,15 +107,16 @@ package Concorde.Trades is
    --  this market.  Return False if the trader is external (e.g. a ship)
 
    procedure Create_Offer
-     (Trade     : in out Trade_Interface;
+     (Trade     : Trade_Interface;
       Offer     : Offer_Type;
       Trader    : not null access constant Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity_Type)
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type)
    is abstract;
 
    procedure Execute_Trade
-     (Trader    : in out Trader_Interface;
+     (Trader    : not null access constant Trader_Interface;
       Offer     : Offer_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity_Type;
@@ -178,27 +129,16 @@ package Concorde.Trades is
         procedure (Trader : not null access Trader_Interface'Class))
    is abstract;
 
-   function Maximum_Offer_Quantity
-     (Trader    : Trader_Interface;
-      Offer     : Offer_Type;
-      Commodity : Concorde.Commodities.Commodity_Type)
+   function Get_Daily_Quantity
+     (Trade    : Trade_Interface'Class;
+      Item     : Concorde.Commodities.Commodity_Type;
+      Metric   : Trade_Metric;
+      Days     : Positive := 1)
       return Concorde.Quantities.Quantity_Type
-      is abstract;
-
-   procedure Update_Price_Belief
-     (Trader            : Trader_Interface;
-      Trade             : Trade_Interface'Class;
-      Offer             : Offer_Type;
-      Commodity         : Concorde.Commodities.Commodity_Type;
-      Total_Traded      : Concorde.Quantities.Quantity_Type;
-      Total_Supply      : Concorde.Quantities.Quantity_Type;
-      Total_Demand      : Concorde.Quantities.Quantity_Type;
-      Average_Price     : Concorde.Money.Price_Type;
-      Historical_Price  : Concorde.Money.Price_Type;
-      Trader_Price      : Concorde.Money.Price_Type;
-      Trader_Offered    : Concorde.Quantities.Quantity_Type;
-      Trader_Traded     : Concorde.Quantities.Quantity_Type;
-      Total_Money       : Concorde.Money.Money_Type)
-   is abstract;
+   is (Trade.Get_Quantity
+       (Item, Metric,
+        Concorde.Dates.Add_Days
+          (Concorde.Dates.Current_Date, -Days),
+        Concorde.Dates.Current_Date));
 
 end Concorde.Trades;

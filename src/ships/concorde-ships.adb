@@ -2,13 +2,13 @@ with WL.Random;
 
 with Concorde.Systems;
 
-with Concorde.Money;
+--  with Concorde.Money;
 with Concorde.Random;
 with Concorde.Real_Images;
 
 with Concorde.Factions.Logging;
 
-with Concorde.Markets;
+--  with Concorde.Markets;
 with Concorde.Worlds;
 
 package body Concorde.Ships is
@@ -21,13 +21,16 @@ package body Concorde.Ships is
      (Ship : in out Root_Ship_Type'Class);
 
    procedure Ship_Check_Requirements
-     (Ship      : in out Root_Ship_Type'Class);
+     (Ship      : in out Root_Ship_Type'Class)
+     with Unreferenced;
 
    procedure Ship_Buy_Commodities
-     (Ship      : not null access constant Root_Ship_Type'Class);
+     (Ship      : not null access constant Root_Ship_Type'Class)
+     with Unreferenced;
 
    procedure Ship_Sell_Commodities
-     (Ship      : not null access constant Root_Ship_Type'Class);
+     (Ship      : not null access constant Root_Ship_Type'Class)
+     with Unreferenced;
 
    -------------------
    -- Add_Buy_Order --
@@ -64,194 +67,194 @@ package body Concorde.Ships is
    -- Add_Trade_Offers --
    ----------------------
 
-   overriding procedure Add_Trade_Offers
-     (Ship   : not null access constant Root_Ship_Type)
-   is
-      use Concorde.Quantities;
-      use type Memor.Database_Reference;
-      Hold  : constant Quantity_Type := Ship.Hold_Quantity;
-      Space : constant Quantity_Type := Hold - Ship.Total_Quantity;
-
-      type Buy_Commodity is
-         record
-            Market    : Concorde.Markets.Market_Type;
-            Commodity : Concorde.Commodities.Commodity_Type;
-            Supply    : Quantity_Type;
-            Demand    : Quantity_Type;
-            Buy_At    : Concorde.Money.Price_Type;
-            Sell_At   : Concorde.Money.Price_Type;
-            Quantity  : Quantities.Quantity_Type;
-            Score     : Natural;
-         end record;
-
-      package List_Of_Buy_Commodities is
-        new Ada.Containers.Doubly_Linked_Lists (Buy_Commodity);
-
-      Buy_List : List_Of_Buy_Commodities.List;
-
-      function Matching_Sell_Order
-        (Commodity : Concorde.Commodities.Commodity_Type)
-         return Concorde.Worlds.World_Type;
-
-      function Score_Trade
-        (Supply, Demand  : Quantity_Type;
-         Buy_At, Sell_At : Concorde.Money.Price_Type)
-         return Integer;
-
-      -------------------------
-      -- Matching_Sell_Order --
-      -------------------------
-
-      function Matching_Sell_Order
-        (Commodity : Concorde.Commodities.Commodity_Type)
-         return Concorde.Worlds.World_Type
-      is
-         use Concorde.Commodities, Concorde.Worlds;
-      begin
-         for Order of Ship.Orders loop
-            if Order.Order = Sell
-              and then Order.Commodity = Commodity
-            then
-               return World_Type (Order.World);
-            end if;
-         end loop;
-         return null;
-      end Matching_Sell_Order;
-
-      -----------------
-      -- Score_Trade --
-      -----------------
-
-      function Score_Trade
-        (Supply, Demand  : Quantity_Type;
-         Buy_At, Sell_At : Concorde.Money.Price_Type)
-         return Integer
-      is
-         use Concorde.Money;
-      begin
-         return To_Natural (Min (Supply, Demand))
-           * Integer (100.0 * (To_Real (Sell_At) - To_Real (Buy_At)));
-      end Score_Trade;
-
-   begin
-
-      for Current_Order of Ship.Orders loop
-         exit when not Ship.Orbiting (Current_Order.World);
-
-         case Current_Order.Order is
-            when No_Order =>
-               null;
-            when Trade =>
-               Ship_Buy_Commodities (Ship);
-               Ship_Sell_Commodities (Ship);
-
-            when Buy =>
-               declare
-                  use type Concorde.Worlds.World_Type;
-                  Commodity : constant Concorde.Commodities.Commodity_Type :=
-                                Current_Order.Commodity;
-                  Destination : constant Concorde.Worlds.World_Type :=
-                                  Matching_Sell_Order (Commodity);
-               begin
-                  if Destination /= null then
-                     declare
-                        From : constant Concorde.Markets.Market_Type :=
-                                 Current_Order.World.Market;
-                        To   : constant Concorde.Markets.Market_Type :=
-                                 Destination.Market;
-                        Supply : constant Quantity_Type :=
-                                   From.Current_Export_Supply
-                                     (Commodity);
-                        Demand : constant Quantity_Type :=
-                                   To.Current_Import_Demand (Commodity);
-                        Buy_At : constant Concorde.Money.Price_Type :=
-                                   From.Historical_Mean_Price (Commodity);
-                        Sell_At : constant Concorde.Money.Price_Type :=
-                                    To.Historical_Mean_Price (Commodity);
-                        Score   : constant Integer :=
-                                    Score_Trade
-                                      (Supply, Demand, Buy_At, Sell_At);
-                        Rec     : constant Buy_Commodity :=
-                                    (Market    => To,
-                                     Commodity => Current_Order.Commodity,
-                                     Supply    => Supply,
-                                     Demand    => Demand,
-                                     Buy_At    => Buy_At,
-                                     Sell_At   => Sell_At,
-                                     Quantity  => Current_Order.Quantity,
-                                     Score     =>
-                                       Integer'Max (Score, 0));
-                     begin
-                        if Score > 0 then
-                           Ship.Log_Trade
-                             (Commodity.Name
-                              & ": supply "
-                              & Image (Supply)
-                              & " @ "
-                              & Money.Image (Buy_At)
-                              & "; demand at "
-                              & To.Name
-                              & " is "
-                              & Image (Demand)
-                              & " @ "
-                              & Money.Image (Sell_At)
-                              & "; score "
-                              & Score'Img);
-                           Buy_List.Append (Rec);
-                        end if;
-                     end;
-                  else
-                     Ship.Create_Bid
-                       (Commodity    => Current_Order.Commodity,
-                        Bid_Quantity => Space);
-                  end if;
-               end;
-            when Sell =>
-               declare
-                  Available : constant Quantity_Type :=
-                                Ship.Get_Quantity (Current_Order.Commodity);
-               begin
-                  if Available > Zero then
-                     Ship.Create_Ask
-                       (Commodity    => Current_Order.Commodity,
-                        Ask_Quantity => Available);
-                  end if;
-               end;
-            when Colonise =>
-               null;
-         end case;
-      end loop;
-
-      declare
-         Total_Score : Natural := 0;
-      begin
-         for Trade of Buy_List loop
-            Total_Score := Total_Score + Trade.Score;
-         end loop;
-
-         for Trade of Buy_List loop
-            declare
-               Raw_Desired : constant Quantity_Type :=
-                               (if Trade.Quantity < Ship.Hold_Quantity
-                                then Trade.Quantity
-                                else Scale
-                                  (Trade.Quantity,
-                                   Real (Trade.Score) / Real (Total_Score)));
-               Actual_Desired : constant Quantity_Type :=
-                                  Min (Raw_Desired,
-                                       Trade.Market.Current_Import_Demand
-                                         (Trade.Commodity));
-
-            begin
-               if Actual_Desired > Zero then
-                  Ship.Create_Bid
-                    (Commodity    => Trade.Commodity,
-                     Bid_Quantity => Actual_Desired);
-               end if;
-            end;
-         end loop;
-      end;
-   end Add_Trade_Offers;
+--     overriding procedure Add_Trade_Offers
+--       (Ship   : not null access constant Root_Ship_Type)
+--     is
+--        use Concorde.Quantities;
+--        use type Memor.Database_Reference;
+--        Hold  : constant Quantity_Type := Ship.Hold_Quantity;
+--        Space : constant Quantity_Type := Hold - Ship.Total_Quantity;
+--
+--        type Buy_Commodity is
+--           record
+--              Market    : Concorde.Markets.Market_Type;
+--              Commodity : Concorde.Commodities.Commodity_Type;
+--              Supply    : Quantity_Type;
+--              Demand    : Quantity_Type;
+--              Buy_At    : Concorde.Money.Price_Type;
+--              Sell_At   : Concorde.Money.Price_Type;
+--              Quantity  : Quantities.Quantity_Type;
+--              Score     : Natural;
+--           end record;
+--
+--        package List_Of_Buy_Commodities is
+--          new Ada.Containers.Doubly_Linked_Lists (Buy_Commodity);
+--
+--        Buy_List : List_Of_Buy_Commodities.List;
+--
+--        function Matching_Sell_Order
+--          (Commodity : Concorde.Commodities.Commodity_Type)
+--           return Concorde.Worlds.World_Type;
+--
+--        function Score_Trade
+--          (Supply, Demand  : Quantity_Type;
+--           Buy_At, Sell_At : Concorde.Money.Price_Type)
+--           return Integer;
+--
+--        -------------------------
+--        -- Matching_Sell_Order --
+--        -------------------------
+--
+--        function Matching_Sell_Order
+--          (Commodity : Concorde.Commodities.Commodity_Type)
+--           return Concorde.Worlds.World_Type
+--        is
+--           use Concorde.Commodities, Concorde.Worlds;
+--        begin
+--           for Order of Ship.Orders loop
+--              if Order.Order = Sell
+--                and then Order.Commodity = Commodity
+--              then
+--                 return World_Type (Order.World);
+--              end if;
+--           end loop;
+--           return null;
+--        end Matching_Sell_Order;
+--
+--        -----------------
+--        -- Score_Trade --
+--        -----------------
+--
+--        function Score_Trade
+--          (Supply, Demand  : Quantity_Type;
+--           Buy_At, Sell_At : Concorde.Money.Price_Type)
+--           return Integer
+--        is
+--           use Concorde.Money;
+--        begin
+--           return To_Natural (Min (Supply, Demand))
+--             * Integer (100.0 * (To_Real (Sell_At) - To_Real (Buy_At)));
+--        end Score_Trade;
+--
+--     begin
+--
+--        for Current_Order of Ship.Orders loop
+--           exit when not Ship.Orbiting (Current_Order.World);
+--
+--           case Current_Order.Order is
+--              when No_Order =>
+--                 null;
+--              when Trade =>
+--                 Ship_Buy_Commodities (Ship);
+--                 Ship_Sell_Commodities (Ship);
+--
+--              when Buy =>
+--                 declare
+--                    use type Concorde.Worlds.World_Type;
+--               Commodity : constant Concorde.Commodities.Commodity_Type :=
+--                                  Current_Order.Commodity;
+--                    Destination : constant Concorde.Worlds.World_Type :=
+--                                    Matching_Sell_Order (Commodity);
+--                 begin
+--                    if Destination /= null then
+--                       declare
+--                          From : constant Concorde.Markets.Market_Type :=
+--                                   Current_Order.World.Market;
+--                          To   : constant Concorde.Markets.Market_Type :=
+--                                   Destination.Market;
+--                          Supply : constant Quantity_Type :=
+--                                     From.Current_Export_Supply
+--                                       (Commodity);
+--                          Demand : constant Quantity_Type :=
+--                                     To.Current_Import_Demand (Commodity);
+--                          Buy_At : constant Concorde.Money.Price_Type :=
+--                                     From.Historical_Mean_Price (Commodity);
+--                          Sell_At : constant Concorde.Money.Price_Type :=
+--                                      To.Historical_Mean_Price (Commodity);
+--                          Score   : constant Integer :=
+--                                      Score_Trade
+--                                        (Supply, Demand, Buy_At, Sell_At);
+--                          Rec     : constant Buy_Commodity :=
+--                                      (Market    => To,
+--                                       Commodity => Current_Order.Commodity,
+--                                       Supply    => Supply,
+--                                       Demand    => Demand,
+--                                       Buy_At    => Buy_At,
+--                                       Sell_At   => Sell_At,
+--                                       Quantity  => Current_Order.Quantity,
+--                                       Score     =>
+--                                         Integer'Max (Score, 0));
+--                       begin
+--                          if Score > 0 then
+--                             Ship.Log_Trade
+--                               (Commodity.Name
+--                                & ": supply "
+--                                & Image (Supply)
+--                                & " @ "
+--                                & Money.Image (Buy_At)
+--                                & "; demand at "
+--                                & To.Name
+--                                & " is "
+--                                & Image (Demand)
+--                                & " @ "
+--                                & Money.Image (Sell_At)
+--                                & "; score "
+--                                & Score'Img);
+--                             Buy_List.Append (Rec);
+--                          end if;
+--                       end;
+--                    else
+--                       Ship.Create_Bid
+--                         (Commodity    => Current_Order.Commodity,
+--                          Bid_Quantity => Space);
+--                    end if;
+--                 end;
+--              when Sell =>
+--                 declare
+--                    Available : constant Quantity_Type :=
+--                             Ship.Get_Quantity (Current_Order.Commodity);
+--                 begin
+--                    if Available > Zero then
+--                       Ship.Create_Ask
+--                         (Commodity    => Current_Order.Commodity,
+--                          Ask_Quantity => Available);
+--                    end if;
+--                 end;
+--              when Colonise =>
+--                 null;
+--           end case;
+--        end loop;
+--
+--        declare
+--           Total_Score : Natural := 0;
+--        begin
+--           for Trade of Buy_List loop
+--              Total_Score := Total_Score + Trade.Score;
+--           end loop;
+--
+--           for Trade of Buy_List loop
+--              declare
+--                 Raw_Desired : constant Quantity_Type :=
+--                                 (if Trade.Quantity < Ship.Hold_Quantity
+--                                  then Trade.Quantity
+--                                  else Scale
+--                                    (Trade.Quantity,
+--                                  Real (Trade.Score) / Real (Total_Score)));
+--                 Actual_Desired : constant Quantity_Type :=
+--                                    Min (Raw_Desired,
+--                                         Trade.Market.Current_Import_Demand
+--                                           (Trade.Commodity));
+--
+--              begin
+--                 if Actual_Desired > Zero then
+--                    Ship.Create_Bid
+--                      (Commodity    => Trade.Commodity,
+--                       Bid_Quantity => Actual_Desired);
+--                 end if;
+--              end;
+--           end loop;
+--        end;
+--     end Add_Trade_Offers;
 
    ---------------------
    -- Add_Trade_Order --
@@ -808,23 +811,6 @@ package body Concorde.Ships is
       return Db.Get_Database;
    end Object_Database;
 
-   ---------------------
-   -- On_Update_Start --
-   ---------------------
-
-   overriding procedure On_Update_Start
-     (Ship : in out Root_Ship_Type)
-   is
-      use Concorde.Quantities;
-   begin
-      if Ship.Buy_Requirements.Total_Quantity = Zero
-        and then Ship.Total_Quantity = Zero
-        and then not Ship.Orders.Is_Empty
-      then
-         Ship_Check_Requirements (Ship);
-      end if;
-   end On_Update_Start;
-
    -----------
    -- Owner --
    -----------
@@ -1025,59 +1011,59 @@ package body Concorde.Ships is
 
    procedure Ship_Check_Requirements
      (Ship      : in out Root_Ship_Type'Class)
-   is
+   is null;
 
-      procedure Check (Commodity : Concorde.Commodities.Commodity_Type);
-
-      -----------
-      -- Check --
-      -----------
-
-      procedure Check (Commodity : Concorde.Commodities.Commodity_Type) is
-         use Concorde.Money;
-         use Concorde.Quantities;
-         From : constant Concorde.Markets.Market_Type :=
-                  Ship.Orders.First_Element.World.Market;
-         To   : constant Concorde.Markets.Market_Type :=
-                  Ship.Orders.First_Element.Next.Market;
-         Supply : constant Quantity_Type :=
-                    From.Current_Export_Supply
-                      (Commodity);
-         Demand : constant Quantity_Type :=
-                    To.Current_Import_Demand (Commodity);
-         Buy_At : constant Concorde.Money.Price_Type :=
-                    From.Historical_Mean_Price (Commodity);
-         Sell_At : constant Concorde.Money.Price_Type :=
-                     To.Historical_Mean_Price (Commodity);
-      begin
-         if Supply > Zero and then Demand > Zero
-           and then Sell_At > Buy_At
-         then
-            Ship.Log_Trade
-              (Commodity.Name
-               & ": supply "
-               & Image (Supply)
-               & " @ "
-               & Money.Image (Buy_At)
-               & "; demand at "
-               & To.Name
-               & " is "
-               & Image (Demand)
-               & " @ "
-               & Money.Image (Sell_At));
-            declare
-               Wanted : constant Quantity_Type :=
-                          Min (Ship.Hold_Quantity, Min (Supply, Demand));
-            begin
-               Ship.Buy_Requirements.Set_Quantity
-                 (Commodity, Wanted, Total (Buy_At, Wanted));
-            end;
-         end if;
-      end Check;
-
-   begin
-      Concorde.Commodities.Scan (Check'Access);
-   end Ship_Check_Requirements;
+--        procedure Check (Commodity : Concorde.Commodities.Commodity_Type);
+--
+--        -----------
+--        -- Check --
+--        -----------
+--
+--        procedure Check (Commodity : Concorde.Commodities.Commodity_Type) is
+--           use Concorde.Money;
+--           use Concorde.Quantities;
+--           From : constant Concorde.Markets.Market_Type :=
+--                    Ship.Orders.First_Element.World.Market;
+--           To   : constant Concorde.Markets.Market_Type :=
+--                    Ship.Orders.First_Element.Next.Market;
+--           Supply : constant Quantity_Type :=
+--                      From.Current_Export_Supply
+--                        (Commodity);
+--           Demand : constant Quantity_Type :=
+--                      To.Current_Import_Demand (Commodity);
+--           Buy_At : constant Concorde.Money.Price_Type :=
+--                      From.Historical_Mean_Price (Commodity);
+--           Sell_At : constant Concorde.Money.Price_Type :=
+--                       To.Historical_Mean_Price (Commodity);
+--        begin
+--           if Supply > Zero and then Demand > Zero
+--             and then Sell_At > Buy_At
+--           then
+--              Ship.Log_Trade
+--                (Commodity.Name
+--                 & ": supply "
+--                 & Image (Supply)
+--                 & " @ "
+--                 & Money.Image (Buy_At)
+--                 & "; demand at "
+--                 & To.Name
+--                 & " is "
+--                 & Image (Demand)
+--                 & " @ "
+--                 & Money.Image (Sell_At));
+--              declare
+--                 Wanted : constant Quantity_Type :=
+--                            Min (Ship.Hold_Quantity, Min (Supply, Demand));
+--              begin
+--                 Ship.Buy_Requirements.Set_Quantity
+--                   (Commodity, Wanted, Total (Buy_At, Wanted));
+--              end;
+--           end if;
+--        end Check;
+--
+--     begin
+--        Concorde.Commodities.Scan (Check'Access);
+--     end Ship_Check_Requirements;
 
    ----------------
    -- Ship_Event --
