@@ -1,7 +1,7 @@
 with Ada.Text_IO;
 
 with Concorde.Random;
---  with Concorde.Real_Images;
+with Concorde.Real_Images;
 
 with Concorde.Dates;
 with Concorde.Objects.Queues;
@@ -288,6 +288,12 @@ package body Concorde.Factions.Create is
                    Neighbours (System);
          begin
 
+            for S of Ns loop
+               if S.Owner /= null then
+                  return False;
+               end if;
+            end loop;
+
             System.Check_Loaded;
 
             declare
@@ -300,6 +306,10 @@ package body Concorde.Factions.Create is
                   when F | G | K | M =>
                      null;
                   when O | B | A | L =>
+                     Ada.Text_IO.Put_Line
+                       (System.Main_Object.Name
+                        & ": rejected because stellar class is "
+                        & Class'Img);
                      return False;
                end case;
             end;
@@ -315,12 +325,6 @@ package body Concorde.Factions.Create is
             if Concorde.Galaxy.Is_Element (Taken, System) then
                return False;
             end if;
-
-            for S of Ns loop
-               if S.Owner /= null then
-                  return False;
-               end if;
-            end loop;
 
             declare
                Good_Starting_World : Boolean := False;
@@ -366,14 +370,12 @@ package body Concorde.Factions.Create is
 --                                     (W.Maximum_Temperature - 273.0)
 --                                   & " degrees");
                            elsif W.Hydrosphere not in 0.2 .. 0.75 then
-                              null;
---                                New_Faction.Log
---                                  ("setup",
---                                   "Rejecting " & W.Name &
---                                     " because hydrosphere is "
---                                   & Concorde.Real_Images.Approximate_Image
---                                     (W.Hydrosphere * 100.0)
---                                   & "%");
+                              Ada.Text_IO.Put_Line
+                                (W.Name &
+                                   ": rejected because hydrosphere is "
+                                 & Concorde.Real_Images.Approximate_Image
+                                   (W.Hydrosphere * 100.0)
+                                 & "%");
                            else
                               Good_Starting_World := True;
                               Start_World := W;
@@ -387,6 +389,9 @@ package body Concorde.Factions.Create is
                System.Scan_System_Objects (Check_World'Access);
 
                if not Good_Starting_World then
+                  Ada.Text_IO.Put_Line
+                    (System.Main_Object.Name
+                     & ": rejected because no good starting worlds");
                   return False;
                end if;
 
