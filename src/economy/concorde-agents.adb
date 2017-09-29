@@ -52,6 +52,56 @@ package body Concorde.Agents is
       return Agent.Cash;
    end Cash;
 
+   ------------------
+   -- Check_Offers --
+   ------------------
+
+   procedure Check_Offers
+     (Agent : in out Root_Agent_Type'Class)
+   is
+      use Concorde.Money, Concorde.Quantities;
+
+      procedure Update_Ask_Price
+        (Commodity : not null access constant
+           Concorde.Commodities.Root_Commodity_Type'Class;
+         Offer     : Agent_Offer);
+
+      procedure Update_Bid_Price
+        (Commodity : not null access constant
+           Concorde.Commodities.Root_Commodity_Type'Class;
+         Offer     : Agent_Offer);
+
+      ----------------------
+      -- Update_Ask_Price --
+      ----------------------
+
+      procedure Update_Ask_Price
+        (Commodity : not null access constant
+           Concorde.Commodities.Root_Commodity_Type'Class;
+         Offer     : Agent_Offer)
+      is
+      begin
+         null;
+      end Update_Ask_Price;
+
+      ----------------------
+      -- Update_Bid_Price --
+      ----------------------
+
+      procedure Update_Bid_Price
+        (Commodity : not null access constant
+           Concorde.Commodities.Root_Commodity_Type'Class;
+         Offer     : Agent_Offer)
+      is
+      begin
+         null;
+      end Update_Bid_Price;
+
+   begin
+      Agent.Bids.Scan (Update_Bid_Price'Access);
+      Agent.Asks.Scan (Update_Ask_Price'Access);
+   end Check_Offers;
+
    -----------------
    -- Clear_Stock --
    -----------------
@@ -63,169 +113,15 @@ package body Concorde.Agents is
       Agent.Stock.Clear_Stock;
    end Clear_Stock;
 
-   ----------------------
-   -- Create_Ask_Price --
-   ----------------------
+   ----------------
+   -- Create_Ask --
+   ----------------
 
-   function Create_Ask_Price
-     (Low, High : Concorde.Money.Price_Type;
-      Agent_Age : Natural)
-      return Concorde.Money.Price_Type
+   procedure Create_Ask
+     (Agent        : not null access constant Root_Agent_Type'Class;
+      Commodity    : Concorde.Commodities.Commodity_Type;
+      Ask_Quantity : Concorde.Quantities.Quantity)
    is
-      use Concorde.Money;
-      Skew : constant Unit_Real :=
-               (if Agent_Age < 5
-                then 0.5 + Real (Agent_Age) / 10.0
-                else 1.0);
-      Factor : constant Unit_Real :=
-                 Skew * Concorde.Random.Unit_Random;
-   begin
-      return Adjust_Price (High - Low, Factor) + Low;
-   end Create_Ask_Price;
-
-   ----------------------
-   -- Create_Bid_Price --
-   ----------------------
-
-   function Create_Bid_Price
-     (Low, High : Concorde.Money.Price_Type;
-      Agent_Age : Natural)
-      return Concorde.Money.Price_Type
-   is
-      use Concorde.Money;
-      Skew   : constant Unit_Real :=
-                 (if Agent_Age < 5
-                  then 0.5 + Real (Agent_Age) / 10.0
-                  else 1.0);
-      Factor : constant Unit_Real :=
-                 Skew * Concorde.Random.Unit_Random + 1.0 - Skew;
-   begin
-      return Adjust_Price (High - Low, Factor) + Low;
-   end Create_Bid_Price;
-
-   ----------------------
-   -- Create_Buy_Offer --
-   ----------------------
-
-   procedure Create_Buy_Offer
-     (Agent     : not null access constant Root_Agent_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type;
-      Desired   : Concorde.Quantities.Quantity;
-      Minimum   : Concorde.Quantities.Quantity)
-   is
-
-      procedure Update
-        (Market : in out Concorde.Trades.Trade_Interface'Class);
-
-      ------------
-      -- Update --
-      ------------
-
-      procedure Update
-        (Market : in out Concorde.Trades.Trade_Interface'Class)
-      is
-         use Concorde.Money;
-         use Concorde.Quantities;
-         use Concorde.Trades;
-
-         Current       : constant Quantity :=
-                           Agent.Get_Quantity (Commodity);
-         Mean          : constant Price_Type :=
-                           Market.Historical_Mean_Price
-                             (Commodity);
-         Belief        : constant Agent_Price_Belief_Record :=
-                           Agent.Get_Price_Belief (Market, Commodity);
-         Favourability : constant Unit_Real :=
-                           (if Belief.Low = Belief.High
-                            then 1.0
-                            else 1.0 - Price_Position_In_Range
-                              (Mean, Belief.Low, Belief.High));
-         Buy_Price     : constant Price_Type :=
-                           (if Minimum = Zero
-                            then Belief.Low
-                            elsif Agent.Offer_Strategy (Commodity)
-                            = Average_Price
-                            then Mean
-                            else Create_Bid_Price
-                              (Belief.Low, Belief.High, Agent.Age));
-         Limit_Price   : constant Price_Type :=
-                           Belief.High
-                             + (if Agent.Offer_Strategy (Commodity)
-                                = Average_Price
-                                then Adjust_Price (Belief.High, 0.1)
-                                else Zero);
-         Favoured      : constant Quantity :=
-                           (if Current >= Desired
-                            then Zero
-                            elsif Current >= Minimum
-                            then Scale (Desired - Minimum, Favourability)
-                            else Minimum - Current
-                            + Scale (Desired - Minimum, Favourability));
-         Possible      : constant Quantity :=
-                           Max (Get_Quantity (Agent.Limit_Cash, Buy_Price),
-                                Zero);
-         Final         : constant Quantity :=
-                           Min (Favoured, Possible);
-      begin
-         if Log_Offers then
-            Agent.Log_Trade
-              (Commodity.Name
-               & ": desire "
-               & Image (Desired)
-               & ": minimum "
-               & Image (Minimum)
-               & ": have "
-               & Image (Current)
-               & ": possible "
-               & Image (Possible)
-               & "; price belief "
-               & Image (Belief.Low)
-               & "/"
-               & Image (Belief.High)
-               & "; mean "
-               & Image (Mean)
-               & "; favourability "
-               & Concorde.Real_Images.Approximate_Image (Favourability)
-               & "; buy price "
-               & Image (Buy_Price)
-               & "; limit price "
-               & Image (Limit_Price)
-               & "; cash "
-               & Image (Agent.Cash)
-               & "; quantity "
-               & Image (Final));
-         end if;
-
-         if Final > Zero then
-            Market.Create_Offer
-              (Offer     => Concorde.Trades.Buy,
-               Trader    => Agent,
-               Commodity => Commodity,
-               Quantity  => Final);
-         end if;
-      end Update;
-
-   begin
-      Agent.Market.Update (Update'Access);
-   exception
-      when E : others =>
-         Agent.Log_Trade
-           ("while creating bid for " & Commodity.Name
-            & ": "
-            & Ada.Exceptions.Exception_Message (E));
-   end Create_Buy_Offer;
-
-   -----------------------
-   -- Create_Sell_Offer --
-   -----------------------
-
-   procedure Create_Sell_Offer
-     (Agent     : not null access constant Root_Agent_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type;
-      Available : Concorde.Quantities.Quantity;
-      Minimum   : Concorde.Money.Money_Type)
-   is
-      pragma Unreferenced (Minimum);
 
       procedure Update
         (Market : in out Concorde.Trades.Trade_Interface'Class);
@@ -265,13 +161,13 @@ package body Concorde.Agents is
                             else Create_Ask_Price
                               (Max (Belief.Low, Limit_Price),
                                Belief.High, Agent.Age));
-         Sell_Quantity : constant Quantity := Available;
+         Sell_Quantity : constant Quantity := Ask_Quantity;
       begin
          if Log_Offers then
             Agent.Log_Trade
               (Commodity.Name
                & ": have "
-               & Image (Available)
+               & Image (Ask_Quantity)
                & "; price belief "
                & Image (Belief.Low)
                & "/"
@@ -307,7 +203,128 @@ package body Concorde.Agents is
            ("while creating bid for " & Commodity.Name
             & ": "
             & Ada.Exceptions.Exception_Message (E));
-   end Create_Sell_Offer;
+   end Create_Ask;
+
+   ----------------------
+   -- Create_Ask_Price --
+   ----------------------
+
+   function Create_Ask_Price
+     (Low, High : Concorde.Money.Price_Type;
+      Agent_Age : Natural)
+      return Concorde.Money.Price_Type
+   is
+      use Concorde.Money;
+      Skew : constant Unit_Real :=
+               (if Agent_Age < 5
+                then 0.5 + Real (Agent_Age) / 10.0
+                else 1.0);
+      Factor : constant Unit_Real :=
+                 Skew * Concorde.Random.Unit_Random;
+   begin
+      return Adjust_Price (High - Low, Factor) + Low;
+   end Create_Ask_Price;
+
+   ----------------
+   -- Create_Bid --
+   ----------------
+
+   procedure Create_Bid
+     (Agent        : not null access constant Root_Agent_Type'Class;
+      Commodity    : Concorde.Commodities.Commodity_Type;
+      Bid_Quantity : Concorde.Quantities.Quantity)
+   is
+
+      procedure Update
+        (Market : in out Concorde.Trades.Trade_Interface'Class);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update
+        (Market : in out Concorde.Trades.Trade_Interface'Class)
+      is
+         use Concorde.Money;
+         use Concorde.Quantities;
+         use Concorde.Trades;
+
+         Current       : constant Quantity :=
+                           Agent.Get_Quantity (Commodity);
+         Mean          : constant Price_Type :=
+                           Market.Historical_Mean_Price
+                             (Commodity);
+         Belief        : constant Agent_Price_Belief_Record :=
+                           Agent.Get_Price_Belief (Market, Commodity);
+         Favourability : constant Unit_Real :=
+                           (if Belief.Low = Belief.High
+                            then 1.0
+                            else 1.0 - Price_Position_In_Range
+                              (Mean, Belief.Low, Belief.High));
+         Buy_Price     : constant Price_Type :=
+                           (if Agent.Offer_Strategy (Commodity)
+                            = Average_Price
+                            then Mean
+                            else Create_Bid_Price
+                              (Belief.Low, Belief.High, Agent.Age));
+      begin
+         if Log_Offers then
+            Agent.Log_Trade
+              (Commodity.Name
+               & ": desire "
+               & Image (Bid_Quantity)
+               & ": have "
+               & Image (Current)
+               & "; price belief "
+               & Image (Belief.Low)
+               & "/"
+               & Image (Belief.High)
+               & "; mean "
+               & Image (Mean)
+               & "; favourability "
+               & Concorde.Real_Images.Approximate_Image (Favourability)
+               & "; buy price "
+               & Image (Buy_Price));
+         end if;
+
+         if Bid_Quantity > Zero then
+            Market.Create_Offer
+              (Offer     => Concorde.Trades.Buy,
+               Trader    => Agent,
+               Commodity => Commodity,
+               Quantity  => Bid_Quantity);
+         end if;
+      end Update;
+
+   begin
+      Agent.Market.Update (Update'Access);
+   exception
+      when E : others =>
+         Agent.Log_Trade
+           ("while creating bid for " & Commodity.Name
+            & ": "
+            & Ada.Exceptions.Exception_Message (E));
+   end Create_Bid;
+
+   ----------------------
+   -- Create_Bid_Price --
+   ----------------------
+
+   function Create_Bid_Price
+     (Low, High : Concorde.Money.Price_Type;
+      Agent_Age : Natural)
+      return Concorde.Money.Price_Type
+   is
+      use Concorde.Money;
+      Skew   : constant Unit_Real :=
+                 (if Agent_Age < 5
+                  then 0.5 + Real (Agent_Age) / 10.0
+                  else 1.0);
+      Factor : constant Unit_Real :=
+                 Skew * Concorde.Random.Unit_Random + 1.0 - Skew;
+   begin
+      return Adjust_Price (High - Low, Factor) + Low;
+   end Create_Bid_Price;
 
    ----------------------
    -- Current_Location --

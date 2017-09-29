@@ -167,17 +167,18 @@ package Concorde.Agents is
      (Agent  : in out Root_Agent_Type'Class;
       Amount : Concorde.Money.Money_Type);
 
-   procedure Create_Buy_Offer
-     (Agent     : not null access constant Root_Agent_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type;
-      Desired   : Concorde.Quantities.Quantity;
-      Minimum   : Concorde.Quantities.Quantity);
+   procedure Create_Ask
+     (Agent        : not null access constant Root_Agent_Type'Class;
+      Commodity    : Concorde.Commodities.Commodity_Type;
+      Ask_Quantity : Concorde.Quantities.Quantity);
 
-   procedure Create_Sell_Offer
-     (Agent     : not null access constant Root_Agent_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type;
-      Available : Concorde.Quantities.Quantity;
-      Minimum   : Concorde.Money.Money_Type);
+   procedure Create_Bid
+     (Agent        : not null access constant Root_Agent_Type'Class;
+      Commodity    : Concorde.Commodities.Commodity_Type;
+      Bid_Quantity : Concorde.Quantities.Quantity);
+
+   procedure Check_Offers
+     (Agent : in out Root_Agent_Type'Class);
 
    procedure Add_Trade_Offers
      (Agent  : not null access constant Root_Agent_Type)
@@ -264,6 +265,17 @@ private
    package Account_Entry_Vectors is
       new Ada.Containers.Vectors (Positive, Account_Entry);
 
+   type Agent_Offer is
+      record
+         Price     : Concorde.Money.Price_Type     := Concorde.Money.Zero;
+         Quantity  : Concorde.Quantities.Quantity  := Concorde.Quantities.Zero;
+         Filled    : Concorde.Quantities.Quantity  := Concorde.Quantities.Zero;
+      end record;
+
+   package Agent_Offer_Vectors is
+     new Memor.Element_Vectors
+       (Concorde.Commodities.Root_Commodity_Type, Agent_Offer, (others => <>));
+
    type Root_Agent_Type is
      abstract new Concorde.Objects.Root_Object_Type
      and Concorde.Commodities.Stock_Interface
@@ -278,6 +290,8 @@ private
          Age          : Natural := 0;
          Guarantor    : access constant Root_Agent_Type'Class;
          Account      : Account_Entry_Vectors.Vector;
+         Bids         : Agent_Offer_Vectors.Vector;
+         Asks         : Agent_Offer_Vectors.Vector;
       end record;
 
    function Get_Price_Belief
