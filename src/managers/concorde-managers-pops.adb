@@ -1,3 +1,4 @@
+with Concorde.Objects.Queues;
 with Concorde.Signals.Standard;
 
 package body Concorde.Managers.Pops is
@@ -61,6 +62,8 @@ package body Concorde.Managers.Pops is
          & Concorde.Dates.To_Date_And_Time_String
            (Manager.Time));
       Manager.Pop.Add_Trade_Offers;
+      Concorde.Objects.Queues.Next_Event
+        (Manager.Pop, Concorde.Dates.Add_Days (Manager.Time, 1));
    end On_Activated;
 
 end Concorde.Managers.Pops;
