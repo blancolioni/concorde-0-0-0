@@ -157,8 +157,12 @@ begin
 
             Window.Set_Full_Screen (True);
 
-            Concorde.Xi_UI.Model_Manager.Model
-              (Concorde.Galaxy.Capital_World, Window).Activate;
+            if True then
+               Concorde.Xi_UI.Model_Manager.Model (null, Window).Activate;
+            else
+               Concorde.Xi_UI.Model_Manager.Model
+                 (Concorde.Galaxy.Capital_World, Window).Activate;
+            end if;
 
             Concorde.Updates.Set_Time_Acceleration (0.0);
 

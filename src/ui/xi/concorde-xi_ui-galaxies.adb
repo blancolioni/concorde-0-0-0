@@ -40,9 +40,9 @@ package body Concorde.Xi_UI.Galaxies is
    Focus_Fov        : constant := 40.0;
    System_Fov       : constant := 10.0;
 
-   Star_Size : constant := 0.005;
+   Star_Size : constant := 0.025;
 
-   Initial_Transition : constant Boolean := True;
+   Initial_Transition : constant Boolean := False;
 
    package System_Vectors is
      new Ada.Containers.Vectors
@@ -119,7 +119,7 @@ package body Concorde.Xi_UI.Galaxies is
 
       Main_Model.On_Frame_Start (Event.Time_Since_Last_Event);
 
-      if True and then not Main_Model.Transited then
+      if not Main_Model.Transited then
          declare
             use type Concorde.Ships.Ship_Type;
 
