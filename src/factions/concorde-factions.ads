@@ -85,6 +85,8 @@ package Concorde.Factions is
 
    type Faction_Type is access constant Root_Faction_Type'Class;
 
+   function Faction_Count return Natural;
+
    type Array_Of_Factions is array (Positive range <>) of Faction_Type;
 
    type Ranking is (Normal, By_Star_Systems, By_Ships);
@@ -391,6 +393,9 @@ private
    package Db is
      new Memor.Database
        ("faction", Root_Faction_Type, Faction_Type);
+
+   function Faction_Count return Natural
+   is (Db.Active_Count);
 
    type Updateable_Reference
      (Item : not null access Root_Faction_Type'Class)
