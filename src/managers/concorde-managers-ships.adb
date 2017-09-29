@@ -19,6 +19,26 @@ package body Concorde.Managers.Ships is
      (Handler : in out Ship_Idle_Handler;
       Ship    : Concorde.Ships.Ship_Type);
 
+   type Ship_Arrival_Handler is
+     new Concorde.Objects.Object_Handler_Interface with
+      record
+         Manager  : Ship_Manager;
+      end record;
+
+   overriding procedure Handle
+     (Handler : in out Ship_Arrival_Handler;
+      Event   : Concorde.Events.Root_Event_Type'Class;
+      Object  : not null access constant
+        Concorde.Objects.Root_Object_Type'Class);
+
+   type Ship_Arrival_Event is
+     new Concorde.Events.Root_Event_Type with
+      record
+         Ship        : Concorde.Ships.Ship_Type;
+         Arrived_At  : Concorde.Locations.Object_Location;
+         Jump        : Boolean;
+      end record;
+
    ------------
    -- Create --
    ------------
@@ -36,6 +56,9 @@ package body Concorde.Managers.Ships is
       Ship.Update.Add_Handler
         (Concorde.Signals.Standard.Object_Idle,
          new Ship_Idle_Handler'(Manager => Ship_Manager (Manager)));
+      Ship.Update.Add_Handler
+        (Concorde.Signals.Standard.Object_Arrived,
+         new Ship_Arrival_Handler'(Manager => Ship_Manager (Manager)));
    end Create;
 
    ------------
@@ -52,6 +75,39 @@ package body Concorde.Managers.Ships is
       Handler.Manager.Time := Event.Time_Stamp;
       Root_Ship_Event_Handler'Class (Handler).Handle_Ship_Event
         (Concorde.Ships.Ship_Type (Object));
+   end Handle;
+
+   ------------
+   -- Handle --
+   ------------
+
+   overriding procedure Handle
+     (Handler : in out Ship_Arrival_Handler;
+      Event   : Concorde.Events.Root_Event_Type'Class;
+      Object  : not null access constant
+        Concorde.Objects.Root_Object_Type'Class)
+   is
+      Manager : constant Ship_Manager := Handler.Manager;
+      Ship    : constant Concorde.Ships.Ship_Type :=
+                  Concorde.Ships.Ship_Type (Object);
+      Arrive : constant Ship_Arrival_Event'Class :=
+                 Ship_Arrival_Event'Class (Event);
+   begin
+      Manager.Time := Event.Time_Stamp;
+      Ship.Update.Set_Location (Arrive.Arrived_At);
+      if Arrive.Jump then
+         Ship.Current_System.Update.Signal
+           (Concorde.Systems.Signal_Ship_Arrived,
+            Concorde.Ships.Ship_Event
+              (Event.Time_Stamp, Ship));
+      end if;
+
+      if not Manager.Journey.Is_Empty then
+         Manager.Next_Waypoint;
+      else
+         Manager.On_Idle;
+      end if;
+
    end Handle;
 
    -----------------------
@@ -109,6 +165,11 @@ package body Concorde.Managers.Ships is
             Manager.Ship.Log_Movement
               ("jumping to " & Waypoint.Target.Name);
 
+            Manager.Ship.Current_System.Signal
+              (Sig   => Concorde.Systems.Signal_Ship_Departed,
+               Event =>
+                  Concorde.Ships.Ship_Event (Manager.Time, Manager.Ship));
+
             Journey_Time :=
               Duration (100_000.0
                         * (Concorde.Random.Unit_Random + 0.5));
@@ -126,7 +187,13 @@ package body Concorde.Managers.Ships is
             & To_Date_And_Time_String (Arrival));
 
          Concorde.Objects.Queues.Next_Event
-           (Manager.Ship, Arrival);
+           (Manager.Ship, Arrival,
+            Concorde.Signals.Standard.Object_Arrived,
+            Ship_Arrival_Event'
+              (Concorde.Events.Root_Event_Type with
+               Ship => Manager.Ship,
+               Arrived_At => Manager.Ship.Destination,
+               Jump       => Waypoint.Class = Jump_Element));
       end;
 
    end Next_Waypoint;

@@ -24,6 +24,8 @@ with Concorde.Quantities;
 private with Newton;
 with Concorde.Dates;
 
+with Concorde.Events;
+
 package Concorde.Ships is
 
    type Root_Ship_Type is
@@ -253,6 +255,16 @@ package Concorde.Ships is
 
    type Ship_Type is access constant Root_Ship_Type'Class;
 
+   type Root_Ship_Event is
+     new Concorde.Events.Root_Event_Type with private;
+
+   function Ship_Event
+     (Time_Stamp : Concorde.Dates.Date_Type;
+      Ship       : not null access constant Root_Ship_Type'Class)
+      return Root_Ship_Event'Class;
+
+   function Ship (Event : Root_Ship_Event'Class) return Ship_Type;
+
    function Count_Ships
      (Test : not null access function
         (Ship : Ship_Type)
@@ -388,6 +400,15 @@ private
      (Ship : Root_Ship_Type'Class)
       return Concorde.Locations.Object_Location
    is (Ship.Destination);
+
+   type Root_Ship_Event is
+     new Concorde.Events.Root_Event_Type with
+      record
+         Ship : Ship_Type;
+      end record;
+
+   function Ship (Event : Root_Ship_Event'Class) return Ship_Type
+   is (Event.Ship);
 
    package Db is
      new Memor.Database

@@ -1084,6 +1084,22 @@ package body Concorde.Ships is
       Concorde.Commodities.Scan (Check'Access);
    end Ship_Check_Requirements;
 
+   ----------------
+   -- Ship_Event --
+   ----------------
+
+   function Ship_Event
+     (Time_Stamp : Concorde.Dates.Date_Type;
+      Ship       : not null access constant Root_Ship_Type'Class)
+      return Root_Ship_Event'Class
+   is
+   begin
+      return Event : Root_Ship_Event do
+         Event.Set_Time_Stamp (Time_Stamp);
+         Event.Ship := Concorde.Ships.Ship_Type (Ship);
+      end return;
+   end Ship_Event;
+
    ---------------------------
    -- Ship_Sell_Commodities --
    ---------------------------

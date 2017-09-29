@@ -22,7 +22,14 @@ with Concorde.Ships.Lists;
 with Concorde.Commodities;
 with Concorde.Government;
 
+with Concorde.Signals;
+
 package Concorde.Systems is
+
+   Signal_Ship_Departed : constant Concorde.Signals.Signal_Type :=
+                            "signal-ship-departed";
+   Signal_Ship_Arrived  : constant Concorde.Signals.Signal_Type :=
+                            "signal-ship-arrived";
 
    type Star_System_Object_Interface is limited interface
      and Concorde.Objects.Massive_Object_Interface

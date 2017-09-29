@@ -1,14 +1,6 @@
 with Concorde.Locations;
-with Concorde.Signals.Standard;
 
 package body Concorde.Managers.Ships.Trade is
-
-   type Ship_Arrival_Handler is
-     new Root_Ship_Event_Handler with null record;
-
-   overriding procedure Handle_Ship_Event
-     (Handler : in out Ship_Arrival_Handler;
-      Ship    : Concorde.Ships.Ship_Type);
 
    ------------------
    -- Add_Waypoint --
@@ -38,9 +30,6 @@ package body Concorde.Managers.Ships.Trade is
          Manager.Create (Ship);
          Manager.Route.Append (Start);
          Manager.Current := Manager.Route.First;
-         Ship.Update.Add_Handler
-           (Concorde.Signals.Standard.Object_Arrived,
-            new Ship_Arrival_Handler);
       end return;
    end Create_Manager;
 
@@ -75,20 +64,9 @@ package body Concorde.Managers.Ships.Trade is
       Manager.Route.Delete (Position);
    end Delete_Waypoint;
 
-   -----------------------
-   -- Handle_Ship_Event --
-   -----------------------
-
-   overriding procedure Handle_Ship_Event
-     (Handler : in out Ship_Arrival_Handler;
-      Ship    : Concorde.Ships.Ship_Type)
-   is
-      pragma Unreferenced (Handler);
-   begin
-      Ship.Log_Trade ("arrived at "
-                & Concorde.Locations.Short_Name
-                  (Ship.Current_Location));
-   end Handle_Ship_Event;
+   -------------
+   -- On_Idle --
+   -------------
 
    overriding procedure On_Idle
      (Manager : in out Root_Ship_Trade_Manager)

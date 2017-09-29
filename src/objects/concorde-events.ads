@@ -8,6 +8,10 @@ package Concorde.Events is
      (Event : Root_Event_Type'Class)
       return Concorde.Dates.Date_Type;
 
+   procedure Set_Time_Stamp
+     (Event      : in out Root_Event_Type'Class;
+      Time_Stamp : Concorde.Dates.Date_Type);
+
    function Null_Event
      (Time_Stamp : Concorde.Dates.Date_Type)
      return Root_Event_Type'Class;
