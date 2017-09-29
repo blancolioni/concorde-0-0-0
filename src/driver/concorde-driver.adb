@@ -107,15 +107,17 @@ begin
    if Concorde.Options.Console then
       declare
          Process : WL.Processes.Process_Type;
+         Update_Count : constant Natural :=
+                      Concorde.Options.Number_Of_Updates * 24 * 60;
       begin
          Process.Start_Percentage
            ("Updating",
-            Finish => Concorde.Options.Number_Of_Updates);
+            Finish => Update_Count);
 
          Concorde.Galaxy.Locking.Init_Locking;
 
-         for I in 1 .. Concorde.Options.Number_Of_Updates loop
-            Concorde.Updates.Advance (86_400.0);
+         for I in 1 .. Update_Count loop
+            Concorde.Updates.Advance (60.0);
             Process.Tick;
          end loop;
          Process.Finish;

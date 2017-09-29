@@ -36,7 +36,8 @@ package body Concorde.Logging is
       if Logging_Enabled then
          Ada.Text_IO.Put_Line
            (Log_File,
-            Concorde.Dates.Current_Date_To_String
+            Concorde.Dates.To_Date_And_Time_String
+              (Concorde.Dates.Current_Date)
             & Separator
             & Category
             & Separator
