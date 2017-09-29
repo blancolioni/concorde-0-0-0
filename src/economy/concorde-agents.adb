@@ -120,7 +120,7 @@ package body Concorde.Agents is
    procedure Create_Ask
      (Agent        : not null access constant Root_Agent_Type'Class;
       Commodity    : Concorde.Commodities.Commodity_Type;
-      Ask_Quantity : Concorde.Quantities.Quantity)
+      Ask_Quantity : Concorde.Quantities.Quantity_Type)
    is
 
       procedure Update
@@ -137,7 +137,6 @@ package body Concorde.Agents is
          use Concorde.Quantities;
          use Concorde.Trades;
 
-         Current       : constant Quantity_Type :=
          Mean          : constant Price_Type :=
                            Market.Historical_Mean_Price
                              (Commodity);
@@ -162,7 +161,7 @@ package body Concorde.Agents is
                             else Create_Ask_Price
                               (Max (Belief.Low, Limit_Price),
                                Belief.High, Agent.Age));
-         Sell_Quantity : constant Quantity := Ask_Quantity;
+         Sell_Quantity : constant Quantity_Type := Ask_Quantity;
       begin
          if Log_Offers then
             Agent.Log_Trade
@@ -233,7 +232,7 @@ package body Concorde.Agents is
    procedure Create_Bid
      (Agent        : not null access constant Root_Agent_Type'Class;
       Commodity    : Concorde.Commodities.Commodity_Type;
-      Bid_Quantity : Concorde.Quantities.Quantity)
+      Bid_Quantity : Concorde.Quantities.Quantity_Type)
    is
 
       procedure Update
@@ -250,7 +249,7 @@ package body Concorde.Agents is
          use Concorde.Quantities;
          use Concorde.Trades;
 
-         Current       : constant Quantity :=
+         Current       : constant Quantity_Type :=
                            Agent.Get_Quantity (Commodity);
          Mean          : constant Price_Type :=
                            Market.Historical_Mean_Price

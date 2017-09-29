@@ -170,12 +170,12 @@ package Concorde.Agents is
    procedure Create_Ask
      (Agent        : not null access constant Root_Agent_Type'Class;
       Commodity    : Concorde.Commodities.Commodity_Type;
-      Ask_Quantity : Concorde.Quantities.Quantity);
+      Ask_Quantity : Concorde.Quantities.Quantity_Type);
 
    procedure Create_Bid
      (Agent        : not null access constant Root_Agent_Type'Class;
       Commodity    : Concorde.Commodities.Commodity_Type;
-      Bid_Quantity : Concorde.Quantities.Quantity);
+      Bid_Quantity : Concorde.Quantities.Quantity_Type);
 
    procedure Check_Offers
      (Agent : in out Root_Agent_Type'Class);
@@ -267,9 +267,11 @@ private
 
    type Agent_Offer is
       record
-         Price     : Concorde.Money.Price_Type     := Concorde.Money.Zero;
-         Quantity  : Concorde.Quantities.Quantity  := Concorde.Quantities.Zero;
-         Filled    : Concorde.Quantities.Quantity  := Concorde.Quantities.Zero;
+         Price     : Concorde.Money.Price_Type         := Concorde.Money.Zero;
+         Quantity  : Concorde.Quantities.Quantity_Type :=
+                       Concorde.Quantities.Zero;
+         Filled    : Concorde.Quantities.Quantity_Type :=
+                       Concorde.Quantities.Zero;
       end record;
 
    package Agent_Offer_Vectors is
