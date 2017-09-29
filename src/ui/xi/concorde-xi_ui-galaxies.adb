@@ -253,7 +253,7 @@ package body Concorde.Xi_UI.Galaxies is
                   Xi.Xi_Float (System.Z));
                Node.Set_Entity (Star);
 
-               --               Node.Set_Billboard (True);
+               --  Node.Set_Billboard (True);
 
 --                 if System.Owned then
 --                    Node.Scale (5.0);
