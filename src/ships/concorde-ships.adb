@@ -201,11 +201,9 @@ package body Concorde.Ships is
                         end if;
                      end;
                   else
-                     Concorde.Agents.Create_Buy_Offer
-                       (Agent     => Ship,
-                        Commodity => Current_Order.Commodity,
-                        Desired   => Space,
-                        Minimum   => Space);
+                     Ship.Create_Bid
+                       (Commodity    => Current_Order.Commodity,
+                        Bid_Quantity => Space);
                   end if;
                end;
             when Sell =>
@@ -214,9 +212,9 @@ package body Concorde.Ships is
                                 Ship.Get_Quantity (Current_Order.Commodity);
                begin
                   if Available > Zero then
-                     Ship.Create_Sell_Offer
-                       (Current_Order.Commodity, Available,
-                        Ship.Get_Value (Current_Order.Commodity));
+                     Ship.Create_Ask
+                       (Commodity    => Current_Order.Commodity,
+                        Ask_Quantity => Available);
                   end if;
                end;
             when Colonise =>
@@ -246,11 +244,9 @@ package body Concorde.Ships is
 
             begin
                if Actual_Desired > Zero then
-                  Concorde.Agents.Create_Buy_Offer
-                    (Agent     => Ship,
-                     Commodity => Trade.Commodity,
-                     Desired   => Actual_Desired,
-                     Minimum   => Actual_Desired);
+                  Ship.Create_Bid
+                    (Commodity    => Trade.Commodity,
+                     Bid_Quantity => Actual_Desired);
                end if;
             end;
          end loop;
@@ -1009,11 +1005,10 @@ package body Concorde.Ships is
             return;
          end if;
 
-         Concorde.Agents.Create_Buy_Offer
-           (Agent     => Ship,
-            Commodity => Commodity,
-            Desired   => Ship.Buy_Requirements.Get_Quantity (Commodity),
-            Minimum   => Ship.Buy_Requirements.Get_Quantity (Commodity));
+         Ship.Create_Bid
+           (Commodity    => Commodity,
+            Bid_Quantity =>
+              Ship.Buy_Requirements.Get_Quantity (Commodity));
       end Check;
 
    begin
@@ -1117,10 +1112,9 @@ package body Concorde.Ships is
          use Concorde.Quantities;
       begin
          if Ship.Buy_Requirements.Get_Quantity (Commodity) = Zero then
-            Ship.Create_Sell_Offer
-              (Commodity => Commodity,
-               Available => Ship.Get_Quantity (Commodity),
-               Minimum   => Ship.Get_Value (Commodity));
+            Ship.Create_Ask
+              (Commodity    => Commodity,
+               Ask_Quantity => Ship.Get_Quantity (Commodity));
          end if;
       end Check;
    begin

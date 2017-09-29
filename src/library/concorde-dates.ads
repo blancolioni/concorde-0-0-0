@@ -12,6 +12,11 @@ package Concorde.Dates is
       Seconds : Real)
       return Date_Type;
 
+   function Add_Days
+     (Day  : Date_Type;
+      Days : Integer)
+      return Date_Type;
+
    procedure Tick (Simulation_Seconds : Duration);
 
    function To_String (Date : Date_Type) return String;
@@ -51,6 +56,12 @@ private
       Seconds : Real)
       return Date_Type
    is (Day + Date_Type (Seconds / 86400.0));
+
+   function Add_Days
+     (Day  : Date_Type;
+      Days : Integer)
+      return Date_Type
+   is (Day + Date_Type (Days));
 
    function "+" (Left     : Date_Type;
                  Interval : Duration)

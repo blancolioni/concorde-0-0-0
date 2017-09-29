@@ -1,5 +1,4 @@
 with Concorde.Commodities;
-with Concorde.Money;
 with Concorde.Quantities;
 
 package body Concorde.Installations is
@@ -62,8 +61,8 @@ package body Concorde.Installations is
 
                begin
                   if Sell_Quantity > Zero then
-                     Item.Create_Sell_Offer
-                       (Commodity, Sell_Quantity, Concorde.Money.Zero);
+                     Item.Create_Ask
+                       (Commodity, Sell_Quantity);
                   end if;
                   Item.Market.Update (Update_Import_Demand'Access);
                end;
@@ -89,8 +88,8 @@ package body Concorde.Installations is
                   end Update_Export_Supply;
 
                begin
-                  Item.Create_Buy_Offer
-                    (Commodity, Buy_Quantity, Buy_Quantity);
+                  Item.Create_Bid
+                    (Commodity, Buy_Quantity);
                   Item.Market.Update (Update_Export_Supply'Access);
                end;
             end if;
@@ -112,14 +111,10 @@ package body Concorde.Installations is
                            Item.Get_Quantity (Commodity);
       begin
          if Import_Demand > Zero and then In_Stock > Zero then
-            Item.Create_Sell_Offer
-              (Commodity, Min (Import_Demand, In_Stock),
-               Concorde.Money.Adjust (Item.Get_Value (Commodity), 1.1));
+            Item.Create_Ask
+              (Commodity, Min (Import_Demand, In_Stock));
          elsif Export_Supply > Zero then
-            Item.Create_Buy_Offer
-              (Commodity => Commodity,
-               Desired   => Export_Supply,
-               Minimum   => Export_Supply);
+            Item.Create_Bid (Commodity, Export_Supply);
          end if;
       end Add_Port_Trade_Offer;
 
@@ -131,9 +126,8 @@ package body Concorde.Installations is
         (Commodity : Concorde.Commodities.Commodity_Type)
       is
       begin
-         Item.Create_Sell_Offer
-           (Commodity, Item.Get_Quantity (Commodity),
-            Concorde.Money.Zero);
+         Item.Create_Ask
+           (Commodity, Item.Get_Quantity (Commodity));
       end Add_Sell_Offer;
 
    begin
@@ -146,8 +140,8 @@ package body Concorde.Installations is
                           Item.Facility.Input_Quantity (I)
                           * Item.Facility.Capacity_Quantity;
          begin
-            Item.Create_Buy_Offer
-              (Commodity, Required, Required);
+            Item.Create_Bid
+              (Commodity, Required);
          end;
       end loop;
 
@@ -158,8 +152,8 @@ package body Concorde.Installations is
             Required  : constant Quantity_Type :=
                           Item.Facility.Worker_Quantity (I);
          begin
-            Item.Create_Buy_Offer
-              (Commodity, Required, Required);
+            Item.Create_Ask
+              (Commodity, Required);
          end;
       end loop;
 
@@ -175,10 +169,9 @@ package body Concorde.Installations is
          if Item.Facility.Has_Output
            and then Item.Get_Quantity (Item.Facility.Output) > Zero
          then
-            Item.Create_Sell_Offer
+            Item.Create_Bid
               (Item.Facility.Output,
-               Item.Get_Quantity (Item.Facility.Output),
-               Concorde.Money.Zero);
+               Item.Get_Quantity (Item.Facility.Output));
          elsif Item.Facility.Is_Resource_Generator then
             for Commodity of Concorde.Commodities.All_Commodities loop
                if Item.Facility.Can_Produce (Commodity)

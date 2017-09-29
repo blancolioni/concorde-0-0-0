@@ -86,12 +86,12 @@ package body Concorde.People.Pops is
       end;
 
       for Skill of Item.Skills loop
-         Item.Create_Sell_Offer
-           (Skill.Commodity, Item.Size_Quantity, Concorde.Money.Zero);
+         Item.Create_Ask
+           (Skill.Commodity, Item.Size_Quantity);
       end loop;
 
       for I in Needs'Range loop
-         Item.Create_Buy_Offer (Needs (I), Final_Order (I), Final_Order (I));
+         Item.Create_Bid (Needs (I), Final_Order (I));
       end loop;
 
    end Add_Trade_Offers;
