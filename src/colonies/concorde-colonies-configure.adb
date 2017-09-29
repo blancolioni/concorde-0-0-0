@@ -24,6 +24,7 @@ with Concorde.People.Groups;
 with Concorde.People.Skills;
 
 with Concorde.Installations.Create;
+with Concorde.People.Individuals.Create;
 with Concorde.People.Pops.Create;
 with Concorde.Government.Create;
 
@@ -205,6 +206,11 @@ package body Concorde.Colonies.Configure is
                              Cash     => Concorde.Money.To_Money (1.0E5),
                              Owner    => World.Owner);
       begin
+         Installation.Update.Set_Manager
+           (Concorde.People.Individuals.Create.Create_Family_Member
+              (World.Owner,
+               Concorde.Locations.At_Installation (Installation)));
+
          World.Update.Add_Installation (Sector, Installation);
          Add_Population (Installation);
          Add_Inputs (Installation);
@@ -525,6 +531,11 @@ package body Concorde.Colonies.Configure is
                (Get ("cash", 10_000.0)),
            Owner    => World.Owner);
 
+      Hub.Update.Set_Manager
+        (Concorde.People.Individuals.Create.Create_Family_Member
+           (World.Owner,
+            Concorde.Locations.At_Installation (Hub)));
+
       Government :=
         Concorde.Government.Create.Create_Government
           (Governed          => World,
@@ -535,6 +546,11 @@ package body Concorde.Colonies.Configure is
            Headquarters      => Hub,
            Basic_Living_Wage =>
              Template.Get ("basic_living_wage", False));
+
+      Government.Update.Set_Governor
+        (Concorde.People.Individuals.Create.Create_Family_Member
+           (World.Owner,
+            Concorde.Locations.At_Installation (Hub)));
 
       World.Update.Add_Installation (Current_Tile, Hub);
       World.Update.Set_Government (Government);

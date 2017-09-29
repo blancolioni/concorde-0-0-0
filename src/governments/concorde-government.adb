@@ -72,6 +72,19 @@ package body Concorde.Government is
       Government.Tax_Receipts := (others => Concorde.Money.Zero);
    end On_Update_Start;
 
+   ------------------
+   -- Set_Governor --
+   ------------------
+
+   procedure Set_Governor
+     (Government : in out Root_Government_Type'Class;
+      Governor   : access constant
+        Concorde.People.Individuals.Root_Individual_Type'Class)
+   is
+   begin
+      Government.Governor := Governor;
+   end Set_Governor;
+
    --------------
    -- Tax_Rate --
    --------------

@@ -14,6 +14,8 @@ with Concorde.Stars;
 with Concorde.Worlds;
 with Concorde.Systems;
 
+with Concorde.People.Individuals.Create;
+
 with Concorde.Scenarios;
 
 with Concorde.Colonies.Configure;
@@ -517,6 +519,14 @@ package body Concorde.Factions.Create is
             Create_Initial_Ships (Start_World);
 
          end if;
+
+         for Minister of Faction.Update.Ministries loop
+            Minister :=
+              Concorde.People.Individuals.Create.Create_Family_Member
+                (Faction,
+                 Concorde.Locations.At_Installation
+                   (Start_World.Colony_Hub));
+         end loop;
 
          if Start_World.Has_Market then
             Set_Initial_Prices (Start_World.Market.Update);

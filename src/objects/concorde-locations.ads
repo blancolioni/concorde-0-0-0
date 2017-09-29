@@ -36,6 +36,15 @@ package Concorde.Locations is
      (Location : Object_Location)
       return access constant Concorde.Systems.Root_Star_System_Type'Class;
 
+   function Is_World_Location
+     (Location : Object_Location)
+      return Boolean;
+
+   function Current_World
+     (Location : Object_Location)
+      return access constant Concorde.Worlds.Root_World_Type'Class
+     with Pre => Is_World_Location (Location);
+
    subtype Orbital_Location is Object_Location (Orbit);
    subtype System_Point_Location is Object_Location (System_Point);
 
@@ -153,10 +162,16 @@ package Concorde.Locations is
      (Located : Located_Interface'Class)
       return Boolean;
 
+   function Is_World_Location
+     (Located : Located_Interface'Class)
+      return Boolean
+   is (Is_World_Location (Located.Current_Location));
+
    function Current_World
      (Located : Located_Interface'Class)
       return access constant Concorde.Worlds.Root_World_Type'Class
-     with Pre => Located.Orbiting_World;
+   is (Current_World (Located.Current_Location))
+     with Pre => Located.Is_World_Location;
 
    function Primary_Relative_Position
      (Located : Located_Interface'Class)

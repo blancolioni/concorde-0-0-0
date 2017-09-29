@@ -606,6 +606,20 @@ package body Concorde.Factions is
       Faction.Set (System.all, Flag);
    end Set;
 
+   ------------------
+   -- Set_Minister --
+   ------------------
+
+   procedure Set_Minister
+     (Faction   : in out Root_Faction_Type'Class;
+      Department : Department_Type;
+      Minister   : not null access constant
+        Concorde.People.Individuals.Root_Individual_Type'Class)
+   is
+   begin
+      Faction.Ministries (Department) := Minister;
+   end Set_Minister;
+
    --------------
    -- Set_Name --
    --------------

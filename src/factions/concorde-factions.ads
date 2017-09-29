@@ -7,16 +7,17 @@ private with Memor.Element_Vectors;
 
 with Memor;
 
+limited with Concorde.People.Individuals;
 limited with Concorde.Worlds;
 
 with Lui.Colours;
 
 with Concorde.Agents;
-with Concorde.Trades;
-with Concorde.Objects;
-with Concorde.Systems;
 with Concorde.Dates;
 with Concorde.Locations;
+with Concorde.Objects;
+with Concorde.Systems;
+with Concorde.Trades;
 
 package Concorde.Factions is
 
@@ -25,6 +26,9 @@ package Concorde.Factions is
 
    type Faction_Relationship_Range is
    range Minimum_Relationship .. Maximum_Relationship;
+
+   type Department_Type is
+     (Head, Treasury, Justice, Security, State, Defence, Health, Education);
 
    type Root_Faction_Type is
      new Concorde.Agents.Root_Agent_Type
@@ -54,6 +58,30 @@ package Concorde.Factions is
      (Faction  : in out Root_Faction_Type'Class;
       To      : Root_Faction_Type'Class;
       Change  : Faction_Relationship_Range);
+
+   function Has_Minister
+     (Faction    : Root_Faction_Type'Class;
+      Department : Department_Type)
+      return Boolean;
+
+   function Minister
+     (Faction    : Root_Faction_Type'Class;
+      Department : Department_Type)
+      return access constant
+     Concorde.People.Individuals.Root_Individual_Type'Class
+       with Pre => Faction.Has_Minister (Department);
+
+   procedure Set_Minister
+     (Faction    : in out Root_Faction_Type'Class;
+      Department : Department_Type;
+      Minister   : not null access constant
+        Concorde.People.Individuals.Root_Individual_Type'Class);
+
+   function Leader
+     (Faction : Root_Faction_Type'Class)
+      return access constant
+     Concorde.People.Individuals.Root_Individual_Type'Class
+   is (Faction.Minister (Head));
 
    function Current_Ships
      (Faction : Root_Faction_Type'Class)
@@ -325,17 +353,22 @@ private
 
    type Relation_Record;
 
+   type Department_Array is
+     array (Department_Type) of access constant
+     Concorde.People.Individuals.Root_Individual_Type'Class;
+
    type Root_Faction_Type is
      new Concorde.Agents.Root_Agent_Type
      and Memor.Identifier_Record_Type
      and Concorde.Objects.User_Named_Object_Interface with
       record
          Identifier      : Ada.Strings.Unbounded.Unbounded_String;
-         Faction_Name     : Ada.Strings.Unbounded.Unbounded_String;
+         Faction_Name    : Ada.Strings.Unbounded.Unbounded_String;
          Colour          : Lui.Colours.Colour_Type;
          System_Data     : access System_Data_Array;
-         Faction_Data     : access Relation_Record;
-         Current_Ships   : Natural := 0;
+         Faction_Data    : access Relation_Record;
+         Ministries        : Department_Array;
+         Current_Ships     : Natural := 0;
          Current_Systems : Natural := 0;
          Built_Ships     : Natural := 0;
          Captured_Ships  : Natural := 0;
@@ -378,6 +411,19 @@ private
    overriding procedure Add_Trade_Offers
      (Faction : not null access constant Root_Faction_Type)
    is null;
+
+   function Has_Minister
+     (Faction    : Root_Faction_Type'Class;
+      Department : Department_Type)
+      return Boolean
+   is (Faction.Ministries (Department) /= null);
+
+   function Minister
+     (Faction    : Root_Faction_Type'Class;
+      Department : Department_Type)
+      return access constant
+     Concorde.People.Individuals.Root_Individual_Type'Class
+   is (Faction.Ministries (Department));
 
    package Faction_Vectors is
      new Memor.Element_Vectors

@@ -8,6 +8,8 @@ with Concorde.Installations;
 with Concorde.Objects;
 with Concorde.Trades;
 
+limited with Concorde.People.Individuals;
+
 with Concorde.Money;
 with Concorde.Quantities;
 
@@ -24,6 +26,16 @@ package Concorde.Government is
    function Governed
      (Government : Root_Government_Type'Class)
       return access constant Governed_Interface'Class;
+
+   function Governor
+     (Government : Root_Government_Type'Class)
+      return access constant
+     Concorde.People.Individuals.Root_Individual_Type'Class;
+
+   procedure Set_Governor
+     (Government : in out Root_Government_Type'Class;
+      Governor   : access constant
+        Concorde.People.Individuals.Root_Individual_Type'Class);
 
    function Headquarters
      (Government : Root_Government_Type'Class)
@@ -87,6 +99,8 @@ private
          Governed          : access constant Governed_Interface'Class;
          Owner             : access constant
            Concorde.Agents.Root_Agent_Type'Class;
+         Governor          : access constant
+           Concorde.People.Individuals.Root_Individual_Type'Class;
          Headquarters      : Concorde.Installations.Installation_Type;
          Tax_Rates         : Commodity_Tax_Rates.Vector;
          Tax_Receipts      : Array_Of_Tax_Receipts :=
@@ -113,6 +127,12 @@ private
 
    overriding procedure On_Update_Start
      (Government : in out Root_Government_Type);
+
+   function Governor
+     (Government : Root_Government_Type'Class)
+      return access constant
+     Concorde.People.Individuals.Root_Individual_Type'Class
+   is (Government.Governor);
 
    package Db is
      new Memor.Database

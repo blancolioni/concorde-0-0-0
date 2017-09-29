@@ -262,6 +262,30 @@ package body Concorde.Installations is
       return Installation.Owner;
    end Owner;
 
+   --------------------
+   -- Remove_Manager --
+   --------------------
+
+   procedure Remove_Manager
+     (Installation : in out Root_Installation_Type'Class)
+   is
+   begin
+      Installation.Manager := null;
+   end Remove_Manager;
+
+   -----------------
+   -- Set_Manager --
+   -----------------
+
+   procedure Set_Manager
+     (Installation : in out Root_Installation_Type'Class;
+      Manager      : not null access constant
+        Concorde.People.Individuals.Root_Individual_Type'Class)
+   is
+   begin
+      Installation.Manager := Manager;
+   end Set_Manager;
+
    ------------
    -- Update --
    ------------

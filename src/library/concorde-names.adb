@@ -65,6 +65,15 @@ package body Concorde.Names is
 
    end Configure_Names;
 
+   ------------------------------
+   -- Random_Female_First_Name --
+   ------------------------------
+
+   function Random_Female_First_Name return String is
+   begin
+      return Random_Name (Female_First_Names);
+   end Random_Female_First_Name;
+
    -----------------------
    -- Random_First_Name --
    -----------------------
@@ -86,6 +95,11 @@ package body Concorde.Names is
    begin
       return Random_Name (Last_Names);
    end Random_Last_Name;
+
+   function Random_Male_First_Name return String is
+   begin
+      return Random_Name (Male_First_Names);
+   end Random_Male_First_Name;
 
    -----------------
    -- Random_Name --

@@ -104,9 +104,12 @@ package body Concorde.Locations is
    -------------------
 
    function Current_World
-     (Located : Located_Interface'Class)
+     (Location : Object_Location)
       return access constant Concorde.Worlds.Root_World_Type'Class
-   is (Concorde.Worlds.Root_World_Type'Class (Located.Orbiting.all)'Access);
+   is (if Location.Reference.all in Concorde.Worlds.Root_World_Type'Class
+       then Concorde.Worlds.Root_World_Type'Class
+         (Location.Reference.all)'Access
+         else Located_Interface'Class (Location.Reference.all).Current_World);
 
    --------------------------
    -- Geosynchronous_Orbit --
@@ -182,6 +185,24 @@ package body Concorde.Locations is
               Concorde.Objects.Object_Type (System_2),
               Progress);
    end Interstellar_Location;
+
+   -----------------------
+   -- Is_World_Location --
+   -----------------------
+
+   function Is_World_Location
+     (Location : Object_Location)
+      return Boolean
+   is
+   begin
+      return Location.Loc_Type /= Nowhere
+        and then (Location.Reference.all in
+                    Concorde.Worlds.Root_World_Type'Class
+                  or else (Location.Reference.all in
+                               Located_Interface'Class
+                           and then Located_Interface'Class
+                             (Location.Reference.all).Is_World_Location));
+   end Is_World_Location;
 
    -----------------
    -- Location_At --

@@ -27,6 +27,7 @@ with Concorde.Markets;
 with Concorde.Trades;
 
 limited with Concorde.Factions;
+
 with Concorde.Ships.Lists;
 
 with Concorde.Locations;
@@ -129,6 +130,10 @@ package Concorde.Worlds is
    function Market
      (World : Root_World_Type'Class)
       return Concorde.Markets.Market_Type;
+
+   function Colony_Hub
+     (World : Root_World_Type'Class)
+      return Concorde.Installations.Installation_Type;
 
    function Resources
      (World : Root_World_Type'Class)
@@ -481,6 +486,11 @@ private
    is (World.System);
 
    overriding procedure Load (World : in out Root_World_Type);
+
+   function Colony_Hub
+     (World : Root_World_Type'Class)
+      return Concorde.Installations.Installation_Type
+   is (World.Hub);
 
    package Db is
      new Memor.Database

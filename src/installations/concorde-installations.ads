@@ -8,6 +8,8 @@ with Concorde.Facilities;
 
 with Concorde.Locations;
 
+limited with Concorde.People.Individuals;
+
 package Concorde.Installations is
 
    type Root_Installation_Type is
@@ -30,6 +32,27 @@ package Concorde.Installations is
      (Installation : Root_Installation_Type'Class)
       return access constant Concorde.Agents.Root_Agent_Type'Class;
 
+   function Has_Manager
+     (Installation : Root_Installation_Type'Class)
+      return Boolean;
+
+   function Manager
+     (Installation : Root_Installation_Type'Class)
+      return access constant
+     Concorde.People.Individuals.Root_Individual_Type'Class
+       with Pre => Installation.Has_Manager;
+
+   procedure Set_Manager
+     (Installation : in out Root_Installation_Type'Class;
+      Manager      : not null access constant
+        Concorde.People.Individuals.Root_Individual_Type'Class)
+       with Post => Installation.Has_Manager;
+
+   procedure Remove_Manager
+     (Installation : in out Root_Installation_Type'Class)
+       with Pre => Installation.Has_Manager,
+         Post => not Installation.Has_Manager;
+
    type Installation_Type is access constant Root_Installation_Type'Class;
 
    type Updateable_Reference
@@ -48,6 +71,8 @@ private
       record
          Facility : Concorde.Facilities.Facility_Type;
          Owner    : access constant Concorde.Agents.Root_Agent_Type'Class;
+         Manager  : access constant
+           Concorde.People.Individuals.Root_Individual_Type'Class;
       end record;
 
    overriding function Class_Name
@@ -81,6 +106,17 @@ private
    overriding procedure On_Update_Start
      (Installation : in out Root_Installation_Type)
    is null;
+
+   function Has_Manager
+     (Installation : Root_Installation_Type'Class)
+      return Boolean
+   is (Installation.Manager /= null);
+
+   function Manager
+     (Installation : Root_Installation_Type'Class)
+      return access constant
+     Concorde.People.Individuals.Root_Individual_Type'Class
+   is (Installation.Manager);
 
    package Db is
      new Memor.Database
