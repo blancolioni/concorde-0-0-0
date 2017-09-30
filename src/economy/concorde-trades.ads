@@ -123,6 +123,14 @@ package Concorde.Trades is
       Cost      : Concorde.Money.Money_Type)
    is abstract;
 
+   procedure Execute_Hire
+     (Employer  : not null access constant Trader_Interface;
+      Employee  : not null access constant Trader_Interface'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Wage      : Concorde.Money.Price_Type)
+   is null;
+
    procedure Update_Trader
      (Trader : Trader_Interface;
       Update : not null access
