@@ -1,3 +1,5 @@
+private with Ada.Containers.Doubly_Linked_Lists;
+
 private with Memor.Database;
 
 with Memor;
@@ -20,6 +22,12 @@ package Concorde.People.Groups is
    function Preferred_Quality
      (Group : Root_Pop_Group'Class)
       return Concorde.Commodities.Commodity_Quality;
+
+   procedure Scan_Needs
+     (Group : Root_Pop_Group'Class;
+      Process : not null access
+        procedure (Commodity : Concorde.Commodities.Commodity_Type;
+                   Need      : Non_Negative_Real));
 
    type Pop_Group is access constant Root_Pop_Group'Class;
 
@@ -76,11 +84,21 @@ package Concorde.People.Groups is
 
 private
 
+   type Need_Record is
+      record
+         Commodity : Concorde.Commodities.Commodity_Type;
+         Need      : Non_Negative_Real;
+      end record;
+
+   package Needs_List is
+     new Ada.Containers.Doubly_Linked_Lists (Need_Record);
+
    type Root_Pop_Group is
      new Concorde.Objects.Root_Localised_Object_Type with
       record
          Initial_Cash_Factor : Natural;
          Preferred_Quality   : Concorde.Commodities.Commodity_Quality;
+         Needs               : Needs_List.List;
       end record;
 
    overriding function Object_Database

@@ -1,5 +1,7 @@
 with Ada.Text_IO;
 
+with Concorde.Logging;
+
 package body Concorde.Markets is
 
    function Taxable_Image
@@ -31,9 +33,9 @@ package body Concorde.Markets is
             New_Cached : constant Cached_Commodity :=
                            new Cached_Commodity_Record'
                              (Metrics               => <>,
-                              Current_Price         => Commodity.Base_Price,
-                              Historical_Mean_Price => Commodity.Base_Price,
-                              Last_Price            => Commodity.Base_Price,
+                              Current_Price         => Concorde.Money.Zero,
+                              Historical_Mean_Price => Concorde.Money.Zero,
+                              Last_Price            => Concorde.Money.Zero,
                               Bids                  => <>,
                               Asks                  => <>);
          begin
@@ -98,6 +100,11 @@ package body Concorde.Markets is
       Hist      : Historical_Quantity_Record :=
                     (Concorde.Dates.Current_Date, others => <>);
    begin
+      if Info.Current_Price = Zero then
+         Info.Current_Price := Price;
+         Info.Historical_Mean_Price := Price;
+      end if;
+
       case Offer is
          when Concorde.Trades.Bid =>
             Hist.Quantities (Concorde.Trades.Local_Demand) := Quantity;
@@ -127,6 +134,10 @@ package body Concorde.Markets is
                      Commodity => Commodity,
                      Quantity  => Traded,
                      Price     => Final_Price);
+
+                  Info.Historical_Mean_Price :=
+                    Adjust_Price
+                      (Info.Historical_Mean_Price + Final_Price, 0.5);
 
                   if Ask_Info.Remaining_Quantity > Zero then
                      Info.Asks.Insert (Ask_Info.Offer_Price, Ask_Info);
@@ -171,6 +182,10 @@ package body Concorde.Markets is
                      Quantity  => Traded,
                      Price     => Final_Price);
 
+                  Info.Historical_Mean_Price :=
+                    Adjust_Price
+                      (Info.Historical_Mean_Price + Final_Price, 0.5);
+
                   if Bid_Info.Remaining_Quantity > Zero then
                      Info.Bids.Insert (Bid_Info.Offer_Price, Bid_Info);
                   end if;
@@ -201,8 +216,15 @@ package body Concorde.Markets is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Money.Price_Type
    is
+      use Concorde.Money;
    begin
-      return Market.Get_Commodity (Commodity).Current_Price;
+      return Price : Concorde.Money.Price_Type :=
+        Market.Get_Commodity (Commodity).Current_Price
+      do
+         if Price = Zero then
+            Price := Commodity.Base_Price;
+         end if;
+      end return;
    end Current_Price;
 
    --------------------
@@ -279,6 +301,10 @@ package body Concorde.Markets is
 --           raise;
 --     end Execute;
 
+   -------------------
+   -- Execute_Trade --
+   -------------------
+
    procedure Execute_Trade
      (Buyer      : not null access constant
         Concorde.Trades.Trader_Interface'Class;
@@ -339,8 +365,10 @@ package body Concorde.Markets is
       use Concorde.Dates;
       use Concorde.Quantities;
       Result : Quantity_Type := Zero;
+      Cached : constant Cached_Commodity :=
+                 Market.Get_Commodity (Commodity);
    begin
-      for Hist of Market.Get_Commodity (Commodity).Metrics loop
+      for Hist of Cached.Metrics loop
          exit when Hist.Date < Start;
          if Hist.Date <= Finish then
             Result := Result + Hist.Quantities (Metric);
@@ -358,8 +386,15 @@ package body Concorde.Markets is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Money.Price_Type
    is
+      use Concorde.Money;
    begin
-      return Market.Get_Commodity (Commodity).Historical_Mean_Price;
+      return Price : Concorde.Money.Price_Type :=
+        Market.Get_Commodity (Commodity).Historical_Mean_Price
+      do
+         if Price = Zero then
+            Price := Commodity.Base_Price;
+         end if;
+      end return;
    end Historical_Mean_Price;
 
    -------------------
@@ -373,6 +408,9 @@ package body Concorde.Markets is
    is
       Info : constant Cached_Commodity := Market.Get_Commodity (Commodity);
    begin
+      Concorde.Logging.Log
+        (Market.Name, Commodity.Name, "initial price",
+         Concorde.Money.Image (Price));
       Info.Current_Price := Price;
       Info.Historical_Mean_Price := Price;
    end Initial_Price;

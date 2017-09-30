@@ -1,20 +1,20 @@
 with Concorde.Objects.Queues;
 with Concorde.Signals.Standard;
 
-package body Concorde.Managers.Pops is
+package body Concorde.Managers.Installations is
 
    ------------
    -- Create --
    ------------
 
    procedure Create
-     (Manager : not null access Root_Pop_Manager'Class;
-      Pop     : Concorde.People.Pops.Pop_Type)
+     (Manager : not null access Root_Installation_Manager'Class;
+      Installation     : Concorde.Installations.Installation_Type)
    is
    begin
-      Manager.Object := Pop;
-      Manager.Pop := Pop;
-      Pop.Update.Add_Handler
+      Manager.Object := Installation;
+      Manager.Installation := Installation;
+      Installation.Update.Add_Handler
         (Concorde.Signals.Standard.Object_Activated,
          new Object_Activated_Handler'(Manager => Manager_Type (Manager)));
    end Create;
@@ -24,12 +24,14 @@ package body Concorde.Managers.Pops is
    --------------------
 
    function Create_Manager
-     (Pop : Concorde.People.Pops.Pop_Type)
-      return Pop_Manager
+     (Installation : Concorde.Installations.Installation_Type)
+      return Installation_Manager
    is
    begin
-      return Manager : constant Pop_Manager := new Root_Pop_Manager do
-         Manager.Create (Pop);
+      return Manager : constant Installation_Manager :=
+        new Root_Installation_Manager
+      do
+         Manager.Create (Installation);
       end return;
    end Create_Manager;
 
@@ -38,7 +40,7 @@ package body Concorde.Managers.Pops is
    ------------
 
    overriding procedure Handle
-     (Handler : in out Root_Pop_Event_Handler;
+     (Handler : in out Root_Installation_Event_Handler;
       Event   : Concorde.Events.Root_Event_Type'Class;
       Object  : not null access constant
         Concorde.Objects.Root_Object_Type'Class)
@@ -54,17 +56,18 @@ package body Concorde.Managers.Pops is
    ------------------
 
    overriding procedure On_Activated
-     (Manager : in out Root_Pop_Manager)
+     (Manager : in out Root_Installation_Manager)
    is
    begin
-      Manager.Pop.Log_Trade
+      Manager.Installation.Log_Trade
         ("activated at "
          & Concorde.Dates.To_Date_And_Time_String
            (Manager.Time));
-      Manager.Pop.Add_Trade_Offers;
-      Manager.Pop.Update.Execute_Consumption;
+      Manager.Installation.Add_Trade_Offers;
+      Manager.Installation.Update.Execute_Production;
+      Manager.Installation.Update.Pay_Workers;
       Concorde.Objects.Queues.Next_Event
-        (Manager.Pop, Concorde.Dates.Add_Days (Manager.Time, 1));
+        (Manager.Installation, Concorde.Dates.Add_Days (Manager.Time, 1));
    end On_Activated;
 
-end Concorde.Managers.Pops;
+end Concorde.Managers.Installations;

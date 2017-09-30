@@ -153,7 +153,7 @@ package body Concorde.Colonies.Configure is
                Quant : constant Quantity_Type :=
                          Installation.Facility.Input_Quantity (I)
                          * Installation.Facility.Capacity_Quantity
-                         * To_Quantity (5.0);
+                         * To_Quantity (15.0);
                Value    : constant Concorde.Money.Money_Type :=
                             Concorde.Money.Total
                               (Need.Base_Price, Quant);
@@ -240,24 +240,33 @@ package body Concorde.Colonies.Configure is
                          Skill        => Skill,
                          Size         => Size,
                          Cash         => Concorde.Money.To_Money (Cash));
-         Needs : constant Array_Of_Commodities :=
-                   Concorde.Commodities.Get
-                     (Consumer, Group.Preferred_Quality);
+
+         procedure Add_Needs
+           (Commodity : Concorde.Commodities.Commodity_Type;
+            Need      : Non_Negative_Real);
+
+         ---------------
+         -- Add_Needs --
+         ---------------
+
+         procedure Add_Needs
+           (Commodity : Concorde.Commodities.Commodity_Type;
+            Need      : Non_Negative_Real)
+         is
+            Quantity : constant Quantity_Type :=
+                         To_Quantity
+                           (Real'Ceiling
+                              (5.0 * Need * Non_Negative_Real (Size)));
+         begin
+            Hub.Update.Add_Quantity
+              (Commodity, Quantity,
+               Concorde.Money.Total (Commodity.Base_Price, Quantity));
+         end Add_Needs;
+
       begin
          World.Update.Add_Pop (Sector, Pop);
 
-         for Need of Needs loop
-            declare
-               Quantity : constant Concorde.Quantities.Quantity_Type :=
-                            Concorde.Quantities.To_Quantity
-                              (Real (Pop.Size) * 30.0);
-               Value    : constant Concorde.Money.Money_Type :=
-                            Concorde.Money.Total
-                              (Need.Base_Price, Quantity);
-            begin
-               Hub.Update.Add_Quantity (Need, Quantity, Value);
-            end;
-         end loop;
+         Pop.Wealth_Group.Scan_Needs (Add_Needs'Access);
 
       end Create_Pop;
 

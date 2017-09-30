@@ -5,16 +5,31 @@ poor = {
    conservative = 30
    liberal = 30
    quality = 1
+   needs = {
+      rations = 1
+      bottled-water = 1
+      }
 }
 
 middle_class = {
    initial_cash = 200
    quality = 2
+   needs = {
+      readymeal = 1
+      bottled-water = 1
+      soda = 1
+      }
 }
 
 rich = {
    initial_cash = 10000
    quality = 3
+   needs = {
+      luxuryfood = 1
+      bottled-water = 1
+      soda = 1
+      ambrosia = 1
+      }
 }
 
 socialist = {

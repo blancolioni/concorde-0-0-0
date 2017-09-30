@@ -73,6 +73,22 @@ package body Concorde.People.Groups is
       return Get ("rich");
    end Rich;
 
+   ----------------
+   -- Scan_Needs --
+   ----------------
+
+   procedure Scan_Needs
+     (Group   : Root_Pop_Group'Class;
+      Process : not null access
+        procedure (Commodity : Concorde.Commodities.Commodity_Type;
+                   Need      : Non_Negative_Real))
+   is
+   begin
+      for Need of Group.Needs loop
+         Process (Need.Commodity, Need.Need);
+      end loop;
+   end Scan_Needs;
+
    ---------------------------
    -- Set_Affiliation_Range --
    ---------------------------

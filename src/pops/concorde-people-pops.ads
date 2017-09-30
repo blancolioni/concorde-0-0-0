@@ -32,6 +32,9 @@ package Concorde.People.Pops is
    procedure Add_Trade_Offers
      (Item   : not null access constant Root_Pop_Type);
 
+   procedure Execute_Consumption
+     (Pop : in out Root_Pop_Type'Class);
+
    type Pop_Type is access constant Root_Pop_Type'Class;
 
    type Updateable_Reference (Item : not null access Root_Pop_Type'Class)

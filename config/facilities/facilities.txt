@@ -74,7 +74,7 @@ farm = { class = Farm
          days = 1
          workers = { tech = 1 unskilled = 9 }
          modules = { industrial = 3 habitation = 2 }
-         capacity = 10000
+         capacity = 1000
        }
        
 seafood-farm = {
@@ -122,7 +122,7 @@ light-factory = { class = Factory
                     industrial = 30
                     habitation = 20
                     }
-                  capacity = 5000
+                  capacity = 500
                 }
 
 heavy-factory = { class = Factory
@@ -138,7 +138,7 @@ heavy-factory = { class = Factory
                   modules = { industrial = 60
                               habitation = 40
                             }
-                  capacity = 20000
+                  capacity = 2000
                 }
                 
 super-heavy-factory = { class = Factory
@@ -156,7 +156,7 @@ super-heavy-factory = { class = Factory
                         industrial = true
                         consumer = true
                         construction = true
-                        capacity = 50000
+                        capacity = 5000
                       }
 
 steel-factory = {
@@ -374,7 +374,7 @@ refinery = { class = Resource_Generator
              power = 10
              workers = { tech = 5 unskilled = 15 }
              modules = { industrial = 5 habitation = 5 }
-             capacity = 100000
+             capacity = 10000
              metal = true
              fuel = true
            }
@@ -383,7 +383,7 @@ mine = { class = Resource_Generator
          power = 5
          workers = { tech = 1 unskilled = 2 }
          modules = { industrial = 6 habitation = 4 }
-         capacity = 10000
+         capacity = 1000
          mineral = true
          fissile = true
        }

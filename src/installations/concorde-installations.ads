@@ -1,3 +1,5 @@
+private with Ada.Containers.Doubly_Linked_Lists;
+
 private with Memor;
 private with Memor.Database;
 
@@ -9,6 +11,14 @@ with Concorde.Facilities;
 with Concorde.Locations;
 
 limited with Concorde.People.Individuals;
+with Concorde.People.Skills;
+
+with Concorde.People.Pops;
+
+with Concorde.Dates;
+with Concorde.Money;
+with Concorde.Quantities;
+with Concorde.Commodities;
 
 package Concorde.Installations is
 
@@ -53,6 +63,12 @@ package Concorde.Installations is
        with Pre => Installation.Has_Manager,
          Post => not Installation.Has_Manager;
 
+   procedure Pay_Workers
+     (Installation : in out Root_Installation_Type'Class);
+
+   procedure Execute_Production
+     (Installation : in out Root_Installation_Type'Class);
+
    procedure Add_Trade_Offers
      (Item   : not null access constant Root_Installation_Type);
 
@@ -68,14 +84,38 @@ package Concorde.Installations is
 
 private
 
+   type Queued_Production_Element is
+      record
+         Done   : Concorde.Dates.Date_Type;
+         Size   : Concorde.Quantities.Quantity_Type;
+         Output : Concorde.Commodities.Commodity_Type;
+      end record;
+
+   package Queued_Production_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Queued_Production_Element);
+
+   type Employee_Record is
+      record
+         Pop    : Concorde.People.Pops.Pop_Type;
+         Size   : Concorde.Quantities.Quantity_Type;
+         Skill  : Concorde.People.Skills.Pop_Skill;
+         Wage   : Concorde.Money.Price_Type;
+      end record;
+
+   package Employee_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Employee_Record);
+
    type Root_Installation_Type is
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Locations.Located_Interface with
       record
-         Facility : Concorde.Facilities.Facility_Type;
-         Owner    : access constant Concorde.Agents.Root_Agent_Type'Class;
-         Manager  : access constant
+         Facility         : Concorde.Facilities.Facility_Type;
+         Owner            : access constant
+           Concorde.Agents.Root_Agent_Type'Class;
+         Manager          : access constant
            Concorde.People.Individuals.Root_Individual_Type'Class;
+         Employees        : Employee_Lists.List;
+         Production_Queue : Queued_Production_Lists.List;
       end record;
 
    overriding function Class_Name
@@ -107,6 +147,14 @@ private
      (Installation : not null access constant Root_Installation_Type)
       return access Concorde.Agents.Root_Agent_Type'Class
    is (Installation.Update.Item);
+
+   overriding procedure Execute_Hire
+     (Employer  : not null access constant Root_Installation_Type;
+      Employee  : not null access constant
+        Concorde.Trades.Trader_Interface'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Wage      : Concorde.Money.Price_Type);
 
    function Has_Manager
      (Installation : Root_Installation_Type'Class)

@@ -137,16 +137,4 @@ package Concorde.Trades is
         procedure (Trader : not null access Trader_Interface'Class))
    is abstract;
 
-   function Get_Daily_Quantity
-     (Trade    : Trade_Interface'Class;
-      Item     : Concorde.Commodities.Commodity_Type;
-      Metric   : Trade_Metric;
-      Days     : Positive := 1)
-      return Concorde.Quantities.Quantity_Type
-   is (Trade.Get_Quantity
-       (Item, Metric,
-        Concorde.Dates.Add_Days
-          (Concorde.Dates.Current_Date, -Days),
-        Concorde.Dates.Current_Date));
-
 end Concorde.Trades;

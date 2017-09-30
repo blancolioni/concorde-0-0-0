@@ -61,6 +61,21 @@ package body Concorde.People.Groups.Configure is
          Group.Preferred_Quality :=
            Concorde.Commodities.Commodity_Quality'Val
              (Config.Get ("quality", 2) - 1);
+         if Config.Contains ("needs") then
+            for Need_Config of Config.Child ("needs") loop
+               declare
+                  Commodity : constant Concorde.Commodities.Commodity_Type :=
+                                Concorde.Commodities.Get
+                                  (Need_Config.Config_Name);
+                  Need      : constant Float := Need_Config.Value;
+               begin
+                  Group.Needs.Append
+                    (Need_Record'
+                       (Commodity => Commodity,
+                        Need      => Non_Negative_Real (Need)));
+               end;
+            end loop;
+         end if;
       end Create;
 
    begin

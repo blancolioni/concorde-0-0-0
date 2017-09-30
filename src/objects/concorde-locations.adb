@@ -442,7 +442,7 @@ package body Concorde.Locations is
                  (From_System.Main_Object);
       Distance : constant Non_Negative_Real :=
                    Star.Mass / Concorde.Solar_System.Solar_Mass
-                     * Concorde.Solar_System.Earth_Orbit * 10.0;
+                     * Concorde.Solar_System.Earth_Orbit * 2.0;
       X1       : constant Real := From_System.X;
       X2       : constant Real := To_System.X;
       Y1       : constant Real := From_System.Y;

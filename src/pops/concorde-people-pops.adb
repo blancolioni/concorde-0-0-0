@@ -1,5 +1,5 @@
 with Concorde.Commodities;
-with Concorde.Money;
+with Concorde.Random;
 
 package body Concorde.People.Pops is
 
@@ -10,90 +10,46 @@ package body Concorde.People.Pops is
    procedure Add_Trade_Offers
      (Item   : not null access constant Root_Pop_Type)
    is
-      use Concorde.Commodities, Concorde.Money, Concorde.Quantities;
+      use Concorde.Commodities, Concorde.Quantities;
       Group : constant Concorde.People.Groups.Pop_Group :=
                 Item.Wealth_Group;
-      Quality : constant Commodity_Quality := Group.Preferred_Quality;
-      Needs : constant Array_Of_Commodities :=
-                Concorde.Commodities.Get
-                  (Consumer, Quality);
-      Minimum : constant Concorde.Quantities.Quantity_Type :=
-                  Item.Size_Quantity;
-      Desired : constant Concorde.Quantities.Quantity_Type :=
-                  Minimum * Quantities.To_Quantity (7.0);
-      Min_Budget : Money_Type := Zero;
-      Max_Budget : Money_Type := Zero;
-      Income     : constant Money_Type :=
-                     Total
-                       (Item.Market.Current_Price
-                          (Item.Skills.First_Element.Commodity),
-                        Item.Size_Quantity);
-      type Need_Orders is array (Needs'Range) of Quantity_Type;
-      Min_Order   : Need_Orders;
-      Max_Order   : Need_Orders;
-      Final_Order : Need_Orders;
-   begin
-      for I in Needs'Range loop
-         declare
-            Need  : constant Commodity_Type := Needs (I);
-            Price : constant Price_Type :=
-                      Item.Market.Current_Price (Need);
-            Min   : constant Quantity_Type :=
-                      (if Minimum < Item.Get_Quantity (Need)
-                       then Zero else Minimum - Item.Get_Quantity (Need));
-            Max   : constant Quantity_Type :=
-                      (if Desired < Item.Get_Quantity (Need)
-                       then Zero else Desired - Item.Get_Quantity (Need));
-         begin
-            Min_Order (I) := Min;
-            Max_Order (I) := Max;
-            Min_Budget := Min_Budget + Total (Price, Min);
-            Max_Budget := Max_Budget + Total (Price, Max);
-         end;
-      end loop;
 
-      declare
-         Final_Budget : Money_Type;
+      procedure Check_Need
+        (Commodity : Concorde.Commodities.Commodity_Type;
+         Need      : Non_Negative_Real);
+
+      ----------------
+      -- Check_Need --
+      ----------------
+
+      procedure Check_Need
+        (Commodity : Concorde.Commodities.Commodity_Type;
+         Need      : Non_Negative_Real)
+      is
+         Current : constant Quantity_Type := Item.Get_Quantity (Commodity);
+         Required : constant Non_Negative_Real :=
+                      Need * Non_Negative_Real (Item.Size);
       begin
-         if Max_Budget <= Item.Cash then
-            Final_Budget := Max_Budget;
-            Final_Order := Max_Order;
-         elsif Max_Budget < Income then
-            if Min_Budget < Income then
-               declare
-                  Factor : constant Real :=
-                             To_Real (Item.Cash) / To_Real (Max_Budget);
-               begin
-                  Final_Budget := Item.Cash;
-                  for I in Needs'Range loop
-                     Final_Order (I) := Scale (Max_Order (I), Factor);
-                  end loop;
-               end;
-            else
-               Final_Order := Min_Order;
-               Final_Budget := Min_Budget;
-            end if;
-         else
-            Final_Order := Min_Order;
-            Final_Budget := Min_Budget;
+         if Required < 1.0 and then Current = Zero then
+            Item.Create_Bid (Commodity, Unit);
+         elsif Required >= 1.0
+           and then Current < To_Quantity (Real'Ceiling (Required))
+         then
+            Item.Create_Bid
+              (Commodity,
+               To_Quantity (Real'Ceiling (Required)) - Current);
          end if;
-         Item.Log_Price
-           ("min budget " & Image (Min_Budget)
-            & "; max budget " & Image (Max_Budget)
-            & "; cash " & Image (Item.Cash)
-            & "; forecast income " & Image (Income)
-            & "; final budget " & Image (Final_Budget));
-      end;
+      end Check_Need;
+
+   begin
+
+      Group.Scan_Needs (Check_Need'Access);
 
       for Skill of Item.Skills loop
          if Item.Get_Quantity (Skill.Commodity) > Zero then
             Item.Create_Ask
               (Skill.Commodity, Item.Get_Quantity (Skill.Commodity));
          end if;
-      end loop;
-
-      for I in Needs'Range loop
-         Item.Create_Bid (Needs (I), Final_Order (I));
       end loop;
 
    end Add_Trade_Offers;
@@ -110,6 +66,50 @@ package body Concorde.People.Pops is
    begin
       return Pop.Groups.Get_Affiliation_Range (Group);
    end Affiliation;
+
+   -------------------------
+   -- Execute_Consumption --
+   -------------------------
+
+   procedure Execute_Consumption
+     (Pop : in out Root_Pop_Type'Class)
+   is
+      procedure Consume
+        (Commodity : Concorde.Commodities.Commodity_Type;
+         Need      : Non_Negative_Real);
+
+      -------------
+      -- Consume --
+      -------------
+
+      procedure Consume
+        (Commodity : Concorde.Commodities.Commodity_Type;
+         Need      : Non_Negative_Real)
+      is
+         use Concorde.Quantities;
+         Total_Need : constant Non_Negative_Real :=
+                        Need * Non_Negative_Real (Pop.Size);
+         Base_Need  : constant Non_Negative_Real :=
+                        Non_Negative_Real'Floor (Total_Need);
+         Partial_Need : constant Non_Negative_Real :=
+                          Total_Need - Base_Need;
+         Need_Quantity : constant Quantity_Type :=
+                           To_Quantity (Base_Need);
+      begin
+         Pop.Remove_Quantity
+           (Commodity, Min (Pop.Get_Quantity (Commodity), Need_Quantity));
+         if Pop.Get_Quantity (Commodity) > Zero
+           and then Partial_Need > 0.0
+           and then Concorde.Random.Unit_Random < Partial_Need
+         then
+            Pop.Remove_Quantity
+              (Commodity, Unit);
+         end if;
+      end Consume;
+
+   begin
+      Pop.Wealth_Group.Scan_Needs (Consume'Access);
+   end Execute_Consumption;
 
    ---------------------
    -- Object_Database --
