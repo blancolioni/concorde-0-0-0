@@ -32,37 +32,6 @@ package body Concorde.Ships is
      (Ship      : not null access constant Root_Ship_Type'Class)
      with Unreferenced;
 
-   -------------------
-   -- Add_Buy_Order --
-   -------------------
-
-   procedure Add_Buy_Order
-     (Ship     : in out Root_Ship_Type'Class;
-      World    : not null access constant
-        Concorde.Worlds.Root_World_Type'Class;
-      Item     : Concorde.Commodities.Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity_Type)
-   is
-   begin
-      Ship.Orders.Append
-        ((Buy, World, null, Item, Quantity));
-   end Add_Buy_Order;
-
-   --------------------
-   -- Add_Sell_Order --
-   --------------------
-
-   procedure Add_Sell_Order
-     (Ship   : in out Root_Ship_Type'Class;
-      World  : not null access constant
-        Concorde.Worlds.Root_World_Type'Class;
-      Item   : Concorde.Commodities.Commodity_Type)
-   is
-   begin
-      Ship.Orders.Append
-        ((Sell, World, null, Item, Ship.Hold_Quantity));
-   end Add_Sell_Order;
-
    ----------------------
    -- Add_Trade_Offers --
    ----------------------
@@ -256,22 +225,6 @@ package body Concorde.Ships is
 --        end;
 --     end Add_Trade_Offers;
 
-   ---------------------
-   -- Add_Trade_Order --
-   ---------------------
-
-   procedure Add_Trade_Order
-     (Ship  : in out Root_Ship_Type'Class;
-      From  : not null access constant
-        Concorde.Worlds.Root_World_Type'Class;
-      To    : not null access constant
-        Concorde.Worlds.Root_World_Type'Class)
-   is
-   begin
-      Ship.Orders.Append
-        ((Trade, From, To, null, Concorde.Quantities.Zero));
-   end Add_Trade_Order;
-
    -----------
    -- Alive --
    -----------
@@ -408,17 +361,6 @@ package body Concorde.Ships is
       Ship.Moving := False;
    end Clear_Destination;
 
-   ------------------
-   -- Clear_Orders --
-   ------------------
-
-   procedure Clear_Orders
-     (Ship : in out Root_Ship_Type'Class)
-   is
-   begin
-      Ship.Orders.Clear;
-   end Clear_Orders;
-
    -----------------
    -- Count_Ships --
    -----------------
@@ -461,18 +403,6 @@ package body Concorde.Ships is
       return Ship.Empty_Mass + Ship.Total_Mass;
    end Current_Mass;
 
-   ------------------
-   -- Cycle_Orders --
-   ------------------
-
-   procedure Cycle_Orders
-     (Ship  : in out Root_Ship_Type'Class;
-      Cycle : Boolean)
-   is
-   begin
-      Ship.Cycle_Orders := Cycle;
-   end Cycle_Orders;
-
    ------------
    -- Damage --
    ------------
@@ -501,13 +431,13 @@ package body Concorde.Ships is
       return Result;
    end Empty_Mass;
 
-   ----------------------------
-   -- Execute_Arrival_Orders --
-   ----------------------------
-
-   procedure Execute_Arrival_Orders
-     (Ship : in out Root_Ship_Type'Class)
-   is null;
+--     ----------------------------
+--     -- Execute_Arrival_Orders --
+--     ----------------------------
+--
+--     procedure Execute_Arrival_Orders
+--       (Ship : in out Root_Ship_Type'Class)
+--     is null;
 --        use Concorde.Quantities;
 --     begin
 --        if Ship.Buy_Requirements.Total_Quantity = Zero then
@@ -662,23 +592,6 @@ package body Concorde.Ships is
       return Result (1 .. Count);
    end Get_Weapon_Mounts;
 
-   ----------------------------
-   -- Has_Colonisation_Order --
-   ----------------------------
-
-   function Has_Colonisation_Order
-     (Ship : Root_Ship_Type'Class)
-      return Boolean
-   is
-   begin
-      for Order of Ship.Orders loop
-         if Order.Order = Colonise then
-            return True;
-         end if;
-      end loop;
-      return False;
-   end Has_Colonisation_Order;
-
    --------------------------
    -- Has_Effective_Engine --
    --------------------------
@@ -718,18 +631,6 @@ package body Concorde.Ships is
       end loop;
       return False;
    end Has_Effective_Weapon;
-
-   ----------------
-   -- Has_Orders --
-   ----------------
-
-   function Has_Orders
-     (Ship : Root_Ship_Type'Class)
-      return Boolean
-   is
-   begin
-      return not Ship.Orders.Is_Empty;
-   end Has_Orders;
 
    ---------
    -- Hit --
@@ -855,19 +756,6 @@ package body Concorde.Ships is
       end loop;
       Calculate_Damage (Ship);
    end Repair;
-
-   ----------------------------
-   -- Set_Colonisation_Order --
-   ----------------------------
-
-   procedure Set_Colonisation_Order
-     (Ship : in out Root_Ship_Type'Class)
-   is
-   begin
-      Ship.Orders.Append
-        ((Colonise, Concorde.Worlds.World_Type (Ship.Orbiting), null, null,
-         Quantities.Zero));
-   end Set_Colonisation_Order;
 
    ---------------------
    -- Set_Destination --

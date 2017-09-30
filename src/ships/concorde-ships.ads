@@ -46,47 +46,6 @@ package Concorde.Ships is
      (Ship : Root_Ship_Type'Class)
       return access constant Concorde.Factions.Root_Faction_Type'Class;
 
-   procedure Cycle_Orders
-     (Ship  : in out Root_Ship_Type'Class;
-      Cycle : Boolean);
-
-   function Has_Orders
-     (Ship : Root_Ship_Type'Class)
-      return Boolean;
-
-   procedure Add_Buy_Order
-     (Ship     : in out Root_Ship_Type'Class;
-      World    : not null access constant
-        Concorde.Worlds.Root_World_Type'Class;
-      Item     : Concorde.Commodities.Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity_Type);
-
-   procedure Add_Sell_Order
-     (Ship   : in out Root_Ship_Type'Class;
-      World : not null access constant
-        Concorde.Worlds.Root_World_Type'Class;
-      Item   : Concorde.Commodities.Commodity_Type);
-
-   procedure Add_Trade_Order
-     (Ship  : in out Root_Ship_Type'Class;
-      From  : not null access constant
-        Concorde.Worlds.Root_World_Type'Class;
-      To    : not null access constant
-        Concorde.Worlds.Root_World_Type'Class);
-
-   procedure Clear_Orders
-     (Ship : in out Root_Ship_Type'Class);
-
-   procedure Set_Colonisation_Order
-     (Ship : in out Root_Ship_Type'Class);
-
-   function Has_Colonisation_Order
-     (Ship : Root_Ship_Type'Class)
-      return Boolean;
-
-   procedure Execute_Arrival_Orders
-     (Ship : in out Root_Ship_Type'Class);
-
    procedure Set_Owner
      (Ship   : in out Root_Ship_Type'Class;
       New_Owner : not null access constant
