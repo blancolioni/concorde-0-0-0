@@ -43,4 +43,10 @@ private
    overriding procedure On_Idle
      (Manager : in out Root_Ship_Trade_Manager);
 
+   procedure Create_Asks
+     (Manager : in out Root_Ship_Trade_Manager'Class);
+
+   procedure Create_Bids
+     (Manager : in out Root_Ship_Trade_Manager'Class);
+
 end Concorde.Managers.Ships.Trade;
