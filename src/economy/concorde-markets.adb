@@ -8,6 +8,15 @@ package body Concorde.Markets is
       return String
      with Unreferenced;
 
+   procedure Execute_Trade
+     (Buyer      : not null access constant
+        Concorde.Trades.Trader_Interface'Class;
+      Seller     : not null access constant
+        Concorde.Trades.Trader_Interface'Class;
+      Commodity  : Concorde.Commodities.Commodity_Type;
+      Quantity   : Concorde.Quantities.Quantity_Type;
+      Price      : Concorde.Money.Price_Type);
+
    ---------------------
    -- Check_Commodity --
    ---------------------
@@ -112,17 +121,12 @@ package body Concorde.Markets is
                     Hist.Quantities (Concorde.Trades.Total_Traded)
                     + Traded;
 
-                  Agent.Execute_Trade
-                    (Offer     => Concorde.Trades.Bid,
+                  Execute_Trade
+                    (Buyer     => Agent,
+                     Seller    => Ask_Info.Agent,
                      Commodity => Commodity,
                      Quantity  => Traded,
-                     Cost      => Total (Final_Price, Traded));
-
-                  Ask_Info.Agent.Execute_Trade
-                    (Offer => Concorde.Trades.Ask,
-                     Commodity => Commodity,
-                     Quantity  => Traded,
-                     Cost      => Total (Final_Price, Traded));
+                     Price     => Final_Price);
 
                   if Ask_Info.Remaining_Quantity > Zero then
                      Info.Asks.Insert (Ask_Info.Offer_Price, Ask_Info);
@@ -160,17 +164,12 @@ package body Concorde.Markets is
                     Hist.Quantities (Concorde.Trades.Total_Traded)
                     + Traded;
 
-                  Agent.Execute_Trade
-                    (Offer     => Concorde.Trades.Ask,
+                  Execute_Trade
+                    (Buyer     => Bid_Info.Agent,
+                     Seller    => Agent,
                      Commodity => Commodity,
                      Quantity  => Traded,
-                     Cost      => Total (Final_Price, Traded));
-
-                  Bid_Info.Agent.Execute_Trade
-                    (Offer     => Concorde.Trades.Bid,
-                     Commodity => Commodity,
-                     Quantity  => Traded,
-                     Cost      => Total (Final_Price, Traded));
+                     Price     => Final_Price);
 
                   if Bid_Info.Remaining_Quantity > Zero then
                      Info.Bids.Insert (Bid_Info.Offer_Price, Bid_Info);
@@ -279,6 +278,37 @@ package body Concorde.Markets is
 --
 --           raise;
 --     end Execute;
+
+   procedure Execute_Trade
+     (Buyer      : not null access constant
+        Concorde.Trades.Trader_Interface'Class;
+      Seller     : not null access constant
+        Concorde.Trades.Trader_Interface'Class;
+      Commodity  : Concorde.Commodities.Commodity_Type;
+      Quantity   : Concorde.Quantities.Quantity_Type;
+      Price      : Concorde.Money.Price_Type)
+   is
+      use Concorde.Commodities;
+      use Concorde.Money;
+   begin
+      Buyer.Execute_Trade
+        (Offer     => Concorde.Trades.Bid,
+         Commodity => Commodity,
+         Quantity  => Quantity,
+         Cost      => Total (Price, Quantity));
+
+      Seller.Execute_Trade
+        (Offer     => Concorde.Trades.Ask,
+         Commodity => Commodity,
+         Quantity  => Quantity,
+         Cost      => Total (Price, Quantity));
+
+      if Commodity.Class = Skill then
+         Buyer.Execute_Hire
+           (Seller, Commodity, Quantity, Price);
+      end if;
+
+   end Execute_Trade;
 
    -------------------
    -- Get_Commodity --
