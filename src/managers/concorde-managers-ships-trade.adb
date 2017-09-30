@@ -153,24 +153,37 @@ package body Concorde.Managers.Ships.Trade is
       Manager.Ship.Log_Trade
         ("activated at "
          & Concorde.Dates.To_Date_And_Time_String (Manager.Time)
+         & "; state = " & Manager.State'Img
          & "; trading from " & From_World.Name & " to " & To_World.Name);
 
-      if Manager.Ship.Available_Quantity = Zero then
-         Next (Manager.Current);
-         if not Has_Element (Manager.Current) then
-            Manager.Current := Manager.Route.First;
-         end if;
-         Manager.Set_Destination (To_World);
-      else
-         if not Manager.Ship.Has_Bids then
+      case Manager.State is
+         when Bidding =>
             Manager.Create_Bids;
-         end if;
-         if not Manager.Ship.Has_Asks
-           and then Manager.Ship.Total_Quantity > Zero
-         then
+            if Manager.Ship.Has_Bids then
+               Manager.State := Buying;
+            elsif Manager.Ship.Available_Quantity = Zero then
+               Manager.Current := Next_Position;
+               Manager.Set_Destination (To_World);
+               Manager.State := Moving;
+            end if;
+         when Buying =>
+            if not Manager.Ship.Has_Bids then
+               Manager.Current := Next_Position;
+               Manager.Set_Destination (To_World);
+               Manager.State := Moving;
+            end if;
+         when Moving =>
+            Manager.State := Asking;
+         when Asking =>
             Manager.Create_Asks;
-         end if;
+            Manager.State := Selling;
+         when Selling =>
+            if Manager.Ship.Total_Quantity = Zero then
+               Manager.State := Bidding;
+            end if;
+      end case;
 
+      if Manager.State /= Moving then
          Concorde.Objects.Queues.Next_Event
            (Manager.Ship, Concorde.Dates.Add_Days (Manager.Time, 1));
       end if;

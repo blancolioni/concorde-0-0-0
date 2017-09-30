@@ -208,6 +208,12 @@ package body Concorde.Managers.Ships is
          Manager.Ship.Update.Set_Location (Manager.Ship.Destination);
          Manager.Next_Waypoint;
       else
+         if Manager.Ship.Orbiting_World
+           and then Manager.Ship.Current_World.Has_Market
+         then
+            Manager.Ship.Update.Set_Market
+              (Manager.Ship.Current_World.Market);
+         end if;
          Root_Ship_Manager'Class (Manager).On_Idle;
       end if;
    end On_Activated;

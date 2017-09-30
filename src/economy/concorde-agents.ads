@@ -109,6 +109,9 @@ package Concorde.Agents is
       Market : not null access constant
         Concorde.Trades.Trade_Interface'Class);
 
+   procedure Leave_Market
+     (Agent  : in out Root_Agent_Type'Class);
+
    function Has_Market
      (Agent : Root_Agent_Type'Class)
       return Boolean;

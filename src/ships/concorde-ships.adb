@@ -791,6 +791,9 @@ package body Concorde.Ships is
       Ship.Jumping := False;
       Ship.Start_Time := Start_Time;
       Ship.Arrival_Time := Start_Time + Journey_Time;
+      if Ship.Has_Market then
+         Ship.Leave_Market;
+      end if;
    end Set_Destination;
 
    --------------------------
@@ -814,6 +817,20 @@ package body Concorde.Ships is
       Ship.Start_Time := Start_Time;
       Ship.Arrival_Time := Start_Time + Journey_Time;
    end Set_Jump_Destination;
+
+   ------------------
+   -- Set_Location --
+   ------------------
+
+   overriding procedure Set_Location
+     (Ship     : in out Root_Ship_Type;
+      Location : Concorde.Locations.Object_Location)
+   is
+   begin
+      Concorde.Agents.Root_Agent_Type (Ship).Set_Location (Location);
+      Ship.Moving := False;
+      Ship.Jumping := False;
+   end Set_Location;
 
    --------------
    -- Set_Name --

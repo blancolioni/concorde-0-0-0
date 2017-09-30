@@ -34,6 +34,10 @@ package Concorde.Ships is
      and Concorde.Objects.User_Named_Object_Interface
    with private;
 
+   overriding procedure Set_Location
+     (Ship     : in out Root_Ship_Type;
+      Location : Concorde.Locations.Object_Location);
+
    function Long_Name (Ship : Root_Ship_Type'Class) return String;
 
    function Short_Description (Ship : Root_Ship_Type'Class) return String;

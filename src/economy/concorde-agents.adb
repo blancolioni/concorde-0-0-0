@@ -577,6 +577,17 @@ package body Concorde.Agents is
       return Agent.Market /= null;
    end Has_Market;
 
+   ------------------
+   -- Leave_Market --
+   ------------------
+
+   procedure Leave_Market
+     (Agent  : in out Root_Agent_Type'Class)
+   is
+   begin
+      Agent.Market := null;
+   end Leave_Market;
+
    ----------------
    -- Limit_Cash --
    ----------------
