@@ -156,7 +156,25 @@ package Concorde.Agents is
    procedure Check_Offers
      (Agent : in out Root_Agent_Type'Class);
 
---     procedure Add_Trade_Offers
+   function Has_Bids
+     (Agent : Root_Agent_Type'Class)
+      return Boolean;
+
+   function Has_Bid
+     (Agent     : Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Boolean;
+
+   function Has_Asks
+     (Agent : Root_Agent_Type'Class)
+      return Boolean;
+
+   function Has_Ask
+     (Agent     : Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Boolean;
+
+   --     procedure Add_Trade_Offers
 --       (Agent  : not null access constant Root_Agent_Type)
 --     is abstract;
 
@@ -215,6 +233,8 @@ package Concorde.Agents is
 
 private
 
+   use Concorde.Quantities;
+
    type Agent_Price_Belief_Record is
       record
          Low, High : Concorde.Money.Price_Type;
@@ -270,6 +290,10 @@ private
          Account      : Account_Entry_Vectors.Vector;
          Bids         : Agent_Offer_Vectors.Vector;
          Asks         : Agent_Offer_Vectors.Vector;
+         Ask_Quantity : Concorde.Quantities.Quantity_Type :=
+                          Concorde.Quantities.Zero;
+         Bid_Quantity : Concorde.Quantities.Quantity_Type :=
+                          Concorde.Quantities.Zero;
       end record;
 
    function Get_Price_Belief
@@ -283,6 +307,30 @@ private
      (Agent     : Root_Agent_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
       Belief    :  Agent_Price_Belief_Record);
+
+   function Has_Bids
+     (Agent : Root_Agent_Type'Class)
+      return Boolean
+   is (Agent.Bid_Quantity > Zero);
+
+   function Has_Bid
+     (Agent     : Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Boolean
+   is (Agent.Bids.Element (Commodity).Quantity
+       > Agent.Bids.Element (Commodity).Filled);
+
+   function Has_Asks
+     (Agent : Root_Agent_Type'Class)
+      return Boolean
+   is (Agent.Ask_Quantity > Zero);
+
+   function Has_Ask
+     (Agent     : Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Boolean
+   is (Agent.Asks.Element (Commodity).Quantity
+       > Agent.Asks.Element (Commodity).Filled);
 
    package Agent_Lists is new Ada.Containers.Doubly_Linked_Lists (Agent_Type);
 

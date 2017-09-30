@@ -59,7 +59,7 @@ package body Concorde.Agents is
    procedure Check_Offers
      (Agent : in out Root_Agent_Type'Class)
    is
-      use Concorde.Money, Concorde.Quantities;
+      use Concorde.Money;
 
       procedure Update_Ask_Price
         (Commodity : not null access constant
@@ -124,7 +124,6 @@ package body Concorde.Agents is
    is
 
       use Concorde.Money;
-      use Concorde.Quantities;
       use Concorde.Trades;
 
       Market : constant access constant
@@ -153,6 +152,36 @@ package body Concorde.Agents is
                          else Create_Ask_Price
                            (Belief.Low, Belief.High, Agent.Age));
       Sell_Quantity : constant Quantity_Type := Ask_Quantity;
+
+      procedure Update_Agent
+        (A : not null access Root_Agent_Type'Class);
+
+      procedure Update_Offer
+        (Offer : in out Agent_Offer);
+
+      ------------------
+      -- Update_Agent --
+      ------------------
+
+      procedure Update_Agent
+        (A : not null access Root_Agent_Type'Class)
+      is
+      begin
+         A.Ask_Quantity := A.Ask_Quantity + Sell_Quantity;
+         A.Asks.Update_Element (Commodity, Update_Offer'Access);
+      end Update_Agent;
+
+      ------------------
+      -- Update_Offer --
+      ------------------
+
+      procedure Update_Offer
+        (Offer : in out Agent_Offer)
+      is
+      begin
+         Offer.Quantity := Offer.Quantity + Sell_Quantity;
+      end Update_Offer;
+
    begin
       if Log_Offers then
          Agent.Log_Trade
@@ -176,12 +205,14 @@ package body Concorde.Agents is
       end if;
 
       if Sell_Quantity > Zero then
+         Update_Agent (Agent.Variable_Reference);
          Market.Create_Offer
            (Offer     => Concorde.Trades.Ask,
             Trader    => Agent,
             Commodity => Commodity,
             Quantity  => Sell_Quantity,
             Price     => Sell_Price);
+
       end if;
 
    exception
@@ -223,7 +254,6 @@ package body Concorde.Agents is
    is
 
       use Concorde.Money;
-      use Concorde.Quantities;
       use Concorde.Trades;
 
       Market : constant access constant
@@ -248,6 +278,35 @@ package body Concorde.Agents is
                          then Mean
                          else Create_Bid_Price
                            (Belief.Low, Belief.High, Agent.Age));
+      procedure Update_Agent
+        (A : not null access Root_Agent_Type'Class);
+
+      procedure Update_Offer
+        (Offer : in out Agent_Offer);
+
+      ------------------
+      -- Update_Agent --
+      ------------------
+
+      procedure Update_Agent
+        (A : not null access Root_Agent_Type'Class)
+      is
+      begin
+         A.Bid_Quantity := A.Bid_Quantity + Bid_Quantity;
+         A.Bids.Update_Element (Commodity, Update_Offer'Access);
+      end Update_Agent;
+
+      ------------------
+      -- Update_Offer --
+      ------------------
+
+      procedure Update_Offer
+        (Offer : in out Agent_Offer)
+      is
+      begin
+         Offer.Quantity := Offer.Quantity + Bid_Quantity;
+      end Update_Offer;
+
    begin
       if Log_Offers then
          Agent.Log_Trade
@@ -269,6 +328,7 @@ package body Concorde.Agents is
       end if;
 
       if Bid_Quantity > Zero then
+         Update_Agent (Agent.Variable_Reference);
          Market.Create_Offer
            (Offer     => Concorde.Trades.Bid,
             Trader    => Agent,
@@ -345,6 +405,9 @@ package body Concorde.Agents is
       procedure Execute_Bid
         (A : not null access Root_Agent_Type'Class);
 
+      procedure Update_Offer
+        (Offer : in out Agent_Offer);
+
       -----------------
       -- Execute_Ask --
       -----------------
@@ -355,6 +418,8 @@ package body Concorde.Agents is
       begin
          A.Remove_Quantity (Commodity, Quantity, Cost);
          A.Add_Cash (Cost);
+         A.Asks.Update_Element (Commodity, Update_Offer'Access);
+         A.Ask_Quantity := A.Ask_Quantity - Quantity;
       end Execute_Ask;
 
       -----------------
@@ -367,13 +432,25 @@ package body Concorde.Agents is
       begin
          A.Add_Quantity (Commodity, Quantity, Cost);
          A.Remove_Cash (Cost);
+         A.Bids.Update_Element (Commodity, Update_Offer'Access);
+         A.Bid_Quantity := A.Bid_Quantity - Quantity;
       end Execute_Bid;
+
+      ------------------
+      -- Update_Offer --
+      ------------------
+
+      procedure Update_Offer
+        (Offer : in out Agent_Offer)
+      is
+      begin
+         Offer.Filled := Offer.Filled + Quantity;
+      end Update_Offer;
 
    begin
 
       declare
          use Concorde.Money;
-         use Concorde.Quantities;
          use Concorde.Trades;
          Offered_Text : constant String :=
                           (case Offer is
