@@ -34,14 +34,21 @@ package body Concorde.Installations is
          Local_Supply : constant Quantity_Type :=
                           Item.Market.Get_Daily_Quantity
                             (Commodity, Concorde.Trades.Local_Supply);
-         Demand : constant Quantity_Type :=
+         Demand       : constant Quantity_Type :=
+                          Local_Demand +
                           Item.Market.Get_Daily_Quantity
-                            (Commodity, Concorde.Trades.Total_Demand);
+                            (Commodity, Concorde.Trades.Export_Demand);
          Supply : constant Quantity_Type :=
                           Item.Market.Get_Daily_Quantity
-                            (Commodity, Concorde.Trades.Total_Supply);
+                            (Commodity, Concorde.Trades.Import_Supply);
       begin
          if not Commodity.Is_Set (Concorde.Commodities.Virtual) then
+            Item.Log_Trade
+              (Commodity.Name
+               & ": local demand: " & Image (Local_Demand)
+               & "; local supply: " & Image (Local_Supply)
+               & "; total demand: " & Image (Demand)
+               & ": total supply: " & Image (Supply));
             if Local_Demand > Supply then
                declare
                   Sell_Quantity : constant Quantity_Type :=

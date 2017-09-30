@@ -6,8 +6,8 @@ with Concorde.Quantities;
 package Concorde.Trades is
 
    type Trade_Metric is
-     (Total_Demand, Total_Supply, Total_Traded,
-      Total_Imported, Total_Exported,
+     (Export_Demand, Import_Supply,
+      Total_Traded, Total_Imported, Total_Exported,
       Local_Demand, Local_Supply);
 
    type Trade_Interface is limited interface;

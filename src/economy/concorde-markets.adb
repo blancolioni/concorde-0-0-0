@@ -91,7 +91,7 @@ package body Concorde.Markets is
    begin
       case Offer is
          when Concorde.Trades.Bid =>
-            Hist.Quantities (Concorde.Trades.Total_Demand) := Quantity;
+            Hist.Quantities (Concorde.Trades.Local_Demand) := Quantity;
             while Remaining > Zero
               and then not Info.Asks.Is_Empty
               and then Price >= Info.Asks.Maximum_Key
@@ -137,7 +137,7 @@ package body Concorde.Markets is
 
          when Concorde.Trades.Ask =>
 
-            Hist.Quantities (Concorde.Trades.Total_Supply) := Quantity;
+            Hist.Quantities (Concorde.Trades.Local_Supply) := Quantity;
 
             while Remaining > Zero
               and then not Info.Bids.Is_Empty

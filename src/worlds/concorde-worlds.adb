@@ -266,10 +266,10 @@ package body Concorde.Worlds is
       use Concorde.Quantities;
       Supply : constant Quantity_Type :=
                  World.Market.Get_Daily_Quantity
-                   (Commodity, Concorde.Trades.Total_Supply, 7);
+                   (Commodity, Concorde.Trades.Local_Supply, 7);
       Demand : constant Quantity_Type :=
                  World.Market.Get_Daily_Quantity
-                   (Commodity, Concorde.Trades.Total_Demand, 7);
+                   (Commodity, Concorde.Trades.Local_Demand, 7);
    begin
       if Supply < Demand then
          return Demand - Supply;
