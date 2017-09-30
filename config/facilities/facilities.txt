@@ -71,6 +71,7 @@ farm = { class = Farm
          name = Farm
          template-class = yes
          power = 5
+         days = 1
          workers = { tech = 1 unskilled = 9 }
          modules = { industrial = 3 habitation = 2 }
          capacity = 10000
@@ -111,6 +112,7 @@ light-factory = { class = Factory
                   name = "Light Factory"
                   template-class = yes
                   power = 10
+                  hours = 1
                   workers = {
                      executive = 5
                      tech = 15
@@ -127,6 +129,7 @@ heavy-factory = { class = Factory
                   name = "Heavy Factory"
                   template-class = yes
                   power = 20
+                  hours = 2
                   workers = {
                      executive = 10
                      tech = 20
@@ -142,6 +145,7 @@ super-heavy-factory = { class = Factory
                         name = "Super-Heavy Factory"
                         template-class = yes
                         power = 40
+                        hours = 4
                         workers = { executive = 20
                                     tech = 40
                                     unskilled = 320

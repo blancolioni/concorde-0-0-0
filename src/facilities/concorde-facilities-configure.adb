@@ -71,6 +71,18 @@ package body Concorde.Facilities.Configure is
            Concorde.Money.Value (Config.Get ("service_charge", "0"));
          Facility.Power :=
            Concorde.Quantities.Value (Value ("power", "0"));
+
+         declare
+            Turnaround_Seconds : Float := 3600.0;
+         begin
+            if Config.Contains ("hours") then
+               Turnaround_Seconds := Config.Get ("hours") * 3600.0;
+            elsif Config.Contains ("days") then
+               Turnaround_Seconds := Config.Get ("days") * 86_400.0;
+            end if;
+            Facility.Turnaround := Duration (Turnaround_Seconds);
+         end;
+
          Facility.Capacity :=
            Facility_Capacity'Value (Value ("capacity", "0"));
 

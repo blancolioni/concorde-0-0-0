@@ -174,6 +174,7 @@ private
          Flags               : Array_Of_Flags;
          Quality             : Concorde.Commodities.Commodity_Quality;
          Power               : Concorde.Quantities.Quantity_Type;
+         Turnaround          : Duration;
          Capacity            : Facility_Capacity;
          Commodity_Flags     : Concorde.Commodities.Array_Of_Flags;
          Inputs              : access Array_Of_Inputs;
