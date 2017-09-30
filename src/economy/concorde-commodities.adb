@@ -2,7 +2,15 @@ with Ada.Text_IO;
 
 package body Concorde.Commodities is
 
-   Local_Commodity_Array : access Array_Of_Commodities;
+   Local_Commodity_Array         : access Array_Of_Commodities;
+   Local_Skill_Commodity_Array   : access Array_Of_Commodities;
+   Local_Trade_Commodity_Array   : access Array_Of_Commodities;
+   Local_Virtual_Commodity_Array : access Array_Of_Commodities;
+
+   function Commodity_Array
+     (Test : not null access
+        function (Commodity : Commodity_Type) return Boolean)
+      return Array_Of_Commodities;
 
    ------------------
    -- Add_Quantity --
@@ -74,6 +82,31 @@ package body Concorde.Commodities is
    begin
       Stock.Vector.Clear;
    end Clear_Stock;
+
+   ---------------------
+   -- Commodity_Array --
+   ---------------------
+
+   function Commodity_Array
+     (Test : not null access
+        function (Commodity : Commodity_Type) return Boolean)
+      return Array_Of_Commodities
+   is
+      Cs   : Array_Of_Commodities := All_Commodities;
+      Back : Natural := 0;
+   begin
+      for I in Cs'Range loop
+         if Test (Cs (I)) then
+            if Back > 0 then
+               Cs (I - Back) := Cs (I);
+            end if;
+         else
+            Back := Back + 1;
+         end if;
+      end loop;
+
+      return Cs (1 .. Cs'Last - Back);
+   end Commodity_Array;
 
    ------------------
    -- Create_Stock --
@@ -313,6 +346,25 @@ package body Concorde.Commodities is
       Stock.Vector.Replace_Element (Item, (Quantity, Value));
    end Set_Quantity;
 
+   -----------------------
+   -- Skill_Commodities --
+   -----------------------
+
+   function Skill_Commodities return Array_Of_Commodities is
+   begin
+      if Local_Skill_Commodity_Array = null then
+         declare
+            function Test (Commodity : Commodity_Type) return Boolean
+            is (Commodity.Class = Skill);
+         begin
+            Local_Skill_Commodity_Array :=
+              new Array_Of_Commodities'(Commodity_Array (Test'Access));
+         end;
+      end if;
+
+      return Local_Skill_Commodity_Array.all;
+   end Skill_Commodities;
+
    ----------------
    -- Total_Mass --
    ----------------
@@ -398,6 +450,25 @@ package body Concorde.Commodities is
       return Result;
    end Total_Value;
 
+   -----------------------
+   -- Trade_Commodities --
+   -----------------------
+
+   function Trade_Commodities return Array_Of_Commodities is
+   begin
+      if Local_Trade_Commodity_Array = null then
+         declare
+            function Test (Commodity : Commodity_Type) return Boolean
+            is (Commodity.Class not in Skill | Service);
+         begin
+            Local_Trade_Commodity_Array :=
+              new Array_Of_Commodities'(Commodity_Array (Test'Access));
+         end;
+      end if;
+
+      return Local_Trade_Commodity_Array.all;
+   end Trade_Commodities;
+
    ---------------
    -- Unit_Mass --
    ---------------
@@ -409,5 +480,24 @@ package body Concorde.Commodities is
    begin
       return Commodity.Mass;
    end Unit_Mass;
+
+   -------------------------
+   -- Virtual_Commodities --
+   -------------------------
+
+   function Virtual_Commodities return Array_Of_Commodities is
+   begin
+      if Local_Virtual_Commodity_Array = null then
+         declare
+            function Test (Commodity : Commodity_Type) return Boolean
+            is (Commodity.Class in Skill | Service);
+         begin
+            Local_Virtual_Commodity_Array :=
+              new Array_Of_Commodities'(Commodity_Array (Test'Access));
+         end;
+      end if;
+
+      return Local_Virtual_Commodity_Array.all;
+   end Virtual_Commodities;
 
 end Concorde.Commodities;

@@ -68,6 +68,9 @@ package Concorde.Commodities is
                  return Array_Of_Commodities;
 
    function All_Commodities return Array_Of_Commodities;
+   function Trade_Commodities return Array_Of_Commodities;
+   function Skill_Commodities return Array_Of_Commodities;
+   function Virtual_Commodities return Array_Of_Commodities;
 
    type Stock_Interface is limited interface;
 
