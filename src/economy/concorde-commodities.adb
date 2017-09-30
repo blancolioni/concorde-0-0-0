@@ -359,7 +359,9 @@ package body Concorde.Commodities is
 
       procedure Update (Commodity : Commodity_Type) is
       begin
-         Result := Result + Stock.Get_Quantity (Commodity);
+         if not Commodity.Is_Set (Virtual) then
+            Result := Result + Stock.Get_Quantity (Commodity);
+         end if;
       end Update;
 
    begin
@@ -386,7 +388,9 @@ package body Concorde.Commodities is
       procedure Update (Commodity : Commodity_Type) is
          use type Concorde.Money.Money_Type;
       begin
-         Result := Result + Stock.Get_Value (Commodity);
+         if not Commodity.Is_Set (Virtual) then
+            Result := Result + Stock.Get_Value (Commodity);
+         end if;
       end Update;
 
    begin

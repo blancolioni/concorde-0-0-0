@@ -86,8 +86,10 @@ package body Concorde.People.Pops is
       end;
 
       for Skill of Item.Skills loop
-         Item.Create_Ask
-           (Skill.Commodity, Item.Size_Quantity);
+         if Item.Get_Quantity (Skill.Commodity) > Zero then
+            Item.Create_Ask
+              (Skill.Commodity, Item.Get_Quantity (Skill.Commodity));
+         end if;
       end loop;
 
       for I in Needs'Range loop

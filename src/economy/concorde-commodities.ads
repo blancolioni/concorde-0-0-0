@@ -134,7 +134,8 @@ package Concorde.Commodities is
       Item     : Commodity_Type;
       Quantity : Concorde.Quantities.Quantity_Type;
       Value    : Concorde.Money.Money_Type)
-     with Pre => Stock.Total_Quantity + Quantity
+     with Pre => Item.Is_Set (Virtual)
+     or else Stock.Total_Quantity + Quantity
        <= Stock.Maximum_Quantity;
 
    procedure Remove_Quantity

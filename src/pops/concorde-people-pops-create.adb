@@ -35,6 +35,10 @@ package body Concorde.People.Pops.Create is
          Pop.Set_Cash (Cash);
          Pop.New_Agent (Location, Market,
                         Pop.Size_Quantity * To_Quantity (70.0));
+         Pop.Add_Quantity (Skill.Commodity, Pop.Size_Quantity,
+                           Concorde.Money.Total
+                             (Skill.Commodity.Base_Price,
+                              Pop.Size_Quantity));
       end Create;
 
    begin
@@ -46,6 +50,9 @@ package body Concorde.People.Pops.Create is
             Concorde.Dates.Add_Seconds
               (Concorde.Dates.Current_Date,
                Concorde.Random.Unit_Random * 86_400.0));
+         Pop.Log_Trade ("created: skill quantity = "
+                        & Concorde.Quantities.Image
+                          (Pop.Get_Quantity (Skill.Commodity)));
       end return;
    end New_Pop;
 

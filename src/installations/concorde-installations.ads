@@ -53,8 +53,8 @@ package Concorde.Installations is
        with Pre => Installation.Has_Manager,
          Post => not Installation.Has_Manager;
 
---     procedure Add_Trade_Offers
---       (Item   : in out Root_Installation_Type);
+   procedure Add_Trade_Offers
+     (Item   : not null access constant Root_Installation_Type);
 
    type Installation_Type is access constant Root_Installation_Type'Class;
 

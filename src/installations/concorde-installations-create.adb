@@ -1,4 +1,10 @@
+with Concorde.Dates;
+with Concorde.Random;
 with Concorde.Quantities;
+
+with Concorde.Objects.Queues;
+
+with Concorde.Managers.Installations;
 
 package body Concorde.Installations.Create is
 
@@ -43,6 +49,13 @@ package body Concorde.Installations.Create is
         Db.Create (Initialise'Access)
       do
          Installation.Save_Agent;
+         Concorde.Managers.Installations.Create_Manager
+           (Installation).Activate;
+         Concorde.Objects.Queues.Next_Event
+           (Installation,
+            Concorde.Dates.Add_Seconds
+              (Concorde.Dates.Current_Date,
+               Concorde.Random.Unit_Random * 86_400.0));
       end return;
    end Create;
 
