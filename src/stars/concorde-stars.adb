@@ -18,13 +18,13 @@ package body Concorde.Stars is
    -- Colour --
    ------------
 
-   overriding function Colour
+   overriding function Color
      (Star : Root_Star_Type)
-      return Lui.Colours.Colour_Type
+      return Xi.Color.Xi_Color
    is
    begin
-      return Star.Colour;
-   end Colour;
+      return Star.Color;
+   end Color;
 
    ---------------
    -- Ecosphere --

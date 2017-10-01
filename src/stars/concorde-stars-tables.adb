@@ -3,6 +3,8 @@ with Ada.Containers.Doubly_Linked_Lists;
 with Tropos.Reader;
 with Tropos.Writer;
 
+with Xi;
+
 with Concorde.Paths;
 
 package body Concorde.Stars.Tables is
@@ -13,10 +15,15 @@ package body Concorde.Stars.Tables is
          Class        : Stellar_Class_Type;
          Subclass     : Stellar_Subclass_Type;
          Surface_Temp : Non_Negative_Real;
-         Colour       : Lui.Colours.Colour_Type;
+         Colour       : Xi.Color.Xi_Color;
          Radius       : Non_Negative_Real;
          Luminosity   : Non_Negative_Real;
       end record;
+
+   function Brighten
+     (Color : Xi.Color.Xi_Color;
+      Temperature : Xi.Xi_Non_Negative_Float)
+      return Xi.Color.Xi_Color;
 
    package Star_Info_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Star_Info_Record);
@@ -29,6 +36,26 @@ package body Concorde.Stars.Tables is
       procedure Check_Tables;
    end Table_Reader;
 
+   --------------
+   -- Brighten --
+   --------------
+
+   function Brighten
+     (Color       : Xi.Color.Xi_Color;
+      Temperature : Xi.Xi_Non_Negative_Float)
+      return Xi.Color.Xi_Color
+   is
+      use Xi;
+      R : constant Xi_Float :=
+            Color.Red * Temperature * (0.0534 / 255.0) - (43.0 / 255.0);
+      G : constant Xi_Float :=
+            Color.Green * Temperature * (0.0628 / 255.0) - (77.0 / 255.0);
+      B : constant Xi_Float :=
+            Color.Blue * Temperature * (0.0735 / 255.0) - (115.0 / 255.0);
+   begin
+      return (Clamp (R), Clamp (G), Clamp (B), Color.Alpha);
+   end Brighten;
+
    ----------------------------
    -- Get_Main_Sequence_Info --
    ----------------------------
@@ -39,7 +66,7 @@ package body Concorde.Stars.Tables is
       Subclass     : out Stellar_Subclass_Type;
       Radius       : out Non_Negative_Real;
       Luminosity   : out Non_Negative_Real;
-      Colour       : out Lui.Colours.Colour_Type)
+      Color        : out Xi.Color.Xi_Color)
    is
       use Star_Info_Lists;
       Position : Cursor;
@@ -69,7 +96,7 @@ package body Concorde.Stars.Tables is
          Subclass := Info.Subclass;
          Radius := Info.Radius;
          Luminosity := Info.Luminosity;
-         Colour := Info.Colour;
+         Color := Info.Colour;
       end;
 
    end Get_Main_Sequence_Info;
@@ -91,6 +118,8 @@ package body Concorde.Stars.Tables is
       for Info_Config of Config loop
          declare
 
+            use Xi;
+
             function Get (Name : String) return Real
             is (Real (Float'(Info_Config.Get (Name))));
 
@@ -102,11 +131,12 @@ package body Concorde.Stars.Tables is
             Red          : constant Natural := Info_Config.Get ("r");
             Green        : constant Natural := Info_Config.Get ("g");
             Blue         : constant Natural := Info_Config.Get ("b");
-            Colour       : constant Lui.Colours.Colour_Type :=
-                             Lui.Colours.To_Colour
-                               (Lui.Colours.Colour_Byte (Red),
-                                Lui.Colours.Colour_Byte (Green),
-                                Lui.Colours.Colour_Byte (Blue));
+            Colour       : constant Xi.Color.Xi_Color :=
+                             Xi.Color.Xi_Color'
+                               (Red   => Xi_Float (Red) / 255.0,
+                                Green => Xi_Float (Green) / 255.0,
+                                Blue  => Xi_Float (Blue) / 255.0,
+                                Alpha => 1.0);
             Info         : constant Star_Info_Record :=
                              (Solar_Masses => Mass,
                               Class        =>
@@ -116,7 +146,8 @@ package body Concorde.Stars.Tables is
                                 Stellar_Subclass_Type'Value
                                   ((1 => Class (Class'First + 1))),
                               Surface_Temp => Surface_Temp,
-                              Colour       => Colour,
+                              Colour       =>
+                                Brighten (Colour, Surface_Temp),
                               Radius       => Radius,
                               Luminosity   => Luminosity);
          begin

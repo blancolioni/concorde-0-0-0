@@ -210,7 +210,7 @@ package body Concorde.Factions.Create is
                   if OK (System) then
                      return System;
                   else
-                     Connect (System, 2, 4, 0.1);
+                     Connect (System, 2, 4, 0.25);
                      for N of Concorde.Galaxy.Neighbours (System) loop
                         if not Tried.Element (N) then
                            Queue.Append (N);

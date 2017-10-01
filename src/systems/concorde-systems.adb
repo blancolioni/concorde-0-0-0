@@ -164,7 +164,8 @@ package body Concorde.Systems is
                      renames Concorde.Elementary_Functions.Sqrt;
    begin
       return Sqrt ((System_1.X - System_2.X) ** 2
-                   + (System_1.Y - System_2.Y) ** 2);
+                   + (System_1.Y - System_2.Y) ** 2
+                   + (System_1.Z - System_2.Z) ** 2);
    end Distance;
 
    ---------------

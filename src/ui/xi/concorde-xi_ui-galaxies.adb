@@ -6,10 +6,13 @@ with Xi;                               use Xi;
 
 with Xi.Assets;
 with Xi.Camera;
+with Xi.Color;
 with Xi.Entity;
+with Xi.Float_Arrays;
 with Xi.Frame_Event;
 with Xi.Keyboard;
 with Xi.Main;
+with Xi.Materials.Material;
 with Xi.Matrices;
 with Xi.Mouse;
 with Xi.Node;
@@ -18,15 +21,21 @@ with Xi.Scene;
 with Xi.Shader;
 with Xi.Shapes;
 with Xi.Texture;
+with Xi.Value;
 
-with Lui.Colours;
+with Xi.Shader.Noise;
+
+with WL.Random;
 
 with Concorde.Galaxy;
 with Concorde.Ships;
+with Concorde.Stars;
 with Concorde.Worlds;
 
 with Concorde.Systems.Xi_Model;
 with Concorde.Ships.Xi_Model;
+
+with Concorde.Elementary_Functions;
 
 package body Concorde.Xi_UI.Galaxies is
 
@@ -40,7 +49,7 @@ package body Concorde.Xi_UI.Galaxies is
    Focus_Fov        : constant := 40.0;
    System_Fov       : constant := 10.0;
 
-   Star_Size : constant := 0.025;
+   Star_Size : constant := 0.01;
 
    Initial_Transition : constant Boolean := False;
 
@@ -68,6 +77,7 @@ package body Concorde.Xi_UI.Galaxies is
          Current_Far    : Xi.Xi_Float := Camera_Far;
          Current_Fov    : Xi.Xi_Float := Camera_Fov;
          Transited      : Boolean := False;
+         Jump_Route     : Xi.Entity.Xi_Entity;
       end record;
 
    overriding function Top_Panel
@@ -80,6 +90,12 @@ package body Concorde.Xi_UI.Galaxies is
       Target_Object : not null access constant
         Concorde.Objects.Root_Object_Type'Class);
 
+   procedure Create_System_Node
+     (Model       : in out Root_Galaxy_Model'Class;
+      System      : Concorde.Systems.Star_System_Type;
+      Parent_Node : Xi.Node.Xi_Node;
+      Simple      : Boolean);
+
    Main_Model : aliased Root_Galaxy_Model;
 
    type Galaxy_Frame_Listener is
@@ -89,15 +105,114 @@ package body Concorde.Xi_UI.Galaxies is
      (Listener : in out Galaxy_Frame_Listener;
       Event    : Xi.Frame_Event.Xi_Frame_Event);
 
-   function Node_Offset (Index : Positive) return Xi.Matrices.Vector_3;
-   function Node_Colour (Index : Positive) return Xi.Matrices.Vector_3;
-
-   pragma Unreferenced (Node_Offset, Node_Colour);
-
    procedure On_Resize
      (Target : not null access Xi.Render_Target.Xi_Render_Target_Record'Class);
 
    procedure Update_Camera;
+
+   ------------------------
+   -- Create_System_Node --
+   ------------------------
+
+   procedure Create_System_Node
+     (Model       : in out Root_Galaxy_Model'Class;
+      System      : Concorde.Systems.Star_System_Type;
+      Parent_Node : Xi.Node.Xi_Node;
+      Simple      : Boolean)
+   is
+      Main_Star      : constant Concorde.Stars.Star_Type :=
+                         Concorde.Stars.Star_Type
+                           (System.Main_Object);
+      Star_Entity    : constant Xi.Entity.Xi_Entity :=
+                         Xi.Shapes.Icosohedral_Sphere (2);
+      Star_Position  : constant Xi.Matrices.Vector_3 :=
+                         (System.X, System.Y, System.Z);
+      Node           : constant Xi.Node.Xi_Node :=
+                         Parent_Node.Create_Child
+                           (System.Name);
+
+      Color          : constant Xi.Color.Xi_Color := Main_Star.Color;
+      Material       : Xi.Materials.Material.Xi_Material;
+
+      Ns             : constant Concorde.Galaxy.Array_Of_Star_Systems :=
+          Concorde.Galaxy.Neighbours (System);
+
+   begin
+
+      for Target of Ns loop
+         if Target.Index > System.Index then
+            declare
+               use Xi.Float_Arrays;
+               use Xi.Matrices;
+               P         : constant Vector_3 := Star_Position;
+               Q         : constant Vector_3 :=
+                             (Target.X, Target.Y, Target.Z);
+               M         : constant Vector_3 :=
+                             (P + Q) / 2.0;
+               D         : constant Xi_Float := abs (Q - P);
+               Jump_Node : constant Xi.Node.Xi_Node :=
+                             Parent_Node.Create_Child
+                               (System.Name & "-" & Target.Name);
+            begin
+               Jump_Node.Set_Position (M);
+               Jump_Node.Scale (0.002, 0.002, D / 2.0 - 0.01);
+               Jump_Node.Set_Entity (Model.Jump_Route);
+               Jump_Node.Look_At (Q);
+            end;
+         end if;
+      end loop;
+
+      if Simple then
+         declare
+            Base_Material  : constant Xi.Materials.Material.Xi_Material :=
+                               Xi.Assets.Material ("Xi/Solid_Lit_Color");
+         begin
+            Material :=
+              Base_Material.Instantiate;
+            Material.Set_Parameter_Value
+              ("color", Xi.Value.Color_Value (Color));
+         end;
+      else
+         declare
+            Palette      : Xi.Color.Xi_Color_1D_Array (1 .. 20);
+            Noise_Shader : Xi.Shader.Noise.Xi_Noise_Shader;
+            Low          : constant Xi.Color.Xi_Color :=
+                             Xi.Color.Shade (Color, 0.75);
+            High         : constant Xi.Color.Xi_Color :=
+                             Xi.Color.Shade (Color, 1.33);
+         begin
+            for I in Palette'Range loop
+               declare
+                  P : Xi.Color.Xi_Color renames Palette (I);
+                  F : constant Xi_Unit_Float :=
+                        Xi_Float (I) / Xi_Float (Palette'Length);
+               begin
+                  P :=
+                    Xi.Color.Interpolate (Low, High, F);
+               end;
+            end loop;
+
+            Noise_Shader :=
+              Xi.Shader.Noise.Create_Noise_Shader
+                (Initiator  => WL.Random.Random_Number
+                   (1, 999_999),
+                 Octaves    => 4.0,
+                 Roughness  => 0.7,
+                 Lacunarity => 40.0,
+                 Palette    => Palette);
+            Material := Noise_Shader.Material;
+         end;
+      end if;
+
+      Node.Set_Position (Star_Position);
+      Node.Scale
+        (Star_Size
+         * Concorde.Elementary_Functions.Sqrt (Main_Star.Solar_Masses));
+
+      Star_Entity.Set_Material (Material);
+      Node.Set_Entity (Star_Entity);
+
+   end Create_System_Node;
 
    -------------------
    -- Frame_Started --
@@ -199,11 +314,13 @@ package body Concorde.Xi_UI.Galaxies is
       Scene   : constant Xi.Scene.Xi_Scene := Xi.Scene.Create_Scene;
       Camera  : constant Xi.Camera.Xi_Camera := Scene.Active_Camera;
       Star    : constant Xi.Entity.Xi_Entity :=
-                  Xi.Shapes.Square (Star_Size);
-
+                  Xi.Shapes.Icosohedral_Sphere (4);
+--                    Xi.Shapes.Quadric_Sphere (16, 16);
+--                    Xi.Shapes.Square (Star_Size);
       Star_Node : constant Xi.Node.Xi_Node := Scene.Create_Node ("stars");
       Selector_Node : constant Xi.Node.Xi_Node :=
                         Scene.Create_Node ("selectors");
+
       function Behind
         (S1, S2 : Concorde.Systems.Star_System_Type)
          return Boolean
@@ -223,8 +340,13 @@ package body Concorde.Xi_UI.Galaxies is
 
       Main_Model.Transited := not Initial_Transition;
 
+      Main_Model.Jump_Route :=
+        Xi.Shapes.Quadric_Cylinder (8, 12);
+
       Star.Set_Material
         (Xi.Assets.Material ("Concorde/Galaxy/Star"));
+      Main_Model.Jump_Route.Set_Material
+        (Xi.Assets.Material ("Concorde/Galaxy/Jump_Route"));
 
       Main_Model.Galaxy_Node := Scene.Create_Node ("galaxy");
       Main_Model.Highlight_Node := Scene.Create_Node ("highlight");
@@ -238,28 +360,12 @@ package body Concorde.Xi_UI.Galaxies is
          end;
       end loop;
 
-      Sort.Sort (Main_Model.System_Vector);
+      if False then
+         Sort.Sort (Main_Model.System_Vector);
+      end if;
 
       for System of Main_Model.System_Vector loop
-         if True then
-            declare
-               Node : constant Xi.Node.Xi_Node :=
-                        Star_Node.Create_Child
-                          (System.Name);
-            begin
-               Node.Set_Position
-                 (Xi.Xi_Float (System.X),
-                  Xi.Xi_Float (System.Y),
-                  Xi.Xi_Float (System.Z));
-               Node.Set_Entity (Star);
-
-               --  Node.Set_Billboard (True);
-
---                 if System.Owned then
---                    Node.Scale (5.0);
---                 end if;
-            end;
-         end if;
+         Main_Model.Create_System_Node (System, Star_Node, Simple => False);
 
          if System.Owned then
             declare
@@ -312,41 +418,6 @@ package body Concorde.Xi_UI.Galaxies is
 
       return Main_Model'Access;
    end Galaxy_Model;
-
-   -----------------
-   -- Node_Colour --
-   -----------------
-
-   function Node_Colour (Index : Positive) return Xi.Matrices.Vector_3 is
-      use type Xi.Xi_Float;
-      System : constant Concorde.Systems.Star_System_Type :=
-                 Main_Model.System_Vector.Element (Index);
-      Colour : constant Lui.Colours.Colour_Type :=
-                 System.Main_Object.Colour;
-      R      : constant Xi.Xi_Unit_Float :=
-                 Xi.Xi_Unit_Float (Colour.Red);
-      G      : constant Xi.Xi_Unit_Float :=
-                 Xi.Xi_Unit_Float (Colour.Green);
-      B      : constant Xi.Xi_Unit_Float :=
-                 Xi.Xi_Unit_Float (Colour.Blue);
-   begin
-      return (R, G, B);
-   end Node_Colour;
-
-   -----------------
-   -- Node_Offset --
-   -----------------
-
-   function Node_Offset (Index : Positive) return Xi.Matrices.Vector_3 is
-      use type Xi.Xi_Float;
-      System : constant Concorde.Systems.Star_System_Type :=
-                 Main_Model.System_Vector.Element (Index);
-      X      : constant Xi.Xi_Float := Xi.Xi_Float (System.X);
-      Y      : constant Xi.Xi_Float := Xi.Xi_Float (System.Y);
-      Z      : constant Xi.Xi_Float := Xi.Xi_Float (System.Z);
-   begin
-      return (X, Y, Z);
-   end Node_Offset;
 
    ---------------
    -- On_Resize --

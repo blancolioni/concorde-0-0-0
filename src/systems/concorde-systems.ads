@@ -3,7 +3,7 @@ private with Ada.Containers.Vectors;
 private with Memor;
 private with Memor.Database;
 
-with Lui.Colours;
+with Xi.Color;
 
 with Newton;
 
@@ -89,9 +89,9 @@ package Concorde.Systems is
    type Main_Star_System_Object_Interface is limited interface
      and Star_System_Object_Interface;
 
-   function Colour (Object : Main_Star_System_Object_Interface)
-                    return Lui.Colours.Colour_Type
-                    is abstract;
+   function Color (Object : Main_Star_System_Object_Interface)
+                   return Xi.Color.Xi_Color
+                   is abstract;
 
    function Main_Object
      (System : Root_Star_System_Type'Class)

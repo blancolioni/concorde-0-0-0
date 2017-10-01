@@ -6,6 +6,6 @@ private package Concorde.Stars.Tables is
       Subclass     : out Stellar_Subclass_Type;
       Radius       : out Non_Negative_Real;
       Luminosity   : out Non_Negative_Real;
-      Colour       : out Lui.Colours.Colour_Type);
+      Color        : out Xi.Color.Xi_Color);
 
 end Concorde.Stars.Tables;

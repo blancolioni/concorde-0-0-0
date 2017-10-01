@@ -1,7 +1,7 @@
 private with Memor;
 private with Memor.Database;
 
-with Lui.Colours;
+with Xi.Color;
 
 with Concorde.Objects;
 
@@ -56,9 +56,9 @@ package Concorde.Stars is
       return Non_Negative_Real;
    --  Age of star in Earth years
 
-   overriding function Colour
+   overriding function Color
      (Star : Root_Star_Type)
-      return Lui.Colours.Colour_Type;
+      return Xi.Color.Xi_Color;
 
    type Star_Type is access constant Root_Star_Type'Class;
 
@@ -75,7 +75,7 @@ private
          Size         : Stellar_Size_Type;
          Solar_Masses : Non_Negative_Real;
          Age          : Non_Negative_Real;
-         Colour       : Lui.Colours.Colour_Type;
+         Color        : Xi.Color.Xi_Color;
          Radius       : Non_Negative_Real;
          Luminosity   : Non_Negative_Real;
          Ecosphere    : Non_Negative_Real;

@@ -17,7 +17,7 @@ package body Concorde.Stars.Create is
 
       Class      : Stellar_Class_Type;
       Subclass   : Stellar_Subclass_Type;
-      Colour     : Lui.Colours.Colour_Type;
+      Color      : Xi.Color.Xi_Color;
       Radius     : Non_Negative_Real;
       Luminosity : Non_Negative_Real;
 
@@ -35,7 +35,7 @@ package body Concorde.Stars.Create is
          Star.Class := Class;
          Star.Subclass := Subclass;
          Star.Size := Main_Sequence;
-         Star.Colour := Colour;
+         Star.Color := Color;
          Star.Radius := Radius;
          Star.Luminosity := Luminosity;
          Star.Ecosphere := Concorde.Elementary_Functions.Sqrt (Luminosity);
@@ -49,7 +49,7 @@ package body Concorde.Stars.Create is
          Subclass     => Subclass,
          Radius       => Radius,
          Luminosity   => Luminosity,
-         Colour       => Colour);
+         Color        => Color);
 
       return Concorde.Stars.Db.Create (Create'Access);
    end New_Main_Sequence_Star;
