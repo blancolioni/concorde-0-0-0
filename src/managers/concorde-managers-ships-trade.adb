@@ -73,8 +73,11 @@ package body Concorde.Managers.Ships.Trade is
       then
          declare
             Bid_Quantity : constant Quantity_Type :=
-                             Min (Local_Supply - Local_Demand,
-                                  Space);
+                             Min
+                               (Next_Demand,
+                                Min
+                                  (Local_Supply - Local_Demand,
+                                   Space));
          begin
             Manager.Ship.Create_Bid
               (Commodity, Bid_Quantity);
