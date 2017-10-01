@@ -1,4 +1,5 @@
 with Concorde.Localisation;
+with Concorde.Logging;
 
 package body Concorde.Objects is
 
@@ -144,6 +145,22 @@ package body Concorde.Objects is
    begin
       return Item.Local_Tag.all;
    end Local_Tag;
+
+   ---------
+   -- Log --
+   ---------
+
+   procedure Log
+     (Item    : Root_Object_Type'Class;
+      Message : String)
+   is
+   begin
+      Concorde.Logging.Log
+        (Actor    => Item.Identifier,
+         Location => "-",
+         Category => "general",
+         Message  => Message);
+   end Log;
 
    ----------
    -- Name --

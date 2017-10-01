@@ -26,6 +26,10 @@ package Concorde.Objects is
      (Item : in out Root_Object_Type)
    is null;
 
+   procedure Log
+     (Item    : Root_Object_Type'Class;
+      Message : String);
+
    overriding procedure Add_Watcher
      (Object  : in out Root_Object_Type;
       Watcher : not null access Concorde.Watchers.Watcher_Interface'Class);

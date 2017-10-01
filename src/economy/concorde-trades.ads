@@ -40,11 +40,6 @@ package Concorde.Trades is
       Days     : Positive := 1)
       return Concorde.Quantities.Quantity_Type;
 
-   procedure Log
-     (Trade   : Trade_Interface;
-      Message : String)
-   is null;
-
    type Market_Tax_Category is (Sales, Export, Import);
 
    type Trade_Manager_Interface is limited interface;
