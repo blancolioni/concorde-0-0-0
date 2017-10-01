@@ -46,7 +46,7 @@ package body Concorde.Ships.Create is
            (Concorde.Locations.Geosynchronous_Orbit
               (World),
             World.Market,
-            To_Quantity (Ship.Hold_Size));
+            To_Quantity (10.0 * Ship.Hold_Size));
 
          if Name = "" then
             if Suffix = 0 then
