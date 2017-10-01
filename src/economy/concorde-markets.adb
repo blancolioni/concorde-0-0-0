@@ -1,5 +1,3 @@
-with Ada.Text_IO;
-
 with Concorde.Logging;
 
 package body Concorde.Markets is
@@ -9,15 +7,6 @@ package body Concorde.Markets is
       Tax_Rate       : Non_Negative_Real)
       return String
      with Unreferenced;
-
-   procedure Execute_Trade
-     (Buyer      : not null access constant
-        Concorde.Trades.Trader_Interface'Class;
-      Seller     : not null access constant
-        Concorde.Trades.Trader_Interface'Class;
-      Commodity  : Concorde.Commodities.Commodity_Type;
-      Quantity   : Concorde.Quantities.Quantity_Type;
-      Price      : Concorde.Money.Price_Type);
 
    ---------------------
    -- Check_Commodity --
@@ -32,12 +21,7 @@ package body Concorde.Markets is
          declare
             New_Cached : constant Cached_Commodity :=
                            new Cached_Commodity_Record'
-                             (Metrics               => <>,
-                              Current_Price         => Concorde.Money.Zero,
-                              Historical_Mean_Price => Concorde.Money.Zero,
-                              Last_Price            => Concorde.Money.Zero,
-                              Bids                  => <>,
-                              Asks                  => <>);
+                             (others => <>);
          begin
             Market.Commodities.Replace_Element
               (Commodity, New_Cached);
@@ -127,8 +111,9 @@ package body Concorde.Markets is
                   Hist.Quantities (Concorde.Trades.Total_Traded) :=
                     Hist.Quantities (Concorde.Trades.Total_Traded)
                     + Traded;
+                  Info.Current_Supply := Info.Current_Supply - Traded;
 
-                  Execute_Trade
+                  Market.Execute_Trade
                     (Buyer     => Agent,
                      Seller    => Ask_Info.Agent,
                      Commodity => Commodity,
@@ -148,6 +133,7 @@ package body Concorde.Markets is
             if Remaining > Zero then
                Info.Bids.Insert
                  (Price, Offer_Info'(Agent, Quantity, Remaining, Price));
+               Info.Current_Demand := Info.Current_Demand + Remaining;
             end if;
 
          when Concorde.Trades.Ask =>
@@ -174,8 +160,9 @@ package body Concorde.Markets is
                   Hist.Quantities (Concorde.Trades.Total_Traded) :=
                     Hist.Quantities (Concorde.Trades.Total_Traded)
                     + Traded;
+                  Info.Current_Demand := Info.Current_Demand - Traded;
 
-                  Execute_Trade
+                  Market.Execute_Trade
                     (Buyer     => Bid_Info.Agent,
                      Seller    => Agent,
                      Commodity => Commodity,
@@ -195,6 +182,7 @@ package body Concorde.Markets is
             if Remaining > Zero then
                Info.Asks.Insert
                  (Price, Offer_Info'(Agent, Quantity, Remaining, Price));
+               Info.Current_Supply := Info.Current_Supply + Remaining;
             end if;
 
       end case;
@@ -306,7 +294,8 @@ package body Concorde.Markets is
    -------------------
 
    procedure Execute_Trade
-     (Buyer      : not null access constant
+     (Market     : Root_Market_Type'Class;
+      Buyer      : not null access constant
         Concorde.Trades.Trader_Interface'Class;
       Seller     : not null access constant
         Concorde.Trades.Trader_Interface'Class;
@@ -314,6 +303,7 @@ package body Concorde.Markets is
       Quantity   : Concorde.Quantities.Quantity_Type;
       Price      : Concorde.Money.Price_Type)
    is
+      pragma Unreferenced (Market);
       use Concorde.Commodities;
       use Concorde.Money;
    begin
@@ -364,6 +354,7 @@ package body Concorde.Markets is
    is
       use Concorde.Dates;
       use Concorde.Quantities;
+      use all type Concorde.Trades.Trade_Metric;
       Result : Quantity_Type := Zero;
       Cached : constant Cached_Commodity :=
                  Market.Get_Commodity (Commodity);
@@ -374,6 +365,13 @@ package body Concorde.Markets is
             Result := Result + Hist.Quantities (Metric);
          end if;
       end loop;
+
+      if Metric = Local_Demand then
+         Result := Result + Cached.Current_Demand;
+      elsif Metric = Local_Supply then
+         Result := Result + Cached.Current_Supply;
+      end if;
+
       return Result;
    end Get_Quantity;
 
@@ -414,20 +412,6 @@ package body Concorde.Markets is
       Info.Current_Price := Price;
       Info.Historical_Mean_Price := Price;
    end Initial_Price;
-
-   ---------
-   -- Log --
-   ---------
-
-   overriding procedure Log
-     (Market  : Root_Market_Type;
-      Message : String)
-   is
-   begin
-      if Market.Enable_Logging then
-         Ada.Text_IO.Put_Line (Message);
-      end if;
-   end Log;
 
    ---------------
    -- Log_Offer --

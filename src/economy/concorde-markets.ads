@@ -44,10 +44,6 @@ package Concorde.Markets is
      (Market  : in out Root_Market_Type'Class;
       Enabled : Boolean := True);
 
-   overriding procedure Log
-     (Market  : Root_Market_Type;
-      Message : String);
-
    function Name
      (Market : Root_Market_Type'Class)
       return String;
@@ -138,9 +134,16 @@ private
    type Cached_Commodity_Record is
       record
          Metrics               : Quantity_Metric_Lists.List;
-         Current_Price         : Concorde.Money.Price_Type;
-         Historical_Mean_Price : Concorde.Money.Price_Type;
-         Last_Price            : Concorde.Money.Price_Type;
+         Current_Price         : Concorde.Money.Price_Type :=
+                                   Concorde.Money.Zero;
+         Historical_Mean_Price : Concorde.Money.Price_Type :=
+                                   Concorde.Money.Zero;
+         Last_Price            : Concorde.Money.Price_Type :=
+                                   Concorde.Money.Zero;
+         Current_Demand        : Concorde.Quantities.Quantity_Type :=
+                                   Concorde.Quantities.Zero;
+         Current_Supply        : Concorde.Quantities.Quantity_Type :=
+                                   Concorde.Quantities.Zero;
          Bids                  : Bid_Queues.Heap;
          Asks                  : Ask_Queues.Heap;
       end record;
@@ -189,6 +192,16 @@ private
      (Market : Root_Market_Type'Class;
       Commodity : Commodities.Commodity_Type)
       return Cached_Commodity;
+
+   procedure Execute_Trade
+     (Market     : Root_Market_Type'Class;
+      Buyer      : not null access constant
+        Concorde.Trades.Trader_Interface'Class;
+      Seller     : not null access constant
+        Concorde.Trades.Trader_Interface'Class;
+      Commodity  : Concorde.Commodities.Commodity_Type;
+      Quantity   : Concorde.Quantities.Quantity_Type;
+      Price      : Concorde.Money.Price_Type);
 
    procedure Log_Offer
      (Market    : Root_Market_Type'Class;
