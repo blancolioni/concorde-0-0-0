@@ -53,7 +53,7 @@ package body Concorde.Installations is
                declare
                   Sell_Quantity : constant Quantity_Type :=
                                     Min (Item.Get_Quantity (Commodity),
-                                         Demand - Supply);
+                                         Scale (Demand - Supply, 0.5));
                begin
                   if Sell_Quantity > Zero then
                      Item.Create_Ask
@@ -64,7 +64,7 @@ package body Concorde.Installations is
                declare
                   Buy_Quantity : constant Quantity_Type :=
                                    Min (Item.Available_Quantity,
-                                        Supply - Demand);
+                                        Scale (Supply - Demand, 0.5));
                begin
                   Item.Create_Bid
                     (Commodity, Buy_Quantity);
