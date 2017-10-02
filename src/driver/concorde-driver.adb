@@ -12,9 +12,6 @@ with Xi.Render_Window;
 with Xi.Shader.Load;
 
 with Xtk;
-with Xtk.Builder;
-with Xtk.Label;
-with Xtk.Page;
 
 with Concorde.Paths;
 
@@ -152,25 +149,19 @@ begin
             Xi.Shader.Load.Add_Search_Path
               (Concorde.Paths.Config_File ("shaders"));
 
+            Xtk.Initialize;
+
             Window :=
               Xi.Main.Current_Renderer.Create_Top_Level_Window;
 
 --            Window.Set_Full_Screen (True);
 
+            Concorde.Xi_UI.Load_UI
+              (Window, Concorde.Paths.Config_File ("html/main.html"));
+
             declare
-               Builder : constant Xtk.Builder.Xtk_Builder :=
-                           Xtk.Builder.Xtk_New_From_File
-                             (Concorde.Paths.Config_File ("html/main.html"));
-
-               Page : constant Xtk.Page.Xtk_Page :=
-                        Builder.Get_Page;
-
                Model : Concorde.Xi_UI.Xi_Model;
             begin
-               Page.Set_Viewport (Window.Full_Viewport);
-               Page.Show_All;
-               Window.Add_Top_Level (Page);
-
                if Start_First_World then
                   Model :=
                     Concorde.Xi_UI.Model_Manager.Model
@@ -179,10 +170,6 @@ begin
                   Model :=
                     Concorde.Xi_UI.Model_Manager.Model (null, Window);
                end if;
-
-               Model.Set_FPS_Label
-                 (Xtk.Label.Xtk_Label
-                    (Builder.Get ("fps")));
 
                Model.Activate;
 

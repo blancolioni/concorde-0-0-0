@@ -1,7 +1,9 @@
 private with Ada.Containers.Doubly_Linked_Lists;
+private with Ada.Calendar;
 
 with Xi.Entity;
 with Xi.Node;
+with Xi.Render_Window;
 with Xi.Scene_Renderer;
 with Xi.Scene;
 with Xi.Texture;
@@ -64,10 +66,6 @@ package Concorde.Xi_UI is
    procedure Set_Status
      (Model   : in out Root_Xi_Model;
       Message : String);
-
-   procedure Set_FPS_Label
-     (Model : in out Root_Xi_Model;
-      Label : Xtk.Label.Xtk_Label);
 
    type Xi_Model is access all Root_Xi_Model'Class;
 
@@ -134,6 +132,10 @@ package Concorde.Xi_UI is
       X, Y, Z     : Xi.Xi_Float;
       On_Select   : Select_Handler);
 
+   procedure Load_UI
+     (Window : Xi.Render_Window.Xi_Render_Window;
+      Path   : String);
+
 private
 
    type Node_Select_Handler is abstract new
@@ -155,10 +157,14 @@ private
          Active_Transitions : Active_Transition_Lists.List;
          Current_Transition : Concorde.Transitions.Transition_Type;
          Frame_Count        : Natural;
+         Start_Interval     : Ada.Calendar.Time;
          Elapsed_Time       : Duration;
          Status             : Xtk.Panel.Xtk_Panel;
          Status_Label       : Xtk.Label.Xtk_Label;
          FPS_Label          : Xtk.Label.Xtk_Label;
+         Clock_Label        : Xtk.Label.Xtk_Label;
       end record;
+
+--   function Main_UI return Xtk.Builder.Xtk_Builder;
 
 end Concorde.Xi_UI;

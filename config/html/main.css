@@ -14,6 +14,15 @@ body {
     font-family: Tahoma;
     font-size: 24pt;
     color: darkgreen;
+    margin: 4px;
+}
+
+.top-bar-clock {
+    font-family: Tahoma;
+    font-size: 16pt;
+    color: darkgreen;
+    position: absolute;
+    right: 10px;
 }
 
 #chooser

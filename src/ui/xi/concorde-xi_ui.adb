@@ -13,7 +13,9 @@ with Xi.Shapes;
 with Xi.Float_Arrays;
 with Xi.Matrices;
 
+with Xtk.Builder;
 with Xtk.Button;
+with Xtk.Page;
 
 with Concorde.Xi_UI.Key_Bindings;
 
@@ -28,11 +30,12 @@ package body Concorde.Xi_UI is
    Local_Selector_Texture : Xi.Texture.Xi_Texture := null;
    Local_Selector_Entity  : Xi.Entity.Xi_Entity := null;
 
+   Local_Main_UI : Xtk.Builder.Xtk_Builder;
+
    type Model_Frame_Listener is
      new Xi.Frame_Event.Xi_Frame_Listener_Interface with
       record
          Model        : Xi_Model;
-         Current_Date : Xtk.Label.Xtk_Label;
       end record;
 
    overriding procedure Frame_Started
@@ -123,10 +126,6 @@ package body Concorde.Xi_UI is
       Event    : Xi.Frame_Event.Xi_Frame_Event)
    is
    begin
-      Concorde.Updates.Tick (Event.Time_Since_Last_Event);
-      Listener.Current_Date.Set_Label
-        (Concorde.Dates.To_Date_And_Time_String
-           (Concorde.Dates.Current_Date));
       Listener.Model.On_Frame_Start (Event.Time_Since_Last_Event);
    end Frame_Started;
 
@@ -139,49 +138,42 @@ package body Concorde.Xi_UI is
       Renderer : not null access
         Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
    is
---        Pause_Button : constant Xtk.Button.Xtk_Button :=
---                         New_Speed_Button ("Pause", 0.0, "pause-button");
---        Play_Button  : constant Xtk.Button.Xtk_Button :=
---                         New_Speed_Button ("Play", 3600.0, "play-button");
---
-      Current_Date   : constant Xtk.Label.Xtk_Label :=
-                         Xtk.Label.Xtk_New ("current-date");
---        Date_Info_Grid : Xtk.Grid.Xtk_Grid;
---        Date_Panel     : Xtk.Panel.Xtk_Panel;
---        Status_Grid    : Xtk.Grid.Xtk_Grid;
    begin
---        Xtk.Grid.Xtk_New (Date_Info_Grid);
---        Date_Info_Grid.Set_Orientation (Xtk.Orientable.Across);
---
---        Date_Info_Grid.Add (Pause_Button);
---        Date_Info_Grid.Add (Play_Button);
---        Date_Info_Grid.Add (Current_Date);
---
---        Xtk.Panel.Xtk_New (Date_Panel, Date_Info_Grid);
---        Date_Panel.Position_Anchor (Xtk.Top, Xtk.Right);
---        Date_Panel.Show_All;
---
---        Model.Status_Label := Xtk.Label.Xtk_New ("Concorde");
---        Xtk.Grid.Xtk_New (Status_Grid);
---        Status_Grid.Set_Orientation (Xtk.Orientable.Across);
---        Status_Grid.Add (Model.Status_Label);
---        Xtk.Panel.Xtk_New (Model.Status, Status_Grid);
---        Model.Status.Position_Anchor (Xtk.Top, Xtk.Left, Xtk.Right);
---        Model.Status.Show_All;
-
       Model.Current_Renderer := Xi.Scene_Renderer.Xi_Scene_Renderer (Renderer);
---        Model.Current_Renderer.Add_Top_Level (Date_Panel);
---        Model.Current_Renderer.Add_Top_Level (Model.Status);
+
+      Model.FPS_Label :=
+        Xtk.Label.Xtk_Label (Local_Main_UI.Get ("fps"));
+      Model.Clock_Label :=
+        Xtk.Label.Xtk_Label (Local_Main_UI.Get ("clock"));
 
       declare
          Listener : constant Xi.Frame_Event.Xi_Frame_Listener :=
                       new Model_Frame_Listener'
-                        (Model        => Xi_Model (Model),
-                         Current_Date => Current_Date);
+                        (Model        => Xi_Model (Model));
       begin
          Xi.Main.Add_Frame_Listener (Listener);
       end;
    end Initialize;
+
+   -------------
+   -- Load_UI --
+   -------------
+
+   procedure Load_UI
+     (Window : Xi.Render_Window.Xi_Render_Window;
+      Path   : String)
+   is
+      Builder : constant Xtk.Builder.Xtk_Builder :=
+                  Xtk.Builder.Xtk_New_From_File (Path);
+      Page : constant Xtk.Page.Xtk_Page :=
+               Builder.Get_Page;
+   begin
+      Page.Set_Viewport (Window.Full_Viewport);
+      Page.Show_All;
+      Window.Add_Top_Level (Page);
+
+      Local_Main_UI := Builder;
+   end Load_UI;
 
    ---------------------
    -- Move_Horizontal --
@@ -277,15 +269,33 @@ package body Concorde.Xi_UI is
       Concorde.Updates.Advance (60.0 * Time_Delta);
 
       if Model.Active then
-         Model.Frame_Count := Model.Frame_Count + 1;
-         Model.Elapsed_Time := Model.Elapsed_Time + Time_Delta;
-         if Model.FPS_Label /= null then
-            Model.FPS_Label.Set_Label
-              (Natural'Image
-                 (Natural
-                      (Real (Model.Frame_Count)
-                       / Real (Model.Elapsed_Time))));
+         if Model.Frame_Count = 0 then
+            Model.Start_Interval := Ada.Calendar.Clock;
          end if;
+
+         Model.Frame_Count := Model.Frame_Count + 1;
+
+         if Model.Frame_Count = 500 then
+            declare
+               use Ada.Calendar;
+               D : constant Duration :=
+                     Ada.Calendar.Clock - Model.Start_Interval;
+            begin
+               Model.FPS_Label.Set_Label
+                 (Natural'Image
+                    (Natural
+                         (Real (Model.Frame_Count)
+                          / Real (D))));
+               Model.Frame_Count := 0;
+            end;
+         end if;
+
+         if Model.Clock_Label /= null then
+            Model.Clock_Label.Set_Label
+              (Concorde.Dates.To_Date_And_Time_String
+                 (Concorde.Dates.Current_Date));
+         end if;
+
       end if;
 
       if Model.Current_Transition /= null then
@@ -517,18 +527,6 @@ package body Concorde.Xi_UI is
 
       Target_Node.Add_Click_Handler (On_Selector_Clicked'Access);
    end Selector_With_Text;
-
-   -------------------
-   -- Set_FPS_Label --
-   -------------------
-
-   procedure Set_FPS_Label
-     (Model : in out Root_Xi_Model;
-      Label : Xtk.Label.Xtk_Label)
-   is
-   begin
-      Model.FPS_Label := Label;
-   end Set_FPS_Label;
 
    ------------------
    -- Set_Renderer --
