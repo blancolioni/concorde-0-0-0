@@ -269,6 +269,8 @@ package body Concorde.Xi_UI is
       use type Concorde.Transitions.Transition_Type;
    begin
 
+      Concorde.Updates.Advance (60.0 * Time_Delta);
+
       if Model.Current_Transition /= null then
          Model.Current_Transition.Update;
          if Model.Current_Transition.Complete then
