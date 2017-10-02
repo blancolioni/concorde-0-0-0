@@ -166,7 +166,41 @@ package body Concorde.Locations is
       return Object_Location
    is
    begin
-      return (if Progress < 1.0 then Start else Finish);
+      if Start.Loc_Type = Interstellar then
+         pragma Assert (Finish.Loc_Type = Interstellar);
+         return (Start with delta Progress => Progress);
+      end if;
+
+      declare
+         use Concorde.Systems;
+         Start_System  : constant Star_System_Type :=
+                           Current_System (Start);
+         Finish_System : constant Star_System_Type :=
+                           Current_System (Finish);
+      begin
+         if Start_System /= Finish_System then
+            return Interstellar_Location
+              (Start_System, Finish_System, Progress);
+         end if;
+
+         declare
+            use Xi.Float_Arrays;
+            Start_Loc  : constant Object_Location :=
+                           To_System_Point (Start);
+            Finish_Loc : constant Object_Location :=
+                           To_System_Point (Finish);
+            Position   : constant Newton.Vector_3 :=
+                           Start_Loc.Relative_Position
+                             + Progress * (Finish_Loc.Relative_Position
+                                           - Start_Loc.Relative_Position);
+         begin
+            return Object_Location'
+              (Loc_Type           => System_Point,
+               Reference          => Start_System,
+               Relative_Position  => Position,
+               Relative_Velocity  => Finish_Loc.Relative_Velocity);
+         end;
+      end;
    end Intermediate_Location;
 
    ---------------------------
