@@ -1,11 +1,10 @@
 with Xi.Assets;
 with Xi.Color;
---  with Xi.Float_Images;
 with Xi.Font;
 with Xi.Frame_Event;
---  with Xi.Keyboard;
-with Xi.Label;
+with Xi.Keyboard;
 with Xi.Main;
+with Xi.Label;
 with Xi.Materials.Material;
 with Xi.Mouse;
 with Xi.Shapes;
@@ -266,7 +265,12 @@ package body Concorde.Xi_UI is
       use type Concorde.Transitions.Transition_Type;
    begin
 
-      Concorde.Updates.Advance (60.0 * Time_Delta);
+      if Xi.Keyboard.Key_Down (Xi.Keyboard.Key_Esc) then
+         Xi.Main.Leave_Main_Loop;
+         return;
+      end if;
+
+      Concorde.Updates.Advance (600.0 * Time_Delta);
 
       if Model.Active then
          if Model.Frame_Count = 0 then
