@@ -17,12 +17,25 @@ body {
     margin: 4px;
 }
 
+.top-bar-right {
+    position: absolute;
+    right: 10px;
+    top: 6px;
+    width: 250px;
+}
+
 .top-bar-clock {
+    display: block;
     font-family: Tahoma;
     font-size: 16pt;
     color: darkgreen;
-    position: absolute;
-    right: 10px;
+}
+
+.top-bar-speed {
+    display: block;
+    font-family: Tahoma;
+    font-size: 16pt;
+    color: darkgreen;
 }
 
 #chooser
