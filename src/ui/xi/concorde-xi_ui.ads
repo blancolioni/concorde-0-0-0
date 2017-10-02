@@ -65,6 +65,10 @@ package Concorde.Xi_UI is
      (Model   : in out Root_Xi_Model;
       Message : String);
 
+   procedure Set_FPS_Label
+     (Model : in out Root_Xi_Model;
+      Label : Xtk.Label.Xtk_Label);
+
    type Xi_Model is access all Root_Xi_Model'Class;
 
    procedure Add_Transition
@@ -145,12 +149,16 @@ private
 
    type Root_Xi_Model is abstract tagged
       record
+         Active             : Boolean := False;
          Current_Scene      : Xi.Scene.Xi_Scene;
          Current_Renderer   : Xi.Scene_Renderer.Xi_Scene_Renderer;
          Active_Transitions : Active_Transition_Lists.List;
          Current_Transition : Concorde.Transitions.Transition_Type;
+         Frame_Count        : Natural;
+         Elapsed_Time       : Duration;
          Status             : Xtk.Panel.Xtk_Panel;
          Status_Label       : Xtk.Label.Xtk_Label;
+         FPS_Label          : Xtk.Label.Xtk_Label;
       end record;
 
 end Concorde.Xi_UI;

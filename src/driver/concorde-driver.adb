@@ -12,6 +12,9 @@ with Xi.Render_Window;
 with Xi.Shader.Load;
 
 with Xtk;
+with Xtk.Builder;
+with Xtk.Label;
+with Xtk.Page;
 
 with Concorde.Paths;
 
@@ -43,10 +46,11 @@ procedure Concorde.Driver is
 
    Name_Generator : WL.Random.Names.Name_Generator;
 
-   Interface_Name   : constant String :=
-                        Concorde.Options.Interface_Name;
-   Use_Gtk          : constant Boolean := Interface_Name = "gtk";
-   Use_Xi           : constant Boolean := Interface_Name = "xi";
+   Start_First_World : constant Boolean := True;
+   Interface_Name    : constant String :=
+                         Concorde.Options.Interface_Name;
+   Use_Gtk           : constant Boolean := Interface_Name = "gtk";
+   Use_Xi            : constant Boolean := Interface_Name = "xi";
 
 begin
 
@@ -137,10 +141,6 @@ begin
          begin
 
             Xi.Main.Init;
-            Xtk.Initialize
-              (Css_Path =>
-                 Concorde.Paths.Config_File ("styles/concorde.css"));
-
             Xi.Assets.Add_Search_Path
               (Concorde.Paths.Config_Path);
 
@@ -155,16 +155,39 @@ begin
             Window :=
               Xi.Main.Current_Renderer.Create_Top_Level_Window;
 
-            Window.Set_Full_Screen (True);
+--            Window.Set_Full_Screen (True);
 
-            if False then
-               Concorde.Xi_UI.Model_Manager.Model (null, Window).Activate;
-            else
-               Concorde.Xi_UI.Model_Manager.Model
-                 (Concorde.Galaxy.Capital_World, Window).Activate;
-            end if;
+            declare
+               Builder : constant Xtk.Builder.Xtk_Builder :=
+                           Xtk.Builder.Xtk_New_From_File
+                             (Concorde.Paths.Config_File ("html/main.html"));
 
-            Concorde.Updates.Set_Time_Acceleration (0.0);
+               Page : constant Xtk.Page.Xtk_Page :=
+                        Builder.Get_Page;
+
+               Model : Concorde.Xi_UI.Xi_Model;
+            begin
+               Page.Set_Viewport (Window.Full_Viewport);
+               Page.Show_All;
+               Window.Add_Top_Level (Page);
+
+               if Start_First_World then
+                  Model :=
+                    Concorde.Xi_UI.Model_Manager.Model
+                      (Concorde.Galaxy.Capital_World, Window);
+               else
+                  Model :=
+                    Concorde.Xi_UI.Model_Manager.Model (null, Window);
+               end if;
+
+               Model.Set_FPS_Label
+                 (Xtk.Label.Xtk_Label
+                    (Builder.Get ("fps")));
+
+               Model.Activate;
+
+               Concorde.Updates.Set_Time_Acceleration (0.0);
+            end;
 
             Xi.Main.Main_Loop;
 

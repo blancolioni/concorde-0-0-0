@@ -1,5 +1,6 @@
 with Xi.Assets;
 with Xi.Color;
+--  with Xi.Float_Images;
 with Xi.Font;
 with Xi.Frame_Event;
 --  with Xi.Keyboard;
@@ -82,6 +83,9 @@ package body Concorde.Xi_UI is
    procedure Activate (Model : in out Root_Xi_Model) is
    begin
       Model.Renderer.Set_Scene (Model.Scene);
+      Model.Elapsed_Time := 0.0;
+      Model.Frame_Count := 0;
+      Model.Active := True;
    end Activate;
 
    --------------------
@@ -266,10 +270,23 @@ package body Concorde.Xi_UI is
       Time_Delta : Duration)
    is
       use type Xi.Scene.Xi_Scene;
+      use type Xtk.Label.Xtk_Label;
       use type Concorde.Transitions.Transition_Type;
    begin
 
       Concorde.Updates.Advance (60.0 * Time_Delta);
+
+      if Model.Active then
+         Model.Frame_Count := Model.Frame_Count + 1;
+         Model.Elapsed_Time := Model.Elapsed_Time + Time_Delta;
+         if Model.FPS_Label /= null then
+            Model.FPS_Label.Set_Label
+              (Natural'Image
+                 (Natural
+                      (Real (Model.Frame_Count)
+                       / Real (Model.Elapsed_Time))));
+         end if;
+      end if;
 
       if Model.Current_Transition /= null then
          Model.Current_Transition.Update;
@@ -500,6 +517,18 @@ package body Concorde.Xi_UI is
 
       Target_Node.Add_Click_Handler (On_Selector_Clicked'Access);
    end Selector_With_Text;
+
+   -------------------
+   -- Set_FPS_Label --
+   -------------------
+
+   procedure Set_FPS_Label
+     (Model : in out Root_Xi_Model;
+      Label : Xtk.Label.Xtk_Label)
+   is
+   begin
+      Model.FPS_Label := Label;
+   end Set_FPS_Label;
 
    ------------------
    -- Set_Renderer --
