@@ -49,7 +49,7 @@ package body Concorde.Xi_UI.Galaxies is
    Focus_Fov        : constant := 40.0;
    System_Fov       : constant := 10.0;
 
-   Star_Size : constant := 0.01;
+   Star_Size : constant := 0.005;
 
    Initial_Transition : constant Boolean := False;
 
@@ -365,7 +365,7 @@ package body Concorde.Xi_UI.Galaxies is
       end if;
 
       for System of Main_Model.System_Vector loop
-         Main_Model.Create_System_Node (System, Star_Node, Simple => False);
+         Main_Model.Create_System_Node (System, Star_Node, Simple => True);
 
          if System.Owned then
             declare
