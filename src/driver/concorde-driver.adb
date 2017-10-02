@@ -157,7 +157,7 @@ begin
 
             Window.Set_Full_Screen (True);
 
-            if True then
+            if False then
                Concorde.Xi_UI.Model_Manager.Model (null, Window).Activate;
             else
                Concorde.Xi_UI.Model_Manager.Model
