@@ -528,7 +528,7 @@ package body Concorde.Worlds.Xi_Model is
          Entity := Xi.Shapes.Icosohedral_Sphere (3);
          Entity.Set_Material
            (Xi.Assets.Material ("Concorde/System/Moon"));
-      elsif True then
+      elsif False then
          declare
             Sphere_Near    : constant Xi.Entity.Xi_Entity :=
                                Xi.Shapes.Icosohedral_Sphere (5);
@@ -546,7 +546,7 @@ package body Concorde.Worlds.Xi_Model is
             Sphere_Near.Set_Material (Material);
             Entity := Sphere_Near;
          end;
-      elsif True then
+      elsif False then
          Noise.Reset (World.Surface_Seed, 0.5, 2.0);
          declare
             Texture_Width : constant := 1024;
