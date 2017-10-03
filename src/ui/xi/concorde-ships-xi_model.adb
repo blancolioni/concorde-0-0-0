@@ -26,6 +26,7 @@ package body Concorde.Ships.Xi_Model is
    type Active_Ship_Record is
       record
          Ship         : Ship_Type;
+         Primary_Node : Xi.Node.Xi_Node;
          Holder_Node  : Xi.Node.Xi_Node;
          Ship_Node    : Xi.Node.Xi_Node;
          Local_Camera : Xi.Camera.Xi_Camera;
@@ -118,13 +119,14 @@ package body Concorde.Ships.Xi_Model is
          Holder_Node.Append_Child (Camera);
          Active :=
            new Active_Ship_Record'
-             (Ship, Holder_Node, Ship_Node, Camera,
+             (Ship, Primary, Holder_Node, Ship_Node, Camera,
               Concorde.Ships.Flight.Create_Newtonian_Ship
                 (Ship, Ship.Primary_Relative_Position, (0.0, 0.0, 0.0),
                  Newton.Matrices.Unit_Matrix (3)), Selector);
 --                Concorde.Scripts.Null_Script);
          Active_Ship_Vector.Replace_Element (Ship, Active);
       else
+         Active.Primary_Node := Primary;
          Active.Holder_Node := Holder_Node;
          Active.Ship_Node := Ship_Node;
          Active.Newton_Ship.Set_Location
@@ -383,12 +385,10 @@ package body Concorde.Ships.Xi_Model is
      (Ship    : Ship_Type)
    is
       Active : constant Active_Ship := Active_Ship_Vector.Element (Ship);
-      Holder : constant Xi.Node.Xi_Node := Active.Holder_Node;
+      Holder : constant Xi.Node.Xi_Node := Active.Primary_Node;
    begin
-      Holder.Delete_Child (Active.Ship_Node);
+      Holder.Delete_Child (Active.Holder_Node);
       Holder.Delete_Child (Active.Selector);
-      Active.Holder_Node := null;
-      Active.Ship_Node := null;
       Active_Ship_Vector.Replace_Element (Ship, Active);
    end Deactivate_Ship;
 

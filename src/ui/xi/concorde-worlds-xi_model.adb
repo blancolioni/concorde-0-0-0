@@ -506,15 +506,19 @@ package body Concorde.Worlds.Xi_Model is
       use type Concorde.Ships.Ship_Type;
       Position : Cursor := Handler.Model.Ships.First;
    begin
+      Concorde.Ships.Xi_Model.Deactivate_Ship
+        (Concorde.Ships.Ship_Type (Ship));
+      Ada.Text_IO.Put_Line
+        (System.Name & ": " & Ship.Name & " enters hyperspace");
       while Has_Element (Position) loop
          if Ship = Concorde.Ships.Xi_Model.Get_Ship (Element (Position)) then
-            Ada.Text_IO.Put_Line
-              (System.Name & ": " & Ship.Name & " enters hyperspace");
             Handler.Model.Ships.Delete (Position);
-            exit;
+            return;
          end if;
          Next (Position);
       end loop;
+      raise Constraint_Error with Ship.Name & ": not found in system "
+        & System.Name;
    end On_Ship_Event;
 
    -------------------
