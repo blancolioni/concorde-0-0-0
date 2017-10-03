@@ -9,9 +9,6 @@ with Xi.Camera;
 with Xi.Color;
 with Xi.Entity;
 with Xi.Float_Arrays;
-with Xi.Frame_Event;
-with Xi.Keyboard;
-with Xi.Main;
 with Xi.Materials.Material;
 with Xi.Matrices;
 with Xi.Mouse;
@@ -51,7 +48,7 @@ package body Concorde.Xi_UI.Galaxies is
 
    Star_Size : constant := 0.005;
 
-   Initial_Transition : constant Boolean := False;
+   Initial_Transition : constant Boolean := True;
 
    package System_Vectors is
      new Ada.Containers.Vectors
@@ -90,6 +87,10 @@ package body Concorde.Xi_UI.Galaxies is
       Target_Object : not null access constant
         Concorde.Objects.Root_Object_Type'Class);
 
+   overriding procedure On_Frame_Start
+     (Model      : in out Root_Galaxy_Model;
+      Time_Delta : Duration);
+
    procedure Create_System_Node
      (Model       : in out Root_Galaxy_Model'Class;
       System      : Concorde.Systems.Star_System_Type;
@@ -97,13 +98,6 @@ package body Concorde.Xi_UI.Galaxies is
       Simple      : Boolean);
 
    Main_Model : aliased Root_Galaxy_Model;
-
-   type Galaxy_Frame_Listener is
-     new Xi.Frame_Event.Xi_Frame_Listener_Interface with null record;
-
-   overriding procedure Frame_Started
-     (Listener : in out Galaxy_Frame_Listener;
-      Event    : Xi.Frame_Event.Xi_Frame_Event);
 
    procedure On_Resize
      (Target : not null access Xi.Render_Target.Xi_Render_Target_Record'Class);
@@ -214,94 +208,6 @@ package body Concorde.Xi_UI.Galaxies is
 
    end Create_System_Node;
 
-   -------------------
-   -- Frame_Started --
-   -------------------
-
-   overriding procedure Frame_Started
-     (Listener : in out Galaxy_Frame_Listener;
-      Event    : Xi.Frame_Event.Xi_Frame_Event)
-   is
-      pragma Unreferenced (Listener);
-      use Xi;
-      use type Concorde.Systems.Star_System_Type;
-   begin
-
-      if Xi.Keyboard.Key_Down (Xi.Keyboard.Key_Esc) then
-         Xi.Main.Leave_Main_Loop;
-         return;
-      end if;
-
-      Main_Model.On_Frame_Start (Event.Time_Since_Last_Event);
-
-      if not Main_Model.Transited then
-         declare
-            use type Concorde.Ships.Ship_Type;
-
-            First_Ship  : Concorde.Ships.Ship_Type := null;
-            Second_Ship : Concorde.Ships.Ship_Type := null;
-
-            procedure Visit_Ship
-              (Ship : Concorde.Ships.Ship_Type)
-              with Unreferenced;
-
-            procedure Visit_Object
-              (Object : not null access constant
-                 Concorde.Systems.Star_System_Object_Interface'Class);
-
-            ------------------
-            -- Visit_Object --
-            ------------------
-
-            procedure Visit_Object
-              (Object : not null access constant
-                 Concorde.Systems.Star_System_Object_Interface'Class)
-            is
-            begin
-               if Object.all in Concorde.Worlds.Root_World_Type'Class then
-                  Main_Model.Transit_To_Object
-                    (Concorde.Worlds.Root_World_Type'Class
-                       (Object.all)'Access);
-               end if;
-            end Visit_Object;
-
-            ----------------
-            -- Visit_Ship --
-            ----------------
-
-            procedure Visit_Ship
-              (Ship : Concorde.Ships.Ship_Type)
-            is
-            begin
-               if First_Ship = null then
-                  First_Ship := Ship;
-               elsif Second_Ship = null then
-                  Second_Ship := Ship;
-               end if;
-            end Visit_Ship;
-
-         begin
---            Concorde.Ships.Scan (Visit_Ship'Access);
-
-            if False then
-               Concorde.Galaxy.Get_System (1).Scan_System_Objects
-                 (Visit_Object'Access);
-            elsif First_Ship = null then
-               Main_Model.Transit_To_Object
-                 (Concorde.Galaxy.Capital_World);
-            elsif True or else Second_Ship = null then
-               Concorde.Ships.Xi_Model.Transit_To_Ship
-                 (First_Ship, Main_Model);
-            else
-               Concorde.Ships.Xi_Model.Transit_To_Ship
-                 (Second_Ship, Main_Model);
-            end if;
-            Main_Model.Transited := True;
-         end;
-      end if;
-
-   end Frame_Started;
-
    ------------------
    -- Galaxy_Model --
    ------------------
@@ -334,6 +240,8 @@ package body Concorde.Xi_UI.Galaxies is
       if False then
          GL.Enable_Debug;
       end if;
+
+      Main_Model.Initialize (Renderer);
 
       Main_Model.Set_Scene (Scene);
       Main_Model.Set_Renderer (Renderer);
@@ -405,19 +313,94 @@ package body Concorde.Xi_UI.Galaxies is
 
       Renderer.On_Resize (On_Resize'Access);
 
-      declare
-         Listener : constant Xi.Frame_Event.Xi_Frame_Listener :=
-                      new Galaxy_Frame_Listener;
-      begin
-         Xi.Main.Add_Frame_Listener (Listener);
-      end;
-
       Main_Model.Galaxy_Scene := Scene;
 
       Renderer.Set_Scene (Scene);
 
       return Main_Model'Access;
    end Galaxy_Model;
+
+   -------------------
+   -- Frame_Started --
+   -------------------
+
+   overriding procedure On_Frame_Start
+     (Model      : in out Root_Galaxy_Model;
+      Time_Delta : Duration)
+   is
+      use Xi;
+      use type Concorde.Systems.Star_System_Type;
+   begin
+
+      Root_Xi_Model (Model).On_Frame_Start (Time_Delta);
+
+      if not Main_Model.Transited then
+         declare
+            use type Concorde.Ships.Ship_Type;
+
+            First_Ship  : Concorde.Ships.Ship_Type := null;
+            Second_Ship : Concorde.Ships.Ship_Type := null;
+
+            procedure Visit_Ship
+              (Ship : Concorde.Ships.Ship_Type)
+              with Unreferenced;
+
+            procedure Visit_Object
+              (Object : not null access constant
+                 Concorde.Systems.Star_System_Object_Interface'Class);
+
+            ------------------
+            -- Visit_Object --
+            ------------------
+
+            procedure Visit_Object
+              (Object : not null access constant
+                 Concorde.Systems.Star_System_Object_Interface'Class)
+            is
+            begin
+               if Object.all in Concorde.Worlds.Root_World_Type'Class then
+                  Main_Model.Transit_To_Object
+                    (Concorde.Worlds.Root_World_Type'Class
+                       (Object.all)'Access);
+               end if;
+            end Visit_Object;
+
+            ----------------
+            -- Visit_Ship --
+            ----------------
+
+            procedure Visit_Ship
+              (Ship : Concorde.Ships.Ship_Type)
+            is
+            begin
+               if First_Ship = null then
+                  First_Ship := Ship;
+               elsif Second_Ship = null then
+                  Second_Ship := Ship;
+               end if;
+            end Visit_Ship;
+
+         begin
+            --            Concorde.Ships.Scan (Visit_Ship'Access);
+
+            if False then
+               Concorde.Galaxy.Get_System (1).Scan_System_Objects
+                 (Visit_Object'Access);
+            elsif First_Ship = null then
+               Main_Model.Transit_To_Object
+                 (Concorde.Galaxy.Capital_World);
+            elsif True or else Second_Ship = null then
+               Concorde.Ships.Xi_Model.Transit_To_Ship
+                 (First_Ship, Main_Model);
+            else
+               Concorde.Ships.Xi_Model.Transit_To_Ship
+                 (Second_Ship, Main_Model);
+            end if;
+            Main_Model.Transited := True;
+         end;
+      end if;
+
+   end On_Frame_Start;
 
    ---------------
    -- On_Resize --

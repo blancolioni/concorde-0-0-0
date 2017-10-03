@@ -223,7 +223,7 @@ package body Concorde.Managers.Ships.Trade is
             Manager.Create_Bids;
             if Manager.Ship.Has_Bids then
                Manager.State := Buying;
-            elsif Manager.Ship.Available_Quantity = Zero then
+            elsif Manager.Ship.Total_Quantity > Zero then
                Manager.Current := Next_Position;
                Manager.Set_Destination (To_World);
                Manager.State := Moving;
