@@ -1,3 +1,5 @@
+with Ada.Text_IO;
+
 with WL.Brownian_Noise;
 
 with Xi.Assets;
@@ -33,6 +35,8 @@ with Concorde.Ships.Xi_Model;
 with Concorde.Xi_UI.Colours;
 
 with Concorde.Factions;
+
+with Concorde.Systems.Events;
 
 package body Concorde.Worlds.Xi_Model is
 
@@ -81,6 +85,11 @@ package body Concorde.Worlds.Xi_Model is
          Ships         : Rendered_Ship_Lists.List;
          Selected_Ship : Concorde.Ships.Ship_Type;
          World_Node    : Xi.Node.Xi_Node;
+         Ships_Node    : Xi.Node.Xi_Node;
+         Arrival_Handler : access
+           Concorde.Objects.Object_Handler_Interface'Class;
+         Departure_Handler : access
+           Concorde.Objects.Object_Handler_Interface'Class;
       end record;
 
    overriding procedure Transit_To_Object
@@ -156,6 +165,32 @@ package body Concorde.Worlds.Xi_Model is
 
    overriding procedure Execute
      (Callback : in out Ship_Transition_Callback);
+
+   type Ship_Departure_Handler is
+     new Concorde.Systems.Events.Ship_System_Event_Handler with
+      record
+         Model : World_Model_Access;
+      end record;
+
+   overriding procedure On_Ship_Event
+     (Handler : Ship_Departure_Handler;
+      System  : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Ship    : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class);
+
+   type Ship_Arrival_Handler is
+     new Concorde.Systems.Events.Ship_System_Event_Handler with
+      record
+         Model : World_Model_Access;
+      end record;
+
+   overriding procedure On_Ship_Event
+     (Handler : Ship_Arrival_Handler;
+      System  : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Ship    : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class);
 
    ------------------
    -- Create_Tiles --
@@ -362,8 +397,8 @@ package body Concorde.Worlds.Xi_Model is
    begin
       Concorde.Xi_UI.Root_Xi_Model (Model).On_Frame_Start (Time_Delta);
       for Rendered_Ship of Model.Ships loop
-         Concorde.Ships.Xi_Model.Update_Ship
-           (Rendered_Ship);
+         Concorde.Ships.Xi_Model.Update_Ship_Position
+           (Rendered_Ship, Model.World.Primary_Relative_Position);
       end loop;
 
       Model.World_Node.Set_Orientation
@@ -455,6 +490,69 @@ package body Concorde.Worlds.Xi_Model is
       Handler.Model.Scene.Add_Transition (Transition);
       Handler.Model.Selected_Ship := Handler.Ship;
    end On_Select;
+
+   -------------------
+   -- On_Ship_Event --
+   -------------------
+
+   overriding procedure On_Ship_Event
+     (Handler : Ship_Departure_Handler;
+      System  : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Ship    : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
+   is
+      use Rendered_Ship_Lists;
+      use type Concorde.Ships.Ship_Type;
+      Position : Cursor := Handler.Model.Ships.First;
+   begin
+      while Has_Element (Position) loop
+         if Ship = Concorde.Ships.Xi_Model.Get_Ship (Element (Position)) then
+            Ada.Text_IO.Put_Line
+              (System.Name & ": " & Ship.Name & " enters hyperspace");
+            Handler.Model.Ships.Delete (Position);
+            exit;
+         end if;
+         Next (Position);
+      end loop;
+   end On_Ship_Event;
+
+   -------------------
+   -- On_Ship_Event --
+   -------------------
+
+   overriding procedure On_Ship_Event
+     (Handler : Ship_Arrival_Handler;
+      System  : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class;
+      Ship    : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
+   is
+      use Xi;
+      use Concorde.Ships.Xi_Model;
+      Pos           : constant Newton.Vector_3 :=
+                        Ship.Primary_Relative_Position;
+      Selector      : constant Concorde.Xi_UI.Select_Handler :=
+                        new World_Ship_Selector'
+                          (Model => Handler.Model,
+                           Ship  => Concorde.Ships.Ship_Type (Ship));
+      Selector_Node : constant Xi.Node.Xi_Node :=
+                        Concorde.Xi_UI.Selector_With_Text
+                          (Handler.Model.Ships_Node, Ship.Name,
+                           Xi_Float (Pos (1)),
+                           Xi_Float (Pos (2)),
+                           Xi_Float (Pos (3)),
+                           Selector);
+   begin
+      Ada.Text_IO.Put_Line
+        (System.Name & ": " & Ship.Name & " exits hyperspace");
+      Handler.Model.Ships.Append
+        (Concorde.Ships.Xi_Model.Activate_Ship
+           (Ship    => Concorde.Ships.Ship_Type (Ship),
+            Scene   => Handler.Model.Scene,
+            Primary => Handler.Model.Ships_Node,
+            Selector => Selector_Node));
+   end On_Ship_Event;
 
    -----------------
    -- Ship_Record --
@@ -609,7 +707,7 @@ package body Concorde.Worlds.Xi_Model is
 
    function World_Model
      (World  : World_Type;
-      Target     : not null access
+      Target : not null access
         Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
       return Concorde.Xi_UI.Xi_Model
    is
@@ -632,6 +730,19 @@ package body Concorde.Worlds.Xi_Model is
          Model.Scene.Active_Camera.Set_Viewport (Target.Full_Viewport);
          Model.Scene.Active_Camera.Perspective
            (45.0, 10.0, 1.0e9);
+
+         declare
+            Departing : constant
+              Concorde.Systems.Events.Ship_System_Handler_Access :=
+                new Ship_Departure_Handler'
+                  (Concorde.Systems.Events.Ship_System_Event_Handler with
+                   Model => Model);
+         begin
+            Concorde.Systems.Events.Add_Ship_Handler
+              (World.Current_System,
+               Concorde.Systems.Signal_Ship_Departed,
+               Departing);
+         end;
 
          World_Models.Insert (World.Identifier, Model);
       end if;
@@ -691,6 +802,10 @@ package body Concorde.Worlds.Xi_Model is
          Ships      : Concorde.Ships.Lists.List;
 
       begin
+
+         Model.World_Node := World_Node;
+         Model.Ships_Node := Ships_Node;
+
          World_Node.Set_Entity (Rec.Entity);
          World_Node.Scale
               (Xi.Xi_Float (World.Radius));
@@ -718,30 +833,28 @@ package body Concorde.Worlds.Xi_Model is
          for Ship of Ships loop
 
             declare
-               use Concorde.Ships.Xi_Model;
-               Rec : constant Active_Ship :=
-                       Activate_Ship
-                         (Ship, Scene, Ships_Node);
-            begin
-               Model.Ships.Append (Rec);
-            end;
-
-            declare
                use Xi;
-               Pos  : constant Newton.Vector_3 :=
-                        Ship.Primary_Relative_Position;
+               use Concorde.Ships.Xi_Model;
+               Pos      : constant Newton.Vector_3 :=
+                            Ship.Primary_Relative_Position;
                Selector : constant Concorde.Xi_UI.Select_Handler :=
                             new World_Ship_Selector'
                               (Model => Model,
                                Ship  => Ship);
+               Selector_Node : constant Xi.Node.Xi_Node :=
+                                 Concorde.Xi_UI.Selector_With_Text
+                                   (Ships_Node, Ship.Name,
+                                    Xi_Float (Pos (1)),
+                                    Xi_Float (Pos (2)),
+                                    Xi_Float (Pos (3)),
+                                    Selector);
+               Rec           : constant Active_Ship :=
+                                 Activate_Ship
+                                   (Ship, Scene, Ships_Node, Selector_Node);
             begin
-               Concorde.Xi_UI .Selector_With_Text
-                 (Ships_Node, Ship.Name,
-                  Xi_Float (Pos (1)),
-                  Xi_Float (Pos (2)),
-                  Xi_Float (Pos (3)),
-                  Selector);
+               Model.Ships.Append (Rec);
             end;
+
 --
 --              Node.Set_Position
 --                (Xi_Float (Pos (1) / 2.0),

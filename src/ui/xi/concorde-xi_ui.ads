@@ -126,11 +126,12 @@ package Concorde.Xi_UI is
       Node    : Xi.Node.Xi_Node)
    is abstract;
 
-   procedure Selector_With_Text
+   function Selector_With_Text
      (Parent_Node : Xi.Node.Xi_Node;
       Text        : String;
       X, Y, Z     : Xi.Xi_Float;
-      On_Select   : Select_Handler);
+      On_Select   : Select_Handler)
+      return Xi.Node.Xi_Node;
 
    procedure Load_UI
      (Window : Xi.Render_Window.Xi_Render_Window;
@@ -166,5 +167,11 @@ private
       end record;
 
 --   function Main_UI return Xtk.Builder.Xtk_Builder;
+
+   type Model_Signal_Handler is
+     abstract new Concorde.Objects.Object_Handler_Interface with
+      record
+         Model : Xi_Model;
+      end record;
 
 end Concorde.Xi_UI;

@@ -32,6 +32,10 @@ package Concorde.Locations is
      (Location : Object_Location)
       return Newton.Vector_3;
 
+   function System_Relative_Position
+     (Location : Object_Location)
+      return Newton.Vector_3;
+
    function Current_System
      (Location : Object_Location)
       return access constant Concorde.Systems.Root_Star_System_Type'Class;
@@ -95,7 +99,7 @@ package Concorde.Locations is
       return Object_Location;
 
    function System_Point
-     (Primary           : not null access constant
+     (System            : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
       Relative_Position : Newton.Vector_3;
       Relative_Velocity : Newton.Vector_3)
@@ -172,6 +176,10 @@ package Concorde.Locations is
       return access constant Concorde.Worlds.Root_World_Type'Class
    is (Current_World (Located.Current_Location))
      with Pre => Located.Is_World_Location;
+
+   function System_Relative_Position
+     (Located : Located_Interface'Class)
+      return Newton.Vector_3;
 
    function Primary_Relative_Position
      (Located : Located_Interface'Class)

@@ -2,6 +2,7 @@ private with Ada.Containers.Doubly_Linked_Lists;
 private with Ada.Containers.Vectors;
 private with Memor;
 private with Memor.Database;
+private with Concorde.Events;
 
 with Xi.Color;
 
@@ -157,14 +158,13 @@ package Concorde.Systems is
 
    procedure Arriving
      (System : in out Root_Star_System_Type'Class;
-      Ship   : Concorde.Ships.Ship_Type);
+      Ship   : Concorde.Ships.Ship_Type;
+      Time   : Concorde.Dates.Date_Type);
 
    procedure Departing
      (System : in out Root_Star_System_Type'Class;
-      Ship   : Concorde.Ships.Ship_Type);
-
-   procedure Commit_Ship_Movement
-     (System : in out Root_Star_System_Type'Class);
+      Ship   : Concorde.Ships.Ship_Type;
+      Time   : Concorde.Dates.Date_Type);
 
    procedure Clear_Ship_Movement
      (System : in out Root_Star_System_Type'Class);
@@ -255,6 +255,12 @@ package Concorde.Systems is
 
 private
 
+   type Ship_Event is
+     new Concorde.Events.Root_Event_Type with
+      record
+         Ship : Concorde.Ships.Ship_Type;
+      end record;
+
    type Edge_Info is
       record
          To      : Star_System_Type;
@@ -292,8 +298,6 @@ private
          Main_Object    : access Main_Star_System_Object_Interface'Class;
          Objects        : System_Object_Lists.List;
          Ships          : Concorde.Ships.Lists.List;
-         Arriving       : Concorde.Ships.Lists.List;
-         Departing      : Concorde.Ships.Lists.List;
          Capital        : Boolean := False;
          Last_Battle    : Concorde.Dates.Date_Type := Concorde.Dates.Zero_Date;
          Battle_Size    : Natural := 0;

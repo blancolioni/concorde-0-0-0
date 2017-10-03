@@ -77,10 +77,15 @@ package body Concorde.Systems is
 
    procedure Arriving
      (System : in out Root_Star_System_Type'Class;
-      Ship   : Concorde.Ships.Ship_Type)
+      Ship   : Concorde.Ships.Ship_Type;
+      Time   : Concorde.Dates.Date_Type)
    is
+      Event : Ship_Event;
    begin
-      System.Arriving.Append (Ship);
+      Event.Set_Time_Stamp (Time);
+      Event.Ship := Ship;
+      System.Signal
+        (Signal_Ship_Arrived, Event);
    end Arriving;
 
    ------------
@@ -115,30 +120,8 @@ package body Concorde.Systems is
      (System : in out Root_Star_System_Type'Class)
    is
    begin
-      System.Arriving.Clear;
-      System.Departing.Clear;
       System.Edges.Clear;
    end Clear_Ship_Movement;
-
-   --------------------------
-   -- Commit_Ship_Movement --
-   --------------------------
-
-   procedure Commit_Ship_Movement
-     (System : in out Root_Star_System_Type'Class)
-   is
-   begin
-      for Ship of System.Departing loop
-         System.Remove_Ship (Ship);
-      end loop;
-      for Ship of System.Arriving loop
-         System.Add_Ship (Ship);
-
---           if Ship.Destination.System.Index = System.Index then
---              Ship.Update.On_Arrival;
---           end if;
-      end loop;
-   end Commit_Ship_Movement;
 
    ---------------
    -- Departing --
@@ -146,10 +129,15 @@ package body Concorde.Systems is
 
    procedure Departing
      (System : in out Root_Star_System_Type'Class;
-      Ship   : Concorde.Ships.Ship_Type)
+      Ship   : Concorde.Ships.Ship_Type;
+      Time   : Concorde.Dates.Date_Type)
    is
+      Event : Ship_Event;
    begin
-      System.Departing.Append (Ship);
+      Event.Set_Time_Stamp (Time);
+      Event.Ship := Ship;
+      System.Signal
+        (Signal_Ship_Departed, Event);
    end Departing;
 
    --------------

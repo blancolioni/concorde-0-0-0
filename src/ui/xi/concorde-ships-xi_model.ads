@@ -1,4 +1,5 @@
 with Xi.Camera;
+with Xi.Matrices;
 with Xi.Node;
 with Xi.Scene;
 
@@ -18,14 +19,23 @@ package Concorde.Ships.Xi_Model is
      (Ship : Ship_Type)
       return Active_Ship;
 
+   function Get_Ship
+     (Active : Active_Ship)
+      return Ship_Type;
+
    function Activate_Ship
-     (Ship    : Ship_Type;
-      Scene   : Xi.Scene.Xi_Scene;
-      Primary : Xi.Node.Xi_Node)
+     (Ship     : Ship_Type;
+      Scene    : Xi.Scene.Xi_Scene;
+      Primary  : Xi.Node.Xi_Node;
+      Selector : Xi.Node.Xi_Node)
       return Active_Ship;
 
-   procedure Update_Ship
-     (Ship : Active_Ship);
+   procedure Deactivate_Ship
+     (Ship    : Ship_Type);
+
+   procedure Update_Ship_Position
+     (Ship        : Active_Ship;
+      Relative_To : Xi.Matrices.Vector_3);
 
    function Local_Camera
      (Ship : Active_Ship)

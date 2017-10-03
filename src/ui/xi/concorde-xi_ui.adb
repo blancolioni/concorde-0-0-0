@@ -270,7 +270,7 @@ package body Concorde.Xi_UI is
          return;
       end if;
 
-      Concorde.Updates.Advance (600.0 * Time_Delta);
+      Concorde.Updates.Advance (24.0 * 3600.0 * Time_Delta);
 
       if Model.Active then
          if Model.Frame_Count = 0 then
@@ -279,7 +279,7 @@ package body Concorde.Xi_UI is
 
          Model.Frame_Count := Model.Frame_Count + 1;
 
-         if Model.Frame_Count = 500 then
+         if Model.Frame_Count = 300 then
             declare
                use Ada.Calendar;
                D : constant Duration :=
@@ -296,7 +296,7 @@ package body Concorde.Xi_UI is
 
          if Model.Clock_Label /= null then
             Model.Clock_Label.Set_Label
-              (Concorde.Dates.To_Date_And_Time_String
+              (Concorde.Dates.To_String
                  (Concorde.Dates.Current_Date));
          end if;
 
@@ -498,11 +498,12 @@ package body Concorde.Xi_UI is
    -- Selector_With_Text --
    ------------------------
 
-   procedure Selector_With_Text
+   function Selector_With_Text
      (Parent_Node : Xi.Node.Xi_Node;
       Text        : String;
       X, Y, Z     : Xi.Xi_Float;
       On_Select   : Select_Handler)
+      return Xi.Node.Xi_Node
    is
       use Xi;
       Node : constant Xi.Node.Xi_Node :=
@@ -530,6 +531,8 @@ package body Concorde.Xi_UI is
       Text_Node.Fixed_Pixel_Size (Label.Width, Label.Height, 32.0, 16.0);
 
       Target_Node.Add_Click_Handler (On_Selector_Clicked'Access);
+
+      return Node;
    end Selector_With_Text;
 
    ------------------

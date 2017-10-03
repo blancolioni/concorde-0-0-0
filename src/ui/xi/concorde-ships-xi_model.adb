@@ -8,7 +8,6 @@ with Xi.Entity;
 with Xi.Float_Arrays;
 with Xi.Logging;
 with Xi.Materials.Material;
-with Xi.Matrices;
 with Xi.Render_Operation;
 with Xi.Shapes;
 --  with Xi.Value;
@@ -31,7 +30,7 @@ package body Concorde.Ships.Xi_Model is
          Ship_Node    : Xi.Node.Xi_Node;
          Local_Camera : Xi.Camera.Xi_Camera;
          Newton_Ship  : access Newton.Flight.Flight_Model'Class;
---           Script       : Concorde.Scripts.Concorde_Script;
+         Selector     : Xi.Node.Xi_Node;
       end record;
 
    package Active_Ship_Vectors is
@@ -63,9 +62,10 @@ package body Concorde.Ships.Xi_Model is
    -------------------
 
    function Activate_Ship
-     (Ship    : Ship_Type;
-      Scene   : Xi.Scene.Xi_Scene;
-      Primary : Xi.Node.Xi_Node)
+     (Ship     : Ship_Type;
+      Scene    : Xi.Scene.Xi_Scene;
+      Primary  : Xi.Node.Xi_Node;
+      Selector : Xi.Node.Xi_Node)
       return Active_Ship
    is
       use Xi;
@@ -121,7 +121,7 @@ package body Concorde.Ships.Xi_Model is
              (Ship, Holder_Node, Ship_Node, Camera,
               Concorde.Ships.Flight.Create_Newtonian_Ship
                 (Ship, Ship.Primary_Relative_Position, (0.0, 0.0, 0.0),
-                 Newton.Matrices.Unit_Matrix (3)));
+                 Newton.Matrices.Unit_Matrix (3)), Selector);
 --                Concorde.Scripts.Null_Script);
          Active_Ship_Vector.Replace_Element (Ship, Active);
       else
@@ -376,6 +376,23 @@ package body Concorde.Ships.Xi_Model is
    end Create_Panel;
 
    ---------------------
+   -- Deactivate_Ship --
+   ---------------------
+
+   procedure Deactivate_Ship
+     (Ship    : Ship_Type)
+   is
+      Active : constant Active_Ship := Active_Ship_Vector.Element (Ship);
+      Holder : constant Xi.Node.Xi_Node := Active.Holder_Node;
+   begin
+      Holder.Delete_Child (Active.Ship_Node);
+      Holder.Delete_Child (Active.Selector);
+      Active.Holder_Node := null;
+      Active.Ship_Node := null;
+      Active_Ship_Vector.Replace_Element (Ship, Active);
+   end Deactivate_Ship;
+
+   ---------------------
    -- Get_Active_Ship --
    ---------------------
 
@@ -386,6 +403,18 @@ package body Concorde.Ships.Xi_Model is
    begin
       return Active_Ship_Vector.Element (Ship);
    end Get_Active_Ship;
+
+   --------------
+   -- Get_Ship --
+   --------------
+
+   function Get_Ship
+     (Active : Active_Ship)
+      return Ship_Type
+   is
+   begin
+      return Active.Ship;
+   end Get_Ship;
 
    ------------------
    -- Local_Camera --
@@ -511,12 +540,13 @@ package body Concorde.Ships.Xi_Model is
       Model.Add_Transition (Ship_Transition);
    end Transit_To_Ship;
 
-   -----------------
-   -- Update_Ship --
-   -----------------
+   --------------------------
+   -- Update_Ship_Position --
+   --------------------------
 
-   procedure Update_Ship
-     (Ship : Active_Ship)
+   procedure Update_Ship_Position
+     (Ship        : Active_Ship;
+      Relative_To : Xi.Matrices.Vector_3)
    is
       use Xi;
       use Xi.Float_Arrays;
@@ -528,15 +558,18 @@ package body Concorde.Ships.Xi_Model is
 --        end if;
 
       declare
+         use Xi.Float_Arrays;
+
          Ship_Position : constant Newton.Vector_3 :=
-                           Ship.Ship.Primary_Relative_Position;
+                           Concorde.Locations.System_Relative_Position
+                             (Ship.Ship.Location_At
+                                (Concorde.Dates.Current_Date));
          Node_Position : constant Xi.Matrices.Vector_3 :=
-                           (Ship_Position (1),
-                            Ship_Position (2),
-                            Ship_Position (3));
+                           Ship_Position - Relative_To;
       begin
          Ship.Holder_Node.Set_Position (Node_Position);
+--         Ship.Selector.Set_Position (0.5 * Node_Position);
       end;
-   end Update_Ship;
+   end Update_Ship_Position;
 
 end Concorde.Ships.Xi_Model;

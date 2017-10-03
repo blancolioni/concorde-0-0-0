@@ -98,6 +98,8 @@ package Concorde.Objects is
 
    type Object_Handler_Interface is interface;
 
+   type Object_Handler is access all Object_Handler_Interface'Class;
+
    procedure Handle
      (Handler : in out Object_Handler_Interface;
       Event   : Concorde.Events.Root_Event_Type'Class;

@@ -165,10 +165,8 @@ package body Concorde.Managers.Ships is
             Manager.Ship.Log_Movement
               ("jumping to " & Waypoint.Target.Name);
 
-            Manager.Ship.Current_System.Signal
-              (Sig   => Concorde.Systems.Signal_Ship_Departed,
-               Event =>
-                  Concorde.Ships.Ship_Event (Manager.Time, Manager.Ship));
+            Manager.Ship.Current_System.Update.Departing
+              (Manager.Ship, Manager.Time);
 
             Journey_Time :=
               Duration (100_000.0

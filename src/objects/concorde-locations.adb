@@ -450,16 +450,40 @@ package body Concorde.Locations is
    ------------------
 
    function System_Point
-     (Primary           : not null access constant
+     (System            : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
       Relative_Position : Newton.Vector_3;
       Relative_Velocity : Newton.Vector_3)
       return Object_Location
    is
    begin
-      return (System_Point, Concorde.Systems.Star_System_Type (Primary),
+      return (System_Point, Concorde.Systems.Star_System_Type (System),
               Relative_Position, Relative_Velocity);
    end System_Point;
+
+   ------------------------------
+   -- System_Relative_Position --
+   ------------------------------
+
+   function System_Relative_Position
+     (Located : Located_Interface'Class)
+      return Newton.Vector_3
+   is
+   begin
+      return To_System_Point (Located.Current_Location).Relative_Position;
+   end System_Relative_Position;
+
+   ------------------------------
+   -- System_Relative_Position --
+   ------------------------------
+
+   function System_Relative_Position
+     (Location : Object_Location)
+      return Newton.Vector_3
+   is
+   begin
+      return To_System_Point (Location).Relative_Position;
+   end System_Relative_Position;
 
    ---------------------------
    -- System_Transfer_Orbit --
@@ -489,7 +513,7 @@ package body Concorde.Locations is
    begin
 
       return System_Point
-        (Primary           => From_System,
+        (System            => From_System,
          Relative_Position => Distance * U,
          Relative_Velocity => U);
    end System_Transfer_Orbit;
@@ -514,9 +538,24 @@ package body Concorde.Locations is
          when System_Point =>
             return Loc;
          when Orbit =>
-            return (System_Point, Loc.Reference,
-                    Relative_Position => Loc.Apoapsis,
-                    Relative_Velocity => (0.0, 1.0, 0.0));
+            declare
+               use Xi.Float_Arrays;
+               Primary_Position : constant Object_Location :=
+                                    To_System_Point
+                                      (Located_Interface'Class
+                                         (Loc.Reference.all).Current_Location);
+               Orbit_Position   : constant Newton.Vector_3 :=
+                                    Loc.Apoapsis;
+            begin
+               return (System_Point,
+                       Located_Interface'Class
+                         (Loc.Reference.all).Current_System,
+                       Relative_Position =>
+                         Primary_Position.Relative_Position
+                           + Orbit_Position,
+                       Relative_Velocity =>
+                         Primary_Position.Relative_Velocity);
+            end;
          when World_Surface | On_Ship | At_Installation | In_Unit =>
             return To_System_Point
               (Located_Interface'Class

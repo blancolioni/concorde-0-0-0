@@ -31,6 +31,10 @@ package body Concorde.Stars.Create is
       begin
          Star.Set_Name (Name);
          Star.System := System;
+         Star.Set_Location
+           (Concorde.Locations.System_Point
+              (System, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0)));
+
          Star.Solar_Masses := Solar_Masses;
          Star.Class := Class;
          Star.Subclass := Subclass;
