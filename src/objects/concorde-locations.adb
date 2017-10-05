@@ -545,7 +545,8 @@ package body Concorde.Locations is
                                       (Located_Interface'Class
                                          (Loc.Reference.all).Current_Location);
                Orbit_Position   : constant Newton.Vector_3 :=
-                                    Loc.Apoapsis;
+                                    Primary_Relative_Position
+                                      (Loc);
             begin
                return (System_Point,
                        Located_Interface'Class
