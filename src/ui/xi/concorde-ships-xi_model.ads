@@ -35,7 +35,8 @@ package Concorde.Ships.Xi_Model is
 
    procedure Update_Ship_Position
      (Ship        : Active_Ship;
-      Relative_To : Xi.Matrices.Vector_3);
+      Relative_To : Xi.Matrices.Vector_3;
+      Camera      : Xi.Camera.Xi_Camera);
 
    function Local_Camera
      (Ship : Active_Ship)

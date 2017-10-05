@@ -10,7 +10,7 @@ with Xi.Logging;
 with Xi.Materials.Material;
 with Xi.Render_Operation;
 with Xi.Shapes;
---  with Xi.Value;
+with Xi.Value;
 
 with Concorde.Transitions;
 with Concorde.Ships.Flight;
@@ -23,12 +23,15 @@ package body Concorde.Ships.Xi_Model is
 
    Use_Panels : constant Boolean := False;
 
+   Ship_Render_Limit : constant Xi.Xi_Float := 1.0e4;
+
    type Active_Ship_Record is
       record
          Ship         : Ship_Type;
          Primary_Node : Xi.Node.Xi_Node;
          Holder_Node  : Xi.Node.Xi_Node;
          Ship_Node    : Xi.Node.Xi_Node;
+         Radar_Node   : Xi.Node.Xi_Node;
          Local_Camera : Xi.Camera.Xi_Camera;
          Newton_Ship  : access Newton.Flight.Flight_Model'Class;
          Selector     : Xi.Node.Xi_Node;
@@ -58,6 +61,8 @@ package body Concorde.Ships.Xi_Model is
       Clockwise  : Boolean;
       Panel_Size : Xi.Xi_Non_Negative_Float := 1.0);
 
+   Radar_Ship_Entity : Xi.Entity.Xi_Entity;
+
    -------------------
    -- Activate_Ship --
    -------------------
@@ -83,6 +88,7 @@ package body Concorde.Ships.Xi_Model is
       Holder_Node   : Xi.Node.Xi_Node :=
                         Scene.Get_Node (Node_Identity);
       Ship_Node     : Xi.Node.Xi_Node;
+      Radar_Node    : Xi.Node.Xi_Node;
       Camera : Xi.Camera.Xi_Camera;
       Active : Active_Ship := Active_Ship_Vector.Element (Ship);
 
@@ -90,7 +96,24 @@ package body Concorde.Ships.Xi_Model is
       if Holder_Node = null then
          Holder_Node := Primary.Create_Child (Node_Identity);
          Ship_Node := Holder_Node.Create_Child;
+         Radar_Node := Holder_Node.Create_Child;
       end if;
+
+      if Radar_Ship_Entity = null then
+         Radar_Ship_Entity :=
+           Xi.Shapes.Icosohedral_Sphere (2);
+         declare
+            Material : constant Xi.Materials.Material.Xi_Material :=
+                         Xi.Assets.Material ("Xi/Solid_Color")
+                         .Instantiate;
+         begin
+            Material.Set_Parameter_Value
+              ("color", Xi.Value.Color_Value (0.1, 0.8, 0.1, 1.0));
+            Radar_Ship_Entity.Set_Material (Material);
+         end;
+      end if;
+
+      Radar_Node.Set_Entity (Radar_Ship_Entity);
 
       Xi.Logging.Put ("created ship " & Ship.Name & " at ");
       Xi.Logging.Put (Node_Position);
@@ -119,7 +142,8 @@ package body Concorde.Ships.Xi_Model is
          Holder_Node.Append_Child (Camera);
          Active :=
            new Active_Ship_Record'
-             (Ship, Primary, Holder_Node, Ship_Node, Camera,
+             (Ship, Primary, Holder_Node, Ship_Node, Radar_Node,
+              Camera,
               Concorde.Ships.Flight.Create_Newtonian_Ship
                 (Ship, Ship.Primary_Relative_Position, (0.0, 0.0, 0.0),
                  Newton.Matrices.Unit_Matrix (3)), Selector);
@@ -129,6 +153,7 @@ package body Concorde.Ships.Xi_Model is
          Active.Primary_Node := Primary;
          Active.Holder_Node := Holder_Node;
          Active.Ship_Node := Ship_Node;
+         Active.Radar_Node := Radar_Node;
          Active.Newton_Ship.Set_Location
            (Ship.Primary_Relative_Position);
          Active.Newton_Ship.Set_Velocity ((0.0, 0.0, 0.0));
@@ -546,7 +571,8 @@ package body Concorde.Ships.Xi_Model is
 
    procedure Update_Ship_Position
      (Ship        : Active_Ship;
-      Relative_To : Xi.Matrices.Vector_3)
+      Relative_To : Xi.Matrices.Vector_3;
+      Camera      : Xi.Camera.Xi_Camera)
    is
       use Xi;
       use Xi.Float_Arrays;
@@ -566,9 +592,21 @@ package body Concorde.Ships.Xi_Model is
                                 (Concorde.Dates.Current_Date));
          Node_Position : constant Xi.Matrices.Vector_3 :=
                            Ship_Position - Relative_To;
+         D             : constant Xi_Non_Negative_Float :=
+                           abs (Camera.Position_3
+                                - Node_Position);
       begin
          Ship.Holder_Node.Set_Position (Node_Position);
---         Ship.Selector.Set_Position (0.5 * Node_Position);
+         if D < Ship_Render_Limit then
+            Ship.Ship_Node.Set_Visible (True);
+            Ship.Radar_Node.Set_Visible (False);
+         else
+            Ship.Ship_Node.Set_Visible (False);
+            Ship.Radar_Node.Set_Visible (True);
+            Ship.Radar_Node.Scale (D / 500.0);
+         end if;
+
+         Ship.Selector.Set_Position (0.5 * Node_Position);
       end;
    end Update_Ship_Position;
 

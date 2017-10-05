@@ -398,7 +398,8 @@ package body Concorde.Worlds.Xi_Model is
       Concorde.Xi_UI.Root_Xi_Model (Model).On_Frame_Start (Time_Delta);
       for Rendered_Ship of Model.Ships loop
          Concorde.Ships.Xi_Model.Update_Ship_Position
-           (Rendered_Ship, Model.World.Primary_Relative_Position);
+           (Rendered_Ship, Model.World.Primary_Relative_Position,
+            Model.Scene.Active_Camera);
       end loop;
 
       Model.World_Node.Set_Orientation
