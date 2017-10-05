@@ -51,7 +51,7 @@ procedure Concorde.Driver is
 
 begin
 
-   Memor.Locking (True);
+   Memor.Locking (False);
    WL.Work.Set_Task_Count (Concorde.Options.Work_Threads);
 
    WL.Random.Names.Load_Lexicon
@@ -126,8 +126,6 @@ begin
 
    else
 
-      Concorde.Updates.Start_Updates;
-
       if Use_Gtk then
          null;
          --  Concorde.Gtk_UI.Start;
@@ -173,7 +171,6 @@ begin
 
                Model.Activate;
 
-               Concorde.Updates.Set_Time_Acceleration (0.0);
             end;
 
             Xi.Main.Main_Loop;
@@ -185,8 +182,6 @@ begin
            (Ada.Text_IO.Standard_Error,
             "unknown interface: " & Interface_Name);
       end if;
-
-      Concorde.Updates.Stop_Updates;
 
    end if;
 
