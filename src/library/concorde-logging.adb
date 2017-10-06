@@ -1,7 +1,7 @@
 with Ada.Characters.Latin_1;
 with Ada.Text_IO;
 
-with Concorde.Dates;
+with Concorde.Calendar;
 
 package body Concorde.Logging is
 
@@ -36,8 +36,9 @@ package body Concorde.Logging is
       if Logging_Enabled then
          Ada.Text_IO.Put_Line
            (Log_File,
-            Concorde.Dates.To_Date_And_Time_String
-              (Concorde.Dates.Current_Date)
+            Concorde.Calendar.Image
+              (Concorde.Calendar.Clock,
+               Include_Time_Fraction => True)
             & Separator
             & Category
             & Separator

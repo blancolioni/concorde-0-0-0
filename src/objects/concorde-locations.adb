@@ -146,7 +146,7 @@ package body Concorde.Locations is
 
    function Get_Orbit_Location
      (Orbit_Loc : Orbital_Location;
-      Time      : Concorde.Dates.Date_Type)
+      Time      : Concorde.Calendar.Time)
       return System_Point_Location
    is
       pragma Unreferenced (Time);
@@ -244,7 +244,7 @@ package body Concorde.Locations is
 
    function Location_At
      (Location : Object_Location;
-      Time     : Concorde.Dates.Date_Type)
+      Time     : Concorde.Calendar.Time)
       return Object_Location
    is
    begin
@@ -311,7 +311,7 @@ package body Concorde.Locations is
               Concorde.Objects.Root_Object_Type'Class (Primary.all)'Access,
               Geometry.Degrees_To_Radians (0.0),
               Position, -Position,
-              Concorde.Dates.Current_Date,
+              Concorde.Calendar.Clock,
               Concorde.Random.Unit_Random, Duration (Period), True);
    end Orbit;
 
@@ -374,13 +374,13 @@ package body Concorde.Locations is
       return Newton.Vector_3
    is
       use Newton.Matrices;
-      use Concorde.Dates;
+      use Concorde.Calendar;
       use Concorde.Geometry;
       R            : constant Non_Negative_Real := abs (Location.Apoapsis);
       Start        : constant Non_Negative_Real :=
                        Location.Start_Offset;
       Elapsed      : constant Duration :=
-                       Concorde.Dates.Current_Date - Location.Start_Time;
+                       Concorde.Calendar.Clock - Location.Start_Time;
       Total_Orbits : constant Real :=
                        Start + Real (Elapsed) / Real (Location.Period);
       Theta        : constant Radians :=

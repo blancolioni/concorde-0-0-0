@@ -8,7 +8,7 @@ with Lui.Tables;
 
 with Concorde.Watchers;
 
-with Concorde.Dates;
+with Concorde.Calendar;
 with Concorde.Elementary_Functions;
 with Concorde.Factions;
 with Concorde.Factions.Db;
@@ -456,7 +456,7 @@ package body Concorde.Galaxy.Model is
      (Model    : in out Root_Galaxy_Model'Class;
       Renderer : in out Lui.Rendering.Root_Renderer'Class)
    is
-      use Concorde.Dates;
+      use Concorde.Calendar;
       Start : Day_Index := 1;
       Today : constant Day_Index := Get_Day (Current_Date);
       Width : constant := 100.0;
@@ -739,7 +739,7 @@ package body Concorde.Galaxy.Model is
       Max_Days : Positive)
       return Boolean
    is
-      use Concorde.Dates;
+      use Concorde.Calendar;
    begin
       return System.Last_Battle /= Zero_Date
         and then Get_Day (Current_Date) - Get_Day (System.Last_Battle)
@@ -806,7 +806,7 @@ package body Concorde.Galaxy.Model is
 
                      if Recent_Battle (System, 5) then
                         declare
-                           use Concorde.Dates;
+                           use Concorde.Calendar;
                            use Concorde.Elementary_Functions;
                            Size : constant Positive :=
                                     Positive'Max
@@ -816,7 +816,7 @@ package body Concorde.Galaxy.Model is
                                        10);
                            Days : constant Natural :=
                                     Natural
-                                      (Get_Day (Concorde.Dates.Current_Date))
+                                      (Get_Day (Concorde.Calendar.Clock))
                                     - Natural
                                       (Get_Day (System.Last_Battle));
                         begin
@@ -969,7 +969,7 @@ package body Concorde.Galaxy.Model is
          end loop;
       elsif Renderer.Current_Render_Layer = 2 then
          declare
-            use Concorde.Dates;
+            use Concorde.Calendar;
          begin
             if Get_Day (Current_Date) > 10 then
                Model.Draw_History (Renderer);

@@ -82,7 +82,7 @@ package body Concorde.Markets is
                Market.Get_Commodity (Commodity);
       Remaining : Quantity_Type := Quantity;
       Hist      : Historical_Quantity_Record :=
-                    (Concorde.Dates.Current_Date, others => <>);
+                    (Concorde.Calendar.Clock, others => <>);
    begin
       if Info.Current_Price = Zero then
          Info.Current_Price := Price;
@@ -261,7 +261,7 @@ package body Concorde.Markets is
 --              & "/../log/markets/"
 --              & Market.Name
 --              & "-"
---              & Concorde.Dates.Current_Date_To_String
+--              & Concorde.Calendar.Clock_To_String
 --              & ".txt");
 --           Ada.Text_IO.Set_Output (File);
 --        end if;
@@ -348,11 +348,11 @@ package body Concorde.Markets is
      (Market    : Root_Market_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
       Metric    : Concorde.Trades.Trade_Metric;
-      Start     : Concorde.Dates.Date_Type;
-      Finish    : Concorde.Dates.Date_Type)
+      Start     : Concorde.Calendar.Time;
+      Finish    : Concorde.Calendar.Time)
       return Concorde.Quantities.Quantity_Type
    is
-      use Concorde.Dates;
+      use Concorde.Calendar;
       use Concorde.Quantities;
       use all type Concorde.Trades.Trade_Metric;
       Result : Quantity_Type := Zero;

@@ -589,7 +589,7 @@ package body Concorde.Ships.Xi_Model is
          Ship_Position : constant Newton.Vector_3 :=
                            Concorde.Locations.System_Relative_Position
                              (Ship.Ship.Location_At
-                                (Concorde.Dates.Current_Date));
+                                (Concorde.Calendar.Clock));
          Node_Position : constant Xi.Matrices.Vector_3 :=
                            Ship_Position - Relative_To;
          D             : constant Xi_Non_Negative_Float :=

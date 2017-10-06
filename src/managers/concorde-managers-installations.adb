@@ -58,16 +58,16 @@ package body Concorde.Managers.Installations is
    overriding procedure On_Activated
      (Manager : in out Root_Installation_Manager)
    is
+      use type Concorde.Calendar.Time;
    begin
       Manager.Installation.Log_Trade
         ("activated at "
-         & Concorde.Dates.To_Date_And_Time_String
-           (Manager.Time));
+         & Concorde.Calendar.Image (Manager.Time, True));
       Manager.Installation.Add_Trade_Offers;
       Manager.Installation.Update.Execute_Production;
       Manager.Installation.Update.Pay_Workers;
       Concorde.Objects.Queues.Next_Event
-        (Manager.Installation, Concorde.Dates.Add_Days (Manager.Time, 1));
+        (Manager.Installation, Manager.Time + 86_400.0);
    end On_Activated;
 
 end Concorde.Managers.Installations;

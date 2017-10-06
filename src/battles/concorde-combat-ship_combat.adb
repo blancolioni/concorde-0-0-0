@@ -4,7 +4,7 @@ with Lui.Colours;
 
 with Concorde.Real_Images;
 
---  with Concorde.Dates;
+--  with Concorde.Calendar;
 with Concorde.Elementary_Functions;
 
 with Concorde.Random;
@@ -458,7 +458,7 @@ package body Concorde.Combat.Ship_Combat is
    begin
 --        Ada.Text_IO.Create (Log_File, Ada.Text_IO.Out_File,
 --                            Name & "-"
---                            & Concorde.Dates.Current_Date_To_String
+--                            & Concorde.Calendar.Clock_To_String
 --                            & ".txt");
 --        Ada.Text_IO.Set_Output (Log_File);
 

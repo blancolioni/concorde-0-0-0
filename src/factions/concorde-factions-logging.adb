@@ -3,7 +3,7 @@ with Ada.Text_IO;
 
 with Memor.Element_Vectors;
 
-with Concorde.Dates;
+with Concorde.Calendar;
 with Concorde.Paths;
 
 package body Concorde.Factions.Logging is
@@ -20,7 +20,7 @@ package body Concorde.Factions.Logging is
         Default_Value => List_Of_Log_Lines.Empty_List,
         "="           => List_Of_Log_Lines."=");
 
-   Current_Log_Date : Concorde.Dates.Date_Type := Concorde.Dates.Zero_Date;
+   Current_Log_Date : Concorde.Calendar.Time;
    Current_Logs     : Faction_Log_Vectors.Vector;
 
    function Log_File_Path
@@ -56,7 +56,9 @@ package body Concorde.Factions.Logging is
                Put_Line (File, "----------------");
                Put_Line (File,
                          "-- "
-                         & Concorde.Dates.To_String (Current_Log_Date)
+                         & Concorde.Calendar.Image
+                           (Current_Log_Date,
+                            Include_Time_Fraction => True)
                          & " --");
                Put_Line (File, "----------------");
                New_Line (File);
@@ -100,22 +102,18 @@ package body Concorde.Factions.Logging is
      (Faction  : Root_Faction_Type'Class;
       Message : String)
    is
-      use type Concorde.Dates.Date_Type;
-      Today : constant Concorde.Dates.Date_Type :=
-                Concorde.Dates.Current_Date;
+      use Concorde.Calendar;
+      Now   : constant Time := Clock;
+      Today : constant Time := Now - Seconds (Now);
    begin
       if not Started then
          return;
       end if;
 
-      if Current_Log_Date = Concorde.Dates.Zero_Date then
-         null;
-      elsif Current_Log_Date /= Today then
+      if Current_Log_Date /= Today then
          Flush_Log;
          Current_Log_Date := Today;
       end if;
-
-      Current_Log_Date := Today;
 
       declare
          procedure Append (List : in out List_Of_Log_Lines.List);
@@ -172,8 +170,13 @@ package body Concorde.Factions.Logging is
               (Ada.Text_IO.Standard_Error,
                "Unable to start faction logging; logging disabled");
          else
-            Current_Log_Date := Concorde.Dates.Zero_Date;
-            Started := True;
+            declare
+               use Concorde.Calendar;
+               Now : constant Time := Clock;
+            begin
+               Current_Log_Date := Now - Seconds (Now);
+               Started := True;
+            end;
          end if;
 
       end if;

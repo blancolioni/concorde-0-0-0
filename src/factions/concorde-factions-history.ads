@@ -1,4 +1,4 @@
-with Concorde.Dates;
+with Concorde.Calendar;
 
 package Concorde.Factions.History is
 
@@ -10,8 +10,8 @@ package Concorde.Factions.History is
       Production);
 
    function Get_Metric
-     (Date   : Concorde.Dates.Day_Index;
-      Metric : Historical_Metric;
+     (Date    : Concorde.Calendar.Time;
+      Metric  : Historical_Metric;
       Faction : Faction_Type)
       return Real;
 

@@ -18,7 +18,7 @@ with Xtk.Page;
 
 with Concorde.Xi_UI.Key_Bindings;
 
-with Concorde.Dates;
+with Concorde.Calendar;
 with Concorde.Updates;
 
 package body Concorde.Xi_UI is
@@ -270,7 +270,7 @@ package body Concorde.Xi_UI is
          return;
       end if;
 
-      Concorde.Updates.Advance (24.0 * 3600.0 * Time_Delta);
+      Concorde.Updates.Advance (4.0 * 3600.0 * Time_Delta);
 
       if Model.Active then
          if Model.Frame_Count = 0 then
@@ -296,8 +296,8 @@ package body Concorde.Xi_UI is
 
          if Model.Clock_Label /= null then
             Model.Clock_Label.Set_Label
-              (Concorde.Dates.To_String
-                 (Concorde.Dates.Current_Date));
+              (Concorde.Calendar.Image
+                 (Concorde.Calendar.Clock));
          end if;
 
       end if;

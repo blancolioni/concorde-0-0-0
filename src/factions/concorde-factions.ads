@@ -13,7 +13,7 @@ limited with Concorde.Worlds;
 with Lui.Colours;
 
 with Concorde.Agents;
-with Concorde.Dates;
+with Concorde.Calendar;
 with Concorde.Locations;
 with Concorde.Objects;
 with Concorde.Systems;
@@ -404,7 +404,7 @@ private
 
    overriding function Location_At
      (Faction : Root_Faction_Type;
-      Time    : Concorde.Dates.Date_Type)
+      Time    : Concorde.Calendar.Time)
       return Concorde.Locations.Object_Location
    is (Root_Faction_Type'Class (Faction).Current_Location);
 

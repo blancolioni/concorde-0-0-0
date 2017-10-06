@@ -1,6 +1,6 @@
 with Newton;
 
-with Concorde.Dates;
+with Concorde.Calendar;
 with Concorde.Geometry;
 
 with Concorde.Objects;
@@ -21,7 +21,7 @@ package Concorde.Locations is
 
    function Location_At
      (Location : Object_Location;
-      Time     : Concorde.Dates.Date_Type)
+      Time     : Concorde.Calendar.Time)
       return Object_Location;
 
    function Primary
@@ -54,7 +54,7 @@ package Concorde.Locations is
 
    function Get_Orbit_Location
      (Orbit_Loc : Orbital_Location;
-      Time      : Concorde.Dates.Date_Type)
+      Time      : Concorde.Calendar.Time)
       return System_Point_Location;
 
    function To_System_Point
@@ -138,7 +138,7 @@ package Concorde.Locations is
 
    function Location_At
      (Located : Located_Interface;
-      Time    : Concorde.Dates.Date_Type)
+      Time    : Concorde.Calendar.Time)
       return Object_Location
       is abstract;
 
@@ -205,7 +205,7 @@ private
                Angle              : Concorde.Geometry.Radians;
                Apoapsis           : Newton.Vector_3;
                Periapsis          : Newton.Vector_3;
-               Start_Time         : Concorde.Dates.Date_Type;
+               Start_Time         : Concorde.Calendar.Time;
                Start_Offset       : Unit_Real;
                Period             : Duration;
                Clockwise          : Boolean;

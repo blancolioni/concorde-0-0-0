@@ -1,6 +1,6 @@
 with WL.Handles;
 
-private with Concorde.Dates;
+private with Concorde.Calendar;
 
 package Concorde.Scripts is
 
@@ -19,7 +19,7 @@ private
 
    type Root_Script_Type is abstract tagged
       record
-         Last_Execution : Concorde.Dates.Date_Type;
+         Last_Execution : Concorde.Calendar.Time;
       end record;
 
    procedure Execute

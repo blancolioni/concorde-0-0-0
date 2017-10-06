@@ -1,4 +1,4 @@
-with Concorde.Dates;
+with Concorde.Calendar;
 with Concorde.Events;
 with Concorde.Objects;
 
@@ -21,7 +21,7 @@ private
       record
          Active : Boolean := True;
          Object : access constant Concorde.Objects.Root_Object_Type'Class;
-         Time   : Concorde.Dates.Date_Type;
+         Time   : Concorde.Calendar.Time;
       end record;
 
    type Object_Activated_Handler is

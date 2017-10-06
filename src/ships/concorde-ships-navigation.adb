@@ -12,7 +12,7 @@ package body Concorde.Ships.Navigation is
 
    function Journey_Time
      (Ship        : Concorde.Ships.Ship_Type;
-      Start_Time  : Concorde.Dates.Date_Type;
+      Start_Time  : Concorde.Calendar.Time;
       Destination : Concorde.Locations.Object_Location)
       return Duration
    is

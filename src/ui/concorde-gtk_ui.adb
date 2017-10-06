@@ -20,7 +20,7 @@ with Gtk.Tree_View_Column;
 with Gtk.Widget;
 with Gtk.Window;
 
-with Concorde.Dates;
+with Concorde.Calendar;
 with Concorde.Galaxy.Model;
 with Concorde.Paths;
 with Concorde.Updates;
@@ -46,7 +46,7 @@ package body Concorde.Gtk_UI is
          Status_Bar     : Gtk.Status_Bar.Gtk_Status_Bar;
          Status_Context : Gtk.Status_Bar.Context_Id;
          Current_Status : Ada.Strings.Unbounded.Unbounded_String;
-         Last_Date      : Concorde.Dates.Date_Type;
+         Last_Date      : Concorde.Calendar.Time;
       end record;
 
    type Concorde_UI_Access is access all Concorde_UI'Class;
@@ -216,8 +216,8 @@ package body Concorde.Gtk_UI is
    overriding procedure On_Idle
      (State : in out Concorde_UI)
    is
-      use Concorde.Dates;
-      Current : constant Date_Type := Current_Date;
+      use Concorde.Calendar;
+      Current : constant Time := Current_Date;
    begin
       if Current /= State.Last_Date then
          State.Date_Label.Set_Label (To_String (Current));
@@ -399,7 +399,7 @@ package body Concorde.Gtk_UI is
                            Info_Boxes     => Info_Boxes,
                            Property_List  => Property_List,
                            Date_Label     => Date_Label,
-                           Last_Date      => Concorde.Dates.Zero_Date,
+                           Last_Date      => Concorde.Calendar.Zero_Date,
                            Status_Bar     => Status_Bar,
                            Status_Context =>
                              Status_Bar.Get_Context_Id ("star mouseover"),

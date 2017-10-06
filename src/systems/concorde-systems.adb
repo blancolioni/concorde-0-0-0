@@ -78,7 +78,7 @@ package body Concorde.Systems is
    procedure Arriving
      (System : in out Root_Star_System_Type'Class;
       Ship   : Concorde.Ships.Ship_Type;
-      Time   : Concorde.Dates.Date_Type)
+      Time   : Concorde.Calendar.Time)
    is
       Event : Ship_Event;
    begin
@@ -97,7 +97,7 @@ package body Concorde.Systems is
       Size   : Positive)
    is
    begin
-      System.Last_Battle := Concorde.Dates.Current_Date;
+      System.Last_Battle := Concorde.Calendar.Clock;
       System.Battle_Size := Size;
    end Battle;
 
@@ -130,7 +130,7 @@ package body Concorde.Systems is
    procedure Departing
      (System : in out Root_Star_System_Type'Class;
       Ship   : Concorde.Ships.Ship_Type;
-      Time   : Concorde.Dates.Date_Type)
+      Time   : Concorde.Calendar.Time)
    is
       Event : Ship_Event;
    begin
@@ -247,7 +247,7 @@ package body Concorde.Systems is
 
    function Last_Battle
      (System : Root_Star_System_Type'Class)
-      return Concorde.Dates.Date_Type
+      return Concorde.Calendar.Time
    is
    begin
       return System.Last_Battle;

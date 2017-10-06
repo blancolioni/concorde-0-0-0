@@ -35,7 +35,7 @@ with Concorde.Locations;
 private with Concorde.Commodities.Lists;
 private with Concorde.Installations.Lists;
 private with Concorde.People.Pops.Lists;
-with Concorde.Dates;
+with Concorde.Calendar;
 
 package Concorde.Worlds is
 
@@ -424,7 +424,7 @@ private
 
    overriding function Location_At
      (World : Root_World_Type;
-      Time    : Concorde.Dates.Date_Type)
+      Time    : Concorde.Calendar.Time)
       return Concorde.Locations.Object_Location
    is (Concorde.Locations.Location_At (World.Location, Time));
 

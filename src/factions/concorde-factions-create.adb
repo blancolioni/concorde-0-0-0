@@ -3,7 +3,7 @@ with Ada.Text_IO;
 with Concorde.Random;
 with Concorde.Real_Images;
 
-with Concorde.Dates;
+with Concorde.Calendar;
 with Concorde.Objects.Queues;
 
 with Concorde.Galaxy;
@@ -92,11 +92,15 @@ package body Concorde.Factions.Create is
                Capital.Update.Add_Ship (Trader);
             end if;
 
-            Concorde.Objects.Queues.Next_Event
-              (Trader,
-               Concorde.Dates.Add_Seconds
-                 (Concorde.Dates.Current_Date,
-                  Concorde.Random.Unit_Random * 86_400.0));
+            declare
+               use Concorde.Calendar;
+            begin
+               Concorde.Objects.Queues.Next_Event
+                 (Trader,
+                  Concorde.Calendar.Clock
+                  + Duration (Concorde.Random.Unit_Random
+                    * Real (Concorde.Calendar.Day_Duration'Last)));
+            end;
 
             Trader.Log_Trade ("new trade ship");
          end;

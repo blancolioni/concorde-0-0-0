@@ -1,4 +1,4 @@
-with Concorde.Dates;
+with Concorde.Calendar;
 with Concorde.Objects.Queues;
 
 package body Concorde.Updates is
@@ -9,7 +9,7 @@ package body Concorde.Updates is
 
    procedure Advance (Interval : Duration) is
    begin
-      Concorde.Dates.Tick (Interval);
+      Concorde.Calendar.Advance (Interval);
       Concorde.Objects.Queues.Scan_Queue;
    end Advance;
 

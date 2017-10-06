@@ -662,6 +662,32 @@ package body Concorde.Ships is
       return Result;
    end Hold_Size;
 
+   -----------------
+   -- Location_At --
+   -----------------
+
+   overriding function Location_At
+     (Ship : Root_Ship_Type;
+      Time : Concorde.Calendar.Time)
+      return Concorde.Locations.Object_Location
+   is
+   begin
+      if Ship.Moving then
+         declare
+            use Concorde.Calendar;
+            Elapsed : constant Duration := Time - Ship.Start_Time;
+            Total   : constant Duration := Ship.Arrival_Time - Ship.Start_Time;
+         begin
+            return Concorde.Locations.Intermediate_Location
+              (Ship.Current_Location, Ship.Destination,
+               Real (Elapsed) / Real (Total));
+         end;
+      else
+         return Concorde.Locations.Location_At
+           (Ship.Current_Location, Time);
+      end if;
+   end Location_At;
+
    ---------------
    -- Long_Name --
    ---------------
@@ -765,7 +791,7 @@ package body Concorde.Ships is
      (Ship         : in out Root_Ship_Type'Class;
       World        : not null access constant
         Concorde.Worlds.Root_World_Type'Class;
-      Start_Time   : Concorde.Dates.Date_Type;
+      Start_Time   : Concorde.Calendar.Time;
       Journey_Time : Duration)
    is
    begin
@@ -781,10 +807,10 @@ package body Concorde.Ships is
    procedure Set_Destination
      (Ship         : in out Root_Ship_Type'Class;
       Destination  : Concorde.Locations.Object_Location;
-      Start_Time   : Concorde.Dates.Date_Type;
+      Start_Time   : Concorde.Calendar.Time;
       Journey_Time : Duration)
    is
-      use Concorde.Dates;
+      use Concorde.Calendar;
    begin
       Ship.Destination := Destination;
       Ship.Moving := True;
@@ -804,10 +830,10 @@ package body Concorde.Ships is
      (Ship         : in out Root_Ship_Type'Class;
       System       : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
-      Start_Time   : Concorde.Dates.Date_Type;
+      Start_Time   : Concorde.Calendar.Time;
       Journey_Time : Duration)
    is
-      use Concorde.Dates;
+      use Concorde.Calendar;
    begin
       Ship.Destination :=
         Concorde.Locations.System_Transfer_Orbit
@@ -975,7 +1001,7 @@ package body Concorde.Ships is
    ----------------
 
    function Ship_Event
-     (Time_Stamp : Concorde.Dates.Date_Type;
+     (Time_Stamp : Concorde.Calendar.Time;
       Ship       : not null access constant Root_Ship_Type'Class)
       return Root_Ship_Event'Class
    is

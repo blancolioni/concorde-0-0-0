@@ -1,6 +1,6 @@
 with Concorde.Signals.Standard;
 
-with Concorde.Dates;
+with Concorde.Calendar;
 with Concorde.Random;
 
 with Concorde.Objects.Queues;
@@ -130,10 +130,10 @@ package body Concorde.Managers.Ships is
    procedure Next_Waypoint
      (Manager : in out Root_Ship_Manager'Class)
    is
-      use Concorde.Dates;
+      use Concorde.Calendar;
       Waypoint : constant Journey_Element_Type :=
                    Manager.Journey.First_Element;
-      Departure    : constant Date_Type := Manager.Time;
+      Departure    : constant Time := Manager.Time;
       Journey_Time : Duration;
    begin
       Manager.Journey.Delete_First;
@@ -176,13 +176,13 @@ package body Concorde.Managers.Ships is
       end case;
 
       declare
-         Arrival      : constant Date_Type := Departure + Journey_Time;
+         Arrival      : constant Time := Departure + Journey_Time;
       begin
          Manager.Ship.Log_Movement
            ("journey time"
             & Natural'Image (Natural (Real (Journey_Time) / 3600.0 - 0.5))
             & " hours; arrival at "
-            & To_Date_And_Time_String (Arrival));
+            & Image (Arrival, Include_Time_Fraction => True));
 
          Concorde.Objects.Queues.Next_Event
            (Manager.Ship, Arrival,
@@ -225,7 +225,7 @@ package body Concorde.Managers.Ships is
       World   : not null access constant
         Concorde.Worlds.Root_World_Type'Class)
    is
-      use Concorde.Dates;
+      use Concorde.Calendar;
       use type Concorde.Systems.Star_System_Type;
       Target_System : constant Concorde.Systems.Star_System_Type :=
                         World.System;

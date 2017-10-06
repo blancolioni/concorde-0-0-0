@@ -23,8 +23,8 @@ package body Concorde.Objects.Queues is
       end record;
 
    package Object_Queues is
-     new WL.Heaps (Concorde.Dates.Date_Type, Queue_Element,
-                   "<" => Concorde.Dates.">");
+     new WL.Heaps (Concorde.Calendar.Time, Queue_Element,
+                   "<" => Concorde.Calendar.">");
 
    Queue : Object_Queues.Heap;
 
@@ -34,7 +34,7 @@ package body Concorde.Objects.Queues is
 
    procedure Next_Event
      (Object : not null access constant Root_Object_Type'Class;
-      Date   : Concorde.Dates.Date_Type)
+      Date   : Concorde.Calendar.Time)
    is
    begin
       Next_Event (Object, Date,
@@ -48,7 +48,7 @@ package body Concorde.Objects.Queues is
 
    procedure Next_Event
      (Object : not null access constant Root_Object_Type'Class;
-      Date   : Concorde.Dates.Date_Type;
+      Date   : Concorde.Calendar.Time;
       Signal : Concorde.Signals.Signal_Type;
       Event  : Concorde.Events.Root_Event_Type'Class)
    is
@@ -63,12 +63,45 @@ package body Concorde.Objects.Queues is
    end Next_Event;
 
    ----------------
+   -- Next_Event --
+   ----------------
+
+   procedure Next_Event
+     (Object       : not null access constant Root_Object_Type'Class;
+      Current_Date : Concorde.Calendar.Time;
+      Delay_Days   : Positive)
+   is
+      use Concorde.Calendar;
+   begin
+      Next_Event
+        (Object, Current_Date + Duration (Delay_Days) * Day_Duration'Last);
+   end Next_Event;
+
+   ----------------
+   -- Next_Event --
+   ----------------
+
+   procedure Next_Event
+     (Object       : not null access constant Root_Object_Type'Class;
+      Current_Date : Concorde.Calendar.Time;
+      Delay_Days   : Positive;
+      Signal       : Concorde.Signals.Signal_Type;
+      Event        : Concorde.Events.Root_Event_Type'Class)
+   is
+      use Concorde.Calendar;
+   begin
+      Next_Event
+        (Object, Current_Date + Duration (Delay_Days) * Day_Duration'Last,
+         Signal, Event);
+   end Next_Event;
+
+   ----------------
    -- Scan_Queue --
    ----------------
 
    procedure Scan_Queue is
-      use Concorde.Dates;
-      Now : constant Date_Type := Concorde.Dates.Current_Date;
+      use Concorde.Calendar;
+      Now : constant Time := Concorde.Calendar.Clock;
    begin
       while not Queue.Is_Empty
         and then Queue.Maximum_Key <= Now

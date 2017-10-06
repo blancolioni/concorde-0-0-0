@@ -59,12 +59,12 @@ package body Concorde.Managers.Pops is
    begin
       Manager.Pop.Log_Trade
         ("activated at "
-         & Concorde.Dates.To_Date_And_Time_String
-           (Manager.Time));
+         & Concorde.Calendar.Image
+           (Manager.Time, True));
       Manager.Pop.Add_Trade_Offers;
       Manager.Pop.Update.Execute_Consumption;
       Concorde.Objects.Queues.Next_Event
-        (Manager.Pop, Concorde.Dates.Add_Days (Manager.Time, 1));
+        (Manager.Pop, Manager.Time, Delay_Days => 1);
    end On_Activated;
 
 end Concorde.Managers.Pops;

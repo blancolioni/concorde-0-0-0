@@ -1,10 +1,10 @@
-with Ada.Containers.Vectors;
+with Ada.Containers.Ordered_Maps;
 
 with Memor.Element_Vectors;
 
 package body Concorde.Factions.History is
 
-   use Concorde.Dates;
+   use Concorde.Calendar;
 
    type Metric_Record is
      array (Historical_Metric) of Real;
@@ -13,19 +13,21 @@ package body Concorde.Factions.History is
      new Memor.Element_Vectors
        (Root_Faction_Type, Metric_Record, (others => 0.0));
 
-   package History_Vectors is
-     new Ada.Containers.Vectors
-       (Day_Index, History_Record_Vectors.Vector,
-        History_Record_Vectors."=");
+   package History_Maps is
+     new Ada.Containers.Ordered_Maps
+       (Key_Type     => Concorde.Calendar.Time,
+        Element_Type => History_Record_Vectors.Vector,
+        "<"          => Concorde.Calendar."<",
+        "="          => History_Record_Vectors."=");
 
-   History : History_Vectors.Vector;
+   History : History_Maps.Map;
 
    ----------------
    -- Get_Metric --
    ----------------
 
    function Get_Metric
-     (Date   : Concorde.Dates.Day_Index;
+     (Date   : Concorde.Calendar.Time;
       Metric : Historical_Metric;
       Faction : Faction_Type)
       return Real
@@ -61,7 +63,7 @@ package body Concorde.Factions.History is
 
    begin
       Db.Scan (Update'Access);
-      History.Append (R);
+      History.Insert (Clock - Seconds (Clock), R);
 
    end Update_History;
 

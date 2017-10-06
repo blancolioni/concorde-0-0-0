@@ -3,7 +3,7 @@ with Concorde.Objects.Queues;
 with Concorde.Managers.Pops;
 
 with Concorde.Random;
-with Concorde.Dates;
+with Concorde.Calendar;
 
 package body Concorde.People.Pops.Create is
 
@@ -41,15 +41,16 @@ package body Concorde.People.Pops.Create is
                               Pop.Size_Quantity));
       end Create;
 
+      use type Concorde.Calendar.Time;
+
    begin
       return Pop : constant Pop_Type := Db.Create (Create'Access) do
          Pop.Save_Agent;
          Concorde.Managers.Pops.Create_Manager (Pop).Activate;
          Concorde.Objects.Queues.Next_Event
            (Pop,
-            Concorde.Dates.Add_Seconds
-              (Concorde.Dates.Current_Date,
-               Concorde.Random.Unit_Random * 86_400.0));
+            Concorde.Calendar.Clock
+            + Duration (Concorde.Random.Unit_Random * 86_400.0));
          Pop.Log_Trade ("created: skill quantity = "
                         & Concorde.Quantities.Image
                           (Pop.Get_Quantity (Skill.Commodity)));

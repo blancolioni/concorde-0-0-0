@@ -121,9 +121,13 @@ package body Concorde.Worlds is
      (World : Root_World_Type'Class)
       return Concorde.Geometry.Radians
    is
+      use Concorde.Calendar;
+      Cycle_Count   : Natural;
+      Partial_Cycle : Duration;
    begin
+      Split (Clock, Duration (World.Day_Length), Cycle_Count, Partial_Cycle);
       return Concorde.Geometry.Degrees_To_Radians
-        (360.0 * Concorde.Dates.Elapsed_Seconds / World.Day_Length);
+        (360.0 * Non_Negative_Real (Partial_Cycle) / World.Day_Length);
    end Current_Local_Time;
 
    ----------------

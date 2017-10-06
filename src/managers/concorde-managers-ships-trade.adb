@@ -28,7 +28,7 @@ package body Concorde.Managers.Ships.Trade is
       Destination_Market : Concorde.Markets.Market_Type;
       Space              : in out Concorde.Quantities.Quantity_Type)
    is
-      use Concorde.Dates;
+      use Concorde.Calendar;
       use Concorde.Money;
       use Concorde.Quantities;
       Local_Demand : constant Quantity_Type :=
@@ -38,13 +38,11 @@ package body Concorde.Managers.Ships.Trade is
                        Current_Market.Get_Daily_Quantity
                          (Commodity, Concorde.Trades.Local_Supply, 7);
       Next_Demand  : constant Quantity_Type :=
-                       Destination_Market.Get_Quantity
-                         (Commodity, Concorde.Trades.Local_Demand,
-                          Add_Days (Manager.Time, -7), Manager.Time);
+                       Destination_Market.Get_Daily_Quantity
+                         (Commodity, Concorde.Trades.Local_Demand, 7);
       Next_Supply  : constant Quantity_Type :=
-                       Destination_Market.Get_Quantity
-                         (Commodity, Concorde.Trades.Local_Supply,
-                          Add_Days (Manager.Time, -7), Manager.Time);
+                       Destination_Market.Get_Daily_Quantity
+                         (Commodity, Concorde.Trades.Local_Supply, 7);
       Local_Price  : constant Price_Type :=
                        Current_Market.Current_Price (Commodity);
       Next_Price   : constant Price_Type :=
@@ -214,7 +212,7 @@ package body Concorde.Managers.Ships.Trade is
 
       Manager.Ship.Log_Trade
         ("activated at "
-         & Concorde.Dates.To_Date_And_Time_String (Manager.Time)
+         & Concorde.Calendar.Image (Manager.Time, True)
          & "; state = " & Manager.State'Img
          & "; trading from " & From_World.Name & " to " & To_World.Name);
 
@@ -246,8 +244,12 @@ package body Concorde.Managers.Ships.Trade is
       end case;
 
       if Manager.State /= Moving then
-         Concorde.Objects.Queues.Next_Event
-           (Manager.Ship, Concorde.Dates.Add_Days (Manager.Time, 1));
+         declare
+            use type Concorde.Calendar.Time;
+         begin
+            Concorde.Objects.Queues.Next_Event
+              (Manager.Ship, Manager.Time + 86_400.0);
+         end;
       end if;
    end On_Idle;
 

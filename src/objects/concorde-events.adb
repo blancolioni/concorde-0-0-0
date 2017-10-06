@@ -6,7 +6,7 @@ package body Concorde.Events is
 
    procedure Set_Time_Stamp
      (Event      : in out Root_Event_Type'Class;
-      Time_Stamp : Concorde.Dates.Date_Type)
+      Time_Stamp : Concorde.Calendar.Time)
    is
    begin
       Event.Time_Stamp := Time_Stamp;

@@ -1,6 +1,6 @@
 with Ada.Text_IO;
 
-with Concorde.Dates;
+with Concorde.Calendar;
 
 package body Concorde.Agents.Reports is
 
@@ -29,7 +29,7 @@ package body Concorde.Agents.Reports is
       New_Line;
 
       for Transaction of Agent.Account loop
-         Put (Concorde.Dates.To_String (Transaction.Date));
+         Put (Concorde.Calendar.Image (Transaction.Date));
          Set_Col (12);
          case Transaction.Entry_Type is
             when Concorde.Trades.Bid =>

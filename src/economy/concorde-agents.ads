@@ -4,7 +4,7 @@ private with WL.String_Maps;
 
 private with Memor.Element_Vectors;
 
-with Concorde.Dates;
+with Concorde.Calendar;
 with Concorde.Money;
 with Concorde.Quantities;
 
@@ -91,7 +91,7 @@ package Concorde.Agents is
 
    overriding function Location_At
      (Agent : Root_Agent_Type;
-      Time  : Concorde.Dates.Date_Type)
+      Time  : Concorde.Calendar.Time)
       return Concorde.Locations.Object_Location
    is (Root_Agent_Type'Class (Agent).Current_Location);
 
@@ -253,7 +253,7 @@ private
 
    type Account_Entry is
       record
-         Date       : Concorde.Dates.Date_Type;
+         Date       : Concorde.Calendar.Time;
          Item       : Concorde.Commodities.Commodity_Type;
          Entry_Type : Concorde.Trades.Offer_Type;
          Quantity   : Concorde.Quantities.Quantity_Type;

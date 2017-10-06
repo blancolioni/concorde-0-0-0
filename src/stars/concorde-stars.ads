@@ -11,7 +11,7 @@ with Concorde.Commodities;
 
 private with Concorde.Geometry;
 with Concorde.Locations;
-with Concorde.Dates;
+with Concorde.Calendar;
 
 package Concorde.Stars is
 
@@ -105,7 +105,7 @@ private
 
    overriding function Location_At
      (Star : Root_Star_Type;
-      Time    : Concorde.Dates.Date_Type)
+      Time    : Concorde.Calendar.Time)
       return Concorde.Locations.Object_Location
    is (Concorde.Locations.Location_At (Star.Location, Time));
 

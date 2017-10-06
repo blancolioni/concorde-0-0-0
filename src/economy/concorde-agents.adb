@@ -479,7 +479,7 @@ package body Concorde.Agents is
       end case;
 
       Root_Agent_Type'Class (Agent.all).Variable_Reference.Account.Append
-        ((Date       => Concorde.Dates.Current_Date,
+        ((Date       => Concorde.Calendar.Clock,
           Item       => Commodity,
           Entry_Type => Offer,
           Quantity   => Quantity,

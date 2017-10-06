@@ -5,7 +5,7 @@ private with WL.Heaps;
 private with Memor.Database;
 private with Memor.Element_Vectors;
 
-with Concorde.Dates;
+with Concorde.Calendar;
 with Concorde.Objects;
 
 with Concorde.Money;
@@ -84,7 +84,7 @@ private
 
    type Historical_Quantity_Record is
       record
-         Date       : Concorde.Dates.Date_Type;
+         Date       : Concorde.Calendar.Time;
          Quantities : Quantity_Metric_Array :=
                         (others => Concorde.Quantities.Zero);
       end record;
@@ -180,8 +180,8 @@ private
      (Market    : Root_Market_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
       Metric    : Concorde.Trades.Trade_Metric;
-      Start     : Concorde.Dates.Date_Type;
-      Finish    : Concorde.Dates.Date_Type)
+      Start     : Concorde.Calendar.Time;
+      Finish    : Concorde.Calendar.Time)
       return Concorde.Quantities.Quantity_Type;
 
    procedure Check_Commodity

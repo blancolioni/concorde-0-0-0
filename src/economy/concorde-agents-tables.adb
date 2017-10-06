@@ -65,7 +65,7 @@ package body Concorde.Agents.Tables is
    begin
       case Account_Table_Column (Column) is
          when 1 =>
-            return Concorde.Dates.To_String (Data.Date);
+            return Concorde.Calendar.To_String (Data.Date);
          when 2 =>
             case Data.Entry_Type is
                when Concorde.Trades.Buy =>

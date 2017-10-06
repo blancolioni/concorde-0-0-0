@@ -22,7 +22,7 @@ with Concorde.Trades;
 with Concorde.Quantities;
 
 private with Newton;
-with Concorde.Dates;
+with Concorde.Calendar;
 
 with Concorde.Events;
 
@@ -63,20 +63,20 @@ package Concorde.Ships is
      (Ship         : in out Root_Ship_Type'Class;
       World        : not null access constant
         Concorde.Worlds.Root_World_Type'Class;
-      Start_Time   : Concorde.Dates.Date_Type;
+      Start_Time   : Concorde.Calendar.Time;
       Journey_Time : Duration);
 
    procedure Set_Destination
      (Ship         : in out Root_Ship_Type'Class;
       Destination  : Concorde.Locations.Object_Location;
-      Start_Time   : Concorde.Dates.Date_Type;
+      Start_Time   : Concorde.Calendar.Time;
       Journey_Time : Duration);
 
    procedure Set_Jump_Destination
      (Ship         : in out Root_Ship_Type'Class;
       System       : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
-      Start_Time   : Concorde.Dates.Date_Type;
+      Start_Time   : Concorde.Calendar.Time;
       Journey_Time : Duration);
 
    procedure Clear_Destination
@@ -222,7 +222,7 @@ package Concorde.Ships is
      new Concorde.Events.Root_Event_Type with private;
 
    function Ship_Event
-     (Time_Stamp : Concorde.Dates.Date_Type;
+     (Time_Stamp : Concorde.Calendar.Time;
       Ship       : not null access constant Root_Ship_Type'Class)
       return Root_Ship_Event'Class;
 
@@ -281,8 +281,8 @@ private
          Owner                 : access constant
            Concorde.Factions.Root_Faction_Type'Class;
          Destination           : Concorde.Locations.Object_Location;
-         Start_Time            : Concorde.Dates.Date_Type;
-         Arrival_Time          : Concorde.Dates.Date_Type;
+         Start_Time            : Concorde.Calendar.Time;
+         Arrival_Time          : Concorde.Calendar.Time;
          Moving                : Boolean := False;
          Jumping               : Boolean := False;
          Cycle_Orders          : Boolean := False;
@@ -342,14 +342,8 @@ private
 
    overriding function Location_At
      (Ship : Root_Ship_Type;
-      Time : Concorde.Dates.Date_Type)
-      return Concorde.Locations.Object_Location
-   is (if Ship.Moving
-       then Concorde.Locations.Intermediate_Location
-         (Ship.Current_Location, Ship.Destination,
-          Concorde.Dates.Relative_Time
-            (Ship.Start_Time, Ship.Arrival_Time, Time))
-       else Ship.Current_Location);
+      Time : Concorde.Calendar.Time)
+      return Concorde.Locations.Object_Location;
 
    overriding function Offer_Strategy
      (Ship : Root_Ship_Type;

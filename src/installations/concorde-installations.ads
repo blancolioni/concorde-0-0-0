@@ -15,7 +15,7 @@ with Concorde.People.Skills;
 
 with Concorde.People.Pops;
 
-with Concorde.Dates;
+with Concorde.Calendar;
 with Concorde.Money;
 with Concorde.Quantities;
 with Concorde.Commodities;
@@ -86,7 +86,7 @@ private
 
    type Queued_Production_Element is
       record
-         Done   : Concorde.Dates.Date_Type;
+         Done   : Concorde.Calendar.Time;
          Size   : Concorde.Quantities.Quantity_Type;
          Output : Concorde.Commodities.Commodity_Type;
       end record;

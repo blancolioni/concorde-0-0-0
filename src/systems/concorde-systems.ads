@@ -13,7 +13,7 @@ limited with Concorde.Factions;
 with Concorde.Geometry;
 with Concorde.Quantities;
 
-with Concorde.Dates;
+with Concorde.Calendar;
 with Concorde.Locations;
 with Concorde.Objects;
 with Concorde.Ships;
@@ -159,12 +159,12 @@ package Concorde.Systems is
    procedure Arriving
      (System : in out Root_Star_System_Type'Class;
       Ship   : Concorde.Ships.Ship_Type;
-      Time   : Concorde.Dates.Date_Type);
+      Time   : Concorde.Calendar.Time);
 
    procedure Departing
      (System : in out Root_Star_System_Type'Class;
       Ship   : Concorde.Ships.Ship_Type;
-      Time   : Concorde.Dates.Date_Type);
+      Time   : Concorde.Calendar.Time);
 
    procedure Clear_Ship_Movement
      (System : in out Root_Star_System_Type'Class);
@@ -184,7 +184,7 @@ package Concorde.Systems is
       Result    : in out Concorde.Ships.Lists.List);
 
    function Last_Battle (System : Root_Star_System_Type'Class)
-                         return Concorde.Dates.Date_Type;
+                         return Concorde.Calendar.Time;
 
    function Last_Battle_Size
      (System : Root_Star_System_Type'Class)
@@ -299,7 +299,7 @@ private
          Objects        : System_Object_Lists.List;
          Ships          : Concorde.Ships.Lists.List;
          Capital        : Boolean := False;
-         Last_Battle    : Concorde.Dates.Date_Type := Concorde.Dates.Zero_Date;
+         Last_Battle    : Concorde.Calendar.Time;
          Battle_Size    : Natural := 0;
          Last_Attacker  : Star_System_Type := null;
          Owner          : access constant

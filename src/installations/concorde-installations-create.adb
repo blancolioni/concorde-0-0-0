@@ -1,4 +1,4 @@
-with Concorde.Dates;
+with Concorde.Calendar;
 with Concorde.Random;
 with Concorde.Quantities;
 
@@ -21,6 +21,8 @@ package body Concorde.Installations.Create is
         Concorde.Agents.Root_Agent_Type'Class)
       return Installation_Type
    is
+
+      use type Concorde.Calendar.Time;
 
       procedure Initialise
         (Installation : in out Root_Installation_Type'Class);
@@ -53,9 +55,8 @@ package body Concorde.Installations.Create is
            (Installation).Activate;
          Concorde.Objects.Queues.Next_Event
            (Installation,
-            Concorde.Dates.Add_Seconds
-              (Concorde.Dates.Current_Date,
-               Concorde.Random.Unit_Random * 86_400.0));
+            Concorde.Calendar.Clock
+            + Duration (Concorde.Random.Unit_Random * 86_400.0));
       end return;
    end Create;
 

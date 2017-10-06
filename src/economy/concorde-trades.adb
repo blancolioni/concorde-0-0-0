@@ -11,12 +11,11 @@ package body Concorde.Trades is
       Days     : Positive := 1)
       return Concorde.Quantities.Quantity_Type
    is
+      use Concorde.Calendar;
       use Concorde.Quantities;
-      Finish_Date : constant Concorde.Dates.Date_Type :=
-                      Concorde.Dates.Current_Date;
-      Start_Date  : constant Concorde.Dates.Date_Type :=
-                     Concorde.Dates.Add_Days
-                        (Finish_Date, -Days);
+      Finish_Date : constant Time := Clock;
+      Start_Date  : constant Time :=
+                      Finish_Date - Day_Duration'Last * Duration (Days);
       Result : constant Concorde.Quantities.Quantity_Type :=
                       Trade.Get_Quantity (Item, Metric,
                                           Start_Date, Finish_Date);

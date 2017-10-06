@@ -1,5 +1,5 @@
 with Concorde.Commodities;
-with Concorde.Dates;
+with Concorde.Calendar;
 with Concorde.Money;
 with Concorde.Quantities;
 
@@ -28,8 +28,8 @@ package Concorde.Trades is
      (Trade    : Trade_Interface;
       Item     : Concorde.Commodities.Commodity_Type;
       Metric   : Trade_Metric;
-      Start    : Concorde.Dates.Date_Type;
-      Finish   : Concorde.Dates.Date_Type)
+      Start    : Concorde.Calendar.Time;
+      Finish   : Concorde.Calendar.Time)
       return Concorde.Quantities.Quantity_Type
       is abstract;
 
