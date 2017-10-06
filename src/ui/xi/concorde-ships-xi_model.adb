@@ -570,9 +570,10 @@ package body Concorde.Ships.Xi_Model is
    --------------------------
 
    procedure Update_Ship_Position
-     (Ship        : Active_Ship;
-      Relative_To : Xi.Matrices.Vector_3;
-      Camera      : Xi.Camera.Xi_Camera)
+     (Ship          : Active_Ship;
+      Relative_To   : Xi.Matrices.Vector_3;
+      Camera        : Xi.Camera.Xi_Camera;
+      Show_Selector : Boolean)
    is
       use Xi;
       use Xi.Float_Arrays;
@@ -607,6 +608,7 @@ package body Concorde.Ships.Xi_Model is
          end if;
 
          Ship.Selector.Set_Position (0.5 * Node_Position);
+         Ship.Selector.Set_Visible (Show_Selector);
       end;
    end Update_Ship_Position;
 

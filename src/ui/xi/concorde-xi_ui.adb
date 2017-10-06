@@ -270,7 +270,7 @@ package body Concorde.Xi_UI is
          return;
       end if;
 
-      Concorde.Updates.Advance (4.0 * 3600.0 * Time_Delta);
+      Concorde.Updates.Advance (24.0 * 3600.0 * Time_Delta);
 
       if Model.Active then
          if Model.Frame_Count = 0 then

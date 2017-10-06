@@ -39,10 +39,21 @@ package body Concorde.Systems.Xi_Model is
        (Concorde.Ships.Xi_Model.Active_Ship,
         Concorde.Ships.Xi_Model."=");
 
+   type Rendered_World is
+      record
+         World         : Concorde.Worlds.World_Type;
+         Node          : Xi.Node.Xi_Node;
+         Selector_Node : Xi.Node.Xi_Node;
+      end record;
+
+   package Rendered_World_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Rendered_World);
+
    type Root_System_Model is
      new Concorde.Xi_UI.Root_Xi_Model with
       record
          System            : Star_System_Type;
+         Worlds            : Rendered_World_Lists.List;
          Ships             : Rendered_Ship_Lists.List;
          Selected_Ship     : Concorde.Ships.Ship_Type;
          System_Node       : Xi.Node.Xi_Node;
@@ -158,12 +169,23 @@ package body Concorde.Systems.Xi_Model is
       use type Concorde.Ships.Ship_Type;
    begin
       Concorde.Xi_UI.Root_Xi_Model (Model).On_Frame_Start (Time_Delta);
+      for Rendered_World of Model.Worlds loop
+         Rendered_World.Node.Set_Position
+           (Rendered_World.World.System_Relative_Position);
+         Rendered_World.Selector_Node.Set_Position
+           (Rendered_World.World.System_Relative_Position);
+      end loop;
+
       for Rendered_Ship of Model.Ships loop
          Concorde.Ships.Xi_Model.Update_Ship_Position
            (Rendered_Ship, (0.0, 0.0, 0.0),
-            Model.Scene.Active_Camera);
+            Model.Scene.Active_Camera, False);
       end loop;
    end On_Frame_Start;
+
+   ---------------
+   -- On_Select --
+   ---------------
 
    overriding procedure On_Select
      (Handler : System_Ship_Selector)
@@ -425,6 +447,7 @@ package body Concorde.Systems.Xi_Model is
                                  Selector);
          begin
             Selector_Node.Append_Child (Node);
+            Model.Worlds.Append ((World, World_Node, Node));
          end;
 
          World.Get_Ships (Ships);
