@@ -57,7 +57,6 @@ package body Concorde.Systems.Xi_Model is
          Ships             : Rendered_Ship_Lists.List;
          Selected_Ship     : Concorde.Ships.Ship_Type;
          System_Node       : Xi.Node.Xi_Node;
-         Ships_Node        : Xi.Node.Xi_Node;
          Arrival_Handler   : access
            Concorde.Objects.Object_Handler_Interface'Class;
          Departure_Handler : access
@@ -238,14 +237,14 @@ package body Concorde.Systems.Xi_Model is
       use Xi;
       use Concorde.Ships.Xi_Model;
       Pos           : constant Newton.Vector_3 :=
-                        Ship.Primary_Relative_Position;
+                        Ship.System_Relative_Position;
       Selector      : constant Concorde.Xi_UI.Select_Handler :=
                         new System_Ship_Selector'
                           (Model => Handler.Model,
                            Ship  => Concorde.Ships.Ship_Type (Ship));
       Selector_Node : constant Xi.Node.Xi_Node :=
                         Concorde.Xi_UI.Selector_With_Text
-                          (Handler.Model.Ships_Node, Ship.Name,
+                          (Handler.Model.System_Node, Ship.Name,
                            Xi_Float (Pos (1)),
                            Xi_Float (Pos (2)),
                            Xi_Float (Pos (3)),
@@ -257,7 +256,7 @@ package body Concorde.Systems.Xi_Model is
         (Concorde.Ships.Xi_Model.Activate_Ship
            (Ship     => Concorde.Ships.Ship_Type (Ship),
             Scene    => Handler.Model.Scene,
-            Primary  => Handler.Model.Ships_Node,
+            Primary  => Handler.Model.System_Node,
             Selector => Selector_Node));
    end On_Ship_Event;
 
@@ -295,8 +294,6 @@ package body Concorde.Systems.Xi_Model is
          Model.Initialize (Target);
          Model.System := System;
          Model.Set_Scene (System_Scene (Model, System, Target.Full_Viewport));
-         Model.System_Node :=
-           Model.Scene.Get_Node (System.Identifier);
 
          declare
             use Concorde.Systems.Events;
@@ -309,6 +306,7 @@ package body Concorde.Systems.Xi_Model is
               (System,
                Signal_Ship_Departed,
                Departing);
+            Model.Departure_Handler := Departing;
          end;
 
          declare
@@ -322,6 +320,7 @@ package body Concorde.Systems.Xi_Model is
               (System,
                Signal_Ship_Arrived,
                Arriving);
+            Model.Arrival_Handler := Arriving;
          end;
 
          System_Models.Insert (System.Identifier, Model);
@@ -498,6 +497,8 @@ package body Concorde.Systems.Xi_Model is
       for Object of System.Objects loop
          Create_Node (Object.Object);
       end loop;
+
+      Model.System_Node := System_Node;
 
       Camera.Set_Position (0.0, 0.0, Camera_Start_Far / 5.0);
       Camera.Set_Orientation (0.0, 0.0, 1.0, 0.0);
