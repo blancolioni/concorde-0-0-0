@@ -1,5 +1,4 @@
-with Ada.Text_IO;
-
+with WL.Command_Line;
 with WL.Processes;
 with WL.Random.Names;
 with WL.Work;
@@ -43,13 +42,10 @@ procedure Concorde.Driver is
 
    Name_Generator : WL.Random.Names.Name_Generator;
 
-   Start_First_World : constant Boolean := True;
-   Interface_Name    : constant String :=
-                         Concorde.Options.Interface_Name;
-   Use_Gtk           : constant Boolean := Interface_Name = "gtk";
-   Use_Xi            : constant Boolean := Interface_Name = "xi";
-
 begin
+
+   WL.Command_Line.Load_Defaults
+     (Concorde.Paths.Config_File ("options.txt"));
 
    Memor.Locking (False);
    WL.Work.Set_Task_Count (Concorde.Options.Work_Threads);
@@ -75,17 +71,21 @@ begin
 
       else
          declare
+            use Xi;
             use type Concorde.Galaxy.Create.Galaxy_Shape;
             Shape : constant Concorde.Galaxy.Create.Galaxy_Shape :=
                       Concorde.Galaxy.Create.Galaxy_Shape'Value
                         (Concorde.Options.Galaxy_Shape);
          begin
             Concorde.Galaxy.Create.Create_Galaxy
-              (System_Count        => Concorde.Options.Number_Of_Systems,
+              (System_Count        => Concorde.Options.System_Count,
                Shape               => Shape,
-               DX                  => Concorde.Options.System_X_Deviation,
-               DY                  => Concorde.Options.System_Y_Deviation,
-               DZ                  => Concorde.Options.System_Z_Deviation,
+               DX                  =>
+                 Xi_Float (Concorde.Options.System_X_Deviation) / 100.0,
+               DY                  =>
+                 Xi_Float (Concorde.Options.System_Y_Deviation) / 100.0,
+               DZ                  =>
+                 Xi_Float (Concorde.Options.System_Z_Deviation) / 100.0,
                Average_Connections => Concorde.Options.Average_Connections,
                Name_Generator      => Name_Generator);
          end;
@@ -93,7 +93,7 @@ begin
 
       if Concorde.Options.Create_Factions then
          Concorde.Factions.Configure.Create_Factions
-           (Count => Concorde.Options.Number_Of_Factions);
+           (Count => Concorde.Options.Faction_Count);
 
          if Concorde.Options.Enable_Faction_Logging then
             Concorde.Factions.Logging.Start_Logging;
@@ -109,7 +109,7 @@ begin
       declare
          Process : WL.Processes.Process_Type;
          Update_Count : constant Natural :=
-                      Concorde.Options.Number_Of_Updates * 24 * 60;
+                      Concorde.Options.Update_Count * 24 * 60;
       begin
          Process.Start_Percentage
            ("Updating",
@@ -126,62 +126,51 @@ begin
 
    else
 
-      if Use_Gtk then
-         null;
-         --  Concorde.Gtk_UI.Start;
-      elsif Use_Xi then
+      declare
+         Window : Xi.Render_Window.Xi_Render_Window;
+      begin
+
+         Xi.Main.Init;
+         Xi.Assets.Add_Search_Path
+           (Concorde.Paths.Config_Path);
+
+         Xi.Assets.Add_Image_Path
+           (Concorde.Paths.Config_Path);
+
+         Concorde.Xi_UI.Key_Bindings.Load_Key_Bindings;
+
+         Xi.Shader.Load.Add_Search_Path
+           (Concorde.Paths.Config_File ("shaders"));
+
+         Xtk.Initialize;
+
+         Window :=
+           Xi.Main.Current_Renderer.Create_Top_Level_Window;
+
+         --            Window.Set_Full_Screen (True);
+
+         Concorde.Xi_UI.Load_UI
+           (Window, Concorde.Paths.Config_File ("html/main.html"));
 
          declare
-            Window : Xi.Render_Window.Xi_Render_Window;
+            Model : Concorde.Xi_UI.Xi_Model;
          begin
+            if Concorde.Options.Start_With_Galaxy then
+               Model :=
+                 Concorde.Xi_UI.Model_Manager.Model (null, Window);
+            else
+               Model :=
+                 Concorde.Xi_UI.Model_Manager.Model
+                   (Concorde.Galaxy.Capital_World, Window);
+            end if;
 
-            Xi.Main.Init;
-            Xi.Assets.Add_Search_Path
-              (Concorde.Paths.Config_Path);
-
-            Xi.Assets.Add_Image_Path
-              (Concorde.Paths.Config_Path);
-
-            Concorde.Xi_UI.Key_Bindings.Load_Key_Bindings;
-
-            Xi.Shader.Load.Add_Search_Path
-              (Concorde.Paths.Config_File ("shaders"));
-
-            Xtk.Initialize;
-
-            Window :=
-              Xi.Main.Current_Renderer.Create_Top_Level_Window;
-
---            Window.Set_Full_Screen (True);
-
-            Concorde.Xi_UI.Load_UI
-              (Window, Concorde.Paths.Config_File ("html/main.html"));
-
-            declare
-               Model : Concorde.Xi_UI.Xi_Model;
-            begin
-               if Start_First_World then
-                  Model :=
-                    Concorde.Xi_UI.Model_Manager.Model
-                      (Concorde.Galaxy.Capital_World, Window);
-               else
-                  Model :=
-                    Concorde.Xi_UI.Model_Manager.Model (null, Window);
-               end if;
-
-               Model.Activate;
-
-            end;
-
-            Xi.Main.Main_Loop;
+            Model.Activate;
 
          end;
 
-      else
-         Ada.Text_IO.Put_Line
-           (Ada.Text_IO.Standard_Error,
-            "unknown interface: " & Interface_Name);
-      end if;
+         Xi.Main.Main_Loop;
+
+      end;
 
    end if;
 

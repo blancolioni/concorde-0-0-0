@@ -1,41 +1,30 @@
 scenario = fading-suns
-interface = xi
-
+display-language = english
 randomise = no
-create_voronoi = no
-
-faction_count = 3
-system_count = 100
-
-create_galaxy = yes
-create_factions = yes
-
-galaxy_shape = sphere
-galaxy_sub_shape = archimedes
-system_x_deviation = 0.018
-system_y_deviation = 0.018
-system_z_deviation = 0.02
-
-average_connections = 4
-detailed_battle_logging = no
-faction_logging = yes
-market_logging = yes
-minimum_battle_size = 6
-
+create-voronoi = no
+faction-count = 3
+system-count = 100
+create-galaxy = yes
+create-factions = yes
+galaxy-shape = sphere
+galaxy-sub-shape = archimedes
+system-x-deviation = 2
+system-y-deviation = 2
+system-z-deviation = 2
+average-connections = 4
+detailed-battle-logging = no
+faction-logging = yes
+market-logging = yes
+minimum-battle-size = 6
 console = no
 update-count = 40
-
-show_capital_names = yes
-show_system_names = no
-
-check_invariants = yes
-battle_screen = yes
-
-test_battle = no
-
-world_detail_factor = 5   # ratio of coarse sector size to detail sector size
-world_sector_size = 1000  # size of sector in world map, in kilometres
-
-display_language = english
-
+show-capital-names = yes
+show-system-names = no
+check-invariants = yes
+battle-screen = yes
+test-battle = no
+world-detail-factor = 5   # ratio of coarse sector size to detail sector size
+world-sector-size = 1000  # size of sector in world map, in kilometres
+world-height-smoothing = 5
 write-accounts = yes
+work-threads = 2

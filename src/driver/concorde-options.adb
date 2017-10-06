@@ -1,506 +1,181 @@
-with Ada.Command_Line;
-with Ada.Strings.Fixed;
-
-with Tropos.Reader;
-with Concorde.Paths;
+with WL.Command_Line;
 
 package body Concorde.Options is
 
-   Option_Config : Tropos.Configuration;
-   Got_Config    : Boolean := False;
-
-   function With_Underscores (S : String) return String;
-
-   procedure Load_Options;
-
-   function String_Value
-     (Long_Name  : String;
-      Short_Name : Character := Character'Val (0);
-      Default    : String := "")
-      return String;
-
-   function Integer_Value
-     (Long_Name  : String;
-      Short_Name : Character := Character'Val (0);
-      Default    : Integer := 0)
-      return Integer;
-
-   function Real_Value
-     (Long_Name  : String;
-      Short_Name : Character := Character'Val (0);
-      Default    : Real := 0.0)
-      return Real;
-
-   -------------------------
-   -- Average_Connections --
-   -------------------------
-
-   function Average_Connections return Positive is
-   begin
-      return Integer_Value ("average_connections", 'x');
-   end Average_Connections;
-
-   -------------------
-   -- Boolean_Value --
-   -------------------
-
-   function Boolean_Value
-     (Long_Name  : String;
-      Short_Name : Character := Character'Val (0);
-      Default    : Boolean := False)
-      return Boolean
-   is
-      use Ada.Strings.Fixed;
-   begin
-      for I in 1 .. Ada.Command_Line.Argument_Count loop
-         declare
-            Argument : constant String :=
-                         Ada.Command_Line.Argument (I);
-         begin
-            if Argument'Length > 2
-              and then Argument (1 .. 2) = "--"
-              and then Index (Argument, "=") = 0
-              and then Argument (3 .. Argument'Last) = Long_Name
-            then
-               return True;
-            elsif Argument'Length > 5
-              and then Argument (1 .. 5) = "--no-"
-              and then Index (Argument, "=") = 0
-              and then Argument (6 .. Argument'Last) = Long_Name
-            then
-               return False;
-            elsif Short_Name /= Character'Val (0)
-              and then Argument (1) = '-'
-              and then Argument'Length > 1
-              and then Argument (2) /= '-'
-            then
-               for J in 2 .. Argument'Last loop
-                  if Argument (J) = Short_Name then
-                     return not Default;
-                  end if;
-               end loop;
-            end if;
-         end;
-      end loop;
-
-      Load_Options;
-
-      if Option_Config.Contains (Long_Name) then
-         return Option_Config.Get (Long_Name);
-      elsif Option_Config.Contains (With_Underscores (Long_Name)) then
-         return Option_Config.Get (With_Underscores (Long_Name));
-      else
-         return Default;
-      end if;
-
-   end Boolean_Value;
-
-   ----------------------
-   -- Check_Invariants --
-   ----------------------
-
-   function Check_Invariants return Boolean is
-   begin
-      return Boolean_Value ("check-invariants");
-   end Check_Invariants;
-
-   -------------
-   -- Console --
-   -------------
-
-   function Console return Boolean is
-   begin
-      return Boolean_Value ("console", 'c');
-   end Console;
-
-   --------------------
-   -- Create_Factions --
-   --------------------
-
-   function Create_Factions return Boolean is
-   begin
-      return Boolean_Value ("create-factions");
-   end Create_Factions;
-
-   -------------------
-   -- Create_Galaxy --
-   -------------------
-
-   function Create_Galaxy return Boolean is
-   begin
-      return Boolean_Value ("create-galaxy");
-   end Create_Galaxy;
-
-   ----------------------------
-   -- Create_Voronoi_Diagram --
-   ----------------------------
-
-   function Create_Voronoi_Diagram return Boolean is
-   begin
-      return Boolean_Value ("create-voronoi");
-   end Create_Voronoi_Diagram;
-
-   ----------------------
-   -- Display_Language --
-   ----------------------
-
-   function Display_Language return String is
-   begin
-      return String_Value ("display-language", 'L', "english");
-   end Display_Language;
-
-   ------------------------------------
-   -- Enable_Detailed_Battle_Logging --
-   ------------------------------------
-
-   function Enable_Detailed_Battle_Logging return Boolean is
-   begin
-      return Boolean_Value ("detailed-battle-logging", 'B');
-   end Enable_Detailed_Battle_Logging;
-
-   ---------------------------
-   -- Enable_Faction_Logging --
-   ---------------------------
-
-   function Enable_Faction_Logging return Boolean is
-   begin
-      return Boolean_Value ("faction-logging", 'E');
-   end Enable_Faction_Logging;
-
-   ---------------------------
-   -- Enable_Market_Logging --
-   ---------------------------
-
-   function Enable_Market_Logging return Boolean is
-   begin
-      return Boolean_Value ("market-logging");
-   end Enable_Market_Logging;
-
-   ------------------
-   -- Galaxy_Shape --
-   ------------------
-
-   function Galaxy_Shape return String is
-   begin
-      return String_Value ("galaxy-shape", 'g', "spiral");
-   end Galaxy_Shape;
-
-   -------------------
-   -- Integer_Value --
-   -------------------
-
-   function Integer_Value
-     (Long_Name  : String;
-      Short_Name : Character := Character'Val (0);
-      Default    : Integer := 0)
-      return Integer
-   is
-   begin
-      return Integer'Value (String_Value (Long_Name, Short_Name,
-                            Integer'Image (Default)));
-   exception
-      when Constraint_Error =>
-         return Default;
-   end Integer_Value;
-
-   --------------------
-   -- Interface_Name --
-   --------------------
-
-   function Interface_Name return String is
-   begin
-      return String_Value ("interface", 'i', "xi");
-   end Interface_Name;
-
-   ------------------
-   -- Load_Options --
-   ------------------
-
-   procedure Load_Options is
-   begin
-      if not Got_Config then
-         Option_Config :=
-           Tropos.Reader.Read_Config
-             (Concorde.Paths.Config_File ("options.txt"));
-         Got_Config := True;
-      end if;
-   end Load_Options;
-
-   -----------------------------
-   -- Minimum_Size_For_Battle --
-   -----------------------------
-
-   function Minimum_Size_For_Battle return Natural is
-   begin
-      return Integer_Value ("minimum-battle-size", 'M', 10);
-   end Minimum_Size_For_Battle;
-
-   -----------------------
-   -- Number_Of_Factions --
-   -----------------------
-
-   function Number_Of_Factions return Positive is
-   begin
-      return Integer_Value ("faction-count", 'e', 99);
-   end Number_Of_Factions;
-
-   -----------------------
-   -- Number_Of_Systems --
-   -----------------------
-
-   function Number_Of_Systems return Positive is
-   begin
-      return Integer_Value ("system-count", 's', 500);
-   end Number_Of_Systems;
-
-   -----------------------
-   -- Number_Of_Updates --
-   -----------------------
-
-   function Number_Of_Updates return Natural is
-   begin
-      return Integer_Value ("update-count", 'u', 500);
-   end Number_Of_Updates;
-
-   ---------------
-   -- Randomise --
-   ---------------
-
-   function Randomise return Boolean is
-   begin
-      return Boolean_Value ("randomise", 'R');
-   end Randomise;
-
-   ----------------
-   -- Real_Value --
-   ----------------
-
-   function Real_Value
-     (Long_Name  : String;
-      Short_Name : Character := Character'Val (0);
-      Default    : Real := 0.0)
-      return Real
-   is
-   begin
-      return Real'Value
-        (String_Value
-           (Long_Name, Short_Name,
-            Real'Image (Default)));
-   exception
-      when Constraint_Error =>
-         return Default;
-   end Real_Value;
-
-   ---------------------------------
-   -- Realistic_Star_Distribution --
-   ---------------------------------
-
-   function Realistic_Star_Distribution return Boolean is
-   begin
-      return Boolean_Value ("realistic-star-distribution");
-   end Realistic_Star_Distribution;
-
-   --------------
-   -- Scenario --
-   --------------
+   pragma Style_Checks (Off);
 
    function Scenario return String is
    begin
-      return String_Value ("scenario", 'S');
+      return WL.Command_Line.Find_Option
+               ("scenario", ' ');
    end Scenario;
 
-   ------------------------
-   -- Show_Battle_Screen --
-   ------------------------
-
-   function Show_Battle_Screen return Boolean is
+   function Display_Language return String is
    begin
-      return Boolean_Value ("battle-screen");
-   end Show_Battle_Screen;
+      return WL.Command_Line.Find_Option
+               ("display-language", ' ');
+   end Display_Language;
 
-   ------------------------
-   -- Show_Capital_Names --
-   ------------------------
-
-   function Show_Capital_Names return Boolean is
+   function Console return Boolean is
    begin
-      return Boolean_Value ("show-capital-names", 'N', Default => True);
-   end Show_Capital_Names;
+      return WL.Command_Line.Find_Option
+               ("console", ' ');
+   end Console;
 
-   -----------------------
-   -- Show_System_Names --
-   -----------------------
-
-   function Show_System_Names return Boolean is
+   function Randomise return Boolean is
    begin
-      return Boolean_Value ("show-system-names", 'n', Default => False);
-   end Show_System_Names;
+      return WL.Command_Line.Find_Option
+               ("randomise", ' ');
+   end Randomise;
 
-   ------------------
-   -- String_Value --
-   ------------------
-
-   function String_Value
-     (Long_Name  : String;
-      Short_Name : Character := Character'Val (0);
-      Default    : String := "")
-      return String
-   is
-      use Ada.Strings.Fixed;
+   function Create_Voronoi return Boolean is
    begin
-      for I in 1 .. Ada.Command_Line.Argument_Count loop
-         declare
-            Argument : constant String :=
-                         Ada.Command_Line.Argument (I);
-         begin
-            if Argument'Length > 2
-              and then Argument (1 .. 2) = "--"
-              and then Index (Argument, "=") > 0
-            then
-               declare
-                  Name : constant String :=
-                           Argument (3 .. Index (Argument, "=") - 1);
-               begin
-                  if Name = Long_Name then
-                     return Argument (Index (Argument, "=") + 1
-                                      .. Argument'Last);
-                  end if;
-               end;
-            elsif Short_Name /= Character'Val (0)
-              and then Argument (1) = '-'
-              and then Argument'Length = 2
-              and then Argument (2) = Short_Name
-              and then I < Ada.Command_Line.Argument_Count
-            then
-               return Ada.Command_Line.Argument (I + 1);
-            end if;
-         end;
-      end loop;
+      return WL.Command_Line.Find_Option
+               ("create-voronoi", ' ');
+   end Create_Voronoi;
 
-      Load_Options;
-
-      if Option_Config.Contains (Long_Name) then
-         return Option_Config.Get (Long_Name);
-      elsif Option_Config.Contains (With_Underscores (Long_Name)) then
-         return Option_Config.Get (With_Underscores (Long_Name));
-      else
-         return Default;
-      end if;
-
-   end String_Value;
-
-   ------------------------
-   -- System_X_Deviation --
-   ------------------------
-
-   function System_X_Deviation return Real is
+   function Create_Galaxy return Boolean is
    begin
-      return Real_Value ("system-x-deviation", Default => 0.0);
+      return WL.Command_Line.Find_Option
+               ("create-galaxy", ' ');
+   end Create_Galaxy;
+
+   function Create_Factions return Boolean is
+   begin
+      return WL.Command_Line.Find_Option
+               ("create-factions", ' ');
+   end Create_Factions;
+
+   function Faction_Count return Natural is
+   begin
+      return WL.Command_Line.Find_Option
+               ("faction-count", ' ', 0);
+   end Faction_Count;
+
+   function System_Count return Natural is
+   begin
+      return WL.Command_Line.Find_Option
+               ("system-count", ' ', 0);
+   end System_Count;
+
+   function Update_Count return Natural is
+   begin
+      return WL.Command_Line.Find_Option
+               ("update-count", ' ', 0);
+   end Update_Count;
+
+   function Galaxy_Shape return String is
+   begin
+      return WL.Command_Line.Find_Option
+               ("galaxy-shape", ' ');
+   end Galaxy_Shape;
+
+   function System_X_Deviation return Natural is
+   begin
+      return WL.Command_Line.Find_Option
+               ("system-x-deviation", ' ', 0);
    end System_X_Deviation;
 
-   ------------------------
-   -- System_Y_Deviation --
-   ------------------------
-
-   function System_Y_Deviation return Real is
+   function System_Y_Deviation return Natural is
    begin
-      return Real_Value ("system-y-deviation", Default => 0.0);
+      return WL.Command_Line.Find_Option
+               ("system-y-deviation", ' ', 0);
    end System_Y_Deviation;
 
-   ------------------------
-   -- System_Z_Deviation --
-   ------------------------
-
-   function System_Z_Deviation return Real is
+   function System_Z_Deviation return Natural is
    begin
-      return Real_Value ("system-z-deviation", Default => 0.0);
+      return WL.Command_Line.Find_Option
+               ("system-z-deviation", ' ', 0);
    end System_Z_Deviation;
 
-   -----------------
-   -- Test_Battle --
-   -----------------
-
-   function Test_Battle return Boolean is
+   function Average_Connections return Positive is
    begin
-      return Boolean_Value ("test-battle", 'B', Default => False);
-   end Test_Battle;
+      return WL.Command_Line.Find_Option
+               ("average-connections", ' ');
+   end Average_Connections;
 
-   ----------------------
-   -- With_Underscores --
-   ----------------------
-
-   function With_Underscores (S : String) return String is
-      Result : String := S;
+   function Full_Screen return Boolean is
    begin
-      for I in Result'Range loop
-         if Result (I) = '-' then
-            Result (I) := '_';
-         end if;
-      end loop;
-      return Result;
-   end With_Underscores;
+      return WL.Command_Line.Find_Option
+               ("full-screen", ' ');
+   end Full_Screen;
 
-   ------------------
-   -- Work_Threads --
-   ------------------
+   function Display_Width return Natural is
+   begin
+      return WL.Command_Line.Find_Option
+               ("display-width", ' ', 0);
+   end Display_Width;
+
+   function Display_Height return Natural is
+   begin
+      return WL.Command_Line.Find_Option
+               ("display-height", ' ', 0);
+   end Display_Height;
 
    function Work_Threads return Positive is
    begin
-      return Integer_Value ("work-threads", 't', 4);
+      return WL.Command_Line.Find_Option
+               ("work-threads", ' ');
    end Work_Threads;
 
-   -------------------------------
-   -- World_Continent_Smoothing --
-   -------------------------------
-
-   function World_Continent_Smoothing return Positive is
+   function Start_With_Galaxy return Boolean is
    begin
-      return Integer_Value ("world-continent-smoothing", Default => 4);
-   end World_Continent_Smoothing;
+      return WL.Command_Line.Find_Option
+               ("start-with-galaxy", ' ');
+   end Start_With_Galaxy;
 
-   -------------------------
-   -- World_Detail_Factor --
-   -------------------------
-
-   function World_Detail_Factor return Positive is
+   function Enable_Faction_Logging return Boolean is
    begin
-      return Integer_Value ("world-detail-factor", Default => 20);
-   end World_Detail_Factor;
+      return WL.Command_Line.Find_Option
+               ("enable-faction-logging", ' ');
+   end Enable_Faction_Logging;
 
-   ------------------------------
-   -- World_Fractal_Iterations --
-   ------------------------------
-
-   function World_Fractal_Iterations return Positive is
+   function Enable_Market_Logging return Boolean is
    begin
-      return Integer_Value ("world-fractal-iterations", Default => 1000);
-   end World_Fractal_Iterations;
-
-   ----------------------------
-   -- World_Height_Smoothing --
-   ----------------------------
-
-   function World_Height_Smoothing return Positive is
-   begin
-      return Integer_Value ("world-height-smoothing", Default => 4);
-   end World_Height_Smoothing;
-
-   -----------------------
-   -- World_Sector_Size --
-   -----------------------
-
-   function World_Sector_Size return Positive is
-   begin
-      return Integer_Value ("world-sector-size", Default => 1400);
-   end World_Sector_Size;
-
-   --------------------
-   -- Write_Accounts --
-   --------------------
+      return WL.Command_Line.Find_Option
+               ("enable-market-logging", ' ');
+   end Enable_Market_Logging;
 
    function Write_Accounts return Boolean is
    begin
-      return Boolean_Value ("write-accounts");
+      return WL.Command_Line.Find_Option
+               ("write-accounts", ' ');
    end Write_Accounts;
+
+   function Test_Battle return Boolean is
+   begin
+      return WL.Command_Line.Find_Option
+               ("test-battle", ' ');
+   end Test_Battle;
+
+   function Create_Voronoi_Diagram return Boolean is
+   begin
+      return WL.Command_Line.Find_Option
+               ("create-voronoi-diagram", ' ');
+   end Create_Voronoi_Diagram;
+
+   function Realistic_Star_Masses return Boolean is
+   begin
+      return WL.Command_Line.Find_Option
+               ("realistic-star-masses", ' ');
+   end Realistic_Star_Masses;
+
+   function World_Detail_Factor return Positive is
+   begin
+      return WL.Command_Line.Find_Option
+               ("world-detail-factor", ' ');
+   end World_Detail_Factor;
+
+   function World_Sector_Size return Positive is
+   begin
+      return WL.Command_Line.Find_Option
+               ("world-sector-size", ' ');
+   end World_Sector_Size;
+
+   function World_Height_Smoothing return Positive is
+   begin
+      return WL.Command_Line.Find_Option
+               ("world-height-smoothing", ' ');
+   end World_Height_Smoothing;
 
 end Concorde.Options;

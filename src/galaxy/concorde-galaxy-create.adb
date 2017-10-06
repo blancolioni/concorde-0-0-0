@@ -565,7 +565,7 @@ package body Concorde.Galaxy.Create is
       Seed             : constant Unit_Real := Concorde.Random.Unit_Random;
       Solar_Mass_Count : Real;
    begin
-      if not Concorde.Options.Realistic_Star_Distribution then
+      if not Concorde.Options.Realistic_Star_Masses then
          declare
             Solar_Masses : Non_Negative_Real := Seed;
          begin

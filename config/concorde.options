@@ -1,0 +1,42 @@
+package Concorde.Options is
+
+   Scenario                : String;
+   Display_Language        : String;
+   
+   Console                 : Boolean;
+   Randomise               : Boolean;
+   Create_Voronoi          : Boolean;
+   Create_Galaxy           : Boolean;
+   Create_Factions         : Boolean;
+   
+   Faction_Count           : Natural;
+   System_Count            : Natural;
+    
+   Update_Count            : Natural;
+   
+   Galaxy_Shape            : String;
+   System_X_Deviation      : Natural;
+   System_Y_Deviation      : Natural;
+   System_Z_Deviation      : Natural;
+   Average_Connections     : Positive;
+   
+   Full_Screen             : Boolean;
+   Display_Width           : Natural;
+   Display_Height          : Natural;
+   
+   Work_Threads            : Positive;
+
+   Start_With_Galaxy       : Boolean;
+   Enable_Faction_Logging  : Boolean;
+   Enable_Market_Logging   : Boolean;
+   Write_Accounts          : Boolean;
+
+   Test_Battle             : Boolean;
+   Create_Voronoi_Diagram  : Boolean;
+   Realistic_Star_Masses   : Boolean;
+   
+   World_Detail_Factor     : Positive;
+   World_Sector_Size       : Positive;
+   World_Height_Smoothing  : Positive;
+   
+end Concorde.Options;
