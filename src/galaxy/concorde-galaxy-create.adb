@@ -4,12 +4,7 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Ada.Float_Text_IO;
 
-with WL.Work;
-
 with Tropos.Reader;
---  with Tropos.Writer;
-
---  with Concorde.Paths;
 
 with Concorde.Elementary_Functions;
 with Concorde.Geometry;
@@ -192,8 +187,6 @@ package body Concorde.Galaxy.Create is
                             Concorde.Options.Create_Voronoi_Diagram;
       Xs, Ys, Zs        : array (1 .. System_Count) of Real;
       Retries           : Natural := 0;
-      Create_Handle     : WL.Work.Work_Handle :=
-                            WL.Work.Create_Handle;
       Class_Count       : array (Concorde.Stars.Stellar_Class_Type)
         of Natural := (others => 0);
 
@@ -330,8 +323,6 @@ package body Concorde.Galaxy.Create is
             end;
          end;
       end loop;
-
-      WL.Work.Wait (Create_Handle);
 
       Ada.Text_IO.Put_Line ("created" & System_Count'Img & " systems");
 

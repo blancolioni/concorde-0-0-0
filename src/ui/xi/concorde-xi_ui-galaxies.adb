@@ -29,7 +29,7 @@ with Concorde.Ships;
 with Concorde.Stars;
 with Concorde.Worlds;
 
-with Concorde.Systems.Xi_Model;
+--  with Concorde.Systems.Xi_Model;
 with Concorde.Ships.Xi_Model;
 
 with Concorde.Elementary_Functions;
@@ -48,7 +48,7 @@ package body Concorde.Xi_UI.Galaxies is
 
    Star_Size : constant := 0.005;
 
-   Initial_Transition : constant Boolean := True;
+   Initial_Transition : constant Boolean := False;
 
    package System_Vectors is
      new Ada.Containers.Vectors
@@ -149,7 +149,7 @@ package body Concorde.Xi_UI.Galaxies is
                                (System.Name & "-" & Target.Name);
             begin
                Jump_Node.Set_Position (M);
-               Jump_Node.Scale (0.002, 0.002, D / 2.0 - 0.01);
+               Jump_Node.Scale (0.001, 0.001, D / 2.0);
                Jump_Node.Set_Entity (Model.Jump_Route);
                Jump_Node.Look_At (Q);
             end;
@@ -503,7 +503,7 @@ package body Concorde.Xi_UI.Galaxies is
             then
                Model.Transit_To_Object (World.System);
             end if;
-            Concorde.Systems.Xi_Model.Transit_To_World (World, Model);
+--              Concorde.Systems.Xi_Model.Transit_To_World (World, Model);
          end;
 
       end if;

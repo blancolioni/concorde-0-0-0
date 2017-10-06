@@ -66,13 +66,6 @@ package body Concorde.Worlds.Xi_Model is
 
    Rendered_Worlds : Rendered_World_Table.Map;
 
---     type Rendered_Ship_Record is
---        record
---           Ship          : Concorde.Ships.Ship_Type;
---           Node          : Xi.Node.Xi_Node;
---           Follow_Camera : Xi.Camera.Xi_Camera;
---        end record;
-
    package Rendered_Ship_Lists is
      new Ada.Containers.Doubly_Linked_Lists
        (Concorde.Ships.Xi_Model.Active_Ship,

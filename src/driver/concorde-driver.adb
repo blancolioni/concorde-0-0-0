@@ -1,7 +1,6 @@
 with WL.Command_Line;
 with WL.Processes;
 with WL.Random.Names;
-with WL.Work;
 
 with Memor;
 
@@ -48,7 +47,6 @@ begin
      (Concorde.Paths.Config_File ("options.txt"));
 
    Memor.Locking (False);
-   WL.Work.Set_Task_Count (Concorde.Options.Work_Threads);
 
    WL.Random.Names.Load_Lexicon
      (Name_Generator,
@@ -158,6 +156,10 @@ begin
             if Concorde.Options.Start_With_Galaxy then
                Model :=
                  Concorde.Xi_UI.Model_Manager.Model (null, Window);
+            elsif True then
+               Model :=
+                 Concorde.Xi_UI.Model_Manager.Model
+                   (Concorde.Galaxy.Get_System (1), Window);
             else
                Model :=
                  Concorde.Xi_UI.Model_Manager.Model
@@ -173,8 +175,6 @@ begin
       end;
 
    end if;
-
-   WL.Work.Stop_Work_Tasks;
 
    Concorde.Factions.Reports.Report_Factions;
 
@@ -195,7 +195,6 @@ exception
          Concorde.Factions.Logging.Stop_Logging;
       end if;
       Concorde.Logging.Stop_Logging;
-      WL.Work.Stop_Work_Tasks;
       raise;
 
 end Concorde.Driver;

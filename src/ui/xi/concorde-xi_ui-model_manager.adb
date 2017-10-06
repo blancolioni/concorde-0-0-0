@@ -1,5 +1,6 @@
 with Concorde.Xi_UI.Galaxies;
 
+with Concorde.Systems.Xi_Model;
 with Concorde.Worlds.Xi_Model;
 
 package body Concorde.Xi_UI.Model_Manager is
@@ -34,6 +35,9 @@ package body Concorde.Xi_UI.Model_Manager is
    begin
       if For_Object = null then
          return Concorde.Xi_UI.Galaxies.Galaxy_Model (Renderer);
+      elsif For_Object.all in Concorde.Systems.Root_Star_System_Type'Class then
+         return Concorde.Systems.Xi_Model.System_Model
+           (Concorde.Systems.Star_System_Type (For_Object), Renderer);
       elsif For_Object.all in Concorde.Worlds.Root_World_Type'Class then
          return Concorde.Worlds.Xi_Model.World_Model
            (Concorde.Worlds.World_Type (For_Object), Renderer);
