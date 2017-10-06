@@ -4,7 +4,6 @@ with Memor.Element_Vectors;
 
 with Xi.Assets;
 with Xi.Camera;
-with Xi.Float_Arrays;
 with Xi.Light;
 with Xi.Matrices;
 with Xi.Node;
@@ -137,6 +136,16 @@ package body Concorde.Systems.Xi_Model is
 
    overriding procedure On_Select
      (Handler : System_Ship_Selector);
+
+   type System_World_Selector is
+     new System_Model_Selector with
+      record
+         World : Concorde.Worlds.World_Type;
+      end record;
+
+   overriding procedure On_Select
+     (Handler : System_World_Selector)
+   is null;
 
    --------------------
    -- On_Frame_Start --
@@ -399,15 +408,23 @@ package body Concorde.Systems.Xi_Model is
 --              Parent_Node => World_Node);
 
          declare
-            use type Xi.Float_Arrays.Real_Vector;
-            Selector : constant Xi.Node.Xi_Node :=
-                         Selector_Node.Create_Child
-                           (System.Name & " selector");
+            use Xi;
+            use Concorde.Ships.Xi_Model;
+            Pos           : constant Newton.Vector_3 :=
+                              World.System_Relative_Position;
+            Selector      : constant Concorde.Xi_UI.Select_Handler :=
+                              new System_World_Selector'
+                                (Model => Model,
+                                 World => World);
+            Node : constant Xi.Node.Xi_Node :=
+                              Concorde.Xi_UI.Selector_With_Text
+                                (System_Node, World.Name,
+                                 Xi_Float (Pos (1)),
+                                 Xi_Float (Pos (2)),
+                                 Xi_Float (Pos (3)),
+                                 Selector);
          begin
-            Selector.Set_Position (World_Node.Position_3 / 2.0 & 1.0);
-            Selector.Fixed_Pixel_Size (32.0, 32.0);
-            Selector.Set_Billboard (True);
-            Selector.Set_Entity (Concorde.Xi_UI.Selector_Entity);
+            Selector_Node.Append_Child (Node);
          end;
 
          World.Get_Ships (Ships);
