@@ -373,20 +373,28 @@ package body Concorde.Locations is
      (Location : Object_Location)
       return Newton.Vector_3
    is
-      use Newton.Matrices;
-      use Concorde.Calendar;
-      use Concorde.Geometry;
-      R            : constant Non_Negative_Real := abs (Location.Apoapsis);
-      Start        : constant Non_Negative_Real :=
-                       Location.Start_Offset;
-      Elapsed      : constant Duration :=
-                       Concorde.Calendar.Clock - Location.Start_Time;
-      Total_Orbits : constant Real :=
-                       Start + Real (Elapsed) / Real (Location.Period);
-      Theta        : constant Radians :=
-                       Degrees_To_Radians (Total_Orbits * 360.0);
    begin
-      return (R * Cos (Theta), 0.0, R * Sin (Theta));
+      if Location.Loc_Type = System_Point then
+         return Location.Relative_Position;
+      else
+         declare
+            use Newton.Matrices;
+            use Concorde.Calendar;
+            use Concorde.Geometry;
+            R            : constant Non_Negative_Real :=
+                             abs (Location.Apoapsis);
+            Start        : constant Non_Negative_Real :=
+                             Location.Start_Offset;
+            Elapsed      : constant Duration :=
+                             Concorde.Calendar.Clock - Location.Start_Time;
+            Total_Orbits : constant Real :=
+                             Start + Real (Elapsed) / Real (Location.Period);
+            Theta        : constant Radians :=
+                             Degrees_To_Radians (Total_Orbits * 360.0);
+         begin
+            return (R * Cos (Theta), 0.0, R * Sin (Theta));
+         end;
+      end if;
    end Primary_Relative_Position;
 
    ----------------
@@ -500,7 +508,7 @@ package body Concorde.Locations is
                  (From_System.Main_Object);
       Distance : constant Non_Negative_Real :=
                    Star.Mass / Concorde.Solar_System.Solar_Mass
-                     * Concorde.Solar_System.Earth_Orbit * 2.0;
+                     * Concorde.Solar_System.Earth_Orbit * 5.0;
       X1       : constant Real := From_System.X;
       X2       : constant Real := To_System.X;
       Y1       : constant Real := From_System.Y;
