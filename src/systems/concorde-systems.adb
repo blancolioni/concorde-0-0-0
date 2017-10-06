@@ -123,6 +123,22 @@ package body Concorde.Systems is
       System.Edges.Clear;
    end Clear_Ship_Movement;
 
+   -----------------------
+   -- Create_Ship_Event --
+   -----------------------
+
+   function Create_Ship_Event
+     (Time_Stamp : Concorde.Calendar.Time;
+      Ship       : Concorde.Ships.Ship_Type)
+      return Concorde.Events.Root_Event_Type'Class
+   is
+   begin
+      return Event : Ship_Event do
+         Event.Set_Time_Stamp (Time_Stamp);
+         Event.Ship := Ship;
+      end return;
+   end Create_Ship_Event;
+
    ---------------
    -- Departing --
    ---------------

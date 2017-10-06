@@ -311,6 +311,19 @@ package body Concorde.Systems.Xi_Model is
                Departing);
          end;
 
+         declare
+            use Concorde.Systems.Events;
+            Arriving : constant Ship_System_Handler_Access :=
+                          new Ship_Arrival_Handler'
+                            (Ship_System_Event_Handler with
+                             Model => Model);
+         begin
+            Add_Ship_Handler
+              (System,
+               Signal_Ship_Arrived,
+               Arriving);
+         end;
+
          System_Models.Insert (System.Identifier, Model);
       end if;
       return Concorde.Xi_UI.Xi_Model (Model);

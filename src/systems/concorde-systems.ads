@@ -2,7 +2,6 @@ private with Ada.Containers.Doubly_Linked_Lists;
 private with Ada.Containers.Vectors;
 private with Memor;
 private with Memor.Database;
-private with Concorde.Events;
 
 with Xi.Color;
 
@@ -23,6 +22,7 @@ with Concorde.Ships.Lists;
 with Concorde.Commodities;
 with Concorde.Government;
 
+with Concorde.Events;
 with Concorde.Signals;
 
 package Concorde.Systems is
@@ -252,6 +252,11 @@ package Concorde.Systems is
    function Update
      (Item : not null access constant Root_Star_System_Type'Class)
       return Updateable_Reference;
+
+   function Create_Ship_Event
+     (Time_Stamp : Concorde.Calendar.Time;
+      Ship       : Concorde.Ships.Ship_Type)
+      return Concorde.Events.Root_Event_Type'Class;
 
 private
 

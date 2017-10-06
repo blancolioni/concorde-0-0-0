@@ -98,7 +98,7 @@ package body Concorde.Managers.Ships is
       if Arrive.Jump then
          Ship.Current_System.Update.Signal
            (Concorde.Systems.Signal_Ship_Arrived,
-            Concorde.Ships.Ship_Event
+            Concorde.Systems.Create_Ship_Event
               (Event.Time_Stamp, Ship));
       end if;
 
