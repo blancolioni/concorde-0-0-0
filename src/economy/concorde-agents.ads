@@ -168,6 +168,17 @@ package Concorde.Agents is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Boolean;
 
+   function Current_Bid_Quantity
+     (Agent     : Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity_Type;
+
+   function Current_Bid_Price
+     (Agent     : Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Price_Type
+     with Pre => Agent.Has_Bid (Commodity);
+
    function Has_Asks
      (Agent : Root_Agent_Type'Class)
       return Boolean;
@@ -176,6 +187,17 @@ package Concorde.Agents is
      (Agent     : Root_Agent_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
       return Boolean;
+
+   function Current_Ask_Quantity
+     (Agent     : Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity_Type;
+
+   function Current_Ask_Price
+     (Agent     : Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Price_Type
+     with Pre => Agent.Has_Ask (Commodity);
 
    --     procedure Add_Trade_Offers
 --       (Agent  : not null access constant Root_Agent_Type)
@@ -323,6 +345,12 @@ private
    is (Agent.Bids.Element (Commodity).Quantity
        > Agent.Bids.Element (Commodity).Filled);
 
+   function Current_Bid_Price
+     (Agent     : Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Price_Type
+   is (Agent.Bids.Element (Commodity).Price);
+
    function Has_Asks
      (Agent : Root_Agent_Type'Class)
       return Boolean
@@ -334,6 +362,12 @@ private
       return Boolean
    is (Agent.Asks.Element (Commodity).Quantity
        > Agent.Asks.Element (Commodity).Filled);
+
+   function Current_Ask_Price
+     (Agent     : Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Price_Type
+   is (Agent.Asks.Element (Commodity).Price);
 
    package Agent_Lists is new Ada.Containers.Doubly_Linked_Lists (Agent_Type);
 

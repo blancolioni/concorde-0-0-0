@@ -38,9 +38,14 @@ package body Concorde.Installations is
                           Local_Demand +
                           Item.Market.Get_Daily_Quantity
                             (Commodity, Concorde.Trades.Export_Demand);
-         Supply : constant Quantity_Type :=
+         Supply       : constant Quantity_Type :=
+                          Local_Supply +
                           Item.Market.Get_Daily_Quantity
                             (Commodity, Concorde.Trades.Import_Supply);
+         Current_Ask  : constant Quantity_Type :=
+                          Item.Current_Ask_Quantity (Commodity);
+         Current_Bid  : constant Quantity_Type :=
+                          Item.Current_Bid_Quantity (Commodity);
       begin
          if not Commodity.Is_Set (Concorde.Commodities.Virtual) then
             Item.Log_Trade
@@ -48,23 +53,30 @@ package body Concorde.Installations is
                & ": local demand: " & Image (Local_Demand)
                & "; local supply: " & Image (Local_Supply)
                & "; total demand: " & Image (Demand)
-               & ": total supply: " & Image (Supply));
-            if Local_Demand > Supply then
+               & "; total supply: " & Image (Supply)
+               & "; currently buying " & Image (Current_Bid)
+               & "; currently selling " & Image (Current_Ask));
+
+            if Local_Demand > Supply + Current_Ask then
                declare
                   Sell_Quantity : constant Quantity_Type :=
                                     Min (Item.Get_Quantity (Commodity),
-                                         Scale (Demand - Supply, 0.5));
+                                         Scale
+                                           (Demand - Supply - Current_Ask,
+                                            0.5));
                begin
                   if Sell_Quantity > Zero then
                      Item.Create_Ask
                        (Commodity, Sell_Quantity);
                   end if;
                end;
-            elsif Local_Supply > Demand then
+            elsif Local_Supply > Demand + Current_Bid then
                declare
                   Buy_Quantity : constant Quantity_Type :=
                                    Min (Item.Available_Quantity,
-                                        Scale (Supply - Demand, 0.5));
+                                        Scale
+                                          (Supply - Demand - Current_Bid,
+                                           0.5));
                begin
                   Item.Create_Bid
                     (Commodity, Buy_Quantity);
@@ -105,8 +117,14 @@ package body Concorde.Installations is
         (Commodity : Concorde.Commodities.Commodity_Type)
       is
       begin
-         Item.Create_Ask
-           (Commodity, Item.Get_Quantity (Commodity));
+         if Item.Current_Ask_Quantity (Commodity)
+           < Item.Get_Quantity (Commodity)
+         then
+            Item.Create_Ask
+              (Commodity,
+               Item.Get_Quantity (Commodity)
+               - Item.Current_Ask_Quantity (Commodity));
+         end if;
       end Add_Sell_Offer;
 
    begin
@@ -119,7 +137,8 @@ package body Concorde.Installations is
                           Item.Facility.Input_Quantity (I)
                           * Item.Facility.Capacity_Quantity;
             Have      : constant Quantity_Type :=
-                          Item.Get_Quantity (Commodity);
+                          Item.Get_Quantity (Commodity)
+                          + Item.Current_Bid_Quantity (Commodity);
          begin
             if Required > Have then
                Item.Create_Bid
@@ -135,7 +154,9 @@ package body Concorde.Installations is
             Required  : constant Quantity_Type :=
                           Item.Facility.Worker_Quantity (I);
             Have      : constant Quantity_Type :=
-                          Item.Get_Quantity (Commodity);
+                          Item.Get_Quantity (Commodity)
+                          + Item.Current_Bid_Quantity (Commodity);
+
          begin
             if Required > Have then
                Item.Create_Bid
@@ -154,15 +175,18 @@ package body Concorde.Installations is
          end loop;
       else
          if Item.Facility.Has_Output
-           and then Item.Get_Quantity (Item.Facility.Output) > Zero
+           and then Item.Get_Quantity (Item.Facility.Output)
+           > Item.Current_Ask_Quantity (Item.Facility.Output)
          then
             Item.Create_Ask
               (Item.Facility.Output,
-               Item.Get_Quantity (Item.Facility.Output));
+               Item.Get_Quantity (Item.Facility.Output)
+               - Item.Current_Ask_Quantity (Item.Facility.Output));
          elsif Item.Facility.Is_Resource_Generator then
             for Commodity of Concorde.Commodities.All_Commodities loop
                if Item.Facility.Can_Produce (Commodity)
-                 and then Item.Get_Quantity (Commodity) > Zero
+                 and then Item.Get_Quantity (Commodity) >
+                 Item.Current_Ask_Quantity (Commodity)
                then
                   Add_Sell_Offer (Commodity);
                end if;

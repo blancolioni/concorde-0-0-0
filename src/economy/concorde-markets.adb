@@ -134,6 +134,12 @@ package body Concorde.Markets is
                Info.Bids.Insert
                  (Price, Offer_Info'(Agent, Quantity, Remaining, Price));
                Info.Current_Demand := Info.Current_Demand + Remaining;
+               Concorde.Logging.Log
+                 (Actor    => Market.Name,
+                  Location => "",
+                  Category => "trade",
+                  Message  => "remaining quantity " & Image (Remaining)
+                  & "; current demand now " & Image (Info.Current_Demand));
             end if;
 
          when Concorde.Trades.Ask =>
@@ -183,6 +189,12 @@ package body Concorde.Markets is
                Info.Asks.Insert
                  (Price, Offer_Info'(Agent, Quantity, Remaining, Price));
                Info.Current_Supply := Info.Current_Supply + Remaining;
+               Concorde.Logging.Log
+                 (Actor    => Market.Name,
+                  Location => "",
+                  Category => "trade",
+                  Message  => "remaining quantity " & Image (Remaining)
+                  & "; current supply now " & Image (Info.Current_Supply));
             end if;
 
       end case;

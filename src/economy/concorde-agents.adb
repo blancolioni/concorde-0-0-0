@@ -315,6 +315,8 @@ package body Concorde.Agents is
             & Image (Bid_Quantity)
             & ": have "
             & Image (Current)
+            & "; cash "
+            & Image (Agent.Cash)
             & "; price belief "
             & Image (Belief.Low)
             & "/"
@@ -365,6 +367,34 @@ package body Concorde.Agents is
    begin
       return Adjust_Price (High - Low, Factor) + Low;
    end Create_Bid_Price;
+
+   --------------------------
+   -- Current_Ask_Quantity --
+   --------------------------
+
+   function Current_Ask_Quantity
+     (Agent     : Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity_Type
+   is
+      Info : constant Agent_Offer := Agent.Asks.Element (Commodity);
+   begin
+      return Info.Quantity - Info.Filled;
+   end Current_Ask_Quantity;
+
+   --------------------------
+   -- Current_Bid_Quantity --
+   --------------------------
+
+   function Current_Bid_Quantity
+     (Agent     : Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity_Type
+   is
+      Info : constant Agent_Offer := Agent.Bids.Element (Commodity);
+   begin
+      return Info.Quantity - Info.Filled;
+   end Current_Bid_Quantity;
 
    ----------------------
    -- Current_Location --

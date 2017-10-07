@@ -26,7 +26,9 @@ package body Concorde.People.Pops is
         (Commodity : Concorde.Commodities.Commodity_Type;
          Need      : Non_Negative_Real)
       is
-         Current : constant Quantity_Type := Item.Get_Quantity (Commodity);
+         Current  : constant Quantity_Type :=
+                      Item.Get_Quantity (Commodity)
+                      + Item.Current_Bid_Quantity (Commodity);
          Required : constant Non_Negative_Real :=
                       Need * Non_Negative_Real (Item.Size);
       begin
@@ -46,9 +48,13 @@ package body Concorde.People.Pops is
       Group.Scan_Needs (Check_Need'Access);
 
       for Skill of Item.Skills loop
-         if Item.Get_Quantity (Skill.Commodity) > Zero then
+         if Item.Get_Quantity (Skill.Commodity)
+           > Item.Current_Ask_Quantity (Skill.Commodity)
+         then
             Item.Create_Ask
-              (Skill.Commodity, Item.Get_Quantity (Skill.Commodity));
+              (Skill.Commodity,
+               Item.Get_Quantity (Skill.Commodity)
+                   - Item.Current_Ask_Quantity (Skill.Commodity));
          end if;
       end loop;
 
