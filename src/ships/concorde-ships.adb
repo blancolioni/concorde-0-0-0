@@ -1,5 +1,7 @@
 with WL.Random;
 
+with Concorde.Solar_System;
+
 with Concorde.Systems;
 
 --  with Concorde.Money;
@@ -678,9 +680,37 @@ package body Concorde.Ships is
             Elapsed : constant Duration := Time - Ship.Start_Time;
             Total   : constant Duration := Ship.Arrival_Time - Ship.Start_Time;
          begin
-            return Concorde.Locations.Intermediate_Location
-              (Ship.Current_Location, Ship.Destination,
-               Real (Elapsed) / Real (Total));
+            if Ship.Jumping then
+               return Concorde.Locations.Intermediate_Location
+                 (Ship.Current_Location, Ship.Destination,
+                  Real (Elapsed) / Real (Total));
+            else
+               declare
+                  use Concorde.Locations;
+                  D    : constant Non_Negative_Real :=
+                           System_Distance
+                             (To_System_Point (Ship.Current_Location),
+                              To_System_Point (Ship.Destination));
+                  F    : constant Non_Negative_Real := Ship.Maximum_Thrust;
+                  Decel : constant Boolean := Elapsed > Total / 2.0;
+                  A     : constant Non_Negative_Real :=
+                            Non_Negative_Real'Min
+                              (F / Ship.Current_Mass,
+                               Concorde.Solar_System.Earth_Gravity);
+                  T    : constant Non_Negative_Real :=
+                            Non_Negative_Real
+                              (if Decel
+                               then Total - Elapsed
+                               else Elapsed);
+                  S     : constant Non_Negative_Real :=
+                            0.5 * A * T * T;
+                  P     : constant Unit_Real :=
+                            (if Decel then (D - S) / D else S / D);
+               begin
+                  return Concorde.Locations.Intermediate_Location
+                    (Ship.Current_Location, Ship.Destination, P);
+               end;
+            end if;
          end;
       else
          return Concorde.Locations.Location_At
