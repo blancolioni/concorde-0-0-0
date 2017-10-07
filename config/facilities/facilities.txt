@@ -74,7 +74,7 @@ farm = { class = Farm
          days = 1
          workers = { tech = 1 unskilled = 9 }
          modules = { industrial = 3 habitation = 2 }
-         capacity = 1000
+         capacity = 10000
        }
        
 seafood-farm = {
@@ -122,7 +122,7 @@ light-factory = { class = Factory
                     industrial = 30
                     habitation = 20
                     }
-                  capacity = 500
+                  capacity = 5000
                 }
 
 heavy-factory = { class = Factory

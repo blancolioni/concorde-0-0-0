@@ -22,7 +22,7 @@ imperial_capital = {
    }
    
    installations = {
-	   rations-factory = 5
+	   rations-factory = 10
 	   ready-meal-factory = 2
 	   luxury-food-factory = 1
    }
