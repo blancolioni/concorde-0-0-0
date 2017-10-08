@@ -145,7 +145,9 @@ begin
          Window :=
            Xi.Main.Current_Renderer.Create_Top_Level_Window;
 
-         --            Window.Set_Full_Screen (True);
+         if Concorde.Options.Full_Screen then
+            Window.Set_Full_Screen (True);
+         end if;
 
          Concorde.Xi_UI.Load_UI
            (Window, Concorde.Paths.Config_File ("html/main.html"));
