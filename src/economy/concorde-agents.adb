@@ -728,6 +728,58 @@ package body Concorde.Agents is
       Agent.Log ("trade", Message);
    end Log_Trade;
 
+   ---------------------
+   -- Log_Transaction --
+   ---------------------
+
+   procedure Log_Transaction
+     (Buyer    : Root_Agent_Type'Class;
+      Seller   : not null access constant Root_Agent_Type'Class;
+      Item     : Concorde.Commodities.Commodity_Type;
+      Quantity : Concorde.Quantities.Quantity_Type;
+      Price    : Concorde.Money.Price_Type)
+   is
+   begin
+      Buyer.Log_Trade
+        ("pay " & Seller.Short_Name
+         & " for " & Concorde.Quantities.Image (Quantity)
+         & " " & Item.Name
+         & " @ " & Concorde.Money.Image (Price)
+         & "; total "
+         & Concorde.Money.Image (Concorde.Money.Total (Price, Quantity))
+         & "; cash now " & Concorde.Money.Image (Buyer.Cash));
+      Seller.Log_Trade
+        ("earn "
+         & Concorde.Money.Image (Concorde.Money.Total (Price, Quantity))
+         & " for " & Concorde.Quantities.Image (Quantity)
+         & " " & Item.Name
+         & " @ " & Concorde.Money.Image (Price)
+         & "; cash now " & Concorde.Money.Image (Seller.Cash));
+   end Log_Transaction;
+
+   ---------------
+   -- Log_Wages --
+   ---------------
+
+   procedure Log_Wages
+     (Employer : Root_Agent_Type'Class;
+      Worker   : not null access constant Root_Agent_Type'Class;
+      Quantity : Concorde.Quantities.Quantity_Type;
+      Price    : Concorde.Money.Price_Type)
+   is
+   begin
+      Employer.Log
+        ("salary",
+         "pay " & Concorde.Quantities.Image (Quantity)
+         & " " & Worker.Short_Name
+         & " " & Concorde.Money.Image (Price)
+         & " ea; total "
+         & Concorde.Money.Image (Concorde.Money.Total (Price, Quantity))
+         & "; employer/worker cash now "
+         & Concorde.Money.Image (Employer.Cash)
+         & "/" & Concorde.Money.Image (Worker.Cash));
+   end Log_Wages;
+
    ------------
    -- Market --
    ------------

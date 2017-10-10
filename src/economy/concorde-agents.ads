@@ -228,6 +228,19 @@ package Concorde.Agents is
      (Agent   : Root_Agent_Type'Class;
       Message : String);
 
+   procedure Log_Transaction
+     (Buyer    : Root_Agent_Type'Class;
+      Seller   : not null access constant Root_Agent_Type'Class;
+      Item     : Concorde.Commodities.Commodity_Type;
+      Quantity : Concorde.Quantities.Quantity_Type;
+      Price    : Concorde.Money.Price_Type);
+
+   procedure Log_Wages
+     (Employer : Root_Agent_Type'Class;
+      Worker   : not null access constant Root_Agent_Type'Class;
+      Quantity : Concorde.Quantities.Quantity_Type;
+      Price    : Concorde.Money.Price_Type);
+
    procedure Log_Movement
      (Agent   : Root_Agent_Type'Class;
       Message : String);
