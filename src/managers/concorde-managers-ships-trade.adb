@@ -1,9 +1,18 @@
+with WL.Heaps;
+
 with Concorde.Locations;
 with Concorde.Money;
+with Concorde.Quantities;
+with Concorde.Real_Images;
 
+with Concorde.Markets;
 with Concorde.Objects.Queues;
 
 package body Concorde.Managers.Ships.Trade is
+
+   package Commodity_Queues is
+     new WL.Heaps (Real, Concorde.Commodities.Commodity_Type,
+                   "=" => Concorde.Commodities."=");
 
    ------------------
    -- Add_Waypoint --
@@ -16,73 +25,6 @@ package body Concorde.Managers.Ships.Trade is
    begin
       Manager.Route.Append (World);
    end Add_Waypoint;
-
-   -------------------
-   -- Check_Markets --
-   -------------------
-
-   procedure Check_Markets
-     (Manager            : in out Root_Ship_Trade_Manager'Class;
-      Commodity          : Concorde.Commodities.Commodity_Type;
-      Current_Market     : Concorde.Markets.Market_Type;
-      Destination_Market : Concorde.Markets.Market_Type;
-      Space              : in out Concorde.Quantities.Quantity_Type)
-   is
-      use Concorde.Calendar;
-      use Concorde.Money;
-      use Concorde.Quantities;
-      Local_Demand : constant Quantity_Type :=
-                       Current_Market.Get_Daily_Quantity
-                         (Commodity, Concorde.Trades.Local_Demand, 7);
-      Local_Supply : constant Quantity_Type :=
-                       Current_Market.Get_Daily_Quantity
-                         (Commodity, Concorde.Trades.Local_Supply, 7);
-      Next_Demand  : constant Quantity_Type :=
-                       Destination_Market.Get_Daily_Quantity
-                         (Commodity, Concorde.Trades.Local_Demand, 7);
-      Next_Supply  : constant Quantity_Type :=
-                       Destination_Market.Get_Daily_Quantity
-                         (Commodity, Concorde.Trades.Local_Supply, 7);
-      Local_Price  : constant Price_Type :=
-                       Current_Market.Current_Price (Commodity);
-      Next_Price   : constant Price_Type :=
-                       Destination_Market.Current_Price (Commodity);
-   begin
-      if Local_Supply > Local_Demand then
-         Manager.Ship.Log_Trade
-           (Commodity.Name
-            & ": 7 day " & Current_Market.Name
-            & " demand: " & Image (Local_Demand)
-            & "; supply: " & Image (Local_Supply)
-            & "; price "
-            & Image (Local_Price));
-         Manager.Ship.Log_Trade
-           (Commodity.Name
-            & ": 7 day " & Destination_Market.Name
-            & " demand: " & Image (Next_Demand)
-            & "; supply: " & Image (Next_Supply)
-            & "; price "
-            & Image (Next_Price));
-      end if;
-
-      if Local_Supply > Local_Demand
-        and then Next_Demand >= Next_Supply
-        and then Next_Price > Local_Price
-      then
-         declare
-            Bid_Quantity : constant Quantity_Type :=
-                             Min
-                               (Next_Demand,
-                                Min
-                                  (Local_Supply - Local_Demand,
-                                   Space));
-         begin
-            Manager.Ship.Create_Bid
-              (Commodity, Bid_Quantity);
-            Space := Space - Bid_Quantity;
-         end;
-      end if;
-   end Check_Markets;
 
    -----------------
    -- Create_Asks --
@@ -110,18 +52,114 @@ package body Concorde.Managers.Ships.Trade is
    procedure Create_Bids
      (Manager : in out Root_Ship_Trade_Manager'Class)
    is
+      use Concorde.Commodities;
       use Concorde.Money, Concorde.Quantities;
-      Remaining    : Quantity_Type := Manager.Ship.Available_Quantity;
+      Space : constant Quantity_Type := Manager.Ship.Available_Quantity;
+      Remaining    : Quantity_Type := Space;
       Local_Market : constant Concorde.Markets.Market_Type :=
                        Concorde.Markets.Market_Type (Manager.Ship.Market);
       Next_Market  : constant Concorde.Markets.Market_Type :=
                        Manager.Next_Destination.Market;
+      Fixed_Costs  : constant Money_Type := To_Money (50.0);
+
+      Queue        : Commodity_Queues.Heap;
+
+      procedure Check_Markets
+        (Commodity          : Concorde.Commodities.Commodity_Type;
+         Current_Market     : Concorde.Markets.Market_Type;
+         Destination_Market : Concorde.Markets.Market_Type);
+
+      -------------------
+      -- Check_Markets --
+      -------------------
+
+      procedure Check_Markets
+        (Commodity          : Concorde.Commodities.Commodity_Type;
+         Current_Market     : Concorde.Markets.Market_Type;
+         Destination_Market : Concorde.Markets.Market_Type)
+      is
+         use Concorde.Calendar;
+         Local_Demand    : constant Quantity_Type :=
+                             Current_Market.Get_Daily_Quantity
+                               (Commodity, Concorde.Trades.Local_Demand, 7)
+                               with Unreferenced;
+         Local_Supply    : constant Quantity_Type :=
+                             Current_Market.Get_Daily_Quantity
+                               (Commodity, Concorde.Trades.Local_Supply, 7);
+         Next_Demand     : constant Quantity_Type :=
+                             Destination_Market.Get_Daily_Quantity
+                               (Commodity, Concorde.Trades.Local_Demand, 7);
+         Next_Supply     : constant Quantity_Type :=
+                             Destination_Market.Get_Daily_Quantity
+                               (Commodity, Concorde.Trades.Local_Supply, 7)
+                               with Unreferenced;
+         Local_Price     : constant Price_Type :=
+                             Adjust_Price
+                               (Current_Market.Current_Price (Commodity),
+                                1.1);
+         Next_Price      : constant Price_Type :=
+                             Adjust_Price
+                               (Destination_Market.Current_Price (Commodity),
+                                0.9);
+         Traded_Quantity : constant Quantity_Type :=
+                             (if Next_Demand > Zero
+                              then Min (Space, Min (Local_Supply, Next_Demand))
+                              else Zero);
+      begin
+
+         if Traded_Quantity > Zero and then Next_Price > Local_Price then
+            declare
+               Investment      : constant Money_Type :=
+                                   Total (Local_Price, Traded_Quantity);
+               Expected_Return : constant Money_Type :=
+                                   Total (Next_Price, Traded_Quantity);
+               Score           : constant Non_Negative_Real :=
+                                   (if Expected_Return - Investment
+                                    > Fixed_Costs
+                                    then To_Real (Expected_Return)
+                                    else To_Real (Expected_Return)
+                                    - To_Real (Investment));
+            begin
+               Manager.Ship.Log
+                 (Commodity.Name
+                  & ": local supply: " & Image (Local_Supply)
+                  & "; remote demand: " & Image (Next_Demand)
+                  & "; local price: " & Image (Local_Price)
+                  & "; remote price: " & Image (Next_Price)
+                  & "; investment: " & Image (Investment)
+                  & "; return: " & Image (Expected_Return)
+                  & "; score: "
+                  & Concorde.Real_Images.Approximate_Image (Score));
+               Queue.Insert (Score, Commodity);
+            end;
+         end if;
+      end Check_Markets;
+
    begin
+
       for Commodity of Concorde.Commodities.Trade_Commodities loop
-         Manager.Check_Markets
-           (Commodity, Local_Market, Next_Market, Remaining);
-         exit when Remaining = Zero;
+         Check_Markets (Commodity, Local_Market, Next_Market);
       end loop;
+
+      while not Queue.Is_Empty loop
+         declare
+            Commodity : constant Commodity_Type := Queue.Maximum_Element;
+            Local_Supply : constant Quantity_Type :=
+                             Local_Market.Get_Daily_Quantity
+                               (Commodity, Concorde.Trades.Local_Supply, 7);
+            Next_Demand     : constant Quantity_Type :=
+                                Next_Market.Get_Daily_Quantity
+                                  (Commodity, Concorde.Trades.Local_Demand, 7);
+            Bid_Quantity    : constant Quantity_Type :=
+                             Min (Next_Demand, Min (Local_Supply, Remaining));
+         begin
+            Queue.Delete_Maximum;
+            Manager.Ship.Create_Bid
+              (Commodity, Bid_Quantity);
+            Remaining := Remaining - Bid_Quantity;
+         end;
+      end loop;
+
    end Create_Bids;
 
    --------------------

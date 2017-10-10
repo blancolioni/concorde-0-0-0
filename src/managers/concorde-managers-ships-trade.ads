@@ -1,8 +1,6 @@
 private with Ada.Containers.Doubly_Linked_Lists;
 
 with Concorde.Commodities;
-with Concorde.Markets;
-with Concorde.Quantities;
 with Concorde.Trades;
 with Concorde.Worlds;
 
@@ -60,12 +58,5 @@ private
 
    procedure Create_Bids
      (Manager : in out Root_Ship_Trade_Manager'Class);
-
-   procedure Check_Markets
-     (Manager            : in out Root_Ship_Trade_Manager'Class;
-      Commodity          : Concorde.Commodities.Commodity_Type;
-      Current_Market     : Concorde.Markets.Market_Type;
-      Destination_Market : Concorde.Markets.Market_Type;
-      Space              : in out Concorde.Quantities.Quantity_Type);
 
 end Concorde.Managers.Ships.Trade;
