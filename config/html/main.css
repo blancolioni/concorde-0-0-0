@@ -11,7 +11,7 @@ body {
 }
 
 #outline {
-    backgound-color: rgba(0, 0, 0, 0);
+    background-color: pink;
     height: 400px;
     width: 200px;
     top: 80px;
@@ -20,16 +20,16 @@ body {
 }
 
 #outline-text {
-    backgound-color: rgba(255, 0, 0, 50);
+    background-color: #ffffff;
     height: 100%;
     width: 100%;
 }
 
 #log {
-    backgound-color: rgba(255, 255, 255, 200);
-    height: 400px;
-    width: 400px;
-    top: 500px;
+    background-color: purple;
+    height: 200px;
+    width: 600px;
+    bottom: 0px;
     position: absolute;
     border: 1px solid white;
 }
