@@ -140,6 +140,9 @@ package body Concorde.Agents is
                          then 1.0
                          else Price_Position_In_Range
                            (Mean, Belief.Low, Belief.High));
+      Minimum_Price : constant Price_Type :=
+                        Agent.Get_Average_Price (Commodity);
+
 --        Limit_Price   : constant Price_Type :=
 --                          Add_Tax (Agent.Get_Average_Price (Commodity),
 --                                   Market.Manager.Tax_Rate
@@ -148,9 +151,10 @@ package body Concorde.Agents is
       Sell_Price    : constant Price_Type :=
                         (if Agent.Offer_Strategy (Commodity)
                          = Average_Price
-                         then Mean
+                         then Max (Mean, Minimum_Price)
                          else Create_Ask_Price
-                           (Belief.Low, Belief.High, Agent.Age));
+                           (Max (Minimum_Price, Belief.Low),
+                            Max (Minimum_Price, Belief.High), Agent.Age));
       Sell_Quantity : constant Quantity_Type := Ask_Quantity;
 
       procedure Update_Agent
@@ -194,6 +198,8 @@ package body Concorde.Agents is
             & Image (Belief.High)
             & "; mean "
             & Image (Mean)
+            & "; minimum "
+            & Image (Minimum_Price)
             & "; favourability "
             & Concorde.Real_Images.Approximate_Image (Favourability)
             & "; cash "
@@ -275,7 +281,7 @@ package body Concorde.Agents is
       Buy_Price     : constant Price_Type :=
                         (if Agent.Offer_Strategy (Commodity)
                          = Average_Price
-                         then Mean
+                         then Adjust_Price (Mean, 1.1)
                          else Create_Bid_Price
                            (Belief.Low, Belief.High, Agent.Age));
       procedure Update_Agent
