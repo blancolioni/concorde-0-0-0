@@ -6,7 +6,8 @@ package body Concorde.Trades is
 
    function Get_Daily_Quantity
      (Trade    : Trade_Interface'Class;
-      Item     : Concorde.Commodities.Commodity_Type;
+      Item     : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
       Metric   : Trade_Metric;
       Days     : Positive := 1)
       return Concorde.Quantities.Quantity_Type

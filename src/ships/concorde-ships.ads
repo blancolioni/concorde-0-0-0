@@ -347,7 +347,8 @@ private
 
    overriding function Offer_Strategy
      (Ship : Root_Ship_Type;
-      Commodity : Concorde.Commodities.Commodity_Type)
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return Concorde.Trades.Offer_Price_Strategy
    is (Concorde.Trades.Average_Price);
 

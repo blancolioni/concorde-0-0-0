@@ -52,6 +52,7 @@ package Concorde.Commodities is
 
    type Commodity_Type is access constant Root_Commodity_Type'Class;
 
+   function Exists (Name : String) return Boolean;
    function Get (Name : String) return Commodity_Type;
 
    procedure Scan (Process : not null access
@@ -237,5 +238,8 @@ private
      new Ada.Containers.Vectors (Positive, Commodity_Type);
 
    Commodity_Vector : Commodity_Vectors.Vector;
+
+   function Exists (Name : String) return Boolean
+   is (Db.Exists (Name));
 
 end Concorde.Commodities;

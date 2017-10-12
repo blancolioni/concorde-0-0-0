@@ -158,9 +158,19 @@ package body Concorde.Facilities.Configure is
             begin
                for Cfg of Input_Config loop
                   Count := Count + 1;
-                  Input_Array (Count).Commodity := Get (Cfg.Config_Name);
-                  Input_Array (Count).Quantity :=
-                    Concorde.Quantities.Value (Cfg.Value);
+                  declare
+                     Input_Name : constant String :=
+                                    Cfg.Config_Name;
+                  begin
+                     if not Exists (Input_Name) then
+                        raise Constraint_Error with
+                          "while configuring facility " & Facility.Tag.all
+                          & ": undefined input: " & Input_Name;
+                     end if;
+                     Input_Array (Count).Commodity := Get (Input_Name);
+                     Input_Array (Count).Quantity :=
+                       Concorde.Quantities.Value (Cfg.Value);
+                  end;
                end loop;
                Facility.Inputs := new Array_Of_Inputs'(Input_Array);
             end;
@@ -169,7 +179,22 @@ package body Concorde.Facilities.Configure is
          if Config.Contains ("output")
            or else Template_Config.Contains ("output")
          then
-            Facility.Output := Get (Value ("output", ""));
+            declare
+               Output_Name : constant String :=
+                               Value ("output", "");
+            begin
+               if Output_Name = "" then
+                  raise Constraint_Error with
+                    "while configuring facility " & Facility.Tag.all
+                    & ": no output commodity found";
+               elsif not Exists (Output_Name) then
+                  raise Constraint_Error with
+                    "while configuring facility " & Facility.Tag.all
+                    & ": undefined output: " & Output_Name;
+               else
+                  Facility.Output := Get (Value ("output", ""));
+               end if;
+            end;
          end if;
 
       end Create;

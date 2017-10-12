@@ -1,6 +1,8 @@
 with Concorde.Real_Images;
 with Concorde.Worlds;
 
+with Concorde.Logs;
+
 package body Concorde.Installations is
 
    ----------------------
@@ -46,10 +48,24 @@ package body Concorde.Installations is
                           Item.Current_Ask_Quantity (Commodity);
          Current_Bid  : constant Quantity_Type :=
                           Item.Current_Bid_Quantity (Commodity);
+         Log_Path     : constant String :=
+                          Item.Current_World.Name
+                          & "/hub"
+                          & "/offers"
+                          & "/" & Commodity.Identifier;
       begin
          if not Commodity.Is_Set (Concorde.Commodities.Virtual)
            and then (Demand > Zero or else Supply > Zero)
          then
+            Concorde.Logs.Log_Line
+              (Log_Path,
+               Image (Local_Demand)
+               & "," & Image (Local_Supply)
+               & "," & Image (Demand)
+               & "," & Image (Supply)
+               & "," & Image (Current_Bid)
+               & "," & Image (Current_Ask));
+
             Item.Log_Trade
               (Commodity.Name
                & ": local demand: " & Image (Local_Demand)
@@ -78,7 +94,7 @@ package body Concorde.Installations is
                                    Min (Item.Available_Quantity,
                                         Scale
                                           (Supply - Demand - Current_Bid,
-                                           0.5));
+                                           0.1));
                begin
                   Item.Create_Bid
                     (Commodity, Buy_Quantity);

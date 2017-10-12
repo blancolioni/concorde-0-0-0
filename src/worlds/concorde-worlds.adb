@@ -732,7 +732,8 @@ package body Concorde.Worlds is
       World.Government := Government;
       World.Market :=
         Concorde.Markets.Create_Market
-          (Concorde.Worlds.Db.Reference (World.Reference),
+          (World.Identifier,
+           Concorde.Worlds.Db.Reference (World.Reference),
            World.Government,
            Enable_Logging => Concorde.Options.Enable_Market_Logging);
 

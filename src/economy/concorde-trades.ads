@@ -20,13 +20,15 @@ package Concorde.Trades is
 
    function Historical_Mean_Price
      (Trade     : Trade_Interface;
-      Commodity : Concorde.Commodities.Commodity_Type)
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return Concorde.Money.Price_Type
       is abstract;
 
    function Get_Quantity
      (Trade    : Trade_Interface;
-      Item     : Concorde.Commodities.Commodity_Type;
+      Item     : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
       Metric   : Trade_Metric;
       Start    : Concorde.Calendar.Time;
       Finish   : Concorde.Calendar.Time)
@@ -35,7 +37,8 @@ package Concorde.Trades is
 
    function Get_Daily_Quantity
      (Trade    : Trade_Interface'Class;
-      Item     : Concorde.Commodities.Commodity_Type;
+      Item     : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
       Metric   : Trade_Metric;
       Days     : Positive := 1)
       return Concorde.Quantities.Quantity_Type;
@@ -84,13 +87,15 @@ package Concorde.Trades is
 
    function Offer_Strategy
      (Trader    : Trader_Interface;
-      Commodity : Concorde.Commodities.Commodity_Type)
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return Offer_Price_Strategy
       is abstract;
 
    function Belief_Based_Strategy
      (Trader : Trader_Interface'Class;
-      Commodity : Concorde.Commodities.Commodity_Type)
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return Boolean
    is (Trader.Offer_Strategy (Commodity) = Belief_Based);
 
@@ -108,6 +113,13 @@ package Concorde.Trades is
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity_Type;
       Price     : Concorde.Money.Price_Type)
+   is abstract;
+
+   procedure Delete_Offer
+     (Trade     : Trade_Interface;
+      Offer     : Offer_Type;
+      Trader    : not null access constant Trader_Interface'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
    is abstract;
 
    procedure Execute_Trade
