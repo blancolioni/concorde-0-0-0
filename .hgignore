@@ -26,3 +26,4 @@ concorde.gpr
 log/*
 concorde.log
 config/images/planets/original/*
+etc/*
