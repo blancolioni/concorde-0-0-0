@@ -39,4 +39,6 @@ package Concorde.Options is
    World_Sector_Size       : Positive;
    World_Height_Smoothing  : Positive;
    
+   Log_Folder              : String;
+   
 end Concorde.Options;
