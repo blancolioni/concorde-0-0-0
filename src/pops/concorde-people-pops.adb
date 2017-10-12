@@ -1,5 +1,9 @@
+with Xi.Float_Images;
+
 with Concorde.Commodities;
+with Concorde.Logs;
 with Concorde.Random;
+with Concorde.Worlds;
 
 package body Concorde.People.Pops is
 
@@ -99,18 +103,31 @@ package body Concorde.People.Pops is
                         Non_Negative_Real'Floor (Total_Need);
          Partial_Need : constant Non_Negative_Real :=
                           Total_Need - Base_Need;
-         Need_Quantity : constant Quantity_Type :=
-                           To_Quantity (Base_Need);
+         Available    : constant Quantity_Type :=
+                          Pop.Get_Quantity (Commodity);
+         Base_Quantity : constant Quantity_Type :=
+                           Min (To_Quantity (Base_Need), Available);
+         Extra_Quantity : constant Quantity_Type :=
+                            (if Available > Base_Quantity
+                             and then Partial_Need > 0.0
+                             and then Concorde.Random.Unit_Random
+                             < Partial_Need
+                             then Unit else Zero);
+         Consumed       : constant Quantity_Type :=
+                            Base_Quantity + Extra_Quantity;
       begin
-         Pop.Remove_Quantity
-           (Commodity, Min (Pop.Get_Quantity (Commodity), Need_Quantity));
-         if Pop.Get_Quantity (Commodity) > Zero
-           and then Partial_Need > 0.0
-           and then Concorde.Random.Unit_Random < Partial_Need
-         then
-            Pop.Remove_Quantity
-              (Commodity, Unit);
-         end if;
+         Concorde.Logs.Log_Line
+           (Pop.Current_World.Name
+            & "/" & Pop.Short_Name
+            & "/consumption"
+            & "/" & Commodity.Identifier,
+            Pop.Identifier
+            & "," & Image (Pop.Size_Quantity)
+            & "," & Xi.Float_Images.Image (Need)
+            & "," & Xi.Float_Images.Image (Total_Need)
+            & "," & Image (Available)
+            & "," & Image (Consumed));
+         Pop.Remove_Quantity (Commodity, Consumed);
       end Consume;
 
    begin

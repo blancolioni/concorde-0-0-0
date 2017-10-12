@@ -63,6 +63,7 @@ package body Concorde.Managers.Installations is
       Manager.Installation.Log_Trade
         ("activated at "
          & Concorde.Calendar.Image (Manager.Time, True));
+      Manager.Installation.Update.Check_Offers;
       Manager.Installation.Add_Trade_Offers;
       Manager.Installation.Update.Execute_Production;
       Manager.Installation.Update.Pay_Workers;

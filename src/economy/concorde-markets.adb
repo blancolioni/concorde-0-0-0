@@ -1,4 +1,5 @@
 with Concorde.Logging;
+with Concorde.Logs;
 
 package body Concorde.Markets is
 
@@ -14,7 +15,8 @@ package body Concorde.Markets is
 
    procedure Check_Commodity
      (Market    : Root_Market_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type)
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
    is
    begin
       if Market.Commodities.Element (Commodity) = null then
@@ -34,7 +36,8 @@ package body Concorde.Markets is
    -------------------
 
    function Create_Market
-     (Owner  : not null access constant
+     (Identifier : String;
+      Owner      : not null access constant
         Concorde.Objects.Named_Object_Interface'Class;
       Manager : not null access constant
         Concorde.Trades.Trade_Manager_Interface'Class;
@@ -53,6 +56,7 @@ package body Concorde.Markets is
         (Market : in out Root_Market_Type'Class)
       is
       begin
+         Market.Id := new String'(Identifier);
          Market.Owner := Owner;
          Market.Manager := Manager;
          Market.Commodities := new Cached_Commodity_Vectors.Vector;
@@ -83,7 +87,32 @@ package body Concorde.Markets is
       Remaining : Quantity_Type := Quantity;
       Hist      : Historical_Quantity_Record :=
                     (Concorde.Calendar.Clock, others => <>);
+
+      Offer_Name : constant String :=
+                     (case Offer is
+                         when Concorde.Trades.Ask =>
+                            "ask",
+                         when Concorde.Trades.Bid =>
+                            "bid");
+
+      Market_Log_Path  : constant String :=
+                           Market.Identifier
+                           & "/" & Commodity.Identifier
+                           & "/" & Offer_Name;
+      Offer_Line      : constant String :=
+                          Agent.Short_Name
+                          & ","
+                          & Market.Identifier
+                          & ","
+                          & Commodity.Identifier
+                          & ","
+                          & Image (Quantity)
+                          & ","
+                          & Image (Price);
    begin
+      Concorde.Logs.Log_Line
+        (Market_Log_Path, Offer_Line);
+
       if Info.Current_Price = Zero then
          Info.Current_Price := Price;
          Info.Historical_Mean_Price := Price;
@@ -227,6 +256,62 @@ package body Concorde.Markets is
       end return;
    end Current_Price;
 
+   ------------------
+   -- Delete_Offer --
+   ------------------
+
+   overriding procedure Delete_Offer
+     (Market    : Root_Market_Type;
+      Offer     : Concorde.Trades.Offer_Type;
+      Agent     : not null access constant
+        Concorde.Trades.Trader_Interface'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+   is
+      use Concorde.Money;
+      Info : constant Cached_Commodity :=
+               Market.Get_Commodity (Commodity);
+
+   begin
+      case Offer is
+         when Concorde.Trades.Bid =>
+            declare
+               New_Queue : Bid_Queues.Heap;
+            begin
+               while not Info.Bids.Is_Empty loop
+                  declare
+                     Price : constant Price_Type :=
+                               Info.Bids.Maximum_Key;
+                     Element : constant Offer_Info :=
+                                 Info.Bids.Maximum_Element;
+                  begin
+                     if Element.Agent /= Agent then
+                        New_Queue.Insert (Price, Element);
+                     end if;
+                  end;
+               end loop;
+               Info.Bids := New_Queue;
+            end;
+         when Concorde.Trades.Ask =>
+            declare
+               New_Queue : Ask_Queues.Heap;
+            begin
+               while not Info.Bids.Is_Empty loop
+                  declare
+                     Price   : constant Price_Type :=
+                                 Info.Asks.Maximum_Key;
+                     Element : constant Offer_Info :=
+                                 Info.Asks.Maximum_Element;
+                  begin
+                     if Element.Agent /= Agent then
+                        New_Queue.Insert (Price, Element);
+                     end if;
+                  end;
+               end loop;
+               Info.Asks := New_Queue;
+            end;
+      end case;
+   end Delete_Offer;
+
    --------------------
    -- Enable_Logging --
    --------------------
@@ -315,10 +400,24 @@ package body Concorde.Markets is
       Quantity   : Concorde.Quantities.Quantity_Type;
       Price      : Concorde.Money.Price_Type)
    is
-      pragma Unreferenced (Market);
       use Concorde.Commodities;
       use Concorde.Money;
+      Market_Log_Path  : constant String :=
+                           Market.Identifier
+                           & "/" & Commodity.Identifier
+                           & "/transactions";
+      Offer_Line       : constant String :=
+                           Buyer.Short_Name
+                           & ","
+                           & Seller.Short_Name
+                           & ","
+                           & Commodity.Identifier
+                           & ","
+                           & Concorde.Quantities.Image (Quantity)
+                           & ","
+                           & Image (Price);
    begin
+      Concorde.Logs.Log_Line (Market_Log_Path, Offer_Line);
       Buyer.Execute_Trade
         (Offer     => Concorde.Trades.Bid,
          Commodity => Commodity,
@@ -344,7 +443,8 @@ package body Concorde.Markets is
 
    function Get_Commodity
      (Market    : Root_Market_Type'Class;
-      Commodity : Commodities.Commodity_Type)
+      Commodity : not null access constant
+        Commodities.Root_Commodity_Type'Class)
       return Cached_Commodity
    is
    begin
@@ -358,7 +458,8 @@ package body Concorde.Markets is
 
    overriding function Get_Quantity
      (Market    : Root_Market_Type;
-      Commodity : Concorde.Commodities.Commodity_Type;
+      Item      : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
       Metric    : Concorde.Trades.Trade_Metric;
       Start     : Concorde.Calendar.Time;
       Finish    : Concorde.Calendar.Time)
@@ -369,7 +470,7 @@ package body Concorde.Markets is
       use all type Concorde.Trades.Trade_Metric;
       Result : Quantity_Type := Zero;
       Cached : constant Cached_Commodity :=
-                 Market.Get_Commodity (Commodity);
+                 Market.Get_Commodity (Item);
    begin
       for Hist of Cached.Metrics loop
          exit when Hist.Date < Start;
@@ -393,13 +494,16 @@ package body Concorde.Markets is
 
    overriding function Historical_Mean_Price
      (Market    : Root_Market_Type;
-      Commodity : Concorde.Commodities.Commodity_Type)
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return Concorde.Money.Price_Type
    is
       use Concorde.Money;
    begin
       return Price : Concorde.Money.Price_Type :=
-        Market.Get_Commodity (Commodity).Historical_Mean_Price
+        Market.Get_Commodity
+          (Concorde.Commodities.Commodity_Type (Commodity))
+            .Historical_Mean_Price
       do
          if Price = Zero then
             Price := Commodity.Base_Price;

@@ -28,7 +28,8 @@ package Concorde.Markets is
 
    overriding function Historical_Mean_Price
      (Market    : Root_Market_Type;
-      Commodity : Concorde.Commodities.Commodity_Type)
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return Concorde.Money.Price_Type;
 
    overriding procedure Create_Offer
@@ -39,6 +40,13 @@ package Concorde.Markets is
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity_Type;
       Price     : Concorde.Money.Price_Type);
+
+   overriding procedure Delete_Offer
+     (Market    : Root_Market_Type;
+      Offer     : Concorde.Trades.Offer_Type;
+      Agent     : not null access constant
+        Concorde.Trades.Trader_Interface'Class;
+      Commodity : Concorde.Commodities.Commodity_Type);
 
    procedure Enable_Logging
      (Market  : in out Root_Market_Type'Class;
@@ -51,7 +59,8 @@ package Concorde.Markets is
    type Market_Type is access constant Root_Market_Type'Class;
 
    function Create_Market
-     (Owner  : not null access constant
+     (Identifier : String;
+      Owner      : not null access constant
         Concorde.Objects.Named_Object_Interface'Class;
       Manager : not null access constant
         Concorde.Trades.Trade_Manager_Interface'Class;
@@ -159,6 +168,7 @@ private
      new Concorde.Objects.Root_Object_Type
      and Trades.Trade_Interface with
       record
+         Id             : access String;
          Owner          : access constant
            Concorde.Objects.Named_Object_Interface'Class;
          Manager        : access constant
@@ -178,7 +188,8 @@ private
 
    overriding function Get_Quantity
      (Market    : Root_Market_Type;
-      Commodity : Concorde.Commodities.Commodity_Type;
+      Item      : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
       Metric    : Concorde.Trades.Trade_Metric;
       Start     : Concorde.Calendar.Time;
       Finish    : Concorde.Calendar.Time)
@@ -186,11 +197,13 @@ private
 
    procedure Check_Commodity
      (Market    : Root_Market_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type);
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class);
 
    function Get_Commodity
      (Market : Root_Market_Type'Class;
-      Commodity : Commodities.Commodity_Type)
+      Commodity : not null access constant
+        Commodities.Root_Commodity_Type'Class)
       return Cached_Commodity;
 
    procedure Execute_Trade

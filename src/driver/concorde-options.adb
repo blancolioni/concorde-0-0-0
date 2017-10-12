@@ -178,4 +178,10 @@ package body Concorde.Options is
                ("world-height-smoothing", ' ');
    end World_Height_Smoothing;
 
+   function Log_Folder return String is
+   begin
+      return WL.Command_Line.Find_Option
+               ("log-folder", ' ');
+   end Log_Folder;
+
 end Concorde.Options;

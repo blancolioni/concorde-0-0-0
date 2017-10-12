@@ -1,6 +1,8 @@
 with Concorde.Real_Images;
 with Concorde.Worlds;
 
+with Concorde.Logs;
+
 package body Concorde.Installations is
 
    ----------------------
@@ -46,8 +48,24 @@ package body Concorde.Installations is
                           Item.Current_Ask_Quantity (Commodity);
          Current_Bid  : constant Quantity_Type :=
                           Item.Current_Bid_Quantity (Commodity);
+         Log_Path     : constant String :=
+                          Item.Current_World.Name
+                          & "/hub"
+                          & "/offers"
+                          & "/" & Commodity.Identifier;
       begin
-         if not Commodity.Is_Set (Concorde.Commodities.Virtual) then
+         if not Commodity.Is_Set (Concorde.Commodities.Virtual)
+           and then (Demand > Zero or else Supply > Zero)
+         then
+            Concorde.Logs.Log_Line
+              (Log_Path,
+               Image (Local_Demand)
+               & "," & Image (Local_Supply)
+               & "," & Image (Demand)
+               & "," & Image (Supply)
+               & "," & Image (Current_Bid)
+               & "," & Image (Current_Ask));
+
             Item.Log_Trade
               (Commodity.Name
                & ": local demand: " & Image (Local_Demand)
@@ -76,7 +94,7 @@ package body Concorde.Installations is
                                    Min (Item.Available_Quantity,
                                         Scale
                                           (Supply - Demand - Current_Bid,
-                                           0.5));
+                                           0.1));
                begin
                   Item.Create_Bid
                     (Commodity, Buy_Quantity);
@@ -247,6 +265,11 @@ package body Concorde.Installations is
          Throughput         : Unit_Real := 1.0;
          Effective_Capacity : Quantity_Type := Raw_Capacity;
       begin
+         for Worker of Installation.Employees loop
+            Production_Cost := Production_Cost
+              + Total (Worker.Wage, Worker.Size);
+         end loop;
+
          for I in 1 .. Facility.Worker_Count loop
             declare
                Commodity : constant Commodity_Type :=
@@ -256,9 +279,6 @@ package body Concorde.Installations is
                Required  : constant Quantity_Type :=
                              Facility.Worker_Quantity (I);
             begin
-               Production_Cost :=
-                 Production_Cost + Installation.Get_Value (Commodity);
-
                if Available < Required then
                   Throughput :=
                     Unit_Real'Min
@@ -403,6 +423,11 @@ package body Concorde.Installations is
                   Installation.Add_Quantity
                     (Resource,
                      Effective_Capacity, Production_Cost);
+
+                  Installation.Log_Production
+                    ("minimum price per " & Resource.Name & " now "
+                     & Image (Installation.Get_Average_Price (Resource)));
+
                end;
             end if;
          end if;
@@ -499,6 +524,7 @@ package body Concorde.Installations is
             Cost : constant Concorde.Money.Money_Type :=
                      Concorde.Money.Total (Worker.Wage, Worker.Size);
          begin
+            Installation.Log_Wages (Worker.Pop, Worker.Size, Worker.Wage);
             Installation.Remove_Cash (Cost);
             Worker.Pop.Update.Add_Cash (Cost);
          end;

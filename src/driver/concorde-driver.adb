@@ -14,6 +14,7 @@ with Xtk;
 with Concorde.Paths;
 
 with Concorde.Logging;
+with Concorde.Logs;
 
 with Concorde.Factions.Configure;
 with Concorde.Galaxy.Create;
@@ -31,7 +32,6 @@ with Concorde.Xi_UI.Key_Bindings;
 with Concorde.Factions.Logging;
 
 with Concorde.Options;
-with Concorde.Reports;
 
 with Concorde.Configure;
 
@@ -180,15 +180,13 @@ begin
 
    Concorde.Factions.Reports.Report_Factions;
 
-   if Concorde.Options.Write_Accounts then
-      Concorde.Reports.Write_Accounts;
-   end if;
-
    Concorde.Logging.Stop_Logging;
 
    if Concorde.Options.Enable_Faction_Logging then
       Concorde.Factions.Logging.Stop_Logging;
    end if;
+
+   Concorde.Logs.Flush_Logs;
 
 exception
 
@@ -197,6 +195,7 @@ exception
          Concorde.Factions.Logging.Stop_Logging;
       end if;
       Concorde.Logging.Stop_Logging;
+      Concorde.Logs.Flush_Logs;
       raise;
 
 end Concorde.Driver;

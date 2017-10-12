@@ -61,6 +61,7 @@ package body Concorde.Managers.Pops is
         ("activated at "
          & Concorde.Calendar.Image
            (Manager.Time, True));
+      Manager.Pop.Update.Check_Offers;
       Manager.Pop.Add_Trade_Offers;
       Manager.Pop.Update.Execute_Consumption;
       Concorde.Objects.Queues.Next_Event

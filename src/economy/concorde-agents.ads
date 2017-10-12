@@ -35,7 +35,8 @@ package Concorde.Agents is
 
    overriding function Offer_Strategy
      (Agent     : Root_Agent_Type;
-      Commodity : Concorde.Commodities.Commodity_Type)
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return Concorde.Trades.Offer_Price_Strategy
    is (Concorde.Trades.Belief_Based);
 
@@ -228,6 +229,19 @@ package Concorde.Agents is
      (Agent   : Root_Agent_Type'Class;
       Message : String);
 
+   procedure Log_Transaction
+     (Buyer    : Root_Agent_Type'Class;
+      Seller   : not null access constant Root_Agent_Type'Class;
+      Item     : Concorde.Commodities.Commodity_Type;
+      Quantity : Concorde.Quantities.Quantity_Type;
+      Price    : Concorde.Money.Price_Type);
+
+   procedure Log_Wages
+     (Employer : Root_Agent_Type'Class;
+      Worker   : not null access constant Root_Agent_Type'Class;
+      Quantity : Concorde.Quantities.Quantity_Type;
+      Price    : Concorde.Money.Price_Type);
+
    procedure Log_Movement
      (Agent   : Root_Agent_Type'Class;
       Message : String);
@@ -265,6 +279,19 @@ private
          Low, High : Concorde.Money.Price_Type;
          Strength  : Unit_Real;
       end record;
+
+   procedure Translate
+     (Belief : in out Agent_Price_Belief_Record;
+      Toward : Concorde.Money.Price_Type;
+      Factor : Unit_Real);
+
+   procedure Contract
+     (Belief : in out Agent_Price_Belief_Record;
+      Factor : Unit_Real);
+
+   procedure Expand
+     (Belief : in out Agent_Price_Belief_Record;
+      Factor : Unit_Real);
 
    type Agent_Price_Belief_Access is access Agent_Price_Belief_Record;
 
@@ -325,12 +352,14 @@ private
      (Agent     : Root_Agent_Type'Class;
       Market    : not null access constant
         Concorde.Trades.Trade_Interface'Class;
-      Commodity : Concorde.Commodities.Commodity_Type)
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return Agent_Price_Belief_Record;
 
    procedure Update_Price_Belief
      (Agent     : Root_Agent_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
       Belief    :  Agent_Price_Belief_Record);
 
    function Has_Bids

@@ -22,9 +22,10 @@ imperial_capital = {
    }
    
    installations = {
-	   rations-factory = 10
-	   ready-meal-factory = 2
-	   luxury-food-factory = 1
+       grain-farm = 1
+       seafood-farm = 1
+       fruit-farm = 1
+       vegetable-farm = 1
    }
    
    basic_living_wage = yes
