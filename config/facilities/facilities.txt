@@ -1,5 +1,4 @@
 hub = { class = Colony_Hub
-        name = "Colony Hub"
         power = 10
         capacity = 100000
         workers = { executive = 5
@@ -14,7 +13,6 @@ hub = { class = Colony_Hub
       }
 	  
 port = { class = Port
-         name = "Orbital Port"
          power = 10
          capacity = 100000
          workers = { executive = 5
@@ -31,7 +29,6 @@ port = { class = Port
 	  
 
 consulate = { class = consulate
-              name = "Trade Consulate"
               power = 10
               workers = { executive = 2
                           tech = 10
@@ -43,7 +40,6 @@ consulate = { class = consulate
             }
             
 hq = { class = Corporate_Hq
-       name = "Corporate Headquarters"
        power = 10
        workers = { executive = 5
                    tech = 5
@@ -53,8 +49,8 @@ hq = { class = Corporate_Hq
                  }
 
      }
+     
 dock = { class = Orbital_Dock
-         name = "Orbital Dock"
          power = 100
          workers = { executive = 5
                      tech = 5
@@ -79,37 +75,26 @@ farm = { class = Farm
        
 seafood-farm = {
    template = farm
-   name = "Seafood farm"
    output = seafood
    terrain = sea
 }
 
-legume-farm = {
-   template = farm
-   name = "Legume farm"
-   output = legumes
-}
-
 fruit-farm = {
    template = farm
-   name = "Orchard"
    output = fruit
 }
 
 grain-farm = {
    template = farm
-   name = "Grain farm"
-   output = grains
+   output = grain
 }
 
-herb-farm = {
+vegetable-farm = {
    template = farm
-   name = "Herb farm"
-   output = herb
+   output = vegetables
 }
 
 light-factory = { class = Factory
-                  name = "Light Factory"
                   template-class = yes
                   power = 10
                   hours = 1
@@ -126,7 +111,6 @@ light-factory = { class = Factory
                 }
 
 heavy-factory = { class = Factory
-                  name = "Heavy Factory"
                   template-class = yes
                   power = 20
                   hours = 2
@@ -142,7 +126,6 @@ heavy-factory = { class = Factory
                 }
                 
 super-heavy-factory = { class = Factory
-                        name = "Super-Heavy Factory"
                         template-class = yes
                         power = 40
                         hours = 4
@@ -161,216 +144,82 @@ super-heavy-factory = { class = Factory
 
 steel-factory = {
    template = heavy-factory
-   name = "Steel Foundary"
    inputs = {
-     iron = 10
-     coal = 10
+     metal = 1
+     coal = 1
      }
    output = steel
 }
 
-bronze-factory = {
-   template = heavy-factory
-   name = "Bronze Foundary"
-   inputs = {
-     copper = 10
-     coal = 10
-     }
-   output = bronze
-}
-
-glass-factory = {
-   template = heavy-factory
-   name = "Glass Factory"
-   inputs = {
-     silicon = 2
-     coal = 1
-     }
-   output = glass
-}
-
 cement-factory = {
    template = heavy-factory
-   name = "Cement Factory"
    inputs = {
-     carbonite = 2
-     coal = 1
+     chemicals = 1
+     minerals = 1
      }
    output = cement
 }
 
-nylon-factory = {
+beer-factory = {
    template = light-factory
-   name = "Nylon Factory"
    inputs = {
-     oil = 2
-     }
-   output = nylon
-}
-
-pvc-factory = {
-   template = light-factory
-   name = "PVC Factory"
-   inputs = {
-     oil = 2
-     }
-   output = pvc
-}
-
-rations-factory = {
-   template = light-factory
-   name = "Rations Factory"
-   inputs = {
-     grains = 5
-     salt = 1
-     }
-   output = rations
-}
-
-ready-meal-factory = {
-   template = light-factory
-   name = "Readymeal Factory"
-   inputs = {
-     grains = 4
-     herb = 1
-     legumes = 2
-     salt = 1
-     vegetables = 2
-     }
-   output = readymeal
-}
-
-luxury-food-factory = {
-   template = light-factory
-   name = "Luxury Food Factory"
-   inputs = {
-     fruit = 2
-     fungi = 1
-     grains = 1
-     herb = 1
-     legumes = 1
-     salt = 1
-     seafood = 2
-     vegetables = 3
-     }
-   output = luxuryfood
-}
-
-ambrosia-factory = {
-   template = light-factory
-   name = "Ambrosia Factory"
-   inputs = {
-      water = 15
-      fruit = 15
+      grain = 2
+      vegetables = 1
+      water = 1
       }
-   output = ambrosia
+   output = beer
 }
 
-soda-factory = {
+wine-factory = {
    template = light-factory
-   name = "Soda Factory"
    inputs = {
-      water = 15
-      carbonite = 10
+      fruit = 4
+      water = 2
       }
-   output = soda
+   output = wine
 }
 
-bottled-factory = {
+spirit-factory = {
    template = light-factory
-   name = "Bottled Water Factory"
    inputs = {
-      water = 20
+      grain = 5
+      fruit = 3
+      water = 5
       }
-   output = bottled-water
-}
-
-narcotics-factory = {
-   template = light-factory
-   name = "Narcotics Factory"
-   inputs = {
-      rare-minerals = 4
-      carbonite = 4
-      water = 4
-      }
-   output = narcotics
-}
-
-stimulants-factory = {
-   template = light-factory
-   name = "Stimulants Factory"
-   inputs = {
-      fungi = 4
-      carbonite = 4
-      vegetables = 4
-      }
-   output = stimulants
-}
-
-alcohol-factory = {
-   template = light-factory
-   name = "Brewery"
-   inputs = {
-      grains = 5
-      water = 20
-      vegetables = 2
-      }
-   output = alcohol
+   output = spirits
 }
 
 luxury-clothes-factory = {
    template = light-factory
    name = "Luxury Clothing Factory"
    inputs = {
-      silk = 10
-      precious = 10
-	  cotton = 5
-	  wool = 5
+      silk = 2
+      precious = 2
+	  cotton = 1
+	  wool = 1
       }
-   output = luxuryclothes
+   output = luxury-clothes
 }
 
 regular-clothes-factory = {
    template = light-factory
-   name = "Clothing Factory"
    inputs = {
-      cotton = 5
-	  wool = 5
-      bronze = 2
-      nylon = 2
+      cotton = 2
+	  wool = 2
       }
-   output = regularclothes
+   output = regular-clothes
 }
 
 bargain-clothes-factory = {
    template = light-factory
-   name = "Bargain Clothing Factory"
    inputs = {
-      nylon = 10
-      pvc = 2
+      cotton = 1
+      wool = 1
       }
-   output = bargainclothes
+   output = bargain-clothes
 }
-
-shipyard = { class = Factory
-             name = Shipyard
-             power = 50
-             workers = {
-                executive = 10
-                tech = 100
-                unskilled = 100
-             }
-             
-             modules = { industrial = 100
-                         habitation = 50
-                         military = 50
-                       }
-             shipyard = true
-             capacity = 500
-           }
            
 refinery = { class = Resource_Generator
-             name = Refinery
              power = 10
              workers = { tech = 5 unskilled = 15 }
              modules = { industrial = 5 habitation = 5 }
@@ -378,15 +227,48 @@ refinery = { class = Resource_Generator
              metal = true
              fuel = true
            }
+           
+chemical-plant = {
+   template = heavy-factory
+   inputs = {
+       minerals = 2
+       oil = 1
+       rare-minerals = 1
+       water = 2
+       }
+   output = chemicals
+}
+           
+plastic-factory = {
+   template = heavy-factory
+   inputs = {
+       chemicals = 1
+       oil = 2
+       water = 5
+       }
+   output = plastic
+}
+           
+plasteel-factory = {
+   template = heavy-factory
+   inputs = {
+       chemicals = 2
+       plastic = 3
+       water = 5
+       }
+   output = plasteel
+}
+           
 mine = { class = Resource_Generator
          name = Mine
          power = 5
          workers = { tech = 1 unskilled = 2 }
          modules = { industrial = 6 habitation = 4 }
-         capacity = 1000
+         capacity = 5000
          mineral = true
          fissile = true
        }
+       
 plant = { class = Resource_Generator
           name = "Gas Plant"
           power = 10
@@ -395,6 +277,7 @@ plant = { class = Resource_Generator
           capacity = 100000
           gas = true
         }
+        
 pump = { class = Resource_Generator
          name = "Liquid Pump"
          power = 5
@@ -412,6 +295,7 @@ pump = { class = Resource_Generator
         capacity = 100000
         liquid = true
        }
+       
 hospital = { class = Service_Facility
              name = Hospital
              power = 10

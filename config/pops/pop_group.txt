@@ -6,8 +6,13 @@ poor = {
    liberal = 30
    quality = 1
    needs = {
-      rations = 1
-      bottled-water = 1
+      water = 1
+      fruit = 1
+      grain = 1
+      bargain-clothes = 0.1
+      }
+   wants = {
+      beer = 1
       }
 }
 
@@ -15,9 +20,14 @@ middle_class = {
    initial_cash = 200
    quality = 2
    needs = {
-      readymeal = 1
-      bottled-water = 1
-      soda = 1
+      water = 1
+      fruit = 1
+      grain = 1
+      regular-clothes = 0.1
+      }
+   wants = {
+      wine = 1
+      seafood = 1
       }
 }
 
@@ -25,10 +35,15 @@ rich = {
    initial_cash = 10000
    quality = 3
    needs = {
-      luxuryfood = 1
-      bottled-water = 1
-      soda = 1
-      ambrosia = 1
+      water = 1
+      fruit = 1
+      grain = 1
+      regular-clothes = 0.3
+      luxury-clothes = 0.1
+      }
+   wants = {
+      spirits = 1
+      seafood = 1
       }
 }
 
