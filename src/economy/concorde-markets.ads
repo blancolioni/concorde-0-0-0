@@ -11,6 +11,7 @@ with Concorde.Objects;
 with Concorde.Money;
 with Concorde.Quantities;
 
+limited with Concorde.Agents;
 with Concorde.Trades;
 
 with Concorde.Commodities;
@@ -35,7 +36,7 @@ package Concorde.Markets is
    overriding procedure Create_Offer
      (Market    : Root_Market_Type;
       Offer     : Concorde.Trades.Offer_Type;
-      Agent     : not null access constant
+      Trader    : not null access constant
         Concorde.Trades.Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity_Type;
@@ -44,9 +45,9 @@ package Concorde.Markets is
    overriding procedure Delete_Offer
      (Market    : Root_Market_Type;
       Offer     : Concorde.Trades.Offer_Type;
-      Agent     : not null access constant
-        Concorde.Trades.Trader_Interface'Class;
-      Commodity : Concorde.Commodities.Commodity_Type);
+      Trader    : Concorde.Trades.Trader_Interface'Class;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class);
 
    procedure Enable_Logging
      (Market  : in out Root_Market_Type'Class;
@@ -104,7 +105,7 @@ private
    type Offer_Info is
       record
          Agent              : access constant
-           Concorde.Trades.Trader_Interface'Class;
+           Concorde.Agents.Root_Agent_Type'Class;
          Offered_Quantity   : Concorde.Quantities.Quantity_Type;
          Remaining_Quantity : Concorde.Quantities.Quantity_Type;
          Offer_Price        : Concorde.Money.Price_Type;
@@ -130,7 +131,7 @@ private
 
    function Make_Offer
      (Agent    : not null access constant
-        Concorde.Trades.Trader_Interface'Class;
+        Concorde.Agents.Root_Agent_Type'Class;
       Quantity : Concorde.Quantities.Quantity_Type;
       Price    : Concorde.Money.Price_Type)
       return Offer_Info

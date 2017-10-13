@@ -17,6 +17,8 @@ with Concorde.Trades;
 
 package Concorde.Agents is
 
+   type Agent_Reference is private;
+
    type Root_Agent_Type is
      abstract new Concorde.Objects.Root_Object_Type
      and Concorde.Commodities.Stock_Interface
@@ -25,6 +27,8 @@ package Concorde.Agents is
 
    function Class_Name (Agent : Root_Agent_Type) return String
                         is abstract;
+
+   function Reference (Agent : Root_Agent_Type'Class) return Agent_Reference;
 
    procedure New_Agent
      (Agent          : in out Root_Agent_Type'Class;
@@ -274,6 +278,8 @@ private
 
    use Concorde.Quantities;
 
+   type Agent_Reference is new Natural;
+
    type Agent_Price_Belief_Record is
       record
          Low, High : Concorde.Money.Price_Type;
@@ -332,6 +338,7 @@ private
      and Concorde.Locations.Located_Interface
      and Concorde.Trades.Trader_Interface with
       record
+         Agent_Ref    : Agent_Reference;
          Market       : access Concorde.Trades.Trade_Interface'Class;
          Stock        : Concorde.Commodities.Root_Stock_Type;
          Cash         : Concorde.Money.Money_Type;
@@ -347,6 +354,9 @@ private
          Bid_Quantity : Concorde.Quantities.Quantity_Type :=
                           Concorde.Quantities.Zero;
       end record;
+
+   function Reference (Agent : Root_Agent_Type'Class) return Agent_Reference
+   is (Agent.Agent_Ref);
 
    function Get_Price_Belief
      (Agent     : Root_Agent_Type'Class;

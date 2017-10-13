@@ -1,3 +1,4 @@
+with Concorde.Agents;
 with Concorde.Logging;
 with Concorde.Logs;
 
@@ -74,7 +75,7 @@ package body Concorde.Markets is
    overriding procedure Create_Offer
      (Market    : Root_Market_Type;
       Offer     : Concorde.Trades.Offer_Type;
-      Agent     : not null access constant
+      Trader    : not null access constant
         Concorde.Trades.Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity_Type;
@@ -82,6 +83,8 @@ package body Concorde.Markets is
    is
       use Concorde.Money;
       use Concorde.Quantities;
+      Agent : constant Concorde.Agents.Agent_Type :=
+                Concorde.Agents.Agent_Type (Trader);
       Info : constant Cached_Commodity :=
                Market.Get_Commodity (Commodity);
       Remaining : Quantity_Type := Quantity;
@@ -100,7 +103,7 @@ package body Concorde.Markets is
                            & "/" & Commodity.Identifier
                            & "/" & Offer_Name;
       Offer_Line      : constant String :=
-                          Agent.Short_Name
+                          Trader.Short_Name
                           & ","
                           & Market.Identifier
                           & ","
@@ -263,11 +266,13 @@ package body Concorde.Markets is
    overriding procedure Delete_Offer
      (Market    : Root_Market_Type;
       Offer     : Concorde.Trades.Offer_Type;
-      Agent     : not null access constant
-        Concorde.Trades.Trader_Interface'Class;
-      Commodity : Concorde.Commodities.Commodity_Type)
+      Trader    : Concorde.Trades.Trader_Interface'Class;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
    is
       use Concorde.Money;
+      Agent : Concorde.Agents.Root_Agent_Type'Class renames
+                Concorde.Agents.Root_Agent_Type'Class (Trader);
       Info : constant Cached_Commodity :=
                Market.Get_Commodity (Commodity);
 
@@ -279,12 +284,14 @@ package body Concorde.Markets is
             begin
                while not Info.Bids.Is_Empty loop
                   declare
+                     use type Concorde.Agents.Agent_Reference;
                      Price : constant Price_Type :=
                                Info.Bids.Maximum_Key;
                      Element : constant Offer_Info :=
                                  Info.Bids.Maximum_Element;
                   begin
-                     if Element.Agent /= Agent then
+                     Info.Bids.Delete_Maximum;
+                     if Element.Agent.Reference /= Agent.Reference then
                         New_Queue.Insert (Price, Element);
                      end if;
                   end;
@@ -302,7 +309,7 @@ package body Concorde.Markets is
                      Element : constant Offer_Info :=
                                  Info.Asks.Maximum_Element;
                   begin
-                     if Element.Agent /= Agent then
+                     if Element.Agent.Short_Name /= Agent.Short_Name then
                         New_Queue.Insert (Price, Element);
                      end if;
                   end;

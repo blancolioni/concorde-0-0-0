@@ -118,8 +118,9 @@ package Concorde.Trades is
    procedure Delete_Offer
      (Trade     : Trade_Interface;
       Offer     : Offer_Type;
-      Trader    : not null access constant Trader_Interface'Class;
-      Commodity : Concorde.Commodities.Commodity_Type)
+      Trader    : Trader_Interface'Class;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
    is abstract;
 
    procedure Execute_Trade

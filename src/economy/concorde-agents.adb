@@ -10,6 +10,8 @@ package body Concorde.Agents is
    Log_Offers : Boolean := False;
 --   Log_Price_Updates : constant Boolean := True;
 
+   Next_Ref   : Agent_Reference := 0;
+
    function Price_Position_In_Range
      (Value, Low, High : Concorde.Money.Price_Type)
       return Unit_Real;
@@ -176,6 +178,8 @@ package body Concorde.Agents is
                end;
 
                Agent.Update_Price_Belief (Commodity, Belief);
+               Agent.Market.Delete_Offer
+                 (Concorde.Trades.Bid, Agent, Commodity);
             end;
          end if;
 
@@ -968,6 +972,8 @@ package body Concorde.Agents is
       Stock_Capacity : Concorde.Quantities.Quantity_Type)
    is
    begin
+      Next_Ref := Next_Ref + 1;
+      Agent.Agent_Ref := Next_Ref;
       Agent.Stock.Create_Stock (Stock_Capacity);
       Agent.Belief := new Price_Belief_Vectors.Vector;
       Agent.Location := Location;
