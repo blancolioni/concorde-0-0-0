@@ -99,9 +99,9 @@ light-factory = { class = Factory
                   power = 10
                   hours = 1
                   workers = {
-                     executive = 5
-                     tech = 15
-                     unskilled = 80
+                     executive = 3
+                     tech = 10
+                     unskilled = 50
                      }
                   modules = {
                     industrial = 30
