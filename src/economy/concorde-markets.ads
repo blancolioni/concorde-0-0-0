@@ -196,6 +196,22 @@ private
       Finish    : Concorde.Calendar.Time)
       return Concorde.Quantities.Quantity_Type;
 
+   overriding procedure Update_Offer
+     (Market    : Root_Market_Type;
+      Offer     : Concorde.Trades.Offer_Type;
+      Trader    : Concorde.Trades.Trader_Interface'Class;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
+      New_Price : Concorde.Money.Price_Type);
+
+   overriding function Price
+     (Market    : Root_Market_Type;
+      Offer     : Concorde.Trades.Offer_Type;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
+      Quantity  : Concorde.Quantities.Quantity_Type)
+      return Concorde.Money.Price_Type;
+
    procedure Check_Commodity
      (Market    : Root_Market_Type'Class;
       Commodity : not null access constant
@@ -216,6 +232,11 @@ private
       Commodity  : Concorde.Commodities.Commodity_Type;
       Quantity   : Concorde.Quantities.Quantity_Type;
       Price      : Concorde.Money.Price_Type);
+
+--     procedure Check_Trades
+--       (Market    : Root_Market_Type'Class;
+--        Commodity : not null access constant
+--          Concorde.Commodities.Root_Commodity_Type'Class);
 
    procedure Log_Offer
      (Market    : Root_Market_Type'Class;

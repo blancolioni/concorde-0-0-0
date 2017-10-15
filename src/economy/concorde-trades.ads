@@ -10,11 +10,25 @@ package Concorde.Trades is
       Total_Traded, Total_Imported, Total_Exported,
       Local_Demand, Local_Supply);
 
+   type Offer_Type is (Ask, Bid);
+
+   type Offer_Price_Strategy is
+     (Belief_Based, Fixed_Price, Average_Price);
+
    type Trade_Interface is limited interface;
 
    function Current_Price
      (Trade     : Trade_Interface;
       Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Price_Type
+      is abstract;
+
+   function Price
+     (Trade     : Trade_Interface;
+      Offer     : Offer_Type;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
+      Quantity  : Concorde.Quantities.Quantity_Type)
       return Concorde.Money.Price_Type
       is abstract;
 
@@ -73,11 +87,6 @@ package Concorde.Trades is
       return access constant Trade_Manager_Interface'Class
       is abstract;
 
-   type Offer_Type is (Ask, Bid);
-
-   type Offer_Price_Strategy is
-     (Belief_Based, Fixed_Price, Average_Price);
-
    type Trader_Interface is limited interface;
 
    function Short_Name
@@ -121,6 +130,15 @@ package Concorde.Trades is
       Trader    : Trader_Interface'Class;
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
+   is abstract;
+
+   procedure Update_Offer
+     (Trade     : Trade_Interface;
+      Offer     : Offer_Type;
+      Trader    : Trader_Interface'Class;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
+      New_Price : Concorde.Money.Price_Type)
    is abstract;
 
    procedure Execute_Trade

@@ -269,6 +269,8 @@ package body Concorde.Managers.Ships.Trade is
                Manager.Current := Next_Position;
                Manager.Set_Destination (To_World);
                Manager.State := Moving;
+            else
+               Manager.Ship.Update.Check_Offers;
             end if;
          when Moving =>
             Manager.State := Asking;
@@ -278,6 +280,8 @@ package body Concorde.Managers.Ships.Trade is
          when Selling =>
             if Manager.Ship.Total_Quantity = Zero then
                Manager.State := Bidding;
+            else
+               Manager.Ship.Update.Check_Offers;
             end if;
       end case;
 
