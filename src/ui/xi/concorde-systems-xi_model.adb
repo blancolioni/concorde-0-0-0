@@ -461,6 +461,7 @@ package body Concorde.Systems.Xi_Model is
                                  Selector);
          begin
             Selector_Node.Append_Child (Node);
+            Node.Set_Visible (not World.Is_Moon);
             Model.Worlds.Append ((World, World_Node, Node));
          end;
 
