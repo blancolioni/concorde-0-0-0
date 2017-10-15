@@ -27,6 +27,8 @@ package body Concorde.Systems.Xi_Model is
    Camera_Start_Far  : constant := 80.0 * Concorde.Solar_System.Earth_Orbit;
    Camera_Start_Fov  : constant := 80.0;
 
+   Star_Scale : constant := 4.0e10;
+
 --     World_Start_Fov   : constant := 60.0;
 --     World_Start_Near  : constant := 0.01;
 --     World_Start_Far   : constant := 45.0;
@@ -402,7 +404,7 @@ package body Concorde.Systems.Xi_Model is
 --           Light.Set_Ambient_Coefficient (0.005);
          Scene.Add_Light (Light);
 
-         Star_Node.Scale (Star.Radius);
+         Star_Node.Scale (Star.Radius * Star_Scale);
 
       end Create_Star;
 
