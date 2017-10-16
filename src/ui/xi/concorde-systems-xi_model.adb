@@ -1,13 +1,17 @@
 with Ada.Text_IO;
 
+with WL.Random;
+
 with Memor.Element_Vectors;
 
-with Xi.Assets;
 with Xi.Camera;
+with Xi.Entity;
 with Xi.Light;
+with Xi.Materials.Material;
 with Xi.Matrices;
 with Xi.Node;
 with Xi.Scene;
+with Xi.Shader.Noise;
 with Xi.Shapes;
 
 --  with Concorde.Geometry;
@@ -27,7 +31,7 @@ package body Concorde.Systems.Xi_Model is
    Camera_Start_Far  : constant := 80.0 * Concorde.Solar_System.Earth_Orbit;
    Camera_Start_Fov  : constant := 80.0;
 
-   Star_Scale : constant := 4.0e10;
+   Star_Scale : constant := 2.5E10;
 
 --     World_Start_Fov   : constant := 60.0;
 --     World_Start_Near  : constant := 0.01;
@@ -388,18 +392,46 @@ package body Concorde.Systems.Xi_Model is
          use Xi;
          Star_Node : constant Xi.Node.Xi_Node :=
                        System_Node.Create_Child (Star.Name);
+         Star_Entity  : constant Xi.Entity.Xi_Entity :=
+                          Xi.Shapes.Icosohedral_Sphere (2);
          Light     : Xi.Light.Xi_Light;
---           Star_Scale : constant Xi_Float :=
---                          Xi_Float (Star.Radius)
---                          * Concorde.Solar_System.Solar_Radius
---                          / Scene_Unit_Length;
+         Palette      : Xi.Color.Xi_Color_1D_Array (1 .. 20);
+         Noise_Shader : Xi.Shader.Noise.Xi_Noise_Shader;
+         Material     : Xi.Materials.Material.Xi_Material;
+         Color        : constant Xi.Color.Xi_Color :=
+                          Star.Color;
+         Low          : constant Xi.Color.Xi_Color :=
+                          Xi.Color.Shade (Color, 0.5);
+         High         : constant Xi.Color.Xi_Color :=
+                          Xi.Color.Shade (Color, 1.33);
       begin
-         Star_Node.Set_Entity (Xi.Shapes.Icosohedral_Sphere (3));
-         Star_Node.Entity.Set_Material
-           (Xi.Assets.Material ("Concorde/System/Star"));
+         for I in Palette'Range loop
+            declare
+               P : Xi.Color.Xi_Color renames Palette (I);
+               F : constant Xi_Unit_Float :=
+                     Xi_Float (I) / Xi_Float (Palette'Length);
+            begin
+               P :=
+                 Xi.Color.Interpolate (Low, High, F);
+            end;
+         end loop;
+
+         Noise_Shader :=
+           Xi.Shader.Noise.Create_Noise_Shader
+             (Initiator  => WL.Random.Random_Number
+                (1, 999_999),
+              Octaves    => 4.0,
+              Roughness  => 0.7,
+              Lacunarity => 40.0,
+              Palette    => Palette);
+         Material := Noise_Shader.Material;
+
+         Star_Entity.Set_Material (Material);
+         Star_Node.Set_Entity (Star_Entity);
+
          Xi.Light.Xi_New (Light, Xi.Light.Point);
-         Light.Set_Position (Star_Node.Position);
-         Light.Set_Color (1.0, 1.0, 1.0, 1.0);
+         Light.Set_Position (0.0, 0.0, 0.0);
+         Light.Set_Color (Star.Color);
 --           Light.Set_Attenuation (0.2);
 --           Light.Set_Ambient_Coefficient (0.005);
          Scene.Add_Light (Light);
