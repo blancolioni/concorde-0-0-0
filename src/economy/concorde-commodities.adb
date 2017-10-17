@@ -6,6 +6,7 @@ package body Concorde.Commodities is
    Local_Skill_Commodity_Array   : access Array_Of_Commodities;
    Local_Trade_Commodity_Array   : access Array_Of_Commodities;
    Local_Virtual_Commodity_Array : access Array_Of_Commodities;
+   Local_Food_Commodity_Array    : access Array_Of_Commodities;
 
    function Commodity_Array
      (Test : not null access
@@ -120,6 +121,25 @@ package body Concorde.Commodities is
       Stock.Maximum := Maximum;
       Stock.Vector.Clear;
    end Create_Stock;
+
+   ----------------------
+   -- Food_Commodities --
+   ----------------------
+
+   function Food_Commodities return Array_Of_Commodities is
+   begin
+      if Local_Food_Commodity_Array = null then
+         declare
+            function Test (Commodity : Commodity_Type) return Boolean
+            is (Commodity.Energy > 0.0);
+         begin
+            Local_Food_Commodity_Array :=
+              new Array_Of_Commodities'(Commodity_Array (Test'Access));
+         end;
+      end if;
+
+      return Local_Food_Commodity_Array.all;
+   end Food_Commodities;
 
    ---------
    -- Get --

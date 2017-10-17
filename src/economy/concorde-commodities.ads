@@ -45,6 +45,10 @@ package Concorde.Commodities is
      (Commodity : Root_Commodity_Type'Class)
       return Concorde.Money.Price_Type;
 
+   function Energy
+     (Commodity : Root_Commodity_Type'Class)
+      return Non_Negative_Real;
+
    function Is_Set
      (Commodity : Root_Commodity_Type'Class;
       Flag      : Commodity_Flag)
@@ -72,6 +76,7 @@ package Concorde.Commodities is
    function Trade_Commodities return Array_Of_Commodities;
    function Skill_Commodities return Array_Of_Commodities;
    function Virtual_Commodities return Array_Of_Commodities;
+   function Food_Commodities return Array_Of_Commodities;
 
    type Stock_Interface is limited interface;
 
@@ -175,11 +180,17 @@ private
          Base_Price : Concorde.Money.Price_Type;
          Mass       : Non_Negative_Real;
          Quality    : Commodity_Quality;
+         Energy     : Non_Negative_Real;
       end record;
 
    overriding function Object_Database
      (Item : Root_Commodity_Type)
       return Memor.Memor_Database;
+
+   function Energy
+     (Commodity : Root_Commodity_Type'Class)
+      return Non_Negative_Real
+   is (Commodity.Energy);
 
    type Stock_Entry is
       record

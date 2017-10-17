@@ -15,6 +15,7 @@ package body Concorde.Commodities.Configure is
       Mass       : Non_Negative_Real;
       Base_Price : Concorde.Money.Price_Type;
       Quality    : Commodity_Quality;
+      Energy     : Non_Negative_Real;
       Flags      : Array_Of_Flags)
       return Commodity_Type;
 
@@ -144,6 +145,9 @@ package body Concorde.Commodities.Configure is
                               Quality    =>
                                 Commodity_Quality'Val
                                   (Config.Get ("quality", 2) - 1),
+                              Energy     =>
+                                Non_Negative_Real
+                                  (Float'(Config.Get ("energy", 0.0))),
                               Flags      => Flags);
          pragma Unreferenced (New_Commodity);
       begin
@@ -162,6 +166,7 @@ package body Concorde.Commodities.Configure is
       Mass       : Non_Negative_Real;
       Base_Price : Concorde.Money.Price_Type;
       Quality    : Commodity_Quality;
+      Energy     : Non_Negative_Real;
       Flags      : Array_Of_Flags)
      return Commodity_Type
    is
@@ -179,6 +184,7 @@ package body Concorde.Commodities.Configure is
          Commodity.Flags := Flags;
          Commodity.Mass := Mass;
          Commodity.Base_Price := Base_Price;
+         Commodity.Energy := Energy;
          Commodity.Quality := Quality;
       end Create;
 
@@ -204,6 +210,7 @@ package body Concorde.Commodities.Configure is
                      Mass       => 0.0,
                      Base_Price => Service_Facility.Base_Service_Charge,
                      Quality    => Service_Facility.Quality,
+                     Energy     => 0.0,
                      Flags      => (Virtual => True, others => False));
       pragma Unreferenced (Service);
    begin
@@ -226,6 +233,7 @@ package body Concorde.Commodities.Configure is
          Mass       => 0.0,
          Base_Price => Base_Pay,
          Quality    => Middle,
+         Energy     => 0.0,
          Flags      => (Virtual => True, others => False));
    end Create_From_Skill;
 
