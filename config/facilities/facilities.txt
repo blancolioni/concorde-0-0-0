@@ -77,6 +77,7 @@ seafood-farm = {
    template = farm
    output = seafood
    terrain = sea
+   capacity = 1000
 }
 
 fruit-farm = {
@@ -92,6 +93,18 @@ grain-farm = {
 vegetable-farm = {
    template = farm
    output = vegetables
+}
+
+cotton-farm = {
+   template = farm
+   output = cotton
+   capacity = 5000
+}
+
+sheep-farm = {
+   template = farm
+   output = wool
+   capacity = 5000
 }
 
 light-factory = { class = Factory
@@ -199,6 +212,7 @@ luxury-clothes-factory = {
 	  wool = 1
       }
    output = luxury-clothes
+   capacity = 100
 }
 
 regular-clothes-factory = {
@@ -208,6 +222,7 @@ regular-clothes-factory = {
 	  wool = 2
       }
    output = regular-clothes
+   capacity = 1000
 }
 
 bargain-clothes-factory = {
