@@ -26,7 +26,11 @@ imperial_capital = {
        seafood-farm = 1
        fruit-farm = 1
        vegetable-farm = 1
+       sheep-farm = 1
+       cotton-farm = 1
        bargain-clothes-factory = 5
+       regular-clothes-factory = 2
+       luxury-clothes-factory = 1
    }
    
    basic_living_wage = yes
