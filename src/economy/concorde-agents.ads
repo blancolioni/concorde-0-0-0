@@ -48,6 +48,10 @@ package Concorde.Agents is
      (Agent : Root_Agent_Type)
       return Concorde.Quantities.Quantity_Type;
 
+   overriding function Available_Capacity
+     (Agent : Root_Agent_Type)
+      return Concorde.Quantities.Quantity_Type;
+
    overriding function Get_Quantity
      (Agent : Root_Agent_Type;
       Item  : Concorde.Commodities.Commodity_Type)
@@ -184,6 +188,9 @@ package Concorde.Agents is
       return Concorde.Money.Price_Type
      with Pre => Agent.Has_Bid (Commodity);
 
+   procedure Clear_Filled_Bids
+     (Agent     : in out Root_Agent_Type'Class);
+
    function Has_Asks
      (Agent : Root_Agent_Type'Class)
       return Boolean;
@@ -203,6 +210,9 @@ package Concorde.Agents is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Money.Price_Type
      with Pre => Agent.Has_Ask (Commodity);
+
+   procedure Clear_Filled_Asks
+     (Agent     : in out Root_Agent_Type'Class);
 
    --     procedure Add_Trade_Offers
 --       (Agent  : not null access constant Root_Agent_Type)
@@ -321,12 +331,15 @@ private
 
    type Agent_Offer is
       record
-         Price     : Concorde.Money.Price_Type         := Concorde.Money.Zero;
+         Valid     : Boolean := False;
+         Price     : Concorde.Money.Price_Type := Concorde.Money.Zero;
          Quantity  : Concorde.Quantities.Quantity_Type :=
                        Concorde.Quantities.Zero;
          Filled    : Concorde.Quantities.Quantity_Type :=
                        Concorde.Quantities.Zero;
       end record;
+
+   procedure Check (Offer : Agent_Offer);
 
    package Agent_Offer_Vectors is
      new Memor.Element_Vectors
@@ -355,6 +368,11 @@ private
                           Concorde.Quantities.Zero;
       end record;
 
+   overriding function Available_Capacity
+     (Agent : Root_Agent_Type)
+      return Concorde.Quantities.Quantity_Type
+   is (Root_Agent_Type'Class (Agent).Available_Quantity);
+
    function Reference (Agent : Root_Agent_Type'Class) return Agent_Reference
    is (Agent.Agent_Ref);
 
@@ -381,8 +399,7 @@ private
      (Agent     : Root_Agent_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
       return Boolean
-   is (Agent.Bids.Element (Commodity).Quantity
-       > Agent.Bids.Element (Commodity).Filled);
+   is (Agent.Bids.Element (Commodity).Valid);
 
    function Current_Bid_Price
      (Agent     : Root_Agent_Type'Class;
@@ -399,8 +416,7 @@ private
      (Agent     : Root_Agent_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
       return Boolean
-   is (Agent.Asks.Element (Commodity).Quantity
-       > Agent.Asks.Element (Commodity).Filled);
+   is (Agent.Asks.Element (Commodity).Valid);
 
    function Current_Ask_Price
      (Agent     : Root_Agent_Type'Class;

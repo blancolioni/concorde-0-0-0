@@ -104,7 +104,7 @@ package body Concorde.Logs is
       end if;
 
       Log_Files (Log_Path).Append
-        (Concorde.Calendar.Image (Concorde.Calendar.Clock)
+        (Concorde.Calendar.Image (Concorde.Calendar.Clock, True)
          & "," & Line);
    end Log_Line;
 

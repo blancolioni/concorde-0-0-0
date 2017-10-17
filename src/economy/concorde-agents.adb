@@ -55,6 +55,22 @@ package body Concorde.Agents is
       return Agent.Cash;
    end Cash;
 
+   -----------
+   -- Check --
+   -----------
+
+   procedure Check (Offer : Agent_Offer) is
+      use Concorde.Money;
+   begin
+      if not (Offer.Valid xor Offer.Price = Zero) then
+         raise Constraint_Error with
+           "agent offer invariant failed: "
+           & (if Offer.Valid then "valid" else "not valid")
+           & " and price = "
+           & Image (Offer.Price);
+      end if;
+   end Check;
+
    ------------------
    -- Check_Offers --
    ------------------
@@ -84,6 +100,13 @@ package body Concorde.Agents is
          Offer     : in out Agent_Offer)
       is
       begin
+
+         Check (Offer);
+
+         if not Offer.Valid then
+            return;
+         end if;
+
          case Agent.Offer_Strategy (Commodity) is
             when Concorde.Trades.Fixed_Price =>
                null;
@@ -114,6 +137,8 @@ package body Concorde.Agents is
                      & "/"
                      & Image (Belief.High)
                      & "; mean "
+                     & Image (Adjust_Price (Belief.Low + Belief.High, 0.5))
+                     & "; historical mean "
                      & Image (Mean)
                      & "; supply/demand "
                      & Image (Supply)
@@ -155,6 +180,10 @@ package body Concorde.Agents is
                      Log_Line : constant String :=
                                   Image (Start_Belief.Low)
                                 & "," & Image (Start_Belief.High)
+                                  & "," & Image
+                                    (Adjust_Price
+                                       (Start_Belief.Low
+                                        + Start_Belief.High, 0.5))
                                   & "," & Image (Mean)
                                 & "," & Image (Supply)
                                   & "," & Image (Demand)
@@ -173,6 +202,8 @@ package body Concorde.Agents is
                   Agent.Update_Price_Belief (Commodity, Belief);
                   Agent.Market.Delete_Offer
                     (Concorde.Trades.Ask, Agent, Commodity);
+                  Agent.Bid_Quantity :=
+                    Agent.Bid_Quantity - (Offer.Quantity - Offer.Filled);
                   Offer.Quantity := Zero;
                   Offer.Filled := Zero;
                end;
@@ -214,6 +245,15 @@ package body Concorde.Agents is
                            Trader    => Agent,
                            Commodity => Commodity,
                            New_Price => Adjust_Price (Maximum_Price, 0.9));
+                     elsif Supply > Demand then
+                        Agent.Market.Update_Offer
+                          (Offer     => Concorde.Trades.Ask,
+                           Trader    => Agent,
+                           Commodity => Commodity,
+                           New_Price =>
+                             Adjust_Price
+                               (Offer.Price,
+                                Concorde.Random.Unit_Random * 0.1 + 0.9));
                      end if;
                   end;
                end if;
@@ -230,6 +270,13 @@ package body Concorde.Agents is
          Offer     : in out Agent_Offer)
       is
       begin
+
+         Check (Offer);
+
+         if not Offer.Valid then
+            return;
+         end if;
+
          case Agent.Offer_Strategy (Commodity) is
             when Concorde.Trades.Fixed_Price =>
                null;
@@ -260,6 +307,8 @@ package body Concorde.Agents is
                      & "/"
                      & Image (Belief.High)
                      & "; mean "
+                     & Image (Adjust_Price (Belief.Low + Belief.High, 0.5))
+                     & "; historical mean "
                      & Image (Mean)
                      & "; supply/demand "
                      & Image (Supply)
@@ -270,7 +319,10 @@ package body Concorde.Agents is
                      & " at "
                      & Image (Offer.Price));
 
-                  if Offer.Filled = Offer.Quantity then
+                  if Supply = Zero then
+                     --  no supply, so don't move our price
+                     null;
+                  elsif Offer.Filled = Offer.Quantity then
                      if Offer.Price > Mean then
                         Translate (Belief, Mean, 0.5);
                      end if;
@@ -301,6 +353,10 @@ package body Concorde.Agents is
                      Log_Line : constant String :=
                                   Image (Start_Belief.Low)
                                 & "," & Image (Start_Belief.High)
+                                  & "," & Image
+                                    (Adjust_Price
+                                       (Start_Belief.Low
+                                        + Start_Belief.High, 0.5))
                                   & "," & Image (Mean)
                                 & "," & Image (Supply)
                                   & "," & Image (Demand)
@@ -319,6 +375,8 @@ package body Concorde.Agents is
                   Agent.Update_Price_Belief (Commodity, Belief);
                   Agent.Market.Delete_Offer
                     (Concorde.Trades.Bid, Agent, Commodity);
+                  Agent.Bid_Quantity :=
+                    Agent.Bid_Quantity - (Offer.Quantity - Offer.Filled);
                   Offer.Quantity := Zero;
                   Offer.Filled := Zero;
                end;
@@ -354,7 +412,17 @@ package body Concorde.Agents is
                         & " at "
                         & Image (Offer.Price));
 
-                     if Minimum_Price /= Zero then
+                     if Supply = Zero then
+                        --  this ain't gonna work
+                        Agent.Market.Delete_Offer
+                          (Offer     => Concorde.Trades.Bid,
+                           Trader    => Agent,
+                           Commodity => Commodity);
+                        Agent.Bid_Quantity :=
+                          Agent.Bid_Quantity - (Offer.Quantity - Offer.Filled);
+                        Offer.Filled := Zero;
+                        Offer.Quantity := Zero;
+                     elsif Minimum_Price /= Zero then
                         Agent.Market.Update_Offer
                           (Offer     => Concorde.Trades.Bid,
                            Trader    => Agent,
@@ -371,6 +439,74 @@ package body Concorde.Agents is
       Agent.Bids.Update (Update_Bid'Access);
       Agent.Asks.Update (Update_Ask'Access);
    end Check_Offers;
+
+   -----------------------
+   -- Clear_Filled_Asks --
+   -----------------------
+
+   procedure Clear_Filled_Asks
+     (Agent     : in out Root_Agent_Type'Class)
+   is
+      procedure Clear
+        (Item  : not null access constant
+           Concorde.Commodities.Root_Commodity_Type'Class;
+         Offer : in out Agent_Offer);
+
+      -----------
+      -- Clear --
+      -----------
+
+      procedure Clear
+        (Item  : not null access constant
+           Concorde.Commodities.Root_Commodity_Type'Class;
+         Offer : in out Agent_Offer)
+      is
+         pragma Unreferenced (Item);
+      begin
+         Check (Offer);
+         if Offer.Valid and then Offer.Filled = Offer.Quantity then
+            Offer := (others => <>);
+            Check (Offer);
+         end if;
+      end Clear;
+
+   begin
+      Agent.Asks.Update (Clear'Access);
+   end Clear_Filled_Asks;
+
+   -----------------------
+   -- Clear_Filled_Bids --
+   -----------------------
+
+   procedure Clear_Filled_Bids
+     (Agent     : in out Root_Agent_Type'Class)
+   is
+      procedure Clear
+        (Item  : not null access constant
+           Concorde.Commodities.Root_Commodity_Type'Class;
+         Offer : in out Agent_Offer);
+
+      -----------
+      -- Clear --
+      -----------
+
+      procedure Clear
+        (Item  : not null access constant
+           Concorde.Commodities.Root_Commodity_Type'Class;
+         Offer : in out Agent_Offer)
+      is
+         pragma Unreferenced (Item);
+      begin
+         Check (Offer);
+         if Offer.Valid and then Offer.Filled = Offer.Quantity then
+            Offer := (others => <>);
+            Check (Offer);
+         end if;
+      end Clear;
+
+   begin
+      Agent.Bids.Update (Clear'Access);
+   end Clear_Filled_Bids;
 
    -----------------
    -- Clear_Stock --
@@ -469,7 +605,23 @@ package body Concorde.Agents is
         (Offer : in out Agent_Offer)
       is
       begin
-         Offer.Quantity := Offer.Quantity + Sell_Quantity;
+
+         Check (Offer);
+
+         if Offer.Valid then
+            Offer.Quantity := Offer.Quantity + Sell_Quantity;
+            Offer.Price := Sell_Price;
+            Agent.Log_Trade
+              (Commodity.Name
+               & ": updated ask "
+               & Image (Offer.Quantity) & "/" & Image (Offer.Price));
+         else
+            Offer := (True, Sell_Price, Sell_Quantity, Zero);
+            Agent.Log_Trade
+              (Commodity.Name
+               & ": new ask "
+               & Image (Offer.Quantity) & "/" & Image (Offer.Price));
+         end if;
       end Update_Offer;
 
    begin
@@ -616,8 +768,23 @@ package body Concorde.Agents is
         (Offer : in out Agent_Offer)
       is
       begin
-         Offer.Quantity := Offer.Quantity + Bid_Quantity;
-         Offer.Price := Buy_Price;
+
+         Check (Offer);
+
+         if Offer.Valid then
+            Offer.Quantity := Offer.Quantity + Bid_Quantity;
+            Offer.Price := Buy_Price;
+            Agent.Log_Trade
+              (Commodity.Name
+               & ": updated bid "
+               & Image (Offer.Quantity) & "/" & Image (Offer.Price));
+         else
+            Offer := (True, Buy_Price, Bid_Quantity, Zero);
+            Agent.Log_Trade
+              (Commodity.Name
+               & ": new bid "
+               & Image (Offer.Quantity) & "/" & Image (Offer.Price));
+         end if;
       end Update_Offer;
 
    begin
@@ -711,7 +878,11 @@ package body Concorde.Agents is
    is
       Info : constant Agent_Offer := Agent.Asks.Element (Commodity);
    begin
-      return Info.Quantity - Info.Filled;
+
+      Check (Info);
+
+      return (if Info.Valid then Info.Quantity - Info.Filled
+              else Concorde.Quantities.Zero);
    end Current_Ask_Quantity;
 
    --------------------------
@@ -725,7 +896,11 @@ package body Concorde.Agents is
    is
       Info : constant Agent_Offer := Agent.Bids.Element (Commodity);
    begin
-      return Info.Quantity - Info.Filled;
+
+      Check (Info);
+
+      return (if Info.Valid then Info.Quantity - Info.Filled
+              else Concorde.Quantities.Zero);
    end Current_Bid_Quantity;
 
    ----------------------
@@ -806,6 +981,7 @@ package body Concorde.Agents is
         (Offer : in out Agent_Offer)
       is
       begin
+         Check (Offer);
          Offer.Filled := Offer.Filled + Quantity;
       end Update_Offer;
 

@@ -34,95 +34,108 @@ package body Concorde.Markets is
       end if;
    end Check_Commodity;
 
---     procedure Check_Trades
---       (Market    : Root_Market_Type'Class;
---        Commodity : not null access constant
---          Concorde.Commodities.Root_Commodity_Type'Class)
---     is
---        use Concorde.Money, Concorde.Quantities;
---        Info : constant Cached_Commodity :=
---                 Market.Get_Commodity (Commodity);
---        Bid_Offer    : Offer_Info;
---        Ask_Offer    : Offer_Info;
---        Bid_Price    : Price_Type := Zero;
---        Bid_Quantity : Quantity_Type := Zero;
---        Ask_Price    : Price_Type := Zero;
---        Ask_Quantity : Quantity_Type := Zero;
---
---     begin
---
---        loop
---           if Bid_Quantity = Zero then
---              exit when Info.Bids.Is_Empty;
---              Bid_Offer := Info.Bids.Maximum_Element;
---              Bid_Quantity :=
---                Bid_Offer.Offered_Quantity
---                  - Bid_Offer.Remaining_Quantity;
---              Bid_Price := Bid_Offer.Offer_Price;
---           end if;
---
---           if Ask_Quantity = Zero then
---              exit when Info.Asks.Is_Empty;
---              Ask_Offer := Info.Asks.Maximum_Element;
---              Ask_Quantity :=
---                Ask_Offer.Offered_Quantity
---                  - Ask_Offer.Remaining_Quantity;
---              Ask_Price := Ask_Offer.Offer_Price;
---           end if;
---
---           exit when Bid_Price < Ask_Price;
---
---           declare
---              Final_Price     : constant Price_Type :=
---                                  Adjust_Price (Ask_Price + Bid_Price,
---                                                0.5);
---              Traded_Quantity : constant Quantity_Type :=
---                                  Min (Ask_Quantity, Bid_Quantity);
---           begin
---              Ask_Quantity := Ask_Quantity - Traded_Quantity;
---              Bid_Quantity := Bid_Quantity - Traded_Quantity;
---
---              Hist.Quantities (Concorde.Trades.Total_Traded) :=
---                Hist.Quantities (Concorde.Trades.Total_Traded)
---                + Traded_Quantity;
---
---              Info.Current_Supply := Info.Current_Supply - Traded;
---              Info.Current_Demand := Info.Current_Demand - Traded;
---
---              Market.Execute_Trade
---                (Buyer     => Bid_Offer.Agent,
---                 Seller    => Ask_Offer.Agent,
---                 Commodity => Commodity,
---                 Quantity  => Traded_Quantity,
---                 Price     => Final_Price);
---
---              Info.Historical_Mean_Price :=
---                Adjust_Price
---                  (Info.Historical_Mean_Price + Final_Price, 0.5);
---
---              if Ask_Quantity = Zero then
---                 Info.Asks.Delete_Maximum;
---              end if;
---
---              if Bid_Quantity = Zero then
---                 Info.Bids.Delete_Maximum;
---              end if;
---           end;
---
---        end loop;
---
---        if Ask_Quantity > Zero then
---           Info.Asks.Delete_Maximum;
---           Ask_Offer.Remaining_Quantity := Ask_Quantity;
---           Info.Asks.Insert (Ask_Offer.Offer_Price, Ask_Offer);
---        end if;
---
---        if Bid_Quantity > Zero then
---           Info.Bids.Delete_Maximum;
---           Bid_Offer.Remaining_Quantity := Bid_Quantity;
---           Info.Bids.Insert (Bid_Offer.Offer_Price, Bid_Offer);
---        end if;
---     end Check_Trades;
+   ------------------
+   -- Check_Trades --
+   ------------------
+
+   procedure Check_Trades
+     (Market    : Root_Market_Type'Class;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
+   is
+      use Concorde.Money, Concorde.Quantities;
+      Info : constant Cached_Commodity :=
+               Market.Get_Commodity (Commodity);
+      Bid_Offer    : Offer_Info;
+      Ask_Offer    : Offer_Info;
+      Bid_Price    : Price_Type := Zero;
+      Bid_Quantity : Quantity_Type := Zero;
+      Ask_Price    : Price_Type := Zero;
+      Ask_Quantity : Quantity_Type := Zero;
+
+      Hist      : Historical_Quantity_Record :=
+                    (Concorde.Calendar.Clock, others => <>);
+
+   begin
+
+      loop
+         if Bid_Quantity = Zero then
+            exit when Info.Bids.Is_Empty;
+            Bid_Offer := Info.Bids.Maximum_Element;
+            Bid_Quantity :=
+              Min (Bid_Offer.Remaining_Quantity,
+                   Bid_Offer.Agent.Available_Capacity);
+            Bid_Price := Bid_Offer.Offer_Price;
+         end if;
+
+         if Ask_Quantity = Zero then
+            exit when Info.Asks.Is_Empty;
+            Ask_Offer := Info.Asks.Maximum_Element;
+            Ask_Quantity := Ask_Offer.Remaining_Quantity;
+            Ask_Price := Ask_Offer.Offer_Price;
+         end if;
+
+         exit when Bid_Price < Ask_Price;
+
+         declare
+            Final_Price     : constant Price_Type :=
+                                Adjust_Price (Ask_Price + Bid_Price,
+                                              0.5);
+            Traded_Quantity : constant Quantity_Type :=
+                                Min (Ask_Quantity, Bid_Quantity);
+         begin
+            Ask_Quantity := Ask_Quantity - Traded_Quantity;
+            Bid_Quantity := Bid_Quantity - Traded_Quantity;
+
+            Hist.Quantities (Concorde.Trades.Total_Traded) :=
+              Hist.Quantities (Concorde.Trades.Total_Traded)
+              + Traded_Quantity;
+
+            Info.Current_Supply := Info.Current_Supply - Traded_Quantity;
+            Info.Current_Demand := Info.Current_Demand - Traded_Quantity;
+
+            Market.Execute_Trade
+              (Buyer     => Bid_Offer.Agent,
+               Seller    => Ask_Offer.Agent,
+               Commodity => Concorde.Commodities.Commodity_Type (Commodity),
+               Quantity  => Traded_Quantity,
+               Price     => Final_Price);
+
+            Info.Historical_Mean_Price :=
+              Adjust_Price
+                (Info.Historical_Mean_Price + Final_Price, 0.5);
+
+            if Ask_Quantity = Zero then
+               Info.Asks.Delete_Maximum;
+            end if;
+
+            if Bid_Quantity = Zero then
+               Info.Bids.Delete_Maximum;
+            end if;
+         end;
+
+      end loop;
+
+      if Ask_Quantity > Zero then
+         Info.Asks.Delete_Maximum;
+         Ask_Offer.Remaining_Quantity := Ask_Quantity;
+         Info.Asks.Insert (Ask_Offer.Offer_Price, Ask_Offer);
+      end if;
+
+      if Bid_Quantity > Zero then
+         Info.Bids.Delete_Maximum;
+         Bid_Offer.Remaining_Quantity := Bid_Quantity;
+         Info.Bids.Insert (Bid_Offer.Offer_Price, Bid_Offer);
+      end if;
+
+      declare
+         L : Quantity_Metric_Lists.List renames
+               Market.Get_Commodity (Commodity).Metrics;
+      begin
+         L.Insert (L.First, Hist);
+      end;
+
+   end Check_Trades;
 
    -------------------
    -- Create_Market --
@@ -179,7 +192,6 @@ package body Concorde.Markets is
                 Concorde.Agents.Agent_Type (Trader);
       Info : constant Cached_Commodity :=
                Market.Get_Commodity (Commodity);
-      Remaining : Quantity_Type := Quantity;
       Hist      : Historical_Quantity_Record :=
                     (Concorde.Calendar.Clock, others => <>);
 
@@ -215,112 +227,17 @@ package body Concorde.Markets is
 
       case Offer is
          when Concorde.Trades.Bid =>
+            Info.Bids.Insert
+              (Price, Offer_Info'(Agent, Quantity, Quantity, Price));
+            Info.Current_Demand := Info.Current_Demand + Quantity;
             Hist.Quantities (Concorde.Trades.Local_Demand) := Quantity;
-            while Remaining > Zero
-              and then not Info.Asks.Is_Empty
-              and then Price >= Info.Asks.Maximum_Key
-            loop
-               declare
-                  Ask_Info   : Offer_Info := Info.Asks.Maximum_Element;
-                  Traded     : constant Quantity_Type :=
-                                 Min (Remaining, Ask_Info.Remaining_Quantity);
-                  Final_Price  : constant Price_Type :=
-                                   Adjust_Price
-                                     (Ask_Info.Offer_Price + Price, 0.5);
-               begin
-                  Info.Asks.Delete_Maximum;
-                  Ask_Info.Remaining_Quantity :=
-                    Ask_Info.Remaining_Quantity - Traded;
-                  Remaining := Remaining - Traded;
-                  Hist.Quantities (Concorde.Trades.Total_Traded) :=
-                    Hist.Quantities (Concorde.Trades.Total_Traded)
-                    + Traded;
-                  Info.Current_Supply := Info.Current_Supply - Traded;
-
-                  Market.Execute_Trade
-                    (Buyer     => Agent,
-                     Seller    => Ask_Info.Agent,
-                     Commodity => Commodity,
-                     Quantity  => Traded,
-                     Price     => Final_Price);
-
-                  Info.Historical_Mean_Price :=
-                    Adjust_Price
-                      (Info.Historical_Mean_Price + Final_Price, 0.5);
-
-                  if Ask_Info.Remaining_Quantity > Zero then
-                     Info.Asks.Insert (Ask_Info.Offer_Price, Ask_Info);
-                  end if;
-               end;
-            end loop;
-
-            if Remaining > Zero then
-               Info.Bids.Insert
-                 (Price, Offer_Info'(Agent, Quantity, Remaining, Price));
-               Info.Current_Demand := Info.Current_Demand + Remaining;
-               Concorde.Logging.Log
-                 (Actor    => Market.Name,
-                  Location => "",
-                  Category => "trade",
-                  Message  => "remaining quantity " & Image (Remaining)
-                  & "; current demand now " & Image (Info.Current_Demand));
-            end if;
 
          when Concorde.Trades.Ask =>
 
+            Info.Asks.Insert
+              (Price, Offer_Info'(Agent, Quantity, Quantity, Price));
+            Info.Current_Supply := Info.Current_Supply + Quantity;
             Hist.Quantities (Concorde.Trades.Local_Supply) := Quantity;
-
-            while Remaining > Zero
-              and then not Info.Bids.Is_Empty
-              and then Price <= Info.Bids.Maximum_Key
-            loop
-               declare
-                  Bid_Info     : Offer_Info := Info.Bids.Maximum_Element;
-                  Traded       : constant Quantity_Type :=
-                                   Min (Remaining,
-                                        Bid_Info.Remaining_Quantity);
-                  Final_Price  : constant Price_Type :=
-                                   Adjust_Price
-                                     (Bid_Info.Offer_Price + Price, 0.5);
-               begin
-                  Info.Bids.Delete_Maximum;
-                  Bid_Info.Remaining_Quantity :=
-                    Bid_Info.Remaining_Quantity - Traded;
-                  Remaining := Remaining - Traded;
-                  Hist.Quantities (Concorde.Trades.Total_Traded) :=
-                    Hist.Quantities (Concorde.Trades.Total_Traded)
-                    + Traded;
-                  Info.Current_Demand := Info.Current_Demand - Traded;
-
-                  Market.Execute_Trade
-                    (Buyer     => Bid_Info.Agent,
-                     Seller    => Agent,
-                     Commodity => Commodity,
-                     Quantity  => Traded,
-                     Price     => Final_Price);
-
-                  Info.Historical_Mean_Price :=
-                    Adjust_Price
-                      (Info.Historical_Mean_Price + Final_Price, 0.5);
-
-                  if Bid_Info.Remaining_Quantity > Zero then
-                     Info.Bids.Insert (Bid_Info.Offer_Price, Bid_Info);
-                  end if;
-               end;
-            end loop;
-
-            if Remaining > Zero then
-               Info.Asks.Insert
-                 (Price, Offer_Info'(Agent, Quantity, Remaining, Price));
-               Info.Current_Supply := Info.Current_Supply + Remaining;
-               Concorde.Logging.Log
-                 (Actor    => Market.Name,
-                  Location => "",
-                  Category => "trade",
-                  Message  => "remaining quantity " & Image (Remaining)
-                  & "; current supply now " & Image (Info.Current_Supply));
-            end if;
-
       end case;
 
       declare
@@ -329,6 +246,9 @@ package body Concorde.Markets is
       begin
          L.Insert (L.First, Hist);
       end;
+
+      Market.Check_Trades (Commodity);
+
    end Create_Offer;
 
    -------------------
@@ -377,6 +297,7 @@ package body Concorde.Markets is
                while not Info.Bids.Is_Empty loop
                   declare
                      use type Concorde.Agents.Agent_Reference;
+                     use type Concorde.Quantities.Quantity_Type;
                      Price : constant Price_Type :=
                                Info.Bids.Maximum_Key;
                      Element : constant Offer_Info :=
@@ -392,6 +313,8 @@ package body Concorde.Markets is
                              (Element.Offered_Quantity)
                            & " " & Commodity.Identifier
                            & " @ " & Image (Element.Offer_Price));
+                        Info.Current_Demand :=
+                          Info.Current_Demand - Element.Remaining_Quantity;
                      end if;
                   end;
                end loop;
@@ -404,6 +327,7 @@ package body Concorde.Markets is
                while not Info.Asks.Is_Empty loop
                   declare
                      use type Concorde.Agents.Agent_Reference;
+                     use type Concorde.Quantities.Quantity_Type;
                      Price   : constant Price_Type :=
                                  Info.Asks.Maximum_Key;
                      Element : constant Offer_Info :=
@@ -419,6 +343,8 @@ package body Concorde.Markets is
                              (Element.Offered_Quantity)
                            & " " & Commodity.Identifier
                            & " @ " & Image (Element.Offer_Price));
+                        Info.Current_Supply :=
+                          Info.Current_Supply - Element.Remaining_Quantity;
                      end if;
                   end;
                end loop;
@@ -583,6 +509,10 @@ package body Concorde.Markets is
       use Concorde.Calendar;
       use Concorde.Quantities;
       use all type Concorde.Trades.Trade_Metric;
+      Market_Log_Path  : constant String :=
+                           Market.Identifier
+                           & "/" & Item.Identifier
+                           & "/" & Concorde.Trades.Metric_Id (Metric);
       Result : Quantity_Type := Zero;
       Cached : constant Cached_Commodity :=
                  Market.Get_Commodity (Item);
@@ -595,8 +525,22 @@ package body Concorde.Markets is
       end loop;
 
       if Metric = Local_Demand then
+         Concorde.Logs.Log_Line
+           (Market_Log_Path,
+            Image (Start, True) & "," & Image (Finish, True)
+            & "," & Item.Identifier & "," & Image (Result)
+            & "," & Image (Cached.Current_Demand)
+            & "," & Image (Result + Cached.Current_Demand));
+
          Result := Result + Cached.Current_Demand;
       elsif Metric = Local_Supply then
+         Concorde.Logs.Log_Line
+           (Market_Log_Path,
+            Image (Start, True) & "," & Image (Finish, True)
+            & "," & Item.Identifier & "," & Image (Result)
+            & "," & Image (Cached.Current_Supply)
+            & "," & Image (Result + Cached.Current_Supply));
+
          Result := Result + Cached.Current_Supply;
       end if;
 
@@ -790,6 +734,7 @@ package body Concorde.Markets is
                while not Info.Bids.Is_Empty loop
                   declare
                      use type Concorde.Agents.Agent_Reference;
+                     use type Concorde.Quantities.Quantity_Type;
                      Price : constant Price_Type :=
                                Info.Bids.Maximum_Key;
                      Element : constant Offer_Info :=
@@ -808,6 +753,8 @@ package body Concorde.Markets is
                            & ": new price " & Image (New_Price));
                         Current := Element;
                         Found := True;
+                        Info.Current_Demand :=
+                          Info.Current_Demand - Current.Remaining_Quantity;
                      end if;
                   end;
                end loop;
@@ -820,6 +767,7 @@ package body Concorde.Markets is
             begin
                while not Info.Asks.Is_Empty loop
                   declare
+                     use type Concorde.Quantities.Quantity_Type;
                      Price   : constant Price_Type :=
                                  Info.Asks.Maximum_Key;
                      Element : constant Offer_Info :=
@@ -838,6 +786,8 @@ package body Concorde.Markets is
                            & ": new price " & Image (New_Price));
                         Current := Element;
                         Found := True;
+                        Info.Current_Supply :=
+                          Info.Current_Supply - Current.Remaining_Quantity;
                      end if;
                   end;
                end loop;

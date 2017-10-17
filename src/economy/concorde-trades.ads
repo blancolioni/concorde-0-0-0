@@ -10,6 +10,8 @@ package Concorde.Trades is
       Total_Traded, Total_Imported, Total_Exported,
       Local_Demand, Local_Supply);
 
+   function Metric_Id (Metric : Trade_Metric) return String;
+
    type Offer_Type is (Ask, Bid);
 
    type Offer_Price_Strategy is
@@ -115,6 +117,11 @@ package Concorde.Trades is
    --  Return True if the trader is a resident of the area serviced by
    --  this market.  Return False if the trader is external (e.g. a ship)
 
+   function Available_Capacity
+     (Trader : Trader_Interface)
+      return Concorde.Quantities.Quantity_Type
+      is abstract;
+
    procedure Create_Offer
      (Trade     : Trade_Interface;
       Offer     : Offer_Type;
@@ -122,7 +129,10 @@ package Concorde.Trades is
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity_Type;
       Price     : Concorde.Money.Price_Type)
-   is abstract;
+   is abstract
+     with Pre'Class => Concorde.Money.">" (Price, Concorde.Money.Zero)
+     and then Concorde.Quantities.">" (Quantity, Concorde.Quantities.Zero)
+     and then Concorde.Commodities."/=" (Commodity, null);
 
    procedure Delete_Offer
      (Trade     : Trade_Interface;

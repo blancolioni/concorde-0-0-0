@@ -36,6 +36,12 @@ package body Concorde.Managers.Ships.Trade is
       use Concorde.Quantities;
    begin
       for Commodity of Concorde.Commodities.Trade_Commodities loop
+--           Manager.Ship.Log_Trade
+--             (Commodity.Identifier & ": "
+--              & (if Manager.Ship.Has_Bid (Commodity) then "(have bid) "
+--                else "")
+--              & "quantity " & Image (Manager.Ship.Get_Quantity (Commodity)));
+
          if not Manager.Ship.Has_Bid (Commodity)
            and then Manager.Ship.Get_Quantity (Commodity) > Zero
          then
@@ -260,12 +266,14 @@ package body Concorde.Managers.Ships.Trade is
             if Manager.Ship.Has_Bids then
                Manager.State := Buying;
             elsif Manager.Ship.Total_Quantity > Zero then
+               Manager.Ship.Update.Clear_Filled_Bids;
                Manager.Current := Next_Position;
                Manager.Set_Destination (To_World);
                Manager.State := Moving;
             end if;
          when Buying =>
             if not Manager.Ship.Has_Bids then
+               Manager.Ship.Update.Clear_Filled_Bids;
                Manager.Current := Next_Position;
                Manager.Set_Destination (To_World);
                Manager.State := Moving;
@@ -279,6 +287,7 @@ package body Concorde.Managers.Ships.Trade is
             Manager.State := Selling;
          when Selling =>
             if Manager.Ship.Total_Quantity = Zero then
+               Manager.Ship.Update.Clear_Filled_Asks;
                Manager.State := Bidding;
             else
                Manager.Ship.Update.Check_Offers;

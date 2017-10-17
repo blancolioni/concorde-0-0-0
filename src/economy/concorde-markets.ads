@@ -233,10 +233,10 @@ private
       Quantity   : Concorde.Quantities.Quantity_Type;
       Price      : Concorde.Money.Price_Type);
 
---     procedure Check_Trades
---       (Market    : Root_Market_Type'Class;
---        Commodity : not null access constant
---          Concorde.Commodities.Root_Commodity_Type'Class);
+   procedure Check_Trades
+     (Market    : Root_Market_Type'Class;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class);
 
    procedure Log_Offer
      (Market    : Root_Market_Type'Class;
