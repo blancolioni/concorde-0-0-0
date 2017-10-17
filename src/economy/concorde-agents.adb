@@ -204,8 +204,7 @@ package body Concorde.Agents is
                     (Concorde.Trades.Ask, Agent, Commodity);
                   Agent.Bid_Quantity :=
                     Agent.Bid_Quantity - (Offer.Quantity - Offer.Filled);
-                  Offer.Quantity := Zero;
-                  Offer.Filled := Zero;
+                  Offer := (others => <>);
                end;
             when Concorde.Trades.Average_Price =>
                if Offer.Filled < Offer.Quantity then
@@ -377,8 +376,7 @@ package body Concorde.Agents is
                     (Concorde.Trades.Bid, Agent, Commodity);
                   Agent.Bid_Quantity :=
                     Agent.Bid_Quantity - (Offer.Quantity - Offer.Filled);
-                  Offer.Quantity := Zero;
-                  Offer.Filled := Zero;
+                  Offer := (others => <>);
                end;
             when Concorde.Trades.Average_Price =>
                if Offer.Filled < Offer.Quantity then
@@ -420,8 +418,7 @@ package body Concorde.Agents is
                            Commodity => Commodity);
                         Agent.Bid_Quantity :=
                           Agent.Bid_Quantity - (Offer.Quantity - Offer.Filled);
-                        Offer.Filled := Zero;
-                        Offer.Quantity := Zero;
+                        Offer := (others => <>);
                      elsif Minimum_Price /= Zero then
                         Agent.Market.Update_Offer
                           (Offer     => Concorde.Trades.Bid,
