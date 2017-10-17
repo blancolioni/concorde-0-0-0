@@ -4,6 +4,7 @@ with Concorde.Commodities;
 with Concorde.Logs;
 with Concorde.Random;
 with Concorde.Worlds;
+with Concorde.Money;
 
 package body Concorde.People.Pops is
 
@@ -18,9 +19,71 @@ package body Concorde.People.Pops is
       Group : constant Concorde.People.Groups.Pop_Group :=
                 Item.Wealth_Group;
 
+      procedure Check_Food;
+
       procedure Check_Need
         (Commodity : Concorde.Commodities.Commodity_Type;
          Need      : Non_Negative_Real);
+
+      ----------------
+      -- Check_Food --
+      ----------------
+
+      procedure Check_Food is
+         Food : constant Array_Of_Commodities := Food_Commodities;
+         Required_Energy : Real :=
+                             Non_Negative_Real (Item.Size)
+                             * Group.Energy_Needs;
+
+         Total_Score     : Non_Negative_Real := 0.0;
+         Food_Scores     : array (Food'Range) of Non_Negative_Real;
+
+      begin
+         for I in Food'Range loop
+            declare
+               use Concorde.Money;
+               Commodity : constant Commodity_Type := Food (I);
+
+               This_Energy : constant Non_Negative_Real :=
+                               Commodity.Energy;
+               This_Cost   : constant Price_Type :=
+                               Item.Mean_Price_Belief (Commodity);
+               Energy_Per_Price : constant Non_Negative_Real :=
+                                    This_Energy / To_Real (This_Cost);
+            begin
+               Food_Scores (I) := Energy_Per_Price;
+               Total_Score := Total_Score + Food_Scores (I);
+               Required_Energy := Required_Energy
+                 - This_Energy
+                 * Concorde.Quantities.To_Real
+                 (Item.Get_Quantity (Commodity));
+            end;
+         end loop;
+
+         Item.Log
+           ("checking food; required energy "
+            & Integer'Image (Integer (Required_Energy)));
+
+         if Required_Energy > 0.0 then
+            for I in Food'Range loop
+               declare
+                  use Concorde.Money;
+                  Commodity        : constant Commodity_Type := Food (I);
+                  This_Energy      : constant Non_Negative_Real :=
+                                       Commodity.Energy;
+                  Proportion       : constant Non_Negative_Real :=
+                                       Food_Scores (I) / Total_Score;
+                  Quantity         : constant Quantity_Type :=
+                                       To_Quantity
+                                         (Proportion * Required_Energy
+                                          / This_Energy);
+               begin
+                  Item.Create_Bid (Commodity, Quantity);
+               end;
+            end loop;
+         end if;
+
+      end Check_Food;
 
       ----------------
       -- Check_Need --
@@ -48,6 +111,8 @@ package body Concorde.People.Pops is
       end Check_Need;
 
    begin
+
+      Check_Food;
 
       Group.Scan_Needs (Check_Need'Access);
 
@@ -87,6 +152,8 @@ package body Concorde.People.Pops is
       procedure Consume
         (Commodity : Concorde.Commodities.Commodity_Type;
          Need      : Non_Negative_Real);
+
+      procedure Eat_Food;
 
       -------------
       -- Consume --
@@ -130,7 +197,87 @@ package body Concorde.People.Pops is
          Pop.Remove_Quantity (Commodity, Consumed);
       end Consume;
 
+      --------------
+      -- Eat_Food --
+      --------------
+
+      procedure Eat_Food is
+         use Concorde.Commodities;
+         use Concorde.Quantities;
+
+         Food            : constant Array_Of_Commodities := Food_Commodities;
+         Required_Energy : constant Non_Negative_Real :=
+                             Non_Negative_Real (Pop.Size)
+                             * Pop.Wealth_Group.Energy_Needs;
+
+         Total_Energy    : Non_Negative_Real := 0.0;
+         Food_Energy     : array (Food'Range) of Non_Negative_Real;
+
+         procedure Eat
+           (Commodity : Commodity_Type;
+            Quantity  : Quantity_Type);
+
+         ---------
+         -- Eat --
+         ---------
+
+         procedure Eat
+           (Commodity : Commodity_Type;
+            Quantity  : Quantity_Type)
+         is
+         begin
+            Concorde.Logs.Log_Line
+              (Pop.Current_World.Name
+               & "/" & Pop.Short_Name
+               & "/eat"
+               & "/" & Commodity.Identifier,
+               Image (Pop.Size_Quantity)
+               & "," & Xi.Float_Images.Image (Required_Energy)
+               & "," & Xi.Float_Images.Image (Total_Energy)
+               & "," & Image (Pop.Get_Quantity (Commodity))
+               & "," & Image (Quantity));
+            Pop.Remove_Quantity (Commodity, Quantity);
+         end Eat;
+
+      begin
+         for I in Food'Range loop
+            declare
+               use Concorde.Money;
+               Commodity   : constant Commodity_Type := Food (I);
+               This_Energy : constant Non_Negative_Real :=
+                               To_Real (Pop.Get_Quantity (Commodity))
+                               * Commodity.Energy;
+            begin
+               Food_Energy (I) := This_Energy;
+               Total_Energy := Total_Energy + This_Energy;
+            end;
+         end loop;
+
+         declare
+            Factor : constant Non_Negative_Real :=
+                       Total_Energy / Required_Energy;
+         begin
+            if Factor < 1.0 then
+               for I in Food'Range loop
+                  if Food_Energy (I) > 0.0 then
+                     Eat (Food (I), Pop.Get_Quantity (Food (I)));
+                  end if;
+               end loop;
+            else
+               for I in Food'Range loop
+                  if Food_Energy (I) > 0.0 then
+                     Eat (Food (I),
+                          To_Quantity
+                            (Food_Energy (I) / Factor / Food (I).Energy));
+                  end if;
+               end loop;
+            end if;
+         end;
+
+      end Eat_Food;
+
    begin
+      Eat_Food;
       Pop.Wealth_Group.Scan_Needs (Consume'Access);
    end Execute_Consumption;
 
