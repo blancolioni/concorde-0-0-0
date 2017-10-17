@@ -29,6 +29,10 @@ package Concorde.People.Groups is
         procedure (Commodity : Concorde.Commodities.Commodity_Type;
                    Need      : Non_Negative_Real));
 
+   function Energy_Needs
+     (Group : Root_Pop_Group'Class)
+      return Non_Negative_Real;
+
    type Pop_Group is access constant Root_Pop_Group'Class;
 
    function Get (Name : String) return Pop_Group;
@@ -99,11 +103,17 @@ private
          Initial_Cash_Factor : Natural;
          Preferred_Quality   : Concorde.Commodities.Commodity_Quality;
          Needs               : Needs_List.List;
+         Energy_Needs        : Non_Negative_Real;
       end record;
 
    overriding function Object_Database
      (Item : Root_Pop_Group)
       return Memor.Memor_Database;
+
+   function Energy_Needs
+     (Group : Root_Pop_Group'Class)
+      return Non_Negative_Real
+   is (Group.Energy_Needs);
 
    package Affiliation_Vectors is
      new Memor.Element_Vectors (Root_Pop_Group, Affiliation_Range, 0.0);

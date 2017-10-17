@@ -7,8 +7,7 @@ poor = {
    quality = 1
    needs = {
       water = 1
-      fruit = 1
-      grain = 1
+      energy = 1
       bargain-clothes = 0.1
       }
    wants = {
@@ -21,8 +20,7 @@ middle_class = {
    quality = 2
    needs = {
       water = 1
-      fruit = 1
-      grain = 1
+      energy = 1
       regular-clothes = 0.1
       }
    wants = {
@@ -36,8 +34,7 @@ rich = {
    quality = 3
    needs = {
       water = 1
-      fruit = 1
-      grain = 1
+      energy = 1
       regular-clothes = 0.3
       luxury-clothes = 0.1
       }

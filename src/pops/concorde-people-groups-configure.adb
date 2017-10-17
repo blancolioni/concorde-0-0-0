@@ -63,17 +63,23 @@ package body Concorde.People.Groups.Configure is
              (Config.Get ("quality", 2) - 1);
          if Config.Contains ("needs") then
             for Need_Config of Config.Child ("needs") loop
-               declare
-                  Commodity : constant Concorde.Commodities.Commodity_Type :=
-                                Concorde.Commodities.Get
-                                  (Need_Config.Config_Name);
-                  Need      : constant Float := Need_Config.Value;
-               begin
-                  Group.Needs.Append
-                    (Need_Record'
-                       (Commodity => Commodity,
-                        Need      => Non_Negative_Real (Need)));
-               end;
+               if Need_Config.Config_Name = "energy" then
+                  Group.Energy_Needs :=
+                    Non_Negative_Real
+                      (Float'(Need_Config.Value));
+               else
+                  declare
+                     use Concorde.Commodities;
+                     Commodity : constant Commodity_Type :=
+                                   Get (Need_Config.Config_Name);
+                     Need      : constant Float := Need_Config.Value;
+                  begin
+                     Group.Needs.Append
+                       (Need_Record'
+                          (Commodity => Commodity,
+                           Need      => Non_Negative_Real (Need)));
+                  end;
+               end if;
             end loop;
          end if;
       end Create;
