@@ -1324,6 +1324,23 @@ package body Concorde.Agents is
       return Agent.Stock.Maximum_Quantity;
    end Maximum_Quantity;
 
+   -----------------------
+   -- Mean_Price_Belief --
+   -----------------------
+
+   function Mean_Price_Belief
+     (Agent     : Root_Agent_Type'Class;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
+      return Concorde.Money.Price_Type
+   is
+      use Concorde.Money;
+      Belief : constant Agent_Price_Belief_Record :=
+                 Agent.Get_Price_Belief (Agent.Market, Commodity);
+   begin
+      return Adjust_Price (Belief.Low + Belief.High, 0.5);
+   end Mean_Price_Belief;
+
    ---------------
    -- New_Agent --
    ---------------

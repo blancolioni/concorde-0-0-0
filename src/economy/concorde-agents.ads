@@ -37,6 +37,12 @@ package Concorde.Agents is
         Concorde.Trades.Trade_Interface'Class;
       Stock_Capacity : Concorde.Quantities.Quantity_Type);
 
+   function Mean_Price_Belief
+     (Agent : Root_Agent_Type'Class;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
+      return Concorde.Money.Price_Type;
+
    overriding function Offer_Strategy
      (Agent     : Root_Agent_Type;
       Commodity : not null access constant
