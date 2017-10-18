@@ -36,6 +36,7 @@ with Concorde.Options;
 with Concorde.Configure;
 
 with Concorde.Agents;
+with Concorde.Calendar;
 
 procedure Concorde.Driver is
 
@@ -157,15 +158,18 @@ begin
          begin
             if Concorde.Options.Start_With_Galaxy then
                Model :=
-                 Concorde.Xi_UI.Model_Manager.Model (null, Window);
+                 Concorde.Xi_UI.Model_Manager.Model
+                   (null, Concorde.Calendar.Start, Window);
             elsif True then
                Model :=
                  Concorde.Xi_UI.Model_Manager.Model
-                   (Concorde.Galaxy.Get_System (1), Window);
+                   (Concorde.Galaxy.Get_System (1),
+                    Concorde.Calendar.Start, Window);
             else
                Model :=
                  Concorde.Xi_UI.Model_Manager.Model
-                   (Concorde.Galaxy.Capital_World, Window);
+                   (Concorde.Galaxy.Capital_World,
+                    Concorde.Calendar.Start, Window);
             end if;
 
             Model.Activate;

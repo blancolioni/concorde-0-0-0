@@ -29,11 +29,13 @@ package Concorde.Locations is
       return Concorde.Objects.Object_Type;
 
    function Primary_Relative_Position
-     (Location : Object_Location)
+     (Location : Object_Location;
+      Time     : Concorde.Calendar.Time)
       return Newton.Vector_3;
 
    function System_Relative_Position
-     (Location : Object_Location)
+     (Location : Object_Location;
+      Time     : Concorde.Calendar.Time)
       return Newton.Vector_3;
 
    function Current_System
@@ -58,7 +60,8 @@ package Concorde.Locations is
       return System_Point_Location;
 
    function To_System_Point
-     (Loc : Object_Location)
+     (Loc  : Object_Location;
+      Time : Concorde.Calendar.Time)
       return System_Point_Location;
 
    function Nowhere return Object_Location;
@@ -178,13 +181,15 @@ package Concorde.Locations is
      with Pre => Located.Is_World_Location;
 
    function System_Relative_Position
-     (Located : Located_Interface'Class)
+     (Located  : Located_Interface'Class;
+      Time     : Concorde.Calendar.Time)
       return Newton.Vector_3;
 
    function Primary_Relative_Position
-     (Located : Located_Interface'Class)
+     (Located  : Located_Interface'Class;
+      Time     : Concorde.Calendar.Time)
       return Newton.Vector_3
-   is (Primary_Relative_Position (Located.Current_Location));
+   is (Primary_Relative_Position (Located.Current_Location, Time));
 
 private
 

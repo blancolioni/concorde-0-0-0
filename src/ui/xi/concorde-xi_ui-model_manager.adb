@@ -13,11 +13,12 @@ package body Concorde.Xi_UI.Model_Manager is
    --------------------
 
    procedure Load_Top_Model
-     (Renderer : not null access
+     (Time       : Concorde.Calendar.Time;
+      Renderer   : not null access
         Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
    is
    begin
-      Top_Model := Model (null, Renderer);
+      Top_Model := Model (null, Time, Renderer);
    end Load_Top_Model;
 
    -----------
@@ -27,6 +28,7 @@ package body Concorde.Xi_UI.Model_Manager is
    function Model
      (For_Object : access constant
         Concorde.Objects.Root_Object_Type'Class;
+      Time       : Concorde.Calendar.Time;
       Renderer   : not null access
         Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
       return Xi_Model
@@ -40,7 +42,7 @@ package body Concorde.Xi_UI.Model_Manager is
            (Concorde.Systems.Star_System_Type (For_Object), Renderer);
       elsif For_Object.all in Concorde.Worlds.Root_World_Type'Class then
          return Concorde.Worlds.Xi_Model.World_Model
-           (Concorde.Worlds.World_Type (For_Object), Renderer);
+           (Concorde.Worlds.World_Type (For_Object), Time, Renderer);
       else
          return null;
       end if;

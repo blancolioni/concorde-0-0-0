@@ -6,6 +6,8 @@ with Memor.Element_Vectors;
 
 with Xi.Camera;
 with Xi.Entity;
+with Xi.Float_Arrays;
+with Xi.Float_Images;
 with Xi.Light;
 with Xi.Materials.Material;
 with Xi.Matrices;
@@ -13,6 +15,8 @@ with Xi.Node;
 with Xi.Scene;
 with Xi.Shader.Noise;
 with Xi.Shapes;
+
+with Xtk.Text.View;
 
 --  with Concorde.Geometry;
 with Concorde.Hash_Table;
@@ -63,6 +67,9 @@ package body Concorde.Systems.Xi_Model is
          Ships             : Rendered_Ship_Lists.List;
          Selected_Ship     : Concorde.Ships.Ship_Type;
          System_Node       : Xi.Node.Xi_Node;
+         Log               : Xtk.Text.View.Xtk_Text_View;
+         Logged_Ship       : Concorde.Ships.Ship_Type;
+         Logged_World      : Concorde.Worlds.World_Type;
          Arrival_Handler   : access
            Concorde.Objects.Object_Handler_Interface'Class;
          Departure_Handler : access
@@ -107,9 +114,10 @@ package body Concorde.Systems.Xi_Model is
    --  Created_Scenes : System_Scene_Vectors.Vector;
 
    function System_Scene
-     (Model              : System_Model_Access;
-      System             : Concorde.Systems.Star_System_Type;
-      Viewport           : Xi.Viewport.Xi_Viewport)
+     (Model     : System_Model_Access;
+      System   : Concorde.Systems.Star_System_Type;
+      Time     : Concorde.Calendar.Time;
+      Viewport : Xi.Viewport.Xi_Viewport)
       return Xi.Scene.Xi_Scene;
 
    type Ship_Departure_Handler is
@@ -120,6 +128,7 @@ package body Concorde.Systems.Xi_Model is
 
    overriding procedure On_Ship_Event
      (Handler : Ship_Departure_Handler;
+      Time    : Concorde.Calendar.Time;
       System  : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
       Ship    : not null access constant
@@ -133,6 +142,7 @@ package body Concorde.Systems.Xi_Model is
 
    overriding procedure On_Ship_Event
      (Handler : Ship_Arrival_Handler;
+      Time    : Concorde.Calendar.Time;
       System  : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
       Ship    : not null access constant
@@ -176,16 +186,28 @@ package body Concorde.Systems.Xi_Model is
       Concorde.Xi_UI.Root_Xi_Model (Model).On_Frame_Start (Time_Delta);
       for Rendered_World of Model.Worlds loop
          Rendered_World.Node.Set_Position
-           (Rendered_World.World.System_Relative_Position);
+           (Rendered_World.World.System_Relative_Position
+              (Concorde.Calendar.Clock));
          Rendered_World.Selector_Node.Set_Position
-           (Rendered_World.World.System_Relative_Position);
+           (Rendered_World.World.System_Relative_Position
+              (Concorde.Calendar.Clock));
       end loop;
 
       for Rendered_Ship of Model.Ships loop
          Concorde.Ships.Xi_Model.Update_Ship_Position
-           (Rendered_Ship, (0.0, 0.0, 0.0),
+           (Rendered_Ship, Concorde.Calendar.Clock, (0.0, 0.0, 0.0),
             Model.Scene.Active_Camera, False);
       end loop;
+
+      Model.Log.Text_Buffer.Set_Text
+        (Model.Logged_World.Name & ": "
+         & Concorde.Locations.Long_Name
+           (Model.Logged_World.Location_At (Concorde.Calendar.Clock))
+         & Character'Val (10)
+         & Model.Logged_Ship.Name & ": "
+           & Concorde.Locations.Long_Name
+           (Model.Logged_Ship.Location_At (Concorde.Calendar.Clock)));
+
    end On_Frame_Start;
 
    ---------------
@@ -205,11 +227,13 @@ package body Concorde.Systems.Xi_Model is
 
    overriding procedure On_Ship_Event
      (Handler : Ship_Departure_Handler;
+      Time    : Concorde.Calendar.Time;
       System  : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
       Ship    : not null access constant
         Concorde.Ships.Root_Ship_Type'Class)
    is
+      pragma Unreferenced (Time);
       use Rendered_Ship_Lists;
       use type Concorde.Ships.Ship_Type;
       Position : Cursor := Handler.Model.Ships.First;
@@ -235,6 +259,7 @@ package body Concorde.Systems.Xi_Model is
 
    overriding procedure On_Ship_Event
      (Handler : Ship_Arrival_Handler;
+      Time    : Concorde.Calendar.Time;
       System  : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
       Ship    : not null access constant
@@ -243,7 +268,7 @@ package body Concorde.Systems.Xi_Model is
       use Xi;
       use Concorde.Ships.Xi_Model;
       Pos           : constant Newton.Vector_3 :=
-                        Ship.System_Relative_Position;
+                        Ship.System_Relative_Position (Time);
       Selector      : constant Concorde.Xi_UI.Select_Handler :=
                         new System_Ship_Selector'
                           (Model => Handler.Model,
@@ -261,6 +286,7 @@ package body Concorde.Systems.Xi_Model is
       Handler.Model.Ships.Append
         (Concorde.Ships.Xi_Model.Activate_Ship
            (Ship     => Concorde.Ships.Ship_Type (Ship),
+            Time     => Time,
             Scene    => Handler.Model.Scene,
             Primary  => Handler.Model.System_Node,
             Selector => Selector_Node));
@@ -299,7 +325,11 @@ package body Concorde.Systems.Xi_Model is
          Model := new Root_System_Model;
          Model.Initialize (Target);
          Model.System := System;
-         Model.Set_Scene (System_Scene (Model, System, Target.Full_Viewport));
+         Model.Log := Concorde.Xi_UI.Main_Log_View;
+
+         Model.Set_Scene
+           (System_Scene (Model, System, Concorde.Calendar.Clock,
+            Target.Full_Viewport));
 
          declare
             use Concorde.Systems.Events;
@@ -339,9 +369,10 @@ package body Concorde.Systems.Xi_Model is
    ------------------
 
    function System_Scene
-     (Model              : System_Model_Access;
-      System             : Concorde.Systems.Star_System_Type;
-      Viewport           : Xi.Viewport.Xi_Viewport)
+     (Model     : System_Model_Access;
+      System   : Concorde.Systems.Star_System_Type;
+      Time     : Concorde.Calendar.Time;
+      Viewport : Xi.Viewport.Xi_Viewport)
       return Xi.Scene.Xi_Scene
    is
       use type Xi.Xi_Float;
@@ -464,7 +495,19 @@ package body Concorde.Systems.Xi_Model is
       begin
          World_Node.Scale (World.Radius);
          World_Node.Set_Position
-           (World.System_Relative_Position);
+           (World.System_Relative_Position (Time));
+
+         declare
+            use Xi.Float_Arrays;
+         begin
+            World.Log
+              (Concorde.Locations.Long_Name
+                 (World.Location_At (Time))
+               & " "
+               & Xi.Float_Images.Image
+                 (World_Node.Position_3
+                  / Concorde.Solar_System.Earth_Orbit));
+         end;
 
 --           World_Node.Set_Position
 --             (X => Orbit_Radius * Xi_Float (Cos (Position)),
@@ -479,7 +522,8 @@ package body Concorde.Systems.Xi_Model is
             use Xi;
             use Concorde.Ships.Xi_Model;
             Pos           : constant Newton.Vector_3 :=
-                              World.System_Relative_Position;
+                              World.System_Relative_Position
+                                (Concorde.Calendar.Start);
             Selector      : constant Concorde.Xi_UI.Select_Handler :=
                               new System_World_Selector'
                                 (Model => Model,
@@ -504,8 +548,9 @@ package body Concorde.Systems.Xi_Model is
             declare
                use Xi;
                use Concorde.Ships.Xi_Model;
+               use type Concorde.Ships.Ship_Type;
                Pos           : constant Newton.Vector_3 :=
-                                 Ship.System_Relative_Position;
+                                 Ship.System_Relative_Position (Time);
                Selector      : constant Concorde.Xi_UI.Select_Handler :=
                                  new System_Ship_Selector'
                                    (Model => Model,
@@ -519,9 +564,14 @@ package body Concorde.Systems.Xi_Model is
                                     Selector);
                Rec           : constant Active_Ship :=
                                  Activate_Ship
-                                   (Ship, Scene, System_Node, Selector_Node);
+                                   (Ship, Time,
+                                    Scene, System_Node, Selector_Node);
             begin
                Model.Ships.Append (Rec);
+               if Model.Logged_Ship = null then
+                  Model.Logged_Ship := Ship;
+                  Model.Logged_World := Ship.Current_World;
+               end if;
             end;
          end loop;
 
@@ -535,7 +585,7 @@ package body Concorde.Systems.Xi_Model is
 
       Model.System_Node := System_Node;
 
-      Camera.Set_Position (0.0, 0.0, Camera_Start_Far / 5.0);
+      Camera.Set_Position (0.0, 0.0, Camera_Start_Far / 20.0);
       Camera.Set_Orientation (0.0, 0.0, 1.0, 0.0);
       Camera.Set_Viewport (Viewport);
       Camera.Perspective (Camera_Start_Fov,
