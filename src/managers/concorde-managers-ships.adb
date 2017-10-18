@@ -141,11 +141,16 @@ package body Concorde.Managers.Ships is
       case Waypoint.Class is
          when World_Element =>
             Manager.Ship.Log_Movement
-              ("heading to world: " & Waypoint.World.Name);
+              ("heading to world: " & Waypoint.World.Name
+               & " currently at "
+               & Concorde.Locations.Short_Name
+                 (Concorde.Locations.To_System_Point
+                      (Waypoint.World.Current_Location,
+                       Departure)));
             Journey_Time :=
               Concorde.Ships.Navigation.Journey_Time
                 (Manager.Ship, Departure,
-                 Waypoint.World.Current_Location);
+                 Waypoint.World.Location_At (Departure));
             Manager.Ship.Update.Set_Destination
               (Waypoint.World, Departure, Journey_Time);
 

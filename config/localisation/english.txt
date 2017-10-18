@@ -9,3 +9,5 @@ grains = Grain
 herb = Herbs
 fungi = Fungi
 salt = Salt
+outliner-worlds = Worlds
+outliner-ships = Ships

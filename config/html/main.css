@@ -3,7 +3,7 @@ body {
   background-color: black;
 }
 
-#top-bar {
+.top-bar {
     background-color: rgba(135,206,250,200);
     height: 60px;
     width: 100%;
@@ -11,7 +11,11 @@ body {
 }
 
 #outline {
-    background-color: pink;
+    background-color: rgba(30, 30, 30, 30);
+    border-color: gold;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 6px;
     height: 400px;
     width: 200px;
     top: 80px;
@@ -19,11 +23,20 @@ body {
     right: 6px;
 }
 
-#outline-text {
-    background-color: #ffffff;
-    height: 100%;
-    width: 100%;
+.outliner-category-label {
+    background-color: rgb(78,100,117);
+    color: white;
+    width: 200px;
+    font-size: 24;
 }
+
+.outliner-text-element {
+    color: white;
+    width: 200px;
+    font-size: 16;
+    font-weight: bold;
+}
+
 
 #log {
     background-color: purple;

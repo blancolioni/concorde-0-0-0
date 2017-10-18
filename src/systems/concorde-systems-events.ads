@@ -30,6 +30,7 @@ package Concorde.Systems.Events is
 
    procedure On_Ship_Event
      (Handler : Ship_System_Event_Handler;
+      Time    : Concorde.Calendar.Time;
       System  : not null access constant Root_Star_System_Type'Class;
       Ship    : not null access constant
         Concorde.Ships.Root_Ship_Type'Class)

@@ -7,7 +7,8 @@ package Concorde.Worlds.Xi_Model is
 
    function World_Model
      (World  : World_Type;
-      Target     : not null access
+      Time   : Concorde.Calendar.Time;
+      Target : not null access
         Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
       return Concorde.Xi_UI.Xi_Model;
 

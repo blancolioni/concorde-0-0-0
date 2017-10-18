@@ -40,5 +40,6 @@ package Concorde.Options is
    World_Height_Smoothing  : Positive;
    
    Log_Folder              : String;
+   Detailed_Logging        : Boolean;
    
 end Concorde.Options;

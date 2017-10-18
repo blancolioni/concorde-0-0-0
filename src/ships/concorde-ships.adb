@@ -689,8 +689,8 @@ package body Concorde.Ships is
                   use Concorde.Locations;
                   D    : constant Non_Negative_Real :=
                            System_Distance
-                             (To_System_Point (Ship.Current_Location),
-                              To_System_Point (Ship.Destination));
+                             (To_System_Point (Ship.Current_Location, Time),
+                              To_System_Point (Ship.Destination, Time));
                   F    : constant Non_Negative_Real := Ship.Maximum_Thrust;
                   Decel : constant Boolean := Elapsed > Total / 2.0;
                   A     : constant Non_Negative_Real :=

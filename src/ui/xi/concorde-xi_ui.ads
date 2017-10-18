@@ -8,8 +8,10 @@ with Xi.Scene_Renderer;
 with Xi.Scene;
 with Xi.Texture;
 
+with Xtk.Div_Element;
 with Xtk.Label;
 with Xtk.Panel;
+with Xtk.Text.View;
 
 with Concorde.Objects;
 with Concorde.Transitions;
@@ -136,6 +138,9 @@ package Concorde.Xi_UI is
    procedure Load_UI
      (Window : Xi.Render_Window.Xi_Render_Window;
       Path   : String);
+
+   function Outliner_Div return Xtk.Div_Element.Xtk_Div_Element;
+   function Main_Log_View return Xtk.Text.View.Xtk_Text_View;
 
 private
 

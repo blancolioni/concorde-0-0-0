@@ -19,21 +19,22 @@ package body Concorde.Ships.Navigation is
       use Concorde.Elementary_Functions;
       use Concorde.Locations;
       From : constant System_Point_Location :=
-               To_System_Point (Ship.Location_At (Start_Time));
+               To_System_Point (Ship.Location_At (Start_Time), Start_Time);
       To   : constant System_Point_Location :=
-               To_System_Point (Destination);
+               To_System_Point (Destination, Start_Time);
       D    : constant Non_Negative_Real :=
                System_Distance (From, To);
       F    : constant Non_Negative_Real := Ship.Maximum_Thrust;
       A    : constant Non_Negative_Real :=
                Non_Negative_Real'Min
                  (F / Ship.Current_Mass,
-                  Concorde.Solar_System.Earth_Gravity);
+                  2.0 * Concorde.Solar_System.Earth_Gravity);
       T    : constant Non_Negative_Real :=
                2.0 * Sqrt (D / A);
    begin
       Ship.Log_Movement
-        ("distance "
+        (Long_Name (From) & " to " & Long_Name (To)
+         & ": distance "
          & Xi.Float_Images.Image
            (D / Concorde.Solar_System.Earth_Orbit)
          & " AU; accel "

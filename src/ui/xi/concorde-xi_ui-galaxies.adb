@@ -33,6 +33,7 @@ with Concorde.Worlds;
 with Concorde.Ships.Xi_Model;
 
 with Concorde.Elementary_Functions;
+with Concorde.Calendar;
 
 package body Concorde.Xi_UI.Galaxies is
 
@@ -391,10 +392,10 @@ package body Concorde.Xi_UI.Galaxies is
                  (Concorde.Galaxy.Capital_World);
             elsif True or else Second_Ship = null then
                Concorde.Ships.Xi_Model.Transit_To_Ship
-                 (First_Ship, Main_Model);
+                 (First_Ship, Concorde.Calendar.Clock, Main_Model);
             else
                Concorde.Ships.Xi_Model.Transit_To_Ship
-                 (Second_Ship, Main_Model);
+                 (Second_Ship, Concorde.Calendar.Clock, Main_Model);
             end if;
             Main_Model.Transited := True;
          end;

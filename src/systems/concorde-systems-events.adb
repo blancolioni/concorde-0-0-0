@@ -41,7 +41,7 @@ package body Concorde.Systems.Events is
    is
    begin
       Ship_System_Event_Handler'Class (Handler).On_Ship_Event
-        (System, Ship_Event (Event).Ship);
+        (Event.Time_Stamp, System, Ship_Event (Event).Ship);
    end On_Event;
 
 end Concorde.Systems.Events;

@@ -12,8 +12,9 @@ package Concorde.Ships.Xi_Model is
    type Active_Ship is private;
 
    procedure Transit_To_Ship
-     (Ship   : Ship_Type;
-      Model  : in out Concorde.Xi_UI.Root_Xi_Model'Class);
+     (Ship  : Ship_Type;
+      Start : Concorde.Calendar.Time;
+      Model : in out Concorde.Xi_UI.Root_Xi_Model'Class);
 
    function Get_Active_Ship
      (Ship : Ship_Type)
@@ -25,6 +26,7 @@ package Concorde.Ships.Xi_Model is
 
    function Activate_Ship
      (Ship     : Ship_Type;
+      Time     : Concorde.Calendar.Time;
       Scene    : Xi.Scene.Xi_Scene;
       Primary  : Xi.Node.Xi_Node;
       Selector : Xi.Node.Xi_Node)
@@ -35,6 +37,7 @@ package Concorde.Ships.Xi_Model is
 
    procedure Update_Ship_Position
      (Ship          : Active_Ship;
+      Time          : Concorde.Calendar.Time;
       Relative_To   : Xi.Matrices.Vector_3;
       Camera        : Xi.Camera.Xi_Camera;
       Show_Selector : Boolean);
