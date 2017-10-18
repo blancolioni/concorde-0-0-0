@@ -29,7 +29,8 @@ package body Concorde.Xi_UI is
    Local_Selector_Texture : Xi.Texture.Xi_Texture := null;
    Local_Selector_Entity  : Xi.Entity.Xi_Entity := null;
 
-   Local_Main_UI : Xtk.Builder.Xtk_Builder;
+   Local_Main_UI       : Xtk.Builder.Xtk_Builder;
+   Local_Main_Log_View : Xtk.Text.View.Xtk_Text_View;
 
    type Model_Frame_Listener is
      new Xi.Frame_Event.Xi_Frame_Listener_Interface with
@@ -173,6 +174,21 @@ package body Concorde.Xi_UI is
 
       Local_Main_UI := Builder;
    end Load_UI;
+
+   -------------------
+   -- Main_Log_View --
+   -------------------
+
+   function Main_Log_View return Xtk.Text.View.Xtk_Text_View is
+      use type Xtk.Text.View.Xtk_Text_View;
+   begin
+      if Local_Main_Log_View = null then
+         Local_Main_Log_View :=
+           Xtk.Text.View.Xtk_Text_View
+             (Local_Main_UI.Get ("log-text"));
+      end if;
+      return Local_Main_Log_View;
+   end Main_Log_View;
 
    ---------------------
    -- Move_Horizontal --

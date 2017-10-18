@@ -10,6 +10,7 @@ with Xi.Texture;
 
 with Xtk.Label;
 with Xtk.Panel;
+with Xtk.Text.View;
 
 with Concorde.Objects;
 with Concorde.Transitions;
@@ -136,6 +137,8 @@ package Concorde.Xi_UI is
    procedure Load_UI
      (Window : Xi.Render_Window.Xi_Render_Window;
       Path   : String);
+
+   function Main_Log_View return Xtk.Text.View.Xtk_Text_View;
 
 private
 
