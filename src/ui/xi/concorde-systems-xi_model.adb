@@ -27,6 +27,8 @@ with Concorde.Stars;
 with Concorde.Ships.Xi_Model;
 --  with Concorde.Worlds.Xi_Model;
 
+with Concorde.Xi_UI.Outliner;
+
 with Concorde.Systems.Events;
 
 package body Concorde.Systems.Xi_Model is
@@ -541,6 +543,20 @@ package body Concorde.Systems.Xi_Model is
             Model.Worlds.Append ((World, World_Node, Node));
          end;
 
+         declare
+            use Concorde.Xi_UI.Outliner;
+         begin
+            Add_Item
+              (Category => "outliner-worlds",
+               Identity => World.Identifier,
+               Elements => (1 => Text_Element (World.Name),
+                            2 =>
+                              Text_Element
+                                (Concorde.Locations.Short_Name
+                                   (World.Current_Location))),
+               Tooltip  => No_Elements);
+         end;
+
          World.Get_Ships (Ships);
 
          for Ship of Ships loop
@@ -568,6 +584,19 @@ package body Concorde.Systems.Xi_Model is
                                     Scene, System_Node, Selector_Node);
             begin
                Model.Ships.Append (Rec);
+               declare
+                  use Concorde.Xi_UI.Outliner;
+               begin
+                  Add_Item
+                    (Category => "outliner-ships",
+                     Identity => Ship.Identifier,
+                     Elements => (1 => Text_Element (Ship.Name),
+                                  2 =>
+                                    Text_Element
+                                      (Concorde.Locations.Short_Name
+                                         (Ship.Current_Location))),
+                     Tooltip  => No_Elements);
+               end;
                if Model.Logged_Ship = null then
                   Model.Logged_Ship := Ship;
                   Model.Logged_World := Ship.Current_World;
