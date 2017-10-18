@@ -17,6 +17,7 @@ with Xtk.Button;
 with Xtk.Page;
 
 with Concorde.Xi_UI.Key_Bindings;
+with Concorde.Xi_UI.Outliner;
 
 with Concorde.Calendar;
 with Concorde.Updates;
@@ -31,6 +32,7 @@ package body Concorde.Xi_UI is
 
    Local_Main_UI       : Xtk.Builder.Xtk_Builder;
    Local_Main_Log_View : Xtk.Text.View.Xtk_Text_View;
+   Local_Outliner_Div  : Xtk.Div_Element.Xtk_Div_Element;
 
    type Model_Frame_Listener is
      new Xi.Frame_Event.Xi_Frame_Listener_Interface with
@@ -313,7 +315,7 @@ package body Concorde.Xi_UI is
          if Model.Clock_Label /= null then
             Model.Clock_Label.Set_Label
               (Concorde.Calendar.Image
-                 (Concorde.Calendar.Clock));
+                 (Concorde.Calendar.Clock, True));
          end if;
 
       end if;
@@ -346,6 +348,8 @@ package body Concorde.Xi_UI is
             end loop;
          end;
       end if;
+
+      Concorde.Xi_UI.Outliner.Render;
 
    end On_Frame_Start;
 
@@ -430,6 +434,21 @@ package body Concorde.Xi_UI is
       end if;
 
    end On_User_Command;
+
+   ------------------
+   -- Outliner_Div --
+   ------------------
+
+   function Outliner_Div return Xtk.Div_Element.Xtk_Div_Element is
+      use type Xtk.Div_Element.Xtk_Div_Element;
+   begin
+      if Local_Outliner_Div = null then
+         Local_Outliner_Div :=
+           Xtk.Div_Element.Xtk_Div_Element
+             (Local_Main_UI.Get ("outline-table"));
+      end if;
+      return Local_Outliner_Div;
+   end Outliner_Div;
 
    --------------
    -- Renderer --
