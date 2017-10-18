@@ -186,7 +186,9 @@ begin
       Concorde.Factions.Logging.Stop_Logging;
    end if;
 
-   Concorde.Logs.Flush_Logs;
+   if Concorde.Options.Detailed_Logging then
+      Concorde.Logs.Flush_Logs;
+   end if;
 
 exception
 

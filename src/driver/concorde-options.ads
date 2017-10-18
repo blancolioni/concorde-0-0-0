@@ -30,5 +30,6 @@ package Concorde.Options is
    function World_Sector_Size return Positive;
    function World_Height_Smoothing return Positive;
    function Log_Folder return String;
+   function Detailed_Logging return Boolean;
 
 end Concorde.Options;

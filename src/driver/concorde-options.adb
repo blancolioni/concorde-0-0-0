@@ -184,4 +184,10 @@ package body Concorde.Options is
                ("log-folder", ' ');
    end Log_Folder;
 
+   function Detailed_Logging return Boolean is
+   begin
+      return WL.Command_Line.Find_Option
+               ("detailed-logging", ' ');
+   end Detailed_Logging;
+
 end Concorde.Options;
