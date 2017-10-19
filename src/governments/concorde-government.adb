@@ -121,8 +121,7 @@ package body Concorde.Government is
       Government.Update.Add_Cash (Receipt - Tithe);
       Government.Update.Tax_Receipts (Category) :=
         Government.Tax_Receipts (Category) + Receipt;
-      Concorde.Factions.Faction_Type (Government.Owner).Update.Add_Cash
-        (Tithe);
+      Government.Owner.Variable_Reference.Add_Cash (Tithe);
    end Tax_Receipt;
 
    ------------------
