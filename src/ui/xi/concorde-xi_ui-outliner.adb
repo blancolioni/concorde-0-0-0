@@ -204,10 +204,35 @@ package body Concorde.Xi_UI.Outliner is
                                   (To_String (Category.Identifier)));
             begin
                Cat_Label.Set_Attribute ("class", "outliner-category-label");
-               Cat_Label.Show_All;
                Outliner_Div.Add_Child (Cat_Label);
+               for Row of Category.Rows loop
+                  declare
+                     Row_Div : Xtk.Div_Element.Xtk_Div_Element;
+                  begin
+                     Xtk.Div_Element.Xtk_New (Row_Div);
+                     Row_Div.Set_Attribute ("class", "outliner-row");
+                     Outliner_Div.Add_Child (Row_Div);
+                     for Element of Row.Elements loop
+                        case Element.Class is
+                           when Text_Element =>
+                              declare
+                                 Label : constant Xtk.Label.Xtk_Label :=
+                                           Xtk.Label.Xtk_New
+                                             (To_String (Element.Text));
+                              begin
+                                 Label.Set_Attribute
+                                   ("class", "outliner-text-element");
+                                 Row_Div.Add_Child (Label);
+                              end;
+                           when Image_Element =>
+                              null;
+                        end case;
+                     end loop;
+                  end;
+               end loop;
             end;
          end loop;
+         Outliner_Div.Show_All;
          Outliner_Changed := False;
       end if;
    end Render;
