@@ -190,4 +190,16 @@ package body Concorde.Options is
                ("detailed-logging", ' ');
    end Detailed_Logging;
 
+   function Show_Clock_Time return Boolean is
+   begin
+      return WL.Command_Line.Find_Option
+               ("show-clock-time", ' ');
+   end Show_Clock_Time;
+
+   function Log_Ship_Movement return Boolean is
+   begin
+      return WL.Command_Line.Find_Option
+               ("log-ship-movement", ' ');
+   end Log_Ship_Movement;
+
 end Concorde.Options;
