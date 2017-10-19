@@ -2,6 +2,7 @@ package Concorde.Options is
 
    Scenario                : String;
    Display_Language        : String;
+   Faction_Name            : String;
    
    Console                 : Boolean;
    Randomise               : Boolean;

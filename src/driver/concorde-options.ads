@@ -2,6 +2,7 @@ package Concorde.Options is
 
    function Scenario return String;
    function Display_Language return String;
+   function Faction_Name return String;
    function Console return Boolean;
    function Randomise return Boolean;
    function Create_Voronoi return Boolean;

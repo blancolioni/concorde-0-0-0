@@ -3,6 +3,7 @@ with Xi.Viewport;
 
 with Concorde.Xi_UI;
 
+with Concorde.Factions;
 with Concorde.Worlds;
 
 package Concorde.Systems.Xi_Model is
@@ -13,6 +14,7 @@ package Concorde.Systems.Xi_Model is
 
    function System_Model
      (System  : Star_System_Type;
+      Faction : Concorde.Factions.Faction_Type;
       Target  : not null access
         Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
       return Concorde.Xi_UI.Xi_Model;

@@ -155,21 +155,29 @@ begin
 
          declare
             Model : Concorde.Xi_UI.Xi_Model;
+            Faction_Option : constant String :=
+                               Concorde.Options.Faction_Name;
+            Faction_Name   : constant String :=
+                               (if Faction_Option = ""
+                                then "Musitello"
+                                else Faction_Option);
+            Faction        : constant Concorde.Factions.Faction_Type :=
+                               Concorde.Factions.Get_By_Name (Faction_Name);
          begin
             if Concorde.Options.Start_With_Galaxy then
                Model :=
                  Concorde.Xi_UI.Model_Manager.Model
-                   (null, Concorde.Calendar.Start, Window);
+                   (null, Concorde.Calendar.Start, Faction, Window);
             elsif True then
                Model :=
                  Concorde.Xi_UI.Model_Manager.Model
                    (Concorde.Galaxy.Get_System (1),
-                    Concorde.Calendar.Start, Window);
+                    Concorde.Calendar.Start, Faction, Window);
             else
                Model :=
                  Concorde.Xi_UI.Model_Manager.Model
                    (Concorde.Galaxy.Capital_World,
-                    Concorde.Calendar.Start, Window);
+                    Concorde.Calendar.Start, Faction, Window);
             end if;
 
             Model.Activate;

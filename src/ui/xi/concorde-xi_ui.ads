@@ -16,6 +16,8 @@ with Xtk.Text.View;
 with Concorde.Objects;
 with Concorde.Transitions;
 
+with Concorde.Factions;
+
 package Concorde.Xi_UI is
 
    type User_Command is
@@ -30,6 +32,7 @@ package Concorde.Xi_UI is
 
    procedure Initialize
      (Model    : not null access Root_Xi_Model'Class;
+      Faction  : Concorde.Factions.Faction_Type;
       Renderer : not null access
         Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class);
 
@@ -165,10 +168,13 @@ private
          Frame_Count        : Natural;
          Start_Interval     : Ada.Calendar.Time;
          Elapsed_Time       : Duration;
+         Faction            : Concorde.Factions.Faction_Type;
          Status             : Xtk.Panel.Xtk_Panel;
          Status_Label       : Xtk.Label.Xtk_Label;
          FPS_Label          : Xtk.Label.Xtk_Label;
          Clock_Label        : Xtk.Label.Xtk_Label;
+         Cash_Label         : Xtk.Label.Xtk_Label;
+         Faction_Name_Label : Xtk.Label.Xtk_Label;
       end record;
 
 --   function Main_UI return Xtk.Builder.Xtk_Builder;

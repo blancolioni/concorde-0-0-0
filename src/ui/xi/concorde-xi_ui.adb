@@ -1,3 +1,5 @@
+with WL.Money;
+
 with Xi.Assets;
 with Xi.Color;
 with Xi.Font;
@@ -137,16 +139,24 @@ package body Concorde.Xi_UI is
 
    procedure Initialize
      (Model    : not null access Root_Xi_Model'Class;
+      Faction  : Concorde.Factions.Faction_Type;
       Renderer : not null access
         Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
    is
    begin
+      Model.Faction := Faction;
       Model.Current_Renderer := Xi.Scene_Renderer.Xi_Scene_Renderer (Renderer);
 
       Model.FPS_Label :=
         Xtk.Label.Xtk_Label (Local_Main_UI.Get ("fps"));
       Model.Clock_Label :=
         Xtk.Label.Xtk_Label (Local_Main_UI.Get ("clock"));
+      Model.Cash_Label :=
+        Xtk.Label.Xtk_Label (Local_Main_UI.Get ("cash"));
+      Model.Faction_Name_Label :=
+        Xtk.Label.Xtk_Label (Local_Main_UI.Get ("faction-name"));
+
+      Model.Faction_Name_Label.Set_Label (Faction.Name);
 
       declare
          Listener : constant Xi.Frame_Event.Xi_Frame_Listener :=
@@ -289,6 +299,9 @@ package body Concorde.Xi_UI is
       end if;
 
       Concorde.Updates.Advance (24.0 * 3600.0 * Time_Delta);
+
+      Model.Cash_Label.Set_Label
+        (WL.Money.Image (Model.Faction.Cash));
 
       if Model.Active then
          if Model.Frame_Count = 0 then

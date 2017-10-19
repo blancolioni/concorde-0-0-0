@@ -113,6 +113,8 @@ package Concorde.Factions is
 
    type Faction_Type is access constant Root_Faction_Type'Class;
 
+   function Get_By_Name (Name : String) return Faction_Type;
+
    function Faction_Count return Natural;
 
    type Array_Of_Factions is array (Positive range <>) of Faction_Type;

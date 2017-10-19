@@ -16,6 +16,12 @@ package body Concorde.Options is
                ("display-language", ' ');
    end Display_Language;
 
+   function Faction_Name return String is
+   begin
+      return WL.Command_Line.Find_Option
+               ("faction-name", ' ');
+   end Faction_Name;
+
    function Console return Boolean is
    begin
       return WL.Command_Line.Find_Option

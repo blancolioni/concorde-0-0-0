@@ -423,7 +423,7 @@ package body Concorde.Factions.Create is
             null,
             WL.Quantities.Zero);
 
-         New_Faction.Set_Cash (WL.Money.To_Money (1_000_000.0));
+         New_Faction.Set_Cash (WL.Money.To_Money (1_000.0));
          New_Faction.Identifier :=
            Ada.Strings.Unbounded.To_Unbounded_String (Name);
          New_Faction.Set_Name (Name);

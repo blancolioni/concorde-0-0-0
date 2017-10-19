@@ -214,7 +214,8 @@ package body Concorde.Xi_UI.Galaxies is
    ------------------
 
    function Galaxy_Model
-     (Renderer : not null access
+     (Faction  : Concorde.Factions.Faction_Type;
+      Renderer : not null access
         Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
       return Xi_Model
    is
@@ -242,7 +243,7 @@ package body Concorde.Xi_UI.Galaxies is
          GL.Enable_Debug;
       end if;
 
-      Main_Model.Initialize (Renderer);
+      Main_Model.Initialize (Faction, Renderer);
 
       Main_Model.Set_Scene (Scene);
       Main_Model.Set_Renderer (Renderer);

@@ -337,6 +337,20 @@ package body Concorde.Factions is
       return Ranked_Factions (Index);
    end Get;
 
+   -----------------
+   -- Get_By_Name --
+   -----------------
+
+   function Get_By_Name (Name : String) return Faction_Type is
+   begin
+      for Faction of All_Factions loop
+         if Faction.Name = Name then
+            return Faction;
+         end if;
+      end loop;
+      return null;
+   end Get_By_Name;
+
    -----------
    -- Image --
    -----------

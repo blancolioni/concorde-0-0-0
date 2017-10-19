@@ -201,14 +201,16 @@ package body Concorde.Systems.Xi_Model is
             Model.Scene.Active_Camera, False);
       end loop;
 
-      Model.Log.Text_Buffer.Set_Text
-        (Model.Logged_World.Name & ": "
-         & Concorde.Locations.Long_Name
-           (Model.Logged_World.Location_At (Concorde.Calendar.Clock))
-         & Character'Val (10)
-         & Model.Logged_Ship.Name & ": "
-           & Concorde.Locations.Long_Name
-           (Model.Logged_Ship.Location_At (Concorde.Calendar.Clock)));
+      if False then
+         Model.Log.Text_Buffer.Set_Text
+           (Model.Logged_World.Name & ": "
+            & Concorde.Locations.Long_Name
+              (Model.Logged_World.Location_At (Concorde.Calendar.Clock))
+            & Character'Val (10)
+            & Model.Logged_Ship.Name & ": "
+            & Concorde.Locations.Long_Name
+              (Model.Logged_Ship.Location_At (Concorde.Calendar.Clock)));
+      end if;
 
    end On_Frame_Start;
 
@@ -314,7 +316,8 @@ package body Concorde.Systems.Xi_Model is
 
    function System_Model
      (System  : Star_System_Type;
-      Target  : not null access
+      Faction    : Concorde.Factions.Faction_Type;
+      Target     : not null access
         Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
       return Concorde.Xi_UI.Xi_Model
    is
@@ -325,7 +328,7 @@ package body Concorde.Systems.Xi_Model is
          Model.Set_Renderer (Target);
       else
          Model := new Root_System_Model;
-         Model.Initialize (Target);
+         Model.Initialize (Faction, Target);
          Model.System := System;
          Model.Log := Concorde.Xi_UI.Main_Log_View;
 
@@ -495,7 +498,7 @@ package body Concorde.Systems.Xi_Model is
 --                            / Scene_Unit_Length;
          Ships        : Concorde.Ships.Lists.List;
       begin
-         World_Node.Scale (World.Radius);
+         World_Node.Scale (World.Radius * Star_Scale);
          World_Node.Set_Position
            (World.System_Relative_Position (Time));
 

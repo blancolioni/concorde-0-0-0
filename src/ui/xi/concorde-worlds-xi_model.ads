@@ -3,12 +3,15 @@ with Xi.Scene_Renderer;
 
 with Concorde.Xi_UI;
 
+with Concorde.Factions;
+
 package Concorde.Worlds.Xi_Model is
 
    function World_Model
-     (World  : World_Type;
-      Time   : Concorde.Calendar.Time;
-      Target : not null access
+     (World   : World_Type;
+      Time    : Concorde.Calendar.Time;
+      Faction : Concorde.Factions.Faction_Type;
+      Target  : not null access
         Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
       return Concorde.Xi_UI.Xi_Model;
 
