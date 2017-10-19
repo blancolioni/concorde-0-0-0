@@ -26,13 +26,15 @@ body {
 .outliner-category-label {
     background-color: rgb(78,100,117);
     color: white;
-    width: 200px;
+    width: 180px;
     font-size: 24;
+}
+
+.outliner-row {
 }
 
 .outliner-text-element {
     color: white;
-    width: 200px;
     font-size: 16;
     font-weight: bold;
 }
