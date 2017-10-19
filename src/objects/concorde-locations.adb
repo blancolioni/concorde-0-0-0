@@ -298,7 +298,45 @@ package body Concorde.Locations is
 
    function Long_Name (Location : Object_Location) return String is
    begin
-      return Short_Name (Location);
+      case Location.Loc_Type is
+         when Nowhere =>
+            return "nowhere";
+         when Interstellar =>
+            return Concorde.Systems.Star_System_Type (Location.Reference).Name
+              & " -> "
+              & Concorde.Systems.Star_System_Type
+              (Location.Destination_System).Name;
+         when System_Point =>
+            declare
+               use Xi.Float_Arrays;
+            begin
+               return Concorde.Real_Images.Approximate_Image
+                 (abs (Location.Relative_Position
+                  / Concorde.Solar_System.Earth_Orbit))
+                 & " AU from "
+                 & Location.Reference.Identifier
+                 & Xi.Float_Images.Image
+                 (Location.Relative_Position
+                  / Concorde.Solar_System.Earth_Orbit);
+            end;
+         when Orbit =>
+            return "orbiting "
+              & Concorde.Systems.Star_System_Object_Interface'Class
+              (Location.Reference.all).Name;
+         when World_Surface =>
+            return "on "
+              & Concorde.Worlds.World_Type (Location.Reference).Name;
+         when On_Ship =>
+            return "on "
+              & Concorde.Ships.Ship_Type
+              (Location.Reference).Short_Description;
+         when At_Installation =>
+            return "at "
+              & Concorde.Installations.Installation_Type
+              (Location.Reference).Facility.Name;
+         when In_Unit =>
+            return "in unit";
+      end case;
    end Long_Name;
 
    -------------
@@ -444,10 +482,7 @@ package body Concorde.Locations is
                  (abs (Location.Relative_Position
                   / Concorde.Solar_System.Earth_Orbit))
                  & " AU from "
-                 & Location.Reference.Identifier
-                 & Xi.Float_Images.Image
-                 (Location.Relative_Position
-                  / Concorde.Solar_System.Earth_Orbit);
+                 & Location.Reference.Identifier;
             end;
          when Orbit =>
             return "orbiting "

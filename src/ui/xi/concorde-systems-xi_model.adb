@@ -552,11 +552,7 @@ package body Concorde.Systems.Xi_Model is
             Add_Item
               (Category => "outliner-worlds",
                Identity => World.Identifier,
-               Elements => (1 => Text_Element (World.Name),
-                            2 =>
-                              Text_Element
-                                (Concorde.Locations.Short_Name
-                                   (World.Current_Location))),
+               Element  => Text_Element (World.Name),
                Tooltip  => No_Elements);
          end;
 
@@ -593,11 +589,7 @@ package body Concorde.Systems.Xi_Model is
                   Add_Item
                     (Category => "outliner-ships",
                      Identity => Ship.Identifier,
-                     Elements => (1 => Text_Element (Ship.Name),
-                                  2 =>
-                                    Text_Element
-                                      (Concorde.Locations.Short_Name
-                                         (Ship.Current_Location))),
+                     Element  => Text_Element (Ship.Name),
                      Tooltip  => No_Elements);
                end;
                if Model.Logged_Ship = null then
