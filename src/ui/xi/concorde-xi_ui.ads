@@ -169,6 +169,8 @@ private
          Status_Label       : Xtk.Label.Xtk_Label;
          FPS_Label          : Xtk.Label.Xtk_Label;
          Clock_Label        : Xtk.Label.Xtk_Label;
+         Show_Clock_Time    : Boolean;
+         Log_Ship_Movement  : Boolean;
       end record;
 
 --   function Main_UI return Xtk.Builder.Xtk_Builder;

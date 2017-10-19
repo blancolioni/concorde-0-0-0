@@ -22,6 +22,8 @@ with Concorde.Xi_UI.Outliner;
 with Concorde.Calendar;
 with Concorde.Updates;
 
+with Concorde.Options;
+
 package body Concorde.Xi_UI is
 
    Selector_Size : constant := 48;
@@ -147,6 +149,9 @@ package body Concorde.Xi_UI is
         Xtk.Label.Xtk_Label (Local_Main_UI.Get ("fps"));
       Model.Clock_Label :=
         Xtk.Label.Xtk_Label (Local_Main_UI.Get ("clock"));
+
+      Model.Show_Clock_Time := Concorde.Options.Show_Clock_Time;
+      Model.Log_Ship_Movement := Concorde.Options.Log_Ship_Movement;
 
       declare
          Listener : constant Xi.Frame_Event.Xi_Frame_Listener :=
@@ -315,7 +320,7 @@ package body Concorde.Xi_UI is
          if Model.Clock_Label /= null then
             Model.Clock_Label.Set_Label
               (Concorde.Calendar.Image
-                 (Concorde.Calendar.Clock, True));
+                 (Concorde.Calendar.Clock, Model.Show_Clock_Time));
          end if;
 
       end if;
