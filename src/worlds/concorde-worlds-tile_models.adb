@@ -10,8 +10,8 @@ with Concorde.Hash_Table;
 with Concorde.Watchers;
 
 with Concorde.Solar_System;
-with Concorde.Money;
-with Concorde.Quantities;
+with WL.Money;
+with WL.Quantities;
 
 with Concorde.Factions;
 with Concorde.Ships.Models;
@@ -604,21 +604,21 @@ package body Concorde.Worlds.Tile_Models is
             return Commodity.Name;
          when 2 =>
             if Table.World.Has_Market then
-               return Concorde.Money.Image
+               return WL.Money.Image
                  (Table.World.Market.Current_Price (Commodity));
             else
                return "-";
             end if;
          when 3 =>
             if Table.World.Has_Market then
-               return Concorde.Quantities.Image
+               return WL.Quantities.Image
                  (Table.World.Market.Last_Supply (Commodity));
             else
                return "-";
             end if;
          when 4 =>
             if Table.World.Has_Market then
-               return Concorde.Quantities.Image
+               return WL.Quantities.Image
                  (Table.World.Market.Last_Demand (Commodity));
             else
                return "-";
@@ -655,7 +655,7 @@ package body Concorde.Worlds.Tile_Models is
             when 2 =>
                return Lui.Approximate_Image (Natural (Pop.Size));
             when 3 =>
-               return Concorde.Money.Image (Pop.Cash);
+               return WL.Money.Image (Pop.Cash);
          end case;
       end;
    end Cell_Text;
@@ -685,7 +685,7 @@ package body Concorde.Worlds.Tile_Models is
             when 1 =>
                return Installation.Facility.Name;
             when 2 =>
-               return Concorde.Money.Image (Installation.Cash);
+               return WL.Money.Image (Installation.Cash);
          end case;
       end;
    end Cell_Text;

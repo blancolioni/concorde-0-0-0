@@ -8,8 +8,8 @@ with Concorde.Factions.Logging;
 
 with Concorde.Ships.Designs;
 
-with Concorde.Money;
-with Concorde.Quantities;
+with WL.Money;
+with WL.Quantities;
 
 package body Concorde.Ships.Create is
 
@@ -37,7 +37,7 @@ package body Concorde.Ships.Create is
       procedure Create
         (Ship : in out Root_Ship_Type'Class)
       is
-         use Concorde.Quantities;
+         use WL.Quantities;
 
       begin
          Concorde.Ships.Designs.Create_Ship_From_Design
@@ -46,7 +46,7 @@ package body Concorde.Ships.Create is
            (Concorde.Locations.Geosynchronous_Orbit
               (World),
             World.Market,
-            To_Quantity (10.0 * Ship.Hold_Size));
+            To_Quantity (10.0 * Float (Ship.Hold_Size)));
 
          if Name = "" then
             if Suffix = 0 then
@@ -67,7 +67,7 @@ package body Concorde.Ships.Create is
          end if;
          Ship.Owner := Owner;
          Ship.Set_Guarantor (Owner);
-         Ship.Set_Cash (Concorde.Money.To_Money (10_000.0));
+         Ship.Set_Cash (WL.Money.To_Money (10_000.0));
          Ship.Set_Location
            (Concorde.Locations.Circular_Orbit
               (World, World.Radius + 300_000.0));

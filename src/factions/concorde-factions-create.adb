@@ -21,8 +21,8 @@ with Concorde.Scenarios;
 with Concorde.Colonies.Configure;
 
 with Concorde.Commodities;
-with Concorde.Money;
-with Concorde.Quantities;
+with WL.Money;
+with WL.Quantities;
 
 with Concorde.Systems.Lists;
 
@@ -421,9 +421,9 @@ package body Concorde.Factions.Create is
          New_Faction.New_Agent
            (Concorde.Locations.World_Surface (Start_World, 1),
             null,
-            Concorde.Quantities.Zero);
+            WL.Quantities.Zero);
 
-         New_Faction.Set_Cash (Concorde.Money.To_Money (1_000_000.0));
+         New_Faction.Set_Cash (WL.Money.To_Money (1_000_000.0));
          New_Faction.Identifier :=
            Ada.Strings.Unbounded.To_Unbounded_String (Name);
          New_Faction.Set_Name (Name);
@@ -465,12 +465,12 @@ package body Concorde.Factions.Create is
             if Imperial_Centre then
                Market.Initial_Price
                  (Unavailable,
-                  Concorde.Money.Adjust_Price
+                  WL.Money.Adjust_Price
                     (Unavailable.Base_Price, Factor => 2.0));
                --           elsif Unavailable /= System.Resource then
                --              System.Market.Initial_Price
                --                (Unavailable,
-               --                 Concorde.Money.Adjust_Price
+               --                 WL.Money.Adjust_Price
                --             (Unavailable.Base_Price, Factor => 2.0));
             end if;
          end loop;
@@ -485,7 +485,7 @@ package body Concorde.Factions.Create is
                else
                   Market.Initial_Price
                     (Item,
-                     Concorde.Money.Adjust_Price
+                     WL.Money.Adjust_Price
                        (Item.Base_Price, Factor => 2.0));
                end if;
             end loop;

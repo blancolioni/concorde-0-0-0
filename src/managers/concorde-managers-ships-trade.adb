@@ -1,8 +1,8 @@
 with WL.Heaps;
 
 with Concorde.Locations;
-with Concorde.Money;
-with Concorde.Quantities;
+with WL.Money;
+with WL.Quantities;
 with Concorde.Real_Images;
 
 with Concorde.Markets;
@@ -33,7 +33,7 @@ package body Concorde.Managers.Ships.Trade is
    procedure Create_Asks
      (Manager : in out Root_Ship_Trade_Manager'Class)
    is
-      use Concorde.Quantities;
+      use WL.Quantities;
    begin
       for Commodity of Concorde.Commodities.Trade_Commodities loop
 --           Manager.Ship.Log_Trade
@@ -59,7 +59,7 @@ package body Concorde.Managers.Ships.Trade is
      (Manager : in out Root_Ship_Trade_Manager'Class)
    is
       use Concorde.Commodities;
-      use Concorde.Money, Concorde.Quantities;
+      use WL.Money, WL.Quantities;
       Space : constant Quantity_Type := Manager.Ship.Available_Quantity;
       Remaining    : Quantity_Type := Space;
       Local_Market : constant Concorde.Markets.Market_Type :=
@@ -122,9 +122,9 @@ package body Concorde.Managers.Ships.Trade is
                Score           : constant Non_Negative_Real :=
                                    (if Expected_Return - Investment
                                     > Fixed_Costs
-                                    then To_Real (Expected_Return)
-                                    else To_Real (Expected_Return)
-                                    - To_Real (Investment));
+                                    then Real (To_Float (Expected_Return))
+                                    else Real (To_Float (Expected_Return))
+                                    - Real (To_Float (Investment)));
             begin
                Manager.Ship.Log
                  (Commodity.Name
@@ -242,7 +242,7 @@ package body Concorde.Managers.Ships.Trade is
    overriding procedure On_Idle
      (Manager : in out Root_Ship_Trade_Manager)
    is
-      use Concorde.Quantities;
+      use WL.Quantities;
       use Concorde.Worlds, World_Lists;
       From_World : constant World_Type := Element (Manager.Current);
       Next_Position : Cursor := Next (Manager.Current);

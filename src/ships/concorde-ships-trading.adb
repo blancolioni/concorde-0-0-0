@@ -1,4 +1,4 @@
-with Concorde.Money;
+with WL.Money;
 
 with Concorde.Worlds;
 
@@ -30,8 +30,8 @@ package body Concorde.Ships.Trading is
       -----------
 
       procedure Check (Commodity : Concorde.Commodities.Commodity_Type) is
-         use Concorde.Money;
-         use Concorde.Quantities;
+         use WL.Money;
+         use WL.Quantities;
          Supply  : constant Quantity :=
                      From.Export_Market_Size (Commodity);
          Demand  : constant Quantity :=
@@ -39,9 +39,9 @@ package body Concorde.Ships.Trading is
       begin
          if Supply > Zero and then Demand > Zero then
             declare
-               Buy_At  : constant Concorde.Money.Price_Type :=
+               Buy_At  : constant WL.Money.Price_Type :=
                            From.Sell_Price (Commodity);
-               Sell_At : constant Concorde.Money.Price_Type :=
+               Sell_At : constant WL.Money.Price_Type :=
                            To.Buy_Price (Commodity);
             begin
                if Sell_At > Buy_At then
@@ -83,8 +83,8 @@ package body Concorde.Ships.Trading is
      (Ship : not null access Concorde.Ships.Root_Ship_Type'Class)
    is
 
-      use Concorde.Money;
-      use Concorde.Quantities;
+      use WL.Money;
+      use WL.Quantities;
 
       Finished : Boolean := True;
 
@@ -114,7 +114,7 @@ package body Concorde.Ships.Trading is
                      Ship.Hold_Quantity - Ship.Total_Quantity;
          Maximum : constant Quantity :=
                      (if Price > Zero
-                      then Concorde.Money.Get_Quantity (Ship.Cash, Price)
+                      then WL.Money.Get_Quantity (Ship.Cash, Price)
                       else Zero);
 
          procedure Execute_Buy
@@ -253,11 +253,11 @@ package body Concorde.Ships.Trading is
            ("Finished trading at "
             & Concorde.Worlds.Db.Reference (Ship.Trade_From).Name
             & "; cash "
-            & Concorde.Money.Image (Ship.Cash)
+            & WL.Money.Image (Ship.Cash)
             & "; goods "
-            & Concorde.Money.Image (Ship.Total_Value)
+            & WL.Money.Image (Ship.Total_Value)
             & "; worth "
-            & Concorde.Money.Image (Ship.Cash + Ship.Total_Value));
+            & WL.Money.Image (Ship.Cash + Ship.Total_Value));
 
          declare
             Tmp : constant Memor.Database_Reference :=

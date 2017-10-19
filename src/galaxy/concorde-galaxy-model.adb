@@ -316,16 +316,16 @@ package body Concorde.Galaxy.Model is
          when 2 =>
             return System.Owner.Name;
 --           when 3 =>
---              return Concorde.Money.Image
+--              return WL.Money.Image
 --                (System.Government.Tax_Receipts
 --                   (Concorde.Trades.Sales));
 --           when 4 =>
---              return Concorde.Money.Image
+--              return WL.Money.Image
 --                (System.Government.Headquarters.Cash);
 --           when 5 =>
 --              return "";
 --           when 6 =>
---              return Concorde.Money.Image
+--              return WL.Money.Image
 --                (System.Government.Cash);
       end case;
    end Cell_Text;

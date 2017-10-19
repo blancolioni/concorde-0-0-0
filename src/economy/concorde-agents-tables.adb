@@ -76,11 +76,11 @@ package body Concorde.Agents.Tables is
          when 3 =>
             return Data.Item.Name;
          when 4 =>
-            return Concorde.Quantities.Image (Data.Quantity);
+            return WL.Quantities.Image (Data.Quantity);
          when 5 =>
-            return Concorde.Money.Image (Data.Cost);
+            return WL.Money.Image (Data.Cost);
          when 6 =>
-            return Concorde.Money.Image (Data.Balance);
+            return WL.Money.Image (Data.Balance);
       end case;
    end Cell_Text;
 

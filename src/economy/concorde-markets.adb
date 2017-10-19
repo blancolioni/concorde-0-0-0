@@ -5,7 +5,7 @@ with Concorde.Logs;
 package body Concorde.Markets is
 
    function Taxable_Image
-     (Price_With_Tax : Concorde.Money.Price_Type;
+     (Price_With_Tax : WL.Money.Price_Type;
       Tax_Rate       : Non_Negative_Real)
       return String
      with Unreferenced;
@@ -43,7 +43,7 @@ package body Concorde.Markets is
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
    is
-      use Concorde.Money, Concorde.Quantities;
+      use WL.Money, WL.Quantities;
       Info : constant Cached_Commodity :=
                Market.Get_Commodity (Commodity);
       Bid_Offer    : Offer_Info;
@@ -183,11 +183,11 @@ package body Concorde.Markets is
       Trader    : not null access constant
         Concorde.Trades.Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity_Type;
-      Price     : Concorde.Money.Price_Type)
+      Quantity  : WL.Quantities.Quantity_Type;
+      Price     : WL.Money.Price_Type)
    is
-      use Concorde.Money;
-      use Concorde.Quantities;
+      use WL.Money;
+      use WL.Quantities;
       Agent : constant Concorde.Agents.Agent_Type :=
                 Concorde.Agents.Agent_Type (Trader);
       Info : constant Cached_Commodity :=
@@ -258,11 +258,11 @@ package body Concorde.Markets is
    overriding function Current_Price
      (Market    : Root_Market_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Money.Price_Type
+      return WL.Money.Price_Type
    is
-      use Concorde.Money;
+      use WL.Money;
    begin
-      return Price : Concorde.Money.Price_Type :=
+      return Price : WL.Money.Price_Type :=
         Market.Get_Commodity (Commodity).Current_Price
       do
          if Price = Zero then
@@ -282,7 +282,7 @@ package body Concorde.Markets is
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
    is
-      use Concorde.Money;
+      use WL.Money;
       Agent : Concorde.Agents.Root_Agent_Type'Class renames
                 Concorde.Agents.Root_Agent_Type'Class (Trader);
       Info : constant Cached_Commodity :=
@@ -297,7 +297,7 @@ package body Concorde.Markets is
                while not Info.Bids.Is_Empty loop
                   declare
                      use type Concorde.Agents.Agent_Reference;
-                     use type Concorde.Quantities.Quantity_Type;
+                     use type WL.Quantities.Quantity_Type;
                      Price : constant Price_Type :=
                                Info.Bids.Maximum_Key;
                      Element : constant Offer_Info :=
@@ -309,7 +309,7 @@ package body Concorde.Markets is
                      else
                         Agent.Log_Trade
                           ("deleting bid: "
-                           & Concorde.Quantities.Image
+                           & WL.Quantities.Image
                              (Element.Offered_Quantity)
                            & " " & Commodity.Identifier
                            & " @ " & Image (Element.Offer_Price));
@@ -327,7 +327,7 @@ package body Concorde.Markets is
                while not Info.Asks.Is_Empty loop
                   declare
                      use type Concorde.Agents.Agent_Reference;
-                     use type Concorde.Quantities.Quantity_Type;
+                     use type WL.Quantities.Quantity_Type;
                      Price   : constant Price_Type :=
                                  Info.Asks.Maximum_Key;
                      Element : constant Offer_Info :=
@@ -339,7 +339,7 @@ package body Concorde.Markets is
                      else
                         Agent.Log_Trade
                           ("deleting ask: "
-                           & Concorde.Quantities.Image
+                           & WL.Quantities.Image
                              (Element.Offered_Quantity)
                            & " " & Commodity.Identifier
                            & " @ " & Image (Element.Offer_Price));
@@ -438,11 +438,11 @@ package body Concorde.Markets is
       Seller     : not null access constant
         Concorde.Trades.Trader_Interface'Class;
       Commodity  : Concorde.Commodities.Commodity_Type;
-      Quantity   : Concorde.Quantities.Quantity_Type;
-      Price      : Concorde.Money.Price_Type)
+      Quantity   : WL.Quantities.Quantity_Type;
+      Price      : WL.Money.Price_Type)
    is
       use Concorde.Commodities;
-      use Concorde.Money;
+      use WL.Money;
       Market_Log_Path  : constant String :=
                            Market.Identifier
                            & "/" & Commodity.Identifier
@@ -454,7 +454,7 @@ package body Concorde.Markets is
                            & ","
                            & Commodity.Identifier
                            & ","
-                           & Concorde.Quantities.Image (Quantity)
+                           & WL.Quantities.Image (Quantity)
                            & ","
                            & Image (Price);
    begin
@@ -504,10 +504,10 @@ package body Concorde.Markets is
       Metric    : Concorde.Trades.Trade_Metric;
       Start     : Concorde.Calendar.Time;
       Finish    : Concorde.Calendar.Time)
-      return Concorde.Quantities.Quantity_Type
+      return WL.Quantities.Quantity_Type
    is
       use Concorde.Calendar;
-      use Concorde.Quantities;
+      use WL.Quantities;
       use all type Concorde.Trades.Trade_Metric;
       Market_Log_Path  : constant String :=
                            Market.Identifier
@@ -555,11 +555,11 @@ package body Concorde.Markets is
      (Market    : Root_Market_Type;
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
-      return Concorde.Money.Price_Type
+      return WL.Money.Price_Type
    is
-      use Concorde.Money;
+      use WL.Money;
    begin
-      return Price : Concorde.Money.Price_Type :=
+      return Price : WL.Money.Price_Type :=
         Market.Get_Commodity
           (Concorde.Commodities.Commodity_Type (Commodity))
             .Historical_Mean_Price
@@ -577,13 +577,13 @@ package body Concorde.Markets is
    procedure Initial_Price
      (Market    : in out Root_Market_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Price     : Concorde.Money.Price_Type)
+      Price     : WL.Money.Price_Type)
    is
       Info : constant Cached_Commodity := Market.Get_Commodity (Commodity);
    begin
       Concorde.Logging.Log
         (Market.Name, Commodity.Name, "initial price",
-         Concorde.Money.Image (Price));
+         WL.Money.Image (Price));
       Info.Current_Price := Price;
       Info.Historical_Mean_Price := Price;
    end Initial_Price;
@@ -598,8 +598,8 @@ package body Concorde.Markets is
       Commodity : Concorde.Commodities.Commodity_Type;
       Offer     : Offer_Info)
    is
-      use Concorde.Money;
-      use Concorde.Quantities;
+      use WL.Money;
+      use WL.Quantities;
    begin
       Market.Log
         (Message
@@ -648,8 +648,8 @@ package body Concorde.Markets is
       Offer     : Concorde.Trades.Offer_Type;
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class;
-      Quantity  : Concorde.Quantities.Quantity_Type)
-      return Concorde.Money.Price_Type
+      Quantity  : WL.Quantities.Quantity_Type)
+      return WL.Money.Price_Type
    is
       pragma Unreferenced (Quantity);
       Info  : constant Cached_Commodity :=
@@ -660,13 +660,13 @@ package body Concorde.Markets is
             if not Info.Bids.Is_Empty then
                return Info.Bids.Maximum_Key;
             else
-               return Concorde.Money.Zero;
+               return WL.Money.Zero;
             end if;
          when Concorde.Trades.Bid =>
             if not Info.Asks.Is_Empty then
                return Info.Asks.Maximum_Key;
             else
-               return Concorde.Money.Zero;
+               return WL.Money.Zero;
             end if;
       end case;
    end Price;
@@ -676,13 +676,13 @@ package body Concorde.Markets is
    -------------------
 
    function Taxable_Image
-     (Price_With_Tax : Concorde.Money.Price_Type;
+     (Price_With_Tax : WL.Money.Price_Type;
       Tax_Rate       : Non_Negative_Real)
       return String
    is
-      use Concorde.Money;
+      use WL.Money;
       Price_Without_Tax : constant Price_Type :=
-                            Without_Tax (Price_With_Tax, Tax_Rate);
+                            Without_Tax (Price_With_Tax, Float (Tax_Rate));
       Tax               : constant Price_Type :=
                             Price_With_Tax
                               - Price_Without_Tax;
@@ -715,9 +715,9 @@ package body Concorde.Markets is
       Trader    : Concorde.Trades.Trader_Interface'Class;
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class;
-      New_Price : Concorde.Money.Price_Type)
+      New_Price : WL.Money.Price_Type)
    is
-      use Concorde.Money;
+      use WL.Money;
       Agent   : Concorde.Agents.Root_Agent_Type'Class renames
                   Concorde.Agents.Root_Agent_Type'Class (Trader);
       Info    : constant Cached_Commodity :=
@@ -734,7 +734,7 @@ package body Concorde.Markets is
                while not Info.Bids.Is_Empty loop
                   declare
                      use type Concorde.Agents.Agent_Reference;
-                     use type Concorde.Quantities.Quantity_Type;
+                     use type WL.Quantities.Quantity_Type;
                      Price : constant Price_Type :=
                                Info.Bids.Maximum_Key;
                      Element : constant Offer_Info :=
@@ -746,7 +746,7 @@ package body Concorde.Markets is
                      else
                         Agent.Log_Trade
                           ("updating bid: "
-                           & Concorde.Quantities.Image
+                           & WL.Quantities.Image
                              (Element.Remaining_Quantity)
                            & " " & Commodity.Identifier
                            & " @ " & Image (Element.Offer_Price)
@@ -767,7 +767,7 @@ package body Concorde.Markets is
             begin
                while not Info.Asks.Is_Empty loop
                   declare
-                     use type Concorde.Quantities.Quantity_Type;
+                     use type WL.Quantities.Quantity_Type;
                      Price   : constant Price_Type :=
                                  Info.Asks.Maximum_Key;
                      Element : constant Offer_Info :=
@@ -779,7 +779,7 @@ package body Concorde.Markets is
                      else
                         Agent.Log_Trade
                           ("updating ask: "
-                           & Concorde.Quantities.Image
+                           & WL.Quantities.Image
                              (Element.Remaining_Quantity)
                            & " " & Commodity.Identifier
                            & " @ " & Image (Element.Offer_Price)

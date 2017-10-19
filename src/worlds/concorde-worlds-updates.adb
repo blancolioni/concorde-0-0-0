@@ -146,7 +146,7 @@ package body Concorde.Worlds.Updates is
 --
 --        if World.Government.Basic_Living_Wage then
 --           declare
---              use Concorde.Money;
+--              use WL.Money;
 --              Wage : constant Price_Type :=
 --                       World.Market.Current_Price
 --                         (Concorde.Commodities.Get ("rations"));
@@ -195,7 +195,7 @@ package body Concorde.Worlds.Updates is
 --
 --                       begin
 --                          Pop.Log_Price
---                            ("receive " & Concorde.Money.Image (Payment)
+--                            ("receive " & WL.Money.Image (Payment)
 --                             & " dole");
 --                          Concorde.People.Pops.Db.Update
 --                            (Pop.Reference, Update_Pop'Access);

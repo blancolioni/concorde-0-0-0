@@ -10,7 +10,7 @@ with Newton;
 limited with Concorde.Factions;
 
 with Concorde.Geometry;
-with Concorde.Quantities;
+with WL.Quantities;
 
 with Concorde.Calendar;
 with Concorde.Locations;
@@ -280,8 +280,8 @@ private
          Resource      : Concorde.Commodities.Commodity_Type;
          Accessibility : Unit_Real;
          Concentration : Unit_Real;
-         Size          : Concorde.Quantities.Quantity_Type;
-         Original_Size : Concorde.Quantities.Quantity_Type;
+         Size          : WL.Quantities.Quantity_Type;
+         Original_Size : WL.Quantities.Quantity_Type;
       end record;
 
    type System_Object_Record is

@@ -10,8 +10,8 @@ with Concorde.Trades;
 
 limited with Concorde.People.Individuals;
 
-with Concorde.Money;
-with Concorde.Quantities;
+with WL.Money;
+with WL.Quantities;
 
 package Concorde.Government is
 
@@ -50,15 +50,15 @@ package Concorde.Government is
    overriding procedure Tax_Receipt
      (Government : Root_Government_Type;
       Commodity  : Concorde.Commodities.Commodity_Type;
-      Quantity   : Concorde.Quantities.Quantity_Type;
-      Price      : Concorde.Money.Price_Type;
+      Quantity   : WL.Quantities.Quantity_Type;
+      Price      : WL.Money.Price_Type;
       Category   : Concorde.Trades.Market_Tax_Category;
-      Receipt    : Concorde.Money.Money_Type);
+      Receipt    : WL.Money.Money_Type);
 
    function Tax_Receipts
      (Government : Root_Government_Type'Class;
       Category   : Concorde.Trades.Market_Tax_Category)
-      return Concorde.Money.Money_Type;
+      return WL.Money.Money_Type;
 
    function Basic_Living_Wage
      (Government : Root_Government_Type'Class)
@@ -85,7 +85,7 @@ private
                           Concorde.Trades.Export => 0.1);
 
    type Array_Of_Tax_Receipts is
-     array (Concorde.Trades.Market_Tax_Category) of Concorde.Money.Money_Type;
+     array (Concorde.Trades.Market_Tax_Category) of WL.Money.Money_Type;
 
    package Commodity_Tax_Rates is
      new Memor.Element_Vectors
@@ -104,7 +104,7 @@ private
          Headquarters      : Concorde.Installations.Installation_Type;
          Tax_Rates         : Commodity_Tax_Rates.Vector;
          Tax_Receipts      : Array_Of_Tax_Receipts :=
-                               (others => Concorde.Money.Zero);
+                               (others => WL.Money.Zero);
          Basic_Living_Wage : Boolean := False;
       end record;
 

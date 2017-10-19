@@ -13,8 +13,8 @@ with Concorde.Installations.Production;
 
 with Concorde.Worlds.Updates;
 
-with Concorde.Money;
-with Concorde.Quantities;
+with WL.Money;
+with WL.Quantities;
 
 package body Concorde.Economy.Updates is
 

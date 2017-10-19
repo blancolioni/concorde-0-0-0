@@ -1,5 +1,5 @@
 with Concorde.Locations;
-with Concorde.Money;
+with WL.Money;
 with Concorde.Trades;
 
 package Concorde.Installations.Create is
@@ -8,7 +8,7 @@ package Concorde.Installations.Create is
      (Location      : Concorde.Locations.Object_Location;
       Market        : access constant Concorde.Trades.Trade_Interface'Class;
       Facility      : Concorde.Facilities.Facility_Type;
-      Cash          : Concorde.Money.Money_Type;
+      Cash          : WL.Money.Money_Type;
       Owner         : not null access constant
         Concorde.Agents.Root_Agent_Type'Class)
       return Installation_Type;

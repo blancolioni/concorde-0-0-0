@@ -4,7 +4,7 @@ with Concorde.Commodities;
 with Concorde.Logs;
 with Concorde.Random;
 with Concorde.Worlds;
-with Concorde.Money;
+with WL.Money;
 
 package body Concorde.People.Pops is
 
@@ -15,7 +15,7 @@ package body Concorde.People.Pops is
    procedure Add_Trade_Offers
      (Item   : not null access constant Root_Pop_Type)
    is
-      use Concorde.Commodities, Concorde.Quantities;
+      use Concorde.Commodities, WL.Quantities;
       Group : constant Concorde.People.Groups.Pop_Group :=
                 Item.Wealth_Group;
 
@@ -41,7 +41,7 @@ package body Concorde.People.Pops is
       begin
          for I in Food'Range loop
             declare
-               use Concorde.Money;
+               use WL.Money;
                Commodity : constant Commodity_Type := Food (I);
 
                This_Energy : constant Non_Negative_Real :=
@@ -49,14 +49,14 @@ package body Concorde.People.Pops is
                This_Cost   : constant Price_Type :=
                                Item.Mean_Price_Belief (Commodity);
                Energy_Per_Price : constant Non_Negative_Real :=
-                                    This_Energy / To_Real (This_Cost);
+                                    This_Energy / Real (To_Float (This_Cost));
             begin
                Food_Scores (I) := Energy_Per_Price;
                Total_Score := Total_Score + Food_Scores (I);
                Required_Energy := Required_Energy
                  - This_Energy
-                 * Concorde.Quantities.To_Real
-                 (Item.Get_Quantity (Commodity));
+                 * Real (WL.Quantities.To_Float
+                         (Item.Get_Quantity (Commodity)));
             end;
          end loop;
 
@@ -67,7 +67,7 @@ package body Concorde.People.Pops is
          if Required_Energy > 0.0 then
             for I in Food'Range loop
                declare
-                  use Concorde.Money;
+                  use WL.Money;
                   Commodity        : constant Commodity_Type := Food (I);
                   This_Energy      : constant Non_Negative_Real :=
                                        Commodity.Energy;
@@ -75,8 +75,9 @@ package body Concorde.People.Pops is
                                        Food_Scores (I) / Total_Score;
                   Quantity         : constant Quantity_Type :=
                                        To_Quantity
-                                         (Proportion * Required_Energy
-                                          / This_Energy);
+                                         (Float
+                                            (Proportion * Required_Energy
+                                             / This_Energy));
                begin
                   Item.Create_Bid (Commodity, Quantity);
                end;
@@ -102,11 +103,11 @@ package body Concorde.People.Pops is
          if Required < 1.0 and then Current = Zero then
             Item.Create_Bid (Commodity, Unit);
          elsif Required >= 1.0
-           and then Current < To_Quantity (Real'Ceiling (Required))
+           and then Current < To_Quantity (Float'Ceiling (Float (Required)))
          then
             Item.Create_Bid
               (Commodity,
-               To_Quantity (Real'Ceiling (Required)) - Current);
+               To_Quantity (Float'Ceiling (Float (Required))) - Current);
          end if;
       end Check_Need;
 
@@ -163,7 +164,7 @@ package body Concorde.People.Pops is
         (Commodity : Concorde.Commodities.Commodity_Type;
          Need      : Non_Negative_Real)
       is
-         use Concorde.Quantities;
+         use WL.Quantities;
          Total_Need : constant Non_Negative_Real :=
                         Need * Non_Negative_Real (Pop.Size);
          Base_Need  : constant Non_Negative_Real :=
@@ -173,7 +174,7 @@ package body Concorde.People.Pops is
          Available    : constant Quantity_Type :=
                           Pop.Get_Quantity (Commodity);
          Base_Quantity : constant Quantity_Type :=
-                           Min (To_Quantity (Base_Need), Available);
+                           Min (To_Quantity (Float (Base_Need)), Available);
          Extra_Quantity : constant Quantity_Type :=
                             (if Available > Base_Quantity
                              and then Partial_Need > 0.0
@@ -203,7 +204,7 @@ package body Concorde.People.Pops is
 
       procedure Eat_Food is
          use Concorde.Commodities;
-         use Concorde.Quantities;
+         use WL.Quantities;
 
          Food            : constant Array_Of_Commodities := Food_Commodities;
          Required_Energy : constant Non_Negative_Real :=
@@ -242,10 +243,10 @@ package body Concorde.People.Pops is
       begin
          for I in Food'Range loop
             declare
-               use Concorde.Money;
+               use WL.Money;
                Commodity   : constant Commodity_Type := Food (I);
                This_Energy : constant Non_Negative_Real :=
-                               To_Real (Pop.Get_Quantity (Commodity))
+                               Real (To_Float (Pop.Get_Quantity (Commodity)))
                                * Commodity.Energy;
             begin
                Food_Energy (I) := This_Energy;
@@ -268,7 +269,8 @@ package body Concorde.People.Pops is
                   if Food_Energy (I) > 0.0 then
                      Eat (Food (I),
                           To_Quantity
-                            (Food_Energy (I) / Factor / Food (I).Energy));
+                            (Float
+                               (Food_Energy (I) / Factor / Food (I).Energy)));
                   end if;
                end loop;
             end if;
@@ -309,10 +311,10 @@ package body Concorde.People.Pops is
 
    function Size_Quantity
      (Pop : Root_Pop_Type'Class)
-      return Concorde.Quantities.Quantity_Type
+      return WL.Quantities.Quantity_Type
    is
    begin
-      return Concorde.Quantities.To_Quantity (Real (Pop.Size));
+      return WL.Quantities.To_Quantity (Float (Pop.Size));
    end Size_Quantity;
 
    ------------

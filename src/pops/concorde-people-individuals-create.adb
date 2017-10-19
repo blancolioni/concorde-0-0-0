@@ -3,8 +3,8 @@ with WL.Random;
 with Concorde.Names;
 with Concorde.Random;
 
-with Concorde.Money;
-with Concorde.Quantities;
+with WL.Money;
+with WL.Quantities;
 
 with Concorde.Markets;
 with Concorde.Worlds;
@@ -41,9 +41,9 @@ package body Concorde.People.Individuals.Create is
              (Faction.Name);
          Item.Faction := Faction;
          Item.Loyalty := 1.0;
-         Item.Set_Cash (Concorde.Money.To_Money (1_000.0));
+         Item.Set_Cash (WL.Money.To_Money (1_000.0));
          Item.New_Agent
-           (Location, Market, Concorde.Quantities.To_Quantity (1000.0));
+           (Location, Market, WL.Quantities.To_Quantity (1000.0));
       end Create;
 
    begin
@@ -76,9 +76,9 @@ package body Concorde.People.Individuals.Create is
              (Concorde.Names.Random_Last_Name);
          Item.Faction := Loyalty;
          Item.Loyalty := Concorde.Random.Unit_Random;
-         Item.Set_Cash (Concorde.Money.To_Money (100.0));
+         Item.Set_Cash (WL.Money.To_Money (100.0));
          Item.New_Agent
-           (Location, Market, Concorde.Quantities.To_Quantity (1000.0));
+           (Location, Market, WL.Quantities.To_Quantity (1000.0));
       end Create;
 
    begin

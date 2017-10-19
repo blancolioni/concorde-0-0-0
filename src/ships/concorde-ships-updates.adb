@@ -127,7 +127,7 @@ package body Concorde.Ships.Updates is
          while Has_Element (Position) loop
             declare
                use type Memor.Database_Reference;
-               use type Concorde.Quantities.Quantity_Type;
+               use type WL.Quantities.Quantity_Type;
                Order : constant Ship_Order_Record := Element (Position);
             begin
 
@@ -138,7 +138,7 @@ package body Concorde.Ships.Updates is
                         Position := Ship.Orders.First;
                      when Trade =>
                         declare
-                           use Concorde.Quantities;
+                           use WL.Quantities;
                            Finished : Boolean := True;
 
                            procedure Check_Buys

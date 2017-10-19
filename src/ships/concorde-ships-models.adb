@@ -16,7 +16,7 @@ with Concorde.Ships.Flight;
 
 with Newton.Flight;
 
-with Concorde.Money;
+with WL.Money;
 
 with Concorde.Commodities.Db;
 
@@ -370,7 +370,7 @@ package body Concorde.Ships.Models is
       procedure Add_Cargo
         (Commodity : Concorde.Commodities.Commodity_Type)
       is
-         use type Concorde.Quantities.Quantity;
+         use type WL.Quantities.Quantity;
       begin
          if Ship.Get_Quantity (Commodity) > Quantities.Zero then
             Result.Cargo.Append (Commodity);

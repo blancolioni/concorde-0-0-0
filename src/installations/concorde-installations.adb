@@ -12,7 +12,7 @@ package body Concorde.Installations is
    procedure Add_Trade_Offers
      (Item   : not null access constant Root_Installation_Type)
    is
-      use Concorde.Quantities;
+      use WL.Quantities;
 
       procedure Add_Hub_Trade_Offer
         (Commodity : Concorde.Commodities.Commodity_Type);
@@ -222,8 +222,8 @@ package body Concorde.Installations is
       Employee  : not null access constant
         Concorde.Trades.Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity_Type;
-      Wage      : Concorde.Money.Price_Type)
+      Quantity  : WL.Quantities.Quantity_Type;
+      Wage      : WL.Money.Price_Type)
    is
       New_Employee : constant Employee_Record :=
                        Employee_Record'
@@ -246,20 +246,20 @@ package body Concorde.Installations is
       use Concorde.Commodities;
       Facility        : constant Concorde.Facilities.Facility_Type :=
                           Installation.Facility;
-      Production_Cost : Concorde.Money.Money_Type :=
-                          Money.Zero;
+      Production_Cost : WL.Money.Money_Type :=
+                          WL.Money.Zero;
    begin
 
       if Facility.Has_Output
         and then Facility.Output.Is_Set (Virtual)
       then
          Installation.Set_Quantity
-           (Facility.Output, Quantities.Zero, Money.Zero);
+           (Facility.Output, WL.Quantities.Zero, WL.Money.Zero);
       end if;
 
       declare
-         use Concorde.Money;
-         use Concorde.Quantities;
+         use WL.Money;
+         use WL.Quantities;
          Raw_Capacity       : constant Quantity_Type :=
                                 Facility.Capacity_Quantity;
          Throughput         : Unit_Real := 1.0;
@@ -282,7 +282,7 @@ package body Concorde.Installations is
                if Available < Required then
                   Throughput :=
                     Unit_Real'Min
-                      (To_Real (Available) / To_Real (Required),
+                      (Real (To_Float (Available) / To_Float (Required)),
                        Throughput);
                   Effective_Capacity :=
                     Min (Effective_Capacity,
@@ -314,7 +314,7 @@ package body Concorde.Installations is
                   if Available < Required then
                      Throughput :=
                        Unit_Real'Min
-                         (To_Real (Available) / To_Real (Required),
+                         (Real (To_Float (Available) / To_Float (Required)),
                           Throughput);
                      Effective_Capacity :=
                        Min (Effective_Capacity,
@@ -345,7 +345,7 @@ package body Concorde.Installations is
                   Price_Per : constant Price_Type :=
                                 Installation.Get_Average_Price (Commodity);
                   Cost      : constant Money_Type :=
-                                Money.Total (Price_Per, Required);
+                                WL.Money.Total (Price_Per, Required);
                begin
                   Production_Cost := Production_Cost + Cost;
                   Installation.Remove_Quantity (Commodity, Required);
@@ -395,7 +395,7 @@ package body Concorde.Installations is
                   Factor :=
                     (Accessibility + Concentration);
                   Effective_Capacity :=
-                    Scale (Effective_Capacity, Factor);
+                    Scale (Effective_Capacity, Float (Factor));
 
                   Installation.Log_Production
                     ("generates "
@@ -521,8 +521,8 @@ package body Concorde.Installations is
    begin
       for Worker of Installation.Employees loop
          declare
-            Cost : constant Concorde.Money.Money_Type :=
-                     Concorde.Money.Total (Worker.Wage, Worker.Size);
+            Cost : constant WL.Money.Money_Type :=
+                     WL.Money.Total (Worker.Wage, Worker.Size);
          begin
             Installation.Log_Wages (Worker.Pop, Worker.Size, Worker.Wage);
             Installation.Remove_Cash (Cost);

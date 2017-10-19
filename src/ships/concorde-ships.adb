@@ -4,7 +4,7 @@ with Concorde.Solar_System;
 
 with Concorde.Systems;
 
---  with Concorde.Money;
+--  with WL.Money;
 with Concorde.Random;
 with Concorde.Real_Images;
 
@@ -41,7 +41,7 @@ package body Concorde.Ships is
 --     overriding procedure Add_Trade_Offers
 --       (Ship   : not null access constant Root_Ship_Type)
 --     is
---        use Concorde.Quantities;
+--        use WL.Quantities;
 --        use type Memor.Database_Reference;
 --        Hold  : constant Quantity_Type := Ship.Hold_Quantity;
 --        Space : constant Quantity_Type := Hold - Ship.Total_Quantity;
@@ -52,8 +52,8 @@ package body Concorde.Ships is
 --              Commodity : Concorde.Commodities.Commodity_Type;
 --              Supply    : Quantity_Type;
 --              Demand    : Quantity_Type;
---              Buy_At    : Concorde.Money.Price_Type;
---              Sell_At   : Concorde.Money.Price_Type;
+--              Buy_At    : WL.Money.Price_Type;
+--              Sell_At   : WL.Money.Price_Type;
 --              Quantity  : Quantities.Quantity_Type;
 --              Score     : Natural;
 --           end record;
@@ -69,7 +69,7 @@ package body Concorde.Ships is
 --
 --        function Score_Trade
 --          (Supply, Demand  : Quantity_Type;
---           Buy_At, Sell_At : Concorde.Money.Price_Type)
+--           Buy_At, Sell_At : WL.Money.Price_Type)
 --           return Integer;
 --
 --        -------------------------
@@ -98,10 +98,10 @@ package body Concorde.Ships is
 --
 --        function Score_Trade
 --          (Supply, Demand  : Quantity_Type;
---           Buy_At, Sell_At : Concorde.Money.Price_Type)
+--           Buy_At, Sell_At : WL.Money.Price_Type)
 --           return Integer
 --        is
---           use Concorde.Money;
+--           use WL.Money;
 --        begin
 --           return To_Natural (Min (Supply, Demand))
 --             * Integer (100.0 * (To_Real (Sell_At) - To_Real (Buy_At)));
@@ -138,9 +138,9 @@ package body Concorde.Ships is
 --                                       (Commodity);
 --                          Demand : constant Quantity_Type :=
 --                                     To.Current_Import_Demand (Commodity);
---                          Buy_At : constant Concorde.Money.Price_Type :=
+--                          Buy_At : constant WL.Money.Price_Type :=
 --                                     From.Historical_Mean_Price (Commodity);
---                          Sell_At : constant Concorde.Money.Price_Type :=
+--                          Sell_At : constant WL.Money.Price_Type :=
 --                                      To.Historical_Mean_Price (Commodity);
 --                          Score   : constant Integer :=
 --                                      Score_Trade
@@ -440,7 +440,7 @@ package body Concorde.Ships is
 --     procedure Execute_Arrival_Orders
 --       (Ship : in out Root_Ship_Type'Class)
 --     is null;
---        use Concorde.Quantities;
+--        use WL.Quantities;
 --     begin
 --        if Ship.Buy_Requirements.Total_Quantity = Zero then
 --           Ship_Check_Requirements (Ship);
@@ -933,7 +933,7 @@ package body Concorde.Ships is
    procedure Ship_Buy_Commodities
      (Ship      : not null access constant Root_Ship_Type'Class)
    is
-      use Concorde.Quantities;
+      use WL.Quantities;
 
       Space : constant Quantity_Type :=
                 Ship.Hold_Quantity - Ship.Total_Quantity;
@@ -981,8 +981,8 @@ package body Concorde.Ships is
 --        -----------
 --
 --        procedure Check (Commodity : Concorde.Commodities.Commodity_Type) is
---           use Concorde.Money;
---           use Concorde.Quantities;
+--           use WL.Money;
+--           use WL.Quantities;
 --           From : constant Concorde.Markets.Market_Type :=
 --                    Ship.Orders.First_Element.World.Market;
 --           To   : constant Concorde.Markets.Market_Type :=
@@ -992,9 +992,9 @@ package body Concorde.Ships is
 --                        (Commodity);
 --           Demand : constant Quantity_Type :=
 --                      To.Current_Import_Demand (Commodity);
---           Buy_At : constant Concorde.Money.Price_Type :=
+--           Buy_At : constant WL.Money.Price_Type :=
 --                      From.Historical_Mean_Price (Commodity);
---           Sell_At : constant Concorde.Money.Price_Type :=
+--           Sell_At : constant WL.Money.Price_Type :=
 --                       To.Historical_Mean_Price (Commodity);
 --        begin
 --           if Supply > Zero and then Demand > Zero
@@ -1056,7 +1056,7 @@ package body Concorde.Ships is
       -----------
 
       procedure Check (Commodity : Concorde.Commodities.Commodity_Type) is
-         use Concorde.Quantities;
+         use WL.Quantities;
       begin
          if Ship.Buy_Requirements.Get_Quantity (Commodity) = Zero then
             Ship.Create_Ask

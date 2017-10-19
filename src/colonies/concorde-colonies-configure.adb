@@ -12,8 +12,8 @@ with Concorde.Paths;
 with Concorde.Locations;
 with Concorde.Maps;
 
-with Concorde.Money;
-with Concorde.Quantities;
+with WL.Money;
+with WL.Quantities;
 
 with Concorde.Commodities;
 with Concorde.Factions;
@@ -70,12 +70,12 @@ package body Concorde.Colonies.Configure is
       Template : Tropos.Configuration)
    is
 
-      use Concorde.Quantities;
+      use WL.Quantities;
 
       function Get (Name : String;
-                    Default : Real)
-                    return Real
-      is (Real (Float'(Template.Get (Name, Float (Default)))));
+                    Default : Float)
+                    return Float
+      is (Template.Get (Name, Default));
 
       package Skilled_Pop_Vectors is
         new Memor.Element_Vectors
@@ -154,8 +154,8 @@ package body Concorde.Colonies.Configure is
                          Installation.Facility.Input_Quantity (I)
                          * Installation.Facility.Capacity_Quantity
                          * To_Quantity (15.0);
-               Value    : constant Concorde.Money.Money_Type :=
-                            Concorde.Money.Total
+               Value    : constant WL.Money.Money_Type :=
+                            WL.Money.Total
                               (Need.Base_Price, Quant);
 
             begin
@@ -203,7 +203,7 @@ package body Concorde.Colonies.Configure is
                             (Location => Location,
                              Market   => World.Market,
                              Facility => Facility,
-                             Cash     => Concorde.Money.To_Money (1.0E5),
+                             Cash     => WL.Money.To_Money (1.0E5),
                              Owner    => World.Owner);
       begin
          Installation.Update.Set_Manager
@@ -239,7 +239,7 @@ package body Concorde.Colonies.Configure is
                          Wealth_Group => Group,
                          Skill        => Skill,
                          Size         => Size,
-                         Cash         => Concorde.Money.To_Money (Cash));
+                         Cash         => WL.Money.To_Money (Float (Cash)));
 
          procedure Add_Needs
            (Commodity : Concorde.Commodities.Commodity_Type;
@@ -255,12 +255,13 @@ package body Concorde.Colonies.Configure is
          is
             Quantity : constant Quantity_Type :=
                          To_Quantity
-                           (Real'Ceiling
-                              (5.0 * Need * Non_Negative_Real (Size)));
+                           (Float
+                              (Real'Ceiling
+                                 (5.0 * Need * Non_Negative_Real (Size))));
          begin
             Hub.Update.Add_Quantity
               (Commodity, Quantity,
-               Concorde.Money.Total (Commodity.Base_Price, Quantity));
+               WL.Money.Total (Commodity.Base_Price, Quantity));
          end Add_Needs;
 
       begin
@@ -303,7 +304,7 @@ package body Concorde.Colonies.Configure is
          Create_Pop (Capital_Tile, Skill.Wealth_Group,
                      Concorde.People.Skills.Pop_Skill (Skill),
                      Concorde.People.Pops.Pop_Size
-                       (Quantities.To_Real (Element)));
+                       (WL.Quantities.To_Float (Element)));
       end Create_Pop_From_Skill;
 
       ------------------
@@ -536,7 +537,7 @@ package body Concorde.Colonies.Configure is
            Market => null,
            Facility => Concorde.Facilities.Colony_Hub,
            Cash     =>
-             Concorde.Money.To_Money
+             WL.Money.To_Money
                (Get ("cash", 10_000.0)),
            Owner    => World.Owner);
 
@@ -549,7 +550,7 @@ package body Concorde.Colonies.Configure is
         Concorde.Government.Create.Create_Government
           (Governed          => World,
            Cash              =>
-             Concorde.Money.To_Money
+             WL.Money.To_Money
                (Get ("cash", 10_000.0)),
            Owner             => World.Owner,
            Headquarters      => Hub,
@@ -642,7 +643,7 @@ package body Concorde.Colonies.Configure is
            Market   => World.Market,
            Facility => Concorde.Facilities.Get ("port"),
            Cash     =>
-             Concorde.Money.To_Money (10_000.0),
+             WL.Money.To_Money (10_000.0),
            Owner    => World.Owner);
 
       World.Update.Add_Installation (Current_Tile, Port);

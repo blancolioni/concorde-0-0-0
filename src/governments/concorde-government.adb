@@ -95,22 +95,22 @@ package body Concorde.Government is
    overriding procedure Tax_Receipt
      (Government : Root_Government_Type;
       Commodity  : Concorde.Commodities.Commodity_Type;
-      Quantity   : Concorde.Quantities.Quantity_Type;
-      Price      : Concorde.Money.Price_Type;
+      Quantity   : WL.Quantities.Quantity_Type;
+      Price      : WL.Money.Price_Type;
       Category   : Concorde.Trades.Market_Tax_Category;
-      Receipt    : Concorde.Money.Money_Type)
+      Receipt    : WL.Money.Money_Type)
    is
-      use type Concorde.Money.Money_Type;
+      use type WL.Money.Money_Type;
    begin
       Government.Log_Trade
         ("from sale of "
-         & Concorde.Quantities.Image (Quantity)
+         & WL.Quantities.Image (Quantity)
          & " "
          & Commodity.Name
          & " @ "
-         & Concorde.Money.Image (Price)
+         & WL.Money.Image (Price)
          & ", tax receipt is "
-         & Concorde.Money.Image (Receipt));
+         & WL.Money.Image (Receipt));
       Government.Update.Add_Cash (Receipt);
       Government.Update.Tax_Receipts (Category) :=
         Government.Tax_Receipts (Category) + Receipt;
@@ -123,7 +123,7 @@ package body Concorde.Government is
    function Tax_Receipts
      (Government : Root_Government_Type'Class;
       Category   : Concorde.Trades.Market_Tax_Category)
-      return Concorde.Money.Money_Type
+      return WL.Money.Money_Type
    is
    begin
       return Government.Tax_Receipts (Category);

@@ -16,8 +16,8 @@ with Concorde.People.Skills;
 with Concorde.People.Pops;
 
 with Concorde.Calendar;
-with Concorde.Money;
-with Concorde.Quantities;
+with WL.Money;
+with WL.Quantities;
 with Concorde.Commodities;
 
 package Concorde.Installations is
@@ -87,7 +87,7 @@ private
    type Queued_Production_Element is
       record
          Done   : Concorde.Calendar.Time;
-         Size   : Concorde.Quantities.Quantity_Type;
+         Size   : WL.Quantities.Quantity_Type;
          Output : Concorde.Commodities.Commodity_Type;
       end record;
 
@@ -97,9 +97,9 @@ private
    type Employee_Record is
       record
          Pop    : Concorde.People.Pops.Pop_Type;
-         Size   : Concorde.Quantities.Quantity_Type;
+         Size   : WL.Quantities.Quantity_Type;
          Skill  : Concorde.People.Skills.Pop_Skill;
-         Wage   : Concorde.Money.Price_Type;
+         Wage   : WL.Money.Price_Type;
       end record;
 
    package Employee_Lists is
@@ -153,8 +153,8 @@ private
       Employee  : not null access constant
         Concorde.Trades.Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity_Type;
-      Wage      : Concorde.Money.Price_Type);
+      Quantity  : WL.Quantities.Quantity_Type;
+      Wage      : WL.Money.Price_Type);
 
    function Has_Manager
      (Installation : Root_Installation_Type'Class)

@@ -68,9 +68,9 @@ package body Concorde.Facilities.Configure is
              (Value ("class", "bad class in " & Config.Config_Name));
          Facility.Set_Local_Tag (Config.Config_Name);
          Facility.Base_Service_Charge :=
-           Concorde.Money.Value (Config.Get ("service_charge", "0"));
+           WL.Money.Value (Config.Get ("service_charge", "0"));
          Facility.Power :=
-           Concorde.Quantities.Value (Value ("power", "0"));
+           WL.Quantities.Value (Value ("power", "0"));
 
          declare
             Turnaround_Seconds : Float := 3600.0;
@@ -137,7 +137,7 @@ package body Concorde.Facilities.Configure is
                   Worker_Array (Count).Skill :=
                     Concorde.People.Skills.Get (Cfg.Config_Name);
                   Worker_Array (Count).Quantity :=
-                    Concorde.Quantities.Value (Cfg.Value);
+                    WL.Quantities.Value (Cfg.Value);
                end loop;
                Facility.Workers := new Array_Of_Workers'(Worker_Array);
             end;
@@ -169,7 +169,7 @@ package body Concorde.Facilities.Configure is
                      end if;
                      Input_Array (Count).Commodity := Get (Input_Name);
                      Input_Array (Count).Quantity :=
-                       Concorde.Quantities.Value (Cfg.Value);
+                       WL.Quantities.Value (Cfg.Value);
                   end;
                end loop;
                Facility.Inputs := new Array_Of_Inputs'(Input_Array);

@@ -2,7 +2,7 @@ private with Memor.Database;
 
 with Memor;
 
-with Concorde.Money;
+with WL.Money;
 with Concorde.Objects;
 
 with Concorde.Commodities;
@@ -15,7 +15,7 @@ package Concorde.People.Skills is
 
    function Base_Pay
      (Skill : Root_Pop_Skill'Class)
-      return Concorde.Money.Price_Type;
+      return WL.Money.Price_Type;
 
    function Commodity
      (Skill : Root_Pop_Skill'Class)
@@ -34,7 +34,7 @@ private
    type Root_Pop_Skill is
      new Concorde.Objects.Root_Localised_Object_Type with
       record
-         Base_Pay     : Concorde.Money.Price_Type;
+         Base_Pay     : WL.Money.Price_Type;
          Wealth_Group : Concorde.People.Groups.Pop_Group;
          Commodity    : Concorde.Commodities.Commodity_Type;
       end record;

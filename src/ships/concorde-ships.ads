@@ -19,7 +19,7 @@ with Concorde.Modules;
 with Concorde.Objects;
 with Concorde.Trades;
 
-with Concorde.Quantities;
+with WL.Quantities;
 
 private with Newton;
 with Concorde.Calendar;
@@ -213,7 +213,7 @@ package Concorde.Ships is
 
    function Hold_Quantity
      (Ship : Root_Ship_Type'Class)
-      return Concorde.Quantities.Quantity_Type
+      return WL.Quantities.Quantity_Type
    is (Ship.Maximum_Quantity);
 
    type Ship_Type is access constant Root_Ship_Type'Class;
@@ -264,7 +264,7 @@ private
          World      : access constant Concorde.Worlds.Root_World_Type'Class;
          Next       : access constant Concorde.Worlds.Root_World_Type'Class;
          Commodity  : Concorde.Commodities.Commodity_Type;
-         Quantity   : Concorde.Quantities.Quantity_Type;
+         Quantity   : WL.Quantities.Quantity_Type;
       end record;
 
    package List_Of_Orders is

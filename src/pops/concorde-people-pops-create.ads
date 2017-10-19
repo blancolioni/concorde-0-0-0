@@ -1,5 +1,5 @@
 with Concorde.Locations;
-with Concorde.Money;
+with WL.Money;
 with Concorde.Trades;
 
 with Concorde.People.Groups;
@@ -13,7 +13,7 @@ package Concorde.People.Pops.Create is
       Wealth_Group   : Concorde.People.Groups.Pop_Group;
       Skill          : Concorde.People.Skills.Pop_Skill;
       Size           : Pop_Size;
-      Cash           : Concorde.Money.Money_Type)
+      Cash           : WL.Money.Money_Type)
       return Pop_Type;
 
 end Concorde.People.Pops.Create;

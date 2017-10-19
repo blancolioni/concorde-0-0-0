@@ -4,14 +4,14 @@ private with Memor;
 private with Memor.Database;
 private with Memor.Element_Vectors;
 
-with Concorde.Money;
-with Concorde.Quantities;
+with WL.Money;
+with WL.Quantities;
 
 with Concorde.Objects;
 
 package Concorde.Commodities is
 
-   use type Concorde.Quantities.Quantity_Type;
+   use type WL.Quantities.Quantity_Type;
 
    type Commodity_Class is
      (Resource, Consumer, Industrial, Building_Component, Skill, Service);
@@ -43,7 +43,7 @@ package Concorde.Commodities is
 
    function Base_Price
      (Commodity : Root_Commodity_Type'Class)
-      return Concorde.Money.Price_Type;
+      return WL.Money.Price_Type;
 
    function Energy
      (Commodity : Root_Commodity_Type'Class)
@@ -82,7 +82,7 @@ package Concorde.Commodities is
 
    function Total_Quantity
      (Stock    : Stock_Interface'Class)
-      return Concorde.Quantities.Quantity_Type;
+      return WL.Quantities.Quantity_Type;
 
    function Total_Mass
      (Stock    : Stock_Interface'Class)
@@ -90,38 +90,38 @@ package Concorde.Commodities is
 
    function Maximum_Quantity
      (Stock : Stock_Interface)
-      return Concorde.Quantities.Quantity_Type
+      return WL.Quantities.Quantity_Type
       is abstract;
 
    function Available_Quantity
      (Stock    : Stock_Interface'Class)
-      return Concorde.Quantities.Quantity_Type
+      return WL.Quantities.Quantity_Type
    is (Stock.Maximum_Quantity - Stock.Total_Quantity);
 
    function Get_Quantity
      (Stock : Stock_Interface;
       Item  : Commodity_Type)
-      return Concorde.Quantities.Quantity_Type
+      return WL.Quantities.Quantity_Type
       is abstract;
 
    function Get_Value
      (Stock : Stock_Interface;
       Item  : Commodity_Type)
-      return Concorde.Money.Money_Type
+      return WL.Money.Money_Type
       is abstract;
 
    function Get_Average_Price
      (Stock : Stock_Interface'Class;
       Item  : Commodity_Type)
-      return Concorde.Money.Price_Type
-   is (Concorde.Money.Price
+      return WL.Money.Price_Type
+   is (WL.Money.Price
        (Stock.Get_Value (Item), Stock.Get_Quantity (Item)));
 
    procedure Set_Quantity
      (Stock    : in out Stock_Interface;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity_Type;
-      Value    : Concorde.Money.Money_Type)
+      Quantity : WL.Quantities.Quantity_Type;
+      Value    : WL.Money.Money_Type)
    is abstract;
 --       with Pre'Class =>
 --         Stock.Total_Quantity + Quantity
@@ -141,8 +141,8 @@ package Concorde.Commodities is
    procedure Add_Quantity
      (Stock    : in out Stock_Interface'Class;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity_Type;
-      Value    : Concorde.Money.Money_Type)
+      Quantity : WL.Quantities.Quantity_Type;
+      Value    : WL.Money.Money_Type)
      with Pre => Item.Is_Set (Virtual)
      or else Stock.Total_Quantity + Quantity
        <= Stock.Maximum_Quantity;
@@ -150,25 +150,25 @@ package Concorde.Commodities is
    procedure Remove_Quantity
      (Stock    : in out Stock_Interface'Class;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity_Type;
-      Earn     : Concorde.Money.Money_Type)
+      Quantity : WL.Quantities.Quantity_Type;
+      Earn     : WL.Money.Money_Type)
      with Pre => Stock.Get_Quantity (Item) >= Quantity;
 
    procedure Remove_Quantity
      (Stock    : in out Stock_Interface'Class;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity_Type)
+      Quantity : WL.Quantities.Quantity_Type)
      with Pre => Stock.Get_Quantity (Item) >= Quantity;
 
    function Total_Value
      (Stock    : in out Stock_Interface'Class)
-      return Concorde.Money.Money_Type;
+      return WL.Money.Money_Type;
 
    type Root_Stock_Type is new Stock_Interface with private;
 
    procedure Create_Stock
      (Stock   : in out Root_Stock_Type'Class;
-      Maximum : Concorde.Quantities.Quantity_Type);
+      Maximum : WL.Quantities.Quantity_Type);
 
 private
 
@@ -177,7 +177,7 @@ private
       record
          Class      : Commodity_Class;
          Flags      : Array_Of_Flags;
-         Base_Price : Concorde.Money.Price_Type;
+         Base_Price : WL.Money.Price_Type;
          Mass       : Non_Negative_Real;
          Quality    : Commodity_Quality;
          Energy     : Non_Negative_Real;
@@ -194,44 +194,44 @@ private
 
    type Stock_Entry is
       record
-         Quantity : Concorde.Quantities.Quantity_Type;
-         Value    : Concorde.Money.Money_Type;
+         Quantity : WL.Quantities.Quantity_Type;
+         Value    : WL.Money.Money_Type;
       end record;
 
    package Stock_Vectors is
      new Memor.Element_Vectors
        (Concorde.Commodities.Root_Commodity_Type,
         Stock_Entry,
-        (Concorde.Quantities.Zero, Concorde.Money.Zero));
+        (WL.Quantities.Zero, WL.Money.Zero));
 
    type Root_Stock_Type is new Stock_Interface with
       record
-         Maximum : Quantities.Quantity_Type   := Quantities.Zero;
+         Maximum : WL.Quantities.Quantity_Type   := WL.Quantities.Zero;
          Vector  : Stock_Vectors.Vector;
       end record;
 
    overriding function Maximum_Quantity
      (Stock : Root_Stock_Type)
-      return Quantities.Quantity_Type
+      return WL.Quantities.Quantity_Type
    is (Stock.Maximum);
 
    overriding function Get_Quantity
      (Stock : Root_Stock_Type;
       Item  : Commodity_Type)
-      return Concorde.Quantities.Quantity_Type
+      return WL.Quantities.Quantity_Type
    is (Stock.Vector.Element (Item).Quantity);
 
    overriding function Get_Value
      (Stock : Root_Stock_Type;
       Item  : Commodity_Type)
-      return Concorde.Money.Money_Type
+      return WL.Money.Money_Type
    is (Stock.Vector.Element (Item).Value);
 
    overriding procedure Set_Quantity
      (Stock    : in out Root_Stock_Type;
       Item     : Commodity_Type;
-      Quantity : Concorde.Quantities.Quantity_Type;
-      Value    : Concorde.Money.Money_Type);
+      Quantity : WL.Quantities.Quantity_Type;
+      Value    : WL.Money.Money_Type);
 
    overriding procedure Clear_Stock
      (Stock : in out Root_Stock_Type);

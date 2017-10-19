@@ -17,7 +17,7 @@ package body Concorde.People.Pops.Create is
       Wealth_Group   : Concorde.People.Groups.Pop_Group;
       Skill          : Concorde.People.Skills.Pop_Skill;
       Size           : Pop_Size;
-      Cash           : Concorde.Money.Money_Type)
+      Cash           : WL.Money.Money_Type)
       return Pop_Type
    is
       procedure Create (Pop : in out Root_Pop_Type'Class);
@@ -27,7 +27,7 @@ package body Concorde.People.Pops.Create is
       ------------
 
       procedure Create (Pop : in out Root_Pop_Type'Class) is
-         use Concorde.Quantities;
+         use WL.Quantities;
       begin
          Pop.Groups.Set_Affiliation_Range (Wealth_Group, 1.0);
          Pop.Skills.Append (Skill);
@@ -36,7 +36,7 @@ package body Concorde.People.Pops.Create is
          Pop.New_Agent (Location, Market,
                         Pop.Size_Quantity * To_Quantity (70.0));
          Pop.Add_Quantity (Skill.Commodity, Pop.Size_Quantity,
-                           Concorde.Money.Total
+                           WL.Money.Total
                              (Skill.Commodity.Base_Price,
                               Pop.Size_Quantity));
       end Create;
@@ -52,7 +52,7 @@ package body Concorde.People.Pops.Create is
             Concorde.Calendar.Clock
             + Duration (Concorde.Random.Unit_Random * 86_400.0));
          Pop.Log_Trade ("created: skill quantity = "
-                        & Concorde.Quantities.Image
+                        & WL.Quantities.Image
                           (Pop.Get_Quantity (Skill.Commodity)));
       end return;
    end New_Pop;

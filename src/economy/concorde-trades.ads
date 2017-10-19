@@ -1,7 +1,7 @@
 with Concorde.Commodities;
 with Concorde.Calendar;
-with Concorde.Money;
-with Concorde.Quantities;
+with WL.Money;
+with WL.Quantities;
 
 package Concorde.Trades is
 
@@ -22,7 +22,7 @@ package Concorde.Trades is
    function Current_Price
      (Trade     : Trade_Interface;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Money.Price_Type
+      return WL.Money.Price_Type
       is abstract;
 
    function Price
@@ -30,15 +30,15 @@ package Concorde.Trades is
       Offer     : Offer_Type;
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class;
-      Quantity  : Concorde.Quantities.Quantity_Type)
-      return Concorde.Money.Price_Type
+      Quantity  : WL.Quantities.Quantity_Type)
+      return WL.Money.Price_Type
       is abstract;
 
    function Historical_Mean_Price
      (Trade     : Trade_Interface;
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
-      return Concorde.Money.Price_Type
+      return WL.Money.Price_Type
       is abstract;
 
    function Get_Quantity
@@ -48,7 +48,7 @@ package Concorde.Trades is
       Metric   : Trade_Metric;
       Start    : Concorde.Calendar.Time;
       Finish   : Concorde.Calendar.Time)
-      return Concorde.Quantities.Quantity_Type
+      return WL.Quantities.Quantity_Type
       is abstract;
 
    function Get_Daily_Quantity
@@ -57,7 +57,7 @@ package Concorde.Trades is
         Concorde.Commodities.Root_Commodity_Type'Class;
       Metric   : Trade_Metric;
       Days     : Positive := 1)
-      return Concorde.Quantities.Quantity_Type;
+      return WL.Quantities.Quantity_Type;
 
    type Market_Tax_Category is (Sales, Export, Import);
 
@@ -78,10 +78,10 @@ package Concorde.Trades is
    procedure Tax_Receipt
      (Manager   : Trade_Manager_Interface;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity_Type;
-      Price     : Concorde.Money.Price_Type;
+      Quantity  : WL.Quantities.Quantity_Type;
+      Price     : WL.Money.Price_Type;
       Category  : Market_Tax_Category;
-      Receipt   : Concorde.Money.Money_Type)
+      Receipt   : WL.Money.Money_Type)
    is abstract;
 
    function Manager
@@ -119,7 +119,7 @@ package Concorde.Trades is
 
    function Available_Capacity
      (Trader : Trader_Interface)
-      return Concorde.Quantities.Quantity_Type
+      return WL.Quantities.Quantity_Type
       is abstract;
 
    procedure Create_Offer
@@ -127,11 +127,11 @@ package Concorde.Trades is
       Offer     : Offer_Type;
       Trader    : not null access constant Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity_Type;
-      Price     : Concorde.Money.Price_Type)
+      Quantity  : WL.Quantities.Quantity_Type;
+      Price     : WL.Money.Price_Type)
    is abstract
-     with Pre'Class => Concorde.Money.">" (Price, Concorde.Money.Zero)
-     and then Concorde.Quantities.">" (Quantity, Concorde.Quantities.Zero)
+     with Pre'Class => WL.Money.">" (Price, WL.Money.Zero)
+     and then WL.Quantities.">" (Quantity, WL.Quantities.Zero)
      and then Concorde.Commodities."/=" (Commodity, null);
 
    procedure Delete_Offer
@@ -148,23 +148,23 @@ package Concorde.Trades is
       Trader    : Trader_Interface'Class;
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class;
-      New_Price : Concorde.Money.Price_Type)
+      New_Price : WL.Money.Price_Type)
    is abstract;
 
    procedure Execute_Trade
      (Trader    : not null access constant Trader_Interface;
       Offer     : Offer_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity_Type;
-      Cost      : Concorde.Money.Money_Type)
+      Quantity  : WL.Quantities.Quantity_Type;
+      Cost      : WL.Money.Money_Type)
    is abstract;
 
    procedure Execute_Hire
      (Employer  : not null access constant Trader_Interface;
       Employee  : not null access constant Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity_Type;
-      Wage      : Concorde.Money.Price_Type)
+      Quantity  : WL.Quantities.Quantity_Type;
+      Wage      : WL.Money.Price_Type)
    is null;
 
    procedure Update_Trader

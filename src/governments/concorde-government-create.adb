@@ -8,7 +8,7 @@ package body Concorde.Government.Create is
 
    function Create_Government
      (Governed          : not null access constant Governed_Interface'Class;
-      Cash              : Concorde.Money.Money_Type;
+      Cash              : WL.Money.Money_Type;
       Owner             : not null access constant
         Concorde.Agents.Root_Agent_Type'Class;
       Headquarters      : not null access constant
@@ -27,7 +27,7 @@ package body Concorde.Government.Create is
          Government.New_Agent
            (Concorde.Locations.At_Installation (Headquarters),
             null,
-            Quantities.Zero);
+            WL.Quantities.Zero);
          Government.Governed := Governed;
          Government.Set_Cash (Cash);
          Government.Headquarters :=

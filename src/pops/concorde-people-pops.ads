@@ -7,7 +7,7 @@ with Concorde.Agents;
 with Concorde.Trades;
 
 with Concorde.People.Groups;
-with Concorde.Quantities;
+with WL.Quantities;
 
 package Concorde.People.Pops is
 
@@ -22,7 +22,7 @@ package Concorde.People.Pops is
 
    function Size_Quantity
      (Pop : Root_Pop_Type'Class)
-      return Concorde.Quantities.Quantity_Type;
+      return WL.Quantities.Quantity_Type;
 
    overriding function Affiliation
      (Pop   : Root_Pop_Type;

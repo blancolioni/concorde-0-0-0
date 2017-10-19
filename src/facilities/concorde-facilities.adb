@@ -44,7 +44,7 @@ package body Concorde.Facilities is
 
    function Base_Service_Charge
      (Facility : Root_Facility_Type'Class)
-      return Concorde.Money.Price_Type
+      return WL.Money.Price_Type
    is
    begin
       return Facility.Base_Service_Charge;
@@ -248,7 +248,7 @@ package body Concorde.Facilities is
    function Input_Quantity
      (Facility : Root_Facility_Type'Class;
       Index    : Positive)
-      return Concorde.Quantities.Quantity_Type
+      return WL.Quantities.Quantity_Type
    is
    begin
       return Facility.Inputs (Index).Quantity;
@@ -347,7 +347,7 @@ package body Concorde.Facilities is
    function Worker_Quantity
      (Facility : Root_Facility_Type'Class;
       Index    : Positive)
-      return Concorde.Quantities.Quantity_Type
+      return WL.Quantities.Quantity_Type
    is
    begin
       return Facility.Workers (Index).Quantity;

@@ -40,15 +40,15 @@ package body Concorde.Agents.Reports is
          Set_Col (20);
          Put (Transaction.Item.Name);
          Set_Col (36);
-         Put (Concorde.Money.Image
-              (Concorde.Money.Price
+         Put (WL.Money.Image
+              (WL.Money.Price
                  (Transaction.Cost, Transaction.Quantity)));
          Set_Col (52);
-         Put (Concorde.Quantities.Image (Transaction.Quantity));
+         Put (WL.Quantities.Image (Transaction.Quantity));
          Set_Col (68);
-         Put (Concorde.Money.Image (Transaction.Cost));
+         Put (WL.Money.Image (Transaction.Cost));
          Set_Col (84);
-         Put (Concorde.Money.Image (Transaction.Balance));
+         Put (WL.Money.Image (Transaction.Balance));
          New_Line;
       end loop;
    end Write_Accounts;

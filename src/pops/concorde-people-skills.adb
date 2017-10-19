@@ -6,7 +6,7 @@ package body Concorde.People.Skills is
 
    function Base_Pay
      (Skill : Root_Pop_Skill'Class)
-      return Concorde.Money.Price_Type
+      return WL.Money.Price_Type
    is
    begin
       return Skill.Base_Pay;

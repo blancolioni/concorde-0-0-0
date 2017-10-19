@@ -13,7 +13,7 @@ package body Concorde.Commodities.Configure is
      (Tag        : String;
       Class      : Commodity_Class;
       Mass       : Non_Negative_Real;
-      Base_Price : Concorde.Money.Price_Type;
+      Base_Price : WL.Money.Price_Type;
       Quality    : Commodity_Quality;
       Energy     : Non_Negative_Real;
       Flags      : Array_Of_Flags)
@@ -24,7 +24,7 @@ package body Concorde.Commodities.Configure is
    ---------------------------
 
    procedure Calculate_Base_Prices is
-      use Concorde.Money;
+      use WL.Money;
       Finished : Boolean := False;
 
       function Not_Priced
@@ -56,7 +56,7 @@ package body Concorde.Commodities.Configure is
             declare
                Input : constant Commodity_Type :=
                          Facility.Input_Commodity (I);
-               Quant : constant Quantities.Quantity_Type :=
+               Quant : constant WL.Quantities.Quantity_Type :=
                          Facility.Input_Quantity (I);
             begin
                if Not_Priced (Input.all) then
@@ -64,7 +64,9 @@ package body Concorde.Commodities.Configure is
                   exit;
                else
                   Cost := Cost
-                    + To_Real (Input.Base_Price) * Quantities.To_Real (Quant);
+                    + Real
+                    (To_Float (Input.Base_Price)
+                     * WL.Quantities.To_Float (Quant));
                end if;
             end;
          end loop;
@@ -74,13 +76,14 @@ package body Concorde.Commodities.Configure is
 
             for I in 1 .. Facility.Worker_Count loop
                Cost := Cost
-                 + To_Real (Facility.Worker_Skill (I).Base_Pay)
-                 * Quantities.To_Real (Facility.Worker_Quantity (I));
+                 + Real (To_Float (Facility.Worker_Skill (I).Base_Pay)
+                         * WL.Quantities.To_Float
+                           (Facility.Worker_Quantity (I)));
             end loop;
 
             Cost := Cost / Real (Facility.Capacity) * 1.1;
 
-            Commodity.Base_Price := To_Price (Cost);
+            Commodity.Base_Price := To_Price (Float (Cost));
 
          else
             Finished := False;
@@ -140,7 +143,7 @@ package body Concorde.Commodities.Configure is
                                 Non_Negative_Real
                                   (Float'(Config.Get ("mass"))) * 1000.0,
                               Base_Price =>
-                                Concorde.Money.Value
+                                WL.Money.Value
                                   (Config.Get ("base_price", "0")),
                               Quality    =>
                                 Commodity_Quality'Val
@@ -164,7 +167,7 @@ package body Concorde.Commodities.Configure is
      (Tag        : String;
       Class      : Commodity_Class;
       Mass       : Non_Negative_Real;
-      Base_Price : Concorde.Money.Price_Type;
+      Base_Price : WL.Money.Price_Type;
       Quality    : Commodity_Quality;
       Energy     : Non_Negative_Real;
       Flags      : Array_Of_Flags)
@@ -223,7 +226,7 @@ package body Concorde.Commodities.Configure is
 
    function Create_From_Skill
      (Tag      : String;
-      Base_Pay : Concorde.Money.Price_Type)
+      Base_Pay : WL.Money.Price_Type)
       return Commodity_Type
    is
    begin
