@@ -10,6 +10,21 @@ package body Concorde.Markets is
       return String
      with Unreferenced;
 
+   function Get_Tax_Category
+     (Market        : Root_Market_Type'Class;
+      Buyer, Seller : not null access constant
+        Concorde.Trades.Trader_Interface'Class;
+      Commodity     : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
+      return Concorde.Trades.Market_Tax_Category
+   is (if Buyer.Market_Resident
+       then (if Seller.Market_Resident
+             then Concorde.Trades.Sales
+             else Concorde.Trades.Import)
+       elsif Seller.Market_Resident
+       then Concorde.Trades.Export
+       else Concorde.Trades.Sales);
+
    ---------------------
    -- Check_Commodity --
    ---------------------
@@ -52,9 +67,9 @@ package body Concorde.Markets is
       Bid_Quantity : Quantity_Type := Zero;
       Ask_Price    : Price_Type := Zero;
       Ask_Quantity : Quantity_Type := Zero;
-
-      Hist      : Historical_Quantity_Record :=
-                    (Concorde.Calendar.Clock, others => <>);
+      Tax          : Price_Type := Zero;
+      Hist         : Historical_Quantity_Record :=
+                       (Concorde.Calendar.Clock, others => <>);
 
    begin
 
@@ -75,11 +90,21 @@ package body Concorde.Markets is
             Ask_Price := Ask_Offer.Offer_Price;
          end if;
 
-         exit when Bid_Price < Ask_Price;
+         Tax :=
+           WL.Money.Tax
+             (Bid_Price,
+              Float
+                (Market.Manager.Tax_Rate
+                   (Category  =>
+                        Get_Tax_Category
+                      (Market, Bid_Offer.Agent, Ask_Offer.Agent, Commodity),
+                    Commodity => Commodity)));
+
+         exit when Bid_Price < Ask_Price + Tax;
 
          declare
             Final_Price     : constant Price_Type :=
-                                Adjust_Price (Ask_Price + Bid_Price,
+                                Adjust_Price (Ask_Price + Bid_Price + Tax,
                                               0.5);
             Traded_Quantity : constant Quantity_Type :=
                                 Min (Ask_Quantity, Bid_Quantity);
@@ -443,6 +468,16 @@ package body Concorde.Markets is
    is
       use Concorde.Commodities;
       use WL.Money;
+      Tax_Category   : constant Concorde.Trades.Market_Tax_Category :=
+                         Get_Tax_Category (Market, Buyer, Seller, Commodity);
+      Tax_Rate       : constant Unit_Real :=
+                         Market.Manager.Tax_Rate (Tax_Category, Commodity);
+      Tax_Free_Price : constant Price_Type :=
+                         Without_Tax (Price, Float (Tax_Rate));
+      Taxed_Cost     : constant Money_Type := Total (Price, Quantity);
+      Tax_Free_Cost  : constant Money_Type := Total (Tax_Free_Price, Quantity);
+      Total_Tax      : constant Money_Type := Taxed_Cost - Tax_Free_Cost;
+
       Market_Log_Path  : constant String :=
                            Market.Identifier
                            & "/" & Commodity.Identifier
@@ -455,21 +490,29 @@ package body Concorde.Markets is
                            & Commodity.Identifier
                            & ","
                            & WL.Quantities.Image (Quantity)
-                           & ","
-                           & Image (Price);
+                           & "," & Image (Price)
+                           & "," & Image (Tax_Free_Price)
+                           & "," & Image (Price - Tax_Free_Price)
+                           & "," & Image (Taxed_Cost)
+                           & "," & Image (Tax_Free_Cost)
+                           & "," & Image (Total_Tax);
    begin
       Concorde.Logs.Log_Line (Market_Log_Path, Offer_Line);
       Buyer.Execute_Trade
         (Offer     => Concorde.Trades.Bid,
          Commodity => Commodity,
          Quantity  => Quantity,
-         Cost      => Total (Price, Quantity));
+         Cost      => Taxed_Cost);
 
       Seller.Execute_Trade
         (Offer     => Concorde.Trades.Ask,
          Commodity => Commodity,
          Quantity  => Quantity,
-         Cost      => Total (Price, Quantity));
+         Cost      => Tax_Free_Cost);
+
+      Market.Manager.Tax_Receipt
+        (Commodity, Quantity, Price - Tax_Free_Price,
+         Tax_Category, Total_Tax);
 
       if Commodity.Class = Skill then
          Buyer.Execute_Hire

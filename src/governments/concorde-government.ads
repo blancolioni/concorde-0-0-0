@@ -44,7 +44,8 @@ package Concorde.Government is
    overriding function Tax_Rate
      (Government : Root_Government_Type;
       Category   : Concorde.Trades.Market_Tax_Category;
-      Commodity  : Concorde.Commodities.Commodity_Type)
+      Commodity  : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return Unit_Real;
 
    overriding procedure Tax_Receipt
@@ -105,6 +106,7 @@ private
          Tax_Rates         : Commodity_Tax_Rates.Vector;
          Tax_Receipts      : Array_Of_Tax_Receipts :=
                                (others => WL.Money.Zero);
+         Owner_Tithe       : Unit_Real := 0.1;
          Basic_Living_Wage : Boolean := False;
       end record;
 

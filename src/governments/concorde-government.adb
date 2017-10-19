@@ -1,3 +1,5 @@
+with Concorde.Factions;
+
 package body Concorde.Government is
 
    ----------------------
@@ -81,7 +83,8 @@ package body Concorde.Government is
    overriding function Tax_Rate
      (Government : Root_Government_Type;
       Category   : Concorde.Trades.Market_Tax_Category;
-      Commodity  : Concorde.Commodities.Commodity_Type)
+      Commodity  : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return Unit_Real
    is
    begin
@@ -100,7 +103,9 @@ package body Concorde.Government is
       Category   : Concorde.Trades.Market_Tax_Category;
       Receipt    : WL.Money.Money_Type)
    is
-      use type WL.Money.Money_Type;
+      use WL.Money;
+      Tithe      : constant Money_Type :=
+                     Tax (Receipt, Float (Government.Owner_Tithe));
    begin
       Government.Log_Trade
         ("from sale of "
@@ -110,10 +115,14 @@ package body Concorde.Government is
          & " @ "
          & WL.Money.Image (Price)
          & ", tax receipt is "
-         & WL.Money.Image (Receipt));
-      Government.Update.Add_Cash (Receipt);
+         & WL.Money.Image (Receipt)
+         & ", tithe " & Image (Tithe)
+         & ", total " & Image (Receipt - Tithe));
+      Government.Update.Add_Cash (Receipt - Tithe);
       Government.Update.Tax_Receipts (Category) :=
         Government.Tax_Receipts (Category) + Receipt;
+      Concorde.Factions.Faction_Type (Government.Owner).Update.Add_Cash
+        (Tithe);
    end Tax_Receipt;
 
    ------------------

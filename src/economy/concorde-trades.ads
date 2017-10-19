@@ -71,7 +71,8 @@ package Concorde.Trades is
    function Tax_Rate
      (Manager   : Trade_Manager_Interface;
       Category  : Market_Tax_Category;
-      Commodity : Concorde.Commodities.Commodity_Type)
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return Unit_Real
       is abstract;
 
