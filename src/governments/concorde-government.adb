@@ -107,6 +107,12 @@ package body Concorde.Government is
       Tithe      : constant Money_Type :=
                      Tax (Receipt, Float (Government.Owner_Tithe));
    begin
+
+      Government.Update.Add_Cash (Receipt - Tithe);
+      Government.Update.Tax_Receipts (Category) :=
+        Government.Tax_Receipts (Category) + Receipt;
+      Government.Owner.Variable_Reference.Add_Cash (Tithe);
+
       Government.Log_Trade
         ("from sale of "
          & WL.Quantities.Image (Quantity)
@@ -117,11 +123,8 @@ package body Concorde.Government is
          & ", tax receipt is "
          & WL.Money.Image (Receipt)
          & ", tithe " & Image (Tithe)
-         & ", total " & Image (Receipt - Tithe));
-      Government.Update.Add_Cash (Receipt - Tithe);
-      Government.Update.Tax_Receipts (Category) :=
-        Government.Tax_Receipts (Category) + Receipt;
-      Government.Owner.Variable_Reference.Add_Cash (Tithe);
+         & ", total " & Image (Receipt - Tithe)
+         & "; cash: " & Image (Government.Cash));
    end Tax_Receipt;
 
    ------------------
