@@ -103,14 +103,33 @@ package body Concorde.Markets is
          exit when Bid_Price < Ask_Price + Tax;
 
          declare
-            Final_Price     : constant Price_Type :=
-                                Adjust_Price (Ask_Price + Bid_Price + Tax,
-                                              0.5);
-            Traded_Quantity : constant Quantity_Type :=
-                                Min (Ask_Quantity, Bid_Quantity);
+            Final_Price         : constant Price_Type :=
+                                    Adjust_Price (Ask_Price + Bid_Price + Tax,
+                                                  0.5);
+            Bidder_Cash         : constant Money_Type :=
+                                    Bid_Offer.Agent.Limit_Cash;
+            Affordable_Quantity : constant Quantity_Type :=
+                                    (if Bidder_Cash > Zero
+                                     then Get_Quantity
+                                       (Bidder_Cash, Final_Price)
+                                     else Zero);
+            Traded_Quantity     : constant Quantity_Type :=
+                                    Min (Affordable_Quantity,
+                                         Min (Ask_Quantity, Bid_Quantity));
          begin
+
             Ask_Quantity := Ask_Quantity - Traded_Quantity;
-            Bid_Quantity := Bid_Quantity - Traded_Quantity;
+
+            if Bid_Quantity > Affordable_Quantity then
+               Bid_Offer.Agent.Log_Trade
+                 ("limit cash: " & Image (Bid_Offer.Agent.Limit_Cash)
+                  & " price " & Image (Final_Price)
+                  & " afforable quantity " & Image (Affordable_Quantity));
+
+               Bid_Quantity := Zero;
+            else
+               Bid_Quantity := Bid_Quantity - Traded_Quantity;
+            end if;
 
             Hist.Quantities (Concorde.Trades.Total_Traded) :=
               Hist.Quantities (Concorde.Trades.Total_Traded)
