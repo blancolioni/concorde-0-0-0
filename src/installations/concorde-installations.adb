@@ -440,6 +440,17 @@ package body Concorde.Installations is
          --           end if;
       end;
 
+      for Worker of Installation.Employees loop
+         Installation.Remove_Quantity
+           (Worker.Skill.Commodity,
+            Installation.Get_Quantity (Worker.Skill.Commodity));
+         Worker.Pop.Update.Add_Quantity
+           (Worker.Skill.Commodity, Worker.Size,
+            WL.Money.Total (Worker.Wage, Worker.Size));
+      end loop;
+
+      Installation.Employees.Clear;
+
    end Execute_Production;
 
    --------------
