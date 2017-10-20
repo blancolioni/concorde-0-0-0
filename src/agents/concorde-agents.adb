@@ -1396,7 +1396,13 @@ package body Concorde.Agents is
    is
       use type WL.Money.Money_Type;
    begin
-      Agent.Set_Cash (Agent.Cash - Amount);
+      pragma Assert (Agent.Limit_Cash >= Amount);
+      if Agent.Cash >= Amount then
+         Agent.Set_Cash (Agent.Cash - Amount);
+      else
+         Agent.Guarantor.Variable_Reference.Remove_Cash (Amount - Agent.Cash);
+         Agent.Set_Cash (WL.Money.Zero);
+      end if;
    end Remove_Cash;
 
    ----------------
