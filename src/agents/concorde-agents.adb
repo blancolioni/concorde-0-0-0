@@ -202,8 +202,6 @@ package body Concorde.Agents is
                   Agent.Update_Price_Belief (Commodity, Belief);
                   Agent.Market.Delete_Offer
                     (Concorde.Trades.Ask, Agent, Commodity);
-                  Agent.Bid_Quantity :=
-                    Agent.Bid_Quantity - (Offer.Quantity - Offer.Filled);
                   Offer := (others => <>);
                end;
             when Concorde.Trades.Average_Price =>
@@ -375,8 +373,7 @@ package body Concorde.Agents is
                   Agent.Update_Price_Belief (Commodity, Belief);
                   Agent.Market.Delete_Offer
                     (Concorde.Trades.Bid, Agent, Commodity);
-                  Agent.Bid_Quantity :=
-                    Agent.Bid_Quantity - (Offer.Quantity - Offer.Filled);
+
                   Offer := (others => <>);
                end;
             when Concorde.Trades.Average_Price =>
@@ -417,8 +414,6 @@ package body Concorde.Agents is
                           (Offer     => Concorde.Trades.Bid,
                            Trader    => Agent,
                            Commodity => Commodity);
-                        Agent.Bid_Quantity :=
-                          Agent.Bid_Quantity - (Offer.Quantity - Offer.Filled);
                         Offer := (others => <>);
                      elsif Minimum_Price /= Zero then
                         Agent.Market.Update_Offer
@@ -591,7 +586,6 @@ package body Concorde.Agents is
         (A : not null access Root_Agent_Type'Class)
       is
       begin
-         A.Ask_Quantity := A.Ask_Quantity + Sell_Quantity;
          A.Asks.Update_Element (Commodity, Update_Offer'Access);
       end Update_Agent;
 
@@ -754,7 +748,6 @@ package body Concorde.Agents is
         (A : not null access Root_Agent_Type'Class)
       is
       begin
-         A.Bid_Quantity := A.Bid_Quantity + Bid_Quantity;
          A.Bids.Update_Element (Commodity, Update_Offer'Access);
       end Update_Agent;
 
@@ -954,7 +947,6 @@ package body Concorde.Agents is
          A.Remove_Quantity (Commodity, Quantity, Cost);
          A.Add_Cash (Cost);
          A.Asks.Update_Element (Commodity, Update_Offer'Access);
-         A.Ask_Quantity := A.Ask_Quantity - Quantity;
       end Execute_Ask;
 
       -----------------
@@ -968,7 +960,6 @@ package body Concorde.Agents is
          A.Add_Quantity (Commodity, Quantity, Cost);
          A.Remove_Cash (Cost);
          A.Bids.Update_Element (Commodity, Update_Offer'Access);
-         A.Bid_Quantity := A.Bid_Quantity - Quantity;
       end Execute_Bid;
 
       ------------------

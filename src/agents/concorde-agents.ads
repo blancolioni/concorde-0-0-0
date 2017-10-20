@@ -174,10 +174,6 @@ package Concorde.Agents is
    procedure Check_Offers
      (Agent : in out Root_Agent_Type'Class);
 
-   function Has_Bids
-     (Agent : Root_Agent_Type'Class)
-      return Boolean;
-
    function Has_Bid
      (Agent     : Root_Agent_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
@@ -196,10 +192,6 @@ package Concorde.Agents is
 
    procedure Clear_Filled_Bids
      (Agent     : in out Root_Agent_Type'Class);
-
-   function Has_Asks
-     (Agent : Root_Agent_Type'Class)
-      return Boolean;
 
    function Has_Ask
      (Agent     : Root_Agent_Type'Class;
@@ -368,10 +360,6 @@ private
          Account      : Account_Entry_Vectors.Vector;
          Bids         : Agent_Offer_Vectors.Vector;
          Asks         : Agent_Offer_Vectors.Vector;
-         Ask_Quantity : WL.Quantities.Quantity_Type :=
-                          WL.Quantities.Zero;
-         Bid_Quantity : WL.Quantities.Quantity_Type :=
-                          WL.Quantities.Zero;
       end record;
 
    overriding function Available_Capacity
@@ -396,11 +384,6 @@ private
         Concorde.Commodities.Root_Commodity_Type'Class;
       Belief    :  Agent_Price_Belief_Record);
 
-   function Has_Bids
-     (Agent : Root_Agent_Type'Class)
-      return Boolean
-   is (Agent.Bid_Quantity > Zero);
-
    function Has_Bid
      (Agent     : Root_Agent_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
@@ -412,11 +395,6 @@ private
       Commodity : Concorde.Commodities.Commodity_Type)
       return WL.Money.Price_Type
    is (Agent.Bids.Element (Commodity).Price);
-
-   function Has_Asks
-     (Agent : Root_Agent_Type'Class)
-      return Boolean
-   is (Agent.Ask_Quantity > Zero);
 
    function Has_Ask
      (Agent     : Root_Agent_Type'Class;

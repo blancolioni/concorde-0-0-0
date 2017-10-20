@@ -218,6 +218,38 @@ package body Concorde.Managers.Ships.Trade is
       Manager.Route.Delete (Position);
    end Delete_Waypoint;
 
+   --------------
+   -- Has_Asks --
+   --------------
+
+   function Has_Asks
+     (Manager : Root_Ship_Trade_Manager'Class)
+      return Boolean
+   is
+   begin
+      for Commodity of Concorde.Commodities.Trade_Commodities loop
+         if Manager.Ship.Has_Ask (Commodity) then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Has_Asks;
+
+   --------------
+   -- Has_Bids --
+   --------------
+
+   function Has_Bids (Manager : Root_Ship_Trade_Manager'Class) return Boolean
+   is
+   begin
+      for Commodity of Concorde.Commodities.Trade_Commodities loop
+         if Manager.Ship.Has_Bid (Commodity) then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Has_Bids;
+
    ----------------------
    -- Next_Destination --
    ----------------------
@@ -263,7 +295,7 @@ package body Concorde.Managers.Ships.Trade is
       case Manager.State is
          when Bidding =>
             Manager.Create_Bids;
-            if Manager.Ship.Has_Bids then
+            if Manager.Has_Bids then
                Manager.State := Buying;
             elsif Manager.Ship.Total_Quantity > Zero then
                Manager.Ship.Update.Clear_Filled_Bids;
@@ -272,7 +304,7 @@ package body Concorde.Managers.Ships.Trade is
                Manager.State := Moving;
             end if;
          when Buying =>
-            if not Manager.Ship.Has_Bids then
+            if not Manager.Has_Bids then
                Manager.Ship.Update.Clear_Filled_Bids;
                Manager.Current := Next_Position;
                Manager.Set_Destination (To_World);
