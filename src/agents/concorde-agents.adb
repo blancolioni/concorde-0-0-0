@@ -237,21 +237,23 @@ package body Concorde.Agents is
                         & Image (Offer.Price));
 
                      if Maximum_Price /= Zero then
+                        Offer.Price := Adjust_Price (Maximum_Price, 0.9);
                         Agent.Market.Update_Offer
                           (Offer     => Concorde.Trades.Ask,
                            Trader    => Agent,
                            Commodity => Commodity,
-                           New_Price => Adjust_Price (Maximum_Price, 0.9));
-                     elsif Supply > Demand then
+                           New_Price => Offer.Price);
+                     else
+                        Offer.Price :=
+                          Adjust_Price
+                            (Offer.Price,
+                             Float
+                               (Concorde.Random.Unit_Random * 0.1 + 0.9));
                         Agent.Market.Update_Offer
                           (Offer     => Concorde.Trades.Ask,
                            Trader    => Agent,
                            Commodity => Commodity,
-                           New_Price =>
-                             Adjust_Price
-                               (Offer.Price,
-                                Float
-                                  (Concorde.Random.Unit_Random * 0.1 + 0.9)));
+                           New_Price => Offer.Price);
                      end if;
                   end;
                end if;
@@ -416,11 +418,12 @@ package body Concorde.Agents is
                            Commodity => Commodity);
                         Offer := (others => <>);
                      elsif Minimum_Price /= Zero then
+                        Offer.Price := Adjust_Price (Minimum_Price, 1.1);
                         Agent.Market.Update_Offer
                           (Offer     => Concorde.Trades.Bid,
                            Trader    => Agent,
                            Commodity => Commodity,
-                           New_Price => Adjust_Price (Minimum_Price, 1.1));
+                           New_Price => Offer.Price);
                      end if;
                   end;
                end if;
@@ -972,6 +975,13 @@ package body Concorde.Agents is
       begin
          Check (Offer);
          Offer.Filled := Offer.Filled + Quantity;
+         if Offer.Filled = Offer.Quantity then
+            Offer := Agent_Offer'
+              (Valid    => False,
+               Price    => WL.Money.Zero,
+               Quantity => WL.Quantities.Zero,
+               Filled   => WL.Quantities.Zero);
+         end if;
       end Update_Offer;
 
    begin
