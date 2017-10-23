@@ -144,36 +144,57 @@ package body Concorde.Facilities.Configure is
          end;
 
          declare
-            Input_Config : Tropos.Configuration;
-         begin
-            if Config.Contains ("inputs") then
-               Input_Config := Config.Child ("inputs");
-            elsif Config.Contains ("inputs") then
-               Input_Config := Config.Child ("inputs");
-            end if;
 
-            declare
-               Input_Array  : Array_Of_Inputs (1 .. Input_Config.Child_Count);
+            function Configure_Input_Array
+              (Config : Tropos.Configuration)
+               return Array_Of_Inputs;
+
+            ---------------------------
+            -- Configure_Input_Array --
+            ---------------------------
+
+            function Configure_Input_Array
+              (Config : Tropos.Configuration)
+               return Array_Of_Inputs
+            is
+               Input_Array  : Array_Of_Inputs (1 .. Config.Child_Count);
                Count        : Natural := 0;
             begin
-               for Cfg of Input_Config loop
+               for Cfg of Config loop
                   Count := Count + 1;
                   declare
                      Input_Name : constant String :=
                                     Cfg.Config_Name;
+                     New_Input  : Input_Record_Access;
                   begin
-                     if not Exists (Input_Name) then
-                        raise Constraint_Error with
-                          "while configuring facility " & Facility.Tag.all
-                          & ": undefined input: " & Input_Name;
+                     if Input_Name = "or" then
+                        New_Input := new Input_Record'
+                          (Class     => Choice,
+                           Choices   =>
+                              new Array_Of_Inputs'
+                             (Configure_Input_Array (Cfg)));
+                     else
+                        if not Exists (Input_Name) then
+                           raise Constraint_Error with
+                             "while configuring facility " & Facility.Tag.all
+                             & ": undefined input: " & Input_Name;
+                        end if;
+                        New_Input := new Input_Record'
+                          (Class     => Simple,
+                           Commodity => Get (Input_Name),
+                           Quantity  => WL.Quantities.Value (Cfg.Value));
                      end if;
-                     Input_Array (Count).Commodity := Get (Input_Name);
-                     Input_Array (Count).Quantity :=
-                       WL.Quantities.Value (Cfg.Value);
+                     Input_Array (Count) := New_Input;
                   end;
                end loop;
-               Facility.Inputs := new Array_Of_Inputs'(Input_Array);
-            end;
+               return Input_Array;
+            end Configure_Input_Array;
+
+         begin
+            if Config.Contains ("inputs") then
+               Facility.Inputs := new Array_Of_Inputs'
+                 (Configure_Input_Array (Config.Child ("inputs")));
+            end if;
          end;
 
          if Config.Contains ("output")

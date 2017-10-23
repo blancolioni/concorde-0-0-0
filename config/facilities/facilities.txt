@@ -228,8 +228,10 @@ regular-clothes-factory = {
 bargain-clothes-factory = {
    template = light-factory
    inputs = {
-      cotton = 1
-      wool = 1
+      or = {
+        cotton = 1
+        wool = 1
+        }
       }
    output = bargain-clothes
 }

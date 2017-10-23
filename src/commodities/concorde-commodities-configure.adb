@@ -53,22 +53,59 @@ package body Concorde.Commodities.Configure is
          Cost      : Real := 0.0;
       begin
          for I in 1 .. Facility.Input_Count loop
-            declare
-               Input : constant Commodity_Type :=
-                         Facility.Input_Commodity (I);
-               Quant : constant WL.Quantities.Quantity_Type :=
-                         Facility.Input_Quantity (I);
-            begin
-               if Not_Priced (Input.all) then
-                  Has_Price := False;
-                  exit;
-               else
-                  Cost := Cost
-                    + Real
-                    (To_Float (Input.Base_Price)
-                     * WL.Quantities.To_Float (Quant));
-               end if;
-            end;
+            if Facility.Simple_Input (I) then
+               declare
+                  Input : constant Commodity_Type :=
+                            Facility.Input_Commodity (I);
+                  Quant : constant WL.Quantities.Quantity_Type :=
+                            Facility.Input_Quantity (I);
+               begin
+                  if Not_Priced (Input.all) then
+                     Has_Price := False;
+                     exit;
+                  else
+                     Cost := Cost
+                       + Real
+                       (To_Float (Input.Base_Price)
+                        * WL.Quantities.To_Float (Quant));
+                  end if;
+               end;
+            else
+               declare
+                  Lowest : Money_Type := Zero;
+                  Found  : Boolean := False;
+               begin
+                  for J in 1 .. Facility.Input_Choice_Count (I) loop
+                     declare
+                        Input : constant Commodity_Type :=
+                                  Facility.Input_Choice_Commodity (I, J);
+                        Quant : constant WL.Quantities.Quantity_Type :=
+                                  Facility.Input_Choice_Quantity (I, J);
+                        This  : Money_Type;
+                     begin
+                        if Not_Priced (Input.all) then
+                           null;
+                        elsif not Found then
+                           Lowest := Total (Input.Base_Price, Quant);
+                           Found := True;
+                        else
+                           This := Total (Input.Base_Price, Quant);
+                           if This < Lowest then
+                              Lowest := This;
+                           end if;
+                        end if;
+                     end;
+                  end loop;
+
+                  if Found then
+                     Cost := Cost
+                       + Real (To_Float (Lowest));
+                  else
+                     Has_Price := False;
+                     exit;
+                  end if;
+               end;
+            end if;
          end loop;
 
          if Has_Price then

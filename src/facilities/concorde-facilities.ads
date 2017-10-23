@@ -56,17 +56,54 @@ package Concorde.Facilities is
      (Facility : Root_Facility_Type'Class)
       return Natural;
 
+   function Simple_Input
+     (Facility : Root_Facility_Type'Class;
+      Index    : Positive)
+      return Boolean;
+
+   function Choice_Input
+     (Facility : Root_Facility_Type'Class;
+      Index    : Positive)
+      return Boolean;
+
    function Input_Commodity
      (Facility : Root_Facility_Type'Class;
       Index    : Positive)
       return Concorde.Commodities.Commodity_Type
-     with Pre => Index <= Facility.Input_Count;
+     with Pre => Index <= Facility.Input_Count
+     and then Facility.Simple_Input (Index);
 
    function Input_Quantity
      (Facility : Root_Facility_Type'Class;
       Index    : Positive)
       return WL.Quantities.Quantity_Type
-     with Pre => Index <= Facility.Input_Count;
+     with Pre => Index <= Facility.Input_Count
+       and then Facility.Simple_Input (Index);
+
+   function Input_Choice_Count
+     (Facility : Root_Facility_Type'Class;
+      Index    : Positive)
+      return Positive
+     with Pre => Index <= Facility.Input_Count
+     and then Facility.Choice_Input (Index);
+
+   function Input_Choice_Commodity
+     (Facility     : Root_Facility_Type'Class;
+      Index        : Positive;
+      Choice_Index : Positive)
+      return Concorde.Commodities.Commodity_Type
+     with Pre => Index <= Facility.Input_Count
+     and then Facility.Choice_Input (Index)
+     and then Choice_Index <= Facility.Input_Choice_Count (Index);
+
+   function Input_Choice_Quantity
+     (Facility     : Root_Facility_Type'Class;
+      Index        : Positive;
+      Choice_Index : Positive)
+      return WL.Quantities.Quantity_Type
+     with Pre => Index <= Facility.Input_Count
+     and then Facility.Choice_Input (Index)
+     and then Choice_Index <= Facility.Input_Choice_Count (Index);
 
    function Worker_Count
      (Facility : Root_Facility_Type'Class)
@@ -148,13 +185,24 @@ private
 
    type Array_Of_Flags is array (Facility_Flag) of Boolean;
 
-   type Input_Record is
-      record
-         Commodity : Concorde.Commodities.Commodity_Type;
-         Quantity  : WL.Quantities.Quantity_Type;
-      end record;
+   type Input_Record_Class is (Simple, Choice);
 
-   type Array_Of_Inputs is array (Positive range <>) of Input_Record;
+   type Input_Record (Class : Input_Record_Class);
+
+   type Input_Record_Access is access Input_Record;
+
+   type Array_Of_Inputs is array (Positive range <>) of Input_Record_Access;
+
+   type Input_Record (Class : Input_Record_Class) is
+      record
+         case Class is
+            when Simple =>
+               Commodity : Concorde.Commodities.Commodity_Type;
+               Quantity  : WL.Quantities.Quantity_Type;
+            when Choice =>
+               Choices   : access Array_Of_Inputs;
+         end case;
+      end record;
 
    type Worker_Record is
       record
@@ -195,5 +243,37 @@ private
    package Db is
      new Memor.Database
        ("facility", Root_Facility_Type, Facility_Type);
+
+   function Simple_Input
+     (Facility : Root_Facility_Type'Class;
+      Index    : Positive)
+      return Boolean
+   is (Facility.Inputs (Index).Class = Simple);
+
+   function Choice_Input
+     (Facility : Root_Facility_Type'Class;
+      Index    : Positive)
+      return Boolean
+   is (Facility.Inputs (Index).Class = Choice);
+
+   function Input_Choice_Count
+     (Facility : Root_Facility_Type'Class;
+      Index    : Positive)
+      return Positive
+   is (Facility.Inputs (Index).Choices'Length);
+
+   function Input_Choice_Commodity
+     (Facility     : Root_Facility_Type'Class;
+      Index        : Positive;
+      Choice_Index : Positive)
+      return Concorde.Commodities.Commodity_Type
+   is (Facility.Inputs (Index).Choices (Choice_Index).Commodity);
+
+   function Input_Choice_Quantity
+     (Facility     : Root_Facility_Type'Class;
+      Index        : Positive;
+      Choice_Index : Positive)
+      return WL.Quantities.Quantity_Type
+   is (Facility.Inputs (Index).Choices (Choice_Index).Quantity);
 
 end Concorde.Facilities;

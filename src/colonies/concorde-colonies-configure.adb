@@ -145,13 +145,19 @@ package body Concorde.Colonies.Configure is
       procedure Add_Inputs
         (Installation : Concorde.Installations.Installation_Type)
       is
+         Facility : constant Concorde.Facilities.Facility_Type :=
+                      Installation.Facility;
       begin
-         for I in 1 .. Installation.Facility.Input_Count loop
+         for I in 1 .. Facility.Input_Count loop
             declare
                Need : constant Concorde.Commodities.Commodity_Type :=
-                        Installation.Facility.Input_Commodity (I);
+                        (if Facility.Simple_Input (I)
+                         then Facility.Input_Commodity (I)
+                         else Facility.Input_Choice_Commodity (I, 1));
                Quant : constant Quantity_Type :=
-                         Installation.Facility.Input_Quantity (I)
+                         (if Facility.Simple_Input (I)
+                          then Facility.Input_Quantity (I)
+                          else Facility.Input_Choice_Quantity (I, 1))
                          * Installation.Facility.Capacity_Quantity
                          * To_Quantity (15.0);
                Value    : constant WL.Money.Money_Type :=

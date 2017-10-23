@@ -1,9 +1,23 @@
+with WL.Heaps;
+
 with Concorde.Real_Images;
 with Concorde.Worlds;
 
 with Concorde.Logs;
 
 package body Concorde.Installations is
+
+   type Consumption_Record is
+      record
+         Commodity : Concorde.Commodities.Commodity_Type;
+         Cost_Per  : WL.Money.Money_Type;
+         Input_Per : WL.Quantities.Quantity_Type;
+         Have      : WL.Quantities.Quantity_Type;
+      end record;
+
+   package Consumption_Queues is
+     new WL.Heaps (WL.Money.Money_Type, Consumption_Record,
+                   WL.Money.">");
 
    ----------------------
    -- Add_Trade_Offers --
@@ -148,21 +162,73 @@ package body Concorde.Installations is
    begin
 
       for I in 1 .. Item.Facility.Input_Count loop
-         declare
-            Commodity : constant Concorde.Commodities.Commodity_Type :=
-                          Item.Facility.Input_Commodity (I);
-            Required  : constant Quantity_Type :=
-                          Item.Facility.Input_Quantity (I)
-                          * Item.Facility.Capacity_Quantity;
-            Have      : constant Quantity_Type :=
-                          Item.Get_Quantity (Commodity)
-                          + Item.Current_Bid_Quantity (Commodity);
-         begin
-            if Required > Have then
-               Item.Create_Bid
-                 (Commodity, Required - Have);
-            end if;
-         end;
+         if Item.Facility.Simple_Input (I) then
+            declare
+               Commodity : constant Concorde.Commodities.Commodity_Type :=
+                             Item.Facility.Input_Commodity (I);
+               Required  : constant Quantity_Type :=
+                             Item.Facility.Input_Quantity (I)
+                             * Item.Facility.Capacity_Quantity;
+               Have      : constant Quantity_Type :=
+                             Item.Get_Quantity (Commodity)
+                             + Item.Current_Bid_Quantity (Commodity);
+            begin
+               if Required > Have then
+                  Item.Create_Bid
+                    (Commodity, Required - Have);
+               end if;
+            end;
+         elsif Item.Facility.Choice_Input (I) then
+            declare
+               use WL.Money;
+               Cheapest_Item  : Concorde.Commodities.Commodity_Type;
+               Cheapest_Price : Price_Type := Zero;
+               Cheapest_Cost  : Money_Type := Zero;
+               Cheapest_Reqd  : Quantity_Type := Zero;
+            begin
+               for J in 1 .. Item.Facility.Input_Choice_Count (I) loop
+                  declare
+                     Input : constant Concorde.Commodities.Commodity_Type :=
+                               Item.Facility.Input_Choice_Commodity (I, J);
+                     Need  : constant Quantity_Type :=
+                               Item.Facility.Input_Choice_Quantity (I, J)
+                               * Item.Facility.Capacity_Quantity;
+                     Have  : constant Quantity_Type :=
+                               Item.Get_Quantity (Input)
+                               + Item.Current_Bid_Quantity (Input);
+                     Reqd  : constant Quantity_Type :=
+                               (if Need < Have then Zero
+                                else Need - Have);
+                     Price : constant Price_Type :=
+                               Item.Mean_Price_Belief (Input);
+                     Cost  : constant Money_Type :=
+                               Total (Price, Reqd);
+                  begin
+                     if J = 1 or else Cost < Cheapest_Cost
+                       or else
+                         (Cost = Cheapest_Cost
+                          and then Price > Cheapest_Price)
+                     then
+                        Cheapest_Item := Input;
+                        Cheapest_Price := Price;
+                        Cheapest_Cost := Cost;
+                        Cheapest_Reqd := Reqd;
+                        exit when Cheapest_Reqd = Zero;
+                     end if;
+                  end;
+               end loop;
+
+               if Cheapest_Reqd > Zero then
+                  Item.Create_Bid
+                    (Cheapest_Item, Cheapest_Reqd);
+               end if;
+            end;
+         else
+            raise Constraint_Error with
+            Item.Short_Name
+              & "cannot understand input rules for input"
+              & I'Img;
+         end if;
       end loop;
 
       for I in 1 .. Item.Facility.Worker_Count loop
@@ -243,11 +309,168 @@ package body Concorde.Installations is
    procedure Execute_Production
      (Installation : in out Root_Installation_Type'Class)
    is
+      use WL.Quantities;
       use Concorde.Commodities;
       Facility        : constant Concorde.Facilities.Facility_Type :=
                           Installation.Facility;
       Production_Cost : WL.Money.Money_Type :=
                           WL.Money.Zero;
+      Raw_Capacity       : constant Quantity_Type :=
+                             Facility.Capacity_Quantity;
+
+      procedure Consume_Input
+        (Input_Index : Positive;
+         Throughput  : Unit_Real);
+
+      function Get_Input_Throughput
+        (Input_Index : Positive)
+         return Unit_Real;
+
+      -------------------
+      -- Consume_Input --
+      -------------------
+
+      procedure Consume_Input
+        (Input_Index : Positive;
+         Throughput  : Unit_Real)
+      is
+         use WL.Money;
+         Queue : Consumption_Queues.Heap;
+         Capacity : constant Quantity_Type :=
+                      Scale (Raw_Capacity, Float (Throughput));
+      begin
+         if Facility.Simple_Input (Input_Index) then
+            declare
+               Commodity : constant Commodity_Type :=
+                             Facility.Input_Commodity (Input_Index);
+               Cost_Per  : constant Money_Type :=
+                             Total
+                               (Installation.Get_Average_Price (Commodity),
+                                Facility.Input_Quantity (Input_Index));
+            begin
+               Queue.Insert
+                 (Cost_Per,
+                  Consumption_Record'
+                    (Commodity => Commodity,
+                     Cost_Per  => Cost_Per,
+                     Input_Per => Facility.Input_Quantity (Input_Index),
+                     Have      => Installation.Get_Quantity (Commodity)));
+            end;
+         else
+            for I in 1 .. Facility.Input_Choice_Count (Input_Index) loop
+               declare
+                  Commodity : constant Commodity_Type :=
+                                Facility.Input_Choice_Commodity
+                                  (Input_Index, I);
+                  Cost_Per  : constant Money_Type :=
+                                Total
+                                  (Installation.Get_Average_Price (Commodity),
+                                   Facility.Input_Choice_Quantity
+                                     (Input_Index, I));
+               begin
+                  Queue.Insert (Cost_Per,
+                                Consumption_Record'
+                                  (Commodity => Commodity,
+                                   Cost_Per  => Cost_Per,
+                                   Input_Per =>
+                                     Facility.Input_Choice_Quantity
+                                       (Input_Index, I),
+                                   Have      =>
+                                     Installation.Get_Quantity (Commodity)));
+               end;
+            end loop;
+         end if;
+
+         declare
+            Remaining : Unit_Real := Throughput;
+         begin
+            while not Queue.Is_Empty and then Remaining > 0.0 loop
+               declare
+                  Item : constant Consumption_Record :=
+                           Queue.Maximum_Element;
+                  Required : constant Quantity_Type :=
+                               Scale (Capacity, Float (Remaining))
+                               * Item.Input_Per;
+               begin
+                  Queue.Delete_Maximum;
+
+                  if Required <= Item.Have then
+                     Remaining := 0.0;
+                     Installation.Remove_Quantity
+                       (Item.Commodity, Required);
+                  else
+                     Remaining := Remaining
+                       - Unit_Real (To_Float (Item.Have)
+                                    / To_Float (Required));
+                     Installation.Remove_Quantity
+                       (Item.Commodity, Item.Have);
+                  end if;
+               end;
+            end loop;
+         end;
+
+      end Consume_Input;
+
+      --------------------------
+      -- Get_Input_Throughput --
+      --------------------------
+
+      function Get_Input_Throughput
+        (Input_Index : Positive)
+         return Unit_Real
+      is
+      begin
+         if Facility.Simple_Input (Input_Index) then
+            declare
+               Commodity : constant Commodity_Type :=
+                             Facility.Input_Commodity (Input_Index);
+               Required  : constant Quantity_Type :=
+                             Facility.Input_Quantity (Input_Index)
+                             * Raw_Capacity;
+               Available : constant Quantity_Type :=
+                             Installation.Get_Quantity (Commodity);
+            begin
+               if Available > Required then
+                  return 1.0;
+               else
+                  return Unit_Real
+                    (To_Float (Available)  / To_Float (Required));
+               end if;
+            end;
+
+         else
+            declare
+               Throughput : Non_Negative_Real := 0.0;
+            begin
+               for I in 1 .. Facility.Input_Choice_Count (Input_Index) loop
+                  declare
+                     Commodity : constant Commodity_Type :=
+                                   Facility.Input_Choice_Commodity
+                                     (Input_Index, I);
+                     Required  : constant Quantity_Type :=
+                                   Facility.Input_Choice_Quantity
+                                     (Input_Index, I)
+                                   * Raw_Capacity;
+                     Available : constant Quantity_Type :=
+                                   Installation.Get_Quantity (Commodity);
+                  begin
+                     if Available > Required then
+                        Throughput := 1.0;
+                     else
+                        Throughput := Throughput
+                          + Unit_Real
+                          (To_Float (Available) / To_Float (Required));
+                     end if;
+                     if Throughput >= 1.0 then
+                        return 1.0;
+                     end if;
+                  end;
+               end loop;
+               return Throughput;
+            end;
+         end if;
+      end Get_Input_Throughput;
+
    begin
 
       if Facility.Has_Output
@@ -259,11 +482,7 @@ package body Concorde.Installations is
 
       declare
          use WL.Money;
-         use WL.Quantities;
-         Raw_Capacity       : constant Quantity_Type :=
-                                Facility.Capacity_Quantity;
-         Throughput         : Unit_Real := 1.0;
-         Effective_Capacity : Quantity_Type := Raw_Capacity;
+         Throughput : Unit_Real := 1.0;
       begin
          for Worker of Installation.Employees loop
             Production_Cost := Production_Cost
@@ -284,9 +503,6 @@ package body Concorde.Installations is
                     Unit_Real'Min
                       (Real (To_Float (Available) / To_Float (Required)),
                        Throughput);
-                  Effective_Capacity :=
-                    Min (Effective_Capacity,
-                         Scale_Down (Raw_Capacity, Available, Required));
                   Installation.Log_Production
                     (Image (Available) & " of "
                      & Image (Required)
@@ -303,136 +519,138 @@ package body Concorde.Installations is
 
             for Input_Index in 1 .. Facility.Input_Count loop
                declare
-                  Commodity : constant Commodity_Type :=
-                                Facility.Input_Commodity (Input_Index);
-                  Required  : constant Quantity_Type :=
-                                Facility.Input_Quantity (Input_Index)
-                                * Raw_Capacity;
-                  Available : constant Quantity_Type :=
-                                Installation.Get_Quantity (Commodity);
+                  T : constant Unit_Real :=
+                        Get_Input_Throughput (Input_Index);
                begin
-                  if Available < Required then
-                     Throughput :=
-                       Unit_Real'Min
-                         (Real (To_Float (Available) / To_Float (Required)),
-                          Throughput);
-                     Effective_Capacity :=
-                       Min (Effective_Capacity,
-                            Scale_Down (Raw_Capacity, Available, Required));
-                  end if;
+                  Throughput := Unit_Real'Min (Throughput, T);
                end;
             end loop;
 
+--                 declare
+--                    Commodity : constant Commodity_Type :=
+--                                  Facility.Input_Commodity (Input_Index);
+--                    Required  : constant Quantity_Type :=
+--                                  Facility.Input_Quantity (Input_Index)
+--                                  * Raw_Capacity;
+--                    Available : constant Quantity_Type :=
+--                                  Installation.Get_Quantity (Commodity);
+--                 begin
+--                    if Available < Required then
+--                       Throughput :=
+--                         Unit_Real'Min
+--                        (Real (To_Float (Available) / To_Float (Required)),
+--                            Throughput);
+--                       Effective_Capacity :=
+--                         Min (Effective_Capacity,
+--                           Scale_Down (Raw_Capacity, Available, Required));
+--                    end if;
+--                 end;
+--              end loop;
+
          end if;
 
-         if Throughput < 1.0 then
-            Installation.Log_Production
-              ("throughput limited to "
-               & Concorde.Real_Images.Approximate_Image
-                 (Throughput * 100.0)
-               & "%; effective capacity " & Image (Effective_Capacity));
-         end if;
-
-         if Effective_Capacity > Zero then
-
-            for Input_Index in 1 .. Facility.Input_Count loop
-               declare
-                  Commodity : constant Commodity_Type :=
-                                Facility.Input_Commodity (Input_Index);
-                  Required  : constant Quantity_Type :=
-                                Facility.Input_Quantity (Input_Index)
-                                * Effective_Capacity;
-                  Price_Per : constant Price_Type :=
-                                Installation.Get_Average_Price (Commodity);
-                  Cost      : constant Money_Type :=
-                                WL.Money.Total (Price_Per, Required);
-               begin
-                  Production_Cost := Production_Cost + Cost;
-                  Installation.Remove_Quantity (Commodity, Required);
-               end;
-            end loop;
-
-            if Facility.Is_Farm then
-               Installation.Add_Quantity
-                 (Facility.Output,
-                  Effective_Capacity,
-                  Production_Cost);
-
+         declare
+            Effective_Capacity : constant Quantity_Type :=
+                                   Scale (Raw_Capacity, Float (Throughput));
+         begin
+            if Throughput < 1.0 then
                Installation.Log_Production
-                 ("produces "
-                  & Image (Effective_Capacity)
-                  & " "
-                  & Facility.Output.Name
-                  & " for "
-                  & Image (Production_Cost)
-                  & "; stock now "
-                  & Image (Installation.Get_Quantity (Facility.Output)));
+                 ("throughput limited to "
+                  & Concorde.Real_Images.Approximate_Image
+                    (Throughput * 100.0)
+                  & "%; effective capacity " & Image (Effective_Capacity));
+            end if;
 
-            elsif Facility.Has_Output then
-               Installation.Log_Production
-                 ("produces "
-                  & Image (Effective_Capacity)
-                  & " "
-                  & Facility.Output.Name
-                  & " for "
-                  & Image (Production_Cost));
+            if Effective_Capacity > Zero then
 
-               Installation.Add_Quantity
-                 (Facility.Output,
-                  Effective_Capacity,
-                  Production_Cost);
+               for Input_Index in 1 .. Facility.Input_Count loop
+                  Consume_Input (Input_Index, Throughput);
+               end loop;
 
-            elsif Facility.Is_Resource_Generator then
-
-               declare
-                  Resource      : Concorde.Commodities.Commodity_Type;
-                  Concentration : Unit_Real;
-                  Accessibility : Unit_Real;
-                  Factor        : Non_Negative_Real;
-               begin
-                  Concorde.Worlds.Get_Sector_Resource
-                    (Installation.Current_Location,
-                     Resource, Concentration, Accessibility);
-
-                  Factor :=
-                    (Accessibility + Concentration);
-                  Effective_Capacity :=
-                    Scale (Effective_Capacity, Float (Factor));
+               if Facility.Is_Farm then
+                  Installation.Add_Quantity
+                    (Facility.Output,
+                     Effective_Capacity,
+                     Production_Cost);
 
                   Installation.Log_Production
-                    ("generates "
+                    ("produces "
                      & Image (Effective_Capacity)
                      & " "
-                     & Resource.Name
+                     & Facility.Output.Name
+                     & " for "
+                     & Image (Production_Cost)
+                     & "; stock now "
+                     & Image (Installation.Get_Quantity (Facility.Output)));
+
+               elsif Facility.Has_Output then
+                  Installation.Log_Production
+                    ("produces "
+                     & Image (Effective_Capacity)
+                     & " "
+                     & Facility.Output.Name
                      & " for "
                      & Image (Production_Cost));
 
-                  if Effective_Capacity + Installation.Total_Quantity
-                    > Installation.Maximum_Quantity
-                  then
-                     declare
-                        Lose : constant Quantity_Type :=
-                                 Effective_Capacity
-                                   + Installation.Total_Quantity
-                                 - Installation.Maximum_Quantity;
-                     begin
-                        Installation.Log_Production
-                          ("loses " & Image (Lose) & " due to full storage");
-                        Effective_Capacity := Effective_Capacity - Lose;
-                     end;
-                  end if;
-
                   Installation.Add_Quantity
-                    (Resource,
-                     Effective_Capacity, Production_Cost);
+                    (Facility.Output,
+                     Effective_Capacity,
+                     Production_Cost);
 
-                  Installation.Log_Production
-                    ("minimum price per " & Resource.Name & " now "
-                     & Image (Installation.Get_Average_Price (Resource)));
+               elsif Facility.Is_Resource_Generator then
 
-               end;
+                  declare
+                     Resource      : Concorde.Commodities.Commodity_Type;
+                     Concentration : Unit_Real;
+                     Accessibility : Unit_Real;
+                     Factor        : Non_Negative_Real;
+                     Generated     : Quantity_Type;
+                  begin
+                     Concorde.Worlds.Get_Sector_Resource
+                       (Installation.Current_Location,
+                        Resource, Concentration, Accessibility);
+
+                     Factor :=
+                       (Accessibility + Concentration);
+                     Generated :=
+                       Scale (Effective_Capacity, Float (Factor));
+
+                     Installation.Log_Production
+                       ("generates "
+                        & Image (Generated)
+                        & " "
+                        & Resource.Name
+                        & " for "
+                        & Image (Production_Cost));
+
+                     if Generated + Installation.Total_Quantity
+                       > Installation.Maximum_Quantity
+                     then
+                        declare
+                           Lose : constant Quantity_Type :=
+                                    Generated
+                                      + Installation.Total_Quantity
+                                    - Installation.Maximum_Quantity;
+                        begin
+                           Installation.Log_Production
+                             ("loses " & Image (Lose)
+                              & " due to full storage");
+                           Generated := Generated - Lose;
+                        end;
+                     end if;
+
+                     Installation.Add_Quantity
+                       (Resource,
+                        Generated, Production_Cost);
+
+                     Installation.Log_Production
+                       ("minimum price per " & Resource.Name & " now "
+                        & Image (Installation.Get_Average_Price (Resource)));
+
+                  end;
+               end if;
             end if;
-         end if;
+         end;
 
          --              Conflict.Commodities.Add
          --                (Installation.Reference, Installation.Production,
