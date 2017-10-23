@@ -184,17 +184,17 @@ package body Concorde.People.Pops is
          Consumed       : constant Quantity_Type :=
                             Base_Quantity + Extra_Quantity;
       begin
-         Concorde.Logs.Log_Line
+         Concorde.Logs.Log_Fields
            (Pop.Current_World.Name
             & "/" & Pop.Short_Name
             & "/consumption"
             & "/" & Commodity.Identifier,
-            Pop.Identifier
-            & "," & Image (Pop.Size_Quantity)
-            & "," & Xi.Float_Images.Image (Need)
-            & "," & Xi.Float_Images.Image (Total_Need)
-            & "," & Image (Available)
-            & "," & Image (Consumed));
+            Pop.Identifier,
+            Image (Pop.Size_Quantity),
+            Xi.Float_Images.Image (Need),
+            Xi.Float_Images.Image (Total_Need),
+            Image (Available),
+            Image (Consumed));
          Pop.Remove_Quantity (Commodity, Consumed);
       end Consume;
 
@@ -227,16 +227,16 @@ package body Concorde.People.Pops is
             Quantity  : Quantity_Type)
          is
          begin
-            Concorde.Logs.Log_Line
+            Concorde.Logs.Log_Fields
               (Pop.Current_World.Name
                & "/" & Pop.Short_Name
                & "/eat"
                & "/" & Commodity.Identifier,
-               Image (Pop.Size_Quantity)
-               & "," & Xi.Float_Images.Image (Required_Energy)
-               & "," & Xi.Float_Images.Image (Total_Energy)
-               & "," & Image (Pop.Get_Quantity (Commodity))
-               & "," & Image (Quantity));
+               Image (Pop.Size_Quantity),
+               Xi.Float_Images.Image (Required_Energy),
+               Xi.Float_Images.Image (Total_Energy),
+               Image (Pop.Get_Quantity (Commodity)),
+               Image (Quantity));
             Pop.Remove_Quantity (Commodity, Quantity);
          end Eat;
 

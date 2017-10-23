@@ -177,26 +177,27 @@ package body Concorde.Agents is
                                   & "/" & Agent.Short_Name
                                   & "/" & Commodity.Identifier
                                   & "/update-ask";
-                     Log_Line : constant String :=
-                                  Image (Start_Belief.Low)
-                                & "," & Image (Start_Belief.High)
-                                  & "," & Image
-                                    (Adjust_Price
-                                       (Start_Belief.Low
-                                        + Start_Belief.High, 0.5))
-                                  & "," & Image (Mean)
-                                & "," & Image (Supply)
-                                  & "," & Image (Demand)
-                                & "," & Image (Offer.Quantity)
-                                  & "," & Image (Offer.Filled)
-                                & "," & Image (Offer.Price)
-                                  & "," & Image (Belief.Low)
-                                & "," & Image (Belief.High)
-                                  & "," & Image
-                                    (Adjust_Price
-                                       (Belief.Low + Belief.High, 0.5));
                   begin
-                     Concorde.Logs.Log_Line (Log_Path, Log_Line);
+                     Concorde.Logs.Log_Fields
+                       (Log_Path,
+                        Image (Start_Belief.Low),
+                        Image (Start_Belief.High),
+                        Image
+                          (Adjust_Price
+                               (Start_Belief.Low
+                                + Start_Belief.High, 0.5)),
+                        Image (Mean),
+                        Image (Supply),
+                        Image (Demand),
+                        Image (Offer.Quantity),
+                        Image (Offer.Filled),
+                        Image (Offer.Price),
+                        Image (Belief.Low),
+                        Image (Belief.High),
+                        Image
+                          (Adjust_Price
+                               (Belief.Low + Belief.High, 0.5)));
+
                   end;
 
                   Agent.Update_Price_Belief (Commodity, Belief);
@@ -350,26 +351,26 @@ package body Concorde.Agents is
                                   & "/" & Agent.Short_Name
                                   & "/" & Commodity.Identifier
                                   & "/update-bid";
-                     Log_Line : constant String :=
-                                  Image (Start_Belief.Low)
-                                & "," & Image (Start_Belief.High)
-                                  & "," & Image
-                                    (Adjust_Price
-                                       (Start_Belief.Low
-                                        + Start_Belief.High, 0.5))
-                                  & "," & Image (Mean)
-                                & "," & Image (Supply)
-                                  & "," & Image (Demand)
-                                & "," & Image (Offer.Quantity)
-                                  & "," & Image (Offer.Filled)
-                                & "," & Image (Offer.Price)
-                                  & "," & Image (Belief.Low)
-                                & "," & Image (Belief.High)
-                                  & "," & Image
-                                    (Adjust_Price
-                                       (Belief.Low + Belief.High, 0.5));
                   begin
-                     Concorde.Logs.Log_Line (Log_Path, Log_Line);
+                     Concorde.Logs.Log_Fields
+                       (Log_Path,
+                        Image (Start_Belief.Low),
+                        Image (Start_Belief.High),
+                        Image
+                          (Adjust_Price
+                               (Start_Belief.Low
+                                + Start_Belief.High, 0.5)),
+                        Image (Mean),
+                        Image (Supply),
+                        Image (Demand),
+                        Image (Offer.Quantity),
+                        Image (Offer.Filled),
+                        Image (Offer.Price),
+                        Image (Belief.Low),
+                        Image (Belief.High),
+                        Image
+                          (Adjust_Price
+                               (Belief.Low + Belief.High, 0.5)));
                   end;
 
                   Agent.Update_Price_Belief (Commodity, Belief);
@@ -650,17 +651,17 @@ package body Concorde.Agents is
                       & "/" & Agent.Short_Name
                       & "/" & Commodity.Identifier
                       & "/ask";
-         Log_Line : constant String :=
-                      Image (Belief.Low)
-                      & "," & Image (Belief.High)
-                      & "," & Image (Mean)
-                      & "," & Image (Ask_Quantity)
-                      & "," & Image (Minimum_Price)
-                      & "," & Image (Agent.Cash)
-                      & "," & Image (Sell_Price)
-                      & "," & Image (Sell_Quantity);
       begin
-         Concorde.Logs.Log_Line (Log_Path, Log_Line);
+         Concorde.Logs.Log_Fields
+           (Log_Path,
+            Image (Belief.Low),
+            Image (Belief.High),
+            Image (Mean),
+            Image (Ask_Quantity),
+            Image (Minimum_Price),
+            Image (Agent.Cash),
+            Image (Sell_Price),
+            Image (Sell_Quantity));
       end;
 
       if Sell_Quantity > Zero then
@@ -810,16 +811,16 @@ package body Concorde.Agents is
                       & "/" & Agent.Short_Name
                       & "/" & Commodity.Identifier
                       & "/bid";
-         Log_Line : constant String :=
-                      Image (Belief.Low)
-                    & "," & Image (Belief.High)
-                    & "," & Image (Mean)
-                    & "," & Image (Bid_Quantity)
-                    & "," & Image (Agent.Cash)
-                    & "," & Image (Buy_Price)
-                    & "," & Image (Bid_Quantity);
       begin
-         Concorde.Logs.Log_Line (Log_Path, Log_Line);
+         Concorde.Logs.Log_Fields
+           (Log_Path,
+            Image (Belief.Low),
+            Image (Belief.High),
+            Image (Mean),
+            Image (Bid_Quantity),
+            Image (Agent.Cash),
+            Image (Buy_Price),
+            Image (Bid_Quantity));
       end;
 
       if Bid_Quantity > Zero then

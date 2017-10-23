@@ -12,6 +12,9 @@ with Concorde.Options;
 
 package body Concorde.Logs is
 
+   Sep : constant Character := Character'Val (9);
+   Ext : constant String := "csv";
+
    package String_Lists is
      new Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 
@@ -73,7 +76,7 @@ package body Concorde.Logs is
             Local_Path : constant String :=
                            Log_File_Maps.Key (Position);
             Full_Path  : constant String :=
-                           Base_Path & "/" & Local_Path & ".txt";
+                           Base_Path & "/" & Local_Path & "." & Ext;
             File       : File_Type;
          begin
             Ensure_Path (Base_Path, Local_Path);
@@ -90,22 +93,49 @@ package body Concorde.Logs is
 
    end Flush_Logs;
 
-   --------------
-   -- Log_Line --
-   --------------
-
-   procedure Log_Line
-     (Log_Path : String;
-      Line     : String)
+   procedure Log_Fields
+     (Log_Path  : String;
+      Field_1   : String;
+      Field_2   : String := "";
+      Field_3   : String := "";
+      Field_4   : String := "";
+      Field_5   : String := "";
+      Field_6   : String := "";
+      Field_7   : String := "";
+      Field_8   : String := "";
+      Field_9   : String := "";
+      Field_10  : String := "";
+      Field_11  : String := "";
+      Field_12  : String := "";
+      Field_13  : String := "";
+      Field_14  : String := "";
+      Field_15  : String := "";
+      Field_16  : String := "")
    is
    begin
       if not Log_Files.Contains (Log_Path) then
          Log_Files.Insert (Log_Path, String_Lists.Empty_List);
       end if;
 
-      Log_Files (Log_Path).Append
-        (Concorde.Calendar.Image (Concorde.Calendar.Clock, True)
-         & "," & Line);
-   end Log_Line;
+      declare
+         function Field (Field : String) return String
+         is (if Field = "" then "" else Sep & Field);
+
+         Line : constant String :=
+                  Field_1
+                  & Field (Field_2) & Field (Field_3)
+                  & Field (Field_4) & Field (Field_5)
+                  & Field (Field_6) & Field (Field_7)
+                  & Field (Field_8) & Field (Field_9)
+                  & Field (Field_10) & Field (Field_11)
+                  & Field (Field_12) & Field (Field_13)
+                  & Field (Field_14) & Field (Field_15)
+                  & Field (Field_16);
+      begin
+         Log_Files (Log_Path).Append
+           (Concorde.Calendar.Image (Concorde.Calendar.Clock, True)
+            & Sep & Line);
+      end;
+   end Log_Fields;
 
 end Concorde.Logs;

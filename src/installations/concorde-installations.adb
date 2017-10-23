@@ -57,7 +57,7 @@ package body Concorde.Installations is
          if not Commodity.Is_Set (Concorde.Commodities.Virtual)
            and then (Demand > Zero or else Supply > Zero)
          then
-            Concorde.Logs.Log_Line
+            Concorde.Logs.Log_Fields
               (Log_Path,
                Image (Local_Demand)
                & "," & Image (Local_Supply)

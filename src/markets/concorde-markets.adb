@@ -250,19 +250,14 @@ package body Concorde.Markets is
                            Market.Identifier
                            & "/" & Commodity.Identifier
                            & "/" & Offer_Name;
-      Offer_Line      : constant String :=
-                          Trader.Short_Name
-                          & ","
-                          & Market.Identifier
-                          & ","
-                          & Commodity.Identifier
-                          & ","
-                          & Image (Quantity)
-                          & ","
-                          & Image (Price);
    begin
-      Concorde.Logs.Log_Line
-        (Market_Log_Path, Offer_Line);
+      Concorde.Logs.Log_Fields
+        (Market_Log_Path,
+         Trader.Short_Name,
+         Market.Identifier,
+         Commodity.Identifier,
+         Image (Quantity),
+         Image (Price));
 
       if Info.Current_Price = Zero then
          Info.Current_Price := Price;
@@ -501,22 +496,20 @@ package body Concorde.Markets is
                            Market.Identifier
                            & "/" & Commodity.Identifier
                            & "/transactions";
-      Offer_Line       : constant String :=
-                           Buyer.Short_Name
-                           & ","
-                           & Seller.Short_Name
-                           & ","
-                           & Commodity.Identifier
-                           & ","
-                           & WL.Quantities.Image (Quantity)
-                           & "," & Image (Price)
-                           & "," & Image (Tax_Free_Price)
-                           & "," & Image (Price - Tax_Free_Price)
-                           & "," & Image (Taxed_Cost)
-                           & "," & Image (Tax_Free_Cost)
-                           & "," & Image (Total_Tax);
    begin
-      Concorde.Logs.Log_Line (Market_Log_Path, Offer_Line);
+      Concorde.Logs.Log_Fields
+        (Market_Log_Path,
+         Buyer.Short_Name,
+         Seller.Short_Name,
+         Commodity.Identifier,
+         WL.Quantities.Image (Quantity),
+         Image (Price),
+         Image (Tax_Free_Price),
+         Image (Price - Tax_Free_Price),
+         Image (Taxed_Cost),
+         Image (Tax_Free_Cost),
+         Image (Total_Tax));
+
       Buyer.Execute_Trade
         (Offer     => Concorde.Trades.Bid,
          Commodity => Commodity,
@@ -587,22 +580,25 @@ package body Concorde.Markets is
       end loop;
 
       if Metric = Local_Demand then
-         Concorde.Logs.Log_Line
+         Concorde.Logs.Log_Fields
            (Market_Log_Path,
-            Image (Start, True) & "," & Image (Finish, True)
-            & "," & Item.Identifier & "," & Image (Result)
-            & "," & Image (Cached.Current_Demand)
-            & "," & Image (Result + Cached.Current_Demand));
+            Image (Start, True),
+            Image (Finish, True),
+            Item.Identifier,
+            Image (Result),
+            Image (Cached.Current_Demand),
+            Image (Result + Cached.Current_Demand));
 
          Result := Result + Cached.Current_Demand;
       elsif Metric = Local_Supply then
-         Concorde.Logs.Log_Line
+         Concorde.Logs.Log_Fields
            (Market_Log_Path,
-            Image (Start, True) & "," & Image (Finish, True)
-            & "," & Item.Identifier & "," & Image (Result)
-            & "," & Image (Cached.Current_Supply)
-            & "," & Image (Result + Cached.Current_Supply));
-
+            Image (Start, True),
+            Image (Finish, True),
+            Item.Identifier,
+            Image (Result),
+            Image (Cached.Current_Supply),
+            Image (Result + Cached.Current_Supply));
          Result := Result + Cached.Current_Supply;
       end if;
 

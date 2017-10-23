@@ -161,6 +161,10 @@ package Concorde.Agents is
      (Agent  : in out Root_Agent_Type'Class;
       Amount : WL.Money.Money_Type);
 
+   function Guarantor
+     (Agent : Root_Agent_Type'Class)
+      return access constant Root_Agent_Type'Class;
+
    procedure Create_Ask
      (Agent        : not null access constant Root_Agent_Type'Class;
       Commodity    : Concorde.Commodities.Commodity_Type;
@@ -407,6 +411,11 @@ private
       Commodity : Concorde.Commodities.Commodity_Type)
       return WL.Money.Price_Type
    is (Agent.Asks.Element (Commodity).Price);
+
+   function Guarantor
+     (Agent : Root_Agent_Type'Class)
+      return access constant Root_Agent_Type'Class
+   is (Agent.Guarantor);
 
    package Agent_Lists is new Ada.Containers.Doubly_Linked_Lists (Agent_Type);
 
