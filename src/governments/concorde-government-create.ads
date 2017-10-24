@@ -9,7 +9,7 @@ package Concorde.Government.Create is
         Concorde.Agents.Root_Agent_Type'Class;
       Headquarters      : not null access constant
         Concorde.Installations.Root_Installation_Type'Class;
-      Basic_Living_Wage : Boolean)
+      Basic_Living_Wage : WL.Money.Price_Type)
       return Government_Type;
 
 end Concorde.Government.Create;

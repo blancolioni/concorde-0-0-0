@@ -1,6 +1,8 @@
 private with Ada.Containers.Doubly_Linked_Lists;
 private with Ada.Strings.Unbounded;
 
+private with WL.Money;
+
 --  private with Concorde.Protected_Lists;
 private with Memor.Database;
 private with Memor.Element_Vectors;
@@ -112,6 +114,13 @@ package Concorde.Factions is
       return String;
 
    type Faction_Type is access constant Root_Faction_Type'Class;
+
+   type Citizen_Interface is limited interface;
+
+   function Citizenship
+     (Citizen : Citizen_Interface)
+      return Faction_Type
+      is abstract;
 
    function Get_By_Name (Name : String) return Faction_Type;
 
@@ -364,22 +373,23 @@ private
      and Memor.Identifier_Record_Type
      and Concorde.Objects.User_Named_Object_Interface with
       record
-         Identifier      : Ada.Strings.Unbounded.Unbounded_String;
-         Faction_Name    : Ada.Strings.Unbounded.Unbounded_String;
-         Colour          : Lui.Colours.Colour_Type;
-         System_Data     : access System_Data_Array;
-         Faction_Data    : access Relation_Record;
+         Identifier        : Ada.Strings.Unbounded.Unbounded_String;
+         Faction_Name      : Ada.Strings.Unbounded.Unbounded_String;
+         Colour            : Lui.Colours.Colour_Type;
+         Central_Bank      : Boolean := False;
+         System_Data       : access System_Data_Array;
+         Faction_Data      : access Relation_Record;
          Ministries        : Department_Array;
          Current_Ships     : Natural := 0;
-         Current_Systems : Natural := 0;
-         Built_Ships     : Natural := 0;
-         Captured_Ships  : Natural := 0;
-         Lost_Ships      : Natural := 0;
-         Destroyed_Ships : Natural := 0;
-         Border_Change   : Boolean;
-         Capital_World   : access constant
+         Current_Systems   : Natural := 0;
+         Built_Ships       : Natural := 0;
+         Captured_Ships    : Natural := 0;
+         Lost_Ships        : Natural := 0;
+         Destroyed_Ships   : Natural := 0;
+         Border_Change     : Boolean;
+         Capital_World     : access constant
            Concorde.Worlds.Root_World_Type'Class;
-         Default_Ship    : access String;
+         Default_Ship      : access String;
       end record;
 
    overriding function Class_Name (Faction : Root_Faction_Type) return String
@@ -414,6 +424,10 @@ private
      (Faction : not null access constant Root_Faction_Type)
       return access Concorde.Agents.Root_Agent_Type'Class
    is (Faction.Update.Item);
+
+   overriding procedure Require_Cash
+     (Faction : in out Root_Faction_Type;
+      Amount  : WL.Money.Money_Type);
 
    function Has_Minister
      (Faction    : Root_Faction_Type'Class;

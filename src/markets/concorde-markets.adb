@@ -503,12 +503,12 @@ package body Concorde.Markets is
          Seller.Short_Name,
          Commodity.Identifier,
          WL.Quantities.Image (Quantity),
-         Image (Price),
+         Image (Tax_Free_Cost),
+         Image (Total_Tax),
+         Image (Taxed_Cost),
          Image (Tax_Free_Price),
          Image (Price - Tax_Free_Price),
-         Image (Taxed_Cost),
-         Image (Tax_Free_Cost),
-         Image (Total_Tax));
+         Image (Price));
 
       Buyer.Execute_Trade
         (Offer     => Concorde.Trades.Bid,

@@ -509,6 +509,8 @@ package body Concorde.Colonies.Configure is
          return True;
       end Start_Sector_OK;
 
+      Basic_Living_Wage : WL.Money.Price_Type := WL.Money.Zero;
+
    begin
 
       Ada.Text_IO.Put_Line
@@ -560,8 +562,7 @@ package body Concorde.Colonies.Configure is
                (Get ("cash", 10_000.0)),
            Owner             => World.Owner,
            Headquarters      => Hub,
-           Basic_Living_Wage =>
-             Template.Get ("basic_living_wage", False));
+           Basic_Living_Wage => Basic_Living_Wage);
 
       Government.Update.Set_Governor
         (Concorde.People.Individuals.Create.Create_Family_Member
@@ -579,6 +580,20 @@ package body Concorde.Colonies.Configure is
          Create_Pop_From_Config
            (Pop_Config, Current_Tile);
       end loop;
+
+      if Template.Contains ("basic_living_wage") then
+         declare
+            use WL.Money;
+         begin
+            for Commodity_Config of Template.Child ("basic_living_wage") loop
+               Basic_Living_Wage := Basic_Living_Wage
+                 + World.Market.Current_Price
+                 (Concorde.Commodities.Get
+                    (Commodity_Config.Config_Name));
+            end loop;
+         end;
+         Government.Update.Set_Basic_Living_Wage (Basic_Living_Wage);
+      end if;
 
       Next_Tile;
 

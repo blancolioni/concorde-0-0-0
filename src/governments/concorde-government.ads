@@ -5,6 +5,7 @@ private with Memor.Element_Vectors;
 with Concorde.Agents;
 with Concorde.Commodities;
 with Concorde.Installations;
+with Concorde.Locations;
 with Concorde.Objects;
 with Concorde.Trades;
 
@@ -15,17 +16,10 @@ with WL.Quantities;
 
 package Concorde.Government is
 
-   type Governed_Interface is limited interface
-     and Concorde.Objects.Named_Object_Interface;
-
    type Root_Government_Type is
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Trades.Trade_Manager_Interface
    with private;
-
-   function Governed
-     (Government : Root_Government_Type'Class)
-      return access constant Governed_Interface'Class;
 
    function Governor
      (Government : Root_Government_Type'Class)
@@ -63,9 +57,29 @@ package Concorde.Government is
 
    function Basic_Living_Wage
      (Government : Root_Government_Type'Class)
-      return Boolean;
+      return WL.Money.Price_Type;
+
+   procedure Set_Basic_Living_Wage
+     (Government : in out Root_Government_Type'Class;
+      Wage       : WL.Money.Price_Type);
 
    type Government_Type is access constant Root_Government_Type'Class;
+
+   type Governed_Interface is limited interface
+     and Concorde.Objects.Named_Object_Interface;
+
+   function Government
+     (Governed : Governed_Interface)
+      return Government_Type
+      is abstract;
+
+   function Governed
+     (Government : Root_Government_Type'Class)
+      return access constant Governed_Interface'Class;
+
+   function Get_Government
+     (Location : Concorde.Locations.Object_Location)
+      return Government_Type;
 
    type Updateable_Reference
      (Item : not null access Root_Government_Type'Class)
@@ -107,7 +121,7 @@ private
          Tax_Receipts      : Array_Of_Tax_Receipts :=
                                (others => WL.Money.Zero);
          Owner_Tithe       : Unit_Real := 0.1;
-         Basic_Living_Wage : Boolean := False;
+         Basic_Living_Wage : WL.Money.Price_Type := WL.Money.Zero;
       end record;
 
    overriding function Class_Name
@@ -137,6 +151,11 @@ private
       return access constant
      Concorde.People.Individuals.Root_Individual_Type'Class
    is (Government.Governor);
+
+   function Basic_Living_Wage
+     (Government : Root_Government_Type'Class)
+      return WL.Money.Price_Type
+   is (Government.Basic_Living_Wage);
 
    package Db is
      new Memor.Database

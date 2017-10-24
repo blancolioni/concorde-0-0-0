@@ -1,4 +1,5 @@
 private with Concorde.Events;
+private with Concorde.Government;
 
 with Concorde.People.Pops;
 
@@ -22,7 +23,8 @@ private
    type Root_Pop_Manager is
      new Root_Manager_Type with
       record
-         Pop : Concorde.People.Pops.Pop_Type;
+         Pop        : Concorde.People.Pops.Pop_Type;
+         Government : Concorde.Government.Government_Type;
       end record;
 
    overriding procedure On_Activated

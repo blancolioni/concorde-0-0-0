@@ -1,5 +1,7 @@
 with Concorde.Objects.Queues;
 
+with Concorde.Government;
+
 with Concorde.Managers.Pops;
 
 with Concorde.Random;
@@ -33,8 +35,11 @@ package body Concorde.People.Pops.Create is
          Pop.Skills.Append (Skill);
          Pop.Size := Size;
          Pop.Set_Cash (Cash);
-         Pop.New_Agent (Location, Market,
-                        Pop.Size_Quantity * To_Quantity (70.0));
+         Pop.New_Agent
+           (Location       => Location,
+            Government     => Concorde.Government.Get_Government (Location),
+            Market         => Market,
+            Stock_Capacity => Pop.Size_Quantity * To_Quantity (70.0));
          Pop.Add_Quantity (Skill.Commodity, Pop.Size_Quantity,
                            WL.Money.Total
                              (Skill.Commodity.Base_Price,

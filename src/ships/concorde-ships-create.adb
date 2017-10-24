@@ -43,10 +43,12 @@ package body Concorde.Ships.Create is
          Concorde.Ships.Designs.Create_Ship_From_Design
            (Design, Ship);
          Ship.New_Agent
-           (Concorde.Locations.Geosynchronous_Orbit
-              (World),
-            World.Market,
-            To_Quantity (10.0 * Float (Ship.Hold_Size)));
+           (Location       =>
+              Concorde.Locations.Geosynchronous_Orbit (World),
+            Government     => Owner.Capital.Government,
+            Market         => World.Market,
+            Stock_Capacity =>
+              To_Quantity (10.0 * Float (Ship.Hold_Size)));
 
          if Name = "" then
             if Suffix = 0 then

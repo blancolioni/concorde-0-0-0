@@ -437,6 +437,18 @@ package body Concorde.Agents is
       Agent.Asks.Update (Update_Ask'Access);
    end Check_Offers;
 
+   ---------------------------
+   -- Clear_Current_Account --
+   ---------------------------
+
+   procedure Clear_Current_Account
+     (Agent : in out Root_Agent_Type'Class)
+   is
+   begin
+      Agent.Last_Earnings := WL.Money.Zero;
+      Agent.Last_Expenses := WL.Money.Zero;
+   end Clear_Current_Account;
+
    -----------------------
    -- Clear_Filled_Asks --
    -----------------------
@@ -1351,6 +1363,8 @@ package body Concorde.Agents is
    procedure New_Agent
      (Agent          : in out Root_Agent_Type'Class;
       Location       : Concorde.Locations.Object_Location;
+      Government     : access constant
+        Root_Agent_Type'Class;
       Market         : access constant
         Concorde.Trades.Trade_Interface'Class;
       Stock_Capacity : WL.Quantities.Quantity_Type)
@@ -1362,6 +1376,7 @@ package body Concorde.Agents is
       Agent.Belief := new Price_Belief_Vectors.Vector;
       Agent.Location := Location;
       Agent.Market := Market;
+      Agent.Government := Government;
    end New_Agent;
 
    -----------------------------
@@ -1416,6 +1431,30 @@ package body Concorde.Agents is
       end if;
    end Remove_Cash;
 
+   ------------------
+   -- Require_Cash --
+   ------------------
+
+   procedure Require_Cash
+     (Agent  : in out Root_Agent_Type;
+      Amount : WL.Money.Money_Type)
+   is
+      use WL.Money;
+      Missing : constant Money_Type :=
+                  (if Amount <= Agent.Cash
+                   then Zero else Amount - Agent.Cash);
+   begin
+      if Missing > Zero then
+         if Agent.Guarantor /= null then
+            Agent.Guarantor.Variable_Reference.Require_Cash (Missing);
+            if Agent.Guarantor.Cash >= Missing then
+               Agent.Guarantor.Variable_Reference.Remove_Cash (Missing);
+               Agent.Add_Cash (Missing);
+            end if;
+         end if;
+      end if;
+   end Require_Cash;
+
    ----------------
    -- Save_Agent --
    ----------------
@@ -1463,9 +1502,27 @@ package body Concorde.Agents is
      (Agent  : in out Root_Agent_Type'Class;
       Amount : WL.Money.Money_Type)
    is
+      use WL.Money;
    begin
+      if Amount > Agent.Cash then
+         Agent.Last_Earnings := Agent.Last_Earnings + Amount - Agent.Cash;
+      else
+         Agent.Last_Expenses := Agent.Last_Expenses + Agent.Cash - Amount;
+      end if;
       Agent.Cash := Amount;
    end Set_Cash;
+
+   --------------------
+   -- Set_Government --
+   --------------------
+
+   procedure Set_Government
+     (Agent      : in out Root_Agent_Type'Class;
+      Government : not null access constant Root_Agent_Type'Class)
+   is
+   begin
+      Agent.Government := Government;
+   end Set_Government;
 
    -------------------
    -- Set_Guarantor --

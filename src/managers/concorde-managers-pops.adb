@@ -1,3 +1,5 @@
+with WL.Money;
+
 with Concorde.Objects.Queues;
 with Concorde.Signals.Standard;
 
@@ -14,6 +16,9 @@ package body Concorde.Managers.Pops is
    begin
       Manager.Object := Pop;
       Manager.Pop := Pop;
+      Manager.Government :=
+        Concorde.Government.Government_Type
+          (Pop.Government);
       Pop.Update.Add_Handler
         (Concorde.Signals.Standard.Object_Activated,
          new Object_Activated_Handler'(Manager => Manager_Type (Manager)));
@@ -61,6 +66,43 @@ package body Concorde.Managers.Pops is
         ("activated at "
          & Concorde.Calendar.Image
            (Manager.Time, True));
+      declare
+         use WL.Money;
+         Earnings : constant Money_Type := Manager.Pop.Last_Earnings;
+         Cash     : constant Money_Type := Manager.Pop.Cash;
+         Minimum  : constant Money_Type :=
+                      Total (Manager.Government.Basic_Living_Wage,
+                             Manager.Pop.Size_Quantity);
+         Subsidy  : constant Money_Type :=
+                      (if Earnings + Cash < Minimum
+                       then Minimum - Earnings - Cash
+                       else Zero);
+      begin
+         Manager.Pop.Log
+           ("earnings: " & Show (Earnings)
+            & "; cash " & Show (Cash)
+            & "; expenses: "
+            & Show (Manager.Pop.Last_Expenses)
+            & "; minimum: " & Show (Minimum)
+            & "; expected subsidy: " & Show (Subsidy));
+
+         if Subsidy > Zero then
+            Manager.Government.Update.Require_Cash (Subsidy);
+            if Manager.Government.Cash >= Subsidy then
+               Manager.Government.Update.Remove_Cash (Subsidy);
+               Manager.Pop.Update.Add_Cash (Subsidy);
+               Manager.Pop.Log_Trade
+                 ("basic living wage: " & Show (Subsidy));
+            else
+               Manager.Government.Log
+                 ("unable to pay basic living wage subsidy of "
+                  & Show (Subsidy) & " to "
+                  & Manager.Pop.Identifier);
+            end if;
+         end if;
+         Manager.Pop.Update.Clear_Current_Account;
+      end;
+
       Manager.Pop.Update.Check_Offers;
       Manager.Pop.Add_Trade_Offers;
       Manager.Pop.Update.Execute_Consumption;

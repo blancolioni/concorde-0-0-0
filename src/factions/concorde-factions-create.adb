@@ -62,7 +62,7 @@ package body Concorde.Factions.Create is
 
       World.Update.Add_Ship (Defender);
 
-      for I in 1 .. 20 loop
+      for I in 1 .. 6 loop
          declare
             Capital : constant Concorde.Worlds.World_Type :=
                         Concorde.Galaxy.Capital_World;
@@ -419,9 +419,11 @@ package body Concorde.Factions.Create is
               OK_For_Start'Access);
 
          New_Faction.New_Agent
-           (Concorde.Locations.World_Surface (Start_World, 1),
-            null,
-            WL.Quantities.Zero);
+           (Location       =>
+              Concorde.Locations.World_Surface (Start_World, 1),
+            Government     => null,
+            Market         => null,
+            Stock_Capacity => WL.Quantities.Zero);
 
          New_Faction.Set_Cash (WL.Money.To_Money (1_000.0));
          New_Faction.Identifier :=
@@ -434,6 +436,7 @@ package body Concorde.Factions.Create is
 
          if Imperial_Centre then
             Galaxy.Set_Capital_World (Start_World);
+            New_Faction.Central_Bank := True;
          end if;
 
          New_Faction.Current_Systems := 1;

@@ -22,6 +22,7 @@ package Concorde.People.Individuals is
 
    type Root_Individual_Type is
      new Concorde.Agents.Root_Agent_Type
+     and Concorde.Factions.Citizen_Interface
      and Concorde.People.Groups.Affiliation_Interface
      and Concorde.Objects.User_Named_Object_Interface
    with private;
@@ -47,17 +48,19 @@ private
 
    type Root_Individual_Type is
      new Concorde.Agents.Root_Agent_Type
+     and Concorde.Factions.Citizen_Interface
      and Concorde.People.Groups.Affiliation_Interface
      and Concorde.Objects.User_Named_Object_Interface with
       record
-         First_Name : Ada.Strings.Unbounded.Unbounded_String;
-         Last_Name  : Ada.Strings.Unbounded.Unbounded_String;
-         Groups     : Concorde.People.Groups.Affiliation_Vector;
-         Skills     : Concorde.People.Skills.Lists.List;
-         Gender     : Gender_Type;
-         Faction    : Concorde.Factions.Faction_Type;
-         Loyalty    : Unit_Real;
-         Scores     : Ability_Score_Array;
+         First_Name  : Ada.Strings.Unbounded.Unbounded_String;
+         Last_Name   : Ada.Strings.Unbounded.Unbounded_String;
+         Groups      : Concorde.People.Groups.Affiliation_Vector;
+         Skills      : Concorde.People.Skills.Lists.List;
+         Gender      : Gender_Type;
+         Faction     : Concorde.Factions.Faction_Type;
+         Citizenship : Concorde.Factions.Faction_Type;
+         Loyalty     : Unit_Real;
+         Scores      : Ability_Score_Array;
       end record;
 
    overriding function Object_Database
@@ -89,6 +92,11 @@ private
      (Item : Root_Individual_Type)
       return String
    is (Item.Name);
+
+   overriding function Citizenship
+     (Item : Root_Individual_Type)
+      return Concorde.Factions.Faction_Type
+   is (Item.Citizenship);
 
    overriding function Variable_Reference
      (Individual : not null access constant Root_Individual_Type)

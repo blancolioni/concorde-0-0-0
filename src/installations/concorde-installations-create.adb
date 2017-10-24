@@ -4,6 +4,8 @@ with WL.Quantities;
 
 with Concorde.Objects.Queues;
 
+with Concorde.Government;
+
 with Concorde.Managers.Installations;
 
 package body Concorde.Installations.Create is
@@ -39,7 +41,11 @@ package body Concorde.Installations.Create is
                      Facility.Capacity_Quantity
                        * To_Quantity (100.0);
       begin
-         Installation.New_Agent (Location, Market, Storage);
+         Installation.New_Agent
+           (Location       => Location,
+            Government     => Concorde.Government.Get_Government (Location),
+            Market         => Market,
+            Stock_Capacity => Storage);
          Installation.Facility := Facility;
          Installation.Owner := Owner;
          Installation.Set_Cash (Cash);

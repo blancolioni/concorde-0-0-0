@@ -14,17 +14,27 @@ package body Concorde.Government is
 --        null;
 --     end Add_Trade_Offers;
 
-   -----------------------
-   -- Basic_Living_Wage --
-   -----------------------
+   --------------------
+   -- Get_Government --
+   --------------------
 
-   function Basic_Living_Wage
-     (Government : Root_Government_Type'Class)
-      return Boolean
+   function Get_Government
+     (Location : Concorde.Locations.Object_Location)
+      return Government_Type
    is
+      use Concorde.Objects;
+      Primary : constant Concorde.Objects.Object_Type :=
+                  Concorde.Locations.Primary (Location);
    begin
-      return Government.Basic_Living_Wage;
-   end Basic_Living_Wage;
+      if Primary /= null
+        and then Primary.all in Concorde.Government.Governed_Interface'Class
+      then
+         return Concorde.Government.Governed_Interface'Class (Primary.all)
+           .Government;
+      else
+         return null;
+      end if;
+   end Get_Government;
 
    --------------
    -- Governed --
@@ -62,6 +72,21 @@ package body Concorde.Government is
    begin
       return Db.Get_Database;
    end Object_Database;
+
+   ---------------------------
+   -- Set_Basic_Living_Wage --
+   ---------------------------
+
+   procedure Set_Basic_Living_Wage
+     (Government : in out Root_Government_Type'Class;
+      Wage       : WL.Money.Price_Type)
+   is
+   begin
+      Government.Log
+        ("basic living wage is "
+         & WL.Money.Show (Wage) & "/day");
+      Government.Basic_Living_Wage := Wage;
+   end Set_Basic_Living_Wage;
 
    ------------------
    -- Set_Governor --

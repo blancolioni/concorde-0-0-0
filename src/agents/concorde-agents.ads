@@ -33,6 +33,8 @@ package Concorde.Agents is
    procedure New_Agent
      (Agent          : in out Root_Agent_Type'Class;
       Location       : Concorde.Locations.Object_Location;
+      Government     : access constant
+        Root_Agent_Type'Class;
       Market         : access constant
         Concorde.Trades.Trade_Interface'Class;
       Stock_Capacity : WL.Quantities.Quantity_Type);
@@ -119,6 +121,10 @@ package Concorde.Agents is
       return access Root_Agent_Type'Class
       is abstract;
 
+   procedure Set_Government
+     (Agent      : in out Root_Agent_Type'Class;
+      Government : not null access constant Root_Agent_Type'Class);
+
    procedure Set_Market
      (Agent  : in out Root_Agent_Type'Class;
       Market : not null access constant
@@ -153,6 +159,10 @@ package Concorde.Agents is
      (Agent  : in out Root_Agent_Type'Class;
       Amount : WL.Money.Money_Type);
 
+   procedure Require_Cash
+     (Agent  : in out Root_Agent_Type;
+      Amount : WL.Money.Money_Type);
+
    procedure Add_Cash
      (Agent : in out Root_Agent_Type'Class;
       Amount : WL.Money.Money_Type);
@@ -160,6 +170,21 @@ package Concorde.Agents is
    procedure Remove_Cash
      (Agent  : in out Root_Agent_Type'Class;
       Amount : WL.Money.Money_Type);
+
+   function Last_Earnings
+     (Agent : Root_Agent_Type'Class)
+      return WL.Money.Money_Type;
+
+   function Last_Expenses
+     (Agent : Root_Agent_Type'Class)
+      return WL.Money.Money_Type;
+
+   procedure Clear_Current_Account
+     (Agent : in out Root_Agent_Type'Class);
+
+   function Government
+     (Agent : Root_Agent_Type'Class)
+      return access constant Root_Agent_Type'Class;
 
    function Guarantor
      (Agent : Root_Agent_Type'Class)
@@ -353,17 +378,20 @@ private
      and Concorde.Locations.Located_Interface
      and Concorde.Trades.Trader_Interface with
       record
-         Agent_Ref    : Agent_Reference;
-         Market       : access Concorde.Trades.Trade_Interface'Class;
-         Stock        : Concorde.Commodities.Root_Stock_Type;
-         Cash         : WL.Money.Money_Type;
-         Belief       : access Price_Belief_Vectors.Vector;
-         Location     : Concorde.Locations.Object_Location;
-         Age          : Natural := 0;
-         Guarantor    : access constant Root_Agent_Type'Class;
-         Account      : Account_Entry_Vectors.Vector;
-         Bids         : Agent_Offer_Vectors.Vector;
-         Asks         : Agent_Offer_Vectors.Vector;
+         Agent_Ref     : Agent_Reference;
+         Market        : access Concorde.Trades.Trade_Interface'Class;
+         Stock         : Concorde.Commodities.Root_Stock_Type;
+         Cash          : WL.Money.Money_Type;
+         Belief        : access Price_Belief_Vectors.Vector;
+         Location      : Concorde.Locations.Object_Location;
+         Age           : Natural := 0;
+         Guarantor     : access constant Root_Agent_Type'Class;
+         Government    : access constant Root_Agent_Type'Class;
+         Account       : Account_Entry_Vectors.Vector;
+         Bids          : Agent_Offer_Vectors.Vector;
+         Asks          : Agent_Offer_Vectors.Vector;
+         Last_Earnings : WL.Money.Money_Type := WL.Money.Zero;
+         Last_Expenses : WL.Money.Money_Type := WL.Money.Zero;
       end record;
 
    overriding function Available_Capacity
@@ -416,6 +444,21 @@ private
      (Agent : Root_Agent_Type'Class)
       return access constant Root_Agent_Type'Class
    is (Agent.Guarantor);
+
+   function Government
+     (Agent : Root_Agent_Type'Class)
+      return access constant Root_Agent_Type'Class
+   is (Agent.Government);
+
+   function Last_Earnings
+     (Agent : Root_Agent_Type'Class)
+      return WL.Money.Money_Type
+   is (Agent.Last_Earnings);
+
+   function Last_Expenses
+     (Agent : Root_Agent_Type'Class)
+      return WL.Money.Money_Type
+   is (Agent.Last_Expenses);
 
    package Agent_Lists is new Ada.Containers.Doubly_Linked_Lists (Agent_Type);
 

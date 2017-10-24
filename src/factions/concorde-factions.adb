@@ -566,6 +566,29 @@ package body Concorde.Factions is
       Faction.Destroyed_Ships := Faction.Destroyed_Ships + 1;
    end Remove_Ship;
 
+   ------------------
+   -- Require_Cash --
+   ------------------
+
+   overriding procedure Require_Cash
+     (Faction : in out Root_Faction_Type;
+      Amount  : WL.Money.Money_Type)
+   is
+      use WL.Money;
+   begin
+      if Amount > Faction.Cash and then Faction.Central_Bank then
+         declare
+            Fiat_Amount : constant Money_Type :=
+                            Amount - Faction.Cash;
+         begin
+            Faction.Log
+              ("budget",
+               "creating " & Show (Fiat_Amount) & " by fiat");
+            Faction.Add_Cash (Fiat_Amount);
+         end;
+      end if;
+   end Require_Cash;
+
    --------------
    -- Required --
    --------------

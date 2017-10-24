@@ -480,6 +480,11 @@ private
       Tile_Index : Positive;
       Height     : Positive);
 
+   overriding function Government
+     (World : Root_World_Type)
+      return Concorde.Government.Government_Type
+   is (World.Government);
+
    overriding function System
      (World : Root_World_Type)
       return access constant Concorde.Systems.Root_Star_System_Type'Class

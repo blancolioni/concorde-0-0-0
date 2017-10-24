@@ -6,6 +6,7 @@ with Concorde.Random;
 with WL.Money;
 with WL.Quantities;
 
+with Concorde.Government;
 with Concorde.Markets;
 with Concorde.Worlds;
 
@@ -40,10 +41,12 @@ package body Concorde.People.Individuals.Create is
            Ada.Strings.Unbounded.To_Unbounded_String
              (Faction.Name);
          Item.Faction := Faction;
+         Item.Citizenship := Faction;
          Item.Loyalty := 1.0;
          Item.Set_Cash (WL.Money.To_Money (1_000.0));
          Item.New_Agent
-           (Location, Market, WL.Quantities.To_Quantity (1000.0));
+           (Location, Concorde.Government.Get_Government (Location),
+            Market, WL.Quantities.To_Quantity (1000.0));
       end Create;
 
    begin
@@ -75,10 +78,12 @@ package body Concorde.People.Individuals.Create is
            Ada.Strings.Unbounded.To_Unbounded_String
              (Concorde.Names.Random_Last_Name);
          Item.Faction := Loyalty;
+         Item.Citizenship := Loyalty;
          Item.Loyalty := Concorde.Random.Unit_Random;
          Item.Set_Cash (WL.Money.To_Money (100.0));
          Item.New_Agent
-           (Location, Market, WL.Quantities.To_Quantity (1000.0));
+           (Location, Concorde.Government.Get_Government (Location),
+            Market, WL.Quantities.To_Quantity (1000.0));
       end Create;
 
    begin
