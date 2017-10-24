@@ -8,17 +8,32 @@ initial = {
 
 imperial_capital = {
    pops = {
-      poor = { size = 10000 }
-      poor = { size = 10000 }
-      poor = { size = 10000 }
-      poor = { size = 10000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
+      poor = { size = 1000 }
 
-      middle_class = { size = 1000 skill = tech }
-      middle_class = { size = 1000 skill = tech }
-      middle_class = { size = 1000 skill = tech }
-      middle_class = { size = 1000 skill = tech }
+      middle_class = { size = 100 skill = tech }
+      middle_class = { size = 100 skill = tech }
+      middle_class = { size = 100 skill = tech }
+      middle_class = { size = 100 skill = tech }
+      middle_class = { size = 100 skill = tech }
+      middle_class = { size = 100 skill = tech }
+      middle_class = { size = 100 skill = tech }
+      middle_class = { size = 100 skill = tech }
 	  
-      rich = { size = 1000 skill = executive }
+      rich = { size = 10 skill = executive }
+      rich = { size = 10 skill = executive }
+      rich = { size = 10 skill = executive }
+      rich = { size = 10 skill = executive }
    }
    
    installations = {
@@ -33,6 +48,6 @@ imperial_capital = {
        luxury-clothes-factory = 1
    }
    
-   basic_living_wage = yes
+   basic_living_wage = { bargain-clothes water vegetables grain }
    
 }
