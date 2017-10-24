@@ -67,7 +67,6 @@ package body Concorde.Markets is
       Bid_Quantity : Quantity_Type := Zero;
       Ask_Price    : Price_Type := Zero;
       Ask_Quantity : Quantity_Type := Zero;
-      Tax          : Price_Type := Zero;
       Hist         : Historical_Quantity_Record :=
                        (Concorde.Calendar.Clock, others => <>);
 
@@ -90,21 +89,11 @@ package body Concorde.Markets is
             Ask_Price := Ask_Offer.Offer_Price;
          end if;
 
-         Tax :=
-           WL.Money.Tax
-             (Bid_Price,
-              Float
-                (Market.Manager.Tax_Rate
-                   (Category  =>
-                        Get_Tax_Category
-                      (Market, Bid_Offer.Agent, Ask_Offer.Agent, Commodity),
-                    Commodity => Commodity)));
-
-         exit when Bid_Price < Ask_Price + Tax;
+         exit when Bid_Price < Ask_Price;
 
          declare
             Final_Price         : constant Price_Type :=
-                                    Adjust_Price (Ask_Price + Bid_Price + Tax,
+                                    Adjust_Price (Ask_Price + Bid_Price,
                                                   0.5);
             Bidder_Cash         : constant Money_Type :=
                                     Bid_Offer.Agent.Limit_Cash;
