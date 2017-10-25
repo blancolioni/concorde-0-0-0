@@ -43,8 +43,8 @@ imperial_capital = {
        vegetable-farm = 1
        sheep-farm = 1
        cotton-farm = 1
-       bargain-clothes-factory = 5
-       regular-clothes-factory = 2
+       bargain-clothes-factory = 3
+       regular-clothes-factory = 1
        luxury-clothes-factory = 1
    }
    

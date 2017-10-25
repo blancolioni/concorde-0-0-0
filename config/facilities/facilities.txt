@@ -112,15 +112,15 @@ light-factory = { class = Factory
                   power = 10
                   hours = 1
                   workers = {
-                     executive = 3
-                     tech = 10
-                     unskilled = 50
+                     executive = 1
+                     tech = 4
+                     unskilled = 20
                      }
                   modules = {
                     industrial = 30
                     habitation = 20
                     }
-                  capacity = 5000
+                  capacity = 1000
                 }
 
 heavy-factory = { class = Factory
