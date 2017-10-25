@@ -2,6 +2,7 @@ with Ada.Characters.Latin_1;
 with Ada.Text_IO;
 
 with Concorde.Calendar;
+with Concorde.Options;
 
 package body Concorde.Logging is
 
@@ -57,7 +58,8 @@ package body Concorde.Logging is
    procedure Start_Logging is
    begin
       Ada.Text_IO.Create (Log_File, Ada.Text_IO.Out_File,
-                          "concorde.log");
+                          Concorde.Options.Log_Folder
+                            & "/concorde.log");
       Logging_Enabled := True;
    end Start_Logging;
 
