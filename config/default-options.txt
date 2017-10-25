@@ -29,6 +29,6 @@ world-sector-size = 1000  # size of sector in world map, in kilometres
 world-height-smoothing = 5
 write-accounts = yes
 work-threads = 2
-log-folder=C:/Users/fwilson/Documents/kiln/concorde-trunk/log
+log-folder=./log
 detailed-logging = yes
 full-screen = yes
