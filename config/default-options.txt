@@ -1,5 +1,6 @@
 scenario = fading-suns
 display-language = english
+faction-name = Musitello
 randomise = no
 create-voronoi = no
 faction-count = 3
@@ -28,4 +29,6 @@ world-sector-size = 1000  # size of sector in world map, in kilometres
 world-height-smoothing = 5
 write-accounts = yes
 work-threads = 2
-log-folder=./log
+log-folder=C:/Users/fwilson/Documents/kiln/concorde-trunk/log
+detailed-logging = yes
+full-screen = yes

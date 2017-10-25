@@ -1,3 +1,5 @@
+with Ada.Directories;
+
 with WL.Command_Line;
 with WL.Processes;
 with WL.Random.Names;
@@ -44,8 +46,13 @@ procedure Concorde.Driver is
 
 begin
 
-   WL.Command_Line.Load_Defaults
-     (Concorde.Paths.Config_File ("options.txt"));
+   if not Ada.Directories.Exists ("options.txt") then
+      Ada.Directories.Copy_File
+        (Source_Name => Concorde.Paths.Config_File ("default-options.txt"),
+         Target_Name => "options.txt");
+   end if;
+
+   WL.Command_Line.Load_Defaults ("options.txt");
 
    Memor.Locking (False);
 
