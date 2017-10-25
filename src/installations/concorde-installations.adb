@@ -395,20 +395,27 @@ package body Concorde.Installations is
                   Required : constant Quantity_Type :=
                                Scale (Capacity, Float (Remaining))
                                * Item.Input_Per;
+                  Cost     : Money_Type;
                begin
                   Queue.Delete_Maximum;
 
                   if Required <= Item.Have then
                      Remaining := 0.0;
+                     Cost :=
+                       Total (Installation.Get_Average_Price (Item.Commodity),
+                              Required);
                      Installation.Remove_Quantity
                        (Item.Commodity, Required);
                   else
+                     Cost := Installation.Get_Value (Item.Commodity);
                      Remaining := Remaining
                        - Unit_Real (To_Float (Item.Have)
                                     / To_Float (Required));
                      Installation.Remove_Quantity
                        (Item.Commodity, Item.Have);
                   end if;
+
+                  Production_Cost := Production_Cost + Cost;
                end;
             end loop;
          end;
