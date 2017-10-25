@@ -293,11 +293,15 @@ package body Concorde.Installations is
    is
       New_Employee : constant Employee_Record :=
                        Employee_Record'
-                         (Pop   => Concorde.People.Pops.Pop_Type (Employee),
-                          Size  => Quantity,
-                          Skill =>
+                         (Pop            =>
+                            Concorde.People.Pops.Pop_Type
+                            (Employee),
+                          Size           => Quantity,
+                          Skill          =>
                             Concorde.People.Skills.Get (Commodity.Name),
-                          Wage  => Wage);
+                          Wage           => Wage,
+                          Contract_Days  => 30,
+                          Days_Remaining => 30);
    begin
       Employer.Update.Employees.Append (New_Employee);
    end Execute_Hire;
@@ -658,16 +662,29 @@ package body Concorde.Installations is
          --           end if;
       end;
 
-      for Worker of Installation.Employees loop
-         Installation.Remove_Quantity
-           (Worker.Skill.Commodity,
-            Installation.Get_Quantity (Worker.Skill.Commodity));
-         Worker.Pop.Update.Add_Quantity
-           (Worker.Skill.Commodity, Worker.Size,
-            WL.Money.Total (Worker.Wage, Worker.Size));
-      end loop;
+      declare
+         Workers : Employee_Lists.List;
+         Changed : Boolean := False;
+      begin
+         for Worker of Installation.Employees loop
+            Worker.Days_Remaining := Worker.Days_Remaining - 1;
+            if Worker.Days_Remaining = 0 then
+               Installation.Remove_Quantity
+                 (Worker.Skill.Commodity,
+                  Installation.Get_Quantity (Worker.Skill.Commodity));
+               Worker.Pop.Update.Add_Quantity
+                 (Worker.Skill.Commodity, Worker.Size,
+                  WL.Money.Total (Worker.Wage, Worker.Size));
+               Changed := True;
+            else
+               Workers.Append (Worker);
+            end if;
+         end loop;
 
-      Installation.Employees.Clear;
+         if Changed then
+            Installation.Employees := Workers;
+         end if;
+      end;
 
    end Execute_Production;
 
@@ -749,17 +766,38 @@ package body Concorde.Installations is
    procedure Pay_Workers
      (Installation : in out Root_Installation_Type'Class)
    is
+      Employees : Employee_Lists.List;
+      Changed   : Boolean := False;
    begin
       for Worker of Installation.Employees loop
          declare
+            use WL.Money;
             Cost : constant WL.Money.Money_Type :=
                      WL.Money.Total (Worker.Wage, Worker.Size);
          begin
-            Installation.Log_Wages (Worker.Pop, Worker.Size, Worker.Wage);
-            Installation.Remove_Cash (Cost);
-            Worker.Pop.Update.Add_Cash (Cost);
+            Installation.Require_Cash (Cost);
+            if Installation.Cash >= Cost then
+               Installation.Log_Wages (Worker.Pop, Worker.Size, Worker.Wage);
+               Installation.Remove_Cash (Cost);
+               Worker.Pop.Update.Add_Cash (Cost);
+               Employees.Append (Worker);
+            else
+               Installation.Log
+                 ("insufficient cash to pay workers; needed "
+                  & Show (Cost) & "; have " & Show (Installation.Cash));
+               Installation.Remove_Quantity
+                 (Worker.Skill.Commodity,
+                  Installation.Get_Quantity (Worker.Skill.Commodity));
+               Worker.Pop.Update.Add_Quantity
+                 (Worker.Skill.Commodity, Worker.Size,
+                  WL.Money.Total (Worker.Wage, Worker.Size));
+               Changed := True;
+            end if;
          end;
       end loop;
+      if Changed then
+         Installation.Employees := Employees;
+      end if;
    end Pay_Workers;
 
    --------------------

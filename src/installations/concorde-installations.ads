@@ -96,10 +96,12 @@ private
 
    type Employee_Record is
       record
-         Pop    : Concorde.People.Pops.Pop_Type;
-         Size   : WL.Quantities.Quantity_Type;
-         Skill  : Concorde.People.Skills.Pop_Skill;
-         Wage   : WL.Money.Price_Type;
+         Pop            : Concorde.People.Pops.Pop_Type;
+         Size           : WL.Quantities.Quantity_Type;
+         Skill          : Concorde.People.Skills.Pop_Skill;
+         Wage           : WL.Money.Price_Type;
+         Contract_Days  : Positive;
+         Days_Remaining : Natural;
       end record;
 
    package Employee_Lists is
