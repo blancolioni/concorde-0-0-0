@@ -149,12 +149,12 @@ package body Concorde.Agents is
                      & " at "
                      & Image (Offer.Price));
 
-                  if Offer.Filled = Offer.Quantity then
+                  if Offer.Filled > Scale (Offer.Quantity, 0.6) then
                      if Offer.Price < Mean then
                         Translate (Belief, Mean, 0.5);
                      end if;
                      Contract (Belief, 0.05);
-                  else
+                  elsif Offer.Price < Belief.High then
                      if Offer.Price > Mean then
                         Translate (Belief, Mean, 0.5);
                      end if;

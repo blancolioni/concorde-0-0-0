@@ -475,10 +475,12 @@ package body Concorde.Markets is
                          Get_Tax_Category (Market, Buyer, Seller, Commodity);
       Tax_Rate       : constant Unit_Real :=
                          Market.Manager.Tax_Rate (Tax_Category, Commodity);
-      Tax_Free_Price : constant Price_Type :=
-                         Without_Tax (Price, Float (Tax_Rate));
-      Taxed_Cost     : constant Money_Type := Total (Price, Quantity);
-      Tax_Free_Cost  : constant Money_Type := Total (Tax_Free_Price, Quantity);
+      Tax_Free_Price : constant Price_Type := Price;
+      Taxed_Price    : constant Price_Type :=
+                         Add_Tax (Price, Float (Tax_Rate));
+      Tax_Free_Cost  : constant Money_Type := Total (Price, Quantity);
+      Taxed_Cost     : constant Money_Type :=
+                         Add_Tax (Tax_Free_Cost, Float (Tax_Rate));
       Total_Tax      : constant Money_Type := Taxed_Cost - Tax_Free_Cost;
 
       Market_Log_Path  : constant String :=
@@ -496,7 +498,7 @@ package body Concorde.Markets is
          Image (Total_Tax),
          Image (Taxed_Cost),
          Image (Tax_Free_Price),
-         Image (Price - Tax_Free_Price),
+         Image (Taxed_Price - Tax_Free_Price),
          Image (Price));
 
       Buyer.Execute_Trade
