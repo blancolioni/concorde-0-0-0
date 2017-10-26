@@ -408,9 +408,12 @@ package body Concorde.Installations is
                        (Item.Commodity, Required);
                   else
                      Cost := Installation.Get_Value (Item.Commodity);
-                     Remaining := Remaining
-                       - Unit_Real (To_Float (Item.Have)
-                                    / To_Float (Required));
+                     Remaining :=
+                       Real'Max
+                         (0.0,
+                          Remaining
+                          - Unit_Real (To_Float (Item.Have)
+                            / To_Float (Required)));
                      Installation.Remove_Quantity
                        (Item.Commodity, Item.Have);
                   end if;
