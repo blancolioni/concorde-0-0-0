@@ -423,7 +423,10 @@ package body Concorde.Agents is
                         & " at "
                         & Image (Offer.Price));
 
-                     if Supply = Zero then
+                     if Supply = Zero
+                       or else Total (Minimum_Price, Unit) > Agent.Limit_Cash
+                       or else Total (Offer.Price, Unit) > Agent.Limit_Cash
+                     then
                         --  this ain't gonna work
                         Agent.Market.Delete_Offer
                           (Offer     => Concorde.Trades.Bid,
