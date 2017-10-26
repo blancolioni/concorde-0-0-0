@@ -113,7 +113,7 @@ package body Concorde.Markets is
                Bid_Offer.Agent.Log_Trade
                  ("limit cash: " & Image (Bid_Offer.Agent.Limit_Cash)
                   & " price " & Image (Final_Price)
-                  & " afforable quantity " & Image (Affordable_Quantity));
+                  & " affordable quantity " & Image (Affordable_Quantity));
 
                Bid_Quantity := Zero;
             else

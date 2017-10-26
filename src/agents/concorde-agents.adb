@@ -99,6 +99,13 @@ package body Concorde.Agents is
            Concorde.Commodities.Root_Commodity_Type'Class;
          Offer     : in out Agent_Offer)
       is
+         use Concorde.Trades;
+         Category : constant Market_Tax_Category :=
+                      (if Agent.Market_Resident
+                       then Sales else Import);
+         Tax_Rate : constant Unit_Real :=
+                      Agent.Market.Manager.Tax_Rate
+                        (Category, Commodity);
       begin
 
          Check (Offer);
@@ -127,6 +134,9 @@ package body Concorde.Agents is
                                    Agent.Market.Get_Daily_Quantity
                                      (Commodity,
                                       Concorde.Trades.Local_Demand, 1);
+                  Offer_Nett   : constant Price_Type :=
+                                   Without_Tax (Offer.Price,
+                                                Float (Tax_Rate));
                begin
 
                   Agent.Log_Trade
@@ -147,7 +157,8 @@ package body Concorde.Agents is
                      & ": offered " & Image (Offer.Quantity)
                      & "; sold " & Image (Offer.Filled)
                      & " at "
-                     & Image (Offer.Price));
+                     & Image (Offer_Nett) & "/"
+                     & Image (Offer.Price) & " with tax");
 
                   if Offer.Filled > Scale (Offer.Quantity, 0.6) then
                      if Offer.Price < Mean then
@@ -192,6 +203,7 @@ package body Concorde.Agents is
                         Image (Offer.Quantity),
                         Image (Offer.Filled),
                         Image (Offer.Price),
+                        Image (Offer_Nett),
                         Image (Belief.Low),
                         Image (Belief.High),
                         Image
@@ -579,13 +591,23 @@ package body Concorde.Agents is
 --                                   Market.Manager.Tax_Rate
 --                                     (Concorde.Trades.Sales,
 --                                      Commodity));
+      Nett_Sell_Price : constant Price_Type :=
+                          (if Agent.Offer_Strategy (Commodity)
+                           = Average_Price
+                           then Max (Mean, Minimum_Price)
+                           else Create_Ask_Price
+                             (Max (Minimum_Price, Belief.Low),
+                              Max (Minimum_Price, Belief.High), Agent.Age));
+      Tax_Category  : constant Concorde.Trades.Market_Tax_Category :=
+                        (if Agent.Market_Resident
+                         then Concorde.Trades.Sales
+                         else Concorde.Trades.Import);
       Sell_Price    : constant Price_Type :=
-                        (if Agent.Offer_Strategy (Commodity)
-                         = Average_Price
-                         then Max (Mean, Minimum_Price)
-                         else Create_Ask_Price
-                           (Max (Minimum_Price, Belief.Low),
-                            Max (Minimum_Price, Belief.High), Agent.Age));
+                        Add_Tax
+                          (Nett_Sell_Price,
+                           Float
+                             (Market.Manager.Tax_Rate
+                                (Tax_Category, Commodity)));
       Sell_Quantity : constant Quantity_Type := Ask_Quantity;
 
       procedure Update_Agent
