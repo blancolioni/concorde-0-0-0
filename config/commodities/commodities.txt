@@ -65,25 +65,25 @@ spirits = { class = consumer
             intoxicant = yes
           }
           
-luxury-clothes = { class = consumer
+luxury_clothes = { class = consumer
                    density = 20
                    quality = 3
                    clothes = yes
                  }
                  
-regular-clothes = { class = consumer
+regular_clothes = { class = consumer
                     density = 20
                     quality = 2
                     clothes = yes
                   }
                   
-bargain-clothes = { class = consumer
+bargain_clothes = { class = consumer
                     density = 20
                     quality = 1
                     clothes = yes
                   }
                   
-rare-minerals = { class = resource
+rare_minerals = { class = resource
                   density = 1
                   mineral = yes
                   base_price = 10
@@ -128,7 +128,7 @@ coal = { class = resource
          base_price = 1
        }
        
-natural-gas = { class = resource
+natural_gas = { class = resource
                 density = 0.440
                 mineral = yes
                 gas = yes

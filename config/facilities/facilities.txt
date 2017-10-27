@@ -39,7 +39,7 @@ consulate = { class = consulate
                         }
             }
             
-trade-centre = { class = trade_centre
+trade_centre = { class = trade_centre
                     power = 10
                     workers = { executive = 2
                                 tech = 10
@@ -78,7 +78,7 @@ dock = { class = Orbital_Dock
        
 farm = { class = Farm
          name = Farm
-         template-class = yes
+         template_class = yes
          power = 5
          days = 1
          workers = { tech = 1 unskilled = 9 }
@@ -86,42 +86,42 @@ farm = { class = Farm
          capacity = 10000
        }
        
-seafood-farm = {
+seafood_farm = {
    template = farm
    output = seafood
    terrain = sea
    capacity = 1000
 }
 
-fruit-farm = {
+fruit_farm = {
    template = farm
    output = fruit
 }
 
-grain-farm = {
+grain_farm = {
    template = farm
    output = grain
 }
 
-vegetable-farm = {
+vegetable_farm = {
    template = farm
    output = vegetables
 }
 
-cotton-farm = {
+cotton_farm = {
    template = farm
    output = cotton
    capacity = 5000
 }
 
-sheep-farm = {
+sheep_farm = {
    template = farm
    output = wool
    capacity = 5000
 }
 
-light-factory = { class = Factory
-                  template-class = yes
+light_factory = { class = Factory
+                  template_class = yes
                   power = 10
                   hours = 1
                   workers = {
@@ -136,8 +136,8 @@ light-factory = { class = Factory
                   capacity = 1000
                 }
 
-heavy-factory = { class = Factory
-                  template-class = yes
+heavy_factory = { class = Factory
+                  template_class = yes
                   power = 20
                   hours = 2
                   workers = {
@@ -151,8 +151,8 @@ heavy-factory = { class = Factory
                   capacity = 2000
                 }
                 
-super-heavy-factory = { class = Factory
-                        template-class = yes
+super_heavy_factory = { class = Factory
+                        template_class = yes
                         power = 40
                         hours = 4
                         workers = { executive = 20
@@ -168,8 +168,8 @@ super-heavy-factory = { class = Factory
                         capacity = 5000
                       }
 
-steel-factory = {
-   template = heavy-factory
+steel_factory = {
+   template = heavy_factory
    inputs = {
      metal = 1
      coal = 1
@@ -177,8 +177,8 @@ steel-factory = {
    output = steel
 }
 
-cement-factory = {
-   template = heavy-factory
+cement_factory = {
+   template = heavy_factory
    inputs = {
      chemicals = 1
      minerals = 1
@@ -186,8 +186,8 @@ cement-factory = {
    output = cement
 }
 
-beer-factory = {
-   template = light-factory
+beer_factory = {
+   template = light_factory
    inputs = {
       grain = 2
       vegetables = 1
@@ -196,8 +196,8 @@ beer-factory = {
    output = beer
 }
 
-wine-factory = {
-   template = light-factory
+wine_factory = {
+   template = light_factory
    inputs = {
       fruit = 4
       water = 2
@@ -205,8 +205,8 @@ wine-factory = {
    output = wine
 }
 
-spirit-factory = {
-   template = light-factory
+spirit_factory = {
+   template = light_factory
    inputs = {
       grain = 5
       fruit = 3
@@ -215,8 +215,8 @@ spirit-factory = {
    output = spirits
 }
 
-luxury-clothes-factory = {
-   template = light-factory
+luxury_clothes_factory = {
+   template = light_factory
    name = "Luxury Clothing Factory"
    inputs = {
       silk = 2
@@ -224,29 +224,29 @@ luxury-clothes-factory = {
 	  cotton = 1
 	  wool = 1
       }
-   output = luxury-clothes
+   output = luxury_clothes
    capacity = 100
 }
 
-regular-clothes-factory = {
-   template = light-factory
+regular_clothes_factory = {
+   template = light_factory
    inputs = {
       cotton = 2
 	  wool = 2
       }
-   output = regular-clothes
+   output = regular_clothes
    capacity = 1000
 }
 
-bargain-clothes-factory = {
-   template = light-factory
+bargain_clothes_factory = {
+   template = light_factory
    inputs = {
       or = {
         cotton = 1
         wool = 1
         }
       }
-   output = bargain-clothes
+   output = bargain_clothes
 }
            
 refinery = { class = Resource_Generator
@@ -258,19 +258,19 @@ refinery = { class = Resource_Generator
              fuel = true
            }
            
-chemical-plant = {
-   template = heavy-factory
+chemical_plant = {
+   template = heavy_factory
    inputs = {
        minerals = 2
        oil = 1
-       rare-minerals = 1
+       rare_minerals = 1
        water = 2
        }
    output = chemicals
 }
            
-plastic-factory = {
-   template = heavy-factory
+plastic_factory = {
+   template = heavy_factory
    inputs = {
        chemicals = 1
        oil = 2
@@ -279,8 +279,8 @@ plastic-factory = {
    output = plastic
 }
            
-plasteel-factory = {
-   template = heavy-factory
+plasteel_factory = {
+   template = heavy_factory
    inputs = {
        chemicals = 2
        plastic = 3
@@ -410,7 +410,7 @@ academy = { class = Service_Facility
             capacity = 100
             fitness = true
           }
-leisure-complex = { class = Service_Facility
+leisure_complex = { class = Service_Facility
                     name = "Leisure Complex"
                     power = 2
              workers = {
@@ -489,7 +489,7 @@ multiplex = { class = Service_Facility
               capacity = 500
               entertainment = true
             }
-tv-station = { class = Service_Facility
+tv_station = { class = Service_Facility
                name = "TV Station"
                power = 5
              workers = {

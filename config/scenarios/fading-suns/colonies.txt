@@ -37,17 +37,17 @@ imperial_capital = {
    }
    
    installations = {
-       grain-farm = 1
-       seafood-farm = 1
-       fruit-farm = 1
-       vegetable-farm = 1
-       sheep-farm = 1
-       cotton-farm = 1
-       bargain-clothes-factory = 3
-       regular-clothes-factory = 1
-       luxury-clothes-factory = 1
+       grain_farm = 1
+       seafood_farm = 1
+       fruit_farm = 1
+       vegetable_farm = 1
+       sheep_farm = 1
+       cotton_farm = 1
+       bargain_clothes_factory = 3
+       regular_clothes_factory = 1
+       luxury_clothes_factory = 1
    }
    
-   basic_living_wage = { bargain-clothes water vegetables grain }
+   basic_living_wage = { bargain_clothes water vegetables grain }
    
 }
