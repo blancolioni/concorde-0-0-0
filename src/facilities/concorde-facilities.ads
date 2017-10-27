@@ -12,7 +12,7 @@ with Concorde.People.Skills;
 package Concorde.Facilities is
 
    type Facility_Class is
-     (Colony_Hub, Port, Consulate, Corporate_HQ, Orbital_Dock,
+     (Colony_Hub, Port, Consulate, Trade_Centre, Corporate_HQ, Orbital_Dock,
       Factory, Resource_Generator, Farm, Service_Facility);
 
    type Facility_Flag is

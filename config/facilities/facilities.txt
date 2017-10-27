@@ -39,6 +39,19 @@ consulate = { class = consulate
                         }
             }
             
+trade-centre = { class = trade_centre
+                    power = 10
+                    workers = { executive = 2
+                                tech = 10
+                                unskilled = 5
+                              }
+                    modules = { commercial = 5
+                                habitation = 5
+                              }
+                    capacity = 10000
+                  }
+            
+
 hq = { class = Corporate_Hq
        power = 10
        workers = { executive = 5
