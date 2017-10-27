@@ -35,6 +35,7 @@ with Concorde.Ships.Xi_Model;
 with Concorde.Xi_UI.Colours;
 
 with Concorde.Systems.Events;
+with WL.String_Maps;
 
 package body Concorde.Worlds.Xi_Model is
 
@@ -51,6 +52,12 @@ package body Concorde.Worlds.Xi_Model is
    Height_Material_Array                : array (Height_Range)
      of Xi.Materials.Material.Xi_Material :=
        (others => null);
+
+   package Material_Maps is
+     new WL.String_Maps (Xi.Materials.Material.Xi_Material,
+                         Xi.Materials.Material."=");
+
+   Owner_Material_Map : Material_Maps.Map;
 
    type Rendered_World_Record is
       record
@@ -143,6 +150,10 @@ package body Concorde.Worlds.Xi_Model is
      (Height : Height_Range)
       return Xi.Materials.Material.Xi_Material;
 
+   function Installation_Material
+     (Installation : Concorde.Installations.Installation_Type)
+      return Xi.Materials.Material.Xi_Material;
+
    type World_Transition_Callback is
      abstract new Xi.Transition.Transition_Callback_Interface with
       record
@@ -194,8 +205,17 @@ package body Concorde.Worlds.Xi_Model is
      (World       : World_Type)
       return Xi.Entity.Xi_Entity
    is
+      use Concorde.Surfaces;
+
       Surface : constant Concorde.Surfaces.Surface_Type :=
                   World.Surface;
+
+      Tex_S               : constant array (Tile_Neighbour_Index range 1 .. 6)
+        of Xi.Xi_Unit_Float :=
+          (0.7, 0.3, 0.0, 0.3, 0.7, 1.0);
+      Tex_T               : constant array (Tile_Neighbour_Index range 1 .. 6)
+        of Xi.Xi_Unit_Float :=
+          (1.0, 1.0, 0.5, 0.0, 0.0, 0.5);
 
       function Tile_Entity
         (Index    : Concorde.Surfaces.Surface_Tile_Index;
@@ -233,11 +253,29 @@ package body Concorde.Worlds.Xi_Model is
 
          Normal := Xi.Matrices.Normalise (Normal);
 
-         for V of Boundary loop
-            Result.Normal (Normal);
-            Result.Color ((0.0, 0.0, 0.0, 0.0));
-            Result.Vertex (V);
-         end loop;
+         declare
+            use Xi;
+            Index : Tile_Neighbour_Index := Tile_Neighbour_Index'First;
+            High_Y : Xi_Float := Boundary (Boundary'First) (2);
+         begin
+            for I in Boundary'Range loop
+               if Boundary (I) (2) > High_Y then
+                  High_Y := Boundary (I) (2);
+                  Index := I;
+               end if;
+            end loop;
+
+            for V of Boundary loop
+               Index :=
+                 (if Index = Tex_S'Last
+                  then Tex_S'First
+                  else Index + 1);
+               Result.Normal (Normal);
+               Result.Color ((0.0, 0.0, 0.0, 0.0));
+               Result.Texture_Coordinate (Tex_S (Index), Tex_T (Index));
+               Result.Vertex (V);
+            end loop;
+         end;
 
          Result.End_Operation;
 
@@ -261,7 +299,10 @@ package body Concorde.Worlds.Xi_Model is
                              then ((Raw_Height + 2) / 3) * 3 - 2
                              else Raw_Height);
             Material : constant Xi.Materials.Material.Xi_Material :=
-                         Height_Material (Height);
+                         (if World.Sectors (I).Installations.Is_Empty
+                          then Height_Material (Height)
+                          else Installation_Material
+                            (World.Sectors (I).Installations.First_Element));
          begin
             Result.Add_Child (Tile_Entity (I, Material));
          end;
@@ -325,6 +366,51 @@ package body Concorde.Worlds.Xi_Model is
 
       return Material;
    end Height_Material;
+
+   ---------------------------
+   -- Installation_Material --
+   ---------------------------
+
+   function Installation_Material
+     (Installation : Concorde.Installations.Installation_Type)
+      return Xi.Materials.Material.Xi_Material
+   is
+      use Xi.Materials.Material;
+      Base_Material : constant Xi.Materials.Material.Xi_Material :=
+                        Xi.Assets.Material ("Xi/Solid_Lit_Color");
+      Material      : Xi.Materials.Material.Xi_Material;
+      Key           : constant String :=
+                        (if True
+                         then Installation.Facility.Identifier
+                         else Installation.Owner.Identifier);
+
+   begin
+
+      if True then
+         if not Owner_Material_Map.Contains (Key) then
+            Material :=
+              Xi.Materials.Material.Xi_New_With_Texture
+                (Name     => Key,
+                 Texture  =>
+                   Xi.Assets.Texture ("Concorde.Worlds." & Key),
+                 Lighting => True);
+            Owner_Material_Map.Insert (Key, Material);
+         end if;
+      else
+         if not Owner_Material_Map.Contains (Key) then
+            Material := Base_Material.Instantiate;
+            Material.Set_Parameter_Value
+              ("color",
+               Xi.Value.Color_Value
+                 (Concorde.Xi_UI.Colours.To_Xi_Color
+                      (Concorde.Factions.Faction_Type (Installation.Owner)
+                       .Colour)));
+            Owner_Material_Map.Insert (Key, Material);
+         end if;
+      end if;
+
+      return Owner_Material_Map.Element (Key);
+   end Installation_Material;
 
    ----------------
    -- Load_World --
