@@ -43,7 +43,7 @@ package Concorde.Options is
    Log_Folder              : String;
    Detailed_Logging        : Boolean;
    Show_Clock_Time         : Boolean;
-   
+   Update_Speed            : Natural;
    Log_Ship_Movement       : Boolean;
 
 end Concorde.Options;

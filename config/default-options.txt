@@ -32,3 +32,5 @@ work-threads = 2
 log-folder=./log
 detailed-logging = yes
 full-screen = yes
+update-speed = 1
+

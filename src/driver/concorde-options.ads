@@ -33,6 +33,7 @@ package Concorde.Options is
    function Log_Folder return String;
    function Detailed_Logging return Boolean;
    function Show_Clock_Time return Boolean;
+   function Update_Speed return Natural;
    function Log_Ship_Movement return Boolean;
 
 end Concorde.Options;

@@ -202,6 +202,12 @@ package body Concorde.Options is
                ("show-clock-time", ' ');
    end Show_Clock_Time;
 
+   function Update_Speed return Natural is
+   begin
+      return WL.Command_Line.Find_Option
+               ("update-speed", ' ', 0);
+   end Update_Speed;
+
    function Log_Ship_Movement return Boolean is
    begin
       return WL.Command_Line.Find_Option
