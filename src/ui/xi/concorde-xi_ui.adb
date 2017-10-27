@@ -38,6 +38,8 @@ package body Concorde.Xi_UI is
    Local_Main_Log_View : Xtk.Text.View.Xtk_Text_View;
    Local_Outliner_Div  : Xtk.Div_Element.Xtk_Div_Element;
 
+   Update_Multiplier   : Non_Negative_Real := 24.0;
+
    type Model_Frame_Listener is
      new Xi.Frame_Event.Xi_Frame_Listener_Interface with
       record
@@ -170,6 +172,10 @@ package body Concorde.Xi_UI is
       begin
          Xi.Main.Add_Frame_Listener (Listener);
       end;
+
+      Update_Multiplier :=
+        Non_Negative_Real (Concorde.Options.Update_Speed);
+
    end Initialize;
 
    -------------
@@ -303,7 +309,8 @@ package body Concorde.Xi_UI is
          return;
       end if;
 
-      Concorde.Updates.Advance (24.0 * 3600.0 * Time_Delta);
+      Concorde.Updates.Advance
+        (Duration (Update_Multiplier) * Time_Delta);
 
       Model.Cash_Label.Set_Label
         (WL.Money.Image (Model.Faction.Cash));
