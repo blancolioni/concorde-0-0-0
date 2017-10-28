@@ -10,7 +10,6 @@ conflict.db.marlowe
 src/kit/*.ad[bs]
 conflict.gpr
 GNAT-TEMP*.TMP
-*.bmp
 gmon.out
 build/obj/*
 gprof.txt
