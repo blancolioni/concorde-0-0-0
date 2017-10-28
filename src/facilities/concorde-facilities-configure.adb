@@ -63,6 +63,10 @@ package body Concorde.Facilities.Configure is
 
       begin
          Facility.Tag := new String'(Config.Config_Name);
+         if Template_Config.Config_Name /= "" then
+            Facility.Resource_Name := new String'(Template_Config.Config_Name);
+         end if;
+
          Facility.Class :=
            Facility_Class'Value
              (Value ("class", "bad class in " & Config.Config_Name));

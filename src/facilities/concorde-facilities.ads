@@ -30,6 +30,10 @@ package Concorde.Facilities is
      (Facility : Root_Facility_Type'Class)
       return Facility_Class;
 
+   function Resource_Name
+     (Facility : Root_Facility_Type'Class)
+      return String;
+
    function Quality
      (Facility : Root_Facility_Type'Class)
       return Concorde.Commodities.Commodity_Quality;
@@ -217,6 +221,7 @@ private
      new Concorde.Objects.Root_Localised_Object_Type with
       record
          Tag                 : access String;
+         Resource_Name       : access String;
          Class               : Facility_Class;
          Template            : Boolean;
          Flags               : Array_Of_Flags;
@@ -243,6 +248,13 @@ private
    package Db is
      new Memor.Database
        ("facility", Root_Facility_Type, Facility_Type);
+
+   function Resource_Name
+     (Facility : Root_Facility_Type'Class)
+      return String
+   is (if Facility.Resource_Name = null
+       then Facility.Identifier
+       else Facility.Resource_Name.all);
 
    function Simple_Input
      (Facility : Root_Facility_Type'Class;
