@@ -37,13 +37,14 @@ with Concorde.Xi_UI.Colours;
 with Concorde.Systems.Events;
 with WL.String_Maps;
 
+with Concorde.Options;
+
 package body Concorde.Worlds.Xi_Model is
 
-   type Map_Mode_Type is (Height_Mode, Temperature_Mode);
+   type Map_Mode_Type is (Height_Mode, Temperature_Mode, Political_Mode);
    pragma Unreferenced (Temperature_Mode);
 
-   Current_Map_Mode : constant Map_Mode_Type := Height_Mode;
-   pragma Unreferenced (Current_Map_Mode);
+   Current_Map_Mode : Map_Mode_Type := Height_Mode;
 
    Selected_Colour : constant Lui.Colours.Colour_Type :=
                        (0.8, 0.7, 0.1, 0.5);
@@ -380,23 +381,12 @@ package body Concorde.Worlds.Xi_Model is
                         Xi.Assets.Material ("Xi/Solid_Lit_Color");
       Material      : Xi.Materials.Material.Xi_Material;
       Key           : constant String :=
-                        (if True
-                         then Installation.Facility.Identifier
-                         else Installation.Owner.Identifier);
-
+                        (if Current_Map_Mode = Political_Mode
+                         then Installation.Owner.Identifier
+                         else Installation.Facility.Resource_Name);
    begin
 
-      if True then
-         if not Owner_Material_Map.Contains (Key) then
-            Material :=
-              Xi.Materials.Material.Xi_New_With_Texture
-                (Name     => Key,
-                 Texture  =>
-                   Xi.Assets.Texture ("Concorde.Worlds." & Key),
-                 Lighting => True);
-            Owner_Material_Map.Insert (Key, Material);
-         end if;
-      else
+      if Current_Map_Mode = Political_Mode then
          if not Owner_Material_Map.Contains (Key) then
             Material := Base_Material.Instantiate;
             Material.Set_Parameter_Value
@@ -405,6 +395,16 @@ package body Concorde.Worlds.Xi_Model is
                  (Concorde.Xi_UI.Colours.To_Xi_Color
                       (Concorde.Factions.Faction_Type (Installation.Owner)
                        .Colour)));
+            Owner_Material_Map.Insert (Key, Material);
+         end if;
+      else
+         if not Owner_Material_Map.Contains (Key) then
+            Material :=
+              Xi.Materials.Material.Xi_New_With_Texture
+                (Name     => Key,
+                 Texture  =>
+                   Xi.Assets.Texture ("Concorde.Worlds." & Key),
+                 Lighting => True);
             Owner_Material_Map.Insert (Key, Material);
          end if;
       end if;
@@ -857,6 +857,11 @@ package body Concorde.Worlds.Xi_Model is
       Scene : Xi.Scene.Xi_Scene;
       Rec   : Rendered_World_Record;
    begin
+
+      if Concorde.Options.Political_Map_Mode then
+         Current_Map_Mode := Political_Mode;
+      end if;
+
       if Rendered_Worlds.Contains (World.Identifier) then
          declare
             use type Xi.Scene.Xi_Scene;

@@ -214,4 +214,10 @@ package body Concorde.Options is
                ("log-ship-movement", ' ');
    end Log_Ship_Movement;
 
+   function Political_Map_Mode return Boolean is
+   begin
+      return WL.Command_Line.Find_Option
+               ("political-map-mode", ' ');
+   end Political_Map_Mode;
+
 end Concorde.Options;
