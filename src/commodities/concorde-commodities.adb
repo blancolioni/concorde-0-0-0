@@ -115,11 +115,13 @@ package body Concorde.Commodities is
 
    procedure Create_Stock
      (Stock   : in out Root_Stock_Type'Class;
-      Maximum : WL.Quantities.Quantity_Type)
+      Maximum : WL.Quantities.Quantity_Type;
+      Virtual : Boolean)
    is
    begin
       Stock.Maximum := Maximum;
       Stock.Vector.Clear;
+      Stock.Virtual := Virtual;
    end Create_Stock;
 
    ----------------------

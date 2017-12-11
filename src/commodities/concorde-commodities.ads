@@ -168,7 +168,8 @@ package Concorde.Commodities is
 
    procedure Create_Stock
      (Stock   : in out Root_Stock_Type'Class;
-      Maximum : WL.Quantities.Quantity_Type);
+      Maximum : WL.Quantities.Quantity_Type;
+      Virtual : Boolean);
 
 private
 
@@ -208,6 +209,7 @@ private
       record
          Maximum : WL.Quantities.Quantity_Type   := WL.Quantities.Zero;
          Vector  : Stock_Vectors.Vector;
+         Virtual : Boolean;
       end record;
 
    overriding function Maximum_Quantity

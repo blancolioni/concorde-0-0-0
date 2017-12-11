@@ -123,23 +123,57 @@ package body Concorde.Installations is
 
       procedure Add_Port_Trade_Offer
         (Commodity : Concorde.Commodities.Commodity_Type)
-      is null;
---           Local_Demand  : constant Quantity_Type :=
---                             Item.Market.Get_Daily_Quantity
---                               (Commodity, Concorde.Trades.Local_Demand);
---           Local_Supply  : constant Quantity_Type :=
---                             Item.Market.Get_Daily_Quantity
---                               (Commodity, Concorde.Trades.Local_Supply);
+      is
+         use Concorde.Calendar;
+         Local_Demand  : constant Quantity_Type :=
+                           Item.Market.Get_Daily_Quantity
+                             (Commodity, Concorde.Trades.Local_Demand,
+                              Days => 7);
+         Local_Supply  : constant Quantity_Type :=
+                           Item.Market.Get_Daily_Quantity
+                             (Commodity, Concorde.Trades.Local_Supply,
+                              Days => 7);
 --           In_Stock      : constant Quantity_Type :=
 --                             Item.Get_Quantity (Commodity);
---        begin
---           if Local_Demand > Local_Supply and then In_Stock > Zero then
---              Item.Create_Ask
---                (Commodity, Min (Local_Demand - Local_Supply, In_Stock));
---           elsif Local_Supply > Local_Demand then
---              Item.Create_Bid (Commodity, Export_Supply);
---           end if;
---        end Add_Port_Trade_Offer;
+      begin
+         if Clock - Start > 7.0 * 86_400.0
+           and then Local_Demand > Scale (Local_Supply, 1.1)
+           and then Local_Demand - Local_Supply
+             > Item.Contracted_Buys.Get_Quantity (Commodity)
+           + To_Quantity (100.0)
+         then
+            Item.Log ("seven day supply/demand for " & Commodity.Name
+                      & " is "
+                      & Show (Local_Supply)
+                      & "/"
+                      & Show (Local_Demand));
+            declare
+               use WL.Money;
+               Quantity : constant Quantity_Type :=
+                            Min (Local_Demand - Local_Supply,
+                                 To_Quantity (1_000.0));
+               Price    : constant Price_Type :=
+                            Adjust_Price
+                              (Item.Market.Current_Price
+                                 (Commodity),
+                               0.9);
+               Contract : constant Concorde.Contracts.Contract_Type :=
+                            Concorde.Contracts.New_Buy_Contract
+                              (Location  => Item.Current_Location,
+                               Buyer     => Item,
+                               Commodity => Commodity,
+                               Quantity  => Quantity,
+                               Price     => Price,
+                               Expires   =>
+                                 Concorde.Calendar.Clock
+                               + 7.0 * 86_400.0);
+            begin
+               Item.Update.Current_Contracts.Append (Contract);
+               Item.Update.Contracted_Buys.Add_Quantity
+                 (Commodity, Quantity, Total (Price, Quantity));
+            end;
+         end if;
+      end Add_Port_Trade_Offer;
 
       --------------------
       -- Add_Sell_Offer --

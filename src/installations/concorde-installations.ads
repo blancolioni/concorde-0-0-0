@@ -3,7 +3,12 @@ private with Ada.Containers.Doubly_Linked_Lists;
 private with Memor;
 private with Memor.Database;
 
+with WL.Money;
+with WL.Quantities;
+
 with Concorde.Agents;
+with Concorde.Commodities;
+with Concorde.Contracts;
 with Concorde.Trades;
 
 with Concorde.Facilities;
@@ -16,9 +21,6 @@ with Concorde.People.Skills;
 with Concorde.People.Pops;
 
 with Concorde.Calendar;
-with WL.Money;
-with WL.Quantities;
-with Concorde.Commodities;
 
 package Concorde.Installations is
 
@@ -94,6 +96,11 @@ private
    package Queued_Production_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Queued_Production_Element);
 
+   package Current_Contract_Lists is
+     new Ada.Containers.Doubly_Linked_Lists
+       (Concorde.Contracts.Contract_Type,
+        Concorde.Contracts."=");
+
    type Employee_Record is
       record
          Pop            : Concorde.People.Pops.Pop_Type;
@@ -111,13 +118,15 @@ private
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Locations.Located_Interface with
       record
-         Facility         : Concorde.Facilities.Facility_Type;
-         Owner            : access constant
+         Facility          : Concorde.Facilities.Facility_Type;
+         Owner             : access constant
            Concorde.Agents.Root_Agent_Type'Class;
-         Manager          : access constant
+         Manager           : access constant
            Concorde.People.Individuals.Root_Individual_Type'Class;
-         Employees        : Employee_Lists.List;
-         Production_Queue : Queued_Production_Lists.List;
+         Employees         : Employee_Lists.List;
+         Production_Queue  : Queued_Production_Lists.List;
+         Current_Contracts : Current_Contract_Lists.List;
+         Contracted_Buys   : Concorde.Commodities.Root_Stock_Type;
       end record;
 
    overriding function Class_Name

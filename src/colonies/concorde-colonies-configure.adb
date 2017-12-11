@@ -656,7 +656,7 @@ package body Concorde.Colonies.Configure is
 
       Create_Service_Facilities;
 
-      if False then
+      if True then
          Port :=
            Concorde.Installations.Create.Create
              (Location =>

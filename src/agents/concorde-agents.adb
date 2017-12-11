@@ -1397,7 +1397,7 @@ package body Concorde.Agents is
    begin
       Next_Ref := Next_Ref + 1;
       Agent.Agent_Ref := Next_Ref;
-      Agent.Stock.Create_Stock (Stock_Capacity);
+      Agent.Stock.Create_Stock (Stock_Capacity, False);
       Agent.Belief := new Price_Belief_Vectors.Vector;
       Agent.Location := Location;
       Agent.Market := Market;

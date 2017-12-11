@@ -1,0 +1,110 @@
+package body Concorde.Contracts is
+
+   ---------------------
+   -- Accept_Contract --
+   ---------------------
+
+   procedure Accept_Contract
+     (Agent    : not null access constant
+        Concorde.Agents.Root_Agent_Type'Class;
+      Contract : Contract_Type)
+   is
+   begin
+      Contract.Update.Accepted_By :=
+        Concorde.Agents.Agent_Type (Agent);
+      Contract.Update.Accepted := Concorde.Calendar.Clock;
+   end Accept_Contract;
+
+   ---------------------
+   -- Cancel_Contract --
+   ---------------------
+
+   procedure Cancel_Contract
+     (Contract : Contract_Type)
+   is
+   begin
+      Contract.Update.Active := False;
+      Contract.Update.Canceled := True;
+      Contract.Update.Completed := Concorde.Calendar.Clock;
+   end Cancel_Contract;
+
+   -----------------------
+   -- Complete_Contract --
+   -----------------------
+
+   procedure Complete_Contract
+     (Contract : Contract_Type)
+   is
+   begin
+      Contract.Update.Active := False;
+      Contract.Update.Completed := Concorde.Calendar.Clock;
+   end Complete_Contract;
+
+   ----------------------
+   -- New_Buy_Contract --
+   ----------------------
+
+   function New_Buy_Contract
+     (Location  : Concorde.Locations.Object_Location;
+      Buyer     : not null access constant
+        Concorde.Agents.Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : WL.Quantities.Quantity_Type;
+      Price     : WL.Money.Price_Type;
+      Expires   : Concorde.Calendar.Time)
+      return Contract_Type
+   is
+
+      procedure Create (Contract : in out Root_Contract_Type'Class);
+
+      ------------
+      -- Create --
+      ------------
+
+      procedure Create (Contract : in out Root_Contract_Type'Class) is
+      begin
+         Contract.Location := Location;
+         Contract.Offered_By := Concorde.Agents.Agent_Type (Buyer);
+         Contract.Accepted_By := null;
+         Contract.Commodity := Commodity;
+         Contract.Quantity := Quantity;
+         Contract.Price := Price;
+         Contract.Expires := Expires;
+         Contract.Issued := Concorde.Calendar.Clock;
+         Contract.Active := True;
+         Contract.Canceled := False;
+         Buyer.Log
+           ("offers to buy " & WL.Quantities.Show (Quantity)
+            & " " & Commodity.Name & " @ " & WL.Money.Show (Price));
+      end Create;
+
+   begin
+      return Db.Create (Create'Access);
+   end New_Buy_Contract;
+
+   --------------------
+   -- Scan_Contracts --
+   --------------------
+
+   procedure Scan_Contracts
+     (Check : not null access
+        procedure (Contract : Contract_Type))
+   is
+   begin
+      Db.Scan (Check);
+   end Scan_Contracts;
+
+   ------------
+   -- Update --
+   ------------
+
+   function Update
+     (Item : not null access constant Root_Contract_Type'Class)
+      return Updateable_Reference
+   is
+      Base_Update : constant Db.Updateable_Reference := Db.Update (Item);
+   begin
+      return Updateable_Reference'(Base_Update.Element, Base_Update);
+   end Update;
+
+end Concorde.Contracts;
