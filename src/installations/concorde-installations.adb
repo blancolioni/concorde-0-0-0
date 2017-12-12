@@ -1,5 +1,6 @@
 with WL.Heaps;
 
+with Concorde.Contracts;
 with Concorde.Real_Images;
 with Concorde.Worlds;
 
@@ -137,12 +138,12 @@ package body Concorde.Installations is
 --                             Item.Get_Quantity (Commodity);
       begin
          if Clock - Start > 7.0 * 86_400.0
-           and then Item.Contracted_Buys.Get_Quantity (Commodity)
+           and then Root_Installation_Type'Class (Item.all)
+           .Contracted_To_Buy (Commodity)
            < To_Quantity (100_000.0)
            and then Local_Demand > Scale (Local_Supply, 1.1)
            and then Local_Demand - Local_Supply
-             > Item.Contracted_Buys.Get_Quantity (Commodity)
-           + To_Quantity (100.0)
+             > To_Quantity (100.0)
          then
             Item.Log ("seven day supply/demand for " & Commodity.Name
                       & " is "
@@ -170,9 +171,7 @@ package body Concorde.Installations is
                                  Concorde.Calendar.Clock
                                + 7.0 * 86_400.0);
             begin
-               Item.Update.Current_Contracts.Append (Contract);
-               Item.Update.Contracted_Buys.Add_Quantity
-                 (Commodity, Quantity, Total (Price, Quantity));
+               Item.Update.Add_Contract (Contract);
             end;
          end if;
       end Add_Port_Trade_Offer;

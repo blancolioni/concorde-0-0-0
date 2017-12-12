@@ -8,7 +8,6 @@ with WL.Quantities;
 
 with Concorde.Agents;
 with Concorde.Commodities;
-with Concorde.Contracts;
 with Concorde.Trades;
 
 with Concorde.Facilities;
@@ -96,11 +95,6 @@ private
    package Queued_Production_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Queued_Production_Element);
 
-   package Current_Contract_Lists is
-     new Ada.Containers.Doubly_Linked_Lists
-       (Concorde.Contracts.Contract_Type,
-        Concorde.Contracts."=");
-
    type Employee_Record is
       record
          Pop            : Concorde.People.Pops.Pop_Type;
@@ -125,8 +119,6 @@ private
            Concorde.People.Individuals.Root_Individual_Type'Class;
          Employees         : Employee_Lists.List;
          Production_Queue  : Queued_Production_Lists.List;
-         Current_Contracts : Current_Contract_Lists.List;
-         Contracted_Buys   : Concorde.Commodities.Root_Stock_Type;
       end record;
 
    overriding function Class_Name

@@ -94,18 +94,19 @@ package body Concorde.Managers.Ships.Trade is
          use Concorde.Contracts;
          use Concorde.Locations;
          use type Concorde.Objects.Object_Type;
+         Local_Supply    : constant Quantity_Type :=
+                             Local_Market.Get_Daily_Quantity
+                               (Contract.Commodity,
+                                Concorde.Trades.Local_Supply,
+                                7);
       begin
          if Contract.Class = Buy_Goods
            and then Contract.Quantity <= Manager.Ship.Hold_Quantity
+           and then Local_Supply > Zero
            and then Primary (Contract.Location)
            /= Primary (Manager.Ship.Current_Location)
          then
             declare
-               Local_Supply    : constant Quantity_Type :=
-                                   Local_Market.Get_Daily_Quantity
-                                     (Contract.Commodity,
-                                      Concorde.Trades.Local_Supply,
-                                      7);
                Local_Price     : constant Price_Type :=
                                    Adjust_Price
                                      (Local_Market.Current_Price
@@ -212,7 +213,7 @@ package body Concorde.Managers.Ships.Trade is
       Concorde.Contracts.Scan_Available_Contracts
         (Check_Contract'Access);
 
-      while Manager.Ship.Available_Quantity > Zero
+      while Manager.Ship.Contracted_Quantity < Manager.Ship.Hold_Quantity
         and then not Contract_Queue.Is_Empty
       loop
          declare
@@ -221,10 +222,12 @@ package body Concorde.Managers.Ships.Trade is
                          Contract_Queue.Maximum_Element;
          begin
             Contract_Queue.Delete_Maximum;
-            if Contract.Quantity <= Manager.Ship.Available_Quantity then
+            if Contract.Quantity <=
+              Manager.Ship.Hold_Quantity - Manager.Ship.Contracted_Quantity
+            then
                Manager.Ship.Log_Trade
                  ("accepted: " & Contract.Show);
-               Accept_Contract (Manager.Ship, Contract);
+               Manager.Ship.Accept_Contract (Contract);
             else
                Manager.Ship.Log_Trade
                  ("rejected: " & Contract.Show);

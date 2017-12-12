@@ -11,6 +11,7 @@ with WL.Quantities;
 with Concorde.Objects;
 with Concorde.Locations;
 
+with Concorde.Contracts;
 with Concorde.Commodities;
 
 with Concorde.Trades;
@@ -23,7 +24,21 @@ package Concorde.Agents is
      abstract new Concorde.Objects.Root_Object_Type
      and Concorde.Commodities.Stock_Interface
      and Concorde.Locations.Located_Interface
+     and Concorde.Contracts.Contractor_Interface
      and Concorde.Trades.Trader_Interface with private;
+
+   overriding function Contracted_To_Buy
+     (Agent      : Root_Agent_Type;
+      Commodity  : Concorde.Commodities.Commodity_Type)
+      return WL.Quantities.Quantity_Type;
+
+   overriding function Contracted_Quantity
+     (Agent      : Root_Agent_Type)
+      return WL.Quantities.Quantity_Type;
+
+   overriding procedure Add_Contract
+     (Agent    : in out Root_Agent_Type;
+      Contract : Concorde.Contracts.Contract_Type);
 
    function Class_Name (Agent : Root_Agent_Type) return String
                         is abstract;
@@ -372,27 +387,47 @@ private
      new Memor.Element_Vectors
        (Concorde.Commodities.Root_Commodity_Type, Agent_Offer, (others => <>));
 
+   package Current_Contract_Lists is
+     new Ada.Containers.Doubly_Linked_Lists
+       (Concorde.Contracts.Contract_Type,
+        Concorde.Contracts."=");
+
    type Root_Agent_Type is
      abstract new Concorde.Objects.Root_Object_Type
      and Concorde.Commodities.Stock_Interface
      and Concorde.Locations.Located_Interface
+     and Concorde.Contracts.Contractor_Interface
      and Concorde.Trades.Trader_Interface with
       record
-         Agent_Ref     : Agent_Reference;
-         Market        : access Concorde.Trades.Trade_Interface'Class;
-         Stock         : Concorde.Commodities.Root_Stock_Type;
-         Cash          : WL.Money.Money_Type;
-         Belief        : access Price_Belief_Vectors.Vector;
-         Location      : Concorde.Locations.Object_Location;
-         Age           : Natural := 0;
-         Guarantor     : access constant Root_Agent_Type'Class;
-         Government    : access constant Root_Agent_Type'Class;
-         Account       : Account_Entry_Vectors.Vector;
-         Bids          : Agent_Offer_Vectors.Vector;
-         Asks          : Agent_Offer_Vectors.Vector;
-         Last_Earnings : WL.Money.Money_Type := WL.Money.Zero;
-         Last_Expenses : WL.Money.Money_Type := WL.Money.Zero;
+         Agent_Ref             : Agent_Reference;
+         Market                : access Concorde.Trades.Trade_Interface'Class;
+         Stock                 : Concorde.Commodities.Root_Stock_Type;
+         Cash                  : WL.Money.Money_Type;
+         Belief                : access Price_Belief_Vectors.Vector;
+         Location              : Concorde.Locations.Object_Location;
+         Age                   : Natural := 0;
+         Guarantor             : access constant Root_Agent_Type'Class;
+         Government            : access constant Root_Agent_Type'Class;
+         Account               : Account_Entry_Vectors.Vector;
+         Bids                  : Agent_Offer_Vectors.Vector;
+         Asks                  : Agent_Offer_Vectors.Vector;
+         Last_Earnings         : WL.Money.Money_Type := WL.Money.Zero;
+         Last_Expenses         : WL.Money.Money_Type := WL.Money.Zero;
+         Offered_Contracts     : Current_Contract_Lists.List;
+         Accepted_Contracts    : Current_Contract_Lists.List;
+         Contracted_Quantities : Concorde.Commodities.Root_Stock_Type;
       end record;
+
+   overriding function Contracted_Quantity
+     (Agent      : Root_Agent_Type)
+      return WL.Quantities.Quantity_Type
+   is (Agent.Contracted_Quantities.Total_Quantity);
+
+   overriding function Contracted_To_Buy
+     (Agent      : Root_Agent_Type;
+      Commodity  : Concorde.Commodities.Commodity_Type)
+      return WL.Quantities.Quantity_Type
+   is (Agent.Contracted_Quantities.Get_Quantity (Commodity));
 
    overriding function Available_Capacity
      (Agent : Root_Agent_Type)

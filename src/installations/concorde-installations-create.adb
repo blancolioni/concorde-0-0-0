@@ -50,8 +50,6 @@ package body Concorde.Installations.Create is
          Installation.Owner := Owner;
          Installation.Set_Cash (Cash);
          Installation.Set_Guarantor (Owner);
-         Installation.Contracted_Buys.Create_Stock
-           (Storage, True);
       end Initialise;
 
    begin

@@ -1,6 +1,5 @@
 private with Memor.Database;
 
-with Concorde.Agents;
 with Concorde.Commodities;
 with Concorde.Locations;
 with Concorde.Objects;
@@ -25,10 +24,6 @@ package Concorde.Contracts is
      (Contract : Root_Contract_Type'Class)
       return Concorde.Locations.Object_Location;
 
-   function Offered_By
-     (Contract : Root_Contract_Type'Class)
-      return Concorde.Agents.Agent_Type;
-
    function Commodity
      (Contract : Root_Contract_Type'Class)
       return Concorde.Commodities.Commodity_Type;
@@ -36,6 +31,10 @@ package Concorde.Contracts is
    function Quantity
      (Contract : Root_Contract_Type'Class)
       return WL.Quantities.Quantity_Type;
+
+   function Total_Cost
+     (Contract : Root_Contract_Type'Class)
+      return WL.Money.Money_Type;
 
    function Price
      (Contract : Root_Contract_Type'Class)
@@ -47,24 +46,9 @@ package Concorde.Contracts is
 
    type Contract_Type is access constant Root_Contract_Type'Class;
 
-   function New_Buy_Contract
-     (Location  : Concorde.Locations.Object_Location;
-      Buyer     : not null access constant
-        Concorde.Agents.Root_Agent_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : WL.Quantities.Quantity_Type;
-      Price     : WL.Money.Price_Type;
-      Expires   : Concorde.Calendar.Time)
-      return Contract_Type;
-
    procedure Scan_Available_Contracts
      (Check : not null access
         procedure (Contract : Contract_Type));
-
-   procedure Accept_Contract
-     (Agent    : not null access constant
-        Concorde.Agents.Root_Agent_Type'Class;
-      Contract : Contract_Type);
 
    procedure Complete_Contract
      (Contract : Contract_Type);
@@ -80,15 +64,48 @@ package Concorde.Contracts is
      (Item : not null access constant Root_Contract_Type'Class)
       return Updateable_Reference;
 
+   type Contractor_Interface is limited interface;
+
+   function Contracted_To_Buy
+     (Contractor : Contractor_Interface;
+      Commodity  : Concorde.Commodities.Commodity_Type)
+      return WL.Quantities.Quantity_Type
+      is abstract;
+
+   function Contracted_Quantity
+     (Contractor : Contractor_Interface)
+      return WL.Quantities.Quantity_Type
+      is abstract;
+
+   procedure Add_Contract
+     (Contractor : in out Contractor_Interface;
+      Contract   : Contract_Type)
+   is abstract;
+
+   procedure Accept_Contract
+     (Contractor : not null access constant Contractor_Interface'Class;
+      Contract   : Contract_Type);
+
+   function New_Buy_Contract
+     (Location  : Concorde.Locations.Object_Location;
+      Buyer     : not null access constant Contractor_Interface'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : WL.Quantities.Quantity_Type;
+      Price     : WL.Money.Price_Type;
+      Expires   : Concorde.Calendar.Time)
+      return Contract_Type;
+
 private
+
+   type Contractor_Type is access constant Contractor_Interface'Class;
 
    type Root_Contract_Type is
      new Concorde.Objects.Root_Object_Type with
       record
          Class       : Contract_Class;
          Location    : Concorde.Locations.Object_Location;
-         Offered_By  : Concorde.Agents.Agent_Type;
-         Accepted_By : Concorde.Agents.Agent_Type;
+         Offered_By  : Contractor_Type;
+         Accepted_By : Contractor_Type;
          Commodity   : Concorde.Commodities.Commodity_Type;
          Quantity    : WL.Quantities.Quantity_Type;
          Price       : WL.Money.Price_Type;
@@ -116,7 +133,7 @@ private
 
    function Offered_By
      (Contract : Root_Contract_Type'Class)
-      return Concorde.Agents.Agent_Type
+      return access constant Contractor_Interface'Class
    is (Contract.Offered_By);
 
    function Commodity
@@ -133,6 +150,11 @@ private
      (Contract : Root_Contract_Type'Class)
       return WL.Money.Price_Type
    is (Contract.Price);
+
+   function Total_Cost
+     (Contract : Root_Contract_Type'Class)
+      return WL.Money.Money_Type
+   is (WL.Money.Total (Contract.Price, Contract.Quantity));
 
    package Db is
      new Memor.Database

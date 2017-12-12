@@ -43,6 +43,20 @@ package body Concorde.Agents is
       Agent.Set_Cash (Agent.Cash + Amount);
    end Add_Cash;
 
+   ------------------
+   -- Add_Contract --
+   ------------------
+
+   overriding procedure Add_Contract
+     (Agent    : in out Root_Agent_Type;
+      Contract : Concorde.Contracts.Contract_Type)
+   is
+   begin
+      Agent.Offered_Contracts.Append (Contract);
+      Agent.Contracted_Quantities.Add_Quantity
+        (Contract.Commodity, Contract.Quantity, Contract.Total_Cost);
+   end Add_Contract;
+
    ----------
    -- Cash --
    ----------
@@ -1402,6 +1416,8 @@ package body Concorde.Agents is
       Agent.Location := Location;
       Agent.Market := Market;
       Agent.Government := Government;
+      Agent.Contracted_Quantities.Create_Stock
+        (Stock_Capacity, True);
    end New_Agent;
 
    -----------------------------

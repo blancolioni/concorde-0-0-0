@@ -5,13 +5,11 @@ package body Concorde.Contracts is
    ---------------------
 
    procedure Accept_Contract
-     (Agent    : not null access constant
-        Concorde.Agents.Root_Agent_Type'Class;
-      Contract : Contract_Type)
+     (Contractor : not null access constant Contractor_Interface'Class;
+      Contract   : Contract_Type)
    is
    begin
-      Contract.Update.Accepted_By :=
-        Concorde.Agents.Agent_Type (Agent);
+      Contract.Update.Accepted_By := Contractor_Type (Contractor);
       Contract.Update.Accepted := Concorde.Calendar.Clock;
    end Accept_Contract;
 
@@ -46,8 +44,7 @@ package body Concorde.Contracts is
 
    function New_Buy_Contract
      (Location  : Concorde.Locations.Object_Location;
-      Buyer     : not null access constant
-        Concorde.Agents.Root_Agent_Type'Class;
+      Buyer     : not null access constant Contractor_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : WL.Quantities.Quantity_Type;
       Price     : WL.Money.Price_Type;
@@ -64,7 +61,7 @@ package body Concorde.Contracts is
       procedure Create (Contract : in out Root_Contract_Type'Class) is
       begin
          Contract.Location := Location;
-         Contract.Offered_By := Concorde.Agents.Agent_Type (Buyer);
+         Contract.Offered_By := Contractor_Type (Buyer);
          Contract.Accepted_By := null;
          Contract.Commodity := Commodity;
          Contract.Quantity := Quantity;
@@ -73,9 +70,9 @@ package body Concorde.Contracts is
          Contract.Issued := Concorde.Calendar.Clock;
          Contract.Active := True;
          Contract.Canceled := False;
-         Buyer.Log
-           ("offers to buy " & WL.Quantities.Show (Quantity)
-            & " " & Commodity.Name & " @ " & WL.Money.Show (Price));
+--           Buyer.Log
+--             ("offers to buy " & WL.Quantities.Show (Quantity)
+--              & " " & Commodity.Name & " @ " & WL.Money.Show (Price));
       end Create;
 
    begin
