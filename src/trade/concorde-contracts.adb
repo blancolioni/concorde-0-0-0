@@ -86,13 +86,36 @@ package body Concorde.Contracts is
    -- Scan_Contracts --
    --------------------
 
-   procedure Scan_Contracts
+   procedure Scan_Available_Contracts
      (Check : not null access
         procedure (Contract : Contract_Type))
    is
    begin
       Db.Scan (Check);
-   end Scan_Contracts;
+   end Scan_Available_Contracts;
+
+   ----------
+   -- Show --
+   ----------
+
+   function Show
+     (Contract : Root_Contract_Type'Class)
+      return String
+   is
+   begin
+      case Contract.Class is
+         when Buy_Goods =>
+            return "ship "
+              & WL.Quantities.Show (Contract.Quantity)
+              & " "
+              & Contract.Commodity.Name
+              & " to "
+              & Concorde.Locations.Primary (Contract.Location).Identifier
+              & " for "
+              & WL.Money.Show
+              (WL.Money.Total (Contract.Price, Contract.Quantity));
+      end case;
+   end Show;
 
    ------------
    -- Update --

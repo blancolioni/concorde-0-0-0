@@ -1,10 +1,11 @@
 with WL.Heaps;
-
-with Concorde.Locations;
 with WL.Money;
 with WL.Quantities;
+
+with Concorde.Locations;
 with Concorde.Real_Images;
 
+with Concorde.Contracts;
 with Concorde.Markets;
 with Concorde.Objects.Queues;
 
@@ -13,6 +14,10 @@ package body Concorde.Managers.Ships.Trade is
    package Commodity_Queues is
      new WL.Heaps (Real, Concorde.Commodities.Commodity_Type,
                    "=" => Concorde.Commodities."=");
+
+   package Contract_Queues is
+     new WL.Heaps (Real, Concorde.Contracts.Contract_Type,
+                   "=" => Concorde.Contracts."=");
 
    ------------------
    -- Add_Waypoint --
@@ -69,11 +74,72 @@ package body Concorde.Managers.Ships.Trade is
       Fixed_Costs  : constant Money_Type := To_Money (50.0);
 
       Queue        : Commodity_Queues.Heap;
+      Contract_Queue : Contract_Queues.Heap;
+
+      procedure Check_Contract
+        (Contract : Concorde.Contracts.Contract_Type);
 
       procedure Check_Markets
         (Commodity          : Concorde.Commodities.Commodity_Type;
          Current_Market     : Concorde.Markets.Market_Type;
          Destination_Market : Concorde.Markets.Market_Type);
+
+      --------------------
+      -- Check_Contract --
+      --------------------
+
+      procedure Check_Contract
+        (Contract : Concorde.Contracts.Contract_Type)
+      is
+         use Concorde.Contracts;
+         use Concorde.Locations;
+         use type Concorde.Objects.Object_Type;
+      begin
+         if Contract.Class = Buy_Goods
+           and then Contract.Quantity <= Manager.Ship.Hold_Quantity
+           and then Primary (Contract.Location)
+           /= Primary (Manager.Ship.Current_Location)
+         then
+            declare
+               Local_Supply    : constant Quantity_Type :=
+                                   Local_Market.Get_Daily_Quantity
+                                     (Contract.Commodity,
+                                      Concorde.Trades.Local_Supply,
+                                      7);
+               Local_Price     : constant Price_Type :=
+                                   Adjust_Price
+                                     (Local_Market.Current_Price
+                                        (Contract.Commodity),
+                                      1.1);
+               Local_Cost      : constant Money_Type :=
+                                   Total (Local_Price, Contract.Quantity);
+            begin
+               Manager.Ship.Log_Trade
+                 ("checking contract: " & Contract.Show);
+               Manager.Ship.Log_Trade
+                 ("   local supply/demand: "
+                  & Show (Local_Supply)
+                  & "/"
+                  & Show
+                    (Local_Market.Get_Daily_Quantity
+                         (Contract.Commodity,
+                          Concorde.Trades.Local_Demand,
+                          7)));
+               Manager.Ship.Log_Trade
+                 ("   local price/cost: "
+                  & Show (Local_Price)
+                  & "/"
+                  & Show (Local_Cost));
+
+               if Local_Price < Contract.Price
+                 and then Contract.Quantity < Local_Supply
+               then
+                  Contract_Queue.Insert
+                    (Real (To_Float (Contract.Price - Local_Price)), Contract);
+               end if;
+            end;
+         end if;
+      end Check_Contract;
 
       -------------------
       -- Check_Markets --
@@ -128,12 +194,12 @@ package body Concorde.Managers.Ships.Trade is
             begin
                Manager.Ship.Log
                  (Commodity.Name
-                  & ": local supply: " & Image (Local_Supply)
-                  & "; remote demand: " & Image (Next_Demand)
-                  & "; local price: " & Image (Local_Price)
-                  & "; remote price: " & Image (Next_Price)
-                  & "; investment: " & Image (Investment)
-                  & "; return: " & Image (Expected_Return)
+                  & ": local supply: " & Show (Local_Supply)
+                  & "; remote demand: " & Show (Next_Demand)
+                  & "; local price: " & Show (Local_Price)
+                  & "; remote price: " & Show (Next_Price)
+                  & "; investment: " & Show (Investment)
+                  & "; return: " & Show (Expected_Return)
                   & "; score: "
                   & Concorde.Real_Images.Approximate_Image (Score));
                Queue.Insert (Score, Commodity);
@@ -142,6 +208,29 @@ package body Concorde.Managers.Ships.Trade is
       end Check_Markets;
 
    begin
+
+      Concorde.Contracts.Scan_Available_Contracts
+        (Check_Contract'Access);
+
+      while Manager.Ship.Available_Quantity > Zero
+        and then not Contract_Queue.Is_Empty
+      loop
+         declare
+            use Concorde.Contracts;
+            Contract : constant Contract_Type :=
+                         Contract_Queue.Maximum_Element;
+         begin
+            Contract_Queue.Delete_Maximum;
+            if Contract.Quantity <= Manager.Ship.Available_Quantity then
+               Manager.Ship.Log_Trade
+                 ("accepted: " & Contract.Show);
+               Accept_Contract (Manager.Ship, Contract);
+            else
+               Manager.Ship.Log_Trade
+                 ("rejected: " & Contract.Show);
+            end if;
+         end;
+      end loop;
 
       for Commodity of Concorde.Commodities.Trade_Commodities loop
          Check_Markets (Commodity, Local_Market, Next_Market);

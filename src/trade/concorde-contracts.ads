@@ -12,8 +12,38 @@ with WL.Quantities;
 
 package Concorde.Contracts is
 
+   type Contract_Class is (Buy_Goods);
+
    type Root_Contract_Type is
      new Concorde.Objects.Root_Object_Type with private;
+
+   function Class
+     (Contract : Root_Contract_Type'Class)
+      return Contract_Class;
+
+   function Location
+     (Contract : Root_Contract_Type'Class)
+      return Concorde.Locations.Object_Location;
+
+   function Offered_By
+     (Contract : Root_Contract_Type'Class)
+      return Concorde.Agents.Agent_Type;
+
+   function Commodity
+     (Contract : Root_Contract_Type'Class)
+      return Concorde.Commodities.Commodity_Type;
+
+   function Quantity
+     (Contract : Root_Contract_Type'Class)
+      return WL.Quantities.Quantity_Type;
+
+   function Price
+     (Contract : Root_Contract_Type'Class)
+      return WL.Money.Price_Type;
+
+   function Show
+     (Contract : Root_Contract_Type'Class)
+      return String;
 
    type Contract_Type is access constant Root_Contract_Type'Class;
 
@@ -27,7 +57,7 @@ package Concorde.Contracts is
       Expires   : Concorde.Calendar.Time)
       return Contract_Type;
 
-   procedure Scan_Contracts
+   procedure Scan_Available_Contracts
      (Check : not null access
         procedure (Contract : Contract_Type));
 
@@ -52,8 +82,6 @@ package Concorde.Contracts is
 
 private
 
-   type Contract_Class is (Buy_Goods);
-
    type Root_Contract_Type is
      new Concorde.Objects.Root_Object_Type with
       record
@@ -75,6 +103,36 @@ private
    overriding function Object_Database
      (Item : Root_Contract_Type)
       return Memor.Memor_Database;
+
+   function Class
+     (Contract : Root_Contract_Type'Class)
+      return Contract_Class
+   is (Contract.Class);
+
+   function Location
+     (Contract : Root_Contract_Type'Class)
+      return Concorde.Locations.Object_Location
+   is (Contract.Location);
+
+   function Offered_By
+     (Contract : Root_Contract_Type'Class)
+      return Concorde.Agents.Agent_Type
+   is (Contract.Offered_By);
+
+   function Commodity
+     (Contract : Root_Contract_Type'Class)
+      return Concorde.Commodities.Commodity_Type
+   is (Contract.Commodity);
+
+   function Quantity
+     (Contract : Root_Contract_Type'Class)
+      return WL.Quantities.Quantity_Type
+   is (Contract.Quantity);
+
+   function Price
+     (Contract : Root_Contract_Type'Class)
+      return WL.Money.Price_Type
+   is (Contract.Price);
 
    package Db is
      new Memor.Database

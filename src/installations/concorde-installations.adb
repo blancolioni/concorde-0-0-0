@@ -137,6 +137,8 @@ package body Concorde.Installations is
 --                             Item.Get_Quantity (Commodity);
       begin
          if Clock - Start > 7.0 * 86_400.0
+           and then Item.Contracted_Buys.Get_Quantity (Commodity)
+           < To_Quantity (100_000.0)
            and then Local_Demand > Scale (Local_Supply, 1.1)
            and then Local_Demand - Local_Supply
              > Item.Contracted_Buys.Get_Quantity (Commodity)
@@ -151,7 +153,7 @@ package body Concorde.Installations is
                use WL.Money;
                Quantity : constant Quantity_Type :=
                             Min (Local_Demand - Local_Supply,
-                                 To_Quantity (1_000.0));
+                                 To_Quantity (10_000.0));
                Price    : constant Price_Type :=
                             Adjust_Price
                               (Item.Market.Current_Price
