@@ -120,6 +120,12 @@ sheep_farm = {
    capacity = 5000
 }
 
+water_pump = {
+   template = farm
+   output = water
+   capacity = 5000
+}
+
 light_factory = { class = Factory
                   template_class = yes
                   power = 10

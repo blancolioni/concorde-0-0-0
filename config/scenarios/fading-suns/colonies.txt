@@ -46,6 +46,7 @@ imperial_capital = {
        vegetable_farm = 1
        sheep_farm = 1
        cotton_farm = 1
+       water_pump = 1
    }
    
    basic_living_wage = { bargain_clothes water vegetables grain }
