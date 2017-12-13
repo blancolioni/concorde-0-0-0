@@ -40,6 +40,26 @@ package Concorde.Agents is
      (Agent    : in out Root_Agent_Type;
       Contract : Concorde.Contracts.Contract_Type);
 
+   overriding procedure On_Contract_Accepted
+     (Agent    : not null access constant Root_Agent_Type;
+      Contract : Concorde.Contracts.Contract_Type);
+
+   overriding procedure On_Accepted_Contract
+     (Agent    : not null access constant Root_Agent_Type;
+      Contract : Concorde.Contracts.Contract_Type);
+
+   overriding procedure On_Contract_Fulfilled
+     (Agent    : not null access constant Root_Agent_Type;
+      Contract : Concorde.Contracts.Contract_Type);
+
+   overriding procedure Scan_Accepted_Contracts
+     (Agent   : in out Root_Agent_Type;
+      Process : not null access
+        procedure (Contract : Concorde.Contracts.Contract_Type));
+
+   overriding procedure Close_Completed_Contracts
+     (Agent   : in out Root_Agent_Type);
+
    function Class_Name (Agent : Root_Agent_Type) return String
                         is abstract;
 

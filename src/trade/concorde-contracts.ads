@@ -20,6 +20,10 @@ package Concorde.Contracts is
      (Contract : Root_Contract_Type'Class)
       return Contract_Class;
 
+   function Completed
+     (Contract : Root_Contract_Type'Class)
+      return Boolean;
+
    function Location
      (Contract : Root_Contract_Type'Class)
       return Concorde.Locations.Object_Location;
@@ -51,10 +55,10 @@ package Concorde.Contracts is
         procedure (Contract : Contract_Type));
 
    procedure Complete_Contract
-     (Contract : Contract_Type);
+     (Contract : not null access constant Root_Contract_Type'Class);
 
    procedure Cancel_Contract
-     (Contract : Contract_Type);
+     (Contract : not null access constant Root_Contract_Type'Class);
 
    type Updateable_Reference
      (Item : not null access Root_Contract_Type'Class)
@@ -82,9 +86,44 @@ package Concorde.Contracts is
       Contract   : Contract_Type)
    is abstract;
 
+   procedure On_Contract_Accepted
+     (Contractor : not null access constant Contractor_Interface;
+      Contract   : Contract_Type)
+   is abstract;
+
+   procedure On_Accepted_Contract
+     (Accepting_Contractor : not null access constant Contractor_Interface;
+      Contract             : Contract_Type)
+   is abstract;
+
+   procedure On_Contract_Fulfilled
+     (Contractor : not null access constant Contractor_Interface;
+      Contract   : Contract_Type)
+   is abstract;
+
+   procedure Scan_Accepted_Contracts
+     (Contractor : in out Contractor_Interface;
+      Process    : not null access
+        procedure (Contract : Contract_Type))
+   is abstract;
+
+   procedure Close_Completed_Contracts
+     (Contractor : in out Contractor_Interface)
+   is abstract;
+
    procedure Accept_Contract
      (Contractor : not null access constant Contractor_Interface'Class;
       Contract   : Contract_Type);
+
+   function Offered_Contract
+     (Contractor : not null access constant Contractor_Interface'Class;
+      Contract   : Contract_Type)
+      return Boolean;
+
+   function Accepted_Contract
+     (Contractor : not null access constant Contractor_Interface'Class;
+      Contract   : Contract_Type)
+      return Boolean;
 
    function New_Buy_Contract
      (Location  : Concorde.Locations.Object_Location;
@@ -102,19 +141,20 @@ private
    type Root_Contract_Type is
      new Concorde.Objects.Root_Object_Type with
       record
-         Class       : Contract_Class;
-         Location    : Concorde.Locations.Object_Location;
-         Offered_By  : Contractor_Type;
-         Accepted_By : Contractor_Type;
-         Commodity   : Concorde.Commodities.Commodity_Type;
-         Quantity    : WL.Quantities.Quantity_Type;
-         Price       : WL.Money.Price_Type;
-         Active      : Boolean;
-         Canceled    : Boolean;
-         Issued      : Concorde.Calendar.Time;
-         Accepted    : Concorde.Calendar.Time;
-         Completed   : Concorde.Calendar.Time;
-         Expires     : Concorde.Calendar.Time;
+         Class          : Contract_Class;
+         Location       : Concorde.Locations.Object_Location;
+         Offered_By     : Contractor_Type;
+         Accepted_By    : Contractor_Type;
+         Commodity      : Concorde.Commodities.Commodity_Type;
+         Quantity       : WL.Quantities.Quantity_Type;
+         Price          : WL.Money.Price_Type;
+         Accepted       : Boolean;
+         Active         : Boolean;
+         Canceled       : Boolean;
+         Issue_Time     : Concorde.Calendar.Time;
+         Accepted_Time  : Concorde.Calendar.Time;
+         Completed_Time : Concorde.Calendar.Time;
+         Expiry_Time    : Concorde.Calendar.Time;
       end record;
 
    overriding function Object_Database
@@ -125,6 +165,11 @@ private
      (Contract : Root_Contract_Type'Class)
       return Contract_Class
    is (Contract.Class);
+
+   function Completed
+     (Contract : Root_Contract_Type'Class)
+      return Boolean
+   is (not Contract.Active and then not Contract.Canceled);
 
    function Location
      (Contract : Root_Contract_Type'Class)
@@ -171,5 +216,17 @@ private
       record
          Update : Db.Updateable_Reference (Item);
       end record;
+
+   function Offered_Contract
+     (Contractor : not null access constant Contractor_Interface'Class;
+      Contract   : Contract_Type)
+      return Boolean
+   is (Contractor = Contract.Offered_By);
+
+   function Accepted_Contract
+     (Contractor : not null access constant Contractor_Interface'Class;
+      Contract   : Contract_Type)
+      return Boolean
+   is (Contractor = Contract.Accepted_By);
 
 end Concorde.Contracts;

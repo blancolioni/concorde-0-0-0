@@ -9,8 +9,11 @@ package body Concorde.Contracts is
       Contract   : Contract_Type)
    is
    begin
+      Contract.Update.Accepted := True;
       Contract.Update.Accepted_By := Contractor_Type (Contractor);
-      Contract.Update.Accepted := Concorde.Calendar.Clock;
+      Contract.Update.Accepted_Time := Concorde.Calendar.Clock;
+      Contract.Offered_By.On_Contract_Accepted (Contract);
+      Contractor.On_Accepted_Contract (Contract);
    end Accept_Contract;
 
    ---------------------
@@ -18,12 +21,12 @@ package body Concorde.Contracts is
    ---------------------
 
    procedure Cancel_Contract
-     (Contract : Contract_Type)
+     (Contract : not null access constant Root_Contract_Type'Class)
    is
    begin
       Contract.Update.Active := False;
       Contract.Update.Canceled := True;
-      Contract.Update.Completed := Concorde.Calendar.Clock;
+      Contract.Update.Completed_Time := Concorde.Calendar.Clock;
    end Cancel_Contract;
 
    -----------------------
@@ -31,11 +34,15 @@ package body Concorde.Contracts is
    -----------------------
 
    procedure Complete_Contract
-     (Contract : Contract_Type)
+     (Contract : not null access constant Root_Contract_Type'Class)
    is
    begin
       Contract.Update.Active := False;
-      Contract.Update.Completed := Concorde.Calendar.Clock;
+      Contract.Update.Completed_Time := Concorde.Calendar.Clock;
+      Contract.Offered_By.On_Contract_Fulfilled
+        (Contract_Type (Contract));
+      Contract.Accepted_By.On_Contract_Fulfilled
+        (Contract_Type (Contract));
    end Complete_Contract;
 
    ----------------------
@@ -67,9 +74,10 @@ package body Concorde.Contracts is
          Contract.Commodity := Commodity;
          Contract.Quantity := Quantity;
          Contract.Price := Price;
-         Contract.Expires := Expires;
-         Contract.Issued := Concorde.Calendar.Clock;
+         Contract.Expiry_Time := Expires;
+         Contract.Issue_Time := Concorde.Calendar.Clock;
          Contract.Active := True;
+         Contract.Accepted := False;
          Contract.Canceled := False;
 --           Buyer.Log
 --             ("offers to buy " & WL.Quantities.Show (Quantity)
@@ -88,8 +96,11 @@ package body Concorde.Contracts is
      (Check : not null access
         procedure (Contract : Contract_Type))
    is
+      function Is_Available (Contract : Contract_Type) return Boolean
+      is (Contract.Active and then not Contract.Accepted);
+
    begin
-      Db.Scan (Check);
+      Db.Scan (Is_Available'Access, Check);
    end Scan_Available_Contracts;
 
    ----------
