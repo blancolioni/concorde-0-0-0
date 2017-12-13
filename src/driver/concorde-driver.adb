@@ -23,7 +23,8 @@ with Concorde.Galaxy.Create;
 
 with Concorde.Galaxy.Locking;
 
-with Concorde.Factions.Reports;
+with Concorde.Colonies.Reports;
+
 with Concorde.Factions.Updates;
 with Concorde.Updates;
 
@@ -197,7 +198,7 @@ begin
 
    end if;
 
-   Concorde.Factions.Reports.Report_Factions;
+   Concorde.Colonies.Reports.Report_Colonies;
 
    Concorde.Logging.Stop_Logging;
 
