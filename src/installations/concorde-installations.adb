@@ -140,17 +140,13 @@ package body Concorde.Installations is
 --           In_Stock      : constant Quantity_Type :=
 --                             Item.Get_Quantity (Commodity);
       begin
+
          if Clock - Start > 7.0 * 86_400.0
            and then Current_Buy_Contracts < To_Quantity (100_000.0)
            and then Local_Demand > Scale (Local_Supply, 1.1)
            and then Local_Demand - Local_Supply
              >  To_Quantity (100.0) + Current_Buy_Contracts
          then
-            Item.Log ("seven day supply/demand for " & Commodity.Name
-                      & " is "
-                      & Show (Local_Supply)
-                      & "/"
-                      & Show (Local_Demand));
             declare
                use WL.Money;
                Quantity : constant Quantity_Type :=
@@ -172,6 +168,13 @@ package body Concorde.Installations is
                                  Concorde.Calendar.Clock
                                + 7.0 * 86_400.0);
             begin
+               Item.Log ("seven day supply/demand for " & Commodity.Name
+                         & " is "
+                         & Show (Local_Supply)
+                         & "/"
+                         & Show (Local_Demand)
+                         & "; new contract: "
+                         & Contract.Show);
                Item.Update.Add_Contract (Contract);
             end;
          end if;
