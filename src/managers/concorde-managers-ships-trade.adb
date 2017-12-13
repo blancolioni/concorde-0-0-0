@@ -84,27 +84,27 @@ package body Concorde.Managers.Ships.Trade is
                Local_Cost      : constant Money_Type :=
                                    Total (Local_Price, Contract.Quantity);
             begin
-               Manager.Ship.Log_Trade
-                 ("checking contract: " & Contract.Show);
-               Manager.Ship.Log_Trade
-                 ("   local supply/demand: "
-                  & Show (Local_Supply)
-                  & "/"
-                  & Show
-                    (Local_Market.Get_Daily_Quantity
-                         (Contract.Commodity,
-                          Concorde.Trades.Local_Demand,
-                          7)));
-               Manager.Ship.Log_Trade
-                 ("   local price/cost: "
-                  & Show (Local_Price)
-                  & "/"
-                  & Show (Local_Cost));
-
                if Local_Price < Contract.Price
                  and then Contract.Quantity < Local_Supply
                  and then Local_Cost <= Manager.Ship.Cash
                then
+                  Manager.Ship.Log_Trade
+                    ("checking contract: " & Contract.Show);
+                  Manager.Ship.Log_Trade
+                    ("   local supply/demand: "
+                     & Show (Local_Supply)
+                     & "/"
+                     & Show
+                       (Local_Market.Get_Daily_Quantity
+                            (Contract.Commodity,
+                             Concorde.Trades.Local_Demand,
+                             7)));
+                  Manager.Ship.Log_Trade
+                    ("   local price/cost: "
+                     & Show (Local_Price)
+                     & "/"
+                     & Show (Local_Cost));
+
                   Contract_Queue.Insert
                     (Real (To_Float (Contract.Price - Local_Price)), Contract);
                end if;
@@ -214,6 +214,22 @@ package body Concorde.Managers.Ships.Trade is
    is
       use WL.Quantities;
       use Concorde.Worlds, World_Lists;
+
+      procedure Deliver_Goods
+        (Contract : Concorde.Contracts.Contract_Type);
+
+      -------------------
+      -- Deliver_Goods --
+      -------------------
+
+      procedure Deliver_Goods
+        (Contract : Concorde.Contracts.Contract_Type)
+      is
+      begin
+         Manager.Ship.Log_Trade ("delivering: " & Contract.Show);
+         Contract.Complete_Contract;
+      end Deliver_Goods;
+
    begin
 
       Manager.Ship.Log_Trade
@@ -244,8 +260,12 @@ package body Concorde.Managers.Ships.Trade is
          when Moving =>
             Manager.State := Asking;
          when Asking =>
-            Manager.Create_Asks;
-            Manager.State := Selling;
+            Manager.Ship.Update.Scan_Accepted_Contracts
+              (Deliver_Goods'Access);
+            Manager.Ship.Update.Close_Completed_Contracts;
+
+            --  Manager.Create_Asks;
+            Manager.State := Bidding;
          when Selling =>
             if Manager.Ship.Total_Quantity = Zero then
                Manager.Ship.Update.Clear_Filled_Asks;
