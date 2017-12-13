@@ -134,16 +134,17 @@ package body Concorde.Installations is
                            Item.Market.Get_Daily_Quantity
                              (Commodity, Concorde.Trades.Local_Supply,
                               Days => 7);
+         Current_Buy_Contracts : constant Quantity_Type :=
+                                   Root_Installation_Type'Class (Item.all)
+                                   .Contracted_To_Buy (Commodity);
 --           In_Stock      : constant Quantity_Type :=
 --                             Item.Get_Quantity (Commodity);
       begin
          if Clock - Start > 7.0 * 86_400.0
-           and then Root_Installation_Type'Class (Item.all)
-           .Contracted_To_Buy (Commodity)
-           < To_Quantity (100_000.0)
+           and then Current_Buy_Contracts < To_Quantity (100_000.0)
            and then Local_Demand > Scale (Local_Supply, 1.1)
            and then Local_Demand - Local_Supply
-             > To_Quantity (100.0)
+             >  To_Quantity (100.0) + Current_Buy_Contracts
          then
             Item.Log ("seven day supply/demand for " & Commodity.Name
                       & " is "
