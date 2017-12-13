@@ -656,20 +656,18 @@ package body Concorde.Colonies.Configure is
 
       Create_Service_Facilities;
 
-      if True then
-         Port :=
-           Concorde.Installations.Create.Create
-             (Location =>
-                Concorde.Locations.World_Surface
-                  (World, Positive (Current_Tile)),
-              Market   => World.Market,
-              Facility => Concorde.Facilities.Get ("port"),
-              Cash     =>
-                WL.Money.To_Money (10_000.0),
-              Owner    => World.Owner);
+      Port :=
+        Concorde.Installations.Create.Create
+          (Location =>
+             Concorde.Locations.World_Surface
+               (World, Positive (Current_Tile)),
+           Market   => World.Market,
+           Facility => Concorde.Facilities.Get ("port"),
+           Cash     =>
+             WL.Money.To_Money (500_000.0),
+           Owner    => World.Owner);
 
-         World.Update.Add_Installation (Current_Tile, Port);
-      end if;
+      World.Update.Add_Installation (Current_Tile, Port);
 
       Skilled_Pop.Scan (Create_Pop_From_Skill'Access);
 
