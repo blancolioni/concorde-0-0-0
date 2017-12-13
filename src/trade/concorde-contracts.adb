@@ -60,6 +60,7 @@ package body Concorde.Contracts is
 
       procedure Create (Contract : in out Root_Contract_Type'Class) is
       begin
+         Contract.Class := Buy_Goods;
          Contract.Location := Location;
          Contract.Offered_By := Contractor_Type (Buyer);
          Contract.Accepted_By := null;
