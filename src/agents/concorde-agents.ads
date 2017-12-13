@@ -205,6 +205,28 @@ package Concorde.Agents is
      (Agent : Root_Agent_Type'Class)
       return access constant Root_Agent_Type'Class;
 
+   function Create_Ask_Price
+     (Agent        : not null access constant Root_Agent_Type'Class;
+      Commodity    : Concorde.Commodities.Commodity_Type)
+      return WL.Money.Price_Type;
+
+   function Create_Bid_Price
+     (Agent        : not null access constant Root_Agent_Type'Class;
+      Commodity    : Concorde.Commodities.Commodity_Type)
+      return WL.Money.Price_Type;
+
+   procedure Create_Ask
+     (Agent        : not null access constant Root_Agent_Type'Class;
+      Commodity    : Concorde.Commodities.Commodity_Type;
+      Ask_Quantity : WL.Quantities.Quantity_Type;
+      Ask_Price    : WL.Money.Price_Type);
+
+   procedure Create_Bid
+     (Agent        : not null access constant Root_Agent_Type'Class;
+      Commodity    : Concorde.Commodities.Commodity_Type;
+      Bid_Quantity : WL.Quantities.Quantity_Type;
+      Bid_Price    : WL.Money.Price_Type);
+
    procedure Create_Ask
      (Agent        : not null access constant Root_Agent_Type'Class;
       Commodity    : Concorde.Commodities.Commodity_Type;
