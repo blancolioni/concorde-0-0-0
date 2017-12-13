@@ -15,9 +15,9 @@ hub = { class = Colony_Hub
 port = { class = Port
          power = 10
          capacity = 100000
-         workers = { executive = 5
+         workers = { executive = 2
                      tech = 5
-                     unskilled = 10
+                     unskilled = 20
                    }
          modules = { commercial = 5
                      industrial = 5
