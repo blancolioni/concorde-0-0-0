@@ -3,7 +3,6 @@ with WL.Money;
 with WL.Quantities;
 
 with Concorde.Locations;
-with Concorde.Real_Images;
 
 with Concorde.Contracts;
 with Concorde.Markets;
@@ -11,25 +10,9 @@ with Concorde.Objects.Queues;
 
 package body Concorde.Managers.Ships.Trade is
 
-   package Commodity_Queues is
-     new WL.Heaps (Real, Concorde.Commodities.Commodity_Type,
-                   "=" => Concorde.Commodities."=");
-
    package Contract_Queues is
      new WL.Heaps (Real, Concorde.Contracts.Contract_Type,
                    "=" => Concorde.Contracts."=");
-
-   ------------------
-   -- Add_Waypoint --
-   ------------------
-
-   procedure Add_Waypoint
-     (Manager : in out Root_Ship_Trade_Manager'Class;
-      World   : Concorde.Worlds.World_Type)
-   is
-   begin
-      Manager.Route.Append (World);
-   end Add_Waypoint;
 
    -----------------
    -- Create_Asks --
@@ -65,24 +48,12 @@ package body Concorde.Managers.Ships.Trade is
    is
       use Concorde.Commodities;
       use WL.Money, WL.Quantities;
-      Space : constant Quantity_Type := Manager.Ship.Available_Quantity;
-      Remaining    : Quantity_Type := Space;
       Local_Market : constant Concorde.Markets.Market_Type :=
                        Concorde.Markets.Market_Type (Manager.Ship.Market);
-      Next_Market  : constant Concorde.Markets.Market_Type :=
-                       Manager.Next_Destination.Market;
-      Fixed_Costs  : constant Money_Type := To_Money (50.0);
-
-      Queue        : Commodity_Queues.Heap;
       Contract_Queue : Contract_Queues.Heap;
 
       procedure Check_Contract
         (Contract : Concorde.Contracts.Contract_Type);
-
-      procedure Check_Markets
-        (Commodity          : Concorde.Commodities.Commodity_Type;
-         Current_Market     : Concorde.Markets.Market_Type;
-         Destination_Market : Concorde.Markets.Market_Type);
 
       --------------------
       -- Check_Contract --
@@ -108,10 +79,8 @@ package body Concorde.Managers.Ships.Trade is
          then
             declare
                Local_Price     : constant Price_Type :=
-                                   Adjust_Price
-                                     (Local_Market.Current_Price
-                                        (Contract.Commodity),
-                                      1.1);
+                                   Manager.Ship.Create_Bid_Price
+                                     (Contract.Commodity);
                Local_Cost      : constant Money_Type :=
                                    Total (Local_Price, Contract.Quantity);
             begin
@@ -134,6 +103,7 @@ package body Concorde.Managers.Ships.Trade is
 
                if Local_Price < Contract.Price
                  and then Contract.Quantity < Local_Supply
+                 and then Local_Cost <= Manager.Ship.Cash
                then
                   Contract_Queue.Insert
                     (Real (To_Float (Contract.Price - Local_Price)), Contract);
@@ -142,119 +112,44 @@ package body Concorde.Managers.Ships.Trade is
          end if;
       end Check_Contract;
 
-      -------------------
-      -- Check_Markets --
-      -------------------
-
-      procedure Check_Markets
-        (Commodity          : Concorde.Commodities.Commodity_Type;
-         Current_Market     : Concorde.Markets.Market_Type;
-         Destination_Market : Concorde.Markets.Market_Type)
-      is
-         use Concorde.Calendar;
-         Local_Demand    : constant Quantity_Type :=
-                             Current_Market.Get_Daily_Quantity
-                               (Commodity, Concorde.Trades.Local_Demand, 7)
-                               with Unreferenced;
-         Local_Supply    : constant Quantity_Type :=
-                             Current_Market.Get_Daily_Quantity
-                               (Commodity, Concorde.Trades.Local_Supply, 7);
-         Next_Demand     : constant Quantity_Type :=
-                             Destination_Market.Get_Daily_Quantity
-                               (Commodity, Concorde.Trades.Local_Demand, 7);
-         Next_Supply     : constant Quantity_Type :=
-                             Destination_Market.Get_Daily_Quantity
-                               (Commodity, Concorde.Trades.Local_Supply, 7)
-                               with Unreferenced;
-         Local_Price     : constant Price_Type :=
-                             Adjust_Price
-                               (Current_Market.Current_Price (Commodity),
-                                1.1);
-         Next_Price      : constant Price_Type :=
-                             Adjust_Price
-                               (Destination_Market.Current_Price (Commodity),
-                                0.9);
-         Traded_Quantity : constant Quantity_Type :=
-                             (if Next_Demand > Zero
-                              then Min (Space, Min (Local_Supply, Next_Demand))
-                              else Zero);
-      begin
-
-         if Traded_Quantity > Zero and then Next_Price > Local_Price then
-            declare
-               Investment      : constant Money_Type :=
-                                   Total (Local_Price, Traded_Quantity);
-               Expected_Return : constant Money_Type :=
-                                   Total (Next_Price, Traded_Quantity);
-               Score           : constant Non_Negative_Real :=
-                                   (if Expected_Return - Investment
-                                    > Fixed_Costs
-                                    then Real (To_Float (Expected_Return))
-                                    else Real (To_Float (Expected_Return))
-                                    - Real (To_Float (Investment)));
-            begin
-               Manager.Ship.Log
-                 (Commodity.Name
-                  & ": local supply: " & Show (Local_Supply)
-                  & "; remote demand: " & Show (Next_Demand)
-                  & "; local price: " & Show (Local_Price)
-                  & "; remote price: " & Show (Next_Price)
-                  & "; investment: " & Show (Investment)
-                  & "; return: " & Show (Expected_Return)
-                  & "; score: "
-                  & Concorde.Real_Images.Approximate_Image (Score));
-               Queue.Insert (Score, Commodity);
-            end;
-         end if;
-      end Check_Markets;
-
    begin
 
       Concorde.Contracts.Scan_Available_Contracts
         (Check_Contract'Access);
 
+      Manager.Next_Destination := null;
+
       while Manager.Ship.Contracted_Quantity < Manager.Ship.Hold_Quantity
         and then not Contract_Queue.Is_Empty
       loop
          declare
+            use Concorde.Locations;
+            use Concorde.Objects;
+            use Concorde.Worlds;
             use Concorde.Contracts;
             Contract : constant Contract_Type :=
                          Contract_Queue.Maximum_Element;
          begin
             Contract_Queue.Delete_Maximum;
-            if Contract.Quantity <=
-              Manager.Ship.Hold_Quantity - Manager.Ship.Contracted_Quantity
+            if (Manager.Next_Destination = null
+                or else Object_Type (Manager.Next_Destination)
+                = Primary (Contract.Location))
+              and then
+                Contract.Quantity <=
+                  Manager.Ship.Hold_Quantity
+                    - Manager.Ship.Contracted_Quantity
             then
                Manager.Ship.Log_Trade
                  ("accepted: " & Contract.Show);
                Manager.Ship.Accept_Contract (Contract);
+               Manager.Ship.Create_Bid
+                 (Contract.Commodity, Contract.Quantity);
+               Manager.Next_Destination :=
+                 World_Type (Primary (Contract.Location));
             else
                Manager.Ship.Log_Trade
                  ("rejected: " & Contract.Show);
             end if;
-         end;
-      end loop;
-
-      for Commodity of Concorde.Commodities.Trade_Commodities loop
-         Check_Markets (Commodity, Local_Market, Next_Market);
-      end loop;
-
-      while not Queue.Is_Empty loop
-         declare
-            Commodity : constant Commodity_Type := Queue.Maximum_Element;
-            Local_Supply : constant Quantity_Type :=
-                             Local_Market.Get_Daily_Quantity
-                               (Commodity, Concorde.Trades.Local_Supply, 7);
-            Next_Demand     : constant Quantity_Type :=
-                                Next_Market.Get_Daily_Quantity
-                                  (Commodity, Concorde.Trades.Local_Demand, 7);
-            Bid_Quantity    : constant Quantity_Type :=
-                             Min (Next_Demand, Min (Local_Supply, Remaining));
-         begin
-            Queue.Delete_Maximum;
-            Manager.Ship.Create_Bid
-              (Commodity, Bid_Quantity);
-            Remaining := Remaining - Bid_Quantity;
          end;
       end loop;
 
@@ -274,41 +169,9 @@ package body Concorde.Managers.Ships.Trade is
         new Root_Ship_Trade_Manager
       do
          Manager.Create (Ship);
-         Manager.Route.Append (Start);
-         Manager.Current := Manager.Route.First;
+         Manager.Next_Destination := Start;
       end return;
    end Create_Manager;
-
-   --------------------
-   -- Create_Manager --
-   --------------------
-
-   function Create_Manager
-     (Ship     : Concorde.Ships.Ship_Type;
-      From, To : Concorde.Worlds.World_Type)
-      return Ship_Trade_Manager
-   is
-   begin
-      return Manager : constant Ship_Trade_Manager :=
-        Create_Manager (Ship, From)
-      do
-         Manager.Add_Waypoint (To);
-      end return;
-   end Create_Manager;
-
-   ---------------------
-   -- Delete_Waypoint --
-   ---------------------
-
-   procedure Delete_Waypoint
-     (Manager : in out Root_Ship_Trade_Manager'Class;
-      World   : Concorde.Worlds.World_Type)
-   is
-      Position : World_Lists.Cursor := Manager.Route.Find (World);
-   begin
-      pragma Assert (World_Lists.Has_Element (Position));
-      Manager.Route.Delete (Position);
-   end Delete_Waypoint;
 
    --------------
    -- Has_Asks --
@@ -342,23 +205,6 @@ package body Concorde.Managers.Ships.Trade is
       return False;
    end Has_Bids;
 
-   ----------------------
-   -- Next_Destination --
-   ----------------------
-
-   function Next_Destination
-     (Manager : Root_Ship_Trade_Manager'Class)
-      return Concorde.Worlds.World_Type
-   is
-      use World_Lists;
-      Next_Position : Cursor := Next (Manager.Current);
-   begin
-      if not Has_Element (Next_Position) then
-         Next_Position := Manager.Route.First;
-      end if;
-      return Element (Next_Position);
-   end Next_Destination;
-
    -------------
    -- On_Idle --
    -------------
@@ -368,21 +214,12 @@ package body Concorde.Managers.Ships.Trade is
    is
       use WL.Quantities;
       use Concorde.Worlds, World_Lists;
-      From_World : constant World_Type := Element (Manager.Current);
-      Next_Position : Cursor := Next (Manager.Current);
-      To_World   : World_Type;
    begin
-      if not Has_Element (Next_Position) then
-         Next_Position := Manager.Route.First;
-      end if;
-
-      To_World := Element (Next_Position);
 
       Manager.Ship.Log_Trade
         ("activated at "
          & Concorde.Calendar.Image (Manager.Time, True)
-         & "; state = " & Manager.State'Img
-         & "; trading from " & From_World.Name & " to " & To_World.Name);
+         & "; state = " & Manager.State'Img);
 
       case Manager.State is
          when Bidding =>
@@ -391,15 +228,15 @@ package body Concorde.Managers.Ships.Trade is
                Manager.State := Buying;
             elsif Manager.Ship.Total_Quantity > Zero then
                Manager.Ship.Update.Clear_Filled_Bids;
-               Manager.Current := Next_Position;
-               Manager.Set_Destination (To_World);
+               Manager.Set_Destination (Manager.Next_Destination);
+               Manager.Next_Destination := null;
                Manager.State := Moving;
             end if;
          when Buying =>
             if not Manager.Has_Bids then
                Manager.Ship.Update.Clear_Filled_Bids;
-               Manager.Current := Next_Position;
-               Manager.Set_Destination (To_World);
+               Manager.Set_Destination (Manager.Next_Destination);
+               Manager.Next_Destination := null;
                Manager.State := Moving;
             else
                Manager.Ship.Update.Check_Offers;
