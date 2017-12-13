@@ -233,6 +233,11 @@ package Concorde.Worlds is
      (World : Root_World_Type'Class;
       Ships : out Concorde.Ships.Lists.List);
 
+   procedure Scan_Pops
+     (World : Root_World_Type'Class;
+      Process : not null access
+        procedure (Pop : Concorde.People.Pops.Pop_Type));
+
    function Buy_Price
      (World     : Root_World_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
@@ -396,6 +401,7 @@ private
          Ships                 : Concorde.Ships.Lists.List;
          Market                : Concorde.Markets.Market_Type;
          Government            : Concorde.Government.Government_Type;
+         Pops                  : Concorde.People.Pops.Lists.List;
       end record;
 
    overriding function Object_Database

@@ -40,6 +40,7 @@ package body Concorde.Worlds is
    is
    begin
       World.Sectors (Sector).Pops.Append (Pop);
+      World.Pops.Append (Pop);
    end Add_Pop;
 
    --------------
@@ -490,6 +491,21 @@ package body Concorde.Worlds is
    begin
       Db.Scan (Local_Process'Access);
    end Scan_Market_Worlds;
+
+   ---------------
+   -- Scan_Pops --
+   ---------------
+
+   procedure Scan_Pops
+     (World   : Root_World_Type'Class;
+      Process : not null access
+        procedure (Pop : Concorde.People.Pops.Pop_Type))
+   is
+   begin
+      for Pop of World.Pops loop
+         Process (Pop);
+      end loop;
+   end Scan_Pops;
 
    -----------------
    -- Scan_Worlds --
