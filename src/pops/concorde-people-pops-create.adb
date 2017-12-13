@@ -34,11 +34,11 @@ package body Concorde.People.Pops.Create is
          Pop.Groups.Set_Affiliation_Range (Wealth_Group, 1.0);
          Pop.Skills.Append (Skill);
          Pop.Size := Size;
-         Pop.Set_Cash (Cash);
          Pop.New_Agent
            (Location       => Location,
             Government     => Concorde.Government.Get_Government (Location),
             Market         => Market,
+            Cash           => Cash,
             Stock_Capacity => Pop.Size_Quantity * To_Quantity (70.0));
          Pop.Add_Quantity (Skill.Commodity, Pop.Size_Quantity,
                            WL.Money.Total

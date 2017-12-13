@@ -423,9 +423,9 @@ package body Concorde.Factions.Create is
               Concorde.Locations.World_Surface (Start_World, 1),
             Government     => null,
             Market         => null,
+            Cash           => WL.Money.To_Money (1_000.0),
             Stock_Capacity => WL.Quantities.Zero);
 
-         New_Faction.Set_Cash (WL.Money.To_Money (1_000.0));
          New_Faction.Identifier :=
            Ada.Strings.Unbounded.To_Unbounded_String (Name);
          New_Faction.Set_Name (Name);

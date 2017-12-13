@@ -45,10 +45,10 @@ package body Concorde.Installations.Create is
            (Location       => Location,
             Government     => Concorde.Government.Get_Government (Location),
             Market         => Market,
+            Cash           => Cash,
             Stock_Capacity => Storage);
          Installation.Facility := Facility;
          Installation.Owner := Owner;
-         Installation.Set_Cash (Cash);
          Installation.Set_Guarantor (Owner);
       end Initialise;
 

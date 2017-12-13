@@ -47,6 +47,7 @@ package body Concorde.Ships.Create is
               Concorde.Locations.Geosynchronous_Orbit (World),
             Government     => Owner.Capital.Government,
             Market         => World.Market,
+            Cash           => WL.Money.To_Money (20_000.0),
             Stock_Capacity =>
               To_Quantity (10.0 * Float (Ship.Hold_Size)));
 
@@ -69,7 +70,6 @@ package body Concorde.Ships.Create is
          end if;
          Ship.Owner := Owner;
          Ship.Set_Guarantor (Owner);
-         Ship.Set_Cash (WL.Money.To_Money (1_000.0));
          Ship.Set_Location
            (Concorde.Locations.Circular_Orbit
               (World, World.Radius + 300_000.0));

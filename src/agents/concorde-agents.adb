@@ -17,18 +17,14 @@ package body Concorde.Agents is
       return Unit_Real;
 
    function Create_Ask_Price
-     (Low, High : WL.Money.Price_Type;
-      Agent_Age : Natural)
+     (Low, High : WL.Money.Price_Type)
       return WL.Money.Price_Type;
    --  Come up with an asking price between Low and High.
-   --  If the Agent_Age is low, skew toward Low
 
    function Create_Bid_Price
-     (Low, High : WL.Money.Price_Type;
-      Agent_Age : Natural)
+     (Low, High : WL.Money.Price_Type)
       return WL.Money.Price_Type;
    --  Come up with an bidding price between Low and High.
-   --  If the Agent_Age is low, skew toward High.
 
    --------------
    -- Add_Cash --
@@ -140,7 +136,8 @@ package body Concorde.Agents is
                                      (Commodity);
                   Start_Belief : constant Agent_Price_Belief_Record :=
                                    Agent.Get_Price_Belief
-                                     (Agent.Market, Commodity);
+                                     (Agent.Market, Commodity,
+                                      Concorde.Trades.Ask);
                   Belief       : Agent_Price_Belief_Record := Start_Belief;
                   Supply       : constant Quantity_Type :=
                                    Agent.Market.Get_Daily_Quantity
@@ -170,8 +167,8 @@ package body Concorde.Agents is
                      & Show (Supply)
                      & "/"
                      & Show (Demand)
-                     & ": offered " & Show (Offer.Quantity)
-                     & "; sold " & Show (Offer.Filled)
+                     & ": offered " & Image (Offer.Quantity)
+                     & "; sold " & Image (Offer.Filled)
                      & " at "
                      & Show (Offer_Nett) & "/"
                      & Show (Offer.Price) & " with tax");
@@ -260,8 +257,8 @@ package body Concorde.Agents is
                         & Show (Supply)
                         & "/"
                         & Show (Demand)
-                        & ": offered " & Image (Offer.Quantity)
-                        & "; sold " & Image (Offer.Filled)
+                        & ": offered " & Show (Offer.Quantity)
+                        & "; sold " & Show (Offer.Filled)
                         & " at "
                         & Show (Offer.Price));
 
@@ -316,7 +313,8 @@ package body Concorde.Agents is
                                      (Commodity);
                   Start_Belief : constant Agent_Price_Belief_Record :=
                                    Agent.Get_Price_Belief
-                                     (Agent.Market, Commodity);
+                                     (Agent.Market, Commodity,
+                                      Concorde.Trades.Bid);
                   Belief       : Agent_Price_Belief_Record := Start_Belief;
                   Supply       : constant Quantity_Type :=
                                    Agent.Market.Get_Daily_Quantity
@@ -343,8 +341,8 @@ package body Concorde.Agents is
                      & Show (Supply)
                      & "/"
                      & Show (Demand)
-                     & ": wanted " & Show (Offer.Quantity)
-                     & "; got " & Show (Offer.Filled)
+                     & ": wanted " & Image (Offer.Quantity)
+                     & "; got " & Image (Offer.Filled)
                      & " at "
                      & Show (Offer.Price));
 
@@ -434,8 +432,8 @@ package body Concorde.Agents is
                         & Show (Supply)
                         & "/"
                         & Show (Demand)
-                        & ": wanted " & Show (Offer.Quantity)
-                        & "; got " & Show (Offer.Filled)
+                        & ": wanted " & Image (Offer.Quantity)
+                        & "; got " & Image (Offer.Filled)
                         & " at "
                         & Show (Offer.Price));
 
@@ -559,6 +557,39 @@ package body Concorde.Agents is
       Agent.Stock.Clear_Stock;
    end Clear_Stock;
 
+   -------------------------------
+   -- Close_Completed_Contracts --
+   -------------------------------
+
+   overriding procedure Close_Completed_Contracts
+     (Agent   : in out Root_Agent_Type)
+   is
+      Changed  : Boolean := False;
+      New_List : Current_Contract_Lists.List;
+   begin
+      for Contract of Agent.Offered_Contracts loop
+         if Contract.Completed then
+            Agent.Log_Trade ("closing: " & Contract.Show);
+            declare
+               use Current_Contract_Lists;
+               Accepted : Cursor := Agent.Accepted_Contracts.Find (Contract);
+            begin
+               if Has_Element (Accepted) then
+                  Agent.Accepted_Contracts.Delete (Accepted);
+               end if;
+            end;
+            Agent.Contracted_Quantities.Remove_Quantity
+              (Contract.Commodity, Contract.Quantity, Contract.Total_Cost);
+            Changed := True;
+         else
+            New_List.Append (Contract);
+         end if;
+      end loop;
+      if Changed then
+         Agent.Offered_Contracts := New_List;
+      end if;
+   end Close_Completed_Contracts;
+
    --------------
    -- Contract --
    --------------
@@ -610,7 +641,8 @@ package body Concorde.Agents is
                         Market.Historical_Mean_Price
                           (Commodity);
       Belief        : constant Agent_Price_Belief_Record :=
-                        Agent.Get_Price_Belief (Market, Commodity);
+                        Agent.Get_Price_Belief (Market, Commodity,
+                                                Concorde.Trades.Ask);
       Minimum_Price : constant Price_Type :=
                         Agent.Get_Average_Price (Commodity);
 
@@ -625,7 +657,7 @@ package body Concorde.Agents is
                            then Max (Mean, Minimum_Price)
                            else Create_Ask_Price
                              (Max (Minimum_Price, Belief.Low),
-                              Max (Minimum_Price, Belief.High), Agent.Age));
+                              Max (Minimum_Price, Belief.High)));
       Tax_Category  : constant Concorde.Trades.Market_Tax_Category :=
                         (if Agent.Market_Resident
                          then Concorde.Trades.Sales
@@ -672,13 +704,13 @@ package body Concorde.Agents is
             Agent.Log_Trade
               (Commodity.Name
                & ": updated ask "
-               & Image (Offer.Quantity) & "/" & Image (Offer.Price));
+               & Show (Offer.Quantity) & "/" & Show (Offer.Price));
          else
             Offer := (True, Sell_Price, Sell_Quantity, Zero);
             Agent.Log_Trade
               (Commodity.Name
                & ": new ask "
-               & Image (Offer.Quantity) & "/" & Image (Offer.Price));
+               & Show (Offer.Quantity) & "/" & Show (Offer.Price));
          end if;
       end Update_Offer;
 
@@ -742,7 +774,8 @@ package body Concorde.Agents is
                         Market.Historical_Mean_Price
                           (Commodity);
       Belief        : constant Agent_Price_Belief_Record :=
-                        Agent.Get_Price_Belief (Market, Commodity);
+                        Agent.Get_Price_Belief (Market, Commodity,
+                                                Concorde.Trades.Ask);
       Minimum_Price : constant Price_Type :=
                         Agent.Get_Average_Price (Commodity);
 
@@ -762,7 +795,7 @@ package body Concorde.Agents is
                            then Max (Mean, Minimum_Price)
                            else Create_Ask_Price
                              (Max (Minimum_Price, Belief.Low),
-                              Max (Minimum_Price, Belief.High), Agent.Age));
+                              Max (Minimum_Price, Belief.High)));
       Tax_Category  : constant Concorde.Trades.Market_Tax_Category :=
                         (if Agent.Market_Resident
                          then Concorde.Trades.Sales
@@ -801,17 +834,12 @@ package body Concorde.Agents is
    ----------------------
 
    function Create_Ask_Price
-     (Low, High : WL.Money.Price_Type;
-      Agent_Age : Natural)
+     (Low, High : WL.Money.Price_Type)
       return WL.Money.Price_Type
    is
       use WL.Money;
-      Skew : constant Unit_Real :=
-               (if Agent_Age < 5
-                then 0.5 + Real (Agent_Age) / 10.0
-                else 1.0);
       Factor : constant Unit_Real :=
-                 Skew * Concorde.Random.Unit_Random;
+                 Concorde.Random.Unit_Random;
    begin
       return Adjust_Price (High - Low, Float (Factor)) + Low;
    end Create_Ask_Price;
@@ -851,13 +879,14 @@ package body Concorde.Agents is
                         Market.Historical_Mean_Price
                           (Commodity);
       Belief        : constant Agent_Price_Belief_Record :=
-                        Agent.Get_Price_Belief (Market, Commodity);
+                        Agent.Get_Price_Belief (Market, Commodity,
+                                                Concorde.Trades.Bid);
       Buy_Price     : constant Price_Type :=
                         (if Agent.Offer_Strategy (Commodity)
                          = Average_Price
                          then Adjust_Price (Mean, 1.1)
                          else Create_Bid_Price
-                           (Belief.Low, Belief.High, Agent.Age));
+                           (Belief.Low, Belief.High));
       procedure Update_Agent
         (A : not null access Root_Agent_Type'Class);
 
@@ -962,7 +991,8 @@ package body Concorde.Agents is
                         Market.Historical_Mean_Price
                           (Commodity);
       Belief        : constant Agent_Price_Belief_Record :=
-                        Agent.Get_Price_Belief (Market, Commodity);
+                        Agent.Get_Price_Belief (Market, Commodity,
+                                                Concorde.Trades.Bid);
       Favourability : constant Unit_Real :=
                         (if Belief.Low = Belief.High
                          then 1.0
@@ -973,21 +1003,21 @@ package body Concorde.Agents is
                          = Average_Price
                          then Adjust_Price (Mean, 1.1)
                          else Create_Bid_Price
-                           (Belief.Low, Belief.High, Agent.Age));
+                           (Belief.Low, Belief.High));
    begin
       if Log_Offers then
          Agent.Log_Trade
            (Commodity.Name
             & ": price belief "
-            & Image (Belief.Low)
+            & Show (Belief.Low)
             & "/"
-            & Image (Belief.High)
+            & Show (Belief.High)
             & "; mean "
-            & Image (Mean)
+            & Show (Mean)
             & "; favourability "
             & Concorde.Real_Images.Approximate_Image (Favourability)
             & "; buy price "
-            & Image (Buy_Price));
+            & Show (Buy_Price));
       end if;
       return Buy_Price;
    end Create_Bid_Price;
@@ -997,17 +1027,12 @@ package body Concorde.Agents is
    ----------------------
 
    function Create_Bid_Price
-     (Low, High : WL.Money.Price_Type;
-      Agent_Age : Natural)
+     (Low, High : WL.Money.Price_Type)
       return WL.Money.Price_Type
    is
       use WL.Money;
-      Skew   : constant Unit_Real :=
-                 (if Agent_Age < 5
-                  then 0.5 + Real (Agent_Age) / 10.0
-                  else 1.0);
       Factor : constant Unit_Real :=
-                 Skew * Concorde.Random.Unit_Random + 1.0 - Skew;
+                 Concorde.Random.Unit_Random;
    begin
       return Adjust_Price (High - Low, Float (Factor)) + Low;
    end Create_Bid_Price;
@@ -1217,21 +1242,56 @@ package body Concorde.Agents is
       Market    : not null access constant
         Concorde.Trades.Trade_Interface'Class;
       Commodity : not null access constant
-        Concorde.Commodities.Root_Commodity_Type'Class)
+        Concorde.Commodities.Root_Commodity_Type'Class;
+      For_Offer : Concorde.Trades.Offer_Type)
       return Agent_Price_Belief_Record
    is
       use WL.Money;
-      use all type Concorde.Trades.Offer_Price_Strategy;
+      use Concorde.Trades;
    begin
       case Agent.Offer_Strategy (Commodity) is
          when Belief_Based =>
             if Agent.Belief.Element (Commodity) = null then
                declare
-                  Base : constant Price_Type :=
+                  Category : constant Market_Tax_Category :=
+                               (if Agent.Market_Resident
+                                then Sales else Import);
+                  Tax_Rate : constant Unit_Real :=
+                               Agent.Market.Manager.Tax_Rate
+                                 (Category, Commodity);
+                  Base     : constant Price_Type :=
                            Market.Historical_Mean_Price (Commodity);
+                  Full : constant Price_Type :=
+                           (case For_Offer is
+                               when Ask => Base,
+                               when Bid =>
+                                  Adjust_Price
+                                    (Base, Float (1.0 + Tax_Rate)));
+                  Low_Factor  : Float;
+                  High_Factor : Float;
                begin
-                  return (Low => Adjust_Price (Base, 0.95),
-                          High => Adjust_Price (Base, 1.05),
+                  case For_Offer is
+                     when Ask =>
+                        Low_Factor := 0.95;
+
+                        if Agent.Age < 10 then
+                           High_Factor :=
+                             1.05 - Float (10 - Agent.Age) / 100.0;
+                        else
+                           High_Factor := 1.05;
+                        end if;
+                     when Bid =>
+                        High_Factor := 1.05;
+                        if Agent.Age < 10 then
+                           Low_Factor :=
+                             0.95 + Float (10 - Agent.Age) / 100.0;
+                        else
+                           Low_Factor := 0.95;
+                        end if;
+                  end case;
+
+                  return (Low => Adjust_Price (Full, Low_Factor),
+                          High => Adjust_Price (Full, High_Factor),
                           Strength => 0.5);
                end;
             else
@@ -1489,7 +1549,8 @@ package body Concorde.Agents is
    is
       use WL.Money;
       Belief : constant Agent_Price_Belief_Record :=
-                 Agent.Get_Price_Belief (Agent.Market, Commodity);
+                 Agent.Get_Price_Belief (Agent.Market, Commodity,
+                                         Concorde.Trades.Ask);
    begin
       return Adjust_Price (Belief.Low + Belief.High, 0.5);
    end Mean_Price_Belief;
@@ -1505,6 +1566,7 @@ package body Concorde.Agents is
         Root_Agent_Type'Class;
       Market         : access constant
         Concorde.Trades.Trade_Interface'Class;
+      Cash           : WL.Money.Money_Type;
       Stock_Capacity : WL.Quantities.Quantity_Type)
    is
    begin
@@ -1514,10 +1576,72 @@ package body Concorde.Agents is
       Agent.Belief := new Price_Belief_Vectors.Vector;
       Agent.Location := Location;
       Agent.Market := Market;
+      Agent.Cash := Cash;
       Agent.Government := Government;
       Agent.Contracted_Quantities.Create_Stock
         (Stock_Capacity, True);
    end New_Agent;
+
+   --------------------------
+   -- On_Accepted_Contract --
+   --------------------------
+
+   overriding procedure On_Accepted_Contract
+     (Agent    : not null access constant Root_Agent_Type;
+      Contract : Concorde.Contracts.Contract_Type)
+   is
+   begin
+      Agent_Type (Agent)
+        .Variable_Reference.Accepted_Contracts.Append (Contract);
+   end On_Accepted_Contract;
+
+   --------------------------
+   -- On_Contract_Accepted --
+   --------------------------
+
+   overriding procedure On_Contract_Accepted
+     (Agent    : not null access constant Root_Agent_Type;
+      Contract : Concorde.Contracts.Contract_Type)
+   is
+   begin
+      Agent_Type (Agent)
+        .Variable_Reference.Accepted_Contracts.Append (Contract);
+   end On_Contract_Accepted;
+
+   ---------------------------
+   -- On_Contract_Fulfilled --
+   ---------------------------
+
+   overriding procedure On_Contract_Fulfilled
+     (Agent    : not null access constant Root_Agent_Type;
+      Contract : Concorde.Contracts.Contract_Type)
+   is
+      Ref : constant access Root_Agent_Type'Class :=
+              Agent_Type (Agent).Variable_Reference;
+   begin
+      case Contract.Class is
+         when Concorde.Contracts.Buy_Goods =>
+            if Agent.Offered_Contract (Contract) then
+               Agent.Log_Trade
+                 ("cash " & WL.Money.Show (Agent.Cash)
+                  & "; limit cash: " & WL.Money.Show (Agent.Limit_Cash)
+                  & "; paying for " & Contract.Show);
+               Ref.Add_Quantity
+                 (Contract.Commodity, Contract.Quantity, Contract.Total_Cost);
+               Ref.Remove_Cash (Contract.Total_Cost);
+            else
+               Agent.Log_Trade
+                 (Contract.Commodity.Name
+                  & " quantity "
+                  & WL.Quantities.Show
+                    (Agent.Get_Quantity (Contract.Commodity))
+                  & "; earning for " & Contract.Show);
+               Ref.Remove_Quantity
+                 (Contract.Commodity, Contract.Quantity, Contract.Total_Cost);
+               Ref.Add_Cash (Contract.Total_Cost);
+            end if;
+      end case;
+   end On_Contract_Fulfilled;
 
    -----------------------------
    -- Price_Position_In_Range --
@@ -1607,6 +1731,21 @@ package body Concorde.Agents is
       Agent_Map.Insert (Agent.Identifier, Agent_List.Last);
    end Save_Agent;
 
+   -----------------------------
+   -- Scan_Accepted_Contracts --
+   -----------------------------
+
+   overriding procedure Scan_Accepted_Contracts
+     (Agent   : in out Root_Agent_Type;
+      Process : not null access
+        procedure (Contract : Concorde.Contracts.Contract_Type))
+   is
+   begin
+      for Contract of Agent.Accepted_Contracts loop
+         Process (Contract);
+      end loop;
+   end Scan_Accepted_Contracts;
+
    -----------------
    -- Scan_Agents --
    -----------------
@@ -1644,6 +1783,7 @@ package body Concorde.Agents is
    is
       use WL.Money;
    begin
+      Agent.Log_Trade ("cash: " & Show (Amount));
       if Amount > Agent.Cash then
          Agent.Last_Earnings := Agent.Last_Earnings + Amount - Agent.Cash;
       else

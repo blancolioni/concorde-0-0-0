@@ -52,6 +52,7 @@ package Concorde.Agents is
         Root_Agent_Type'Class;
       Market         : access constant
         Concorde.Trades.Trade_Interface'Class;
+      Cash           : WL.Money.Money_Type;
       Stock_Capacity : WL.Quantities.Quantity_Type);
 
    function Mean_Price_Belief
@@ -424,7 +425,7 @@ private
          Agent_Ref             : Agent_Reference;
          Market                : access Concorde.Trades.Trade_Interface'Class;
          Stock                 : Concorde.Commodities.Root_Stock_Type;
-         Cash                  : WL.Money.Money_Type;
+         Cash                  : WL.Money.Money_Type := WL.Money.Zero;
          Belief                : access Price_Belief_Vectors.Vector;
          Location              : Concorde.Locations.Object_Location;
          Age                   : Natural := 0;
@@ -464,7 +465,8 @@ private
       Market    : not null access constant
         Concorde.Trades.Trade_Interface'Class;
       Commodity : not null access constant
-        Concorde.Commodities.Root_Commodity_Type'Class)
+        Concorde.Commodities.Root_Commodity_Type'Class;
+      For_Offer : Concorde.Trades.Offer_Type)
       return Agent_Price_Belief_Record;
 
    procedure Update_Price_Belief

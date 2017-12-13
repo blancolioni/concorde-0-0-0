@@ -27,9 +27,8 @@ package body Concorde.Government.Create is
          Government.New_Agent
            (Concorde.Locations.At_Installation (Headquarters),
             null, null,
-            WL.Quantities.Zero);
+            Cash, WL.Quantities.Zero);
          Government.Governed := Governed;
-         Government.Set_Cash (Cash);
          Government.Headquarters :=
            Concorde.Installations.Installation_Type (Headquarters);
          Government.Owner := Owner;
