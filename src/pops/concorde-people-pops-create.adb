@@ -14,12 +14,11 @@ package body Concorde.People.Pops.Create is
    -------------
 
    function New_Pop
-     (Location       : Concorde.Locations.Object_Location;
-      Market         : access constant Concorde.Trades.Trade_Interface'Class;
-      Wealth_Group   : Concorde.People.Groups.Pop_Group;
-      Skill          : Concorde.People.Skills.Pop_Skill;
-      Size           : Pop_Size;
-      Cash           : WL.Money.Money_Type)
+     (Location : Concorde.Locations.Object_Location;
+      Market   : access constant Concorde.Trades.Trade_Interface'Class;
+      Group    : Concorde.People.Groups.Pop_Group;
+      Size     : Pop_Size;
+      Cash     : WL.Money.Money_Type)
       return Pop_Type
    is
       procedure Create (Pop : in out Root_Pop_Type'Class);
@@ -31,8 +30,7 @@ package body Concorde.People.Pops.Create is
       procedure Create (Pop : in out Root_Pop_Type'Class) is
          use WL.Quantities;
       begin
-         Pop.Groups.Set_Affiliation_Range (Wealth_Group, 1.0);
-         Pop.Skills.Append (Skill);
+         Pop.Group := Group;
          Pop.Size := Size;
          Pop.New_Agent
            (Location       => Location,
@@ -40,10 +38,12 @@ package body Concorde.People.Pops.Create is
             Market         => Market,
             Cash           => Cash,
             Stock_Capacity => Pop.Size_Quantity * To_Quantity (70.0));
-         Pop.Add_Quantity (Skill.Commodity, Pop.Size_Quantity,
-                           WL.Money.Total
-                             (Skill.Commodity.Base_Price,
-                              Pop.Size_Quantity));
+         if Pop.Group.Unemployment then
+            Pop.Add_Quantity (Group.Work_Commodity, Pop.Size_Quantity,
+                              WL.Money.Total
+                                (Group.Work_Commodity.Base_Price,
+                                 Pop.Size_Quantity));
+         end if;
       end Create;
 
       use type Concorde.Calendar.Time;
@@ -56,9 +56,6 @@ package body Concorde.People.Pops.Create is
            (Pop,
             Concorde.Calendar.Clock
             + Duration (Concorde.Random.Unit_Random * 86_400.0));
-         Pop.Log_Trade ("created: skill quantity = "
-                        & WL.Quantities.Image
-                          (Pop.Get_Quantity (Skill.Commodity)));
       end return;
    end New_Pop;
 

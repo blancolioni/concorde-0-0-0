@@ -1,5 +1,4 @@
 with Concorde.Commodities;
-with Concorde.Calendar;
 with WL.Money;
 with WL.Quantities;
 
@@ -25,6 +24,20 @@ package Concorde.Trades is
       return WL.Money.Price_Type
       is abstract;
 
+   function Current_Supply
+     (Trade     : Trade_Interface;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
+      return WL.Quantities.Quantity_Type
+      is abstract;
+
+   function Current_Demand
+     (Trade     : Trade_Interface;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
+      return WL.Quantities.Quantity_Type
+      is abstract;
+
    function Price
      (Trade     : Trade_Interface;
       Offer     : Offer_Type;
@@ -40,24 +53,6 @@ package Concorde.Trades is
         Concorde.Commodities.Root_Commodity_Type'Class)
       return WL.Money.Price_Type
       is abstract;
-
-   function Get_Quantity
-     (Trade    : Trade_Interface;
-      Item     : not null access constant
-        Concorde.Commodities.Root_Commodity_Type'Class;
-      Metric   : Trade_Metric;
-      Start    : Concorde.Calendar.Time;
-      Finish   : Concorde.Calendar.Time)
-      return WL.Quantities.Quantity_Type
-      is abstract;
-
-   function Get_Daily_Quantity
-     (Trade    : Trade_Interface'Class;
-      Item     : not null access constant
-        Concorde.Commodities.Root_Commodity_Type'Class;
-      Metric   : Trade_Metric;
-      Days     : Positive := 1)
-      return WL.Quantities.Quantity_Type;
 
    type Market_Tax_Category is (Sales, Export, Import);
 

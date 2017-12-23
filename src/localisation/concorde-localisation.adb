@@ -1,6 +1,6 @@
 with Tropos.Reader;
 
-with Concorde.Paths;
+with Concorde.Configure;
 
 with Concorde.Hash_Table;
 
@@ -20,8 +20,8 @@ package body Concorde.Localisation is
    is
       Config : constant Tropos.Configuration :=
                  Tropos.Reader.Read_Config
-                   (Concorde.Paths.Config_Path & "/localisation/"
-                    & Language & ".txt");
+                   (Concorde.Configure.File_Path
+                      ("localisation", Language));
    begin
       for Local of Config loop
          Local_Text.Insert (Local.Config_Name, Local.Value);

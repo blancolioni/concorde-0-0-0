@@ -55,6 +55,33 @@ package body Concorde.Agents is
         ("new contract: " & Contract.Show);
    end Add_Contract;
 
+   ---------------------
+   -- Cancel_Contract --
+   ---------------------
+
+   overriding procedure Cancel_Contract
+     (Agent    : in out Root_Agent_Type;
+      Contract : Concorde.Contracts.Contract_Type)
+   is
+      Accepted_Position : Current_Contract_Lists.Cursor :=
+                            Agent.Accepted_Contracts.Find (Contract);
+      Offered_Position  : Current_Contract_Lists.Cursor :=
+                            Agent.Offered_Contracts.Find (Contract);
+   begin
+      pragma Assert (Current_Contract_Lists.Has_Element (Accepted_Position)
+                     or else Current_Contract_Lists.Has_Element
+                       (Offered_Position));
+      if Current_Contract_Lists.Has_Element (Accepted_Position) then
+         Agent.Accepted_Contracts.Delete (Accepted_Position);
+      end if;
+      if Current_Contract_Lists.Has_Element (Offered_Position) then
+         Agent.Offered_Contracts.Delete (Offered_Position);
+      end if;
+
+      Agent.Log_Trade
+        ("canceled contract: " & Contract.Show);
+   end Cancel_Contract;
+
    ----------
    -- Cash --
    ----------
@@ -140,13 +167,9 @@ package body Concorde.Agents is
                                       Concorde.Trades.Ask);
                   Belief       : Agent_Price_Belief_Record := Start_Belief;
                   Supply       : constant Quantity_Type :=
-                                   Agent.Market.Get_Daily_Quantity
-                                     (Commodity,
-                                      Concorde.Trades.Local_Supply, 1);
+                                   Agent.Market.Current_Supply (Commodity);
                   Demand       : constant Quantity_Type :=
-                                   Agent.Market.Get_Daily_Quantity
-                                     (Commodity,
-                                      Concorde.Trades.Local_Demand, 1);
+                                   Agent.Market.Current_Demand (Commodity);
                   Offer_Nett   : constant Price_Type :=
                                    Without_Tax (Offer.Price,
                                                 Float (Tax_Rate));
@@ -239,13 +262,9 @@ package body Concorde.Agents is
                                           Commodity,
                                           Offer.Quantity - Offer.Filled);
                      Supply        : constant Quantity_Type :=
-                                       Agent.Market.Get_Daily_Quantity
-                                         (Commodity,
-                                          Concorde.Trades.Local_Supply, 1);
+                                       Agent.Market.Current_Supply (Commodity);
                      Demand        : constant Quantity_Type :=
-                                       Agent.Market.Get_Daily_Quantity
-                                         (Commodity,
-                                          Concorde.Trades.Local_Demand, 1);
+                                       Agent.Market.Current_Demand (Commodity);
                   begin
 
                      Agent.Log_Trade
@@ -317,13 +336,9 @@ package body Concorde.Agents is
                                       Concorde.Trades.Bid);
                   Belief       : Agent_Price_Belief_Record := Start_Belief;
                   Supply       : constant Quantity_Type :=
-                                   Agent.Market.Get_Daily_Quantity
-                                     (Commodity,
-                                      Concorde.Trades.Local_Supply, 1);
+                                   Agent.Market.Current_Supply (Commodity);
                   Demand       : constant Quantity_Type :=
-                                   Agent.Market.Get_Daily_Quantity
-                                     (Commodity,
-                                      Concorde.Trades.Local_Demand, 1);
+                                   Agent.Market.Current_Demand (Commodity);
                begin
 
                   Agent.Log_Trade
@@ -414,13 +429,9 @@ package body Concorde.Agents is
                                           Commodity,
                                           Offer.Quantity - Offer.Filled);
                      Supply        : constant Quantity_Type :=
-                                       Agent.Market.Get_Daily_Quantity
-                                         (Commodity,
-                                          Concorde.Trades.Local_Supply, 1);
+                                       Agent.Market.Current_Supply (Commodity);
                      Demand        : constant Quantity_Type :=
-                                       Agent.Market.Get_Daily_Quantity
-                                         (Commodity,
-                                          Concorde.Trades.Local_Demand, 1);
+                                       Agent.Market.Current_Demand (Commodity);
                   begin
 
                      Agent.Log_Trade
@@ -446,6 +457,25 @@ package body Concorde.Agents is
                           (Offer     => Concorde.Trades.Bid,
                            Trader    => Agent,
                            Commodity => Commodity);
+                        declare
+                           use Concorde.Commodities;
+                           use Concorde.Contracts;
+                           Cancel : Contract_Type := null;
+                        begin
+                           for Contract of
+                             Agent.Accepted_Contracts
+                           loop
+                              if Contract.Commodity = Commodity then
+                                 Cancel := Contract;
+                                 exit;
+                              end if;
+                           end loop;
+
+                           if Cancel /= null then
+                              Agent.Cancel_Contract (Cancel);
+                           end if;
+                        end;
+
                         Offer := (others => <>);
                      elsif Minimum_Price /= Zero then
                         Offer.Price := Adjust_Price (Minimum_Price, 1.1);
@@ -771,7 +801,7 @@ package body Concorde.Agents is
           Agent.Market;
 
       Mean          : constant Price_Type :=
-                        Market.Historical_Mean_Price
+                        Market.Current_Price
                           (Commodity);
       Belief        : constant Agent_Price_Belief_Record :=
                         Agent.Get_Price_Belief (Market, Commodity,
@@ -988,7 +1018,7 @@ package body Concorde.Agents is
           Agent.Market;
 
       Mean          : constant Price_Type :=
-                        Market.Historical_Mean_Price
+                        Market.Current_Price
                           (Commodity);
       Belief        : constant Agent_Price_Belief_Record :=
                         Agent.Get_Price_Belief (Market, Commodity,
@@ -1085,6 +1115,31 @@ package body Concorde.Agents is
       return Agent.Location;
    end Current_Location;
 
+   ---------------------------
+   -- Delete_Pending_Offers --
+   ---------------------------
+
+   procedure Delete_Pending_Offers
+     (Agent     : in out Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+   is
+      use Concorde.Commodities;
+      Delete_List : Current_Contract_Lists.List;
+   begin
+      for Contract of Agent.Offered_Contracts loop
+         if Contract.Commodity = Commodity
+           and then not Current_Contract_Lists.Has_Element
+             (Agent.Accepted_Contracts.Find (Contract))
+         then
+            Delete_List.Append (Contract);
+         end if;
+      end loop;
+
+      for Contract of Delete_List loop
+         Agent.Cancel_Contract (Contract);
+      end loop;
+   end Delete_Pending_Offers;
+
    --------------------------
    -- Enable_Offer_Logging --
    --------------------------
@@ -1123,9 +1178,15 @@ package body Concorde.Agents is
         (A : not null access Root_Agent_Type'Class)
       is
       begin
-         A.Remove_Quantity (Commodity, Quantity, Cost);
-         A.Add_Cash (Cost);
-         A.Asks.Update_Element (Commodity, Update_Offer'Access);
+         if Quantity > A.Get_Quantity (Commodity) then
+            A.Log ("error: ask was for " & Show (Quantity)
+                   & " " & Commodity.Name & " but only have "
+                   & Show (A.Get_Quantity (Commodity)));
+         else
+            A.Remove_Quantity (Commodity, Quantity, Cost);
+            A.Add_Cash (Cost);
+            A.Asks.Update_Element (Commodity, Update_Offer'Access);
+         end if;
       end Execute_Ask;
 
       -----------------
@@ -1161,6 +1222,8 @@ package body Concorde.Agents is
       end Update_Offer;
 
    begin
+
+--        pragma Assert (Quantity > Zero);
 
       declare
          use WL.Money;
@@ -1313,12 +1376,13 @@ package body Concorde.Agents is
    ------------------
 
    overriding function Get_Quantity
-     (Agent : Root_Agent_Type;
-      Item  : Concorde.Commodities.Commodity_Type)
+     (Agent      : Root_Agent_Type;
+      Commodity  : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return WL.Quantities.Quantity_Type
    is
    begin
-      return Agent.Stock.Get_Quantity (Item);
+      return Agent.Stock.Get_Quantity (Commodity);
    end Get_Quantity;
 
    ---------------
@@ -1579,7 +1643,7 @@ package body Concorde.Agents is
       Agent.Cash := Cash;
       Agent.Government := Government;
       Agent.Contracted_Quantities.Create_Stock
-        (Stock_Capacity, True);
+        (WL.Quantities.Scale (Stock_Capacity, 10.0), True);
    end New_Agent;
 
    --------------------------
@@ -1640,6 +1704,27 @@ package body Concorde.Agents is
                  (Contract.Commodity, Contract.Quantity, Contract.Total_Cost);
                Ref.Add_Cash (Contract.Total_Cost);
             end if;
+--              declare
+--               Accepted_Position : Current_Contract_Lists.Cursor :=
+--                                   Agent.Accepted_Contracts.Find (Contract);
+--                 Offered_Position  : Current_Contract_Lists.Cursor :=
+--                                    Agent.Offered_Contracts.Find (Contract);
+--              begin
+--                 pragma Assert
+--                   (Current_Contract_Lists.Has_Element (Accepted_Position)
+--                    or else Current_Contract_Lists.Has_Element
+--                      (Offered_Position));
+--             if Current_Contract_Lists.Has_Element (Accepted_Position) then
+--                    Root_Agent_Type'Class (Agent.all)
+--                      .Variable_Reference.Accepted_Contracts.Delete
+--                        (Accepted_Position);
+--                 end if;
+--            if Current_Contract_Lists.Has_Element (Offered_Position) then
+--                    Root_Agent_Type'Class (Agent.all)
+--                      .Variable_Reference.Offered_Contracts.Delete
+--                        (Offered_Position);
+--                 end if;
+--              end;
       end case;
    end On_Contract_Fulfilled;
 
@@ -1742,7 +1827,9 @@ package body Concorde.Agents is
    is
    begin
       for Contract of Agent.Accepted_Contracts loop
-         Process (Contract);
+         if not Contract.Completed then
+            Process (Contract);
+         end if;
       end loop;
    end Scan_Accepted_Contracts;
 

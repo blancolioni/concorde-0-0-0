@@ -6,7 +6,6 @@ package body Concorde.Commodities is
    Local_Skill_Commodity_Array   : access Array_Of_Commodities;
    Local_Trade_Commodity_Array   : access Array_Of_Commodities;
    Local_Virtual_Commodity_Array : access Array_Of_Commodities;
-   Local_Food_Commodity_Array    : access Array_Of_Commodities;
 
    function Commodity_Array
      (Test : not null access
@@ -124,25 +123,6 @@ package body Concorde.Commodities is
       Stock.Virtual := Virtual;
    end Create_Stock;
 
-   ----------------------
-   -- Food_Commodities --
-   ----------------------
-
-   function Food_Commodities return Array_Of_Commodities is
-   begin
-      if Local_Food_Commodity_Array = null then
-         declare
-            function Test (Commodity : Commodity_Type) return Boolean
-            is (Commodity.Energy > 0.0);
-         begin
-            Local_Food_Commodity_Array :=
-              new Array_Of_Commodities'(Commodity_Array (Test'Access));
-         end;
-      end if;
-
-      return Local_Food_Commodity_Array.all;
-   end Food_Commodities;
-
    ---------
    -- Get --
    ---------
@@ -183,26 +163,6 @@ package body Concorde.Commodities is
 
    begin
       Db.Scan (Match'Access, Add'Access);
-      return Result (1 .. Count);
-   end Get;
-
-   ---------
-   -- Get --
-   ---------
-
-   function Get (Class   : Commodity_Class;
-                 Quality : Commodity_Quality)
-                 return Array_Of_Commodities
-   is
-      Result : Array_Of_Commodities := Get (Class);
-      Count  : Natural := 0;
-   begin
-      for I in Result'Range loop
-         if Result (I).Quality = Quality then
-            Count := Count + 1;
-            Result (Count) := Result (I);
-         end if;
-      end loop;
       return Result (1 .. Count);
    end Get;
 
@@ -259,18 +219,6 @@ package body Concorde.Commodities is
    begin
       return Db.Get_Database;
    end Object_Database;
-
-   -------------
-   -- Quality --
-   -------------
-
-   function Quality
-     (Commodity : Root_Commodity_Type'Class)
-      return Commodity_Quality
-   is
-   begin
-      return Commodity.Quality;
-   end Quality;
 
    ---------------------
    -- Remove_Quantity --
@@ -434,7 +382,9 @@ package body Concorde.Commodities is
 
       procedure Update (Commodity : Commodity_Type) is
       begin
-         if not Commodity.Is_Set (Virtual) then
+         if not Commodity.Is_Set (Virtual)
+           and then Commodity.Class /= Skill
+         then
             Result := Result + Stock.Get_Quantity (Commodity);
          end if;
       end Update;

@@ -8,18 +8,18 @@ initial = {
 
 imperial_capital = {
    pops = {
-      poor = { size = 10000 }
-      poor = { size = 10000 }
-      poor = { size = 10000 }
-      poor = { size = 10000 }
-      poor = { size = 10000 }
-      poor = { size = 10000 }
-      poor = { size = 10000 }
-      poor = { size = 10000 }
-      poor = { size = 10000 }
-      poor = { size = 10000 }
-      poor = { size = 10000 }
-      poor = { size = 10000 }
+      poor = { size = 2000 }
+      poor = { size = 2000 }
+      poor = { size = 2000 }
+      poor = { size = 2000 }
+      poor = { size = 2000 }
+      poor = { size = 2000 }
+      poor = { size = 2000 }
+      poor = { size = 2000 }
+      poor = { size = 2000 }
+      poor = { size = 2000 }
+      poor = { size = 2000 }
+      poor = { size = 2000 }
 
       middle_class = { size = 100 skill = tech }
       middle_class = { size = 100 skill = tech }

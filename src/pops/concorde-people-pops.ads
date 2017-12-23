@@ -1,6 +1,5 @@
 private with Memor;
 private with Memor.Database;
-private with Concorde.People.Skills.Lists;
 private with Concorde.Locations;
 
 with Concorde.Agents;
@@ -15,8 +14,11 @@ package Concorde.People.Pops is
 
    type Root_Pop_Type is
      new Concorde.Agents.Root_Agent_Type
-     and Concorde.People.Groups.Affiliation_Interface
    with private;
+
+   function Group
+     (Pop : Root_Pop_Type'Class)
+      return Concorde.People.Groups.Pop_Group;
 
    function Size (Pop : Root_Pop_Type'Class) return Pop_Size;
 
@@ -24,13 +26,8 @@ package Concorde.People.Pops is
      (Pop : Root_Pop_Type'Class)
       return WL.Quantities.Quantity_Type;
 
-   overriding function Affiliation
-     (Pop   : Root_Pop_Type;
-      Group : Concorde.People.Groups.Pop_Group)
-      return Concorde.People.Groups.Affiliation_Range;
-
    procedure Add_Trade_Offers
-     (Item   : not null access constant Root_Pop_Type);
+     (Pop : not null access constant Root_Pop_Type);
 
    procedure Execute_Consumption
      (Pop : in out Root_Pop_Type'Class);
@@ -46,13 +43,22 @@ package Concorde.People.Pops is
 
 private
 
-   type Root_Pop_Type is
-     new Concorde.Agents.Root_Agent_Type
-     and Concorde.People.Groups.Affiliation_Interface with
+   type Consumption_Record is
       record
-         Size   : Pop_Size;
-         Groups : Concorde.People.Groups.Affiliation_Vector;
-         Skills : Concorde.People.Skills.Lists.List;
+         Total_Needed   : WL.Quantities.Quantity_Type := WL.Quantities.Zero;
+         Total_Consumed : WL.Quantities.Quantity_Type := WL.Quantities.Zero;
+      end record;
+
+   type Pop_Consumption is
+     array (Concorde.People.Groups.Need_Level) of Consumption_Record;
+
+   type Root_Pop_Type is
+     new Concorde.Agents.Root_Agent_Type with
+      record
+         Size        : Pop_Size;
+         Group       : Concorde.People.Groups.Pop_Group;
+         Employer    : Concorde.Agents.Agent_Type;
+         Consumption : Pop_Consumption;
       end record;
 
    overriding function Class_Name
@@ -63,7 +69,8 @@ private
      (Pop : Root_Pop_Type) return String
    is (Concorde.Agents.Root_Agent_Type (Pop).Identifier
        & "--" & Concorde.Locations.Short_Name (Pop.Current_Location)
-       & Integer'Image (-1 * Integer (Pop.Size)));
+       & "--"
+       & WL.Quantities.Show (Pop.Size_Quantity));
 
    overriding function Object_Database
      (Item : Root_Pop_Type)
@@ -72,17 +79,26 @@ private
    overriding function Short_Name
      (Item : Root_Pop_Type)
       return String
-   is ("[" & Memor.To_String (Item.Reference) & "]"
-       & (if Item.Skills.Is_Empty
-          then ""
-          else " " & Item.Skills.First_Element.Name)
-       & " "
-       & Item.Wealth_Group.Name);
+   is ("[" & Memor.To_String (Item.Reference) & "] "
+       & Item.Group.Name);
 
    overriding function Variable_Reference
      (Pop : not null access constant Root_Pop_Type)
       return access Concorde.Agents.Root_Agent_Type'Class
    is (Pop.Update.Item);
+
+   function Group
+     (Pop : Root_Pop_Type'Class)
+      return Concorde.People.Groups.Pop_Group
+   is (Pop.Group);
+
+   function Size (Pop : Root_Pop_Type'Class) return Pop_Size
+   is (Pop.Size);
+
+   function Size_Quantity
+     (Pop : Root_Pop_Type'Class)
+      return WL.Quantities.Quantity_Type
+   is (WL.Quantities.To_Quantity (Float (Pop.Size)));
 
    package Db is
      new Memor.Database

@@ -2,7 +2,7 @@ with Tropos.Reader;
 
 with Lui.Colours.Config;
 
-with Concorde.Paths;
+with Concorde.Configure;
 
 with Concorde.Components.Manager;
 
@@ -83,7 +83,7 @@ package body Concorde.Components.Configure is
    procedure Configure_Components is
    begin
       Tropos.Reader.Read_Config
-        (Concorde.Paths.Config_File ("ships/components"),
+        (Concorde.Configure.Directory_Path ("ships/components"),
          "txt",
          Configure_Component'Access);
    end Configure_Components;

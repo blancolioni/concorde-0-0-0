@@ -2,132 +2,119 @@ private with Ada.Containers.Doubly_Linked_Lists;
 
 private with Memor.Database;
 
+with WL.Quantities;
+
 with Memor;
-with Memor.Element_Vectors;
 
 with Concorde.Commodities;
 with Concorde.Objects;
 
 package Concorde.People.Groups is
 
-   type Affiliation_Range is new Unit_Real;
+   type Need_Level is (Basic, Daily, Desire);
+
+   type Wealth_Level is (Poor, Middle, Rich);
 
    type Root_Pop_Group is
      new Concorde.Objects.Root_Localised_Object_Type with private;
 
    function Initial_Cash_Factor
      (Group : Root_Pop_Group'Class)
-      return Natural;
+      return Non_Negative_Real;
 
-   function Preferred_Quality
+   function Unemployment
      (Group : Root_Pop_Group'Class)
-      return Concorde.Commodities.Commodity_Quality;
+      return Boolean;
+
+   function Is_Artisan
+     (Group : Root_Pop_Group'Class)
+      return Boolean;
+
+   function Is_Slave
+     (Group : Root_Pop_Group'Class)
+      return Boolean;
+
+   function Work_Commodity
+     (Group : Root_Pop_Group'Class)
+      return Concorde.Commodities.Commodity_Type
+     with Pre => Group.Unemployment;
 
    procedure Scan_Needs
-     (Group : Root_Pop_Group'Class;
+     (Group   : Root_Pop_Group'Class;
+      Level   : Need_Level;
+      Size    : WL.Quantities.Quantity_Type;
       Process : not null access
         procedure (Commodity : Concorde.Commodities.Commodity_Type;
-                   Need      : Non_Negative_Real));
-
-   function Energy_Needs
-     (Group : Root_Pop_Group'Class)
-      return Non_Negative_Real;
+                   Quantity : WL.Quantities.Quantity_Type));
 
    type Pop_Group is access constant Root_Pop_Group'Class;
 
    function Get (Name : String) return Pop_Group;
 
-   function Poor return Pop_Group;
-   function Middle_Class return Pop_Group;
-   function Rich return Pop_Group;
-
-   type Affiliation_Interface is limited interface;
-
-   function Affiliation
-     (Affiliator : Affiliation_Interface;
-      Group        : Pop_Group)
-      return Affiliation_Range
-      is abstract;
-
-   function Wealth_Group
-     (Affiliator : Affiliation_Interface'Class)
-      return Pop_Group;
-
-   function Affiliated
-     (Affiliator   : Affiliation_Interface'Class;
-      Group        : Pop_Group)
-      return Boolean
-   is (Affiliator.Affiliation (Group) > 0.0);
-
-   function Poor
-     (Affiliator   : Affiliation_Interface'Class)
-      return Boolean
-   is (Affiliator.Affiliated (Groups.Poor));
-
-   function Middle_Class
-     (Affiliator   : Affiliation_Interface'Class)
-      return Boolean
-   is (Affiliator.Affiliated (Groups.Middle_Class));
-
-   function Rich
-     (Affiliator   : Affiliation_Interface'Class)
-      return Boolean
-   is (Affiliator.Affiliated (Groups.Rich));
-
-   type Affiliation_Vector is tagged private;
-
-   function Get_Affiliation_Range
-     (Vector : Affiliation_Vector'Class;
-      Group  : Pop_Group)
-      return Affiliation_Range;
-
-   procedure Set_Affiliation_Range
-     (Vector : in out Affiliation_Vector'Class;
-      Group  : Pop_Group;
-      Value  : Affiliation_Range);
-
 private
 
    type Need_Record is
       record
-         Commodity : Concorde.Commodities.Commodity_Type;
-         Need      : Non_Negative_Real;
+         Commodity     : Concorde.Commodities.Commodity_Type;
+         Need_Quantity : WL.Quantities.Quantity_Type;
+         Pop_Quantity  : WL.Quantities.Quantity_Type;
       end record;
+   --  'Pop_Quantity' people need 'Need_Quantity' commodities
 
    package Needs_List is
      new Ada.Containers.Doubly_Linked_Lists (Need_Record);
 
+   type Needs_Array is array (Need_Level) of Needs_List.List;
+
    type Root_Pop_Group is
      new Concorde.Objects.Root_Localised_Object_Type with
       record
-         Initial_Cash_Factor : Natural;
-         Preferred_Quality   : Concorde.Commodities.Commodity_Quality;
-         Needs               : Needs_List.List;
-         Energy_Needs        : Non_Negative_Real;
+         Unemployment        : Boolean;
+         Is_Artisan          : Boolean;
+         Is_Slave            : Boolean;
+         Wealth              : Wealth_Level;
+         Initial_Cash_Factor : Non_Negative_Real;
+         Max_Size            : WL.Quantities.Quantity_Type;
+         Work_Commodity      : Concorde.Commodities.Commodity_Type;
+         Needs               : Needs_Array;
       end record;
 
    overriding function Object_Database
      (Item : Root_Pop_Group)
       return Memor.Memor_Database;
 
-   function Energy_Needs
+   function Initial_Cash_Factor
      (Group : Root_Pop_Group'Class)
       return Non_Negative_Real
-   is (Group.Energy_Needs);
+   is (Group.Initial_Cash_Factor);
 
-   package Affiliation_Vectors is
-     new Memor.Element_Vectors (Root_Pop_Group, Affiliation_Range, 0.0);
+   function Unemployment
+     (Group : Root_Pop_Group'Class)
+      return Boolean
+   is (Group.Unemployment);
 
-   type Affiliation_Vector is new Affiliation_Vectors.Vector with null record;
+   function Is_Artisan
+     (Group : Root_Pop_Group'Class)
+      return Boolean
+   is (Group.Is_Artisan);
 
-   function Get_Affiliation_Range
-     (Vector : Affiliation_Vector'Class;
-      Group  : Pop_Group)
-      return Affiliation_Range
-   is (Vector.Element (Group));
+   function Is_Slave
+     (Group : Root_Pop_Group'Class)
+      return Boolean
+   is (Group.Is_Slave);
+
+   function Work_Commodity
+     (Group : Root_Pop_Group'Class)
+      return Concorde.Commodities.Commodity_Type
+   is (Group.Work_Commodity);
 
    package Db is
      new Memor.Database
        ("pop-group", Root_Pop_Group, Pop_Group);
+
+   overriding function Object_Database
+     (Item : Root_Pop_Group)
+      return Memor.Memor_Database
+   is (Db.Get_Database);
 
 end Concorde.People.Groups;

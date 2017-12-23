@@ -2,7 +2,7 @@ with Tropos.Reader;
 
 with Lui.Colours.Config;
 
-with Concorde.Paths;
+with Concorde.Configure;
 
 package body Concorde.Features.Configure is
 
@@ -44,8 +44,8 @@ package body Concorde.Features.Configure is
    procedure Configure_Features is
       Config : constant Tropos.Configuration :=
                  Tropos.Reader.Read_Config
-                   (Concorde.Paths.Config_File
-                      ("star-systems/features.txt"));
+                   (Concorde.Configure.File_Path
+                      ("star-systems", "features"));
    begin
       for Feature_Config of Config loop
          Configure_Feature (Feature_Config);

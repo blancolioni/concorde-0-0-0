@@ -14,17 +14,17 @@ package Concorde.Commodities is
    use type WL.Quantities.Quantity_Type;
 
    type Commodity_Class is
-     (Resource, Consumer, Industrial, Building_Component, Skill, Service);
+     (Resource, Consumer, Industrial, Construction, Military,
+      Skill, Service);
 
    type Commodity_Flag is
      (Organic, Mineral, Metal, Fissile, Fuel, Gas, Liquid,
       Food, Drink, Intoxicant, Clothing,
       Alloy, Ceramic, Electronic, Plastic,
-      Virtual, Power, Generator);
+      Virtual, Power, Generator,
+      Available);
 
    type Array_Of_Flags is array (Commodity_Flag) of Boolean;
-
-   type Commodity_Quality is (High, Middle, Low);
 
    type Root_Commodity_Type is
      new Concorde.Objects.Root_Localised_Object_Type with private;
@@ -32,10 +32,6 @@ package Concorde.Commodities is
    function Class
      (Commodity : Root_Commodity_Type'Class)
       return Commodity_Class;
-
-   function Quality
-     (Commodity : Root_Commodity_Type'Class)
-      return Commodity_Quality;
 
    function Unit_Mass
      (Commodity : Root_Commodity_Type'Class)
@@ -45,14 +41,15 @@ package Concorde.Commodities is
      (Commodity : Root_Commodity_Type'Class)
       return WL.Money.Price_Type;
 
-   function Energy
-     (Commodity : Root_Commodity_Type'Class)
-      return Non_Negative_Real;
-
    function Is_Set
      (Commodity : Root_Commodity_Type'Class;
       Flag      : Commodity_Flag)
       return Boolean;
+
+   function Available
+     (Commodity : Root_Commodity_Type'Class)
+      return Boolean
+   is (Commodity.Is_Set (Available));
 
    type Commodity_Type is access constant Root_Commodity_Type'Class;
 
@@ -68,15 +65,10 @@ package Concorde.Commodities is
 
    function Get (Flag : Commodity_Flag) return Array_Of_Commodities;
 
-   function Get (Class   : Commodity_Class;
-                 Quality : Commodity_Quality)
-                 return Array_Of_Commodities;
-
    function All_Commodities return Array_Of_Commodities;
    function Trade_Commodities return Array_Of_Commodities;
    function Skill_Commodities return Array_Of_Commodities;
    function Virtual_Commodities return Array_Of_Commodities;
-   function Food_Commodities return Array_Of_Commodities;
 
    type Stock_Interface is limited interface;
 
@@ -99,8 +91,9 @@ package Concorde.Commodities is
    is (Stock.Maximum_Quantity - Stock.Total_Quantity);
 
    function Get_Quantity
-     (Stock : Stock_Interface;
-      Item  : Commodity_Type)
+     (Stock      : Stock_Interface;
+      Commodity  : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return WL.Quantities.Quantity_Type
       is abstract;
 
@@ -180,18 +173,11 @@ private
          Flags      : Array_Of_Flags;
          Base_Price : WL.Money.Price_Type;
          Mass       : Non_Negative_Real;
-         Quality    : Commodity_Quality;
-         Energy     : Non_Negative_Real;
       end record;
 
    overriding function Object_Database
      (Item : Root_Commodity_Type)
       return Memor.Memor_Database;
-
-   function Energy
-     (Commodity : Root_Commodity_Type'Class)
-      return Non_Negative_Real
-   is (Commodity.Energy);
 
    type Stock_Entry is
       record
@@ -219,9 +205,10 @@ private
 
    overriding function Get_Quantity
      (Stock : Root_Stock_Type;
-      Item  : Commodity_Type)
+      Commodity  : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return WL.Quantities.Quantity_Type
-   is (Stock.Vector.Element (Item).Quantity);
+   is (Stock.Vector.Element (Commodity).Quantity);
 
    overriding function Get_Value
      (Stock : Root_Stock_Type;

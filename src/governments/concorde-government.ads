@@ -63,6 +63,10 @@ package Concorde.Government is
      (Government : in out Root_Government_Type'Class;
       Wage       : WL.Money.Price_Type);
 
+   function Slavery_Allowed
+     (Government : Root_Government_Type'Class)
+      return Boolean;
+
    type Government_Type is access constant Root_Government_Type'Class;
 
    type Governed_Interface is limited interface
@@ -122,6 +126,7 @@ private
                                (others => WL.Money.Zero);
          Owner_Tithe       : Unit_Real := 0.1;
          Basic_Living_Wage : WL.Money.Price_Type := WL.Money.Zero;
+         Slavery_Allowed   : Boolean := False;
       end record;
 
    overriding function Class_Name
@@ -156,6 +161,11 @@ private
      (Government : Root_Government_Type'Class)
       return WL.Money.Price_Type
    is (Government.Basic_Living_Wage);
+
+   function Slavery_Allowed
+     (Government : Root_Government_Type'Class)
+      return Boolean
+   is (Government.Slavery_Allowed);
 
    package Db is
      new Memor.Database

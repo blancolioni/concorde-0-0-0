@@ -53,6 +53,7 @@ package Concorde.Locations is
 
    subtype Orbital_Location is Object_Location (Orbit);
    subtype System_Point_Location is Object_Location (System_Point);
+   subtype Sector_Location is Object_Location (World_Surface);
 
    function Get_Orbit_Location
      (Orbit_Loc : Orbital_Location;

@@ -24,11 +24,6 @@ package body Concorde.Managers.Ships.Trade is
       use WL.Quantities;
    begin
       for Commodity of Concorde.Commodities.Trade_Commodities loop
---           Manager.Ship.Log_Trade
---             (Commodity.Identifier & ": "
---              & (if Manager.Ship.Has_Bid (Commodity) then "(have bid) "
---                else "")
---              & "quantity " & Image (Manager.Ship.Get_Quantity (Commodity)));
 
          if not Manager.Ship.Has_Bid (Commodity)
            and then Manager.Ship.Get_Quantity (Commodity) > Zero
@@ -48,8 +43,8 @@ package body Concorde.Managers.Ships.Trade is
    is
       use Concorde.Commodities;
       use WL.Money, WL.Quantities;
-      Local_Market : constant Concorde.Markets.Market_Type :=
-                       Concorde.Markets.Market_Type (Manager.Ship.Market);
+      Local_Market   : constant Concorde.Markets.Market_Type :=
+                         Concorde.Markets.Market_Type (Manager.Ship.Market);
       Contract_Queue : Contract_Queues.Heap;
 
       procedure Check_Contract
@@ -66,17 +61,19 @@ package body Concorde.Managers.Ships.Trade is
          use Concorde.Locations;
          use type Concorde.Objects.Object_Type;
          Local_Supply    : constant Quantity_Type :=
-                             Local_Market.Get_Daily_Quantity
-                               (Contract.Commodity,
-                                Concorde.Trades.Local_Supply,
-                                7);
+                             Local_Market.Current_Supply (Contract.Commodity);
+         Local_Demand    : constant Quantity_Type :=
+                             Local_Market.Current_Demand (Contract.Commodity);
       begin
-         if Contract.Class = Buy_Goods
-           and then Contract.Quantity <= Manager.Ship.Hold_Quantity
-           and then Local_Supply > Zero
-           and then Primary (Contract.Location)
-           /= Primary (Manager.Ship.Current_Location)
-         then
+--           Manager.Ship.Log_Trade
+--             ("checking contract: " & Contract.Show);
+--           Manager.Ship.Log_Trade
+--             ("   local supply/demand: "
+--              & Show (Local_Supply)
+--              & "/"
+--              & Show (Local_Demand));
+
+         if Local_Supply > Zero then
             declare
                Local_Price     : constant Price_Type :=
                                    Manager.Ship.Create_Bid_Price
@@ -84,9 +81,11 @@ package body Concorde.Managers.Ships.Trade is
                Local_Cost      : constant Money_Type :=
                                    Total (Local_Price, Contract.Quantity);
             begin
-               if Local_Price < Contract.Price
-                 and then Contract.Quantity < Local_Supply
-                 and then Local_Cost <= Manager.Ship.Cash
+               if Contract.Class = Buy_Goods
+                 and then Contract.Quantity <= Manager.Ship.Hold_Quantity
+                 and then Local_Supply > Zero
+                 and then Primary (Contract.Location)
+                 /= Primary (Manager.Ship.Current_Location)
                then
                   Manager.Ship.Log_Trade
                     ("checking contract: " & Contract.Show);
@@ -94,19 +93,28 @@ package body Concorde.Managers.Ships.Trade is
                     ("   local supply/demand: "
                      & Show (Local_Supply)
                      & "/"
-                     & Show
-                       (Local_Market.Get_Daily_Quantity
-                            (Contract.Commodity,
-                             Concorde.Trades.Local_Demand,
-                             7)));
+                     & Show (Local_Demand));
                   Manager.Ship.Log_Trade
-                    ("   local price/cost: "
+                    ("   local price/cost/cash/limit: "
                      & Show (Local_Price)
                      & "/"
-                     & Show (Local_Cost));
+                     & Show (Local_Cost)
+                     & "/"
+                     & Show (Manager.Ship.Cash)
+                     & "/"
+                     & Show (Manager.Ship.Limit_Cash));
 
-                  Contract_Queue.Insert
-                    (Real (To_Float (Contract.Price - Local_Price)), Contract);
+                  if Local_Price < Contract.Price
+                    and then Contract.Quantity < Local_Supply
+                    and then Local_Cost <= Manager.Ship.Limit_Cash
+                  then
+                     Manager.Ship.Log_Trade
+                       ("accepted: "
+                        & Contract.Show);
+                     Contract_Queue.Insert
+                       (Real (To_Float (Contract.Price - Local_Price)),
+                        Contract);
+                  end if;
                end if;
             end;
          end if;
@@ -242,11 +250,11 @@ package body Concorde.Managers.Ships.Trade is
             Manager.Create_Bids;
             if Manager.Has_Bids then
                Manager.State := Buying;
-            elsif Manager.Ship.Total_Quantity > Zero then
-               Manager.Ship.Update.Clear_Filled_Bids;
-               Manager.Set_Destination (Manager.Next_Destination);
-               Manager.Next_Destination := null;
-               Manager.State := Moving;
+--              elsif Manager.Ship.Total_Quantity > Zero then
+--                 Manager.Ship.Update.Clear_Filled_Bids;
+--                 Manager.Set_Destination (Manager.Next_Destination);
+--                 Manager.Next_Destination := null;
+--                 Manager.State := Moving;
             end if;
          when Buying =>
             if not Manager.Has_Bids then

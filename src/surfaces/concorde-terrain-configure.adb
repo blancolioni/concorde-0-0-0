@@ -2,7 +2,7 @@ with Tropos.Reader;
 
 with Lui.Colours.Config;
 
-with Concorde.Paths;
+with Concorde.Configure;
 
 package body Concorde.Terrain.Configure is
 
@@ -16,8 +16,8 @@ package body Concorde.Terrain.Configure is
    procedure Configure_Terrain is
       Config : constant Tropos.Configuration :=
                  Tropos.Reader.Read_Config
-                   (Concorde.Paths.Config_File
-                      ("star-systems/terrain.txt"));
+                   (Concorde.Configure.File_Path
+                      ("star-systems", "terrain"));
    begin
       for Terrain_Config of Config loop
          Configure_Terrain (Terrain_Config);

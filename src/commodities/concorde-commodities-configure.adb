@@ -2,20 +2,19 @@ with Ada.Characters.Handling;
 
 with Tropos.Reader;
 
-with Concorde.Paths;
+with Concorde.Configure;
 
 package body Concorde.Commodities.Configure is
 
    procedure Configure_Commodity
-     (Config : Tropos.Configuration);
+     (Class  : Commodity_Class;
+      Config : Tropos.Configuration);
 
    function Create
      (Tag        : String;
       Class      : Commodity_Class;
       Mass       : Non_Negative_Real;
       Base_Price : WL.Money.Price_Type;
-      Quality    : Commodity_Quality;
-      Energy     : Non_Negative_Real;
       Flags      : Array_Of_Flags)
       return Commodity_Type;
 
@@ -49,6 +48,8 @@ package body Concorde.Commodities.Configure is
                         Commodity.Name
                         & " has no base price and cannot be produced");
          Facility  : constant Facility_Type := Fs (Fs'First);
+         Size      : constant WL.Quantities.Quantity_Type :=
+                       WL.Quantities.To_Quantity (1000.0);
          Has_Price : Boolean := True;
          Cost      : Real := 0.0;
       begin
@@ -58,7 +59,7 @@ package body Concorde.Commodities.Configure is
                   Input : constant Commodity_Type :=
                             Facility.Input_Commodity (I);
                   Quant : constant WL.Quantities.Quantity_Type :=
-                            Facility.Input_Quantity (I);
+                            Facility.Input_Quantity (Size, I);
                begin
                   if Not_Priced (Input.all) then
                      Has_Price := False;
@@ -80,7 +81,7 @@ package body Concorde.Commodities.Configure is
                         Input : constant Commodity_Type :=
                                   Facility.Input_Choice_Commodity (I, J);
                         Quant : constant WL.Quantities.Quantity_Type :=
-                                  Facility.Input_Choice_Quantity (I, J);
+                                  Facility.Input_Choice_Quantity (Size, I, J);
                         This  : Money_Type;
                      begin
                         if Not_Priced (Input.all) then
@@ -109,19 +110,8 @@ package body Concorde.Commodities.Configure is
          end loop;
 
          if Has_Price then
-            Cost := Cost * Real (Facility.Capacity);
-
-            for I in 1 .. Facility.Worker_Count loop
-               Cost := Cost
-                 + Real (To_Float (Facility.Worker_Skill (I).Base_Pay)
-                         * WL.Quantities.To_Float
-                           (Facility.Worker_Quantity (I)));
-            end loop;
-
-            Cost := Cost / Real (Facility.Capacity) * 1.1;
-
-            Commodity.Base_Price := To_Price (Float (Cost));
-
+            Commodity.Base_Price :=
+              To_Price (Float (Cost) * 2.0 / WL.Quantities.To_Float (Size));
          else
             Finished := False;
          end if;
@@ -144,11 +134,18 @@ package body Concorde.Commodities.Configure is
    procedure Configure_Commodities is
       Commodities_Config : constant Tropos.Configuration :=
                              Tropos.Reader.Read_Config
-                               (Concorde.Paths.Config_File
-                                  ("commodities/commodities.txt"));
+                               (Concorde.Configure.File_Path
+                                  ("commodities", "commodities"));
    begin
-      for Config of Commodities_Config loop
-         Configure_Commodity (Config);
+      for Class_Config of Commodities_Config loop
+         declare
+            Class : constant Commodity_Class :=
+                      Commodity_Class'Value (Class_Config.Config_Name);
+         begin
+            for Config of Class_Config loop
+               Configure_Commodity (Class, Config);
+            end loop;
+         end;
       end loop;
    end Configure_Commodities;
 
@@ -157,7 +154,8 @@ package body Concorde.Commodities.Configure is
    -------------------------
 
    procedure Configure_Commodity
-     (Config : Tropos.Configuration)
+     (Class  : Commodity_Class;
+      Config : Tropos.Configuration)
    is
       Flags : Array_Of_Flags;
 
@@ -170,24 +168,19 @@ package body Concorde.Commodities.Configure is
                 (Commodity_Flag'Image (Flag)));
       end loop;
 
+      Flags (Available) := not Config.Contains ("unavailable");
+
       declare
          New_Commodity : constant Commodity_Type :=
                            Create
                              (Tag        => Config.Config_Name,
-                              Class      =>
-                                Commodity_Class'Value (Config.Get ("class")),
+                              Class      => Class,
                               Mass       =>
                                 Non_Negative_Real
-                                  (Float'(Config.Get ("mass"))) * 1000.0,
+                                  (Float'(Config.Get ("mass", 1.0))) * 1000.0,
                               Base_Price =>
                                 WL.Money.Value
-                                  (Config.Get ("base_price", "0")),
-                              Quality    =>
-                                Commodity_Quality'Val
-                                  (Config.Get ("quality", 2) - 1),
-                              Energy     =>
-                                Non_Negative_Real
-                                  (Float'(Config.Get ("energy", 0.0))),
+                                  (Config.Get ("cost", "0")),
                               Flags      => Flags);
          pragma Unreferenced (New_Commodity);
       begin
@@ -205,8 +198,6 @@ package body Concorde.Commodities.Configure is
       Class      : Commodity_Class;
       Mass       : Non_Negative_Real;
       Base_Price : WL.Money.Price_Type;
-      Quality    : Commodity_Quality;
-      Energy     : Non_Negative_Real;
       Flags      : Array_Of_Flags)
      return Commodity_Type
    is
@@ -224,8 +215,6 @@ package body Concorde.Commodities.Configure is
          Commodity.Flags := Flags;
          Commodity.Mass := Mass;
          Commodity.Base_Price := Base_Price;
-         Commodity.Energy := Energy;
-         Commodity.Quality := Quality;
       end Create;
 
    begin
@@ -235,6 +224,24 @@ package body Concorde.Commodities.Configure is
          Commodity_Vector.Append (Commodity);
       end return;
    end Create;
+
+   -----------------------
+   -- Create_From_Group --
+   -----------------------
+
+   function Create_From_Group
+     (Tag      : String;
+      Base_Pay : WL.Money.Price_Type)
+      return Commodity_Type
+   is
+   begin
+      return Create
+        (Tag        => Tag,
+         Class      => Concorde.Commodities.Skill,
+         Mass       => 0.0,
+         Base_Price => Base_Pay,
+         Flags      => (Virtual => True, others => False));
+   end Create_From_Group;
 
    -------------------------
    -- Create_From_Service --
@@ -249,32 +256,10 @@ package body Concorde.Commodities.Configure is
                      Class      => Concorde.Commodities.Service,
                      Mass       => 0.0,
                      Base_Price => Service_Facility.Base_Service_Charge,
-                     Quality    => Service_Facility.Quality,
-                     Energy     => 0.0,
                      Flags      => (Virtual => True, others => False));
       pragma Unreferenced (Service);
    begin
       null;
    end Create_From_Service;
-
-   -----------------------
-   -- Create_From_Skill --
-   -----------------------
-
-   function Create_From_Skill
-     (Tag      : String;
-      Base_Pay : WL.Money.Price_Type)
-      return Commodity_Type
-   is
-   begin
-      return Create
-        (Tag        => Tag,
-         Class      => Concorde.Commodities.Skill,
-         Mass       => 0.0,
-         Base_Price => Base_Pay,
-         Quality    => Middle,
-         Energy     => 0.0,
-         Flags      => (Virtual => True, others => False));
-   end Create_From_Skill;
 
 end Concorde.Commodities.Configure;

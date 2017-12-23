@@ -10,7 +10,8 @@ package Concorde.Installations.Create is
       Facility      : Concorde.Facilities.Facility_Type;
       Cash          : WL.Money.Money_Type;
       Owner         : not null access constant
-        Concorde.Agents.Root_Agent_Type'Class)
+        Concorde.Agents.Root_Agent_Type'Class;
+      Size          : WL.Quantities.Quantity_Type)
       return Installation_Type;
 
 end Concorde.Installations.Create;

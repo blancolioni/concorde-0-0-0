@@ -1,6 +1,6 @@
 with Tropos.Reader;
 
-with Concorde.Paths;
+with Concorde.Configure;
 
 package body Concorde.Atmosphere.Configure is
 
@@ -14,8 +14,8 @@ package body Concorde.Atmosphere.Configure is
    procedure Configure_Atmosphere is
       Config : constant Tropos.Configuration :=
                  Tropos.Reader.Read_Config
-                   (Concorde.Paths.Config_File
-                      ("star-systems/atmosphere.txt"));
+                   (Concorde.Configure.File_Path
+                      ("star-systems", "atmosphere"));
    begin
       for Gas_Config of Config loop
          Configure_Gas (Gas_Config);

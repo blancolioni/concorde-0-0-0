@@ -4,6 +4,11 @@ with Concorde.Logs;
 
 package body Concorde.Markets is
 
+   Recent_Trade_Limit : constant Duration :=
+                          86_400.0;
+   Recent_Offer_Limit : constant Duration :=
+                          7.0 * 86_400.0;
+
    function Taxable_Image
      (Price_With_Tax : WL.Money.Price_Type;
       Tax_Rate       : Non_Negative_Real)
@@ -25,6 +30,55 @@ package body Concorde.Markets is
        then Concorde.Trades.Export
        else Concorde.Trades.Sales);
 
+   -------------------------
+   -- Add_Commodity_Offer --
+   -------------------------
+
+   procedure Add_Commodity_Offer
+     (Info     : Cached_Commodity;
+      Offer    : Concorde.Trades.Offer_Type;
+      Quantity : WL.Quantities.Quantity_Type;
+      Price    : WL.Money.Price_Type)
+   is
+      use WL.Quantities;
+   begin
+      while not Info.Recent_Offers.Is_Empty loop
+         declare
+            use Concorde.Calendar;
+            Item : constant Offer_Record :=
+                     Info.Recent_Offers.First_Element;
+         begin
+            if Clock - Item.Time_Stamp > Recent_Offer_Limit then
+               case Item.Offer is
+                  when Concorde.Trades.Ask =>
+                     Info.Daily_Supply := Info.Daily_Supply
+                       - Item.Quantity;
+                  when Concorde.Trades.Bid =>
+                     Info.Daily_Demand := Info.Daily_Demand
+                       - Item.Quantity;
+               end case;
+               Info.Recent_Offers.Delete_First;
+            else
+               exit;
+            end if;
+         end;
+      end loop;
+
+      case Offer is
+         when Concorde.Trades.Ask =>
+            Info.Daily_Supply := Info.Daily_Supply + Quantity;
+         when Concorde.Trades.Bid =>
+            Info.Daily_Demand := Info.Daily_Demand + Quantity;
+      end case;
+
+      Info.Recent_Offers.Append
+        (Offer_Record'
+           (Time_Stamp => Concorde.Calendar.Clock,
+            Offer      => Offer,
+            Quantity   => Quantity,
+            Price      => Price));
+   end Add_Commodity_Offer;
+
    ---------------------
    -- Check_Commodity --
    ---------------------
@@ -41,13 +95,52 @@ package body Concorde.Markets is
                            new Cached_Commodity_Record'
                              (others => <>);
          begin
-            New_Cached.Current_Price := Commodity.Base_Price;
-            New_Cached.Historical_Mean_Price := Commodity.Base_Price;
+            New_Cached.Recent_Time := Concorde.Calendar.Clock;
             Market.Commodities.Replace_Element
               (Commodity, New_Cached);
          end;
       end if;
    end Check_Commodity;
+
+   ------------------
+   -- Check_Market --
+   ------------------
+
+   procedure Check_Market
+     (Market : Root_Market_Type'Class)
+   is
+      use WL.Quantities;
+
+      procedure Check
+        (Commodity : Concorde.Commodities.Root_Commodity_Type'Class;
+         Cache     : Cached_Commodity);
+
+      -----------
+      -- Check --
+      -----------
+
+      procedure Check
+        (Commodity : Concorde.Commodities.Root_Commodity_Type'Class;
+         Cache     : Cached_Commodity)
+      is
+      begin
+         for Metric of Cache.Metrics loop
+            if (for all Quantity of Metric.Quantities => Quantity = Zero) then
+               Market.Log
+                 (Concorde.Calendar.Image (Metric.Date, True)
+                  & ": "
+                  & Commodity.Name
+                  & ": bad metric");
+            end if;
+         end loop;
+      end Check;
+
+   begin
+      if False then
+         Market.Log ("checking market");
+         Market.Commodities.Scan (Check'Access);
+      end if;
+   end Check_Market;
 
    ------------------
    -- Check_Trades --
@@ -76,9 +169,12 @@ package body Concorde.Markets is
          if Bid_Quantity = Zero then
             exit when Info.Bids.Is_Empty;
             Bid_Offer := Info.Bids.Maximum_Element;
-            Bid_Quantity :=
-              Min (Bid_Offer.Remaining_Quantity,
-                   Bid_Offer.Agent.Available_Capacity);
+            Bid_Quantity := Bid_Offer.Remaining_Quantity;
+            if not Commodity.Is_Set (Concorde.Commodities.Virtual) then
+               Bid_Quantity :=
+                 Min (Bid_Quantity,
+                      Bid_Offer.Agent.Available_Capacity);
+            end if;
             Bid_Price := Bid_Offer.Offer_Price;
          end if;
 
@@ -225,8 +321,8 @@ package body Concorde.Markets is
                 Concorde.Agents.Agent_Type (Trader);
       Info : constant Cached_Commodity :=
                Market.Get_Commodity (Commodity);
-      Hist      : Historical_Quantity_Record :=
-                    (Concorde.Calendar.Clock, others => <>);
+--        Hist      : Historical_Quantity_Record :=
+--                      (Concorde.Calendar.Clock, others => <>);
 
       Offer_Name : constant String :=
                      (case Offer is
@@ -240,6 +336,13 @@ package body Concorde.Markets is
                            & "/" & Commodity.Identifier
                            & "/" & Offer_Name;
    begin
+
+      if Quantity = Zero then
+         Market.Log ("error: quantity is zero");
+      end if;
+
+      pragma Assert (Quantity > Zero);
+
       Concorde.Logs.Log_Fields
         (Market_Log_Path,
          Trader.Short_Name,
@@ -248,8 +351,7 @@ package body Concorde.Markets is
          Image (Quantity),
          Image (Price));
 
-      if Info.Current_Price = Zero then
-         Info.Current_Price := Price;
+      if Info.Historical_Mean_Price = Zero then
          Info.Historical_Mean_Price := Price;
       end if;
 
@@ -258,26 +360,59 @@ package body Concorde.Markets is
             Info.Bids.Insert
               (Price, Offer_Info'(Agent, Quantity, Quantity, Price));
             Info.Current_Demand := Info.Current_Demand + Quantity;
-            Hist.Quantities (Concorde.Trades.Local_Demand) := Quantity;
+            --  Hist.Quantities (Concorde.Trades.Local_Demand) := Quantity;
 
          when Concorde.Trades.Ask =>
 
             Info.Asks.Insert
               (Price, Offer_Info'(Agent, Quantity, Quantity, Price));
             Info.Current_Supply := Info.Current_Supply + Quantity;
-            Hist.Quantities (Concorde.Trades.Local_Supply) := Quantity;
+            --  Hist.Quantities (Concorde.Trades.Local_Supply) := Quantity;
       end case;
 
-      declare
-         L : Quantity_Metric_Lists.List renames
-               Market.Get_Commodity (Commodity).Metrics;
-      begin
-         L.Insert (L.First, Hist);
-      end;
+      Add_Commodity_Offer
+        (Info     => Info,
+         Offer    => Offer,
+         Quantity => Quantity,
+         Price    => Price);
+
+--        if (for all X of Hist.Quantities => X = Zero) then
+--           Market.Log (Commodity.Name & ": new metric: all zero");
+--        end if;
+--
+--        declare
+--           L : Quantity_Metric_Lists.List renames
+--                 Market.Get_Commodity (Commodity).Metrics;
+--        begin
+--           L.Insert (L.First, Hist);
+--           for H of L loop
+--              if (for all X of H.Quantities => X = Zero) then
+--                 Market.Log (Commodity.Name
+--                             & ": error: all quanties are zero at "
+--                             & Concorde.Calendar.Image (H.Date, True));
+--              end if;
+--           end loop;
+--        end;
+
+      Market.Check_Market;
 
       Market.Check_Trades (Commodity);
 
    end Create_Offer;
+
+   --------------------
+   -- Current_Demand --
+   --------------------
+
+   overriding function Current_Demand
+     (Market    : Root_Market_Type;
+      Item      : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
+      return WL.Quantities.Quantity_Type
+   is
+   begin
+      return Market.Get_Commodity (Item).Daily_Demand;
+   end Current_Demand;
 
    -------------------
    -- Current_Price --
@@ -288,16 +423,35 @@ package body Concorde.Markets is
       Commodity : Concorde.Commodities.Commodity_Type)
       return WL.Money.Price_Type
    is
-      use WL.Money;
+      use WL.Money, WL.Quantities;
+      Info : constant Cached_Commodity :=
+               Market.Get_Commodity (Commodity);
    begin
-      return Price : WL.Money.Price_Type :=
-        Market.Get_Commodity (Commodity).Current_Price
-      do
-         if Price = Zero then
-            Price := Commodity.Base_Price;
+      if Info.Daily_Trade_Volume = Zero then
+         if Info.Historical_Mean_Price = Zero then
+            return Commodity.Base_Price;
+         else
+            return Info.Historical_Mean_Price;
          end if;
-      end return;
+      else
+         return Price (Info.Daily_Trade_Value,
+                       Info.Daily_Trade_Volume);
+      end if;
    end Current_Price;
+
+   --------------------
+   -- Current_Supply --
+   --------------------
+
+   overriding function Current_Supply
+     (Market    : Root_Market_Type;
+      Item      : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
+      return WL.Quantities.Quantity_Type
+   is
+   begin
+      return Market.Get_Commodity (Item).Daily_Supply;
+   end Current_Supply;
 
    ------------------
    -- Delete_Offer --
@@ -317,6 +471,7 @@ package body Concorde.Markets is
                Market.Get_Commodity (Commodity);
 
    begin
+
       case Offer is
          when Concorde.Trades.Bid =>
             declare
@@ -343,6 +498,11 @@ package body Concorde.Markets is
                            & " @ " & Image (Element.Offer_Price));
                         Info.Current_Demand :=
                           Info.Current_Demand - Element.Remaining_Quantity;
+                        Remove_Commodity_Offer
+                          (Info    => Info,
+                           Offer    => Offer,
+                           Quantity => Element.Offered_Quantity,
+                           Price    => Element.Offer_Price);
                      end if;
                   end;
                end loop;
@@ -373,6 +533,11 @@ package body Concorde.Markets is
                            & " @ " & Image (Element.Offer_Price));
                         Info.Current_Supply :=
                           Info.Current_Supply - Element.Remaining_Quantity;
+                        Remove_Commodity_Offer
+                          (Info     => Info,
+                           Offer    => Offer,
+                           Quantity => Element.Offered_Quantity,
+                           Price    => Element.Offer_Price);
                      end if;
                   end;
                end loop;
@@ -471,6 +636,7 @@ package body Concorde.Markets is
    is
       use Concorde.Commodities;
       use WL.Money;
+      use WL.Quantities;
       Tax_Category   : constant Concorde.Trades.Market_Tax_Category :=
                          Get_Tax_Category (Market, Buyer, Seller, Commodity);
       Tax_Rate       : constant Unit_Real :=
@@ -518,6 +684,46 @@ package body Concorde.Markets is
         (Commodity, Quantity, Price - Tax_Free_Price,
          Tax_Category, Total_Tax);
 
+      declare
+         Info : constant Cached_Commodity := Market.Get_Commodity (Commodity);
+      begin
+         while not Info.Recent_Transactions.Is_Empty loop
+            declare
+               use Concorde.Calendar;
+               Item : constant Transaction_Record :=
+                        Info.Recent_Transactions.First_Element;
+            begin
+               if Clock - Item.Time_Stamp > Recent_Trade_Limit then
+                  Info.Daily_Trade_Value :=
+                    Info.Daily_Trade_Value - Total (Item.Price, Item.Quantity);
+                  Info.Daily_Trade_Volume :=
+                    Info.Daily_Trade_Volume - Item.Quantity;
+                  Info.Recent_Transactions.Delete_First;
+               else
+                  exit;
+               end if;
+            end;
+         end loop;
+
+         Info.Daily_Trade_Value :=
+           Info.Daily_Trade_Value + Tax_Free_Cost;
+         Info.Daily_Trade_Volume :=
+           Info.Daily_Trade_Volume + Quantity;
+         Info.Recent_Transactions.Append
+           (Transaction_Record'
+              (Time_Stamp => Concorde.Calendar.Clock,
+               Quantity   => Quantity,
+               Price      => Tax_Free_Price));
+         Market.Log (Commodity.Name
+                     & ": recent activity: volume = "
+                     & Show (Info.Daily_Trade_Volume)
+                     & "; value = "
+                     & Show (Info.Daily_Trade_Value)
+                     & "; ave price = "
+                     & Show (WL.Money.Price (Info.Daily_Trade_Value,
+                       Info.Daily_Trade_Volume)));
+      end;
+
       if Commodity.Class = Skill then
          Buyer.Execute_Hire
            (Seller, Commodity, Quantity, Price);
@@ -540,62 +746,62 @@ package body Concorde.Markets is
       return Market.Commodities.Element (Commodity);
    end Get_Commodity;
 
-   ------------------
-   -- Get_Quantity --
-   ------------------
-
-   overriding function Get_Quantity
-     (Market    : Root_Market_Type;
-      Item      : not null access constant
-        Concorde.Commodities.Root_Commodity_Type'Class;
-      Metric    : Concorde.Trades.Trade_Metric;
-      Start     : Concorde.Calendar.Time;
-      Finish    : Concorde.Calendar.Time)
-      return WL.Quantities.Quantity_Type
-   is
-      use Concorde.Calendar;
-      use WL.Quantities;
-      use all type Concorde.Trades.Trade_Metric;
-      Market_Log_Path  : constant String :=
-                           Market.Identifier
-                           & "/" & Item.Identifier
-                           & "/" & Concorde.Trades.Metric_Id (Metric);
-      Result : Quantity_Type := Zero;
-      Cached : constant Cached_Commodity :=
-                 Market.Get_Commodity (Item);
-   begin
-      for Hist of Cached.Metrics loop
-         exit when Hist.Date < Start;
-         if Hist.Date <= Finish then
-            Result := Result + Hist.Quantities (Metric);
-         end if;
-      end loop;
-
-      if Metric = Local_Demand then
-         Concorde.Logs.Log_Fields
-           (Market_Log_Path,
-            Image (Start, True),
-            Image (Finish, True),
-            Item.Identifier,
-            Image (Result),
-            Image (Cached.Current_Demand),
-            Image (Result + Cached.Current_Demand));
-
-         Result := Result + Cached.Current_Demand;
-      elsif Metric = Local_Supply then
-         Concorde.Logs.Log_Fields
-           (Market_Log_Path,
-            Image (Start, True),
-            Image (Finish, True),
-            Item.Identifier,
-            Image (Result),
-            Image (Cached.Current_Supply),
-            Image (Result + Cached.Current_Supply));
-         Result := Result + Cached.Current_Supply;
-      end if;
-
-      return Result;
-   end Get_Quantity;
+--     ------------------
+--     -- Get_Quantity --
+--     ------------------
+--
+--     overriding function Get_Quantity
+--       (Market    : Root_Market_Type;
+--        Item      : not null access constant
+--          Concorde.Commodities.Root_Commodity_Type'Class;
+--        Metric    : Concorde.Trades.Trade_Metric;
+--        Start     : Concorde.Calendar.Time;
+--        Finish    : Concorde.Calendar.Time)
+--        return WL.Quantities.Quantity_Type
+--     is
+--        use Concorde.Calendar;
+--        use WL.Quantities;
+--        use all type Concorde.Trades.Trade_Metric;
+--        Market_Log_Path  : constant String :=
+--                             Market.Identifier
+--                             & "/" & Item.Identifier
+--                             & "/" & Concorde.Trades.Metric_Id (Metric);
+--        Result : Quantity_Type := Zero;
+--        Cached : constant Cached_Commodity :=
+--                   Market.Get_Commodity (Item);
+--     begin
+--        for Hist of Cached.Metrics loop
+--           exit when Hist.Date < Start;
+--           if Hist.Date <= Finish then
+--              Result := Result + Hist.Quantities (Metric);
+--           end if;
+--        end loop;
+--
+--        if Metric = Local_Demand then
+--           Concorde.Logs.Log_Fields
+--             (Market_Log_Path,
+--              Image (Start, True),
+--              Image (Finish, True),
+--              Item.Identifier,
+--              Image (Result),
+--              Image (Cached.Current_Demand),
+--              Image (Result + Cached.Current_Demand));
+--
+--           Result := Result + Cached.Current_Demand;
+--        elsif Metric = Local_Supply then
+--           Concorde.Logs.Log_Fields
+--             (Market_Log_Path,
+--              Image (Start, True),
+--              Image (Finish, True),
+--              Item.Identifier,
+--              Image (Result),
+--              Image (Cached.Current_Supply),
+--              Image (Result + Cached.Current_Supply));
+--           Result := Result + Cached.Current_Supply;
+--        end if;
+--
+--        return Result;
+--     end Get_Quantity;
 
    ---------------------------
    -- Historical_Mean_Price --
@@ -634,7 +840,6 @@ package body Concorde.Markets is
       Concorde.Logging.Log
         (Market.Name, Commodity.Name, "initial price",
          WL.Money.Image (Price));
-      Info.Current_Price := Price;
       Info.Historical_Mean_Price := Price;
    end Initial_Price;
 
@@ -720,6 +925,46 @@ package body Concorde.Markets is
             end if;
       end case;
    end Price;
+
+   ----------------------------
+   -- Remove_Commodity_Offer --
+   ----------------------------
+
+   procedure Remove_Commodity_Offer
+     (Info     : Cached_Commodity;
+      Offer    : Concorde.Trades.Offer_Type;
+      Quantity : WL.Quantities.Quantity_Type;
+      Price    : WL.Money.Price_Type)
+   is
+      use WL.Money;
+      use WL.Quantities;
+      Found : Recent_Offer_Lists.Cursor;
+   begin
+      for Position in Info.Recent_Offers.Iterate loop
+         declare
+            Item : constant Offer_Record :=
+                     Recent_Offer_Lists.Element (Position);
+         begin
+            if Item.Quantity = Quantity
+              and then Item.Price = Price
+            then
+               Found := Position;
+               exit;
+            end if;
+         end;
+      end loop;
+
+      if Recent_Offer_Lists.Has_Element (Found) then
+         Info.Recent_Offers.Delete (Found);
+         case Offer is
+            when Concorde.Trades.Ask =>
+               Info.Daily_Supply := Info.Daily_Supply - Quantity;
+            when Concorde.Trades.Bid =>
+               Info.Daily_Demand := Info.Daily_Demand - Quantity;
+         end case;
+      end if;
+
+   end Remove_Commodity_Offer;
 
    -------------------
    -- Taxable_Image --

@@ -20,7 +20,8 @@ package body Concorde.Installations.Create is
       Facility      : Concorde.Facilities.Facility_Type;
       Cash          : WL.Money.Money_Type;
       Owner         : not null access constant
-        Concorde.Agents.Root_Agent_Type'Class)
+        Concorde.Agents.Root_Agent_Type'Class;
+      Size          : WL.Quantities.Quantity_Type)
       return Installation_Type
    is
 
@@ -37,10 +38,24 @@ package body Concorde.Installations.Create is
         (Installation : in out Root_Installation_Type'Class)
       is
          use WL.Quantities;
-         Storage : constant Quantity_Type :=
-                     Facility.Capacity_Quantity
-                       * To_Quantity (100.0);
+         use all type Concorde.Facilities.Facility_Class;
+         Storage : Quantity_Type := Zero;
       begin
+         for I in 1 .. Facility.Input_Count loop
+            for J in 1 .. Facility.Input_Choice_Count (I) loop
+               Storage := Storage +
+                 Scale
+                   (Facility.Input_Choice_Quantity (Size, I, J),
+                    10.0);
+            end loop;
+         end loop;
+
+         if Facility.Class = Port then
+            Storage := Scale (Size, 1000.0);
+         elsif Facility.Input_Count = 0 then
+            Storage := Scale (Size, 10.0);
+         end if;
+
          Installation.New_Agent
            (Location       => Location,
             Government     => Concorde.Government.Get_Government (Location),
@@ -49,6 +64,7 @@ package body Concorde.Installations.Create is
             Stock_Capacity => Storage);
          Installation.Facility := Facility;
          Installation.Owner := Owner;
+         Installation.Size := Size;
          Installation.Set_Guarantor (Owner);
       end Initialise;
 

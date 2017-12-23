@@ -26,3 +26,6 @@ log/*
 concorde.log
 config/images/planets/original/*
 etc/*
+config/characters
+config/scenarios/agrippa/common/countries/Zulu.txt
+config/textures/tiles/eofs

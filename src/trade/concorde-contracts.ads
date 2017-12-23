@@ -72,7 +72,8 @@ package Concorde.Contracts is
 
    function Contracted_To_Buy
      (Contractor : Contractor_Interface;
-      Commodity  : Concorde.Commodities.Commodity_Type)
+      Commodity  : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return WL.Quantities.Quantity_Type
       is abstract;
 
@@ -82,6 +83,11 @@ package Concorde.Contracts is
       is abstract;
 
    procedure Add_Contract
+     (Contractor : in out Contractor_Interface;
+      Contract   : Contract_Type)
+   is abstract;
+
+   procedure Cancel_Contract
      (Contractor : in out Contractor_Interface;
       Contract   : Contract_Type)
    is abstract;

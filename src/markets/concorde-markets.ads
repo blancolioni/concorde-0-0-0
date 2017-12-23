@@ -141,15 +141,43 @@ private
           Remaining_Quantity => Quantity,
           Offer_Price        => Price));
 
+   type Transaction_Record is
+      record
+         Time_Stamp : Concorde.Calendar.Time;
+         Quantity   : WL.Quantities.Quantity_Type;
+         Price      : WL.Money.Price_Type;
+      end record;
+
+   package Recent_Transaction_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Transaction_Record);
+
+   type Offer_Record is
+      record
+         Time_Stamp : Concorde.Calendar.Time;
+         Offer      : Concorde.Trades.Offer_Type;
+         Quantity   : WL.Quantities.Quantity_Type;
+         Price      : WL.Money.Price_Type;
+      end record;
+
+   package Recent_Offer_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Offer_Record);
+
    type Cached_Commodity_Record is
       record
          Metrics               : Quantity_Metric_Lists.List;
-         Current_Price         : WL.Money.Price_Type :=
+         Daily_Trade_Value     : WL.Money.Money_Type :=
                                    WL.Money.Zero;
+         Daily_Trade_Volume    : WL.Quantities.Quantity_Type :=
+                                   WL.Quantities.Zero;
+         Daily_Demand          : WL.Quantities.Quantity_Type :=
+                                   WL.Quantities.Zero;
+         Daily_Supply          : WL.Quantities.Quantity_Type :=
+                                   WL.Quantities.Zero;
          Historical_Mean_Price : WL.Money.Price_Type :=
                                    WL.Money.Zero;
-         Last_Price            : WL.Money.Price_Type :=
-                                   WL.Money.Zero;
+         Recent_Transactions   : Recent_Transaction_Lists.List;
+         Recent_Offers         : Recent_Offer_Lists.List;
+         Recent_Time           : Concorde.Calendar.Time;
          Current_Demand        : WL.Quantities.Quantity_Type :=
                                    WL.Quantities.Zero;
          Current_Supply        : WL.Quantities.Quantity_Type :=
@@ -159,6 +187,18 @@ private
       end record;
 
    type Cached_Commodity is access Cached_Commodity_Record;
+
+   procedure Add_Commodity_Offer
+     (Info     : Cached_Commodity;
+      Offer    : Concorde.Trades.Offer_Type;
+      Quantity : WL.Quantities.Quantity_Type;
+      Price    : WL.Money.Price_Type);
+
+   procedure Remove_Commodity_Offer
+     (Info     : Cached_Commodity;
+      Offer    : Concorde.Trades.Offer_Type;
+      Quantity : WL.Quantities.Quantity_Type;
+      Price    : WL.Money.Price_Type);
 
    package Cached_Commodity_Vectors is
      new Memor.Element_Vectors
@@ -187,13 +227,16 @@ private
       return access constant Concorde.Trades.Trade_Manager_Interface'Class
    is (Market.Manager);
 
-   overriding function Get_Quantity
+   overriding function Current_Supply
      (Market    : Root_Market_Type;
       Item      : not null access constant
-        Concorde.Commodities.Root_Commodity_Type'Class;
-      Metric    : Concorde.Trades.Trade_Metric;
-      Start     : Concorde.Calendar.Time;
-      Finish    : Concorde.Calendar.Time)
+        Concorde.Commodities.Root_Commodity_Type'Class)
+      return WL.Quantities.Quantity_Type;
+
+   overriding function Current_Demand
+     (Market    : Root_Market_Type;
+      Item      : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return WL.Quantities.Quantity_Type;
 
    overriding procedure Update_Offer
@@ -237,6 +280,9 @@ private
      (Market    : Root_Market_Type'Class;
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class);
+
+   procedure Check_Market
+     (Market : Root_Market_Type'Class);
 
    procedure Log_Offer
      (Market    : Root_Market_Type'Class;

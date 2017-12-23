@@ -29,7 +29,8 @@ package Concorde.Agents is
 
    overriding function Contracted_To_Buy
      (Agent      : Root_Agent_Type;
-      Commodity  : Concorde.Commodities.Commodity_Type)
+      Commodity  : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return WL.Quantities.Quantity_Type;
 
    overriding function Contracted_Quantity
@@ -37,6 +38,10 @@ package Concorde.Agents is
       return WL.Quantities.Quantity_Type;
 
    overriding procedure Add_Contract
+     (Agent    : in out Root_Agent_Type;
+      Contract : Concorde.Contracts.Contract_Type);
+
+   overriding procedure Cancel_Contract
      (Agent    : in out Root_Agent_Type;
       Contract : Concorde.Contracts.Contract_Type);
 
@@ -59,6 +64,14 @@ package Concorde.Agents is
 
    overriding procedure Close_Completed_Contracts
      (Agent   : in out Root_Agent_Type);
+
+   function Contract_Capacity
+     (Agent : Root_Agent_Type'Class)
+      return WL.Quantities.Quantity_Type;
+
+   procedure Delete_Pending_Offers
+     (Agent     : in out Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type);
 
    function Class_Name (Agent : Root_Agent_Type) return String
                         is abstract;
@@ -97,8 +110,9 @@ package Concorde.Agents is
       return WL.Quantities.Quantity_Type;
 
    overriding function Get_Quantity
-     (Agent : Root_Agent_Type;
-      Item  : Concorde.Commodities.Commodity_Type)
+     (Agent      : Root_Agent_Type;
+      Commodity  : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return WL.Quantities.Quantity_Type;
 
    overriding function Get_Value
@@ -240,13 +254,17 @@ package Concorde.Agents is
      (Agent        : not null access constant Root_Agent_Type'Class;
       Commodity    : Concorde.Commodities.Commodity_Type;
       Ask_Quantity : WL.Quantities.Quantity_Type;
-      Ask_Price    : WL.Money.Price_Type);
+      Ask_Price    : WL.Money.Price_Type)
+     with Pre => WL.Quantities.">" (Ask_Quantity, WL.Quantities.Zero)
+     and then WL.Money.">" (Ask_Price, WL.Money.Zero);
 
    procedure Create_Bid
      (Agent        : not null access constant Root_Agent_Type'Class;
       Commodity    : Concorde.Commodities.Commodity_Type;
       Bid_Quantity : WL.Quantities.Quantity_Type;
-      Bid_Price    : WL.Money.Price_Type);
+      Bid_Price    : WL.Money.Price_Type)
+     with Pre => WL.Quantities.">" (Bid_Quantity, WL.Quantities.Zero)
+     and then WL.Money.">" (Bid_Price, WL.Money.Zero);
 
    procedure Create_Ask
      (Agent        : not null access constant Root_Agent_Type'Class;
@@ -468,7 +486,8 @@ private
 
    overriding function Contracted_To_Buy
      (Agent      : Root_Agent_Type;
-      Commodity  : Concorde.Commodities.Commodity_Type)
+      Commodity  : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
       return WL.Quantities.Quantity_Type
    is (Agent.Contracted_Quantities.Get_Quantity (Commodity));
 
@@ -476,6 +495,11 @@ private
      (Agent : Root_Agent_Type)
       return WL.Quantities.Quantity_Type
    is (Root_Agent_Type'Class (Agent).Available_Quantity);
+
+   function Contract_Capacity
+     (Agent : Root_Agent_Type'Class)
+      return WL.Quantities.Quantity_Type
+   is (Agent.Contracted_Quantities.Maximum_Quantity);
 
    function Reference (Agent : Root_Agent_Type'Class) return Agent_Reference
    is (Agent.Agent_Ref);

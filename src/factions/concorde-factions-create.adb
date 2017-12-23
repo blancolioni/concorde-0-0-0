@@ -423,7 +423,7 @@ package body Concorde.Factions.Create is
               Concorde.Locations.World_Surface (Start_World, 1),
             Government     => null,
             Market         => null,
-            Cash           => WL.Money.To_Money (1_000.0),
+            Cash           => WL.Money.To_Money (1_000_000.0),
             Stock_Capacity => WL.Quantities.Zero);
 
          New_Faction.Identifier :=
@@ -484,12 +484,15 @@ package body Concorde.Factions.Create is
          begin
             for Item of Consumer_Goods loop
                if Imperial_Centre then
-                  null;
-               else
                   Market.Initial_Price
                     (Item,
                      WL.Money.Adjust_Price
                        (Item.Base_Price, Factor => 2.0));
+               else
+                  Market.Initial_Price
+                    (Item,
+                     WL.Money.Adjust_Price
+                       (Item.Base_Price, Factor => 4.0));
                end if;
             end loop;
          end;
@@ -521,7 +524,7 @@ package body Concorde.Factions.Create is
               (Start_World, "imperial_capital");
          else
             Concorde.Colonies.Configure.Create_Colony_From_Template
-              (Start_World, "initial");
+              (Start_World, "initial_colony");
 
             Create_Initial_Ships (Start_World);
 

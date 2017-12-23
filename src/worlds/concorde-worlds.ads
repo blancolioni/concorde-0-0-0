@@ -199,6 +199,10 @@ package Concorde.Worlds is
       Concentration : out Unit_Real;
       Accessibility : out Unit_Real);
 
+   function Get_Sector_Infrastructure
+     (Location : Concorde.Locations.Sector_Location)
+      return Unit_Real;
+
    --     function Resource
 --       (System : Root_Star_System_Type'Class)
 --        return Concorde.Commodities.Commodity_Type;
@@ -325,15 +329,16 @@ private
 
    type Sector_Record is
       record
-         Height        : Height_Range;
-         Terrain       : Concorde.Terrain.Terrain_Type;
-         Feature       : Concorde.Features.Feature_Type;
-         Deposit       : Deposit_Record;
-         Temperature   : Temperature_Record;
-         Wind          : Wind_Record;
-         Moisture      : Non_Negative_Real;
-         Pops          : Concorde.People.Pops.Lists.List;
-         Installations : Concorde.Installations.Lists.List;
+         Height         : Height_Range;
+         Terrain        : Concorde.Terrain.Terrain_Type;
+         Feature        : Concorde.Features.Feature_Type;
+         Deposit        : Deposit_Record;
+         Temperature    : Temperature_Record;
+         Wind           : Wind_Record;
+         Moisture       : Non_Negative_Real;
+         Infrastructure : Unit_Real := 0.0;
+         Pops           : Concorde.People.Pops.Lists.List;
+         Installations  : Concorde.Installations.Lists.List;
       end record;
 
    type Array_Of_Sectors is

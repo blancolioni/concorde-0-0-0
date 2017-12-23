@@ -70,18 +70,6 @@ package body Concorde.Facilities is
       return False;
    end Can_Produce;
 
-   --------------
-   -- Capacity --
-   --------------
-
-   function Capacity
-     (Facility : Root_Facility_Type'Class)
-      return Facility_Capacity
-   is
-   begin
-      return Facility.Capacity;
-   end Capacity;
-
    -----------
    -- Class --
    -----------
@@ -241,19 +229,6 @@ package body Concorde.Facilities is
       end if;
    end Input_Count;
 
-   --------------------
-   -- Input_Quantity --
-   --------------------
-
-   function Input_Quantity
-     (Facility : Root_Facility_Type'Class;
-      Index    : Positive)
-      return WL.Quantities.Quantity_Type
-   is
-   begin
-      return Facility.Inputs (Index).Quantity;
-   end Input_Quantity;
-
    ------------
    -- Is_Set --
    ------------
@@ -292,18 +267,6 @@ package body Concorde.Facilities is
       return Facility.Output;
    end Output;
 
-   -------------
-   -- Quality --
-   -------------
-
-   function Quality
-     (Facility : Root_Facility_Type'Class)
-      return Concorde.Commodities.Commodity_Quality
-   is
-   begin
-      return Facility.Quality;
-   end Quality;
-
    ------------------------
    -- Resource_Generator --
    ------------------------
@@ -323,47 +286,5 @@ package body Concorde.Facilities is
    begin
       return Matches (Matches'First);
    end Resource_Generator;
-
-   ------------------
-   -- Worker_Count --
-   ------------------
-
-   function Worker_Count
-     (Facility : Root_Facility_Type'Class)
-      return Natural
-   is
-   begin
-      if Facility.Workers = null then
-         return 0;
-      else
-         return Facility.Workers'Length;
-      end if;
-   end Worker_Count;
-
-   ---------------------
-   -- Worker_Quantity --
-   ---------------------
-
-   function Worker_Quantity
-     (Facility : Root_Facility_Type'Class;
-      Index    : Positive)
-      return WL.Quantities.Quantity_Type
-   is
-   begin
-      return Facility.Workers (Index).Quantity;
-   end Worker_Quantity;
-
-   ------------------
-   -- Worker_Skill --
-   ------------------
-
-   function Worker_Skill
-     (Facility : Root_Facility_Type'Class;
-      Index    : Positive)
-      return Concorde.People.Skills.Pop_Skill
-   is
-   begin
-      return Facility.Workers (Index).Skill;
-   end Worker_Skill;
 
 end Concorde.Facilities;

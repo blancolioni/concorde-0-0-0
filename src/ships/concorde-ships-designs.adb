@@ -1,9 +1,10 @@
 with Ada.Strings.Unbounded;
 
+with WL.String_Maps;
+
 with Tropos.Reader;
 
-with Concorde.Hash_Table;
-with Concorde.Paths;
+with Concorde.Configure;
 
 with Concorde.Components;
 with Concorde.Components.Manager;
@@ -29,7 +30,7 @@ package body Concorde.Ships.Designs is
       end record;
 
    package Ship_Design_Tables is
-     new Concorde.Hash_Table (Ship_Design);
+     new WL.String_Maps (Ship_Design);
 
    Designs : Ship_Design_Tables.Map;
 
@@ -102,7 +103,7 @@ package body Concorde.Ships.Designs is
    procedure Configure_Designs is
    begin
       Tropos.Reader.Read_Config
-        (Concorde.Paths.Config_File ("ships/designs"),
+        (Concorde.Configure.Directory_Path ("ships/designs"),
          "txt",
          Configure_Design'Access);
    end Configure_Designs;

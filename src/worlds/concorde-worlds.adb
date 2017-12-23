@@ -157,6 +157,23 @@ package body Concorde.Worlds is
       return World.Port.Get_Quantity (Commodity);
    end Export_Market_Size;
 
+   -------------------------------
+   -- Get_Sector_Infrastructure --
+   -------------------------------
+
+   function Get_Sector_Infrastructure
+     (Location : Concorde.Locations.Sector_Location)
+      return Unit_Real
+   is
+      World : constant World_Type :=
+                World_Type (Concorde.Locations.Primary (Location));
+      Tile  : constant Concorde.Surfaces.Surface_Tile_Index :=
+                Concorde.Surfaces.Surface_Tile_Index
+                  (Concorde.Locations.World_Sector (Location));
+   begin
+      return World.Sectors (Tile).Infrastructure;
+   end Get_Sector_Infrastructure;
+
    -------------------------
    -- Get_Sector_Resource --
    -------------------------
@@ -271,11 +288,9 @@ package body Concorde.Worlds is
    is
       use WL.Quantities;
       Supply : constant Quantity_Type :=
-                 World.Market.Get_Daily_Quantity
-                   (Commodity, Concorde.Trades.Local_Supply, 7);
+                 World.Market.Current_Supply (Commodity);
       Demand : constant Quantity_Type :=
-                 World.Market.Get_Daily_Quantity
-                   (Commodity, Concorde.Trades.Local_Demand, 7);
+                 World.Market.Current_Demand (Commodity);
    begin
       if Supply < Demand then
          return Demand - Supply;

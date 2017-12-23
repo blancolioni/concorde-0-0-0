@@ -4,7 +4,7 @@ package Concorde.Commodities.Configure is
 
    procedure Configure_Commodities;
 
-   function Create_From_Skill
+   function Create_From_Group
      (Tag      : String;
       Base_Pay : WL.Money.Price_Type)
       return Commodity_Type;

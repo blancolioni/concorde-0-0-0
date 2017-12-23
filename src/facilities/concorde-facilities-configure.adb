@@ -1,8 +1,9 @@
 with Ada.Characters.Handling;
+with Ada.Strings.Fixed;
 
 with Tropos.Reader;
 
-with Concorde.Paths;
+with Concorde.Configure;
 
 with Concorde.Commodities.Configure;
 
@@ -18,12 +19,12 @@ package body Concorde.Facilities.Configure is
 
    procedure Configure_Facilities is
       Facilities_Config : constant Tropos.Configuration :=
-                             Tropos.Reader.Read_Config
-                               (Concorde.Paths.Config_File
-                                  ("facilities/facilities.txt"));
+                            Tropos.Reader.Read_Config
+                              (Concorde.Configure.File_Path
+                                 ("facilities", "facilities"));
    begin
       for Config of Facilities_Config loop
-         if not Config.Get ("template-class") then
+         if Ada.Strings.Fixed.Index (Config.Config_Name, "_template") = 0 then
             declare
                Template_Config : Tropos.Configuration;
             begin
@@ -69,12 +70,15 @@ package body Concorde.Facilities.Configure is
 
          Facility.Class :=
            Facility_Class'Value
-             (Value ("class", "bad class in " & Config.Config_Name));
+             (Value ("type", "bad class in " & Config.Config_Name));
+
          Facility.Set_Local_Tag (Config.Config_Name);
          Facility.Base_Service_Charge :=
-           WL.Money.Value (Config.Get ("service_charge", "0"));
+           WL.Money.Value (Value ("service_charge", "0"));
          Facility.Power :=
            WL.Quantities.Value (Value ("power", "0"));
+         Facility.Workforce :=
+           WL.Quantities.Value (Value ("workforce", "0"));
 
          declare
             Turnaround_Seconds : Float := 3600.0;
@@ -86,9 +90,6 @@ package body Concorde.Facilities.Configure is
             end if;
             Facility.Turnaround := Duration (Turnaround_Seconds);
          end;
-
-         Facility.Capacity :=
-           Facility_Capacity'Value (Value ("capacity", "0"));
 
          Facility.Flags := (others => False);
 
@@ -119,16 +120,13 @@ package body Concorde.Facilities.Configure is
 
          end loop;
 
-         Facility.Quality :=
-           Commodity_Quality'Val (Config.Get ("quality", 2) - 1);
-
          declare
             Worker_Config : Tropos.Configuration;
          begin
-            if Config.Contains ("workers") then
-               Worker_Config := Config.Child ("workers");
-            elsif Template_Config.Contains ("workers") then
-               Worker_Config := Template_Config.Child ("workers");
+            if Config.Contains ("employees") then
+               Worker_Config := Config.Child ("employees");
+            elsif Template_Config.Contains ("employees") then
+               Worker_Config := Template_Config.Child ("employees");
             end if;
 
             declare
@@ -138,13 +136,33 @@ package body Concorde.Facilities.Configure is
             begin
                for Cfg of Worker_Config loop
                   Count := Count + 1;
-                  Worker_Array (Count).Skill :=
-                    Concorde.People.Skills.Get (Cfg.Config_Name);
-                  Worker_Array (Count).Quantity :=
-                    WL.Quantities.Value (Cfg.Value);
+                  Worker_Array (Count) :=
+                    Worker_Record'
+                      (Group    =>
+                         Concorde.People.Groups.Get (Cfg.Get ("poptype")),
+                       Activity => Work,
+                       Effect   =>
+                         Process_Effect'Value (Cfg.Get ("effect")),
+                       Proportion =>
+                         Unit_Real (Float'(Cfg.Get ("amount"))));
                end loop;
                Facility.Workers := new Array_Of_Workers'(Worker_Array);
             end;
+         end;
+
+         declare
+            Owner_Config : constant Tropos.Configuration :=
+                             (if Config.Contains ("owner")
+                              then Config.Child ("owner")
+                              else Template_Config.Child ("owner"));
+         begin
+            Facility.Owner_Group :=
+              Concorde.People.Groups.Get (Owner_Config.Get ("poptype"));
+            Facility.Owner_Effect :=
+              Process_Effect'Value (Owner_Config.Get ("effect"));
+            Facility.Owner_Factor :=
+              Real (Float'(Owner_Config.Get ("effect_multiplier", 0.0)));
+            Facility.Owner_Activity := Manage;
          end;
 
          declare
@@ -186,7 +204,7 @@ package body Concorde.Facilities.Configure is
                         New_Input := new Input_Record'
                           (Class     => Simple,
                            Commodity => Get (Input_Name),
-                           Quantity  => WL.Quantities.Value (Cfg.Value));
+                           Quantity  => Cfg.Value);
                      end if;
                      Input_Array (Count) := New_Input;
                   end;
@@ -195,18 +213,18 @@ package body Concorde.Facilities.Configure is
             end Configure_Input_Array;
 
          begin
-            if Config.Contains ("inputs") then
+            if Config.Contains ("input_goods") then
                Facility.Inputs := new Array_Of_Inputs'
-                 (Configure_Input_Array (Config.Child ("inputs")));
+                 (Configure_Input_Array (Config.Child ("input_goods")));
             end if;
          end;
 
-         if Config.Contains ("output")
-           or else Template_Config.Contains ("output")
+         if Config.Contains ("output_goods")
+           or else Template_Config.Contains ("output_goods")
          then
             declare
                Output_Name : constant String :=
-                               Value ("output", "");
+                               Value ("output_goods", "");
             begin
                if Output_Name = "" then
                   raise Constraint_Error with
@@ -217,7 +235,8 @@ package body Concorde.Facilities.Configure is
                     "while configuring facility " & Facility.Tag.all
                     & ": undefined output: " & Output_Name;
                else
-                  Facility.Output := Get (Value ("output", ""));
+                  Facility.Output := Get (Value ("output_goods", ""));
+                  Facility.Output_Value := Real'Value (Value ("value", "0.0"));
                end if;
             end;
          end if;

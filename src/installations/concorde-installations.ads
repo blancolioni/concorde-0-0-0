@@ -15,7 +15,6 @@ with Concorde.Facilities;
 with Concorde.Locations;
 
 limited with Concorde.People.Individuals;
-with Concorde.People.Skills;
 
 with Concorde.People.Pops;
 
@@ -64,6 +63,10 @@ package Concorde.Installations is
        with Pre => Installation.Has_Manager,
          Post => not Installation.Has_Manager;
 
+   function Size
+     (Installation : Root_Installation_Type'Class)
+      return WL.Quantities.Quantity_Type;
+
    procedure Pay_Workers
      (Installation : in out Root_Installation_Type'Class);
 
@@ -99,7 +102,6 @@ private
       record
          Pop            : Concorde.People.Pops.Pop_Type;
          Size           : WL.Quantities.Quantity_Type;
-         Skill          : Concorde.People.Skills.Pop_Skill;
          Wage           : WL.Money.Price_Type;
          Contract_Days  : Positive;
          Days_Remaining : Natural;
@@ -113,12 +115,14 @@ private
      and Concorde.Locations.Located_Interface with
       record
          Facility          : Concorde.Facilities.Facility_Type;
+         Size              : WL.Quantities.Quantity_Type;
          Owner             : access constant
            Concorde.Agents.Root_Agent_Type'Class;
          Manager           : access constant
            Concorde.People.Individuals.Root_Individual_Type'Class;
          Employees         : Employee_Lists.List;
          Production_Queue  : Queued_Production_Lists.List;
+         Efficiency        : Concorde.Facilities.Process_Efficiency;
       end record;
 
    overriding function Class_Name
@@ -169,6 +173,11 @@ private
       return access constant
      Concorde.People.Individuals.Root_Individual_Type'Class
    is (Installation.Manager);
+
+   function Size
+     (Installation : Root_Installation_Type'Class)
+      return WL.Quantities.Quantity_Type
+   is (Installation.Size);
 
    package Db is
      new Memor.Database

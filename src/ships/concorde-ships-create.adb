@@ -47,7 +47,7 @@ package body Concorde.Ships.Create is
               Concorde.Locations.Geosynchronous_Orbit (World),
             Government     => Owner.Capital.Government,
             Market         => World.Market,
-            Cash           => WL.Money.To_Money (20_000.0),
+            Cash           => WL.Money.To_Money (1_000_000.0),
             Stock_Capacity =>
               To_Quantity (10.0 * Float (Ship.Hold_Size)));
 

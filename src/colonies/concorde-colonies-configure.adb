@@ -1,13 +1,11 @@
+with Ada.Containers.Vectors;
 with Ada.Text_IO;
 
 with WL.Random;
 
 with Tropos.Reader;
 
-with Memor.Element_Vectors;
-
-with Concorde.Options;
-with Concorde.Paths;
+with Concorde.Configure;
 
 with Concorde.Locations;
 with Concorde.Maps;
@@ -21,7 +19,6 @@ with Concorde.Facilities;
 with Concorde.Installations;
 
 with Concorde.People.Groups;
-with Concorde.People.Skills;
 
 with Concorde.Installations.Create;
 with Concorde.People.Individuals.Create;
@@ -77,24 +74,11 @@ package body Concorde.Colonies.Configure is
                     return Float
       is (Template.Get (Name, Default));
 
-      package Skilled_Pop_Vectors is
-        new Memor.Element_Vectors
-          (Concorde.People.Skills.Root_Pop_Skill, Quantity_Type, Zero);
-
-      Skilled_Pop : Skilled_Pop_Vectors.Vector;
-
       Tiles            : Concorde.Maps.List_Of_Tiles.List;
       Start_Tiles      : Concorde.Maps.List_Of_Tiles.List;
       Used_Tiles       : Concorde.Maps.List_Of_Tiles.List;
       Current_Position : Concorde.Maps.List_Of_Tiles.Cursor;
-      Capital_Tile     : Concorde.Surfaces.Surface_Tile_Index;
-
-      Organics : constant Concorde.Commodities.Array_Of_Commodities :=
-                   Concorde.Commodities.Get
-                     (Concorde.Commodities.Organic);
-      Farms    : constant Concorde.Facilities.Array_Of_Facilities :=
-                   Concorde.Facilities.Get_By_Class
-                     (Concorde.Facilities.Farm);
+--        Capital_Tile     : Concorde.Surfaces.Surface_Tile_Index;
 
       function Current_Tile return Concorde.Surfaces.Surface_Tile_Index;
       procedure Next_Tile;
@@ -115,26 +99,21 @@ package body Concorde.Colonies.Configure is
         (Config : Tropos.Configuration;
          Sector : Concorde.Surfaces.Surface_Tile_Index);
 
-      procedure Create_Pop_From_Skill
-        (Skill     : not null access constant
-           Concorde.People.Skills.Root_Pop_Skill'Class;
-         Element   : Quantity_Type);
-
       procedure Create_Pop
         (Sector : Concorde.Surfaces.Surface_Tile_Index;
          Group  : Concorde.People.Groups.Pop_Group;
-         Skill  : Concorde.People.Skills.Pop_Skill;
          Size   : Concorde.People.Pops.Pop_Size);
 
       procedure Create_Installation
         (Facility : Concorde.Facilities.Facility_Type;
-         Sector   : Concorde.Surfaces.Surface_Tile_Index);
+         Sector   : Concorde.Surfaces.Surface_Tile_Index;
+         Size     : WL.Quantities.Quantity_Type);
 
       procedure Add_Inputs
         (Installation : Concorde.Installations.Installation_Type);
 
-      procedure Add_Population
-        (Installation : Concorde.Installations.Installation_Type);
+      procedure Create_Buildings
+        (List_Config : Tropos.Configuration);
 
       procedure Create_Service_Facilities is null;
 
@@ -147,51 +126,76 @@ package body Concorde.Colonies.Configure is
       is
          Facility : constant Concorde.Facilities.Facility_Type :=
                       Installation.Facility;
+         Size     : constant WL.Quantities.Quantity_Type :=
+                      Installation.Size;
       begin
          for I in 1 .. Facility.Input_Count loop
             declare
                Need : constant Concorde.Commodities.Commodity_Type :=
-                        (if Facility.Simple_Input (I)
-                         then Facility.Input_Commodity (I)
-                         else Facility.Input_Choice_Commodity (I, 1));
+                        Facility.Input_Choice_Commodity (I, 1);
                Quant : constant Quantity_Type :=
-                         (if Facility.Simple_Input (I)
-                          then Facility.Input_Quantity (I)
-                          else Facility.Input_Choice_Quantity (I, 1))
-                         * Installation.Facility.Capacity_Quantity
-                         * To_Quantity (15.0);
+                         Scale
+                           (Facility.Input_Choice_Quantity (Size, I, 1),
+                            2.0);
                Value    : constant WL.Money.Money_Type :=
                             WL.Money.Total
                               (Need.Base_Price, Quant);
 
             begin
-               Hub.Update.Add_Quantity (Need, Quant, Value);
+               Installation.Log_Production
+                 ("adding input "
+                  & Show (Quant) & " " & Need.Name);
+               Installation.Update.Add_Quantity (Need, Quant, Value);
             end;
          end loop;
       end Add_Inputs;
 
-      --------------------
-      -- Add_Population --
-      --------------------
+      ----------------------
+      -- Create_Buildings --
+      ----------------------
 
-      procedure Add_Population
-        (Installation : Concorde.Installations.Installation_Type)
+      procedure Create_Buildings
+        (List_Config : Tropos.Configuration)
       is
+         package Vectors is
+           new Ada.Containers.Vectors (Positive, Facilities.Facility_Type,
+                                       Facilities."=");
+
+         Vs : Vectors.Vector;
+
       begin
-         for I in 1 .. Installation.Facility.Worker_Count loop
+         for Config of List_Config loop
             declare
-               Skill : constant Concorde.People.Skills.Pop_Skill :=
-                         Installation.Facility.Worker_Skill (I);
-               Quant : constant Quantity_Type :=
-                         Installation.Facility.Worker_Quantity (I);
-               Current : constant Quantity_Type  :=
-                           Skilled_Pop.Element (Skill);
+               Count : Natural := 1;
             begin
-               Skilled_Pop.Replace_Element
-                 (Skill, Current + Quant);
+               if Config.Child_Count > 0 then
+                  Count := Config.Value;
+               end if;
+               for I in 1 .. Count loop
+                  Vs.Append (Concorde.Facilities.Get (Config.Config_Name));
+               end loop;
             end;
          end loop;
-      end Add_Population;
+
+         while not Vs.Is_Empty loop
+            declare
+               Tile     : constant Concorde.Surfaces.Surface_Tile_Index :=
+                            Current_Tile;
+               Index    : constant Positive :=
+                            WL.Random.Random_Number (1, Vs.Last_Index);
+               Facility : constant Concorde.Facilities.Facility_Type :=
+                            Vs.Element (Index);
+            begin
+               Create_Installation (Facility, Tile,
+                                    WL.Quantities.To_Quantity (1000.0));
+               Vs.Replace_Element (Index, Vs.Last_Element);
+               Vs.Delete_Last;
+               Next_Tile;
+            end;
+
+         end loop;
+
+      end Create_Buildings;
 
       -------------------------
       -- Create_Installation --
@@ -199,7 +203,8 @@ package body Concorde.Colonies.Configure is
 
       procedure Create_Installation
         (Facility : Concorde.Facilities.Facility_Type;
-         Sector   : Concorde.Surfaces.Surface_Tile_Index)
+         Sector   : Concorde.Surfaces.Surface_Tile_Index;
+         Size     : WL.Quantities.Quantity_Type)
       is
          Location     : constant Concorde.Locations.Object_Location :=
                           Concorde.Locations.World_Surface
@@ -210,7 +215,8 @@ package body Concorde.Colonies.Configure is
                              Market   => World.Market,
                              Facility => Facility,
                              Cash     => WL.Money.To_Money (1.0E5),
-                             Owner    => World.Owner);
+                             Owner    => World.Owner,
+                             Size     => Size);
       begin
          Installation.Update.Set_Manager
            (Concorde.People.Individuals.Create.Create_Family_Member
@@ -218,7 +224,6 @@ package body Concorde.Colonies.Configure is
                Concorde.Locations.At_Installation (Installation)));
 
          World.Update.Add_Installation (Sector, Installation);
-         Add_Population (Installation);
          Add_Inputs (Installation);
       end Create_Installation;
 
@@ -229,7 +234,6 @@ package body Concorde.Colonies.Configure is
       procedure Create_Pop
         (Sector : Concorde.Surfaces.Surface_Tile_Index;
          Group  : Concorde.People.Groups.Pop_Group;
-         Skill  : Concorde.People.Skills.Pop_Skill;
          Size   : Concorde.People.Pops.Pop_Size)
       is
          use Concorde.Commodities;
@@ -240,41 +244,13 @@ package body Concorde.Colonies.Configure is
                         (World, Positive (Sector));
          Pop   : constant Concorde.People.Pops.Pop_Type :=
                       Concorde.People.Pops.Create.New_Pop
-                        (Location     => Location,
-                         Market       => World.Market,
-                         Wealth_Group => Group,
-                         Skill        => Skill,
-                         Size         => Size,
-                         Cash         => WL.Money.To_Money (Float (Cash)));
-
-         procedure Add_Needs
-           (Commodity : Concorde.Commodities.Commodity_Type;
-            Need      : Non_Negative_Real);
-
-         ---------------
-         -- Add_Needs --
-         ---------------
-
-         procedure Add_Needs
-           (Commodity : Concorde.Commodities.Commodity_Type;
-            Need      : Non_Negative_Real)
-         is
-            Quantity : constant Quantity_Type :=
-                         To_Quantity
-                           (Float
-                              (Real'Ceiling
-                                 (5.0 * Need * Non_Negative_Real (Size))));
-         begin
-            Hub.Update.Add_Quantity
-              (Commodity, Quantity,
-               WL.Money.Total (Commodity.Base_Price, Quantity));
-         end Add_Needs;
-
+                        (Location  => Location,
+                         Market    => World.Market,
+                         Group     => Group,
+                         Size      => Size,
+                         Cash      => WL.Money.To_Money (Float (Cash)));
       begin
          World.Update.Add_Pop (Sector, Pop);
-
-         Pop.Wealth_Group.Scan_Needs (Add_Needs'Access);
-
       end Create_Pop;
 
       ----------------------------
@@ -285,33 +261,14 @@ package body Concorde.Colonies.Configure is
         (Config : Tropos.Configuration;
          Sector : Concorde.Surfaces.Surface_Tile_Index)
       is
---           use Concorde.Commodities;
          use Concorde.People.Groups;
-         use Concorde.People.Skills;
          Group : constant Pop_Group := Get (Config.Config_Name);
-         Skill : constant Pop_Skill := Get (Config.Get ("skill", "unskilled"));
-         Size  : constant Natural := Config.Get ("size");
+         Size  : constant Natural := Config.Value;
       begin
          Create_Pop
-           (Sector, Group, Skill,
+           (Sector, Group,
             Concorde.People.Pops.Pop_Size (Size));
       end Create_Pop_From_Config;
-
-      ---------------------------
-      -- Create_Pop_From_Skill --
-      ---------------------------
-
-      procedure Create_Pop_From_Skill
-        (Skill     : not null access constant
-           Concorde.People.Skills.Root_Pop_Skill'Class;
-         Element   : Quantity_Type)
-      is
-      begin
-         Create_Pop (Capital_Tile, Skill.Wealth_Group,
-                     Concorde.People.Skills.Pop_Skill (Skill),
-                     Concorde.People.Pops.Pop_Size
-                       (WL.Quantities.To_Float (Element)));
-      end Create_Pop_From_Skill;
 
       ------------------
       -- Current_Tile --
@@ -532,9 +489,9 @@ package body Concorde.Colonies.Configure is
       Tiles.Append (Start_Tiles.First_Element);
       Used_Tiles.Append (Start_Tiles.First_Element);
       Current_Position := Tiles.First;
-      Capital_Tile :=
-        Concorde.Surfaces.Surface_Tile_Index
-          (Tiles.First_Element);
+--        Capital_Tile :=
+--          Concorde.Surfaces.Surface_Tile_Index
+--            (Tiles.First_Element);
 
       Hub :=
         Concorde.Installations.Create.Create
@@ -547,7 +504,8 @@ package body Concorde.Colonies.Configure is
            Cash     =>
              WL.Money.To_Money
                (Get ("cash", 10_000.0)),
-           Owner    => World.Owner);
+           Owner    => World.Owner,
+           Size     => WL.Quantities.To_Quantity (10_000.0));
 
       Hub.Update.Set_Manager
         (Concorde.People.Individuals.Create.Create_Family_Member
@@ -574,8 +532,6 @@ package body Concorde.Colonies.Configure is
 
       Hub.Update.Set_Market (World.Market);
 
-      Add_Population (Hub);
-
       for Pop_Config of Template.Child ("pops") loop
          Create_Pop_From_Config
            (Pop_Config, Current_Tile);
@@ -597,62 +553,13 @@ package body Concorde.Colonies.Configure is
 
       Next_Tile;
 
-      declare
-         Install_Config : constant Tropos.Configuration :=
-                            Template.Child ("installations");
-      begin
-         for I in 1 .. Install_Config.Get ("resource_generator", 0) loop
-            declare
-               Tile          : constant Concorde.Surfaces.Surface_Tile_Index :=
-                                 Current_Tile;
-               Resource      : Concorde.Commodities.Commodity_Type;
-               Accessibility : Unit_Real;
-               Concentration : Unit_Real;
-               Facility      : Concorde.Facilities.Facility_Type;
-            begin
-               World.Get_Sector_Resource
-                 (Tile, Resource, Concentration, Accessibility);
-               if Concentration + Accessibility > 0.8 then
-                  Facility :=
-                    Concorde.Facilities.Resource_Generator
-                      (World.Sector_Resource (Tile));
-               else
-                  if WL.Random.Random_Number (1, 6) < 10 then
-                     Facility := Concorde.Facilities.Get ("grain_farm");
-                  elsif True then
-                     Facility :=
-                       Farms (WL.Random.Random_Number (1, Farms'Last));
-                  else
-                     Facility :=
-                       Concorde.Facilities.Resource_Generator
-                         (Organics
-                            (WL.Random.Random_Number (1, Organics'Last)));
-                  end if;
-               end if;
+      if Template.Contains ("building") then
+         Create_Buildings (Template.Child ("building"));
+      end if;
 
-               Create_Installation
-                 (Facility, Tile);
-               Next_Tile;
-            end;
-         end loop;
-
-         for Facility of Concorde.Facilities.All_Facilities loop
-            declare
-               Id : constant String := Facility.Identifier;
-            begin
-               if Install_Config.Contains (Id) then
-                  Ada.Text_IO.Put_Line
-                    (Install_Config.Get (Id) & " x " & Id);
-               end if;
-
-               for I in 1 .. Install_Config.Get (Facility.Identifier, 0) loop
-                  Create_Installation (Facility, Current_Tile);
-                  Next_Tile;
-               end loop;
-            end;
-         end loop;
-
-      end;
+      if Template.Contains ("rgo") then
+         Create_Buildings (Template.Child ("rgo"));
+      end if;
 
       Create_Service_Facilities;
 
@@ -664,12 +571,11 @@ package body Concorde.Colonies.Configure is
            Market   => World.Market,
            Facility => Concorde.Facilities.Get ("port"),
            Cash     =>
-             WL.Money.To_Money (500_000.0),
-           Owner    => World.Owner);
+             WL.Money.To_Money (5_000_000.0),
+           Owner    => World.Owner,
+           Size     => WL.Quantities.To_Quantity (1000.0));
 
       World.Update.Add_Installation (Current_Tile, Port);
-
-      Skilled_Pop.Scan (Create_Pop_From_Skill'Access);
 
    end Create_Colony_From_Template;
 
@@ -681,10 +587,8 @@ package body Concorde.Colonies.Configure is
    begin
       Template_Config :=
         Tropos.Reader.Read_Config
-          (Concorde.Paths.Config_File
-             ("scenarios/"
-              & Concorde.Options.Scenario
-              & "/colonies.txt"));
+          (Concorde.Configure.File_Path
+             ("init", "colonies"));
       Got_Config := True;
    end Read_Config;
 
