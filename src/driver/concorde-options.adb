@@ -64,6 +64,12 @@ package body Concorde.Options is
                ("system-count", ' ', 0);
    end System_Count;
 
+   function Initial_Trade_Ships return Natural is
+   begin
+      return WL.Command_Line.Find_Option
+               ("initial-trade-ships", ' ', 0);
+   end Initial_Trade_Ships;
+
    function Update_Count return Natural is
    begin
       return WL.Command_Line.Find_Option

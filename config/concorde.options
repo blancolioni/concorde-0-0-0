@@ -13,6 +13,8 @@ package Concorde.Options is
    Faction_Count           : Natural;
    System_Count            : Natural;
     
+   Initial_Trade_Ships     : Natural;
+   
    Update_Count            : Natural;
    
    Galaxy_Shape            : String;

@@ -1,5 +1,6 @@
 with Ada.Text_IO;
 
+with Concorde.Options;
 with Concorde.Random;
 with Concorde.Real_Images;
 
@@ -62,7 +63,7 @@ package body Concorde.Factions.Create is
 
       World.Update.Add_Ship (Defender);
 
-      for I in 1 .. 6 loop
+      for I in 1 .. Concorde.Options.Initial_Trade_Ships loop
          declare
             Capital : constant Concorde.Worlds.World_Type :=
                         Concorde.Galaxy.Capital_World;

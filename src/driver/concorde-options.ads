@@ -10,6 +10,7 @@ package Concorde.Options is
    function Create_Factions return Boolean;
    function Faction_Count return Natural;
    function System_Count return Natural;
+   function Initial_Trade_Ships return Natural;
    function Update_Count return Natural;
    function Galaxy_Shape return String;
    function System_X_Deviation return Natural;
