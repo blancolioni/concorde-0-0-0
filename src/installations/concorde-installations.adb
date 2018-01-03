@@ -313,6 +313,10 @@ package body Concorde.Installations is
                Add_Port_Trade_Offer (Commodity);
             end loop;
          end if;
+
+         Item.Scan_Stock
+           (Add_Sell_Offer'Access);
+
       else
          if Item.Facility.Has_Output
            and then Item.Get_Quantity (Item.Facility.Output)
@@ -662,27 +666,6 @@ package body Concorde.Installations is
               ("production reduced from " & Show (Effective_Capacity)
                & " to " & Show (Installation.Available_Capacity)
                & " because of available capacity");
-
-            declare
-               procedure Show
-                 (Commodity : Concorde.Commodities.Commodity_Type);
-
-               ----------
-               -- Show --
-               ----------
-
-               procedure Show
-                 (Commodity : Concorde.Commodities.Commodity_Type)
-               is
-               begin
-                  Installation.Log_Production
-                    (Show (Installation.Get_Quantity (Commodity))
-                     & " " & Commodity.Name);
-               end Show;
-
-            begin
-               Installation.Scan_Stock (Show'Access);
-            end;
 
             Effective_Capacity := Installation.Available_Capacity;
          end if;
