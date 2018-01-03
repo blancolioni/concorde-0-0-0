@@ -40,6 +40,7 @@ with Concorde.Configure;
 
 with Concorde.Agents;
 with Concorde.Calendar;
+with Ada.Text_IO;
 
 procedure Concorde.Driver is
 
@@ -213,6 +214,8 @@ begin
 exception
 
    when others =>
+      Ada.Text_IO.New_Line;
+      Ada.Text_IO.Put_Line ("handling exception at top level");
       if Concorde.Options.Enable_Faction_Logging then
          Concorde.Factions.Logging.Stop_Logging;
       end if;
