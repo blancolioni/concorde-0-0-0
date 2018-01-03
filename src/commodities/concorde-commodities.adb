@@ -294,7 +294,9 @@ package body Concorde.Commodities is
       is
          use WL.Quantities;
       begin
-         if Info.Quantity > Zero then
+         if Commodity.Class not in Skill | Service
+           and then Info.Quantity > Zero
+         then
             Process (Commodity_Type (Commodity));
          end if;
       end Process_Stock;
