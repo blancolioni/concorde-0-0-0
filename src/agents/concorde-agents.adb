@@ -361,8 +361,8 @@ package body Concorde.Agents is
                      & " at "
                      & Show (Offer.Price));
 
-                  if Supply = Zero then
-                     --  no supply, so don't move our price
+                  if Supply < Scale (Demand, 0.2) then
+                     --  little supply, so don't move our price
                      null;
                   elsif Offer.Filled = Offer.Quantity then
                      if Offer.Price > Mean then
@@ -451,6 +451,7 @@ package body Concorde.Agents is
                      if Supply = Zero
                        or else Total (Minimum_Price, Unit) > Agent.Limit_Cash
                        or else Total (Offer.Price, Unit) > Agent.Limit_Cash
+
                      then
                         --  this ain't gonna work
                         Agent.Market.Delete_Offer
@@ -460,20 +461,19 @@ package body Concorde.Agents is
                         declare
                            use Concorde.Commodities;
                            use Concorde.Contracts;
-                           Cancel : Contract_Type := null;
+                           Cancel : Current_Contract_Lists.List;
                         begin
                            for Contract of
                              Agent.Accepted_Contracts
                            loop
                               if Contract.Commodity = Commodity then
-                                 Cancel := Contract;
-                                 exit;
+                                 Cancel.Append (Contract);
                               end if;
                            end loop;
 
-                           if Cancel /= null then
-                              Agent.Cancel_Contract (Cancel);
-                           end if;
+                           for Item of Cancel loop
+                              Agent.Cancel_Contract (Item);
+                           end loop;
                         end;
 
                         Offer := (others => <>);
@@ -1280,8 +1280,10 @@ package body Concorde.Agents is
    is
       use WL.Money;
    begin
-      Belief.Low := Adjust_Price (Belief.Low, 1.0 - Float (Factor));
-      Belief.High := Adjust_Price (Belief.High, 1.0 + Float (Factor));
+      if Belief.High - Belief.Low > Belief.Low then
+         Belief.Low := Adjust_Price (Belief.Low, 1.0 - Float (Factor));
+         Belief.High := Adjust_Price (Belief.High, 1.0 + Float (Factor));
+      end if;
    end Expand;
 
    ----------------------
