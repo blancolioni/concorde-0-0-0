@@ -36,6 +36,7 @@ package Concorde.Options is
    function Show_Clock_Time return Boolean;
    function Update_Speed return Natural;
    function Log_Ship_Movement return Boolean;
+   function Log_Trade_Offers return Boolean;
    function Political_Map_Mode return Boolean;
 
 end Concorde.Options;

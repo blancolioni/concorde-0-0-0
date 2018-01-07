@@ -220,6 +220,12 @@ package body Concorde.Options is
                ("log-ship-movement", ' ');
    end Log_Ship_Movement;
 
+   function Log_Trade_Offers return Boolean is
+   begin
+      return WL.Command_Line.Find_Option
+               ("log-trade-offers", ' ');
+   end Log_Trade_Offers;
+
    function Political_Map_Mode return Boolean is
    begin
       return WL.Command_Line.Find_Option

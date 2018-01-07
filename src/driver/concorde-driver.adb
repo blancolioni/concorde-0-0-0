@@ -107,7 +107,8 @@ begin
             Concorde.Factions.Logging.Start_Logging;
          end if;
 
-         Concorde.Agents.Enable_Offer_Logging (Enabled => True);
+         Concorde.Agents.Enable_Offer_Logging
+           (Enabled => Concorde.Options.Log_Trade_Offers);
 
          Concorde.Factions.Updates.Start;
       end if;

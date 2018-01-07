@@ -47,7 +47,8 @@ package Concorde.Options is
    Show_Clock_Time         : Boolean;
    Update_Speed            : Natural;
    Log_Ship_Movement       : Boolean;
-
+   Log_Trade_Offers        : Boolean;
+   
    Political_Map_Mode      : Boolean;
    
 end Concorde.Options;
