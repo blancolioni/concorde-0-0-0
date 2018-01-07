@@ -21,6 +21,13 @@ package body Concorde.Installations is
      new WL.Heaps (WL.Money.Money_Type, Consumption_Record,
                    WL.Money.">");
 
+   procedure New_Port_Contracts
+     (Port      : not null access constant Root_Installation_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : WL.Quantities.Quantity_Type;
+      Price     : WL.Money.Price_Type)
+     with Pre => Port.Is_Port;
+
    ----------------------
    -- Add_Trade_Offers --
    ----------------------
@@ -137,13 +144,11 @@ package body Concorde.Installations is
                                    Min
                                      (Item.Contract_Capacity
                                       - Item.Contracted_Quantity,
-                                      Min
-                                        (Local_Demand - Local_Supply,
-                                         To_Quantity (10_000.0)));
+                                      Local_Demand - Local_Supply);
       begin
 
          if Quantity > Zero
-           and then Clock - Start > 7.0 * 86_400.0
+           and then Clock - Start > Days (7)
            and then Current_Buy_Contracts < To_Quantity (100_000.0)
            and then Local_Demand > Scale (Local_Supply, 1.1)
            and then Local_Demand - Local_Supply
@@ -155,16 +160,6 @@ package body Concorde.Installations is
                               (Item.Market.Current_Price
                                  (Commodity),
                                0.9);
-               Contract : constant Concorde.Contracts.Contract_Type :=
-                            Concorde.Contracts.New_Buy_Contract
-                              (Location  => Item.Current_Location,
-                               Buyer     => Item,
-                               Commodity => Commodity,
-                               Quantity  => Quantity,
-                               Price     => Price,
-                               Expires   =>
-                                 Concorde.Calendar.Clock
-                               + 7.0 * 86_400.0);
             begin
                Item.Log ("seven day supply/demand/price for " & Commodity.Name
                          & " is "
@@ -172,15 +167,14 @@ package body Concorde.Installations is
                          & "/"
                          & Show (Local_Demand)
                          & "/"
-                         & Show (Price)
-                         & "; new contract: "
-                         & Contract.Show);
+                         & Show (Price));
 
-               if Item.Contracted_To_Buy (Commodity) > Zero then
-                  Item.Update.Delete_Pending_Offers (Commodity);
-               end if;
+               New_Port_Contracts
+                 (Port      => Item,
+                  Commodity => Commodity,
+                  Quantity  => Quantity,
+                  Price     => Price);
 
-               Item.Update.Add_Contract (Contract);
             end;
          end if;
          Item.Update.Close_Completed_Contracts;
@@ -837,6 +831,48 @@ package body Concorde.Installations is
             return False;
       end case;
    end Is_Port;
+
+   ------------------------
+   -- New_Port_Contracts --
+   ------------------------
+
+   procedure New_Port_Contracts
+     (Port      : not null access constant Root_Installation_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : WL.Quantities.Quantity_Type;
+      Price     : WL.Money.Price_Type)
+   is
+      use type Concorde.Calendar.Time;
+      use WL.Quantities;
+      Individual_Contract_Size : constant Quantity_Type :=
+                                   To_Quantity (10_000.0);
+      Remaining                : Quantity_Type := Quantity;
+      Expires                  : constant Concorde.Calendar.Time :=
+                                   Concorde.Calendar.Clock
+                                     + Concorde.Calendar.Days (7);
+   begin
+      if Port.Contracted_To_Buy (Commodity) > Zero then
+         Port.Update.Delete_Pending_Offers (Commodity);
+      end if;
+
+      while Remaining > Zero loop
+         declare
+            Contract : constant Concorde.Contracts.Contract_Type :=
+                         Concorde.Contracts.New_Buy_Contract
+                           (Location  => Port.Current_Location,
+                            Buyer     => Port,
+                            Commodity => Commodity,
+                            Quantity  =>
+                              Min (Remaining, Individual_Contract_Size),
+                            Price     => Price,
+                            Expires   => Expires);
+         begin
+            Port.Update.Add_Contract (Contract);
+            Remaining := Remaining - Contract.Quantity;
+            Port.Log ("new contract: " & Contract.Show);
+         end;
+      end loop;
+   end New_Port_Contracts;
 
    ---------------------
    -- Object_Database --
