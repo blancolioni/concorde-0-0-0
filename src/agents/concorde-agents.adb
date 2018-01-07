@@ -1656,9 +1656,14 @@ package body Concorde.Agents is
      (Agent    : not null access constant Root_Agent_Type;
       Contract : Concorde.Contracts.Contract_Type)
    is
+      Ref : constant access Root_Agent_Type'Class :=
+              Agent_Type (Agent).Variable_Reference;
    begin
-      Agent_Type (Agent)
-        .Variable_Reference.Accepted_Contracts.Append (Contract);
+      Ref.Accepted_Contracts.Append (Contract);
+      Ref.Contracted_Quantities.Add_Quantity
+        (Item     => Contract.Commodity,
+         Quantity => Contract.Quantity,
+         Value    => Contract.Total_Cost);
    end On_Accepted_Contract;
 
    --------------------------
@@ -1705,6 +1710,8 @@ package body Concorde.Agents is
                Ref.Remove_Quantity
                  (Contract.Commodity, Contract.Quantity, Contract.Total_Cost);
                Ref.Add_Cash (Contract.Total_Cost);
+               Ref.Contracted_Quantities.Remove_Quantity
+                 (Contract.Commodity, Contract.Quantity, Contract.Total_Cost);
             end if;
 --              declare
 --               Accepted_Position : Current_Contract_Lists.Cursor :=
