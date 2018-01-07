@@ -1,3 +1,4 @@
+with Ada.Containers.Indefinite_Holders;
 with Ada.Containers.Vectors;
 
 with Concorde.Scenarios;
@@ -14,6 +15,27 @@ package body Concorde.Galaxy is
    Local_Battle_Manager   : Battle_Manager;
 
    Local_Capital_World    : Concorde.Worlds.World_Type;
+
+   package Path_Holders is
+     new Ada.Containers.Indefinite_Holders
+       (Concorde.Systems.Graphs.Array_Of_Vertices,
+        Concorde.Systems.Graphs."=");
+
+   type Cached_System_Relation is
+      record
+         Path_Length : Non_Negative_Real;
+         Path        : Path_Holders.Holder;
+      end record;
+
+   type Cached_System_Relation_Array is
+     array (Positive range <>, Positive range <>) of Cached_System_Relation;
+
+   Cached_System_Relations : access Cached_System_Relation_Array;
+
+   function Get_System_Relation
+     (From, To : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Cached_System_Relation;
 
    ----------------
    -- Add_Battle --
@@ -184,6 +206,44 @@ package body Concorde.Galaxy is
    begin
       return Galaxy_Graph.Vertex (Index);
    end Get_System;
+
+   -------------------------
+   -- Get_System_Relation --
+   -------------------------
+
+   function Get_System_Relation
+     (From, To : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
+      return Cached_System_Relation
+   is
+   begin
+      if Cached_System_Relations = null then
+         Cached_System_Relations :=
+           new Cached_System_Relation_Array
+             (1 .. Galaxy_Graph.Last_Vertex_Index,
+              1 .. Galaxy_Graph.Last_Vertex_Index);
+      end if;
+
+      declare
+         Item : Cached_System_Relation renames
+                  Cached_System_Relations (From.Index, To.Index);
+      begin
+         if Item.Path.Is_Empty then
+            declare
+               Path : constant Concorde.Systems.Graphs.Path :=
+                        Galaxy_Graph.Shortest_Path
+                          (From.Index, To.Index);
+            begin
+               Item.Path.Replace_Element
+                 (Concorde.Systems.Graphs.Get_Path (Path));
+               Item.Path_Length :=
+                 Concorde.Systems.Graphs.Cost (Path);
+            end;
+         end if;
+
+         return Item;
+      end;
+   end Get_System_Relation;
 
    -----------------
    -- Get_Systems --
@@ -476,12 +536,17 @@ package body Concorde.Galaxy is
       return Concorde.Systems.Graphs.Array_Of_Vertices
    is
       use Concorde.Systems;
-      Path : constant Concorde.Systems.Graphs.Path :=
-               (if OK = null
-                then Galaxy_Graph.Shortest_Path (From.Index, To.Index)
-                else Galaxy_Graph.Shortest_Path (From.Index, To.Index, OK));
    begin
-      return Concorde.Systems.Graphs.Get_Path (Path);
+      if OK = null then
+         return Get_System_Relation (From, To).Path.Element;
+      else
+         declare
+            Path : constant Concorde.Systems.Graphs.Path :=
+                     Galaxy_Graph.Shortest_Path (From.Index, To.Index, OK);
+         begin
+            return Concorde.Systems.Graphs.Get_Path (Path);
+         end;
+      end if;
    end Shortest_Path;
 
    ----------------------------
@@ -489,14 +554,18 @@ package body Concorde.Galaxy is
    ----------------------------
 
    function Shortest_Path_Distance
-     (System_1, System_2 : Concorde.Systems.Star_System_Type)
+     (System_1, System_2 : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
       return Non_Negative_Real
    is
-      Path : constant Concorde.Systems.Graphs.Path :=
-               Galaxy_Graph.Shortest_Path
-                 (System_1.Index, System_2.Index);
    begin
-      return Concorde.Systems.Graphs.Cost (Path);
+      return Get_System_Relation (System_1, System_2).Path_Length;
+--
+--        Path : constant Concorde.Systems.Graphs.Path :=
+--                 Galaxy_Graph.Shortest_Path
+--                   (System_1.Index, System_2.Index);
+--     begin
+--        return Concorde.Systems.Graphs.Cost (Path);
    end Shortest_Path_Distance;
 
    ------------------

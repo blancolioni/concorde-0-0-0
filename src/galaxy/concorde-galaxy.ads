@@ -61,7 +61,8 @@ package Concorde.Galaxy is
      (System_1, System_2 : Positive);
 
    function Shortest_Path_Distance
-     (System_1, System_2 : Concorde.Systems.Star_System_Type)
+     (System_1, System_2 : not null access constant
+        Concorde.Systems.Root_Star_System_Type'Class)
       return Non_Negative_Real;
 
    function Shortest_Path
