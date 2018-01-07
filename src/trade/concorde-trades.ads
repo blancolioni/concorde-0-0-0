@@ -22,7 +22,9 @@ package Concorde.Trades is
      (Trade     : Trade_Interface;
       Commodity : Concorde.Commodities.Commodity_Type)
       return WL.Money.Price_Type
-      is abstract;
+      is abstract
+     with Post'Class =>
+       WL.Money.">" (Current_Price'Result, WL.Money.Zero);
 
    function Current_Supply
      (Trade     : Trade_Interface;
