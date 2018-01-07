@@ -243,12 +243,14 @@ package Concorde.Agents is
    function Create_Ask_Price
      (Agent        : not null access constant Root_Agent_Type'Class;
       Commodity    : Concorde.Commodities.Commodity_Type)
-      return WL.Money.Price_Type;
+      return WL.Money.Price_Type
+     with Post => WL.Money.">" (Create_Ask_Price'Result, WL.Money.Zero);
 
    function Create_Bid_Price
      (Agent        : not null access constant Root_Agent_Type'Class;
       Commodity    : Concorde.Commodities.Commodity_Type)
-      return WL.Money.Price_Type;
+      return WL.Money.Price_Type
+     with Post => WL.Money.">" (Create_Bid_Price'Result, WL.Money.Zero);
 
    procedure Create_Ask
      (Agent        : not null access constant Root_Agent_Type'Class;
