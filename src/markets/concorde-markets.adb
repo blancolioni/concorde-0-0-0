@@ -695,7 +695,7 @@ package body Concorde.Markets is
             begin
                if Clock - Item.Time_Stamp > Recent_Trade_Limit then
                   Info.Daily_Trade_Value :=
-                    Info.Daily_Trade_Value - Total (Item.Price, Item.Quantity);
+                    Info.Daily_Trade_Value - Item.Cost;
                   Info.Daily_Trade_Volume :=
                     Info.Daily_Trade_Volume - Item.Quantity;
                   Info.Recent_Transactions.Delete_First;
@@ -713,7 +713,8 @@ package body Concorde.Markets is
            (Transaction_Record'
               (Time_Stamp => Concorde.Calendar.Clock,
                Quantity   => Quantity,
-               Price      => Tax_Free_Price));
+               Price      => Tax_Free_Price,
+               Cost       => Tax_Free_Cost));
          Market.Log (Commodity.Name
                      & ": recent activity: volume = "
                      & Show (Info.Daily_Trade_Volume)

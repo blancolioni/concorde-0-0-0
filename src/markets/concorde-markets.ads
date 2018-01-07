@@ -146,6 +146,7 @@ private
          Time_Stamp : Concorde.Calendar.Time;
          Quantity   : WL.Quantities.Quantity_Type;
          Price      : WL.Money.Price_Type;
+         Cost       : WL.Money.Money_Type;
       end record;
 
    package Recent_Transaction_Lists is
