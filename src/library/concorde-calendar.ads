@@ -8,6 +8,8 @@ package Concorde.Calendar is
 
    subtype Day_Duration is Duration range 0.0 .. 86_400.0;
 
+   Day_Length : constant Duration := Day_Duration'Last;
+
    subtype Hour_Number     is Natural range 0 .. 23;
    subtype Minute_Number   is Natural range 0 .. 59;
    subtype Second_Number   is Natural range 0 .. 59;
@@ -100,6 +102,8 @@ package Concorde.Calendar is
    function ">"  (Left, Right : Time) return Boolean;
    function ">=" (Left, Right : Time) return Boolean;
 
+   function Days (Count : Natural) return Duration;
+
    Time_Error : exception;
 
 private
@@ -130,5 +134,8 @@ private
 
    function "-" (Left : Time;     Right : Time)     return Duration
    is (Duration (Time'(Left - Right)));
+
+   function Days (Count : Natural) return Duration
+   is (Duration (Count) * Day_Length);
 
 end Concorde.Calendar;
