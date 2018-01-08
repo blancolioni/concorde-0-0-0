@@ -60,6 +60,7 @@ body {
     font-size: 24pt;
     color: darkgreen;
     margin: 4px;
+    float:left;
 }
 
 .top-bar-right {
@@ -144,4 +145,12 @@ label
 .dialog-title
 {
     border-bottom: 1px solid #afeeee;
+}
+
+.leader-portrait
+{
+    width: 50px;
+    height: 50px;
+    background-image: url('../images/characters/western_female/placeholder_female.png');
+    background-size: 50px 50px;
 }
