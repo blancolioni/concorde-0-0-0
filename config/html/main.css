@@ -133,3 +133,15 @@ label
 {
     cursor: pointer;
 }
+
+.dialog 
+{
+    border: 1px solid #afeeee;
+    background-color: #1e90ff;
+    color: white;
+}
+
+.dialog-title
+{
+    border-bottom: 1px solid #afeeee;
+}
