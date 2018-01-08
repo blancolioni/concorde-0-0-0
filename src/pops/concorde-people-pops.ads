@@ -140,6 +140,11 @@ private
    is (Concorde.Calendar."-"
        (Concorde.Calendar.Clock, Pop.Production_Started));
 
+   procedure Execute_Production
+     (Pop : in out Root_Pop_Type'Class)
+     with Pre => Pop.Group.Is_Artisan
+     and then Pop.Has_Production;
+
    package Db is
      new Memor.Database
        ("pop", Root_Pop_Type, Pop_Type);
