@@ -12,7 +12,8 @@ with Concorde.People.Groups;
 package Concorde.Facilities is
 
    type Facility_Class is
-     (Colony_Hub, Port, Consulate, Trade_Centre, Corporate_HQ, Orbital_Dock,
+     (Colony_Hub, Port, Bank,
+      Consulate, Trade_Centre, Corporate_HQ, Orbital_Dock,
       Factory, Resource_Generator, Farm, Service_Facility,
       Artisan);
 
@@ -164,6 +165,11 @@ package Concorde.Facilities is
       return Boolean
    is (Facility.Class = Farm);
 
+   function Is_Artisan
+     (Facility : Root_Facility_Type'Class)
+      return Boolean
+   is (Facility.Class = Artisan);
+
    function Has_Output
      (Facility : Root_Facility_Type'Class)
       return Boolean;
@@ -204,6 +210,7 @@ package Concorde.Facilities is
       return Array_Of_Facilities;
 
    function All_Facilities return Array_Of_Facilities;
+   function Artisan_Facilities return Array_Of_Facilities;
 
    function Colony_Hub return Facility_Type;
 
@@ -402,5 +409,8 @@ private
       Index    : Positive)
       return Process_Effect
    is (Facility.Workers (Index).Effect);
+
+   function Artisan_Facilities return Array_Of_Facilities
+   is (Get_By_Class (Artisan));
 
 end Concorde.Facilities;

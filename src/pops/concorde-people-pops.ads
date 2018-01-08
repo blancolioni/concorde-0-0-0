@@ -3,6 +3,8 @@ private with Memor.Database;
 private with Concorde.Locations;
 
 with Concorde.Agents;
+with Concorde.Calendar;
+with Concorde.Facilities;
 with Concorde.Trades;
 
 with Concorde.People.Groups;
@@ -32,6 +34,26 @@ package Concorde.People.Pops is
    procedure Execute_Consumption
      (Pop : in out Root_Pop_Type'Class);
 
+   function Has_Production
+     (Pop : not null access constant Root_Pop_Type'Class)
+      return Boolean;
+
+   function Production
+     (Pop : not null access constant Root_Pop_Type'Class)
+      return Concorde.Facilities.Facility_Type;
+
+   function Current_Production_Duration
+     (Pop : not null access constant Root_Pop_Type'Class)
+      return Duration
+     with Pre => Pop.Group.Is_Artisan
+     and then Pop.Has_Production;
+
+   procedure Set_Production
+     (Pop        : in out Root_Pop_Type'Class;
+      Production : Concorde.Facilities.Facility_Type)
+     with Pre => Pop.Group.Is_Artisan and then Production.Is_Artisan,
+     Post => Concorde.Facilities."=" (Pop.Production, Production);
+
    type Pop_Type is access constant Root_Pop_Type'Class;
 
    type Updateable_Reference (Item : not null access Root_Pop_Type'Class)
@@ -55,10 +77,12 @@ private
    type Root_Pop_Type is
      new Concorde.Agents.Root_Agent_Type with
       record
-         Size        : Pop_Size;
-         Group       : Concorde.People.Groups.Pop_Group;
-         Employer    : Concorde.Agents.Agent_Type;
-         Consumption : Pop_Consumption;
+         Size                : Pop_Size;
+         Group               : Concorde.People.Groups.Pop_Group;
+         Employer            : Concorde.Agents.Agent_Type;
+         Consumption         : Pop_Consumption;
+         Production_Facility : Concorde.Facilities.Facility_Type;
+         Production_Started  : Concorde.Calendar.Time;
       end record;
 
    overriding function Class_Name
@@ -99,6 +123,22 @@ private
      (Pop : Root_Pop_Type'Class)
       return WL.Quantities.Quantity_Type
    is (WL.Quantities.To_Quantity (Float (Pop.Size)));
+
+   function Has_Production
+     (Pop : not null access constant Root_Pop_Type'Class)
+      return Boolean
+   is (Concorde.Facilities."/=" (Pop.Production_Facility, null));
+
+   function Production
+     (Pop : not null access constant Root_Pop_Type'Class)
+      return Concorde.Facilities.Facility_Type
+   is (Pop.Production_Facility);
+
+   function Current_Production_Duration
+     (Pop : not null access constant Root_Pop_Type'Class)
+      return Duration
+   is (Concorde.Calendar."-"
+       (Concorde.Calendar.Clock, Pop.Production_Started));
 
    package Db is
      new Memor.Database

@@ -1,9 +1,135 @@
 with WL.Money;
+with WL.Quantities;
 
 with Concorde.Objects.Queues;
 with Concorde.Signals.Standard;
 
+with Concorde.Random;
+with Concorde.Weighted_Random_Choices;
+
+with Concorde.Commodities;
+with Concorde.Facilities;
+with Concorde.Trades;
+
 package body Concorde.Managers.Pops is
+
+   Minimum_Artisan_Production_Duration : constant Duration :=
+                                           Concorde.Calendar.Day_Length
+                                             * 5.0;
+
+   -------------------------------
+   -- Choose_Artisan_Production --
+   -------------------------------
+
+   procedure Choose_Artisan_Production
+     (Manager : in out Root_Pop_Manager)
+   is
+      Market : constant access constant
+        Concorde.Trades.Trade_Interface'Class :=
+          Manager.Pop.Market;
+
+      package Production_Choices is
+        new Concorde.Weighted_Random_Choices
+          (Concorde.Facilities.Facility_Type);
+
+      Choices : Production_Choices.Weighted_Choice_Set;
+
+      function Production_Score
+        (Facility : Concorde.Facilities.Facility_Type)
+         return Natural;
+
+      ----------------------
+      -- Production_Score --
+      ----------------------
+
+      function Production_Score
+        (Facility : Concorde.Facilities.Facility_Type)
+         return Natural
+      is
+         use WL.Money, WL.Quantities;
+         Score : Real := 0.0;
+      begin
+         for Input_Index in 1 .. Facility.Input_Count loop
+            declare
+               OK : Boolean := False;
+            begin
+               for Choice_Index in
+                 1 .. Facility.Input_Choice_Count (Input_Index)
+               loop
+                  declare
+                     Input      : constant Commodities.Commodity_Type :=
+                                    Facility.Input_Choice_Commodity
+                                      (Input_Index, Choice_Index);
+                     Required   : constant Quantity_Type :=
+                                    Facility.Input_Choice_Quantity
+                                      (Manager.Pop.Size_Quantity,
+                                       Input_Index, Choice_Index);
+                     Supply     : constant Quantity_Type :=
+                                    Market.Current_Supply (Input);
+                     Demand     : constant Quantity_Type :=
+                                    Market.Current_Demand (Input);
+                     Price      : constant Price_Type :=
+                                    Market.Current_Price (Input);
+                     This_Score : Real;
+                  begin
+                     if not Input.Available
+                       or else Supply = Zero
+                       or else Supply < Scale (Demand, 0.5)
+                     then
+                        null;
+                     else
+                        OK := True;
+                        if Required + Demand < Supply then
+                           This_Score := 100.0;
+                        else
+                           This_Score :=
+                             Real (To_Float (Supply)
+                                   / To_Float (Demand + Required))
+                               * 100.0;
+                        end if;
+
+                        This_Score := This_Score
+                          * Real (To_Float (Input.Base_Price)
+                                  / To_Float (Price));
+                        Score := Score + This_Score;
+                     end if;
+                  end;
+               end loop;
+
+               if not OK then
+                  return 0;
+               end if;
+            end;
+         end loop;
+
+         Score := Score
+           * Real (To_Float (Market.Current_Price (Facility.Output))
+                   / To_Float (Facility.Output.Base_Price));
+
+         if Score <= 0.0 then
+            return 0;
+         else
+            return Natural (Score);
+         end if;
+
+      end Production_Score;
+
+   begin
+      for Facility of Concorde.Facilities.Artisan_Facilities loop
+         Choices.Insert (Facility, Production_Score (Facility));
+      end loop;
+
+      if not Choices.Is_Empty then
+         declare
+            Choice : constant Concorde.Facilities.Facility_Type :=
+                       Choices.Choose;
+         begin
+            Manager.Pop.Update.Set_Production (Choice);
+            Manager.Pop.Log ("choose production: " & Choice.Name);
+         end;
+      end if;
+
+   end Choose_Artisan_Production;
 
    ------------
    -- Create --
@@ -102,6 +228,17 @@ package body Concorde.Managers.Pops is
          end if;
          Manager.Pop.Update.Clear_Current_Account;
       end;
+
+      if Manager.Pop.Group.Is_Artisan then
+         if not Manager.Pop.Has_Production
+           or else
+             (Manager.Pop.Current_Production_Duration
+              > Minimum_Artisan_Production_Duration
+              and then Concorde.Random.Unit_Random < 0.2)
+         then
+            Manager.Choose_Artisan_Production;
+         end if;
+      end if;
 
       Manager.Pop.Update.Check_Offers;
       Manager.Pop.Add_Trade_Offers;

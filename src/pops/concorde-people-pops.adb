@@ -171,6 +171,19 @@ package body Concorde.People.Pops is
       return Db.Get_Database;
    end Object_Database;
 
+   --------------------
+   -- Set_Production --
+   --------------------
+
+   procedure Set_Production
+     (Pop        : in out Root_Pop_Type'Class;
+      Production : Concorde.Facilities.Facility_Type)
+   is
+   begin
+      Pop.Production_Facility := Production;
+      Pop.Production_Started := Concorde.Calendar.Clock;
+   end Set_Production;
+
    ------------
    -- Update --
    ------------
