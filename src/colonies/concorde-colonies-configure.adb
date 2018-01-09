@@ -40,6 +40,10 @@ package body Concorde.Colonies.Configure is
      (World    : Concorde.Worlds.World_Type;
       Template : Tropos.Configuration);
 
+   function Get_Initial_Artisans
+     (Config : Tropos.Configuration)
+     return Concorde.Facilities.Array_Of_Facilities;
+
    ---------------------------------
    -- Create_Colony_From_Template --
    ---------------------------------
@@ -79,6 +83,10 @@ package body Concorde.Colonies.Configure is
       Used_Tiles       : Concorde.Maps.List_Of_Tiles.List;
       Current_Position : Concorde.Maps.List_Of_Tiles.Cursor;
 --        Capital_Tile     : Concorde.Surfaces.Surface_Tile_Index;
+
+      Artisan_Facilities : constant Concorde.Facilities.Array_Of_Facilities :=
+                             Get_Initial_Artisans (Template);
+      Next_Artisan       : Natural := 0;
 
       function Current_Tile return Concorde.Surfaces.Surface_Tile_Index;
       procedure Next_Tile;
@@ -187,11 +195,10 @@ package body Concorde.Colonies.Configure is
                             Vs.Element (Index);
             begin
                Create_Installation (Facility, Tile,
-                                    WL.Quantities.To_Quantity
-                                      (if Facility.Is_Farm
-                                       or else Facility.Is_Resource_Generator
-                                       then 40_000.0
-                                       else 1000.0));
+                                    (if Facility.Is_Farm
+                                     or else Facility.Is_Resource_Generator
+                                     then Facility.Workforce
+                                     else To_Quantity (1000.0)));
                Vs.Replace_Element (Index, Vs.Last_Element);
                Vs.Delete_Last;
                Next_Tile;
@@ -254,6 +261,14 @@ package body Concorde.Colonies.Configure is
                          Size      => Size,
                          Cash      => WL.Money.To_Money (Float (Cash)));
       begin
+         if Group.Is_Artisan then
+            Next_Artisan := Next_Artisan + 1;
+            if Next_Artisan > Artisan_Facilities'Last then
+               Next_Artisan := 1;
+            end if;
+            Pop.Update.Set_Production (Artisan_Facilities (Next_Artisan));
+            Pop.Log_Production (Artisan_Facilities (Next_Artisan).Name);
+         end if;
          World.Update.Add_Pop (Sector, Pop);
       end Create_Pop;
 
@@ -582,6 +597,35 @@ package body Concorde.Colonies.Configure is
       World.Update.Add_Installation (Current_Tile, Port);
 
    end Create_Colony_From_Template;
+
+   --------------------------
+   -- Get_Initial_Artisans --
+   --------------------------
+
+   function Get_Initial_Artisans
+     (Config : Tropos.Configuration)
+         return Concorde.Facilities.Array_Of_Facilities
+   is
+      use Concorde.Facilities;
+   begin
+      if Config.Contains ("artisan") then
+         declare
+            Artisan_Config : constant Tropos.Configuration :=
+                               Config.Child ("artisan");
+            Result         : Array_Of_Facilities
+              (1 .. Artisan_Config.Child_Count);
+            Index          : Natural := 0;
+         begin
+            for Item of Artisan_Config loop
+               Index := Index + 1;
+               Result (Index) := Get (Item.Config_Name);
+            end loop;
+            return Result;
+         end;
+      else
+         return Concorde.Facilities.Artisan_Facilities;
+      end if;
+   end Get_Initial_Artisans;
 
    -----------------
    -- Read_Config --
