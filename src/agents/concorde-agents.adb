@@ -819,23 +819,23 @@ package body Concorde.Agents is
                            then 1.0
                            else Price_Position_In_Range
                              (Mean, Belief.Low, Belief.High));
-      Nett_Sell_Price : constant Price_Type :=
+      Sell_Price : constant Price_Type :=
                           (if Agent.Offer_Strategy (Commodity)
                            = Average_Price
                            then Max (Mean, Minimum_Price)
                            else Create_Ask_Price
                              (Max (Minimum_Price, Belief.Low),
                               Max (Minimum_Price, Belief.High)));
-      Tax_Category  : constant Concorde.Trades.Market_Tax_Category :=
-                        (if Agent.Market_Resident
-                         then Concorde.Trades.Sales
-                         else Concorde.Trades.Import);
-      Sell_Price    : constant Price_Type :=
-                        Add_Tax
-                          (Nett_Sell_Price,
-                           Float
-                             (Market.Manager.Tax_Rate
-                                (Tax_Category, Commodity)));
+--        Tax_Category  : constant Concorde.Trades.Market_Tax_Category :=
+--                          (if Agent.Market_Resident
+--                           then Concorde.Trades.Sales
+--                           else Concorde.Trades.Import);
+--        Sell_Price    : constant Price_Type :=
+--                          Add_Tax
+--                            (Nett_Sell_Price,
+--                             Float
+--                               (Market.Manager.Tax_Rate
+--                                  (Tax_Category, Commodity)));
    begin
       if Log_Offers then
          Agent.Log_Trade
