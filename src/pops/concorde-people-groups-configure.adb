@@ -118,7 +118,7 @@ package body Concorde.People.Groups.Configure is
               Concorde.Commodities.Configure.Create_From_Group
                 (Name,
                  WL.Money.To_Price
-                   (4.0 * Float (Group.Initial_Cash_Factor)));
+                   (Float (Group.Initial_Cash_Factor) / 5.0));
 
          end if;
 
