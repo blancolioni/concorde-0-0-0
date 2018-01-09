@@ -28,8 +28,9 @@ private
    type Root_Ship_Trade_Manager is
      new Root_Ship_Manager with
       record
-         State            : Trade_State := Bidding;
-         Next_Destination : Concorde.Worlds.World_Type;
+         State             : Trade_State := Bidding;
+         Next_Destination  : Concorde.Worlds.World_Type;
+         Contract_Accepted : Boolean;
       end record;
 
    overriding procedure On_Idle

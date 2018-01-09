@@ -14,7 +14,7 @@ with Concorde.Objects.Queues;
 package body Concorde.Managers.Ships.Trade is
 
    Detailed_Logging       : constant Boolean := False;
-   Log_Accepted_Contracts : constant Boolean := True;
+   Log_Accepted_Contracts : constant Boolean := False;
 
    package Contract_Queues is
      new WL.Heaps (Real, Concorde.Contracts.Contract_Type,
@@ -130,6 +130,8 @@ package body Concorde.Managers.Ships.Trade is
 
    begin
 
+      Manager.Contract_Accepted := False;
+
       Concorde.Contracts.Scan_Available_Contracts
         (Check_Contract'Access);
 
@@ -164,6 +166,8 @@ package body Concorde.Managers.Ships.Trade is
                   Manager.Ship.Log_Trade
                     ("accepted: " & Contract.Show);
                end if;
+               Manager.Contract_Accepted := True;
+
             else
                if Detailed_Logging then
                   Manager.Ship.Log_Trade
@@ -262,7 +266,7 @@ package body Concorde.Managers.Ships.Trade is
       case Manager.State is
          when Bidding =>
             Manager.Create_Bids;
-            if Manager.Has_Bids then
+            if Manager.Contract_Accepted then
                Manager.State := Buying;
 --              elsif Manager.Ship.Total_Quantity > Zero then
 --                 Manager.Ship.Update.Clear_Filled_Bids;
