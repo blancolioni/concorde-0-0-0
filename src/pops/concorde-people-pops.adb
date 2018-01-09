@@ -30,6 +30,12 @@ package body Concorde.People.Pops is
       use Concorde.Commodities;
 
       Remaining_Budget : Money_Type := Pop.Cash;
+      Artisan_Budget   : Money_Type := Zero;
+
+      procedure Add_Bid
+        (Commodity : Concorde.Commodities.Commodity_Type;
+         Quantity  : WL.Quantities.Quantity_Type;
+         Price     : WL.Money.Price_Type);
 
       procedure Add_Sell_Offer
         (Commodity : Concorde.Commodities.Commodity_Type);
@@ -38,6 +44,24 @@ package body Concorde.People.Pops is
 
       procedure Check_Need
         (Level : Concorde.People.Groups.Need_Level);
+
+      -------------
+      -- Add_Bid --
+      -------------
+
+      procedure Add_Bid
+        (Commodity : Concorde.Commodities.Commodity_Type;
+         Quantity  : WL.Quantities.Quantity_Type;
+         Price     : WL.Money.Price_Type)
+      is
+      begin
+         if Quantity > Zero then
+            Pop.Create_Bid
+              (Commodity    => Commodity,
+               Bid_Quantity => Quantity,
+               Bid_Price    => Price);
+         end if;
+      end Add_Bid;
 
       --------------------
       -- Add_Sell_Offer --
@@ -64,7 +88,11 @@ package body Concorde.People.Pops is
       procedure Check_Artisan_Inputs is
          Facility : constant Concorde.Facilities.Facility_Type :=
                       Pop.Production;
+         Need     : Concorde.Commodities.Needs.Commodity_Needs;
       begin
+
+         Concorde.Commodities.Needs.Set_Budget (Need, Artisan_Budget);
+
          for I in 1 .. Facility.Input_Count loop
             if Facility.Simple_Input (I) then
                declare
@@ -78,8 +106,11 @@ package body Concorde.People.Pops is
                                 + Pop.Current_Bid_Quantity (Commodity);
                begin
                   if Required > Have then
-                     Pop.Create_Bid
-                       (Commodity, Required - Have);
+                     Concorde.Commodities.Needs.Add_Need
+                       (Need      => Need,
+                        Commodity => Commodity,
+                        Quantity  => Required - Have,
+                        Price     => Pop.Create_Bid_Price (Commodity));
                   end if;
                end;
             elsif Facility.Choice_Input (I) then
@@ -122,8 +153,11 @@ package body Concorde.People.Pops is
                   end loop;
 
                   if Cheapest_Reqd > Zero then
-                     Pop.Create_Bid
-                       (Cheapest_Item, Cheapest_Reqd);
+                     Concorde.Commodities.Needs.Add_Need
+                       (Need      => Need,
+                        Commodity => Cheapest_Item,
+                        Quantity  => Cheapest_Reqd,
+                        Price     => Pop.Create_Bid_Price (Cheapest_Item));
                   end if;
                end;
             else
@@ -133,6 +167,10 @@ package body Concorde.People.Pops is
                  & I'Img;
             end if;
          end loop;
+
+         Concorde.Commodities.Needs.Scan_Needs
+           (Need, Add_Bid'Access);
+
       end Check_Artisan_Inputs;
 
       ----------------
@@ -147,29 +185,6 @@ package body Concorde.People.Pops is
          procedure Add_Need
            (Commodity : Concorde.Commodities.Commodity_Type;
             Quantity  : WL.Quantities.Quantity_Type);
-
-         procedure Add_Bid
-           (Commodity : Concorde.Commodities.Commodity_Type;
-            Quantity  : WL.Quantities.Quantity_Type;
-            Price     : WL.Money.Price_Type);
-
-         -------------
-         -- Add_Bid --
-         -------------
-
-         procedure Add_Bid
-           (Commodity : Concorde.Commodities.Commodity_Type;
-            Quantity  : WL.Quantities.Quantity_Type;
-            Price     : WL.Money.Price_Type)
-         is
-         begin
-            if Quantity > Zero then
-               Pop.Create_Bid
-                 (Commodity    => Commodity,
-                  Bid_Quantity => Quantity,
-                  Bid_Price    => Price);
-            end if;
-         end Add_Bid;
 
          --------------
          -- Add_Need --
@@ -190,6 +205,7 @@ package body Concorde.People.Pops is
          end Add_Need;
 
       begin
+
          Concorde.Commodities.Needs.Set_Budget
            (Need, Remaining_Budget);
          Pop.Group.Scan_Needs
@@ -208,23 +224,23 @@ package body Concorde.People.Pops is
 
       end Check_Need;
 
-      Checked_Artisan : Boolean := not Pop.Group.Is_Artisan;
-
    begin
+
+      if Pop.Group.Is_Artisan then
+         Remaining_Budget := Adjust (Remaining_Budget, 0.5);
+         Artisan_Budget := Pop.Cash - Remaining_Budget;
+      end if;
+
       for Level in Concorde.People.Groups.Need_Level loop
          Check_Need (Level);
          exit when Remaining_Budget <= Zero;
-
-         if not Checked_Artisan then
-            Checked_Artisan := True;
-            if Pop.Group.Is_Artisan
-              and then Pop.Has_Production
-            then
-               Check_Artisan_Inputs;
-            end if;
-         end if;
-
       end loop;
+
+      if Pop.Group.Is_Artisan
+        and then Pop.Has_Production
+      then
+         Check_Artisan_Inputs;
+      end if;
 
       if Pop.Group.Unemployment
         and then Pop.Get_Quantity (Pop.Group.Work_Commodity) > Zero
@@ -260,6 +276,10 @@ package body Concorde.People.Pops is
         (Commodity : Concorde.Commodities.Commodity_Type;
          Required  : WL.Quantities.Quantity_Type);
 
+      -------------
+      -- Consume --
+      -------------
+
       procedure Consume
         (Commodity : Concorde.Commodities.Commodity_Type;
          Required  : WL.Quantities.Quantity_Type)
@@ -267,6 +287,10 @@ package body Concorde.People.Pops is
          Consumed : constant Quantity_Type :=
                       Min (Required, Pop.Get_Quantity (Commodity));
       begin
+         Pop.Log ("consumption",
+                  Commodity.Name & ": required "
+                  & Show (Required) & ", consumed "
+                  & Show (Consumed));
          Total_Required := Total_Required + Required;
          Total_Consumed := Total_Consumed + Consumed;
          Pop.Remove_Quantity (Commodity, Consumed);
@@ -444,6 +468,8 @@ package body Concorde.People.Pops is
       if Facility.Has_Output
         and then Facility.Output.Is_Set (Virtual)
       then
+         Pop.Log_Production ("clearing virtual commodity "
+                             & Facility.Output.Name);
          Pop.Set_Quantity
            (Facility.Output, WL.Quantities.Zero, WL.Money.Zero);
       end if;
