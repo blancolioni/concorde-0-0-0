@@ -49,6 +49,15 @@ package body Concorde.Managers.Pops is
          use WL.Money, WL.Quantities;
          Score : Real := 0.0;
       begin
+
+         if Market.Current_Demand (Facility.Output)
+           < Manager.Pop.Size_Quantity
+         then
+            Manager.Pop.Log ("artisan",
+                             Facility.Name & ": no demand");
+            return 0;
+         end if;
+
          for Input_Index in 1 .. Facility.Input_Count loop
             declare
                OK : Boolean := False;
@@ -72,6 +81,13 @@ package body Concorde.Managers.Pops is
                                     Market.Current_Price (Input);
                      This_Score : Real;
                   begin
+                     Manager.Pop.Log ("artisan",
+                                      Facility.Name & ": input "
+                                      & Input.Name
+                                      & ": supply/demand/price "
+                                      & Show (Supply) & "/"
+                                      & Show (Demand) & "/"
+                                      & Show (Price));
                      if not Input.Available
                        or else Supply = Zero
                        or else Supply < Scale (Demand, 0.5)
@@ -97,6 +113,10 @@ package body Concorde.Managers.Pops is
                end loop;
 
                if not OK then
+                  Manager.Pop.Log ("artisan",
+                                   Facility.Name & ": no supply for input "
+                                   & Facility.Input_Choice_Commodity
+                                     (Input_Index, 1).Name);
                   return 0;
                end if;
             end;
@@ -109,12 +129,18 @@ package body Concorde.Managers.Pops is
          if Score <= 0.0 then
             return 0;
          else
-            return Natural (Score);
+            Manager.Pop.Log ("artisan",
+                             Facility.Name & ": final score:"
+                             & Natural'Image (Natural (100.0 * Score)));
+            return Natural (Score * 100.0);
          end if;
 
       end Production_Score;
 
    begin
+
+      Manager.Pop.Log ("artisan", "choosing production");
+
       for Facility of Concorde.Facilities.Artisan_Facilities loop
          Choices.Insert (Facility, Production_Score (Facility));
       end loop;
@@ -125,8 +151,11 @@ package body Concorde.Managers.Pops is
                        Choices.Choose;
          begin
             Manager.Pop.Update.Set_Production (Choice);
-            Manager.Pop.Log ("choose production: " & Choice.Name);
+            Manager.Pop.Log ("artisan",
+                             "choose production: " & Choice.Name);
          end;
+      else
+         Manager.Pop.Log ("artisan", "nothing appropriate");
       end if;
 
    end Choose_Artisan_Production;
@@ -205,7 +234,8 @@ package body Concorde.Managers.Pops is
                        else Zero);
       begin
          Manager.Pop.Log
-           ("earnings: " & Show (Earnings)
+           ("budget",
+            "earnings: " & Show (Earnings)
             & "; cash " & Show (Cash)
             & "; expenses: "
             & Show (Manager.Pop.Last_Expenses)
