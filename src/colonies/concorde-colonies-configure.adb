@@ -187,7 +187,11 @@ package body Concorde.Colonies.Configure is
                             Vs.Element (Index);
             begin
                Create_Installation (Facility, Tile,
-                                    WL.Quantities.To_Quantity (1000.0));
+                                    WL.Quantities.To_Quantity
+                                      (if Facility.Is_Farm
+                                       or else Facility.Is_Resource_Generator
+                                       then 40_000.0
+                                       else 1000.0));
                Vs.Replace_Element (Index, Vs.Last_Element);
                Vs.Delete_Last;
                Next_Tile;
@@ -214,7 +218,7 @@ package body Concorde.Colonies.Configure is
                             (Location => Location,
                              Market   => World.Market,
                              Facility => Facility,
-                             Cash     => WL.Money.To_Money (1.0E5),
+                             Cash     => WL.Money.To_Money (1.0E7),
                              Owner    => World.Owner,
                              Size     => Size);
       begin

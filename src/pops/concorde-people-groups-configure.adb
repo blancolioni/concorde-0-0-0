@@ -103,11 +103,15 @@ package body Concorde.People.Groups.Configure is
          Group.Unemployment := Config.Get ("unemployment");
 
          Group.Wealth := Wealth_Level'Value (Config.Get ("strata"));
-         Group.Initial_Cash_Factor :=
-           (case Group.Wealth is
-               when Poor => 1.0,
-               when Middle => 5.0,
-               when Rich   => 20.0);
+         if Group.Is_Artisan then
+            Group.Initial_Cash_Factor := 100.0;
+         else
+            Group.Initial_Cash_Factor :=
+              (case Group.Wealth is
+                  when Poor => 10.0,
+                  when Middle => 50.0,
+                  when Rich   => 200.0);
+         end if;
 
          if Group.Unemployment then
             Group.Work_Commodity :=
