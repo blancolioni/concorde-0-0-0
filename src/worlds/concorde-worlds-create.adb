@@ -468,10 +468,12 @@ package body Concorde.Worlds.Create is
                           Hydro_Fraction * Surface_Area
                             * Earth_Water_Mass_Per_Area;
          Water_Vapour_In_Kg : constant Real :=
-                                1.0E-8 * Hydro_Mass
-                                  * Exp (Q2_36
-                                         * (Surface_Temperature
-                                             - Earth_Average_Kelvin));
+                                (if Hydro_Mass = 0.0
+                                 then 0.0
+                                 else 1.0E-8 * Hydro_Mass
+                                 * Exp (Q2_36
+                                   * (Surface_Temperature
+                                     - Earth_Average_Kelvin)));
          Fraction           : constant Real :=
                                 Cloud_Coverage_Factor
                                   * Water_Vapour_In_Kg
