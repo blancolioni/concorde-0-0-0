@@ -1,4 +1,21 @@
+with Ada.Characters.Handling;
+
 package body Concorde.People.Individuals is
+
+   ---------------
+   -- Full_Name --
+   ---------------
+
+   function Full_Name (Individual : Root_Individual_Type'Class)
+                       return String
+   is
+   begin
+      return Ada.Strings.Unbounded.To_String
+        (Individual.First_Name)
+        & " "
+        & Ada.Strings.Unbounded.To_String
+        (Individual.Last_Name);
+   end Full_Name;
 
    --------------
    -- Set_Name --
@@ -8,9 +25,21 @@ package body Concorde.People.Individuals is
      (Individual : in out Root_Individual_Type;
       New_Name   : String)
    is
+      Name : String := New_Name;
+      Cap  : Boolean := True;
    begin
+      for Ch of Name loop
+         if Cap then
+            Ch := Ada.Characters.Handling.To_Upper (Ch);
+            Cap := False;
+         elsif Ch = '-' then
+            Cap := True;
+         else
+            Ch := Ada.Characters.Handling.To_Lower (Ch);
+         end if;
+      end loop;
       Individual.First_Name :=
-        Ada.Strings.Unbounded.To_Unbounded_String (New_Name);
+        Ada.Strings.Unbounded.To_Unbounded_String (Name);
    end Set_Name;
 
    ------------

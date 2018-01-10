@@ -12,4 +12,9 @@ package Concorde.People.Individuals.Create is
       Location   : Concorde.Locations.Object_Location)
       return Individual_Type;
 
+   function Create_Child
+     (Parent_1, Parent_2 : not null access constant Root_Individual_Type'Class;
+      Location           : Concorde.Locations.Object_Location)
+      return Individual_Type;
+
 end Concorde.People.Individuals.Create;

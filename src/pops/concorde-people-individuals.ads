@@ -8,6 +8,7 @@ with Concorde.Factions;
 with Concorde.Objects;
 with Concorde.Trades;
 
+with Concorde.People.Genetics;
 with Concorde.People.Groups;
 
 package Concorde.People.Individuals is
@@ -30,6 +31,15 @@ package Concorde.People.Individuals is
       Ability    : Ability_Type)
       return Score_Range;
 
+   function Last_Name (Individual : Root_Individual_Type'Class)
+                       return String;
+
+   function First_Name (Individual : Root_Individual_Type'Class)
+                        return String;
+
+   function Full_Name (Individual : Root_Individual_Type'Class)
+                       return String;
+
    type Individual_Type is access constant Root_Individual_Type'Class;
 
    type Updateable_Reference
@@ -51,6 +61,7 @@ private
       record
          First_Name  : Ada.Strings.Unbounded.Unbounded_String;
          Last_Name   : Ada.Strings.Unbounded.Unbounded_String;
+         DNA         : Concorde.People.Genetics.Genome;
          Gender      : Gender_Type;
          Faction     : Concorde.Factions.Faction_Type;
          Citizenship : Concorde.Factions.Faction_Type;
@@ -98,6 +109,14 @@ private
       Ability    : Ability_Type)
       return Score_Range
    is (Individual.Scores (Ability));
+
+   function Last_Name (Individual : Root_Individual_Type'Class)
+                       return String
+   is (Ada.Strings.Unbounded.To_String (Individual.Last_Name));
+
+   function First_Name (Individual : Root_Individual_Type'Class)
+                        return String
+   is (Ada.Strings.Unbounded.To_String (Individual.First_Name));
 
    package Db is
      new Memor.Database

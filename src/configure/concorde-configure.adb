@@ -2,6 +2,8 @@ with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Directories;
 with Ada.Text_IO;
 
+with Tropos.Reader;
+
 with Concorde.Names;
 
 with Concorde.Components.Configure;
@@ -10,6 +12,7 @@ with Concorde.Ships.Designs;
 with Concorde.Commodities.Configure;
 with Concorde.Facilities.Configure;
 with Concorde.People.Groups.Configure;
+with Concorde.People.Individuals.Portraits;
 
 with Concorde.Atmosphere.Configure;
 with Concorde.Features.Configure;
@@ -141,6 +144,13 @@ package body Concorde.Configure is
 
       Concorde.Commodities.Configure.Calculate_Base_Prices;
 
+      Concorde.People.Individuals.Portraits.Configure_Portraits
+        (Feature_Config =>
+           Tropos.Reader.Read_Config
+             (File_Path ("portraits", "portraits", "gfx")),
+         Sprite_Config  =>
+           Tropos.Reader.Read_Config
+             (File_Path ("portraits", "portrait_sprites", "gfx")));
    end Load_Configuration;
 
 end Concorde.Configure;
