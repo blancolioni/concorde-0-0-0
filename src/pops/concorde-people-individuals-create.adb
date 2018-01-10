@@ -11,7 +11,6 @@ with Concorde.Markets;
 with Concorde.Worlds;
 
 with Concorde.People.Individuals.Portraits;
-with Ada.Text_IO;
 
 package body Concorde.People.Individuals.Create is
 
@@ -90,23 +89,21 @@ package body Concorde.People.Individuals.Create is
            (Location, Concorde.Government.Get_Government (Location),
             Market, WL.Money.To_Money (1_000.0),
             WL.Quantities.To_Quantity (1000.0));
-         Ada.Text_IO.Put_Line
-           (Full_Name (Item) & ": eyes"
-            & Genetics.Gene_Expression'Image
-              (Genetics.Express (Item.DNA, Genetics.Eyes)));
       end Create;
 
    begin
       return Individual : constant Individual_Type :=
         Db.Create (Create'Access)
       do
-         Concorde.People.Individuals.Portraits.Save_Portrait
-           (Individual,
-            "portraits/"
-            & Ada.Strings.Unbounded.To_String (Individual.Last_Name)
-            & "-"
-            & Ada.Strings.Unbounded.To_String (Individual.First_Name)
-            & ".png");
+         if False then
+            Concorde.People.Individuals.Portraits.Save_Portrait
+              (Individual,
+               "portraits/"
+               & Ada.Strings.Unbounded.To_String (Individual.Last_Name)
+               & "-"
+               & Ada.Strings.Unbounded.To_String (Individual.First_Name)
+               & ".png");
+         end if;
       end return;
 
    end Create_Family_Member;
