@@ -57,6 +57,51 @@ package body Concorde.People.Individuals.Portraits is
 
    Portrait_Map : Portrait_Maps.Map;
 
+   package Modifier_Vectors is
+     new Ada.Containers.Vectors (Positive, Tropos.Configuration, Tropos."=");
+
+   type Property_Frame_Record is
+      record
+         Frame          : Positive;
+         Initial_Factor : Natural;
+         Modifiers      : Modifier_Vectors.Vector;
+      end record;
+
+   package Property_Frame_Vectors is
+     new Ada.Containers.Vectors (Positive, Property_Frame_Record);
+
+   type Property_Record is
+      record
+         Frames : Property_Frame_Vectors.Vector;
+      end record;
+
+   package Property_Vectors is
+     new Ada.Containers.Vectors (Positive, Property_Record);
+
+   Property_Vector : Property_Vectors.Vector;
+
+   type Property_Modifier_Function is access
+     function (Individual : not null access constant
+                 Root_Individual_Type'Class;
+               Config     : Tropos.Configuration)
+               return Boolean;
+
+   package Property_Modifier_Maps is
+     new WL.String_Maps (Property_Modifier_Function);
+
+   Property_Modifier_Map : Property_Modifier_Maps.Map;
+
+   function Is_Alive
+     (Individual : not null access constant Root_Individual_Type'Class;
+      Config     : Tropos.Configuration)
+      return Boolean
+   is (True);
+
+   function Test
+     (Individual : not null access constant Root_Individual_Type'Class;
+      Modifier   : Tropos.Configuration)
+      return Boolean;
+
    -------------------------
    -- Configure_Portraits --
    -------------------------
@@ -66,7 +111,6 @@ package body Concorde.People.Individuals.Portraits is
       Property_Config : Tropos.Configuration;
       Sprite_Config   : Tropos.Configuration)
    is
-      pragma Unreferenced (Property_Config);
       Genes : constant array (0 .. 7) of Gene_Access :=
                 (Genetics.Neck'Access,
                  Genetics.Chin'Access,
@@ -77,6 +121,9 @@ package body Concorde.People.Individuals.Portraits is
                  Genetics.Eyes'Access,
                  Genetics.Ears'Access);
    begin
+
+      Property_Modifier_Map.Insert ("is_alive", Is_Alive'Access);
+
       for Config of Sprite_Config.Child ("spriteTypes") loop
          declare
             Name        : constant String :=
@@ -202,7 +249,7 @@ package body Concorde.People.Individuals.Portraits is
                                              (Source (Source'First + 1
                                               .. Source'Last));
                               begin
-                                 Layer.Property := Index;
+                                 Layer.Property := Index + 1;
                               end;
                            elsif Source (Source'First) = 'd' then
                               declare
@@ -285,6 +332,29 @@ package body Concorde.People.Individuals.Portraits is
 
          end;
       end loop;
+
+      for Config of Property_Config loop
+         declare
+            Frames : Property_Frame_Vectors.Vector;
+         begin
+            for Frame_Config of Config loop
+               declare
+                  Frame : Property_Frame_Record :=
+                            Property_Frame_Record'
+                              (Frame          => Frames.Last_Index + 1,
+                               Initial_Factor => Frame_Config.Get ("factor"),
+                               Modifiers      => <>);
+               begin
+                  for Mod_Config of Frame_Config.Children ("modifier") loop
+                     Frame.Modifiers.Append (Mod_Config);
+                  end loop;
+                  Frames.Append (Frame);
+               end;
+            end loop;
+            Property_Vector.Append ((Frames => Frames));
+         end;
+      end loop;
+
    end Configure_Portraits;
 
    -------------------
@@ -409,15 +479,38 @@ package body Concorde.People.Individuals.Portraits is
                   Positive
                     (Genetics.Express (Individual.DNA, Layer.Gene.all)));
             end;
-         elsif Layer.Sprite_Name /= null
+         elsif Layer.Property > 0
+           and then Layer.Sprite_Name /= null
            and then Sprite_Map.Contains (Layer.Sprite_Name.all)
          then
             declare
                Sprite : constant Sprite_Type :=
                           Sprite_Map.Element (Layer.Sprite_Name.all);
+               Property : constant Property_Record :=
+                            Property_Vector.Element (Layer.Property);
+               Frame    : Natural := 0;
             begin
-               Add_Layer
-                 (Sprite, 0, 0, 1);
+               for Prop_Frame of Property.Frames loop
+                  declare
+                     Factor : Float := Float (Prop_Frame.Initial_Factor);
+                  begin
+                     for Modifier of Prop_Frame.Modifiers loop
+                        if Test (Individual, Modifier) then
+                           Factor := Factor * Modifier.Get ("factor");
+                        end if;
+                        exit when Factor = 0.0;
+                     end loop;
+                     if Factor >= 100.0 then
+                        Frame := Prop_Frame.Frame;
+                        exit;
+                     end if;
+                  end;
+               end loop;
+
+               if Frame > 0 then
+                  Add_Layer
+                    (Sprite, 0, 0, Frame);
+               end if;
             end;
          end if;
       end loop;
@@ -454,5 +547,32 @@ package body Concorde.People.Individuals.Portraits is
       Cairo.Surface_Destroy (Surface);
 
    end Save_Portrait;
+
+   ----------
+   -- Test --
+   ----------
+
+   function Test
+     (Individual : not null access constant Root_Individual_Type'Class;
+      Modifier   : Tropos.Configuration)
+      return Boolean
+   is
+   begin
+      for Fn of Modifier loop
+         if Fn.Config_Name /= "factor"
+           and then Property_Modifier_Map.Contains (Fn.Config_Name)
+         then
+            if not Property_Modifier_Map.Element (Fn.Config_Name)
+              (Individual, Fn)
+            then
+               return False;
+            end if;
+         else
+            return False;
+         end if;
+      end loop;
+
+      return True;
+   end Test;
 
 end Concorde.People.Individuals.Portraits;
