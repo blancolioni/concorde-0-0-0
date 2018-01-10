@@ -62,9 +62,11 @@ package body Concorde.People.Individuals.Portraits is
    -------------------------
 
    procedure Configure_Portraits
-     (Feature_Config : Tropos.Configuration;
-      Sprite_Config  : Tropos.Configuration)
+     (Feature_Config  : Tropos.Configuration;
+      Property_Config : Tropos.Configuration;
+      Sprite_Config   : Tropos.Configuration)
    is
+      pragma Unreferenced (Property_Config);
       Genes : constant array (0 .. 7) of Gene_Access :=
                 (Genetics.Neck'Access,
                  Genetics.Chin'Access,
@@ -378,6 +380,14 @@ package body Concorde.People.Individuals.Portraits is
          Cairo.Fill (Cr);
       end Add_Layer;
 
+      Portrait_Name : constant String :=
+                        (case Individual.Gender is
+                            when Female =>
+                               "PORTRAIT_westerngfx_female",
+                            when Male   =>
+                               "PORTRAIT_westerngfx_male",
+                            when None   =>
+                               "PORTRAIT_westerngfx_none");
    begin
       Cairo.Save (Cr);
       Cairo.Set_Operator (Cr, Cairo.Cairo_Operator_Clear);
@@ -385,7 +395,7 @@ package body Concorde.People.Individuals.Portraits is
       Cairo.Restore (Cr);
 
       for Layer of
-        Portrait_Map.Element ("PORTRAIT_westerngfx_female").Layers
+        Portrait_Map.Element (Portrait_Name).Layers
       loop
          if Layer.Gene /= null then
             declare
@@ -398,6 +408,16 @@ package body Concorde.People.Individuals.Portraits is
                   Portrait_Height - Layer.Offset_Y - Sprite.Height,
                   Positive
                     (Genetics.Express (Individual.DNA, Layer.Gene.all)));
+            end;
+         elsif Layer.Sprite_Name /= null
+           and then Sprite_Map.Contains (Layer.Sprite_Name.all)
+         then
+            declare
+               Sprite : constant Sprite_Type :=
+                          Sprite_Map.Element (Layer.Sprite_Name.all);
+            begin
+               Add_Layer
+                 (Sprite, 0, 0, 1);
             end;
          end if;
       end loop;

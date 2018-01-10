@@ -148,6 +148,9 @@ package body Concorde.Configure is
         (Feature_Config =>
            Tropos.Reader.Read_Config
              (File_Path ("portraits", "portraits", "gfx")),
+         Property_Config =>
+           Tropos.Reader.Read_Config
+             (File_Path ("portraits", "00_portrait_properties", "txt")),
          Sprite_Config  =>
            Tropos.Reader.Read_Config
              (File_Path ("portraits", "portrait_sprites", "gfx")));
