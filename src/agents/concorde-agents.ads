@@ -545,6 +545,11 @@ private
       return WL.Money.Price_Type
    is (Agent.Asks.Element (Commodity).Price);
 
+   function Minimum_Ask_Price
+     (Agent     : Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return WL.Money.Price_Type;
+
    function Guarantor
      (Agent : Root_Agent_Type'Class)
       return access constant Root_Agent_Type'Class
