@@ -12,6 +12,8 @@ with Cairo.Png;
 
 with WL.String_Maps;
 
+with Concorde.Weighted_Random_Choices;
+
 with Concorde.Paths;
 
 package body Concorde.People.Individuals.Portraits is
@@ -91,16 +93,52 @@ package body Concorde.People.Individuals.Portraits is
 
    Property_Modifier_Map : Property_Modifier_Maps.Map;
 
-   function Is_Alive
-     (Individual : not null access constant Root_Individual_Type'Class;
-      Config     : Tropos.Configuration)
-      return Boolean
-   is (True);
-
    function Test
      (Individual : not null access constant Root_Individual_Type'Class;
       Modifier   : Tropos.Configuration)
       return Boolean;
+
+   function Boolean_Test
+     (Config     : Tropos.Configuration;
+      Value      : Boolean)
+      return Boolean
+   is (Value or else Config.Value = "no");
+
+   function Not_Operator
+     (Individual : not null access constant Root_Individual_Type'Class;
+      Config     : Tropos.Configuration)
+      return Boolean
+   is (not Test (Individual, Config));
+
+   function Is_Alive
+     (Individual : not null access constant Root_Individual_Type'Class;
+      Config     : Tropos.Configuration)
+      return Boolean
+   is (Boolean_Test (Config, True));
+
+   function Is_Female
+     (Individual : not null access constant Root_Individual_Type'Class;
+      Config     : Tropos.Configuration)
+      return Boolean
+   is (Boolean_Test (Config, Individual.Gender = Female));
+
+   function Is_Male
+     (Individual : not null access constant Root_Individual_Type'Class;
+      Config     : Tropos.Configuration)
+      return Boolean
+   is (Boolean_Test (Config, Individual.Gender = Male));
+
+   function Is_Prisoner
+     (Individual : not null access constant Root_Individual_Type'Class;
+      Config     : Tropos.Configuration)
+      return Boolean
+   is (Boolean_Test (Config, False));
+
+   function Age_At_Least
+     (Individual : not null access constant Root_Individual_Type'Class;
+      Config     : Tropos.Configuration)
+      return Boolean
+   is (Config.Value <= 21);
 
    -------------------------
    -- Configure_Portraits --
@@ -122,7 +160,12 @@ package body Concorde.People.Individuals.Portraits is
                  Genetics.Ears'Access);
    begin
 
+      Property_Modifier_Map.Insert ("not", Not_Operator'Access);
       Property_Modifier_Map.Insert ("is_alive", Is_Alive'Access);
+      Property_Modifier_Map.Insert ("is_female", Is_Female'Access);
+      Property_Modifier_Map.Insert ("is_male", Is_Male'Access);
+      Property_Modifier_Map.Insert ("prisoner", Is_Prisoner'Access);
+      Property_Modifier_Map.Insert ("age", Age_At_Least'Access);
 
       for Config of Sprite_Config.Child ("spriteTypes") loop
          declare
@@ -351,6 +394,14 @@ package body Concorde.People.Individuals.Portraits is
                   Frames.Append (Frame);
                end;
             end loop;
+            if Frames.Is_Empty then
+               Frames.Append
+                 (Property_Frame_Record'
+                    (Frame          => 1,
+                     Initial_Factor => 100,
+                     Modifiers      => <>));
+            end if;
+
             Property_Vector.Append ((Frames => Frames));
          end;
       end loop;
@@ -489,6 +540,12 @@ package body Concorde.People.Individuals.Portraits is
                Property : constant Property_Record :=
                             Property_Vector.Element (Layer.Property);
                Frame    : Natural := 0;
+
+               package Frame_Choices is
+                 new Concorde.Weighted_Random_Choices (Positive);
+
+               Choices  : Frame_Choices.Weighted_Choice_Set;
+
             begin
                for Prop_Frame of Property.Frames loop
                   declare
@@ -503,9 +560,16 @@ package body Concorde.People.Individuals.Portraits is
                      if Factor >= 100.0 then
                         Frame := Prop_Frame.Frame;
                         exit;
+                     elsif Factor > 0.0 then
+                        Choices.Insert
+                          (Prop_Frame.Frame, Positive (Factor + 0.5));
                      end if;
                   end;
                end loop;
+
+               if Frame = 0 and then not Choices.Is_Empty then
+                  Frame := Choices.Choose;
+               end if;
 
                if Frame > 0 then
                   Add_Layer
@@ -559,16 +623,16 @@ package body Concorde.People.Individuals.Portraits is
    is
    begin
       for Fn of Modifier loop
-         if Fn.Config_Name /= "factor"
-           and then Property_Modifier_Map.Contains (Fn.Config_Name)
-         then
-            if not Property_Modifier_Map.Element (Fn.Config_Name)
-              (Individual, Fn)
-            then
+         if Fn.Config_Name /= "factor" then
+            if Property_Modifier_Map.Contains (Fn.Config_Name) then
+               if not Property_Modifier_Map.Element (Fn.Config_Name)
+                 (Individual, Fn)
+               then
+                  return False;
+               end if;
+            else
                return False;
             end if;
-         else
-            return False;
          end if;
       end loop;
 
