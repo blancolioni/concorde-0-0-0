@@ -42,6 +42,10 @@ package Concorde.People.Individuals is
    function Full_Name (Individual : Root_Individual_Type'Class)
                        return String;
 
+   function Age
+     (Individual : Root_Individual_Type'Class)
+      return Natural;
+
    type Individual_Type is access constant Root_Individual_Type'Class;
 
    type Updateable_Reference

@@ -2,6 +2,22 @@ with Ada.Characters.Handling;
 
 package body Concorde.People.Individuals is
 
+   ---------
+   -- Age --
+   ---------
+
+   function Age
+     (Individual : Root_Individual_Type'Class)
+      return Natural
+   is
+      use Concorde.Calendar;
+      Seconds : constant Duration := Clock - Individual.Birth;
+      Days    : constant Non_Negative_Real := Real (Seconds) / 86_600.0;
+      Years   : constant Non_Negative_Real := Days / 360.0;
+   begin
+      return Natural (Real'Truncation (Years));
+   end Age;
+
    ---------------
    -- Full_Name --
    ---------------
