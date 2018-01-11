@@ -26,7 +26,9 @@ package body Concorde.People.Genetics is
                       when Highest => Base_Value'Max (X, Y),
                       when Lowest  => Base_Value'Min (X, Y),
                       when Average =>
-                         Base_Value ((Natural (X) + Natural (Y)) / 2));
+                         Base_Value ((Natural (X) + Natural (Y)) / 2),
+                      when Left    => X,
+                      when Right   => Y);
          begin
             Acc := Acc + Natural (Z);
          end;
@@ -52,12 +54,20 @@ package body Concorde.People.Genetics is
       -----------
 
       function Merge (X, Y : Array_Of_Bases) return Array_Of_Bases is
+         Remaining : Natural := 0;
+         Use_X     : Boolean := True;
       begin
          return Z : Array_Of_Bases do
             for I in Z'Range loop
+               if Remaining = 0 then
+                  Remaining := WL.Random.Random_Number (1, 7);
+                  Use_X := WL.Random.Random_Number (1, 2) = 1;
+               end if;
+
+               Remaining := Remaining - 1;
                if Concorde.Random.Unit_Random < Error_Rate then
                   Z (I) := Random_Base_Value;
-               elsif WL.Random.Random_Number (1, 2) = 1 then
+               elsif Use_X then
                   Z (I) := X (I);
                else
                   Z (I) := Y (I);

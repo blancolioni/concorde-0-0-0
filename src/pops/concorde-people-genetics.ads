@@ -30,7 +30,7 @@ private
 
    type Base_Value is range 0 .. 3;
 
-   Number_Of_Bases : constant := 200;
+   Number_Of_Bases : constant := 30;
 
    type Base_Count is range 0 .. Number_Of_Bases;
    subtype Base_Index is Base_Count range 1 .. Base_Count'Last;
@@ -42,7 +42,7 @@ private
          Left, Right : Array_Of_Bases;
       end record;
 
-   type Expressed_Base_Operation is (Highest, Lowest, Average);
+   type Expressed_Base_Operation is (Highest, Lowest, Average, Left, Right);
 
    type Expressed_Base is
       record
@@ -61,42 +61,42 @@ private
               Gene_Type'
                 (Expressed_Base_Count => 4,
                  Expressed_Bases      =>
-                   ((1, Lowest), (2, Lowest), (3, Lowest), (4, Lowest)));
+                   ((1, Left), (2, Right), (3, Left), (4, Right)));
 
    Chin   : aliased constant Gene_Type :=
               Gene_Type'
                 (Expressed_Base_Count => 4,
                  Expressed_Bases      =>
-                   ((5, Lowest), (6, Lowest), (7, Lowest), (8, Lowest)));
+                   ((5, Left), (6, Right), (7, Left), (8, Right)));
 
    Ears   : aliased constant Gene_Type :=
               Gene_Type'
                 (Expressed_Base_Count => 4,
                  Expressed_Bases      =>
-                   ((9, Lowest), (10, Lowest), (11, Lowest), (12, Lowest)));
+                   ((9, Left), (10, Right), (11, Left), (12, Right)));
 
    Eyes   : aliased constant Gene_Type :=
               Gene_Type'
                 (Expressed_Base_Count => 4,
                  Expressed_Bases      =>
-                   ((1, Lowest), (2, Lowest), (3, Lowest), (4, Lowest)));
+                   ((1, Left), (2, Right), (3, Left), (4, Right)));
 
    Mouth  : aliased constant Gene_Type :=
               Gene_Type'
                 (Expressed_Base_Count => 4,
                  Expressed_Bases      =>
-                   ((13, Lowest), (14, Lowest), (15, Lowest), (16, Lowest)));
+                   ((13, Left), (14, Right), (15, Left), (16, Right)));
 
    Neck   : aliased constant Gene_Type :=
               Gene_Type'
                 (Expressed_Base_Count => 4,
                  Expressed_Bases      =>
-                   ((17, Lowest), (18, Lowest), (19, Lowest), (20, Lowest)));
+                   ((17, Left), (18, Right), (19, Left), (20, Right)));
 
    Nose   : aliased constant Gene_Type :=
               Gene_Type'
                 (Expressed_Base_Count => 4,
                  Expressed_Bases      =>
-                   ((21, Lowest), (22, Lowest), (23, Lowest), (24, Lowest)));
+                   ((21, Left), (22, Right), (23, Left), (24, Right)));
 
 end Concorde.People.Genetics;
