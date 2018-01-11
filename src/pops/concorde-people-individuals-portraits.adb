@@ -138,7 +138,7 @@ package body Concorde.People.Individuals.Portraits is
      (Individual : not null access constant Root_Individual_Type'Class;
       Config     : Tropos.Configuration)
       return Boolean
-   is (Config.Value <= 21);
+   is (Config.Value <= Individual.Age);
 
    -------------------------
    -- Configure_Portraits --
@@ -501,14 +501,23 @@ package body Concorde.People.Individuals.Portraits is
          Cairo.Fill (Cr);
       end Add_Layer;
 
+      Age_Suffix : constant String :=
+                     (case Individual.Age is
+                         when 0 .. 35 => "",
+                         when 36 .. 60 => "1",
+                         when 61 .. 999 => "2",
+                         when others    =>
+                            raise Constraint_Error with
+                              "bad age");
+
       Portrait_Name : constant String :=
                         (case Individual.Gender is
                             when Female =>
-                               "PORTRAIT_westerngfx_female",
+                               "PORTRAIT_westerngfx_female" & Age_Suffix,
                             when Male   =>
-                               "PORTRAIT_westerngfx_male",
+                               "PORTRAIT_westerngfx_male" & Age_Suffix,
                             when None   =>
-                               "PORTRAIT_westerngfx_none");
+                               "PORTRAIT_westerngfx_none" & Age_Suffix);
    begin
       Cairo.Save (Cr);
       Cairo.Set_Operator (Cr, Cairo.Cairo_Operator_Clear);
