@@ -114,7 +114,7 @@ package body Concorde.People.Individuals.Portraits is
      (Individual : not null access constant Root_Individual_Type'Class;
       Config     : Tropos.Configuration)
       return Boolean
-   is (Boolean_Test (Config, True));
+   is (Boolean_Test (Config, Individual.Alive));
 
    function Is_Female
      (Individual : not null access constant Root_Individual_Type'Class;

@@ -531,13 +531,10 @@ package body Concorde.Factions.Create is
 
          end if;
 
-         for Minister of Faction.Update.Ministries loop
-            Minister :=
-              Concorde.People.Individuals.Create.Create_Family_Member
-                (Faction,
-                 Concorde.Locations.At_Installation
-                   (Start_World.Colony_Hub));
-         end loop;
+         Concorde.People.Individuals.Create.Create_Family_Tree
+           (Faction,
+            Concorde.Locations.At_Installation
+              (Start_World.Colony_Hub));
 
          if Start_World.Has_Market then
             Set_Initial_Prices (Start_World.Market.Update);

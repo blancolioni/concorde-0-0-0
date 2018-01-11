@@ -1,10 +1,12 @@
-with WL.Random;
+with Ada.Text_IO;
 
-with Concorde.Names;
-with Concorde.Random;
+with WL.Random;
 
 with WL.Money;
 with WL.Quantities;
+
+with Concorde.Names;
+with Concorde.Random;
 
 with Concorde.Government;
 with Concorde.Markets;
@@ -23,7 +25,8 @@ package body Concorde.People.Individuals.Create is
 
    function Create_Child
      (Parent_1, Parent_2 : not null access constant Root_Individual_Type'Class;
-      Location           : Concorde.Locations.Object_Location)
+      Location           : Concorde.Locations.Object_Location;
+      Date_Of_Birth      : Concorde.Calendar.Time)
       return Individual_Type
    is
       procedure Create (Item : in out Root_Individual_Type'Class);
@@ -46,6 +49,8 @@ package body Concorde.People.Individuals.Create is
          Item.Faction := Parent_1.Faction;
          Item.Citizenship := Parent_1.Faction;
          Item.Loyalty := 1.0;
+         Item.Birth := Date_Of_Birth;
+         Item.Alive := True;
          Item.New_Agent
            (Location, Concorde.Government.Get_Government (Location),
             Market, WL.Money.Zero,
@@ -53,7 +58,19 @@ package body Concorde.People.Individuals.Create is
       end Create;
 
    begin
-      return Db.Create (Create'Access);
+      return Individual : constant Individual_Type :=
+        Db.Create (Create'Access)
+      do
+         if True then
+            Concorde.People.Individuals.Portraits.Save_Portrait
+              (Individual,
+               "portraits/"
+               & Ada.Strings.Unbounded.To_String (Individual.Last_Name)
+               & "-"
+               & Ada.Strings.Unbounded.To_String (Individual.First_Name)
+               & ".png");
+         end if;
+      end return;
    end Create_Child;
 
    --------------------------
@@ -61,8 +78,9 @@ package body Concorde.People.Individuals.Create is
    --------------------------
 
    function Create_Family_Member
-     (Faction    : Concorde.Factions.Faction_Type;
-      Location   : Concorde.Locations.Object_Location)
+     (Faction       : Concorde.Factions.Faction_Type;
+      Location      : Concorde.Locations.Object_Location;
+      Date_Of_Birth : Concorde.Calendar.Time)
       return Individual_Type
    is
       procedure Create (Item : in out Root_Individual_Type'Class);
@@ -85,6 +103,8 @@ package body Concorde.People.Individuals.Create is
          Item.Faction := Faction;
          Item.Citizenship := Faction;
          Item.Loyalty := 1.0;
+         Item.Birth := Date_Of_Birth;
+         Item.Alive := True;
          Item.New_Agent
            (Location, Concorde.Government.Get_Government (Location),
             Market, WL.Money.To_Money (1_000.0),
@@ -95,7 +115,7 @@ package body Concorde.People.Individuals.Create is
       return Individual : constant Individual_Type :=
         Db.Create (Create'Access)
       do
-         if False then
+         if True then
             Concorde.People.Individuals.Portraits.Save_Portrait
               (Individual,
                "portraits/"
@@ -105,16 +125,137 @@ package body Concorde.People.Individuals.Create is
                & ".png");
          end if;
       end return;
-
    end Create_Family_Member;
+
+   ------------------------
+   -- Create_Family_Tree --
+   ------------------------
+
+   procedure Create_Family_Tree
+     (Faction    : Concorde.Factions.Faction_Type;
+      Location   : Concorde.Locations.Object_Location)
+   is
+      use Concorde.Calendar;
+
+      function Random_Years (Start_Year, End_Year : Natural) return Duration;
+
+      function Random_Ancestor_Past_Duration return Duration;
+
+      procedure Create_Generation
+        (Parent_1, Parent_2    : Individual_Type;
+         Remaining_Generations : Natural);
+
+      -----------------------
+      -- Create_Generation --
+      -----------------------
+
+      procedure Create_Generation
+        (Parent_1, Parent_2    : Individual_Type;
+         Remaining_Generations : Natural)
+      is
+         Recent_DOB : constant Time :=
+                        (if Parent_1.Birth > Parent_2.Birth
+                         then Parent_1.Birth else Parent_2.Birth);
+         Start      : Time :=
+                        Recent_DOB + Random_Years (20, 30);
+         Child_Count : Natural := 0;
+      begin
+         while WL.Random.Random_Number (0, 8) > Child_Count loop
+            Child_Count := Child_Count + 1;
+         end loop;
+
+         Child_Count := Child_Count + Remaining_Generations;
+
+         Ada.Text_IO.Put_Line
+           (Parent_1.Full_Name & " and " & Parent_2.Full_Name
+            & " have"
+            & (if Child_Count = 0 then " no children"
+              elsif Child_Count = 1 then " one child"
+              else Child_Count'Img & " children"));
+
+         declare
+            Children : array (1 .. Child_Count) of Individual_Type;
+         begin
+            for I in 1 .. Child_Count loop
+               declare
+                  Child : constant Individual_Type :=
+                            Create_Child (Parent_1, Parent_2, Location, Start);
+               begin
+                  Ada.Text_IO.Put_Line
+                    (Child.Full_Name & " born " & Image (Start));
+                  Start := Start + Random_Years (1, 2);
+                  Children (I) := Child;
+               end;
+            end loop;
+
+            if Remaining_Generations > 0 then
+               for Child of Children loop
+                  declare
+                     Spouse : constant Individual_Type :=
+                                Create_Family_Member
+                                  (Faction, Location, Child.Birth);
+                  begin
+                     Create_Generation (Child, Spouse,
+                                        Remaining_Generations - 1);
+                  end;
+               end loop;
+            end if;
+         end;
+
+      end Create_Generation;
+
+      -----------------------------------
+      -- Random_Ancestor_Past_Duration --
+      -----------------------------------
+
+      function Random_Ancestor_Past_Duration return Duration is
+         Min_Years : constant Natural := 40;
+         Max_Years : constant Natural := 60;
+      begin
+         return Random_Years (Min_Years, Max_Years);
+      end Random_Ancestor_Past_Duration;
+
+      ------------------
+      -- Random_Years --
+      ------------------
+
+      function Random_Years
+        (Start_Year, End_Year : Natural)
+         return Duration
+      is
+         Duration_Range : constant Natural :=
+                            (End_Year - Start_Year)
+                            * 84_600 * 365;
+         Seconds        : constant Positive :=
+                            WL.Random.Random_Number (1, Duration_Range);
+      begin
+         return Duration (Seconds)
+           + Duration (Start_Year) * Duration (86_400.0 * 365.0);
+      end Random_Years;
+
+      X_DOB : constant Time :=
+                Clock - Random_Ancestor_Past_Duration;
+      Y_DOB : constant Time :=
+                Clock - Random_Ancestor_Past_Duration;
+
+      X : constant Individual_Type :=
+            Create_Family_Member
+              (Faction, Location, X_DOB);
+      Y : constant Individual_Type :=
+            Create_Family_Member
+              (Faction, Location, Y_DOB);
+   begin
+      Create_Generation (X, Y, 2);
+   end Create_Family_Tree;
 
    ------------------------------
    -- Create_Random_Individual --
    ------------------------------
 
    procedure Create_Random_Individual
-     (Loyalty  : Concorde.Factions.Faction_Type;
-      Location : Concorde.Locations.Object_Location)
+     (Loyalty       : Concorde.Factions.Faction_Type;
+      Location      : Concorde.Locations.Object_Location;
+      Date_Of_Birth : Concorde.Calendar.Time)
    is
       procedure Create (Item : in out Root_Individual_Type'Class);
 
@@ -136,6 +277,7 @@ package body Concorde.People.Individuals.Create is
          Item.Faction := Loyalty;
          Item.Citizenship := Loyalty;
          Item.Loyalty := Concorde.Random.Unit_Random;
+         Item.Birth := Date_Of_Birth;
          Item.New_Agent
            (Location, Concorde.Government.Get_Government (Location),
             Market, WL.Money.To_Money (100.0),

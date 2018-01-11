@@ -8,6 +8,8 @@ with Concorde.Factions;
 with Concorde.Objects;
 with Concorde.Trades;
 
+with Concorde.Calendar;
+
 with Concorde.People.Genetics;
 with Concorde.People.Groups;
 
@@ -63,6 +65,9 @@ private
          Last_Name   : Ada.Strings.Unbounded.Unbounded_String;
          DNA         : Concorde.People.Genetics.Genome;
          Gender      : Gender_Type;
+         Birth       : Concorde.Calendar.Time;
+         Death       : Concorde.Calendar.Time;
+         Alive       : Boolean;
          Faction     : Concorde.Factions.Faction_Type;
          Citizenship : Concorde.Factions.Faction_Type;
          Group       : Concorde.People.Groups.Pop_Group;
