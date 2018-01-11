@@ -1,10 +1,70 @@
+with Ada.Containers.Indefinite_Vectors;
+
 with WL.Random;
 with Concorde.Random;
 
 package body Concorde.People.Genetics is
 
+   Empty_Gene : Gene_Type (0);
+
    function Random_Base_Value return Base_Value
    is (Base_Value (WL.Random.Random_Number (0, Natural (Base_Value'Last))));
+
+   package Gene_Vectors is
+     new Ada.Containers.Indefinite_Vectors (Positive, Gene_Type);
+
+   Genes : Gene_Vectors.Vector;
+
+   ---------------------
+   -- Configure_Genes --
+   ---------------------
+
+   procedure Configure_Genes
+     (Gene_Config : Tropos.Configuration)
+   is
+
+      function Configure_Expression
+        (Index       : Positive;
+         Expr_Config : Tropos.Configuration)
+         return Expressed_Base;
+
+      --------------------------
+      -- Configure_Expression --
+      --------------------------
+
+      function Configure_Expression
+        (Index       : Positive;
+         Expr_Config : Tropos.Configuration)
+         return Expressed_Base
+      is
+         Name : constant String := Expr_Config.Config_Name;
+      begin
+         return (Base_Index (Index), Expressed_Base_Operation'Value (Name));
+      end Configure_Expression;
+
+   begin
+      for Config of Gene_Config loop
+         declare
+            Id     : constant Positive := Config.Get ("id");
+            Start  : constant Positive := Config.Get ("start");
+            Coding : constant Tropos.Configuration :=
+                       Config.Child ("coding");
+            Count  : constant Natural := Coding.Child_Count;
+            Gene   : Gene_Type (Count);
+         begin
+
+            for I in 1 .. Count loop
+               Gene.Expressed_Bases (I) :=
+                 Configure_Expression (Start + I - 1, Coding.Child (I));
+            end loop;
+
+            while Genes.Last_Index < Id loop
+               Genes.Append (Empty_Gene);
+            end loop;
+            Genes.Replace_Element (Id, Gene);
+         end;
+      end loop;
+   end Configure_Genes;
 
    -------------
    -- Express --
@@ -38,6 +98,19 @@ package body Concorde.People.Genetics is
 
    end Express;
 
+   --------------
+   -- Get_Gene --
+   --------------
+
+   function Get_Gene (Id : Positive) return Gene_Type is
+   begin
+      if Genes (Id).Expressed_Base_Count = 0 then
+         raise Constraint_Error with
+           "no gene for id" & Id'Img;
+      end if;
+      return Genes.Element (Id);
+   end Get_Gene;
+
    -----------
    -- Merge --
    -----------
@@ -60,7 +133,7 @@ package body Concorde.People.Genetics is
          return Z : Array_Of_Bases do
             for I in Z'Range loop
                if Remaining = 0 then
-                  Remaining := WL.Random.Random_Number (1, 7);
+                  Remaining := 4;
                   Use_X := WL.Random.Random_Number (1, 2) = 1;
                end if;
 

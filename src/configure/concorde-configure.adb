@@ -13,6 +13,7 @@ with Concorde.Commodities.Configure;
 with Concorde.Facilities.Configure;
 with Concorde.People.Groups.Configure;
 with Concorde.People.Individuals.Portraits;
+with Concorde.People.Genetics;
 
 with Concorde.Atmosphere.Configure;
 with Concorde.Features.Configure;
@@ -143,6 +144,11 @@ package body Concorde.Configure is
       Concorde.Ships.Designs.Configure_Designs;
 
       Concorde.Commodities.Configure.Calculate_Base_Prices;
+
+      Concorde.People.Genetics.Configure_Genes
+        (Gene_Config =>
+           Tropos.Reader.Read_Config
+             (File_Path ("genetics", "genes", "txt")));
 
       Concorde.People.Individuals.Portraits.Configure_Portraits
         (Feature_Config =>

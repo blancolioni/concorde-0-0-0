@@ -34,13 +34,12 @@ package body Concorde.People.Individuals.Portraits is
 
    Sprite_Map : Sprite_Maps.Map;
 
-   type Gene_Access is access constant Genetics.Gene_Type;
-
    type Portrait_Layer is
       record
          Sprite_Name : access constant String;
-         Gene        : Gene_Access;
+         Gene        : Natural := 0;
          Eye_Color   : Boolean := False;
+         Hair_Color  : Boolean := False;
          Property    : Natural := 0;
          Offset_X    : Natural := 0;
          Offset_Y    : Natural := 0;
@@ -149,15 +148,6 @@ package body Concorde.People.Individuals.Portraits is
       Property_Config : Tropos.Configuration;
       Sprite_Config   : Tropos.Configuration)
    is
-      Genes : constant array (0 .. 7) of Gene_Access :=
-                (Genetics.Neck'Access,
-                 Genetics.Chin'Access,
-                 Genetics.Mouth'Access,
-                 Genetics.Nose'Access,
-                 Genetics.Cheeks'Access,
-                 null,
-                 Genetics.Eyes'Access,
-                 Genetics.Ears'Access);
    begin
 
       Property_Modifier_Map.Insert ("not", Not_Operator'Access);
@@ -285,7 +275,7 @@ package body Concorde.People.Individuals.Portraits is
                         begin
                            if Source (Source'First) = 'p' then
                               --  property layer
-                              Layer.Gene := null;
+                              Layer.Gene := 0;
                               declare
                                  Index : constant Natural :=
                                            Natural'Value
@@ -301,11 +291,7 @@ package body Concorde.People.Individuals.Portraits is
                                              (Source (Source'First + 1
                                               .. Source'Last));
                               begin
-                                 if Index in Genes'Range then
-                                    Layer.Gene := Genes (Index);
-                                 else
-                                    Layer.Gene := null;
-                                 end if;
+                                 Layer.Gene := Index + 1;
                               end;
 
                               Layer.Offset_X := 0;
@@ -316,6 +302,11 @@ package body Concorde.People.Individuals.Portraits is
 
                               if not Finished and then Field = "e" then
                                  Layer.Eye_Color := True;
+                                 Next_Field;
+                              end if;
+
+                              if not Finished and then Field = "h" then
+                                 Layer.Hair_Color := True;
                                  Next_Field;
                               end if;
 
@@ -527,7 +518,7 @@ package body Concorde.People.Individuals.Portraits is
       for Layer of
         Portrait_Map.Element (Portrait_Name).Layers
       loop
-         if Layer.Gene /= null then
+         if Layer.Gene > 0 then
             declare
                Sprite : constant Sprite_Type :=
                           Sprite_Map.Element (Layer.Sprite_Name.all);
@@ -537,7 +528,9 @@ package body Concorde.People.Individuals.Portraits is
                   Layer.Offset_X,
                   Portrait_Height - Layer.Offset_Y - Sprite.Height,
                   Positive
-                    (Genetics.Express (Individual.DNA, Layer.Gene.all)));
+                    (Genetics.Express
+                         (Individual.DNA,
+                          Concorde.People.Genetics.Get_Gene (Layer.Gene))));
             end;
          elsif Layer.Property > 0
            and then Layer.Sprite_Name /= null
