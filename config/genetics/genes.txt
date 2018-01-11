@@ -46,3 +46,10 @@ gene = {
    start = 25
    coding = { left left left left }
 }
+
+gene = {
+   name = empathy
+   id = 12
+   start = 29
+   coding = { average average average average }
+}

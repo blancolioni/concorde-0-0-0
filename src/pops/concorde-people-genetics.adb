@@ -1,6 +1,8 @@
 with Ada.Containers.Indefinite_Vectors;
 
 with WL.Random;
+with WL.String_Maps;
+
 with Concorde.Random;
 
 package body Concorde.People.Genetics is
@@ -13,7 +15,11 @@ package body Concorde.People.Genetics is
    package Gene_Vectors is
      new Ada.Containers.Indefinite_Vectors (Positive, Gene_Type);
 
-   Genes : Gene_Vectors.Vector;
+   package Gene_Maps is
+     new WL.String_Maps (Gene_Type);
+
+   Gene_Vector : Gene_Vectors.Vector;
+   Gene_Map    : Gene_Maps.Map;
 
    ---------------------
    -- Configure_Genes --
@@ -46,6 +52,7 @@ package body Concorde.People.Genetics is
       for Config of Gene_Config loop
          declare
             Id     : constant Positive := Config.Get ("id");
+            Name   : constant String   := Config.Get ("name");
             Start  : constant Positive := Config.Get ("start");
             Coding : constant Tropos.Configuration :=
                        Config.Child ("coding");
@@ -58,10 +65,11 @@ package body Concorde.People.Genetics is
                  Configure_Expression (Start + I - 1, Coding.Child (I));
             end loop;
 
-            while Genes.Last_Index < Id loop
-               Genes.Append (Empty_Gene);
+            while Gene_Vector.Last_Index < Id loop
+               Gene_Vector.Append (Empty_Gene);
             end loop;
-            Genes.Replace_Element (Id, Gene);
+            Gene_Vector.Replace_Element (Id, Gene);
+            Gene_Map.Insert (Name, Gene);
          end;
       end loop;
    end Configure_Genes;
@@ -75,7 +83,8 @@ package body Concorde.People.Genetics is
       Gene        : Gene_Type)
       return Gene_Expression
    is
-      Acc : Natural := 0;
+      Acc   : Natural := 0;
+      Count : Natural := 0;
    begin
       for Expr of Gene.Expressed_Bases loop
          declare
@@ -85,12 +94,18 @@ package body Concorde.People.Genetics is
                   (case Expr.Operation is
                       when Highest => Base_Value'Max (X, Y),
                       when Lowest  => Base_Value'Min (X, Y),
-                      when Average =>
+                      when Average | Open_Average =>
                          Base_Value ((Natural (X) + Natural (Y)) / 2),
                       when Left    => X,
                       when Right   => Y);
          begin
             Acc := Acc + Natural (Z);
+            Count := Count + 1;
+            if Expr.Operation = Open_Average
+              and then Z < Base_Value'Last
+            then
+               exit;
+            end if;
          end;
       end loop;
 
@@ -104,11 +119,24 @@ package body Concorde.People.Genetics is
 
    function Get_Gene (Id : Positive) return Gene_Type is
    begin
-      if Genes (Id).Expressed_Base_Count = 0 then
+      if Gene_Vector (Id).Expressed_Base_Count = 0 then
          raise Constraint_Error with
            "no gene for id" & Id'Img;
       end if;
-      return Genes.Element (Id);
+      return Gene_Vector.Element (Id);
+   end Get_Gene;
+
+   --------------
+   -- Get_Gene --
+   --------------
+
+   function Get_Gene (Name : String) return Gene_Type is
+   begin
+      if not Gene_Map.Contains (Name) then
+         raise Constraint_Error with
+           "no such gene: " & Name;
+      end if;
+      return Gene_Map.Element (Name);
    end Get_Gene;
 
    -----------

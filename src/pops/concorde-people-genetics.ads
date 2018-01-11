@@ -16,6 +16,7 @@ package Concorde.People.Genetics is
    type Gene_Type (<>) is private;
 
    function Get_Gene (Id : Positive) return Gene_Type;
+   function Get_Gene (Name : String) return Gene_Type;
 
    function Express
      (From_Genome : Genome;
@@ -29,7 +30,7 @@ private
 
    type Base_Value is range 0 .. 3;
 
-   Number_Of_Bases : constant := 30;
+   Number_Of_Bases : constant := 80;
 
    type Base_Count is range 0 .. Number_Of_Bases;
    subtype Base_Index is Base_Count range 1 .. Base_Count'Last;
@@ -41,7 +42,8 @@ private
          Left, Right : Array_Of_Bases;
       end record;
 
-   type Expressed_Base_Operation is (Highest, Lowest, Average, Left, Right);
+   type Expressed_Base_Operation is
+     (Highest, Lowest, Average, Left, Right, Open_Average);
 
    type Expressed_Base is
       record
