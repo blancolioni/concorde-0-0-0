@@ -137,6 +137,8 @@ package body Concorde.People.Individuals.Create is
    is
       use Concorde.Calendar;
 
+      Now : constant Time := Clock;
+
       function Random_Years (Start_Year, End_Year : Natural) return Duration;
 
       function Random_Ancestor_Past_Duration return Duration;
@@ -166,38 +168,52 @@ package body Concorde.People.Individuals.Create is
 
          Child_Count := Child_Count + Remaining_Generations;
 
-         Ada.Text_IO.Put_Line
-           (Parent_1.Full_Name & " and " & Parent_2.Full_Name
-            & " have"
-            & (if Child_Count = 0 then " no children"
-              elsif Child_Count = 1 then " one child"
-              else Child_Count'Img & " children"));
-
          declare
             Children : array (1 .. Child_Count) of Individual_Type;
          begin
             for I in 1 .. Child_Count loop
+
+               if Start > Now then
+                  Child_Count := I - 1;
+                  exit;
+               end if;
+
                declare
                   Child : constant Individual_Type :=
                             Create_Child (Parent_1, Parent_2, Location, Start);
                begin
-                  Ada.Text_IO.Put_Line
-                    (Child.Full_Name & " born " & Image (Start));
-                  Start := Start + Random_Years (1, 2);
                   Children (I) := Child;
+                  Start := Start + Random_Years (1, 2);
                end;
             end loop;
 
+            Ada.Text_IO.Put_Line
+              (Parent_1.Full_Name
+               & " (age" & Natural'Image (Parent_1.Age) & ")"
+               & " and " & Parent_2.Full_Name
+               & " (age" & Natural'Image (Parent_2.Age) & ")"
+               & " have"
+               & (if Child_Count = 0 then " no children"
+                 elsif Child_Count = 1 then " one child"
+                 else Child_Count'Img & " children"));
+
+            for Child of Children (1 .. Child_Count) loop
+               Ada.Text_IO.Put_Line
+                 ("   " & Child.Full_Name & " born " & Image (Start));
+            end loop;
+
             if Remaining_Generations > 0 then
-               for Child of Children loop
-                  declare
-                     Spouse : constant Individual_Type :=
-                                Create_Family_Member
-                                  (Faction, Location, Child.Birth);
-                  begin
-                     Create_Generation (Child, Spouse,
-                                        Remaining_Generations - 1);
-                  end;
+               for Child of Children (1 .. Child_Count) loop
+                  if Child.Age > 20 then
+                     declare
+                        Spouse : constant Individual_Type :=
+                                   Create_Family_Member
+                                     (Faction, Location, Child.Birth);
+                     begin
+                        Create_Generation (Child, Spouse,
+                                           Remaining_Generations - 1);
+                     end;
+                  end if;
                end loop;
             end if;
          end;
@@ -209,8 +225,8 @@ package body Concorde.People.Individuals.Create is
       -----------------------------------
 
       function Random_Ancestor_Past_Duration return Duration is
-         Min_Years : constant Natural := 40;
-         Max_Years : constant Natural := 60;
+         Min_Years : constant Natural := 60;
+         Max_Years : constant Natural := 80;
       begin
          return Random_Years (Min_Years, Max_Years);
       end Random_Ancestor_Past_Duration;
