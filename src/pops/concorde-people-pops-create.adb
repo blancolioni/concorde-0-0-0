@@ -41,7 +41,8 @@ package body Concorde.People.Pops.Create is
          if Pop.Group.Unemployment then
             Pop.Add_Quantity (Group.Work_Commodity, Pop.Size_Quantity,
                               WL.Money.Total
-                                (Group.Work_Commodity.Base_Price,
+                                (WL.Money.Adjust_Price
+                                   (Group.Work_Commodity.Base_Price, 0.01),
                                  Pop.Size_Quantity));
          end if;
       end Create;
