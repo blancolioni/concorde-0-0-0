@@ -19,6 +19,7 @@ package body Concorde.Commodities.Needs is
             Price     => Price));
       Need.Total_Cost := Need.Total_Cost + Total (Price, Quantity);
       Need.Scale := To_Float (Need.Budget) / To_Float (Need.Total_Cost);
+      Need.Scale := Float'Min (Need.Scale, 1.0);
    end Add_Need;
 
    ----------------
@@ -53,6 +54,7 @@ package body Concorde.Commodities.Needs is
       Need.Budget := Budget;
       if Need.Total_Cost > Zero then
          Need.Scale := To_Float (Need.Budget) / To_Float (Need.Total_Cost);
+         Need.Scale := Float'Min (Need.Scale, 1.0);
       end if;
    end Set_Budget;
 

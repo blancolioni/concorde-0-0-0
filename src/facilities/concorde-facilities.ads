@@ -220,6 +220,12 @@ package Concorde.Facilities is
      with Pre => Concorde.Commodities."="
        (Resource.Class, Concorde.Commodities.Resource);
 
+   type Production_Interface is limited interface;
+
+   procedure Execute_Production
+     (Production : in out Production_Interface)
+   is abstract;
+
 private
 
    type Array_Of_Flags is array (Facility_Flag) of Boolean;

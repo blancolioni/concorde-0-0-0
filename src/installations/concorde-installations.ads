@@ -24,6 +24,7 @@ package Concorde.Installations is
 
    type Root_Installation_Type is
      new Concorde.Agents.Root_Agent_Type
+     and Concorde.Facilities.Production_Interface
    with private;
 
    function Is_Colony_Hub
@@ -70,11 +71,16 @@ package Concorde.Installations is
    procedure Pay_Workers
      (Installation : in out Root_Installation_Type'Class);
 
-   procedure Execute_Production
-     (Installation : in out Root_Installation_Type'Class);
+   overriding procedure Execute_Production
+     (Installation : in out Root_Installation_Type);
 
    procedure Add_Trade_Offers
      (Item   : not null access constant Root_Installation_Type);
+
+   procedure Set_Artisan_Production
+     (Installation : in out Root_Installation_Type'Class;
+      Facility     : Concorde.Facilities.Facility_Type)
+     with Pre => Facility.Is_Artisan;
 
    type Installation_Type is access constant Root_Installation_Type'Class;
 
@@ -112,6 +118,7 @@ private
 
    type Root_Installation_Type is
      new Concorde.Agents.Root_Agent_Type
+     and Concorde.Facilities.Production_Interface
      and Concorde.Locations.Located_Interface with
       record
          Facility          : Concorde.Facilities.Facility_Type;
@@ -139,7 +146,10 @@ private
      (Item : Root_Installation_Type)
       return String
    is (Concorde.Agents.Root_Agent_Type (Item).Identifier
-       & "--" & Item.Facility.Identifier);
+       & "--"
+       & (if Concorde.Facilities."=" (Item.Facility, null)
+          then "unassigned"
+          else Item.Facility.Identifier));
 
    overriding function Object_Database
      (Item : Root_Installation_Type)

@@ -7,6 +7,8 @@ with Concorde.Calendar;
 with Concorde.Facilities;
 with Concorde.Trades;
 
+limited with Concorde.Installations;
+
 with Concorde.People.Groups;
 with WL.Quantities;
 
@@ -81,7 +83,8 @@ private
          Group               : Concorde.People.Groups.Pop_Group;
          Employer            : Concorde.Agents.Agent_Type;
          Consumption         : Pop_Consumption;
-         Production_Facility : Concorde.Facilities.Facility_Type;
+         Installation        : access constant
+           Concorde.Installations.Root_Installation_Type'Class;
          Production_Started  : Concorde.Calendar.Time;
       end record;
 
@@ -123,16 +126,6 @@ private
      (Pop : Root_Pop_Type'Class)
       return WL.Quantities.Quantity_Type
    is (WL.Quantities.To_Quantity (Float (Pop.Size)));
-
-   function Has_Production
-     (Pop : not null access constant Root_Pop_Type'Class)
-      return Boolean
-   is (Concorde.Facilities."/=" (Pop.Production_Facility, null));
-
-   function Production
-     (Pop : not null access constant Root_Pop_Type'Class)
-      return Concorde.Facilities.Facility_Type
-   is (Pop.Production_Facility);
 
    function Current_Production_Duration
      (Pop : not null access constant Root_Pop_Type'Class)

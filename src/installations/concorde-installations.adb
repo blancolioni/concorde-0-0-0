@@ -363,8 +363,8 @@ package body Concorde.Installations is
    -- Execute_Production --
    ------------------------
 
-   procedure Execute_Production
-     (Installation : in out Root_Installation_Type'Class)
+   overriding procedure Execute_Production
+     (Installation : in out Root_Installation_Type)
    is
       use WL.Quantities;
       use Concorde.Commodities;
@@ -517,7 +517,7 @@ package body Concorde.Installations is
       Installation.Efficiency :=
         (Concorde.Facilities.Input      => 1.0,
          Concorde.Facilities.Throughput => 0.0,
-         Concorde.Facilities.Output     => 1.0);
+         Concorde.Facilities.Output     => 0.0);
 
       if Facility.Has_Output
         and then Facility.Output.Is_Set (Virtual)
@@ -551,6 +551,10 @@ package body Concorde.Installations is
          end;
       end loop;
 
+      if Installation.Facility.Is_Artisan then
+         Installation.Efficiency (Concorde.Facilities.Throughput) := 1.0;
+      end if;
+
       declare
          Throughput     : Non_Negative_Real renames
                             Installation.Efficiency
@@ -579,48 +583,50 @@ package body Concorde.Installations is
          end;
       end loop;
 
-      declare
-         Total_Population : WL.Quantities.Quantity_Type :=
-                              WL.Quantities.Zero;
-         Owner_Population : WL.Quantities.Quantity_Type :=
-                              WL.Quantities.Zero;
+      if not Installation.Facility.Is_Artisan then
+         declare
+            Total_Population : WL.Quantities.Quantity_Type :=
+                                 WL.Quantities.Zero;
+            Owner_Population : WL.Quantities.Quantity_Type :=
+                                 WL.Quantities.Zero;
 
-         Efficiency       : Non_Negative_Real renames
-                              Installation.Efficiency
-                                (Facility.Owner_Effect);
+            Efficiency       : Non_Negative_Real renames
+                                 Installation.Efficiency
+                                   (Facility.Owner_Effect);
 
-         procedure Add_Population
-           (Pop : Concorde.People.Pops.Pop_Type);
+            procedure Add_Population
+              (Pop : Concorde.People.Pops.Pop_Type);
 
-         --------------------
-         -- Add_Population --
-         --------------------
+            --------------------
+            -- Add_Population --
+            --------------------
 
-         procedure Add_Population
-           (Pop : Concorde.People.Pops.Pop_Type)
-         is
-            use type Concorde.People.Groups.Pop_Group;
+            procedure Add_Population
+              (Pop : Concorde.People.Pops.Pop_Type)
+            is
+               use type Concorde.People.Groups.Pop_Group;
+            begin
+               Total_Population := Total_Population + Pop.Size_Quantity;
+               if Pop.Group = Facility.Owner_Pop then
+                  Owner_Population := Owner_Population + Pop.Size_Quantity;
+               end if;
+            end Add_Population;
+
          begin
-            Total_Population := Total_Population + Pop.Size_Quantity;
-            if Pop.Group = Facility.Owner_Pop then
-               Owner_Population := Owner_Population + Pop.Size_Quantity;
-            end if;
-         end Add_Population;
 
-      begin
+            World.Scan_Pops (Add_Population'Access);
 
-         World.Scan_Pops (Add_Population'Access);
+            Installation.Log_Production
+              ("owner/total: " & Show (Owner_Population)
+               & "/" & Show (Total_Population));
 
-         Installation.Log_Production
-           ("owner/total: " & Show (Owner_Population)
-            & "/" & Show (Total_Population));
-
-         Efficiency :=
-           Efficiency
-             + Facility.Owner_Effect_Factor
-           * Real (To_Float (Owner_Population)
-                   / To_Float (Total_Population));
-      end;
+            Efficiency :=
+              Efficiency
+                + Facility.Owner_Effect_Factor
+              * Real (To_Float (Owner_Population)
+                      / To_Float (Total_Population));
+         end;
+      end if;
 
       Installation.Log_Production
         ("base: " & Show (Base_Production)
@@ -954,6 +960,18 @@ package body Concorde.Installations is
    begin
       Installation.Manager := null;
    end Remove_Manager;
+
+   ----------------------------
+   -- Set_Artisan_Production --
+   ----------------------------
+
+   procedure Set_Artisan_Production
+     (Installation : in out Root_Installation_Type'Class;
+      Facility     : Concorde.Facilities.Facility_Type)
+   is
+   begin
+      Installation.Facility := Facility;
+   end Set_Artisan_Production;
 
    -----------------
    -- Set_Manager --

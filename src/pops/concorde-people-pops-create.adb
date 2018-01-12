@@ -2,6 +2,8 @@ with Concorde.Objects.Queues;
 
 with Concorde.Government;
 
+with Concorde.Installations.Create;
+
 with Concorde.Managers.Pops;
 
 with Concorde.Random;
@@ -57,6 +59,17 @@ package body Concorde.People.Pops.Create is
            (Pop,
             Concorde.Calendar.Clock
             + Duration (Concorde.Random.Unit_Random * 86_400.0));
+
+         if Pop.Group.Is_Artisan then
+            Pop.Update.Installation :=
+              Concorde.Installations.Create.Create
+                (Location => Location,
+                 Market   => Market,
+                 Facility => null,
+                 Cash     => Cash,
+                 Owner    => Pop,
+                 Size     => Pop.Size_Quantity);
+         end if;
       end return;
    end New_Pop;
 

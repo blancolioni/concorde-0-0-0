@@ -2,6 +2,7 @@ with WL.Heaps;
 with WL.Money;
 
 with Concorde.Commodities.Needs;
+with Concorde.Installations;
 with Concorde.Worlds;
 
 package body Concorde.People.Pops is
@@ -30,17 +31,11 @@ package body Concorde.People.Pops is
       use Concorde.Commodities;
 
       Remaining_Budget : Money_Type := Pop.Cash;
-      Artisan_Budget   : Money_Type := Zero;
 
       procedure Add_Bid
         (Commodity : Concorde.Commodities.Commodity_Type;
          Quantity  : WL.Quantities.Quantity_Type;
          Price     : WL.Money.Price_Type);
-
-      procedure Add_Sell_Offer
-        (Commodity : Concorde.Commodities.Commodity_Type);
-
-      procedure Check_Artisan_Inputs;
 
       procedure Check_Need
         (Level : Concorde.People.Groups.Need_Level);
@@ -62,116 +57,6 @@ package body Concorde.People.Pops is
                Bid_Price    => Price);
          end if;
       end Add_Bid;
-
-      --------------------
-      -- Add_Sell_Offer --
-      --------------------
-
-      procedure Add_Sell_Offer
-        (Commodity : Concorde.Commodities.Commodity_Type)
-      is
-      begin
-         if Pop.Current_Ask_Quantity (Commodity)
-           < Pop.Get_Quantity (Commodity)
-         then
-            Pop.Create_Ask
-              (Commodity,
-               Pop.Get_Quantity (Commodity)
-               - Pop.Current_Ask_Quantity (Commodity));
-         end if;
-      end Add_Sell_Offer;
-
-      --------------------------
-      -- Check_Artisan_Inputs --
-      --------------------------
-
-      procedure Check_Artisan_Inputs is
-         Facility : constant Concorde.Facilities.Facility_Type :=
-                      Pop.Production;
-         Need     : Concorde.Commodities.Needs.Commodity_Needs;
-      begin
-
-         Concorde.Commodities.Needs.Set_Budget (Need, Artisan_Budget);
-
-         for I in 1 .. Facility.Input_Count loop
-            if Facility.Simple_Input (I) then
-               declare
-                  Commodity : constant Concorde.Commodities.Commodity_Type :=
-                                Facility.Input_Commodity (I);
-                  Required  : constant Quantity_Type :=
-                                Facility.Input_Quantity
-                                  (Pop.Size_Quantity, I);
-                  Have      : constant Quantity_Type :=
-                                Pop.Get_Quantity (Commodity)
-                                + Pop.Current_Bid_Quantity (Commodity);
-               begin
-                  if Required > Have then
-                     Concorde.Commodities.Needs.Add_Need
-                       (Need      => Need,
-                        Commodity => Commodity,
-                        Quantity  => Required - Have,
-                        Price     => Pop.Create_Bid_Price (Commodity));
-                  end if;
-               end;
-            elsif Facility.Choice_Input (I) then
-               declare
-                  Cheapest_Item  : Concorde.Commodities.Commodity_Type;
-                  Cheapest_Price : Price_Type := Zero;
-                  Cheapest_Cost  : Money_Type := Zero;
-                  Cheapest_Reqd  : Quantity_Type := Zero;
-               begin
-                  for J in 1 .. Facility.Input_Choice_Count (I) loop
-                     declare
-                        Input : constant Concorde.Commodities.Commodity_Type :=
-                                  Facility.Input_Choice_Commodity (I, J);
-                        Need  : constant Quantity_Type :=
-                                  Facility.Input_Choice_Quantity
-                                    (Pop.Size_Quantity, I, J);
-                        Have  : constant Quantity_Type :=
-                                  Pop.Get_Quantity (Input)
-                                  + Pop.Current_Bid_Quantity (Input);
-                        Reqd  : constant Quantity_Type :=
-                                  (if Need < Have then Zero
-                                   else Need - Have);
-                        Price : constant Price_Type :=
-                                  Pop.Mean_Price_Belief (Input);
-                        Cost  : constant Money_Type :=
-                                  Total (Price, Reqd);
-                     begin
-                        if J = 1 or else Cost < Cheapest_Cost
-                          or else
-                            (Cost = Cheapest_Cost
-                             and then Price > Cheapest_Price)
-                        then
-                           Cheapest_Item := Input;
-                           Cheapest_Price := Price;
-                           Cheapest_Cost := Cost;
-                           Cheapest_Reqd := Reqd;
-                           exit when Cheapest_Reqd = Zero;
-                        end if;
-                     end;
-                  end loop;
-
-                  if Cheapest_Reqd > Zero then
-                     Concorde.Commodities.Needs.Add_Need
-                       (Need      => Need,
-                        Commodity => Cheapest_Item,
-                        Quantity  => Cheapest_Reqd,
-                        Price     => Pop.Create_Bid_Price (Cheapest_Item));
-                  end if;
-               end;
-            else
-               raise Constraint_Error with
-               Pop.Short_Name
-                 & "cannot understand input rules for input"
-                 & I'Img;
-            end if;
-         end loop;
-
-         Concorde.Commodities.Needs.Scan_Needs
-           (Need, Add_Bid'Access);
-
-      end Check_Artisan_Inputs;
 
       ----------------
       -- Check_Need --
@@ -209,7 +94,7 @@ package body Concorde.People.Pops is
          Concorde.Commodities.Needs.Set_Budget
            (Need, Remaining_Budget);
          Pop.Group.Scan_Needs
-              (Level, Pop.Size_Quantity, Add_Need'Access);
+           (Level, Pop.Size_Quantity, Add_Need'Access);
          Concorde.Commodities.Needs.Scan_Needs
            (Need, Add_Bid'Access);
 
@@ -226,21 +111,10 @@ package body Concorde.People.Pops is
 
    begin
 
-      if Pop.Group.Is_Artisan then
-         Remaining_Budget := Adjust (Remaining_Budget, 0.5);
-         Artisan_Budget := Pop.Cash - Remaining_Budget;
-      end if;
-
       for Level in Concorde.People.Groups.Need_Level loop
          Check_Need (Level);
          exit when Remaining_Budget <= Zero;
       end loop;
-
-      if Pop.Group.Is_Artisan
-        and then Pop.Has_Production
-      then
-         Check_Artisan_Inputs;
-      end if;
 
       if Pop.Group.Unemployment
         and then Pop.Get_Quantity (Pop.Group.Work_Commodity) > Zero
@@ -248,13 +122,6 @@ package body Concorde.People.Pops is
          Pop.Create_Ask
            (Commodity    => Pop.Group.Work_Commodity,
             Ask_Quantity => Pop.Get_Quantity (Pop.Group.Work_Commodity));
-      end if;
-
-      if Pop.Group.Is_Artisan
-        and then Pop.Has_Production
-      then
-         Pop.Update.Execute_Production;
-         Add_Sell_Offer (Pop.Production.Output);
       end if;
 
    end Add_Trade_Offers;
@@ -522,6 +389,19 @@ package body Concorde.People.Pops is
 
    end Execute_Production;
 
+   --------------------
+   -- Has_Production --
+   --------------------
+
+   function Has_Production
+     (Pop : not null access constant Root_Pop_Type'Class)
+      return Boolean
+   is
+      use type Concorde.Facilities.Facility_Type;
+   begin
+      return Pop.Installation.Facility /= null;
+   end Has_Production;
+
    ---------------------
    -- Object_Database --
    ---------------------
@@ -535,6 +415,18 @@ package body Concorde.People.Pops is
       return Db.Get_Database;
    end Object_Database;
 
+   ----------------
+   -- Production --
+   ----------------
+
+   function Production
+     (Pop : not null access constant Root_Pop_Type'Class)
+      return Concorde.Facilities.Facility_Type
+   is
+   begin
+      return Pop.Installation.Facility;
+   end Production;
+
    --------------------
    -- Set_Production --
    --------------------
@@ -544,7 +436,7 @@ package body Concorde.People.Pops is
       Production : Concorde.Facilities.Facility_Type)
    is
    begin
-      Pop.Production_Facility := Production;
+      Pop.Installation.Update.Set_Artisan_Production (Production);
       Pop.Production_Started := Concorde.Calendar.Clock;
    end Set_Production;
 

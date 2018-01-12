@@ -38,22 +38,27 @@ package body Concorde.Installations.Create is
         (Installation : in out Root_Installation_Type'Class)
       is
          use WL.Quantities;
+         use type Concorde.Facilities.Facility_Type;
          use all type Concorde.Facilities.Facility_Class;
          Storage : Quantity_Type := Zero;
       begin
-         for I in 1 .. Facility.Input_Count loop
-            for J in 1 .. Facility.Input_Choice_Count (I) loop
-               Storage := Storage +
-                 Scale
-                   (Facility.Input_Choice_Quantity (Size, I, J),
-                    10.0);
+         if Facility = null then
+            Storage := Scale (Size, 100.0);
+         else
+            for I in 1 .. Facility.Input_Count loop
+               for J in 1 .. Facility.Input_Choice_Count (I) loop
+                  Storage := Storage +
+                    Scale
+                      (Facility.Input_Choice_Quantity (Size, I, J),
+                       10.0);
+               end loop;
             end loop;
-         end loop;
 
-         if Facility.Class = Port then
-            Storage := Scale (Size, 1000.0);
-         elsif Facility.Input_Count = 0 then
-            Storage := Scale (Size, 10.0);
+            if Facility.Class = Port then
+               Storage := Scale (Size, 1000.0);
+            elsif Facility.Input_Count = 0 then
+               Storage := Scale (Size, 10.0);
+            end if;
          end if;
 
          Installation.New_Agent

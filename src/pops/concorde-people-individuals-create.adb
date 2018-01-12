@@ -15,6 +15,8 @@ with Concorde.Worlds;
 with Concorde.People.Individuals.Portraits;
 with Concorde.People.Individuals.Report;
 
+with Concorde.Options;
+
 package body Concorde.People.Individuals.Create is
 
    procedure Random_Features
@@ -63,7 +65,7 @@ package body Concorde.People.Individuals.Create is
       return Individual : constant Individual_Type :=
         Db.Create (Create'Access)
       do
-         if True then
+         if Concorde.Options.Write_Character_Portraits then
             Concorde.People.Individuals.Portraits.Save_Portrait
               (Individual,
                "portraits/"
@@ -117,7 +119,7 @@ package body Concorde.People.Individuals.Create is
       return Individual : constant Individual_Type :=
         Db.Create (Create'Access)
       do
-         if True then
+         if Concorde.Options.Write_Character_Portraits then
             Concorde.People.Individuals.Portraits.Save_Portrait
               (Individual,
                "portraits/"
