@@ -48,8 +48,50 @@ gene = {
 }
 
 gene = {
-   name = empathy
+   name = avarice
    id = 12
    start = 29
-   coding = { average average average average }
+   coding = { open_average open_average open_average open_average }
+}
+
+gene = {
+   name = charisma
+   id = 13
+   start = 33
+   coding = { open_average open_average open_average open_average }
+}
+
+gene = {
+   name = empathy
+   id = 14
+   start = 37
+   coding = { open_average open_average open_average open_average }
+}
+
+gene = {
+   name = energy
+   id = 15
+   start = 41
+   coding = { open_average open_average open_average open_average }
+}
+
+gene = {
+   name = health
+   id = 16
+   start = 45
+   coding = { open_average open_average open_average open_average }
+}
+
+gene = {
+   name = honesty
+   id = 17
+   start = 49
+   coding = { open_average open_average open_average open_average }
+}
+
+gene = {
+   name = intelligence
+   id = 18
+   start = 53
+   coding = { open_average open_average open_average open_average }
 }

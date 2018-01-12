@@ -101,10 +101,12 @@ package body Concorde.People.Genetics is
          begin
             Acc := Acc + Natural (Z);
             Count := Count + 1;
-            if Expr.Operation = Open_Average
-              and then Z < Base_Value'Last
-            then
-               exit;
+            if Expr.Operation = Open_Average then
+               if Z < Base_Value'Last then
+                  exit;
+               else
+                  null;
+               end if;
             end if;
          end;
       end loop;

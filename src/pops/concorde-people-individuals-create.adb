@@ -13,6 +13,7 @@ with Concorde.Markets;
 with Concorde.Worlds;
 
 with Concorde.People.Individuals.Portraits;
+with Concorde.People.Individuals.Report;
 
 package body Concorde.People.Individuals.Create is
 
@@ -41,11 +42,11 @@ package body Concorde.People.Individuals.Create is
                      then Concorde.Locations.Current_World (Location).Market
                      else null);
       begin
-         Random_Features (Item);
          Item.Last_Name :=
            Ada.Strings.Unbounded.To_Unbounded_String
              (Parent_1.Faction.Name);
          Item.DNA := Genetics.Merge (Parent_1.DNA, Parent_2.DNA, 0.01);
+         Random_Features (Item);
          Item.Faction := Parent_1.Faction;
          Item.Citizenship := Parent_1.Faction;
          Item.Loyalty := 1.0;
@@ -55,6 +56,7 @@ package body Concorde.People.Individuals.Create is
            (Location, Concorde.Government.Get_Government (Location),
             Market, WL.Money.Zero,
             WL.Quantities.To_Quantity (1000.0));
+
       end Create;
 
    begin
@@ -95,11 +97,11 @@ package body Concorde.People.Individuals.Create is
                      then Concorde.Locations.Current_World (Location).Market
                      else null);
       begin
-         Random_Features (Item);
          Item.Last_Name :=
            Ada.Strings.Unbounded.To_Unbounded_String
              (Faction.Name);
          Item.DNA := Genetics.Random_Genome;
+         Random_Features (Item);
          Item.Faction := Faction;
          Item.Citizenship := Faction;
          Item.Loyalty := 1.0;
@@ -189,17 +191,20 @@ package body Concorde.People.Individuals.Create is
 
             Ada.Text_IO.Put_Line
               (Parent_1.Full_Name
-               & " (age" & Natural'Image (Parent_1.Age) & ")"
+               & " (age" & Natural'Image (Parent_1.Age)
+               & " empathy" & Parent_1.Scores (Empathy)'Img
+               & ")"
                & " and " & Parent_2.Full_Name
-               & " (age" & Natural'Image (Parent_2.Age) & ")"
+               & " (age" & Natural'Image (Parent_2.Age)
+               & " empathy" & Parent_2.Scores (Empathy)'Img
+               & ")"
                & " have"
                & (if Child_Count = 0 then " no children"
                  elsif Child_Count = 1 then " one child"
                  else Child_Count'Img & " children"));
 
             for Child of Children (1 .. Child_Count) loop
-               Ada.Text_IO.Put_Line
-                 ("   " & Child.Full_Name & " born " & Image (Start));
+               Report.Report (Child);
             end loop;
 
             if Remaining_Generations > 0 then
@@ -261,6 +266,8 @@ package body Concorde.People.Individuals.Create is
             Create_Family_Member
               (Faction, Location, Y_DOB);
    begin
+      Report.Report (X);
+      Report.Report (Y);
       Create_Generation (X, Y, 2);
    end Create_Family_Tree;
 
@@ -285,11 +292,11 @@ package body Concorde.People.Individuals.Create is
                      then Concorde.Locations.Current_World (Location).Market
                      else null);
       begin
-         Random_Features (Item);
          Item.Last_Name :=
            Ada.Strings.Unbounded.To_Unbounded_String
              (Concorde.Names.Random_Last_Name);
          Item.DNA := Genetics.Random_Genome;
+         Random_Features (Item);
          Item.Faction := Loyalty;
          Item.Citizenship := Loyalty;
          Item.Loyalty := Concorde.Random.Unit_Random;
@@ -312,13 +319,17 @@ package body Concorde.People.Individuals.Create is
      (Individual : in out Root_Individual_Type'Class)
    is
    begin
-      for Score of Individual.Scores loop
-         Score := Score_Range (WL.Random.Random_Number (1, 3));
-         for I in 1 .. 3 loop
-            exit when WL.Random.Random_Number (1, 10) < 10;
-            Score := Score + Score_Range (WL.Random.Random_Number (1, 3)) - 1;
-         end loop;
+      for Ability in Individual.Scores'Range loop
+         declare
+            Gene : constant Genetics.Gene_Type :=
+                     Genetics.Get_Gene (Ability_Type'Image (Ability));
+         begin
+            Individual.Scores (Ability) :=
+              Score_Range
+                (Genetics.Express (Individual.DNA, Gene));
+         end;
       end loop;
+
       Individual.Gender :=
         (if WL.Random.Random_Number (1, 2) = 1 then Female else Male);
       Individual.Set_Name
