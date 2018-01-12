@@ -38,5 +38,6 @@ package Concorde.Options is
    function Log_Ship_Movement return Boolean;
    function Log_Trade_Offers return Boolean;
    function Political_Map_Mode return Boolean;
+   function Write_Character_Portraits return Boolean;
 
 end Concorde.Options;

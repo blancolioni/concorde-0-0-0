@@ -232,4 +232,10 @@ package body Concorde.Options is
                ("political-map-mode", ' ');
    end Political_Map_Mode;
 
+   function Write_Character_Portraits return Boolean is
+   begin
+      return WL.Command_Line.Find_Option
+               ("write-character-portraits", ' ');
+   end Write_Character_Portraits;
+
 end Concorde.Options;

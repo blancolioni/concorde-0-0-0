@@ -51,4 +51,6 @@ package Concorde.Options is
    
    Political_Map_Mode      : Boolean;
    
+   Write_Character_Portraits : Boolean;
+   
 end Concorde.Options;
