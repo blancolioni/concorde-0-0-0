@@ -76,7 +76,7 @@ private
          Citizenship : Concorde.Factions.Faction_Type;
          Group       : Concorde.People.Groups.Pop_Group;
          Loyalty     : Unit_Real;
-         Scores      : Ability_Score_Array;
+         Abilities      : Ability_Score_Array;
       end record;
 
    overriding function Object_Database
@@ -117,7 +117,7 @@ private
      (Individual : Root_Individual_Type'Class;
       Ability    : Ability_Type)
       return Score_Range
-   is (Individual.Scores (Ability));
+   is (Individual.Abilities (Ability));
 
    function Last_Name (Individual : Root_Individual_Type'Class)
                        return String

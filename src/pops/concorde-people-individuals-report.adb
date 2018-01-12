@@ -25,10 +25,10 @@ package body Concorde.People.Individuals.Report is
       Put_Line (Individual.Full_Name & " born "
                 & Concorde.Calendar.Image (Individual.Birth)
                 & " (age" & Natural'Image (Individual.Age) & ")");
-      for Ability in Individual.Scores'Range loop
+      for Ability in Individual.Abilities'Range loop
          Put (Ability_Type'Image (Ability) & ":");
          Set_Col (16);
-         Put (Individual.Scores (Ability)'Img);
+         Put (Individual.Abilities (Ability)'Img);
          New_Line;
       end loop;
       New_Line;
