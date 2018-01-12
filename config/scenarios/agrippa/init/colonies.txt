@@ -1,0 +1,123 @@
+imperial_capital = {
+  pops = {
+     farmer = 1000000
+     artisan = 10000
+     artisan = 10000
+     artisan = 10000
+     artisan = 10000
+     artisan = 10000
+     artisan = 10000
+     artisan = 10000
+     artisan = 10000
+     artisan = 10000
+     artisan = 10000
+     labourer = 100000
+     aristocrat = 10000
+     capitalists = 10000
+     clerks = 5000
+     clerks = 5000
+     clerks = 5000
+     clerks = 5000
+     craftsmen = 20000
+  }
+   
+   basic_living_wage = { cattle wool fish fruit grain  }
+  artisan = { artisan_lumber artisan_fabric artisan_glass artisan_furniture artisan_paper artisan_regular_clothes artisan_liquor artisan_winery }
+  rgo = { grain_farm = 3 cattle_ranch orchard fishing_wharf dye_plantation cotton_plantation sheep_ranch timber_lodge }
+  building = { lumber_mill = 1
+       regular_clothes_factory = 3
+       luxury_clothes_factory = 1
+       furniture_factory = 1
+       paper_mill = 1
+       canned_food_factory = 1
+       fabric_factory = 3
+         }  
+  regiments = {
+     infantry
+  }
+  infrastructure = 40%
+  
+  regions = {
+     count = 20
+     rgo = 1
+     pop = 10000
+     infrastructure = 35%
+     }
+}
+
+system_count = 100
+average_connections = 4
+
+initial_colony = {
+  pops = {
+     farmers = 500000
+     artisans = 1000
+     artisans = 1000
+     artisans = 1000
+     artisans = 1000
+     artisans = 1000
+     artisans = 1000
+     artisans = 1000
+     artisans = 1000
+     clerks = 1000
+     clergy = 1000
+     soldiers = 5000
+     craftsmen = 5000
+     bureaucrats = 1000
+     aristocrats = 1000
+     capitalists = 1000
+  }
+  
+  artisan = { artisan_lumber artisan_fabric artisan_glass artisan_furniture artisan_paper artisan_regular_clothes artisan_liquor artisan_winery }
+  rgo = { grain_farm = 3 cattle_ranch orchard fishing_wharf dye_plantation cotton_plantation sheep_ranch }
+  building = {  }
+  
+  regiments = {
+     infantry
+  }
+  infrastructure = 20%
+  
+  regions = {
+     count = 5
+     rgo = 1
+     pop = 10000
+     infrastructure = 5%
+     }
+}
+
+initial-ships = {
+   trade-fleet = {
+      small-trader = 2
+   }
+   home-fleet = {
+     small-defender
+     }
+}
+
+initial-units = {
+   mine = 2
+   colonist = 2
+}
+
+initial-armies = {
+}
+
+houses = {
+   house = {
+      name = Komnenos
+      color = { red = 193 green = 0 blue = 237 }
+      }
+   house = {
+      name = Argan
+      color = { red = 45 green = 0 blue = 68 }
+      }
+   house = {
+      name = Musitello
+      color = { red = 212 green = 211 blue = 148 }
+      }
+   house = {
+      name = Atreides
+      color = { red = 115 green = 160 blue = 16 }
+      }
+      
+}
