@@ -457,6 +457,11 @@ package body Concorde.Worlds.Create is
          return 0.0;
       end if;
 
+      if Surface_Temperature > 400.0 then
+         --  no clouds at this temperature
+         return 0.0;
+      end if;
+
       declare
          use Concorde.Elementary_Functions;
          use Concorde.Solar_System;
