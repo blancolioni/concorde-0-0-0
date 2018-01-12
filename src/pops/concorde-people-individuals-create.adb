@@ -325,7 +325,7 @@ package body Concorde.People.Individuals.Create is
                      Genetics.Get_Gene (Ability_Type'Image (Ability));
          begin
             Individual.Abilities (Ability) :=
-              Score_Range
+              Ability_Score_Range
                 (Genetics.Express (Individual.DNA, Gene));
          end;
       end loop;

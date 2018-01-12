@@ -16,11 +16,12 @@ with Concorde.People.Groups;
 package Concorde.People.Individuals is
 
    type Ability_Type is
-     (Avarice, Charisma, Empathy, Energy, Health, Honesty, Intelligence);
+     (Avarice, Charisma, Empathy, Energy,
+      Health, Honesty, Intelligence, Strength);
 
    type Gender_Type is (Female, Male, None);
 
-   type Score_Range is range 1 .. 30;
+   type Ability_Score_Range is range 1 .. 30;
 
    type Root_Individual_Type is
      new Concorde.Agents.Root_Agent_Type
@@ -28,10 +29,10 @@ package Concorde.People.Individuals is
      and Concorde.Objects.User_Named_Object_Interface
    with private;
 
-   function Score
+   function Ability_Score
      (Individual : Root_Individual_Type'Class;
       Ability    : Ability_Type)
-      return Score_Range;
+      return Ability_Score_Range;
 
    function Last_Name (Individual : Root_Individual_Type'Class)
                        return String;
@@ -58,7 +59,7 @@ package Concorde.People.Individuals is
 
 private
 
-   type Ability_Score_Array is array (Ability_Type) of Score_Range;
+   type Ability_Score_Array is array (Ability_Type) of Ability_Score_Range;
 
    type Root_Individual_Type is
      new Concorde.Agents.Root_Agent_Type
@@ -113,10 +114,10 @@ private
       return access Concorde.Agents.Root_Agent_Type'Class
    is (Individual.Update.Item);
 
-   function Score
+   function Ability_Score
      (Individual : Root_Individual_Type'Class;
       Ability    : Ability_Type)
-      return Score_Range
+      return Ability_Score_Range
    is (Individual.Abilities (Ability));
 
    function Last_Name (Individual : Root_Individual_Type'Class)

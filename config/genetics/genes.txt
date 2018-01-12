@@ -95,3 +95,10 @@ gene = {
    start = 53
    coding = { open_average open_average open_average open_average }
 }
+
+gene = {
+   name = strength
+   id = 19
+   start = 57
+   coding = { open_average open_average open_average open_average }
+}
