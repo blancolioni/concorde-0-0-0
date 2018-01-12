@@ -4,7 +4,8 @@ body {
 }
 
 .top-bar {
-    background-color: rgba(135,206,250,200);
+    background-image: linear-gradient(to top, #5B86E5, #36D1DC);
+    /* background-color: rgba(135,206,250,200); */
     height: 60px;
     width: 100%;
     border-radius: 6px;
