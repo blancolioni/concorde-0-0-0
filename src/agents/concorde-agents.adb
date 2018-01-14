@@ -47,10 +47,17 @@ package body Concorde.Agents is
      (Agent    : in out Root_Agent_Type;
       Contract : Concorde.Contracts.Contract_Type)
    is
+      use type WL.Money.Money_Type;
    begin
+      pragma Assert (Contract.Total_Cost
+                     <= Root_Agent_Type'Class (Agent).Limit_Cash);
+
       Agent.Offered_Contracts.Append (Contract);
       Agent.Contracted_Quantities.Add_Quantity
         (Contract.Commodity, Contract.Quantity, Contract.Total_Cost);
+      Agent.Remove_Cash (Contract.Total_Cost);
+      Agent.Reserved_Cash := Agent.Reserved_Cash + Contract.Total_Cost;
+
       Agent.Log_Trade
         ("new contract: " & Contract.Show);
    end Add_Contract;
@@ -75,6 +82,16 @@ package body Concorde.Agents is
          Agent.Accepted_Contracts.Delete (Accepted_Position);
       end if;
       if Current_Contract_Lists.Has_Element (Offered_Position) then
+         declare
+            use WL.Money;
+            Value : constant WL.Money.Money_Type :=
+                      Current_Contract_Lists.Element (Offered_Position)
+                      .Total_Cost;
+         begin
+            Agent.Add_Cash (Value);
+            Agent.Reserved_Cash := Agent.Reserved_Cash - Value;
+         end;
+
          Agent.Offered_Contracts.Delete (Offered_Position);
       end if;
 
@@ -1658,19 +1675,22 @@ package body Concorde.Agents is
      (Agent    : not null access constant Root_Agent_Type;
       Contract : Concorde.Contracts.Contract_Type)
    is
+      use type WL.Money.Money_Type;
       Ref : constant access Root_Agent_Type'Class :=
               Agent_Type (Agent).Variable_Reference;
    begin
       case Contract.Class is
          when Concorde.Contracts.Buy_Goods =>
             if Agent.Offered_Contract (Contract) then
+               pragma Assert (Contract.Total_Cost <= Agent.Reserved_Cash);
                Agent.Log_Trade
                  ("cash " & WL.Money.Show (Agent.Cash)
                   & "; limit cash: " & WL.Money.Show (Agent.Limit_Cash)
                   & "; paying for " & Contract.Show);
                Ref.Add_Quantity
                  (Contract.Commodity, Contract.Quantity, Contract.Total_Cost);
-               Ref.Remove_Cash (Contract.Total_Cost);
+               Ref.Reserved_Cash :=
+                 Ref.Reserved_Cash - Contract.Total_Cost;
             else
                Agent.Log_Trade
                  (Contract.Commodity.Name

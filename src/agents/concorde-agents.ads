@@ -479,6 +479,7 @@ private
          Offered_Contracts     : Current_Contract_Lists.List;
          Accepted_Contracts    : Current_Contract_Lists.List;
          Contracted_Quantities : Concorde.Commodities.Root_Stock_Type;
+         Reserved_Cash         : WL.Money.Money_Type := WL.Money.Zero;
       end record;
 
    overriding function Contracted_Quantity
