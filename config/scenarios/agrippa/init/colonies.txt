@@ -23,7 +23,7 @@ imperial_capital = {
    
    basic_living_wage = { cattle wool fish fruit grain  }
   artisan = { artisan_lumber artisan_fabric artisan_glass artisan_furniture artisan_paper artisan_regular_clothes artisan_liquor artisan_winery }
-  rgo = { grain_farm = 3 cattle_ranch orchard fishing_wharf dye_plantation cotton_plantation sheep_ranch timber_lodge }
+  rgo = { grain_farm = 20 cattle_ranch orchard fishing_wharf dye_plantation cotton_plantation = 10 sheep_ranch timber_lodge }
   building = { lumber_mill = 1
        regular_clothes_factory = 3
        luxury_clothes_factory = 1
