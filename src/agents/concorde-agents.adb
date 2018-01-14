@@ -10,6 +10,8 @@ package body Concorde.Agents is
    Log_Offers : Boolean := False;
 --   Log_Price_Updates : constant Boolean := True;
 
+   Use_Minimum_Prices : constant Boolean := False;
+
    Next_Ref   : Agent_Reference := 0;
 
    function Price_Position_In_Range
@@ -683,12 +685,17 @@ package body Concorde.Agents is
                         Agent.Minimum_Ask_Price (Commodity);
 
       Sell_Price : constant Price_Type :=
-                          (if Agent.Offer_Strategy (Commodity)
-                           = Average_Price
-                           then Max (Mean, Minimum_Price)
-                           else Create_Ask_Price
-                             (Max (Minimum_Price, Belief.Low),
-                              Max (Minimum_Price, Belief.High)));
+                     (if not Use_Minimum_Prices
+                      then (if Agent.Offer_Strategy (Commodity)
+                        = Average_Price
+                        then Mean
+                        else Create_Ask_Price (Belief.Low, Belief.High))
+                      else (if Agent.Offer_Strategy (Commodity)
+                        = Average_Price
+                        then Max (Mean, Minimum_Price)
+                        else Create_Ask_Price
+                          (Max (Minimum_Price, Belief.Low),
+                           Max (Minimum_Price, Belief.High))));
       Sell_Quantity : constant Quantity_Type := Ask_Quantity;
 
       procedure Update_Agent
@@ -798,7 +805,9 @@ package body Concorde.Agents is
                         Agent.Get_Price_Belief (Market, Commodity,
                                                 Concorde.Trades.Ask);
       Minimum_Price : constant Price_Type :=
-                        Agent.Minimum_Ask_Price (Commodity);
+                        (if Use_Minimum_Prices
+                         then Agent.Minimum_Ask_Price (Commodity)
+                         else Belief.Low);
       Favourability   : constant Unit_Real :=
                           (if Belief.Low = Belief.High
                            then 1.0
