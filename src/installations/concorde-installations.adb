@@ -863,19 +863,28 @@ package body Concorde.Installations is
 
       while Remaining > Zero loop
          declare
-            Contract : constant Concorde.Contracts.Contract_Type :=
-                         Concorde.Contracts.New_Buy_Contract
-                           (Location  => Port.Current_Location,
-                            Buyer     => Port,
-                            Commodity => Commodity,
-                            Quantity  =>
-                              Min (Remaining, Individual_Contract_Size),
-                            Price     => Price,
-                            Expires   => Expires);
+            use WL.Money;
+            Quantity : constant Quantity_Type :=
+                         Min (Remaining, Individual_Contract_Size);
+            Value    : constant Money_Type :=
+                         Total (Price, Quantity);
          begin
-            Port.Update.Add_Contract (Contract);
-            Remaining := Remaining - Contract.Quantity;
-            Port.Log ("new contract: " & Contract.Show);
+            exit when Value > Port.Limit_Cash;
+
+            declare
+               Contract : constant Concorde.Contracts.Contract_Type :=
+                            Concorde.Contracts.New_Buy_Contract
+                              (Location  => Port.Current_Location,
+                               Buyer     => Port,
+                               Commodity => Commodity,
+                               Quantity  => Quantity,
+                               Price     => Price,
+                               Expires   => Expires);
+            begin
+               Port.Update.Add_Contract (Contract);
+               Remaining := Remaining - Contract.Quantity;
+               Port.Log ("new contract: " & Contract.Show);
+            end;
          end;
       end loop;
    end New_Port_Contracts;
