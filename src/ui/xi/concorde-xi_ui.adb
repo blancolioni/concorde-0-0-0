@@ -313,7 +313,7 @@ package body Concorde.Xi_UI is
         (Duration (Update_Multiplier) * Time_Delta);
 
       Model.Cash_Label.Set_Label
-        (WL.Money.Image (Model.Faction.Cash));
+        (WL.Money.Show (Model.Faction.Cash));
 
       if Model.Active then
          if Model.Frame_Count = 0 then
