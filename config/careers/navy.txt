@@ -1,0 +1,23 @@
+qualification = { health = 5 }
+ranks = {
+   0 = {
+      name = ensign
+      skills = { navigation comms sensors engineering }
+   }
+   1 = {
+      name = lieutenant
+      skills = { leadership }
+      }
+   2 = {
+      name = commander
+      skills = { command_ship }
+   }
+   3 = {
+      name = captain
+      skills = { tactics }
+   }
+   4 = {
+      name = admiral
+      skills = { diplomacy }
+   }
+}

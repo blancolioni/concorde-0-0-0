@@ -12,6 +12,7 @@ with Concorde.Calendar;
 
 with Concorde.People.Genetics;
 with Concorde.People.Groups;
+with Concorde.People.Skills;
 
 package Concorde.People.Individuals is
 
@@ -19,15 +20,30 @@ package Concorde.People.Individuals is
      (Avarice, Charisma, Empathy, Energy,
       Health, Honesty, Intelligence, Strength);
 
-   type Gender_Type is (Female, Male, None);
-
    type Ability_Score_Range is range 1 .. 30;
+
+--     type Skill_Type is
+--       (Administration, Advocate, Broker, Command_Ship,
+--        Communications, Computers, Diplomacy, Engineering,
+--        Influence, Leadership, Navigation, Sensors,
+--        Tactics, Trade);
+--
+--     type Skill_Score_Range is range 0 .. 10;
+
+   type Gender_Type is (Female, Male, None);
 
    type Root_Individual_Type is
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Factions.Citizen_Interface
      and Concorde.Objects.User_Named_Object_Interface
+     and Concorde.People.Skills.Has_Skills_Interface
    with private;
+
+   overriding function Level
+     (Individual : Root_Individual_Type;
+      Skill      : not null access constant
+        Concorde.People.Skills.Root_Skill_Type'Class)
+      return Concorde.People.Skills.Skill_Level;
 
    function Ability_Score
      (Individual : Root_Individual_Type'Class;
@@ -64,7 +80,8 @@ private
    type Root_Individual_Type is
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Factions.Citizen_Interface
-     and Concorde.Objects.User_Named_Object_Interface with
+     and Concorde.Objects.User_Named_Object_Interface
+     and Concorde.People.Skills.Has_Skills_Interface with
       record
          First_Name  : Ada.Strings.Unbounded.Unbounded_String;
          Last_Name   : Ada.Strings.Unbounded.Unbounded_String;
@@ -77,7 +94,8 @@ private
          Citizenship : Concorde.Factions.Faction_Type;
          Group       : Concorde.People.Groups.Pop_Group;
          Loyalty     : Unit_Real;
-         Abilities      : Ability_Score_Array;
+         Abilities   : Ability_Score_Array;
+         Skills      : Concorde.People.Skills.Skill_Set;
       end record;
 
    overriding function Object_Database
@@ -113,6 +131,13 @@ private
      (Individual : not null access constant Root_Individual_Type)
       return access Concorde.Agents.Root_Agent_Type'Class
    is (Individual.Update.Item);
+
+   overriding function Level
+     (Individual : Root_Individual_Type;
+      Skill      : not null access constant
+        Concorde.People.Skills.Root_Skill_Type'Class)
+      return Concorde.People.Skills.Skill_Level
+   is (Individual.Skills.Level (Skill));
 
    function Ability_Score
      (Individual : Root_Individual_Type'Class;

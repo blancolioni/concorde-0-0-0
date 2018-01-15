@@ -1,0 +1,19 @@
+qualification = { education = 5 }
+ranks = {
+   1 = {
+      name = team_leader
+      skills = { leadership }
+      }
+   2 = {
+      name = manager
+      skills = { administration }
+   }
+   3 = {
+      name = senior_manager
+      skills = { broker }
+   }
+   4 = {
+      name = ceo
+      skills = { influence }
+   }
+}
