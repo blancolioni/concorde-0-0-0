@@ -22,6 +22,129 @@ package body Concorde.People.Individuals.Create is
    procedure Random_Features
      (Individual : in out Root_Individual_Type'Class);
 
+   procedure Create_Career
+     (Individual : in out Root_Individual_Type'Class);
+
+   function Choose_Career
+     (Individual : Root_Individual_Type'Class)
+      return Concorde.People.Careers.Career_Type;
+
+   -------------------
+   -- Choose_Career --
+   -------------------
+
+   function Choose_Career
+     (Individual : Root_Individual_Type'Class)
+      return Concorde.People.Careers.Career_Type
+   is
+      use Concorde.People.Careers;
+      Best : Career_Type := null;
+
+      procedure Check_Career (Career : Career_Type);
+
+      ------------------
+      -- Check_Career --
+      ------------------
+
+      procedure Check_Career (Career : Career_Type) is
+      begin
+         if not Individual.Has_Career (Career)
+           and then Individual.Qualified (Career)
+         then
+            if Best = null or else Best.Prestige < Career.Prestige then
+               Best := Career;
+            end if;
+         end if;
+      end Check_Career;
+
+   begin
+
+      Concorde.People.Careers.Scan_Careers (Check_Career'Access);
+      return Best;
+   end Choose_Career;
+
+   -------------------
+   -- Create_Career --
+   -------------------
+
+   procedure Create_Career
+     (Individual : in out Root_Individual_Type'Class)
+   is
+      use Concorde.Calendar;
+      use Concorde.People.Careers;
+      Date : Time := Individual.Birth + Days (18 * 360);
+      Current_Career : Career_Type := null;
+      Current_Rank   : Rank_Index := 1;
+      Current_Start  : Time;
+      Rounds_At_Rank : Natural := 0;
+   begin
+      while Date < Clock loop
+         if Individual.Education < 5 then
+            Individual.Education := Individual.Education + 1;
+            Date := Date + Days (360);
+         else
+            if Current_Career = null then
+               Current_Career := Choose_Career (Individual);
+
+               if Current_Career = null then
+                  exit;
+               end if;
+
+               Current_Rank := 1;
+               Rounds_At_Rank := 0;
+               Current_Start := Date;
+
+               Ada.Text_IO.Put_Line
+                 (Image (Date)
+                  & ": " & Individual.Full_Name & ": new career: "
+                  & Current_Career.Name
+                  & " rank " & Current_Career.Rank_Name (Current_Rank));
+            else
+               declare
+                  Chance : constant Unit_Real :=
+                             Current_Career.Promotion_Chance
+                               (Current_Rank, Individual);
+               begin
+                  if Concorde.Random.Unit_Random < Chance then
+                     Current_Rank := Current_Rank + 1;
+                     Ada.Text_IO.Put_Line
+                       (Image (Date)
+                        & ": " & Individual.Full_Name & ": promoted to "
+                        & Current_Career.Rank_Name (Current_Rank));
+                     Rounds_At_Rank := 0;
+                  else
+                     Rounds_At_Rank := Rounds_At_Rank + 1;
+                     if Rounds_At_Rank > 5 then
+                        Ada.Text_IO.Put_Line
+                          (Image (Date)
+                           & ": " & Individual.Full_Name & " resigns");
+                        exit;
+                     end if;
+                  end if;
+               end;
+            end if;
+
+            if Current_Career /= null then
+               for Skill of Current_Career.Rank_Skills (Current_Rank) loop
+                  Individual.Improve_Skill (Skill);
+               end loop;
+            end if;
+
+            Date := Date + Days (4 * 360);
+         end if;
+      end loop;
+
+      if Current_Career /= null then
+         Individual.Career.Append
+           (Career_Record'
+              (Career => Current_Career,
+               Start  => Current_Start,
+               Finish => Date,
+               Rank   => Current_Rank));
+      end if;
+
+   end Create_Career;
+
    ------------------
    -- Create_Child --
    ------------------
@@ -54,10 +177,13 @@ package body Concorde.People.Individuals.Create is
          Item.Loyalty := 1.0;
          Item.Birth := Date_Of_Birth;
          Item.Alive := True;
+
          Item.New_Agent
            (Location, Concorde.Government.Get_Government (Location),
             Market, WL.Money.Zero,
             WL.Quantities.To_Quantity (1000.0));
+
+         Create_Career (Item);
 
       end Create;
 
@@ -113,6 +239,9 @@ package body Concorde.People.Individuals.Create is
            (Location, Concorde.Government.Get_Government (Location),
             Market, WL.Money.To_Money (1_000.0),
             WL.Quantities.To_Quantity (1000.0));
+
+         Create_Career (Item);
+
       end Create;
 
    begin
@@ -305,6 +434,9 @@ package body Concorde.People.Individuals.Create is
            (Location, Concorde.Government.Get_Government (Location),
             Market, WL.Money.To_Money (100.0),
             WL.Quantities.To_Quantity (1000.0));
+
+         Create_Career (Item);
+
       end Create;
 
    begin
