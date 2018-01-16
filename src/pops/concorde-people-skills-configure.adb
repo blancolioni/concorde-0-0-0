@@ -1,60 +1,46 @@
-with Tropos.Reader;
-
-with Concorde.Paths;
-
-with Concorde.Commodities.Configure;
+with Ada.Text_IO;
 
 package body Concorde.People.Skills.Configure is
 
-   procedure Create_Pop_Skill
+   procedure Create_Skill
      (Config : Tropos.Configuration);
 
-   --------------------------
-   -- Configure_Pop_Skills --
-   --------------------------
+   ----------------------
+   -- Configure_Skills --
+   ----------------------
 
-   procedure Configure_Pop_Skills is
-      Config : constant Tropos.Configuration :=
-                 Tropos.Reader.Read_Config
-                   (Concorde.Paths.Config_File
-                      ("pops/pop_skills.txt"));
+   procedure Configure_Skills
+     (Config : Tropos.Configuration)
+   is
    begin
       for Skill_Config of Config loop
-         Create_Pop_Skill (Skill_Config);
+         Create_Skill (Skill_Config);
       end loop;
-   end Configure_Pop_Skills;
+   end Configure_Skills;
 
-   ----------------------
-   -- Create_Pop_Skill --
-   ----------------------
+   ------------------
+   -- Create_Skill --
+   ------------------
 
-   procedure Create_Pop_Skill
+   procedure Create_Skill
      (Config : Tropos.Configuration)
    is
       Name  : constant String := Config.Config_Name;
 
-      procedure Create (Skill : in out Root_Pop_Skill'Class);
+      procedure Create (Skill : in out Root_Skill_Type'Class);
 
       ------------
       -- Create --
       ------------
 
-      procedure Create (Skill : in out Root_Pop_Skill'Class) is
-         Base_Pay : constant Float :=
-                      Config.Get ("base_pay");
+      procedure Create (Skill : in out Root_Skill_Type'Class) is
       begin
          Skill.Set_Local_Tag (Name);
-         Skill.Base_Pay := WL.Money.To_Price (Base_Pay);
-         Skill.Commodity :=
-           Concorde.Commodities.Configure.Create_From_Skill
-             (Name, Skill.Base_Pay);
-         Skill.Wealth_Group :=
-           Concorde.People.Groups.Get
-             (Config.Get ("wealth_group", "poor"));
+         Ada.Text_IO.Put_Line ("new skill: " & Name);
       end Create;
 
    begin
       Db.Create (Create'Access);
-   end Create_Pop_Skill;
+   end Create_Skill;
 
 end Concorde.People.Skills.Configure;

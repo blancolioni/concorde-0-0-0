@@ -1,5 +1,8 @@
+with Tropos;
+
 package Concorde.People.Skills.Configure is
 
-   procedure Configure_Pop_Skills;
+   procedure Configure_Skills
+     (Config : Tropos.Configuration);
 
 end Concorde.People.Skills.Configure;

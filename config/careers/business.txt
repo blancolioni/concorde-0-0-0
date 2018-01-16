@@ -1,4 +1,5 @@
 qualification = { education = 5 }
+prestige = 3
 ranks = {
    1 = {
       name = team_leader

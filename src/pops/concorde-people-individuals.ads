@@ -1,3 +1,4 @@
+private with Ada.Containers.Doubly_Linked_Lists;
 private with Ada.Strings.Unbounded;
 
 private with Memor;
@@ -10,25 +11,13 @@ with Concorde.Trades;
 
 with Concorde.Calendar;
 
+with Concorde.People.Abilities;
+with Concorde.People.Careers;
 with Concorde.People.Genetics;
 with Concorde.People.Groups;
 with Concorde.People.Skills;
 
 package Concorde.People.Individuals is
-
-   type Ability_Type is
-     (Avarice, Charisma, Empathy, Energy,
-      Health, Honesty, Intelligence, Strength);
-
-   type Ability_Score_Range is range 1 .. 30;
-
---     type Skill_Type is
---       (Administration, Advocate, Broker, Command_Ship,
---        Communications, Computers, Diplomacy, Engineering,
---        Influence, Leadership, Navigation, Sensors,
---        Tactics, Trade);
---
---     type Skill_Score_Range is range 0 .. 10;
 
    type Gender_Type is (Female, Male, None);
 
@@ -45,10 +34,16 @@ package Concorde.People.Individuals is
         Concorde.People.Skills.Root_Skill_Type'Class)
       return Concorde.People.Skills.Skill_Level;
 
+   overriding procedure Scan
+     (Individual : Root_Individual_Type;
+      Process    : not null access
+        procedure (Skill : Concorde.People.Skills.Skill_Type;
+                   Level : Concorde.People.Skills.Skill_Level));
+
    function Ability_Score
      (Individual : Root_Individual_Type'Class;
-      Ability    : Ability_Type)
-      return Ability_Score_Range;
+      Ability    : Concorde.People.Abilities.Ability_Type)
+      return Concorde.People.Abilities.Ability_Score_Range;
 
    function Last_Name (Individual : Root_Individual_Type'Class)
                        return String;
@@ -75,7 +70,20 @@ package Concorde.People.Individuals is
 
 private
 
-   type Ability_Score_Array is array (Ability_Type) of Ability_Score_Range;
+   type Career_Record is
+      record
+         Career : Concorde.People.Careers.Career_Type;
+         Start  : Concorde.Calendar.Time;
+         Finish : Concorde.Calendar.Time;
+         Rank   : Concorde.People.Careers.Rank_Index;
+      end record;
+
+   package List_Of_Career_Records is
+     new Ada.Containers.Doubly_Linked_Lists (Career_Record);
+
+   type Ability_Score_Array is
+     array (Concorde.People.Abilities.Ability_Type)
+     of Concorde.People.Abilities.Ability_Score_Range;
 
    type Root_Individual_Type is
      new Concorde.Agents.Root_Agent_Type
@@ -90,11 +98,13 @@ private
          Birth       : Concorde.Calendar.Time;
          Death       : Concorde.Calendar.Time;
          Alive       : Boolean;
+         Education   : Natural := 0;
          Faction     : Concorde.Factions.Faction_Type;
          Citizenship : Concorde.Factions.Faction_Type;
          Group       : Concorde.People.Groups.Pop_Group;
          Loyalty     : Unit_Real;
          Abilities   : Ability_Score_Array;
+         Career      : List_Of_Career_Records.List;
          Skills      : Concorde.People.Skills.Skill_Set;
       end record;
 
@@ -141,8 +151,8 @@ private
 
    function Ability_Score
      (Individual : Root_Individual_Type'Class;
-      Ability    : Ability_Type)
-      return Ability_Score_Range
+      Ability    : Concorde.People.Abilities.Ability_Type)
+      return Concorde.People.Abilities.Ability_Score_Range
    is (Individual.Abilities (Ability));
 
    function Last_Name (Individual : Root_Individual_Type'Class)

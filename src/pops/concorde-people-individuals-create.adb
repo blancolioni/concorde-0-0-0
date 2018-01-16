@@ -194,11 +194,9 @@ package body Concorde.People.Individuals.Create is
             Ada.Text_IO.Put_Line
               (Parent_1.Full_Name
                & " (age" & Natural'Image (Parent_1.Age)
-               & " empathy" & Parent_1.Abilities (Empathy)'Img
                & ")"
                & " and " & Parent_2.Full_Name
                & " (age" & Natural'Image (Parent_2.Age)
-               & " empathy" & Parent_2.Abilities (Empathy)'Img
                & ")"
                & " have"
                & (if Child_Count = 0 then " no children"
@@ -324,10 +322,12 @@ package body Concorde.People.Individuals.Create is
       for Ability in Individual.Abilities'Range loop
          declare
             Gene : constant Genetics.Gene_Type :=
-                     Genetics.Get_Gene (Ability_Type'Image (Ability));
+                     Genetics.Get_Gene
+                       (Concorde.People.Abilities.Ability_Type'Image
+                          (Ability));
          begin
             Individual.Abilities (Ability) :=
-              Ability_Score_Range
+              Concorde.People.Abilities.Ability_Score_Range
                 (Genetics.Express (Individual.DNA, Gene));
          end;
       end loop;

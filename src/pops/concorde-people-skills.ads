@@ -30,12 +30,25 @@ package Concorde.People.Skills is
       return Skill_Level
       is abstract;
 
+   procedure Scan
+     (Set : Has_Skills_Interface;
+      Process : not null access
+        procedure (Skill : Skill_Type;
+                   Level : Skill_Level))
+   is abstract;
+
    type Skill_Set is new Has_Skills_Interface with private;
 
    overriding function Level
      (Set   : Skill_Set;
       Skill : not null access constant Root_Skill_Type'Class)
       return Skill_Level;
+
+   overriding procedure Scan
+     (Set     : Skill_Set;
+      Process : not null access
+        procedure (Skill : Skill_Type;
+                   Level : Skill_Level));
 
 private
 

@@ -1,0 +1,8 @@
+qualification = { }
+prestige = 0
+ranks = {
+   1 = {
+      name = wanderer
+      skills = { unarmed_combat }
+      }
+}

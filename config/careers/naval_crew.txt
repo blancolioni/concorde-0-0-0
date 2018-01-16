@@ -1,0 +1,24 @@
+qualification = { health = 3 }
+prestige = 2
+ranks = {
+   0 = {
+      name = trainee
+      skills = {  }
+   }
+   1 = {
+      name = seaman
+      skills = { }
+      }
+   2 = {
+      name = able_seaman
+      skills = {  }
+   }
+   3 = {
+      name = petty_officer
+      skills = { }
+   }
+   4 = {
+      name = chief_petty_officer
+      skills = { }
+   }
+}

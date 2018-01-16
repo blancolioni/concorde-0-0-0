@@ -33,6 +33,20 @@ package body Concorde.People.Individuals is
         (Individual.Last_Name);
    end Full_Name;
 
+   ----------
+   -- Scan --
+   ----------
+
+   overriding procedure Scan
+     (Individual : Root_Individual_Type;
+      Process    : not null access
+        procedure (Skill : Concorde.People.Skills.Skill_Type;
+                   Level : Concorde.People.Skills.Skill_Level))
+   is
+   begin
+      Individual.Skills.Scan (Process);
+   end Scan;
+
    --------------
    -- Set_Name --
    --------------

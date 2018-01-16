@@ -11,7 +11,10 @@ with Concorde.Ships.Designs;
 
 with Concorde.Commodities.Configure;
 with Concorde.Facilities.Configure;
+with Concorde.People.Careers.Configure;
 with Concorde.People.Groups.Configure;
+with Concorde.People.Skills.Configure;
+
 with Concorde.People.Individuals.Portraits;
 with Concorde.People.Genetics;
 
@@ -138,6 +141,16 @@ package body Concorde.Configure is
 
       Concorde.Commodities.Configure.Configure_Commodities;
       Concorde.People.Groups.Configure.Configure_Pop_Groups;
+
+      Concorde.People.Skills.Configure.Configure_Skills
+        (Tropos.Reader.Read_Config
+           (Path      => Directory_Path ("skills"),
+            Extension => "txt"));
+
+      Concorde.People.Careers.Configure.Configure_Careers
+        (Tropos.Reader.Read_Config
+           (Path      => Directory_Path ("careers"),
+            Extension => "txt"));
 
       Concorde.Components.Configure.Configure_Components;
       Concorde.Facilities.Configure.Configure_Facilities;
