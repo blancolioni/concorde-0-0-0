@@ -53,13 +53,15 @@ package body Concorde.People.Careers.Configure is
                   elsif Concorde.People.Skills.Exists (Name) then
                      Career.Qualifications.Append
                        ((Skill_Check,
-                        Concorde.People.Skills.Get (Name), Value));
+                        Concorde.People.Skills.Get (Name),
+                        Concorde.People.Skills.Skill_Level (Value)));
                   else
                      begin
                         Career.Qualifications.Append
                           ((Ability_Check,
                            Concorde.People.Abilities.Ability_Type'Value (Name),
-                           Value));
+                           Concorde.People.Abilities.Ability_Score_Range
+                             (Value)));
                      exception
                         when Constraint_Error =>
                            raise Constraint_Error with

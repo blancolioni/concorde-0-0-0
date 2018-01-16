@@ -19,4 +19,21 @@ package body Concorde.People.Skills is
       end loop;
    end Scan;
 
+   ---------------
+   -- Set_Level --
+   ---------------
+
+   procedure Set_Level
+     (Set   : in out Skill_Set'Class;
+      Skill : not null access constant Root_Skill_Type'Class;
+      Level : Skill_Level)
+   is
+   begin
+      if not Set.Contains (Skill.Identifier) then
+         Set.Insert (Skill.Identifier, Level);
+      else
+         Set.Replace (Skill.Identifier, Level);
+      end if;
+   end Set_Level;
+
 end Concorde.People.Skills;

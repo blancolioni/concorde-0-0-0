@@ -50,6 +50,11 @@ package Concorde.People.Skills is
         procedure (Skill : Skill_Type;
                    Level : Skill_Level));
 
+   procedure Set_Level
+     (Set   : in out Skill_Set'Class;
+      Skill : not null access constant Root_Skill_Type'Class;
+      Level : Skill_Level);
+
 private
 
    type Root_Skill_Type is

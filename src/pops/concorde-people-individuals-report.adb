@@ -31,7 +31,6 @@ package body Concorde.People.Individuals.Report is
          Put (Individual.Abilities (Ability)'Img);
          New_Line;
       end loop;
-      New_Line;
 
       declare
 
@@ -68,6 +67,7 @@ package body Concorde.People.Individuals.Report is
          end if;
       end;
 
+      New_Line;
       Set_Output (Standard_Output);
       Close (File);
    end Report;

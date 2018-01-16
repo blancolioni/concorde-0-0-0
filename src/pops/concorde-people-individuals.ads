@@ -26,7 +26,17 @@ package Concorde.People.Individuals is
      and Concorde.Factions.Citizen_Interface
      and Concorde.Objects.User_Named_Object_Interface
      and Concorde.People.Skills.Has_Skills_Interface
+     and Concorde.People.Careers.Career_Interface
    with private;
+
+   overriding function Education
+     (Individual : Root_Individual_Type)
+      return Natural;
+
+   overriding function Ability_Score
+     (Individual : Root_Individual_Type;
+      Ability    : Concorde.People.Abilities.Ability_Type)
+      return Concorde.People.Abilities.Ability_Score_Range;
 
    overriding function Level
      (Individual : Root_Individual_Type;
@@ -40,10 +50,9 @@ package Concorde.People.Individuals is
         procedure (Skill : Concorde.People.Skills.Skill_Type;
                    Level : Concorde.People.Skills.Skill_Level));
 
-   function Ability_Score
-     (Individual : Root_Individual_Type'Class;
-      Ability    : Concorde.People.Abilities.Ability_Type)
-      return Concorde.People.Abilities.Ability_Score_Range;
+   procedure Improve_Skill
+     (Individual : in out Root_Individual_Type'Class;
+      Skill      : Concorde.People.Skills.Skill_Type);
 
    function Last_Name (Individual : Root_Individual_Type'Class)
                        return String;
@@ -57,6 +66,22 @@ package Concorde.People.Individuals is
    function Age
      (Individual : Root_Individual_Type'Class)
       return Natural;
+
+   function Qualified
+     (Individual : Root_Individual_Type'Class;
+      Career     : Concorde.People.Careers.Career_Type)
+      return Boolean;
+
+   function Has_Career
+     (Individual : Root_Individual_Type'Class;
+      Career     : Concorde.People.Careers.Career_Type)
+      return Boolean;
+
+   function Career_Rank
+     (Individual : Root_Individual_Type'Class;
+      Career     : Concorde.People.Careers.Career_Type)
+      return Concorde.People.Careers.Rank_Index
+     with Pre => Individual.Has_Career (Career);
 
    type Individual_Type is access constant Root_Individual_Type'Class;
 
@@ -89,7 +114,8 @@ private
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Factions.Citizen_Interface
      and Concorde.Objects.User_Named_Object_Interface
-     and Concorde.People.Skills.Has_Skills_Interface with
+     and Concorde.People.Skills.Has_Skills_Interface
+     and Concorde.People.Careers.Career_Interface with
       record
          First_Name  : Ada.Strings.Unbounded.Unbounded_String;
          Last_Name   : Ada.Strings.Unbounded.Unbounded_String;
@@ -142,6 +168,11 @@ private
       return access Concorde.Agents.Root_Agent_Type'Class
    is (Individual.Update.Item);
 
+   overriding function Education
+     (Individual : Root_Individual_Type)
+      return Natural
+   is (Individual.Education);
+
    overriding function Level
      (Individual : Root_Individual_Type;
       Skill      : not null access constant
@@ -149,8 +180,8 @@ private
       return Concorde.People.Skills.Skill_Level
    is (Individual.Skills.Level (Skill));
 
-   function Ability_Score
-     (Individual : Root_Individual_Type'Class;
+   overriding function Ability_Score
+     (Individual : Root_Individual_Type;
       Ability    : Concorde.People.Abilities.Ability_Type)
       return Concorde.People.Abilities.Ability_Score_Range
    is (Individual.Abilities (Ability));

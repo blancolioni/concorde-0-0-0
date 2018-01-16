@@ -14,8 +14,33 @@ package Concorde.People.Careers is
    type Rank_Count is range 0 .. 6;
    subtype Rank_Index is Rank_Count range 1 .. Rank_Count'Last;
 
+   type Career_Interface is limited interface
+     and Concorde.People.Skills.Has_Skills_Interface;
+
+   function Education
+     (Item : Career_Interface)
+      return Natural
+      is abstract;
+
+   function Ability_Score
+     (Item : Career_Interface;
+      Ability : Concorde.People.Abilities.Ability_Type)
+      return Concorde.People.Abilities.Ability_Score_Range
+      is abstract;
+
    type Root_Career_Type is
      new Concorde.Objects.Root_Localised_Object_Type with private;
+
+   function Qualified
+     (Career    : Root_Career_Type'Class;
+      Candidate : Career_Interface'Class)
+      return Boolean;
+
+   function Promotion_Chance
+     (Career    : Root_Career_Type'Class;
+      Rank      : Rank_Index;
+      Candidate : Career_Interface'Class)
+      return Unit_Real;
 
    type Career_Type is access constant Root_Career_Type'Class;
 
@@ -47,6 +72,10 @@ package Concorde.People.Careers is
       return Array_Of_Skills
      with Pre => Index <= Career.Number_Of_Ranks;
 
+   procedure Scan_Careers
+     (Process : not null access
+        procedure (Career : Career_Type));
+
 private
 
    type Qualification_Type is (Education, Skill_Check, Ability_Check);
@@ -58,10 +87,11 @@ private
                Education_Level     : Positive;
             when Skill_Check =>
                Skill               : Concorde.People.Skills.Skill_Type;
-               Skill_Check_Level   : Positive;
+               Skill_Check_Level   : Concorde.People.Skills.Skill_Level;
             when Ability_Check =>
                Ability             : Concorde.People.Abilities.Ability_Type;
-               Ability_Check_Level : Positive;
+               Ability_Check_Level :
+               Concorde.People.Abilities.Ability_Score_Range;
          end case;
       end record;
 

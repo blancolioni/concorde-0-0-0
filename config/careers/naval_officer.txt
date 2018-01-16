@@ -1,4 +1,4 @@
-qualification = { health = 3 education = 5 }
+qualification = { health = 3 education = 3 }
 prestige = 10
 ranks = {
    0 = {
