@@ -73,19 +73,6 @@ package body Concorde.People.Individuals is
                 Rec.Career = Career);
    end Has_Career;
 
-   -------------------
-   -- Improve_Skill --
-   -------------------
-
-   procedure Improve_Skill
-     (Individual : in out Root_Individual_Type'Class;
-      Skill      : Concorde.People.Skills.Skill_Type)
-   is
-      use type Concorde.People.Skills.Skill_Level;
-   begin
-      Individual.Skills.Set_Level (Skill, Individual.Skills.Level (Skill) + 1);
-   end Improve_Skill;
-
    ---------------
    -- Qualified --
    ---------------
@@ -107,11 +94,24 @@ package body Concorde.People.Individuals is
      (Individual : Root_Individual_Type;
       Process    : not null access
         procedure (Skill : Concorde.People.Skills.Skill_Type;
-                   Level : Concorde.People.Skills.Skill_Level))
+                   Level : Concorde.People.Skills.Skill_Level_Range))
    is
    begin
       Individual.Skills.Scan (Process);
    end Scan;
+
+   -----------------------
+   -- Set_Ability_Score --
+   -----------------------
+
+   overriding procedure Set_Ability_Score
+     (Individual : in out Root_Individual_Type;
+      Ability    : Concorde.People.Abilities.Ability_Type;
+      Score      : Concorde.People.Abilities.Ability_Score_Range)
+   is
+   begin
+      Individual.Abilities (Ability) := Score;
+   end Set_Ability_Score;
 
    --------------
    -- Set_Name --
@@ -137,6 +137,32 @@ package body Concorde.People.Individuals is
       Individual.First_Name :=
         Ada.Strings.Unbounded.To_Unbounded_String (Name);
    end Set_Name;
+
+   ---------------------------
+   -- Set_Proficiency_Level --
+   ---------------------------
+
+   overriding procedure Set_Proficiency_Level
+     (Individual  : in out Root_Individual_Type;
+      Proficiency : Concorde.People.Proficiencies.Proficiency_Type;
+      Level       : Concorde.People.Proficiencies.Proficiency_Score_Range)
+   is
+   begin
+      Individual.Proficiencies (Proficiency) := Level;
+   end Set_Proficiency_Level;
+
+   ---------------------
+   -- Set_Skill_Level --
+   ---------------------
+
+   overriding procedure Set_Skill_Level
+     (Individual : in out Root_Individual_Type;
+      Skill      : Concorde.People.Skills.Skill_Type;
+      Level      : Concorde.People.Skills.Skill_Level_Range)
+   is
+   begin
+      Individual.Skills.Set_Level (Skill, Level);
+   end Set_Skill_Level;
 
    ------------
    -- Update --

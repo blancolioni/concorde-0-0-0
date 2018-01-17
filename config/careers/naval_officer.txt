@@ -1,26 +1,48 @@
 qualification = { intelligence = 2 health = 3 education = 3 }
-advancement = { intelligence = 7 charisma energy health }
+promotion = { intelligence = 7 charisma energy health }
+advanced = { education = 8 }
+
 prestige = 10
 titles = yes
+
+progression = {
+   development = {
+      empathy energy health intelligence strength
+   }
+
+   service = {
+      leadership ship_tactics ship_pilot melee_combat administration
+   }
+   
+   advanced = {
+      remote_operations
+      navigation
+      engineering
+      computers
+      navigation
+      administration
+   }
+}
+
 ranks = {
    0 = {
       name = ensign
-      skills = { navigation communications sensors engineering }
+      progression = { melee_combat }
       }
    1 = {
       name = lieutenant
-      skills = { leadership }
+      progression = { leadership }
       }
    2 = {
       name = commander
-      skills = { ship_command }
+      progression = { ship_tactics }
    }
    3 = {
       name = captain
-      skills = { ship_tactics }
+      progression = { prestige }
    }
    4 = {
       name = admiral
-      skills = { diplomacy }
+      progression = { prestige }
    }
 }

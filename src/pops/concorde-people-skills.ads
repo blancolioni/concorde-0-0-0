@@ -20,40 +20,40 @@ package Concorde.People.Skills is
    function Get (Name : String) return Skill_Type
      with Pre => Exists (Name);
 
-   type Skill_Level is range 0 .. 10;
+   type Skill_Level_Range is range 0 .. 10;
 
    type Has_Skills_Interface is limited interface;
 
-   function Level
+   function Skill_Level
      (Set   : Has_Skills_Interface;
-      Skill : not null access constant Root_Skill_Type'Class)
-      return Skill_Level
+      Skill : Skill_Type)
+      return Skill_Level_Range
       is abstract;
 
    procedure Scan
      (Set : Has_Skills_Interface;
       Process : not null access
         procedure (Skill : Skill_Type;
-                   Level : Skill_Level))
+                   Level : Skill_Level_Range))
    is abstract;
 
    type Skill_Set is new Has_Skills_Interface with private;
 
-   overriding function Level
+   overriding function Skill_Level
      (Set   : Skill_Set;
-      Skill : not null access constant Root_Skill_Type'Class)
-      return Skill_Level;
+      Skill : Skill_Type)
+      return Skill_Level_Range;
 
    overriding procedure Scan
      (Set     : Skill_Set;
       Process : not null access
         procedure (Skill : Skill_Type;
-                   Level : Skill_Level));
+                   Level : Skill_Level_Range));
 
    procedure Set_Level
      (Set   : in out Skill_Set'Class;
       Skill : not null access constant Root_Skill_Type'Class;
-      Level : Skill_Level);
+      Level : Skill_Level_Range);
 
 private
 
@@ -76,17 +76,17 @@ private
       return Memor.Memor_Database
    is (Db.Get_Database);
 
-   package Skill_Maps is new WL.String_Maps (Skill_Level);
+   package Skill_Maps is new WL.String_Maps (Skill_Level_Range);
 
    type Skill_Set is
      new Skill_Maps.Map
      and Has_Skills_Interface
    with null record;
 
-   overriding function Level
+   overriding function Skill_Level
      (Set   : Skill_Set;
-      Skill : not null access constant Root_Skill_Type'Class)
-      return Skill_Level
+      Skill : Skill_Type)
+      return Skill_Level_Range
    is (if Set.Contains (Skill.Identifier)
        then Set.Element (Skill.Identifier)
        else 0);

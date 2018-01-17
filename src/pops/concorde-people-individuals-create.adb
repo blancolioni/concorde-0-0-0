@@ -12,6 +12,7 @@ with Concorde.Government;
 with Concorde.Markets;
 with Concorde.Worlds;
 
+with Concorde.People.Attributes;
 with Concorde.People.Individuals.Portraits;
 with Concorde.People.Individuals.Report;
 
@@ -72,6 +73,7 @@ package body Concorde.People.Individuals.Create is
    is
       use Concorde.Calendar;
       use Concorde.People.Careers;
+      use Concorde.People.Proficiencies;
       Date : Time := Individual.Birth + Days (18 * 360);
       Current_Career : Career_Type := null;
       Current_Rank   : Rank_Index := 1;
@@ -79,8 +81,15 @@ package body Concorde.People.Individuals.Create is
       Rounds_At_Rank : Natural := 0;
    begin
       while Date < Clock loop
-         if Individual.Education < 5 then
-            Individual.Education := Individual.Education + 1;
+         if Individual.Proficiency_Level (Education) < 5 then
+            declare
+               use Concorde.People.Attributes;
+               Reference : constant Attribute_Reference :=
+                             Proficiency_Reference (Education);
+            begin
+               Concorde.People.Attributes.Improve
+                 (Individual, Reference);
+            end;
             Date := Date + Days (360);
          else
             if Current_Career = null then
@@ -125,10 +134,7 @@ package body Concorde.People.Individuals.Create is
             end if;
 
             if Current_Career /= null then
-               for Skill of Current_Career.Rank_Skills (Current_Rank) loop
-                  Individual.Improve_Skill (Skill);
-               end loop;
-               Individual.Education := Individual.Education + 1;
+               Current_Career.Career_Term (Current_Rank, Individual);
             end if;
 
             Date := Date + Days (4 * 360);

@@ -1,11 +1,15 @@
+with Ada.Exceptions;
+
+with Concorde.People.Attributes.Configure;
+
 package body Concorde.People.Careers.Configure is
 
    procedure Create_Career
      (Config : Tropos.Configuration);
 
-   procedure Configure_Qualification
-     (List   : out Qualification_Lists.List;
-      Config : Tropos.Configuration);
+--     procedure Configure_
+--       (List   : out Qualification_Lists.List;
+--        Config : Tropos.Configuration);
 
    ----------------------
    -- Configure_Careers --
@@ -24,41 +28,41 @@ package body Concorde.People.Careers.Configure is
    -- Configure_Qualification --
    -----------------------------
 
-   procedure Configure_Qualification
-     (List   : out Qualification_Lists.List;
-      Config : Tropos.Configuration)
-   is
-   begin
-      for Qual_Config of Config loop
-         declare
-            Name  : constant String := Qual_Config.Config_Name;
-            Bonus : constant Boolean := Qual_Config.Child_Count = 0;
-            Value : constant Natural :=
-                      (if Bonus then 0 else Qual_Config.Value);
-         begin
-            if Name = "education" then
-               List.Append ((Education, Bonus, Value));
-            elsif Concorde.People.Skills.Exists (Name) then
-               List.Append
-                 ((Skill_Check, Bonus,
-                  Concorde.People.Skills.Get (Name),
-                  Concorde.People.Skills.Skill_Level (Value)));
-            else
-               begin
-                  List.Append
-                    ((Ability_Check, Bonus,
-                     Concorde.People.Abilities.Ability_Type'Value (Name),
-                     Concorde.People.Abilities.Ability_Score_Range
-                       (Value)));
-               exception
-                  when Constraint_Error =>
-                     raise Constraint_Error with
-                       "no such qualification type: " & Name;
-               end;
-            end if;
-         end;
-      end loop;
-   end Configure_Qualification;
+--     procedure Configure_Qualification
+--       (List   : out Qualification_Lists.List;
+--        Config : Tropos.Configuration)
+--     is
+--     begin
+--        for Qual_Config of Config loop
+--           declare
+--              Name  : constant String := Qual_Config.Config_Name;
+--              Bonus : constant Boolean := Qual_Config.Child_Count = 0;
+--              Value : constant Natural :=
+--                        (if Bonus then 0 else Qual_Config.Value);
+--           begin
+--              if Name = "education" then
+--                 List.Append ((Education, Bonus, Value));
+--              elsif Concorde.People.Skills.Exists (Name) then
+--                 List.Append
+--                   ((Skill_Check, Bonus,
+--                    Concorde.People.Skills.Get (Name),
+--                    Concorde.People.Skills.Skill_Level (Value)));
+--              else
+--                 begin
+--                    List.Append
+--                      ((Ability_Check, Bonus,
+--                       Concorde.People.Abilities.Ability_Type'Value (Name),
+--                       Concorde.People.Abilities.Ability_Score_Range
+--                         (Value)));
+--                 exception
+--                    when Constraint_Error =>
+--                       raise Constraint_Error with
+--                         "no such qualification type: " & Name;
+--                 end;
+--              end if;
+--           end;
+--        end loop;
+--     end Configure_Qualification;
 
    ------------------
    -- Create_Career --
@@ -87,13 +91,42 @@ package body Concorde.People.Careers.Configure is
          Career.Titles := Config.Get ("titles");
 
          if Config.Contains ("qualification") then
-            Configure_Qualification (Career.Qualifications,
-                                     Config.Child ("qualification"));
+            Concorde.People.Attributes.Configure.Configure_Attributes
+              (Career.Qualifications, Config.Child ("qualification"));
          end if;
 
-         if Config.Contains ("advancement") then
-            Configure_Qualification (Career.Advancement,
-                                     Config.Child ("advancement"));
+         if Config.Contains ("promotion") then
+            Concorde.People.Attributes.Configure.Configure_Attributes
+              (Career.Promotion, Config.Child ("promotion"));
+         end if;
+
+         if Config.Contains ("advanced") then
+            Concorde.People.Attributes.Configure.Configure_Attributes
+              (Career.Advanced_Check, Config.Child ("advanced"));
+         end if;
+
+         if Config.Contains ("progression") then
+            declare
+               Prog_Config : constant Tropos.Configuration :=
+                               Config.Child ("progression");
+            begin
+               if Prog_Config.Contains ("development") then
+                  Concorde.People.Attributes.Configure.Configure_Attributes
+                    (Career.Development, Prog_Config.Child ("development"));
+               end if;
+               if Prog_Config.Contains ("service") then
+                  Concorde.People.Attributes.Configure.Configure_Attributes
+                    (Career.Service, Prog_Config.Child ("service"));
+               end if;
+               if Prog_Config.Contains ("specialist") then
+                  Concorde.People.Attributes.Configure.Configure_Attributes
+                    (Career.Specialist, Prog_Config.Child ("specialist"));
+               end if;
+               if Prog_Config.Contains ("advanced") then
+                  Concorde.People.Attributes.Configure.Configure_Attributes
+                    (Career.Advanced, Prog_Config.Child ("advanced"));
+               end if;
+            end;
          end if;
 
          Career.Ranks :=
@@ -104,45 +137,27 @@ package body Concorde.People.Careers.Configure is
          begin
             for Rank_Config of Config.Child ("ranks") loop
                Index := Index + 1;
+
                declare
-                  Number_Of_Skills : constant Natural :=
-                                       (if Rank_Config.Contains ("skills")
-                                        then Rank_Config.Child ("skills")
-                                        .Child_Count
-                                        else 0);
+                  Rank : Rank_Record renames Career.Ranks (Index);
                begin
-                  Career.Ranks (Index) :=
-                    Rank_Record'
-                      (Name   =>
-                          new String'
-                         (Rank_Config.Get ("name", Rank_Config.Config_Name)),
-                       Skills =>
-                          new Array_Of_Skills (1 .. Number_Of_Skills));
-                  if Rank_Config.Contains ("skills") then
-                     declare
-                        Skill_Index : Natural := 0;
-                     begin
-                        for Skill_Config of Rank_Config.Child ("skills") loop
-                           Skill_Index := Skill_Index + 1;
-                           if Concorde.People.Skills.Exists
-                             (Skill_Config.Config_Name)
-                           then
-                              Career.Ranks (Index).Skills (Skill_Index) :=
-                                Concorde.People.Skills.Get
-                                  (Skill_Config.Config_Name);
-                           else
-                              raise Constraint_Error with
-                                "career " & Career.Identifier
-                                & ": rank " & Career.Ranks (Index).Name.all
-                                & ": no such skill: "
-                                & Skill_Config.Config_Name;
-                           end if;
-                        end loop;
-                     end;
+                  Rank.Name := new String'
+                    (Rank_Config.Get ("name", Rank_Config.Config_Name));
+                  if Rank_Config.Contains ("progression") then
+                     Concorde.People.Attributes.Configure.Configure_Attributes
+                       (Rank.Progression, Rank_Config.Child ("progression"));
                   end if;
                end;
             end loop;
          end;
+
+      exception
+         when E : others =>
+            raise Constraint_Error with
+              "error configuring career "
+              & Config.Config_Name
+              & ": " & Ada.Exceptions.Exception_Message (E);
+
       end Create;
 
    begin

@@ -38,7 +38,7 @@ package body Concorde.People.Individuals.Report is
 
          procedure Show_Skill
            (Skill : Concorde.People.Skills.Skill_Type;
-            Level : Concorde.People.Skills.Skill_Level);
+            Level : Concorde.People.Skills.Skill_Level_Range);
 
          ----------------
          -- Show_Skill --
@@ -46,7 +46,7 @@ package body Concorde.People.Individuals.Report is
 
          procedure Show_Skill
            (Skill : Concorde.People.Skills.Skill_Type;
-            Level : Concorde.People.Skills.Skill_Level)
+            Level : Concorde.People.Skills.Skill_Level_Range)
          is
          begin
             if First_Skill then
@@ -57,7 +57,7 @@ package body Concorde.People.Individuals.Report is
             First_Skill := False;
 
             Put (Skill.Name
-                 & Concorde.People.Skills.Skill_Level'Image (Level));
+                 & Concorde.People.Skills.Skill_Level_Range'Image (Level));
          end Show_Skill;
 
       begin

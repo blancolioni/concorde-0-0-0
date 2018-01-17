@@ -8,7 +8,7 @@ package body Concorde.People.Skills is
      (Set     : Skill_Set;
       Process : not null access
         procedure (Skill : Skill_Type;
-                   Level : Skill_Level))
+                   Level : Skill_Level_Range))
    is
    begin
       for Position in Set.Iterate loop
@@ -26,7 +26,7 @@ package body Concorde.People.Skills is
    procedure Set_Level
      (Set   : in out Skill_Set'Class;
       Skill : not null access constant Root_Skill_Type'Class;
-      Level : Skill_Level)
+      Level : Skill_Level_Range)
    is
    begin
       if not Set.Contains (Skill.Identifier) then
