@@ -12,43 +12,55 @@ package body Concorde.People.Careers is
       Candidate : Career_Interface'Class)
       return Unit_Real
    is
+      Score  : Natural := 0;
+      Target : Natural := 0;
+      Chance : constant array (0 .. 6) of Unit_Real :=
+                 (0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9);
    begin
       if Rank = Career.Number_Of_Ranks then
          return 0.0;
       else
-         return Chance : Unit_Real := 1.0 do
-            for Item of Career.Qualifications loop
-               declare
-                  Power : Natural := 0;
-               begin
-                  case Item.Q is
-                     when Education =>
-                        Power := Candidate.Education - Item.Education_Level;
-                     when Skill_Check =>
-                        Power :=
-                          Natural (Candidate.Level (Item.Skill))
-                            - Natural (Item.Skill_Check_Level);
-                     when Ability_Check =>
-                        Power :=
-                          Natural (Candidate.Ability_Score (Item.Ability))
-                            - Natural (Item.Ability_Check_Level);
-                  end case;
+         for Item of Career.Advancement loop
+            declare
+               Candidate_Rank : Natural := 0;
+               Required_Rank  : Natural := 0;
+            begin
+               case Item.Q is
+                  when Education =>
+                     Candidate_Rank := Candidate.Education;
+                     Required_Rank  := Item.Education_Level;
+                  when Skill_Check =>
+                     Candidate_Rank :=
+                       Natural (Candidate.Level (Item.Skill));
+                     Required_Rank :=
+                       Natural (Item.Skill_Check_Level);
+                  when Ability_Check =>
+                     Candidate_Rank :=
+                       Natural (Candidate.Ability_Score (Item.Ability));
+                     Required_Rank :=
+                       Natural (Item.Ability_Check_Level);
+               end case;
 
-                  if Power < Natural (Rank) then
-                     Chance := Chance * 0.1;
-                  elsif Power = Natural (Rank) then
-                     Chance := Chance * 0.5;
-                  elsif Power - Natural (Rank) < 5 then
-                     Chance := Chance *
-                       (0.75 + Real (Power - Natural (Rank)) / 20.0);
-                  else
-                     Chance := Chance * 1.0;
-                  end if;
-               end;
-            end loop;
-            Ada.Text_IO.Put_Line
-              ("promotion chance:"
-               & Natural'Image (Natural (Chance * 100.0)) & "%");
+               Score := Score + Candidate_Rank;
+
+               if not Item.Bonus then
+                  Target := Target + Required_Rank;
+               end if;
+            end;
+         end loop;
+
+         return Result : constant Unit_Real :=
+           (if Target > Score
+            then 0.0
+            elsif Score - Target > Chance'Last
+            then 0.95
+            else Chance (Score - Target))
+         do
+            if Result > 0.0 then
+               Ada.Text_IO.Put_Line
+                 ("promotion chance:"
+                  & Natural'Image (Natural (Result * 100.0)) & "%");
+            end if;
          end return;
       end if;
    end Promotion_Chance;

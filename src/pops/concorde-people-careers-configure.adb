@@ -3,6 +3,10 @@ package body Concorde.People.Careers.Configure is
    procedure Create_Career
      (Config : Tropos.Configuration);
 
+   procedure Configure_Qualification
+     (List   : out Qualification_Lists.List;
+      Config : Tropos.Configuration);
+
    ----------------------
    -- Configure_Careers --
    ----------------------
@@ -15,6 +19,46 @@ package body Concorde.People.Careers.Configure is
          Create_Career (Career_Config);
       end loop;
    end Configure_Careers;
+
+   -----------------------------
+   -- Configure_Qualification --
+   -----------------------------
+
+   procedure Configure_Qualification
+     (List   : out Qualification_Lists.List;
+      Config : Tropos.Configuration)
+   is
+   begin
+      for Qual_Config of Config loop
+         declare
+            Name  : constant String := Qual_Config.Config_Name;
+            Bonus : constant Boolean := Qual_Config.Child_Count = 0;
+            Value : constant Natural :=
+                      (if Bonus then 0 else Qual_Config.Value);
+         begin
+            if Name = "education" then
+               List.Append ((Education, Bonus, Value));
+            elsif Concorde.People.Skills.Exists (Name) then
+               List.Append
+                 ((Skill_Check, Bonus,
+                  Concorde.People.Skills.Get (Name),
+                  Concorde.People.Skills.Skill_Level (Value)));
+            else
+               begin
+                  List.Append
+                    ((Ability_Check, Bonus,
+                     Concorde.People.Abilities.Ability_Type'Value (Name),
+                     Concorde.People.Abilities.Ability_Score_Range
+                       (Value)));
+               exception
+                  when Constraint_Error =>
+                     raise Constraint_Error with
+                       "no such qualification type: " & Name;
+               end;
+            end if;
+         end;
+      end loop;
+   end Configure_Qualification;
 
    ------------------
    -- Create_Career --
@@ -43,35 +87,13 @@ package body Concorde.People.Careers.Configure is
          Career.Titles := Config.Get ("titles");
 
          if Config.Contains ("qualification") then
-            for Qual_Config of Config.Child ("qualification") loop
-               declare
-                  Name  : constant String := Qual_Config.Config_Name;
-                  Value : constant Natural := Qual_Config.Value;
-               begin
-                  if Name = "education" then
-                     Career.Qualifications.Append
-                       ((Education, Value));
-                  elsif Concorde.People.Skills.Exists (Name) then
-                     Career.Qualifications.Append
-                       ((Skill_Check,
-                        Concorde.People.Skills.Get (Name),
-                        Concorde.People.Skills.Skill_Level (Value)));
-                  else
-                     begin
-                        Career.Qualifications.Append
-                          ((Ability_Check,
-                           Concorde.People.Abilities.Ability_Type'Value (Name),
-                           Concorde.People.Abilities.Ability_Score_Range
-                             (Value)));
-                     exception
-                        when Constraint_Error =>
-                           raise Constraint_Error with
-                           "career: " & Career.Name
-                             & ": no such qualification type: " & Name;
-                     end;
-                  end if;
-               end;
-            end loop;
+            Configure_Qualification (Career.Qualifications,
+                                     Config.Child ("qualification"));
+         end if;
+
+         if Config.Contains ("advancement") then
+            Configure_Qualification (Career.Advancement,
+                                     Config.Child ("advancement"));
          end if;
 
          Career.Ranks :=

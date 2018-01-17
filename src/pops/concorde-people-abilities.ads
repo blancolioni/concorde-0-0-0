@@ -4,6 +4,6 @@ package Concorde.People.Abilities is
      (Avarice, Charisma, Empathy, Energy,
       Health, Honesty, Intelligence, Strength);
 
-   type Ability_Score_Range is range 1 .. 30;
+   type Ability_Score_Range is range 0 .. 30;
 
 end Concorde.People.Abilities;

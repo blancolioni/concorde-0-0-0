@@ -87,6 +87,7 @@ private
 
    type Qualification (Q : Qualification_Type) is
       record
+         Bonus : Boolean;
          case Q is
             when Education =>
                Education_Level     : Positive;
@@ -115,6 +116,7 @@ private
      new Concorde.Objects.Root_Localised_Object_Type with
       record
          Qualifications : Qualification_Lists.List;
+         Advancement    : Qualification_Lists.List;
          Titles         : Boolean;
          Prestige       : Natural;
          Ranks          : access Array_Of_Ranks;
