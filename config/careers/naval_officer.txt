@@ -1,5 +1,6 @@
 qualification = { health = 3 education = 3 }
 prestige = 10
+titles = yes
 ranks = {
    0 = {
       name = ensign

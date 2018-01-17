@@ -128,6 +128,7 @@ package body Concorde.People.Individuals.Create is
                for Skill of Current_Career.Rank_Skills (Current_Rank) loop
                   Individual.Improve_Skill (Skill);
                end loop;
+               Individual.Education := Individual.Education + 1;
             end if;
 
             Date := Date + Days (4 * 360);
@@ -141,6 +142,11 @@ package body Concorde.People.Individuals.Create is
                Start  => Current_Start,
                Finish => Date,
                Rank   => Current_Rank));
+         if Current_Career.Titles then
+            Individual.Title :=
+              Ada.Strings.Unbounded.To_Unbounded_String
+                (Current_Career.Rank_Name (Current_Rank));
+         end if;
       end if;
 
    end Create_Career;

@@ -1,5 +1,6 @@
 private with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 private with Memor.Database;
+private with Concorde.Localisation;
 
 with Memor;
 
@@ -41,6 +42,10 @@ package Concorde.People.Careers is
       Rank      : Rank_Index;
       Candidate : Career_Interface'Class)
       return Unit_Real;
+
+   function Titles
+     (Career : Root_Career_Type'Class)
+      return Boolean;
 
    type Career_Type is access constant Root_Career_Type'Class;
 
@@ -110,6 +115,7 @@ private
      new Concorde.Objects.Root_Localised_Object_Type with
       record
          Qualifications : Qualification_Lists.List;
+         Titles         : Boolean;
          Prestige       : Natural;
          Ranks          : access Array_Of_Ranks;
       end record;
@@ -117,6 +123,11 @@ private
    overriding function Object_Database
      (Item : Root_Career_Type)
       return Memor.Memor_Database;
+
+   function Titles
+     (Career : Root_Career_Type'Class)
+      return Boolean
+   is (Career.Titles);
 
    package Db is
      new Memor.Database
@@ -147,7 +158,8 @@ private
      (Career : Root_Career_Type'Class;
       Index  : Rank_Index)
       return String
-   is (Career.Ranks (Index).Name.all);
+   is (Concorde.Localisation.Local_Name
+         (Career.Ranks (Index).Name.all));
 
    function Rank_Skills
      (Career : Root_Career_Type'Class;

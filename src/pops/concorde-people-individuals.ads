@@ -117,6 +117,7 @@ private
      and Concorde.People.Skills.Has_Skills_Interface
      and Concorde.People.Careers.Career_Interface with
       record
+         Title       : Ada.Strings.Unbounded.Unbounded_String;
          First_Name  : Ada.Strings.Unbounded.Unbounded_String;
          Last_Name   : Ada.Strings.Unbounded.Unbounded_String;
          DNA         : Concorde.People.Genetics.Genome;

@@ -44,12 +44,18 @@ package body Concorde.People.Individuals is
    function Full_Name (Individual : Root_Individual_Type'Class)
                        return String
    is
+      Title      : constant String :=
+                     Ada.Strings.Unbounded.To_String (Individual.Title);
+      First_Name : constant String :=
+                     Ada.Strings.Unbounded.To_String (Individual.First_Name);
+      Last_Name  : constant String :=
+                     Ada.Strings.Unbounded.To_String (Individual.Last_Name);
    begin
-      return Ada.Strings.Unbounded.To_String
-        (Individual.First_Name)
-        & " "
-        & Ada.Strings.Unbounded.To_String
-        (Individual.Last_Name);
+      if Title /= "" then
+         return Title & " " & First_Name & " " & Last_Name;
+      else
+         return First_Name & " " & Last_Name;
+      end if;
    end Full_Name;
 
    ----------------

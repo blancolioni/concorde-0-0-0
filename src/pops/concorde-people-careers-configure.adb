@@ -40,6 +40,7 @@ package body Concorde.People.Careers.Configure is
          Career.Set_Local_Tag (Name);
 
          Career.Prestige := Config.Get ("prestige");
+         Career.Titles := Config.Get ("titles");
 
          if Config.Contains ("qualification") then
             for Qual_Config of Config.Child ("qualification") loop
