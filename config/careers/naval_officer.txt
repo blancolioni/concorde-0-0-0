@@ -1,5 +1,5 @@
 qualification = { intelligence = 2 health = 3 education = 3 }
-promotion = { intelligence = 7 charisma energy health }
+promotion = { intelligence = 10 charisma energy health }
 advanced = { education = 8 }
 
 prestige = 10
