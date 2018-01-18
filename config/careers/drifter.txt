@@ -1,5 +1,20 @@
 qualification = { }
 prestige = 0
+development = {
+   strength
+   health
+   energy
+   intelligence
+   jack_of_all_trades
+}
+service = {
+   unarmed_combat
+}
+
+advanced_skills = {
+   
+}
+
 ranks = {
    1 = {
       name = wanderer
