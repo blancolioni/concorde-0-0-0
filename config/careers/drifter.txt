@@ -1,18 +1,24 @@
 qualification = { }
-prestige = 0
-development = {
-   strength
-   health
-   energy
-   intelligence
-   jack_of_all_trades
-}
-service = {
-   unarmed_combat
-}
+prestige = 1
 
-advanced_skills = {
+progression = {
+  development = {
+     strength
+     health
+     energy
+     intelligence
+     jack_of_all_trades
+  }
+  service = {
+     unarmed_combat
+     reconnaissance
+     streetwise
+     survival
+  }
+
+  advanced_skills = {
    
+  }
 }
 
 ranks = {

@@ -2,7 +2,7 @@ qualification = { intelligence = 2 health = 2 }
 promotion = { intelligence = 5 charisma energy health }
 advanced = { education = 7 }
 
-prestige = 1
+prestige = 2
 
 progression = {
    development = {

@@ -2,11 +2,11 @@ qualification = { intelligence = 3 education = 5 }
 promotion = { intelligence = 7 charisma energy health }
 advanced = { education = 8 }
 
-prestige = 3
+prestige = 5
 
 progression = {
    development = {
-      education intelligence avarice 
+      education intelligence avarice networking
    }
 
    service = {
