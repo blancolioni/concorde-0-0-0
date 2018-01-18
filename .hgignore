@@ -29,3 +29,5 @@ etc/*
 config/characters
 config/scenarios/agrippa/common/countries/Zulu.txt
 config/textures/tiles/eofs
+agama.log
+./*.png
