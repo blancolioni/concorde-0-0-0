@@ -20,7 +20,7 @@ package Concorde.People.Skills is
    function Get (Name : String) return Skill_Type
      with Pre => Exists (Name);
 
-   type Skill_Level_Range is range 0 .. 10;
+   type Skill_Level_Range is range 0 .. 30;
 
    type Has_Skills_Interface is limited interface;
 
