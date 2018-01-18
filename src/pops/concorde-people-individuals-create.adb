@@ -25,12 +25,19 @@ package body Concorde.People.Individuals.Create is
    procedure Random_Features
      (Individual : in out Root_Individual_Type'Class);
 
+   procedure Random_Gender
+     (Individual : in out Root_Individual_Type'Class);
+
    procedure Create_Career
      (Individual : in out Root_Individual_Type'Class);
 
    function Choose_Career
      (Individual : Root_Individual_Type'Class)
       return Concorde.People.Careers.Career_Type;
+
+   function Create_Partner
+     (For_Individual : not null access constant Root_Individual_Type'Class)
+      return Individual_Type;
 
    -------------------
    -- Choose_Career --
@@ -194,6 +201,7 @@ package body Concorde.People.Individuals.Create is
              (Parent_1.Faction.Name);
          Item.DNA := Genetics.Merge (Parent_1.DNA, Parent_2.DNA, 0.01);
          Random_Features (Item);
+         Random_Gender (Item);
          Item.Faction := Parent_1.Faction;
          Item.Citizenship := Parent_1.Faction;
          Item.Loyalty := 1.0;
@@ -252,6 +260,7 @@ package body Concorde.People.Individuals.Create is
              (Faction.Name);
          Item.DNA := Genetics.Random_Genome;
          Random_Features (Item);
+         Random_Gender (Item);
          Item.Faction := Faction;
          Item.Citizenship := Faction;
          Item.Loyalty := 1.0;
@@ -363,9 +372,9 @@ package body Concorde.People.Individuals.Create is
                   if Child.Age > 20 then
                      declare
                         Spouse : constant Individual_Type :=
-                                   Create_Family_Member
-                                     (Faction, Location, Child.Birth);
+                                   Create_Partner (Child);
                      begin
+                        Report.Report (Spouse);
                         Create_Generation (Child, Spouse,
                                            Remaining_Generations - 1);
                      end;
@@ -407,20 +416,87 @@ package body Concorde.People.Individuals.Create is
 
       X_DOB : constant Time :=
                 Clock - Random_Ancestor_Past_Duration;
-      Y_DOB : constant Time :=
-                Clock - Random_Ancestor_Past_Duration;
 
       X : constant Individual_Type :=
             Create_Family_Member
               (Faction, Location, X_DOB);
       Y : constant Individual_Type :=
-            Create_Family_Member
-              (Faction, Location, Y_DOB);
+            Create_Partner (X);
    begin
       Report.Report (X);
       Report.Report (Y);
       Create_Generation (X, Y, 2);
    end Create_Family_Tree;
+
+   --------------------
+   -- Create_Partner --
+   --------------------
+
+   function Create_Partner
+     (For_Individual : not null access constant Root_Individual_Type'Class)
+      return Individual_Type
+   is
+
+      Faction : constant Concorde.Factions.Faction_Type :=
+                  For_Individual.Faction;
+      Location   : constant Concorde.Locations.Object_Location :=
+                     For_Individual.Current_Location;
+      Date_Of_Birth : constant Concorde.Calendar.Time :=
+                        For_Individual.Birth;
+
+      procedure Create (Item : in out Root_Individual_Type'Class);
+
+      ------------
+      -- Create --
+      ------------
+
+      procedure Create (Item : in out Root_Individual_Type'Class) is
+         Market : constant Concorde.Markets.Market_Type :=
+                    (if Concorde.Locations.Is_World_Location (Location)
+                     then Concorde.Locations.Current_World (Location).Market
+                     else null);
+      begin
+         Item.Last_Name :=
+           Ada.Strings.Unbounded.To_Unbounded_String
+             (Concorde.Names.Random_Last_Name);
+         Item.DNA := Genetics.Random_Genome;
+         Random_Features (Item);
+         Item.Gender := For_Individual.Partner_Gender;
+         Item.Partner_Gender := For_Individual.Gender;
+         Item.Preference_Strength := For_Individual.Preference_Strength;
+         Item.Faction := Faction;
+         Item.Citizenship := Faction;
+         Item.Loyalty := 1.0;
+         Item.Birth := Date_Of_Birth;
+         Item.Alive := True;
+         Item.Set_Name
+           (if Item.Gender = Female
+            then Concorde.Names.Random_Female_First_Name
+            else Concorde.Names.Random_Male_First_Name);
+         Item.New_Agent
+           (Location, Concorde.Government.Get_Government (Location),
+            Market, WL.Money.To_Money (1_000.0),
+            WL.Quantities.To_Quantity (1000.0));
+
+         Create_Career (Item);
+
+      end Create;
+
+   begin
+      return Individual : constant Individual_Type :=
+        Db.Create (Create'Access)
+      do
+         if Concorde.Options.Write_Character_Portraits then
+            Concorde.People.Individuals.Portraits.Save_Portrait
+              (Individual,
+               "portraits/"
+               & Ada.Strings.Unbounded.To_String (Individual.Last_Name)
+               & "-"
+               & Ada.Strings.Unbounded.To_String (Individual.First_Name)
+               & ".png");
+         end if;
+      end return;
+   end Create_Partner;
 
    ------------------------------
    -- Create_Random_Individual --
@@ -448,6 +524,7 @@ package body Concorde.People.Individuals.Create is
              (Concorde.Names.Random_Last_Name);
          Item.DNA := Genetics.Random_Genome;
          Random_Features (Item);
+         Random_Gender (Item);
          Item.Faction := Loyalty;
          Item.Citizenship := Loyalty;
          Item.Loyalty := Concorde.Random.Unit_Random;
@@ -485,13 +562,42 @@ package body Concorde.People.Individuals.Create is
                 (Genetics.Express (Individual.DNA, Gene));
          end;
       end loop;
+   end Random_Features;
 
+   -------------------
+   -- Random_Gender --
+   -------------------
+
+   procedure Random_Gender
+     (Individual : in out Root_Individual_Type'Class)
+   is
+   begin
       Individual.Gender :=
         (if WL.Random.Random_Number (1, 2) = 1 then Female else Male);
+
+      declare
+         R : constant Positive := WL.Random.Random_Number (1, 100);
+      begin
+         if R = 1 then
+            Individual.Partner_Gender := None;
+         elsif R < 8 then
+            Individual.Partner_Gender := Individual.Gender;
+         else
+            Individual.Partner_Gender :=
+              (case Individual.Gender is
+                  when None => None,
+                  when Female => Male,
+                  when Male   => Female);
+         end if;
+
+         Individual.Preference_Strength :=
+           (1.0 - Concorde.Random.Unit_Random ** 2) / 2.0 + 0.5;
+      end;
+
       Individual.Set_Name
         (if Individual.Gender = Female
          then Concorde.Names.Random_Female_First_Name
          else Concorde.Names.Random_Male_First_Name);
-   end Random_Features;
+   end Random_Gender;
 
 end Concorde.People.Individuals.Create;

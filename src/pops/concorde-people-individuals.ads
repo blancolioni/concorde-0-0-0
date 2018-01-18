@@ -136,23 +136,25 @@ private
      and Concorde.People.Skills.Has_Skills_Interface
      and Concorde.People.Careers.Career_Interface with
       record
-         Title         : Ada.Strings.Unbounded.Unbounded_String;
-         First_Name    : Ada.Strings.Unbounded.Unbounded_String;
-         Last_Name     : Ada.Strings.Unbounded.Unbounded_String;
-         DNA           : Concorde.People.Genetics.Genome;
-         Gender        : Gender_Type;
-         Birth         : Concorde.Calendar.Time;
-         Death         : Concorde.Calendar.Time;
-         Alive         : Boolean;
-         Faction       : Concorde.Factions.Faction_Type;
-         Citizenship   : Concorde.Factions.Faction_Type;
-         Group         : Concorde.People.Groups.Pop_Group;
-         Loyalty       : Unit_Real;
-         Abilities     : Ability_Score_Array;
-         Proficiencies : Proficiency_Level_Array :=
-                           (others => 0);
-         Career        : List_Of_Career_Records.List;
-         Skills        : Concorde.People.Skills.Skill_Set;
+         Title               : Ada.Strings.Unbounded.Unbounded_String;
+         First_Name          : Ada.Strings.Unbounded.Unbounded_String;
+         Last_Name           : Ada.Strings.Unbounded.Unbounded_String;
+         DNA                 : Concorde.People.Genetics.Genome;
+         Gender              : Gender_Type;
+         Partner_Gender      : Gender_Type;
+         Preference_Strength : Unit_Real;
+         Birth               : Concorde.Calendar.Time;
+         Death               : Concorde.Calendar.Time;
+         Alive               : Boolean;
+         Faction             : Concorde.Factions.Faction_Type;
+         Citizenship         : Concorde.Factions.Faction_Type;
+         Group               : Concorde.People.Groups.Pop_Group;
+         Loyalty             : Unit_Real;
+         Abilities           : Ability_Score_Array;
+         Proficiencies       : Proficiency_Level_Array :=
+                                 (others => 0);
+         Career              : List_Of_Career_Records.List;
+         Skills              : Concorde.People.Skills.Skill_Set;
       end record;
 
    overriding function Object_Database
