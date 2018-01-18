@@ -94,8 +94,31 @@ package body Concorde.People.Individuals.Create is
       Date : Time := Individual.Birth + Days (18 * 360);
       Current_Career : Career_Type := null;
       Current_Rank   : Rank_Index := 1;
+      Current_Terms  : Natural := 0;
       Current_Start  : Time;
-      Rounds_At_Rank : Natural := 0;
+      Leave_Career   : Boolean := False;
+
+      procedure Complete_Current_Career;
+
+      -----------------------------
+      -- Complete_Current_Career --
+      -----------------------------
+
+      procedure Complete_Current_Career is
+      begin
+         Individual.Career.Append
+           (Career_Record'
+              (Career => Current_Career,
+               Start  => Current_Start,
+               Finish => Date,
+               Rank   => Current_Rank));
+         if Current_Career.Titles then
+            Individual.Title :=
+              Ada.Strings.Unbounded.To_Unbounded_String
+                (Current_Career.Rank_Name (Current_Rank));
+         end if;
+      end Complete_Current_Career;
+
    begin
       while Date < Clock loop
          if Individual.Proficiency_Level (Education) < 5 then
@@ -117,8 +140,9 @@ package body Concorde.People.Individuals.Create is
                end if;
 
                Current_Rank := 1;
-               Rounds_At_Rank := 0;
+               Current_Terms := 1;
                Current_Start := Date;
+               Leave_Career := False;
 
                Ada.Text_IO.Put_Line
                  (Image (Date)
@@ -130,23 +154,27 @@ package body Concorde.People.Individuals.Create is
                   Chance : constant Unit_Real :=
                              Current_Career.Promotion_Chance
                                (Current_Rank, Individual);
+                  Leave_Roll : constant Positive :=
+                                 WL.Random.Random_Number (1, 6)
+                                 + WL.Random.Random_Number (1, 6);
                begin
+                  Ada.Text_IO.Put_Line
+                    ("promotion chance:"
+                     & Natural'Image (Natural (Chance * 100.0))
+                     & "%");
                   if Concorde.Random.Unit_Random < Chance then
                      Current_Rank := Current_Rank + 1;
                      Ada.Text_IO.Put_Line
                        (Image (Date)
                         & ": " & Individual.Full_Name & ": promoted to "
                         & Current_Career.Rank_Name (Current_Rank));
-                     Rounds_At_Rank := 0;
-                  else
-                     Rounds_At_Rank := Rounds_At_Rank + 1;
-                     if Rounds_At_Rank > 5 then
-                        Ada.Text_IO.Put_Line
-                          (Image (Date)
-                           & ": " & Individual.Full_Name & " resigns");
-                        exit;
-                     end if;
                   end if;
+
+                  Leave_Career :=
+                    Leave_Roll < 12 and then Leave_Roll <= Current_Terms;
+
+                  Current_Terms := Current_Terms + 1;
+
                end;
             end if;
 
@@ -155,21 +183,19 @@ package body Concorde.People.Individuals.Create is
             end if;
 
             Date := Date + Days (4 * 360);
+
+            if Leave_Career then
+               Ada.Text_IO.Put_Line
+                 (Individual.Full_Name & " retires");
+               Complete_Current_Career;
+               Current_Career := null;
+            end if;
+
          end if;
       end loop;
 
       if Current_Career /= null then
-         Individual.Career.Append
-           (Career_Record'
-              (Career => Current_Career,
-               Start  => Current_Start,
-               Finish => Date,
-               Rank   => Current_Rank));
-         if Current_Career.Titles then
-            Individual.Title :=
-              Ada.Strings.Unbounded.To_Unbounded_String
-                (Current_Career.Rank_Name (Current_Rank));
-         end if;
+         Complete_Current_Career;
       end if;
 
    end Create_Career;
