@@ -12,6 +12,7 @@ package body Concorde.People.Individuals.Report is
      (Individual : not null access constant Root_Individual_Type'Class)
    is
       use Ada.Text_IO;
+      use Concorde.Calendar;
       File : File_Type;
    begin
       if First then
@@ -31,6 +32,24 @@ package body Concorde.People.Individuals.Report is
          Put (Individual.Abilities (Ability)'Img);
          New_Line;
       end loop;
+
+      if not Individual.Career.Is_Empty then
+         New_Line;
+         Put_Line ("Career             Start Date  End Date    Rank");
+         for Item of Individual.Career loop
+            Put (Item.Career.Name);
+            Set_Col (20);
+            Put (Concorde.Calendar.Image (Item.Start));
+            if Item.Finish < Concorde.Calendar.Clock then
+               Set_Col (32);
+               Put (Concorde.Calendar.Image (Item.Finish));
+            end if;
+            Set_Col (44);
+            Put (Item.Career.Rank_Name (Item.Rank));
+            New_Line;
+         end loop;
+         New_Line;
+      end if;
 
       declare
 
