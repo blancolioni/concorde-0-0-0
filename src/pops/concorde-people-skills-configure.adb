@@ -1,5 +1,3 @@
-with Ada.Text_IO;
-
 package body Concorde.People.Skills.Configure is
 
    procedure Create_Skill
@@ -36,7 +34,6 @@ package body Concorde.People.Skills.Configure is
       procedure Create (Skill : in out Root_Skill_Type'Class) is
       begin
          Skill.Set_Local_Tag (Name);
-         Ada.Text_IO.Put_Line ("new skill: " & Name);
       end Create;
 
    begin
