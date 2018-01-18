@@ -1,24 +1,45 @@
-qualification = { health = 3 }
-prestige = 2
+qualification = { intelligence = 2 health = 2 }
+promotion = { intelligence = 5 charisma energy health }
+advanced = { education = 7 }
+
+prestige = 1
+
+progression = {
+   development = {
+      empathy energy health intelligence strength
+   }
+
+   service = {
+      ship_pilot mechanic gunnery firearm_combat sensors
+   }
+   
+   advanced = {
+      remote_operations
+      navigation
+      engineering
+      computers
+      administration
+   }
+}
+
 ranks = {
    0 = {
-      name = trainee
-      skills = {  }
-   }
+      name = spacehand
+      }
    1 = {
-      name = seaman
-      skills = { }
+      name = able_spacehand
+      progression = { mechanic = 1 }
       }
    2 = {
-      name = able_seaman
-      skills = {  }
+      name = petty_officer
+      progression = { ship_tactics }
    }
    3 = {
-      name = petty_officer
-      skills = { }
+      name = chief_petty_officer
+      progression = { health }
    }
    4 = {
-      name = chief_petty_officer
-      skills = { }
+      name = master_chief
+      progression = { prestige }
    }
 }

@@ -1,20 +1,47 @@
 qualification = { intelligence = 3 education = 5 }
+promotion = { intelligence = 7 charisma energy health }
+advanced = { education = 8 }
+
 prestige = 3
+
+progression = {
+   development = {
+      education intelligence avarice 
+   }
+
+   service = {
+      administration
+      advocate
+      communications
+      diplomacy
+      investigation
+      persuasion
+   }
+   
+   advanced = {
+      administration
+      advocate
+      leadership
+      diplomacy
+      computers
+   }
+}
+
 ranks = {
    1 = {
       name = team_leader
-      skills = { leadership }
+      progression = { leadership }
       }
    2 = {
       name = manager
-      skills = { administration }
+      progression = { administration }
    }
    3 = {
       name = senior_manager
-      skills = { broker }
+      progression = { broker }
    }
    4 = {
       name = ceo
-      skills = { influence }
+      progression = { influence }
    }
 }

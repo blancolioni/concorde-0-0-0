@@ -4,7 +4,7 @@ body {
 }
 
 .top-bar {
-    background-image: linear-gradient(to top, #5B86E5, #36D1DC);
+    background-image: linear-gradient(to bottom, #5B86E5, #36D1DC);
     /* background-color: rgba(135,206,250,200); */
     height: 60px;
     width: 100%;
@@ -134,6 +134,28 @@ td:nth-child(even)
 label
 {
     cursor: pointer;
+}
+
+.planet-info
+{
+    width: 200px;
+    height: 400px;
+    border: 1px solid #afeeee;
+    background-color: #1e90ff;
+    color: white;
+}
+
+.planet-name
+{
+    border-bottom: 1px solid #afeeee;
+}
+
+.portrait
+{
+    width: 153px;
+    height: 153px;
+    border: 1px solid white;
+    background-image: url('./portraits/Musitello-Porsche.png');
 }
 
 .dialog 

@@ -18,6 +18,8 @@ with Concorde.People.Individuals.Report;
 
 with Concorde.Options;
 
+with Concorde.Weighted_Random_Choices;
+
 package body Concorde.People.Individuals.Create is
 
    procedure Random_Features
@@ -39,7 +41,11 @@ package body Concorde.People.Individuals.Create is
       return Concorde.People.Careers.Career_Type
    is
       use Concorde.People.Careers;
-      Best : Career_Type := null;
+
+      package Weighted_Career_Choices is
+        new Concorde.Weighted_Random_Choices (Career_Type);
+
+      Choices : Weighted_Career_Choices.Weighted_Choice_Set;
 
       procedure Check_Career (Career : Career_Type);
 
@@ -52,16 +58,20 @@ package body Concorde.People.Individuals.Create is
          if not Individual.Has_Career (Career)
            and then Individual.Qualified (Career)
          then
-            if Best = null or else Best.Prestige < Career.Prestige then
-               Best := Career;
-            end if;
+            Choices.Insert (Career, Career.Prestige);
          end if;
       end Check_Career;
 
    begin
 
       Concorde.People.Careers.Scan_Careers (Check_Career'Access);
-      return Best;
+
+      if not Choices.Is_Empty then
+         return Choices.Choose;
+      else
+         return null;
+      end if;
+
    end Choose_Career;
 
    -------------------

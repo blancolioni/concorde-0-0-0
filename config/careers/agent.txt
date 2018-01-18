@@ -1,0 +1,43 @@
+qualification = { intelligence = 6 }
+promotion = { intelligence = 6 charisma energy health }
+advanced = { education = 8 }
+
+prestige = 2
+
+progression = {
+   development = {
+      firearm_combat strength health melee_combat intelligence
+   }
+
+   service = {
+      investigation computers firearm_combat persuasion 
+   }
+   
+   advanced = {
+      advocate
+      communications
+      computers
+      medic
+   }
+}
+
+ranks = {
+   0 = {
+      name = rookie
+      }
+   1 = {
+      name = agent
+      }
+   2 = {
+      name = field_agent
+      progression = { investigation }
+   }
+   3 = {
+      name = special_agent
+      progression = { firearm_combat }
+   }
+   4 = {
+      name = director
+      progression = { prestige }
+   }
+}
