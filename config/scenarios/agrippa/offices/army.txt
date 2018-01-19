@@ -1,0 +1,2 @@
+responsibility = { army }
+effect = { administration leadership }

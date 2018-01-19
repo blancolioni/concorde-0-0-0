@@ -2,6 +2,7 @@ private with Ada.Containers.Doubly_Linked_Lists;
 private with Ada.Strings.Unbounded;
 
 private with WL.Money;
+private with WL.Quantities;
 
 --  private with Concorde.Protected_Lists;
 private with Memor.Database;
@@ -18,6 +19,7 @@ with Concorde.Agents;
 with Concorde.Calendar;
 with Concorde.Locations;
 with Concorde.Objects;
+with Concorde.Offices;
 with Concorde.Systems;
 with Concorde.Trades;
 
@@ -28,9 +30,6 @@ package Concorde.Factions is
 
    type Faction_Relationship_Range is
    range Minimum_Relationship .. Maximum_Relationship;
-
-   type Department_Type is
-     (Head, Treasury, Justice, Security, State, Defence, Health, Education);
 
    type Root_Faction_Type is
      new Concorde.Agents.Root_Agent_Type
@@ -62,28 +61,32 @@ package Concorde.Factions is
       Change  : Faction_Relationship_Range);
 
    function Has_Minister
-     (Faction    : Root_Faction_Type'Class;
-      Department : Department_Type)
+     (Faction : Root_Faction_Type'Class;
+      Office  : Concorde.Offices.Office_Type)
       return Boolean;
-
-   function Minister
-     (Faction    : Root_Faction_Type'Class;
-      Department : Department_Type)
-      return access constant
-     Concorde.People.Individuals.Root_Individual_Type'Class
-       with Pre => Faction.Has_Minister (Department);
-
-   procedure Set_Minister
-     (Faction    : in out Root_Faction_Type'Class;
-      Department : Department_Type;
-      Minister   : not null access constant
-        Concorde.People.Individuals.Root_Individual_Type'Class);
 
    function Leader
      (Faction : Root_Faction_Type'Class)
       return access constant
+     Concorde.People.Individuals.Root_Individual_Type'Class;
+
+   function Minister
+     (Faction : Root_Faction_Type'Class;
+      Office  : Concorde.Offices.Office_Type)
+      return access constant
      Concorde.People.Individuals.Root_Individual_Type'Class
-   is (Faction.Minister (Head));
+       with Pre => Faction.Has_Minister (Office);
+
+   procedure Set_Minister
+     (Faction  : in out Root_Faction_Type'Class;
+      Office   : Concorde.Offices.Office_Type;
+      Minister : not null access constant
+        Concorde.People.Individuals.Root_Individual_Type'Class);
+
+   function Capital_World
+     (Faction : Root_Faction_Type'Class)
+      return access constant
+     Concorde.Worlds.Root_World_Type'Class;
 
    function Current_Ships
      (Faction : Root_Faction_Type'Class)
@@ -112,6 +115,16 @@ package Concorde.Factions is
    function Default_Ship_Design
      (Faction : Root_Faction_Type'Class)
       return String;
+
+   function Portfolio_Size
+     (Faction   : Root_Faction_Type'Class;
+      Portfolio : Concorde.Offices.Responsibility_Type)
+      return Concorde.Offices.Portfolio_Size_Range;
+
+   function Current_Effectiveness
+     (Faction : Root_Faction_Type'Class;
+      Portfolio : Concorde.Offices.Responsibility_Type)
+      return Unit_Real;
 
    type Faction_Type is access constant Root_Faction_Type'Class;
 
@@ -364,32 +377,38 @@ private
 
    type Relation_Record;
 
-   type Department_Array is
-     array (Department_Type) of access constant
+   type Individual_Access is access constant
      Concorde.People.Individuals.Root_Individual_Type'Class;
+
+   package Office_Holder_Vectors is
+     new Memor.Element_Vectors
+       (Concorde.Offices.Root_Office_Type, Individual_Access, null);
 
    type Root_Faction_Type is
      new Concorde.Agents.Root_Agent_Type
      and Memor.Identifier_Record_Type
      and Concorde.Objects.User_Named_Object_Interface with
       record
-         Identifier        : Ada.Strings.Unbounded.Unbounded_String;
-         Faction_Name      : Ada.Strings.Unbounded.Unbounded_String;
-         Colour            : Lui.Colours.Colour_Type;
-         Central_Bank      : Boolean := False;
-         System_Data       : access System_Data_Array;
-         Faction_Data      : access Relation_Record;
-         Ministries        : Department_Array;
-         Current_Ships     : Natural := 0;
-         Current_Systems   : Natural := 0;
-         Built_Ships       : Natural := 0;
-         Captured_Ships    : Natural := 0;
-         Lost_Ships        : Natural := 0;
-         Destroyed_Ships   : Natural := 0;
-         Border_Change     : Boolean;
-         Capital_World     : access constant
+         Identifier         : Ada.Strings.Unbounded.Unbounded_String;
+         Faction_Name       : Ada.Strings.Unbounded.Unbounded_String;
+         Colour             : Lui.Colours.Colour_Type;
+         Central_Bank       : Boolean := False;
+         System_Data        : access System_Data_Array;
+         Faction_Data       : access Relation_Record;
+         Cabinet            : Office_Holder_Vectors.Vector;
+         Current_Population : WL.Quantities.Quantity_Type;
+         Current_Ships      : Natural := 0;
+         Current_Units      : Natural := 0;
+         Current_Relations  : Natural := 0;
+         Current_Systems    : Natural := 0;
+         Built_Ships        : Natural := 0;
+         Captured_Ships     : Natural := 0;
+         Lost_Ships         : Natural := 0;
+         Destroyed_Ships    : Natural := 0;
+         Border_Change      : Boolean;
+         Capital_World      : access constant
            Concorde.Worlds.Root_World_Type'Class;
-         Default_Ship      : access String;
+         Default_Ship       : access String;
       end record;
 
    overriding function Class_Name (Faction : Root_Faction_Type) return String
@@ -429,18 +448,32 @@ private
      (Faction : in out Root_Faction_Type;
       Amount  : WL.Money.Money_Type);
 
+   function Capital_World
+     (Faction : Root_Faction_Type'Class)
+      return access constant
+     Concorde.Worlds.Root_World_Type'Class
+   is (Faction.Capital_World);
+
    function Has_Minister
-     (Faction    : Root_Faction_Type'Class;
-      Department : Department_Type)
+     (Faction : Root_Faction_Type'Class;
+      Office  : Concorde.Offices.Office_Type)
       return Boolean
-   is (Faction.Ministries (Department) /= null);
+   is (Faction.Cabinet.Element (Office) /= null);
 
    function Minister
-     (Faction    : Root_Faction_Type'Class;
-      Department : Department_Type)
+     (Faction : Root_Faction_Type'Class;
+      Office  : Concorde.Offices.Office_Type)
       return access constant
      Concorde.People.Individuals.Root_Individual_Type'Class
-   is (Faction.Ministries (Department));
+   is (Faction.Cabinet.Element (Office));
+
+   function Leader
+     (Faction : Root_Faction_Type'Class)
+      return access constant
+     Concorde.People.Individuals.Root_Individual_Type'Class
+   is (Faction.Minister
+       (Concorde.Offices.Get
+        (Concorde.Offices.Leader)));
 
    package Faction_Vectors is
      new Memor.Element_Vectors

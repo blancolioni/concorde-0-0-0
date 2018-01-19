@@ -653,7 +653,12 @@ package body Concorde.Locations is
       return Positive
    is
    begin
-      return Location.Sector;
+      if Location.Loc_Type = World_Surface then
+         return Location.Sector;
+      else
+         return World_Sector
+           (Located_Interface'Class (Location.Reference.all).Current_Location);
+      end if;
    end World_Sector;
 
    -------------------

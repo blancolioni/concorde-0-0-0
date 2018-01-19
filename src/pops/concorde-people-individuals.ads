@@ -7,6 +7,7 @@ private with Memor.Database;
 with Concorde.Agents;
 with Concorde.Factions;
 with Concorde.Objects;
+with Concorde.Offices;
 with Concorde.Trades;
 
 with Concorde.Calendar;
@@ -78,6 +79,18 @@ package Concorde.People.Individuals is
    function Full_Name (Individual : Root_Individual_Type'Class)
                        return String;
 
+   function Faction
+     (Individual : Root_Individual_Type'Class)
+      return Concorde.Factions.Faction_Type;
+
+   function Citizenship
+     (Individual : Root_Individual_Type'Class)
+      return Concorde.Factions.Faction_Type;
+
+   function Loyalty
+     (Individual : Root_Individual_Type'Class)
+      return Unit_Real;
+
    function Age
      (Individual : Root_Individual_Type'Class)
       return Natural;
@@ -100,6 +113,9 @@ package Concorde.People.Individuals is
 
    type Individual_Type is access constant Root_Individual_Type'Class;
 
+   procedure Update_Location
+     (Individual : Individual_Type);
+
    type Updateable_Reference
      (Item : not null access Root_Individual_Type'Class)
    is private with Implicit_Dereference => Item;
@@ -120,6 +136,15 @@ private
 
    package List_Of_Career_Records is
      new Ada.Containers.Doubly_Linked_Lists (Career_Record);
+
+   type Office_Record is
+      record
+         Office  : Concorde.Offices.Office_Type;
+         Faction : Concorde.Factions.Faction_Type;
+      end record;
+
+   package List_Of_Office_Records is
+     new Ada.Containers.Doubly_Linked_Lists (Office_Record);
 
    type Ability_Score_Array is
      array (Concorde.People.Abilities.Ability_Type)
@@ -154,6 +179,7 @@ private
          Proficiencies       : Proficiency_Level_Array :=
                                  (others => 0);
          Career              : List_Of_Career_Records.List;
+         Offices             : List_Of_Office_Records.List;
          Skills              : Concorde.People.Skills.Skill_Set;
       end record;
 
@@ -216,6 +242,21 @@ private
    function First_Name (Individual : Root_Individual_Type'Class)
                         return String
    is (Ada.Strings.Unbounded.To_String (Individual.First_Name));
+
+   function Faction
+     (Individual : Root_Individual_Type'Class)
+      return Concorde.Factions.Faction_Type
+   is (Individual.Faction);
+
+   function Citizenship
+     (Individual : Root_Individual_Type'Class)
+      return Concorde.Factions.Faction_Type
+   is (Individual.Citizenship);
+
+   function Loyalty
+     (Individual : Root_Individual_Type'Class)
+      return Unit_Real
+   is (Individual.Loyalty);
 
    package Db is
      new Memor.Database

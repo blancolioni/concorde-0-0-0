@@ -1452,6 +1452,18 @@ package body Concorde.Agents is
          Category, Message);
    end Log;
 
+   --------------------
+   -- Log_Government --
+   --------------------
+
+   procedure Log_Government
+     (Agent   : Root_Agent_Type'Class;
+      Message : String)
+   is
+   begin
+      Agent.Log ("govern", Message);
+   end Log_Government;
+
    ------------------
    -- Log_Movement --
    ------------------

@@ -14,29 +14,51 @@ package body Concorde.People.Attributes is
       use Concorde.People.Abilities;
       use Concorde.People.Proficiencies;
       use Concorde.People.Skills;
+      Attr_Score : constant Natural := Container.Score (Attrs);
+      Target     : Natural := 0;
+      Chance     : constant array (0 .. 6) of Unit_Real :=
+                     (0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9);
+   begin
+      for Reference of Container.Vector loop
+         if Reference.Has_Value then
+            Target := Target + Reference.Value;
+         end if;
+      end loop;
+
+      return Result : constant Unit_Real :=
+        (if Target > Attr_Score
+         then 0.0
+         elsif Attr_Score - Target > Chance'Last
+         then 0.95
+         else Chance (Attr_Score - Target));
+   end Chance;
+
+   -------------------
+   -- Effectiveness --
+   -------------------
+
+   function Effectiveness
+     (Container : Attribute_Container'Class;
+      Target    : Natural;
+      Attrs     : Has_Attributes'Class)
+      return Unit_Real
+   is
+      use Concorde.People.Abilities;
+      use Concorde.People.Proficiencies;
+      use Concorde.People.Skills;
       Score  : Natural := 0;
-      Target : Natural := 0;
       Chance : constant array (0 .. 6) of Unit_Real :=
                  (0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9);
    begin
       for Reference of Container.Vector loop
          case Reference.Attribute is
             when Ability_Attribute =>
-               if Reference.Has_Value then
-                  Target := Target + Reference.Value;
-               end if;
                Score := Score
                  + Natural (Attrs.Ability_Score (Reference.Ability));
             when Proficiency_Attribute =>
-               if Reference.Has_Value then
-                  Target := Target + Reference.Value;
-               end if;
                Score := Score
                  + Natural (Attrs.Proficiency_Level (Reference.Proficiency));
             when Skill_Attribute =>
-               if Reference.Has_Value then
-                  Target := Target + Reference.Value;
-               end if;
                Score := Score
                  + Natural (Attrs.Skill_Level (Reference.Skill));
          end case;
@@ -48,7 +70,7 @@ package body Concorde.People.Attributes is
          elsif Score - Target > Chance'Last
          then 0.95
          else Chance (Score - Target));
-   end Chance;
+   end Effectiveness;
 
    -------------
    -- Improve --
@@ -187,5 +209,35 @@ package body Concorde.People.Attributes is
    begin
       return Container.Vector.Element (Index);
    end Random_Choice;
+
+   -----------
+   -- Score --
+   -----------
+
+   function Score
+     (Container : Attribute_Container'Class;
+      Attrs     : Has_Attributes'Class)
+      return Natural
+   is
+      use Concorde.People.Abilities;
+      use Concorde.People.Proficiencies;
+      use Concorde.People.Skills;
+      Result : Natural := 0;
+   begin
+      for Reference of Container.Vector loop
+         case Reference.Attribute is
+            when Ability_Attribute =>
+               Result := Result
+                 + Natural (Attrs.Ability_Score (Reference.Ability));
+            when Proficiency_Attribute =>
+               Result := Result
+                 + Natural (Attrs.Proficiency_Level (Reference.Proficiency));
+            when Skill_Attribute =>
+               Result := Result
+                 + Natural (Attrs.Skill_Level (Reference.Skill));
+         end case;
+      end loop;
+      return Result;
+   end Score;
 
 end Concorde.People.Attributes;

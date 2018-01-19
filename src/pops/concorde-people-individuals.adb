@@ -1,5 +1,9 @@
 with Ada.Characters.Handling;
 
+with Concorde.Locations;
+with Concorde.Surfaces;
+with Concorde.Worlds;
+
 package body Concorde.People.Individuals is
 
    ---------
@@ -176,5 +180,23 @@ package body Concorde.People.Individuals is
    begin
       return Updateable_Reference'(Base_Update.Element, Base_Update);
    end Update;
+
+   ---------------------
+   -- Update_Location --
+   ---------------------
+
+   procedure Update_Location
+     (Individual : Individual_Type)
+   is
+   begin
+      if Individual.Is_World_Location then
+         Individual.Current_World.Update.Add_Individual
+             (Sector     =>
+                Concorde.Surfaces.Surface_Tile_Index
+                  (Concorde.Locations.World_Sector
+                       (Individual.Current_Location)),
+              Individual => Individual);
+      end if;
+   end Update_Location;
 
 end Concorde.People.Individuals;

@@ -21,6 +21,7 @@ with Concorde.Systems;
 
 with Concorde.Commodities;
 with Concorde.Government;
+with Concorde.People.Individuals;
 with Concorde.People.Pops;
 with Concorde.Installations;
 with Concorde.Markets;
@@ -34,6 +35,7 @@ with Concorde.Locations;
 
 private with Concorde.Commodities.Lists;
 private with Concorde.Installations.Lists;
+private with Concorde.People.Individuals.Lists;
 private with Concorde.People.Pops.Lists;
 with Concorde.Calendar;
 
@@ -224,6 +226,11 @@ package Concorde.Worlds is
       Sector : Concorde.Surfaces.Surface_Tile_Index;
       Pop    : Concorde.People.Pops.Pop_Type);
 
+   procedure Add_Individual
+     (World      : in out Root_World_Type'Class;
+      Sector     : Concorde.Surfaces.Surface_Tile_Index;
+      Individual : Concorde.People.Individuals.Individual_Type);
+
    procedure Add_Installation
      (World        : in out Root_World_Type'Class;
       Sector       : Concorde.Surfaces.Surface_Tile_Index;
@@ -241,6 +248,11 @@ package Concorde.Worlds is
      (World : Root_World_Type'Class;
       Process : not null access
         procedure (Pop : Concorde.People.Pops.Pop_Type));
+
+   procedure Scan_Individuals
+     (World : Root_World_Type'Class;
+      Process : not null access
+        procedure (Individual : Concorde.People.Individuals.Individual_Type));
 
    function Buy_Price
      (World     : Root_World_Type'Class;
@@ -338,6 +350,7 @@ private
          Moisture       : Non_Negative_Real;
          Infrastructure : Unit_Real := 0.0;
          Pops           : Concorde.People.Pops.Lists.List;
+         Individuals    : Concorde.People.Individuals.Lists.List;
          Installations  : Concorde.Installations.Lists.List;
       end record;
 
@@ -407,6 +420,7 @@ private
          Market                : Concorde.Markets.Market_Type;
          Government            : Concorde.Government.Government_Type;
          Pops                  : Concorde.People.Pops.Lists.List;
+         Individuals           : Concorde.People.Individuals.Lists.List;
       end record;
 
    overriding function Object_Database

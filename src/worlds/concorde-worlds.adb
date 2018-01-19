@@ -6,6 +6,20 @@ with Concorde.Worlds.Create;
 
 package body Concorde.Worlds is
 
+   --------------------
+   -- Add_Individual --
+   --------------------
+
+   procedure Add_Individual
+     (World      : in out Root_World_Type'Class;
+      Sector     : Concorde.Surfaces.Surface_Tile_Index;
+      Individual : Concorde.People.Individuals.Individual_Type)
+   is
+   begin
+      World.Sectors (Sector).Individuals.Append (Individual);
+      World.Individuals.Append (Individual);
+   end Add_Individual;
+
    ----------------------
    -- Add_Installation --
    ----------------------
@@ -485,6 +499,25 @@ package body Concorde.Worlds is
          end loop;
       end return;
    end Resources;
+
+   ----------------------
+   -- Scan_Individuals --
+   ----------------------
+
+   procedure Scan_Individuals
+     (World   : Root_World_Type'Class;
+      Process : not null access
+        procedure (Individual : Concorde.People.Individuals.Individual_Type))
+   is
+   begin
+      for Individual of World.Individuals loop
+         Process (Individual);
+      end loop;
+   end Scan_Individuals;
+
+   ------------------------
+   -- Scan_Market_Worlds --
+   ------------------------
 
    procedure Scan_Market_Worlds
      (Process : not null access

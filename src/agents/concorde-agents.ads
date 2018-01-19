@@ -336,6 +336,10 @@ package Concorde.Agents is
       Category : String;
       Message  : String);
 
+   procedure Log_Government
+     (Agent   : Root_Agent_Type'Class;
+      Message : String);
+
    procedure Log_Production
      (Agent   : Root_Agent_Type'Class;
       Message : String);

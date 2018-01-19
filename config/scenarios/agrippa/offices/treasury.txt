@@ -1,0 +1,2 @@
+responsibility = treasury
+effect = { administration }

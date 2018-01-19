@@ -4,6 +4,8 @@ with Concorde.Factions.Logging;
 with Concorde.Galaxy;
 with Concorde.Systems.Graphs;
 
+with Concorde.People.Individuals;
+
 package body Concorde.Factions is
 
    function Image
@@ -286,6 +288,27 @@ package body Concorde.Factions is
       return Faction.Colour;
    end Colour;
 
+   ---------------------------
+   -- Current_Effectiveness --
+   ---------------------------
+
+   function Current_Effectiveness
+     (Faction   : Root_Faction_Type'Class;
+      Portfolio : Concorde.Offices.Responsibility_Type)
+      return Unit_Real
+   is
+      Office : constant Concorde.Offices.Office_Type :=
+                 Concorde.Offices.Get (Portfolio);
+   begin
+      if Faction.Has_Minister (Office) then
+         return Office.Effectiveness
+           (Portfolio => Faction.Portfolio_Size (Portfolio),
+            Holder    => Faction.Minister (Office).all);
+      else
+         return 1.0 / Real (Faction.Portfolio_Size (Portfolio));
+      end if;
+   end Current_Effectiveness;
+
    --------------------
    -- Current_Ships --
    --------------------
@@ -491,6 +514,66 @@ package body Concorde.Factions is
       return Data.Next_Node (To.Index).Path_Length;
    end Path_Length;
 
+   --------------------
+   -- Portfolio_Size --
+   --------------------
+
+   function Portfolio_Size
+     (Faction   : Root_Faction_Type'Class;
+      Portfolio : Concorde.Offices.Responsibility_Type)
+      return Concorde.Offices.Portfolio_Size_Range
+   is
+      use Concorde.Offices;
+   begin
+      case Portfolio is
+         when Leader =>
+            declare
+               Result : Portfolio_Size_Range := 1;
+            begin
+               for Item in Responsibility_Type loop
+                  if Item /= Leader then
+                     if not Faction.Has_Minister (Get (Item)) then
+                        Result := Result + Faction.Portfolio_Size (Item);
+                     else
+                        Result := Result + 1;
+                     end if;
+                  end if;
+               end loop;
+               return Result;
+            end;
+         when Treasury =>
+            return Portfolio_Size_Range (Faction.Current_Systems);
+         when Army =>
+            declare
+               Result : Portfolio_Size_Range := 1;
+               Units  : Positive := 10;
+            begin
+               while Units < Faction.Current_Units loop
+                  Units := Units * 5;
+                  Result := Result + 1;
+               end loop;
+               return Result;
+            end;
+         when Navy =>
+            declare
+               Result : Portfolio_Size_Range := 1;
+               Ships  : Positive := 5;
+            begin
+               while Ships < Faction.Current_Ships loop
+                  Ships := Ships * 2;
+                  Result := Result + 1;
+               end loop;
+               return Result;
+            end;
+         when Diplomacy =>
+            if Faction.Current_Relations <= 3 then
+               return 1;
+            else
+               return Portfolio_Size_Range (Faction.Current_Relations / 2);
+            end if;
+      end case;
+   end Portfolio_Size;
+
    ----------
    -- Rank --
    ----------
@@ -648,13 +731,13 @@ package body Concorde.Factions is
    ------------------
 
    procedure Set_Minister
-     (Faction   : in out Root_Faction_Type'Class;
-      Department : Department_Type;
-      Minister   : not null access constant
+     (Faction  : in out Root_Faction_Type'Class;
+      Office   : Concorde.Offices.Office_Type;
+      Minister : not null access constant
         Concorde.People.Individuals.Root_Individual_Type'Class)
    is
    begin
-      Faction.Ministries (Department) := Minister;
+      Faction.Cabinet.Replace_Element (Office, Individual_Access (Minister));
    end Set_Minister;
 
    --------------

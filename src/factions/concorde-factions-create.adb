@@ -27,6 +27,7 @@ with WL.Quantities;
 
 with Concorde.Systems.Lists;
 
+with Concorde.Managers.Factions;
 with Concorde.Managers.Ships.Trade;
 
 package body Concorde.Factions.Create is
@@ -545,6 +546,16 @@ package body Concorde.Factions.Create is
          end if;
 
          Faction.Save_Agent;
+         Concorde.Managers.Factions.Create_Manager (Faction).Activate;
+
+         declare
+            use Concorde.Calendar;
+         begin
+            Concorde.Objects.Queues.Next_Event
+              (Faction,
+               Concorde.Calendar.Clock
+               + Duration (Concorde.Random.Unit_Random * 86_400.0));
+         end;
 
          Imperial_Centre := False;
 

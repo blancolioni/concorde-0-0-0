@@ -1,0 +1,2 @@
+responsibility = { navy }
+effect = { administration leadership naval_tactics ship_command }

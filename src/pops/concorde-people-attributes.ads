@@ -107,6 +107,17 @@ package Concorde.People.Attributes is
       Attrs     : Has_Attributes'Class)
       return Unit_Real;
 
+   function Score
+     (Container : Attribute_Container'Class;
+      Attrs     : Has_Attributes'Class)
+      return Natural;
+
+   function Effectiveness
+     (Container : Attribute_Container'Class;
+      Target    : Natural;
+      Attrs     : Has_Attributes'Class)
+      return Unit_Real;
+
 private
 
    type Attribute_Type is

@@ -247,6 +247,7 @@ package body Concorde.People.Individuals.Create is
       return Individual : constant Individual_Type :=
         Db.Create (Create'Access)
       do
+         Update_Location (Individual);
          if Concorde.Options.Write_Character_Portraits then
             Concorde.People.Individuals.Portraits.Save_Portrait
               (Individual,
@@ -305,6 +306,7 @@ package body Concorde.People.Individuals.Create is
       return Individual : constant Individual_Type :=
         Db.Create (Create'Access)
       do
+         Update_Location (Individual);
          if Concorde.Options.Write_Character_Portraits then
             Concorde.People.Individuals.Portraits.Save_Portrait
               (Individual,
@@ -449,6 +451,8 @@ package body Concorde.People.Individuals.Create is
       Y : constant Individual_Type :=
             Create_Partner (X);
    begin
+      Faction.Update.Set_Minister
+        (Concorde.Offices.Get ("leader"), X);
       Report.Report (X);
       Report.Report (Y);
       Create_Generation (X, Y, 2);
@@ -512,6 +516,7 @@ package body Concorde.People.Individuals.Create is
       return Individual : constant Individual_Type :=
         Db.Create (Create'Access)
       do
+         Update_Location (Individual);
          if Concorde.Options.Write_Character_Portraits then
             Concorde.People.Individuals.Portraits.Save_Portrait
               (Individual,
@@ -565,7 +570,7 @@ package body Concorde.People.Individuals.Create is
       end Create;
 
    begin
-      Db.Create (Create'Access);
+      Update_Location (Db.Create (Create'Access));
    end Create_Random_Individual;
 
    ---------------------
