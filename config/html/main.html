@@ -4,12 +4,12 @@
 </head>
 <body>
    <div id="top-bar" class="top-bar">
-       <div id="leader-portrait" style="display:block; float:left" class="top-bar-element leader-portrait">
+       <div id="leader-portrait" style="display:block; float:left" class="top-bar-element portrait">
        </div>
        <label id="faction-name" class="top-bar-element">Faction</label>
        <label id="cash" class="top-bar-element">$0.00</label>
        <label id="fps" class="top-bar-element">Zero</label>
-       <div class="top-bar-right">
+       <div class="top-bar-right" id="top-bar-right">
          <label id="clock" class="top-bar-clock">01-01-3001 00:00:00</label>
          <div id="speed" class="top-bar-speed">
            <button id="pause-button" class="speed-button">&#10073;&#10073;</button>
@@ -27,21 +27,35 @@
          </div>
       </div>
    </div>
-   <div class="planet-info">
+   
+   <div class="info-panel" id="faction-info-panel">
+   <label class="dialog-title" id="info-faction-name"></label>
+   <div id="faction-leader-portrait" class="portrait-actual-size"></div>
+   </div>
+   
+   <!--
+   <div class="info-panel" id="planet-info-panel">
    <div class="dialog-title" id="planet-name">Byzantium Secundus</div>
    <div class="portrait"></div>
-   </div>
+   </div> -->
+   
+   <!--
    <div id="log">
       <textarea id="log-text">
          Log
       </textarea>
    </div>
+   -->
+   
+   <!--
    <div class="dialog" style="position:absolute;left:300px;top:300px">
      <div class="dialog-title">Dialog</div>
      <div class="dialog-body">
        <label>Dialog body</label>
      </div>
    </div>
+   -->
+   
 </body>
 </html>
 

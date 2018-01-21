@@ -12,6 +12,7 @@ with Xtk.Div_Element;
 with Xtk.Label;
 with Xtk.Panel;
 with Xtk.Text.View;
+with Xtk.Widget;
 
 with Concorde.Objects;
 with Concorde.Transitions;
@@ -27,6 +28,20 @@ package Concorde.Xi_UI is
       Move_Left, Move_Right,
       Move_Up, Move_Down,
       Zoom_In, Zoom_Out);
+
+   type Root_Panel_Interface is interface;
+
+   procedure Show (Panel : in out Root_Panel_Interface;
+                   X, Y  : Natural)
+   is abstract;
+
+   procedure Move (Panel : in out Root_Panel_Interface;
+                   X, Y  : Natural)
+   is abstract;
+
+   procedure Hide (Panel : in out Root_Panel_Interface) is abstract;
+
+   type Panel_Type is access all Root_Panel_Interface'Class;
 
    type Root_Xi_Model is abstract tagged private;
 
@@ -71,6 +86,15 @@ package Concorde.Xi_UI is
    procedure Set_Status
      (Model   : in out Root_Xi_Model;
       Message : String);
+
+   procedure Show_Panel
+     (Model : in out Root_Xi_Model;
+      Panel : Panel_Type;
+      X, Y  : Natural);
+
+   procedure Hide_Panel
+     (Model : in out Root_Xi_Model;
+      Panel : Panel_Type);
 
    type Xi_Model is access all Root_Xi_Model'Class;
 
@@ -142,6 +166,10 @@ package Concorde.Xi_UI is
      (Window : Xi.Render_Window.Xi_Render_Window;
       Path   : String);
 
+   function Get_Widget
+     (Name : String)
+      return Xtk.Widget.Xtk_Widget;
+
    function Outliner_Div return Xtk.Div_Element.Xtk_Div_Element;
    function Main_Log_View return Xtk.Text.View.Xtk_Text_View;
 
@@ -158,6 +186,15 @@ private
        (Concorde.Transitions.Transition_Type,
         Concorde.Transitions."=");
 
+   type Panel_Record is
+      record
+         Panel : Panel_Type;
+         X, Y  : Natural;
+      end record;
+
+   package Panel_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Panel_Record);
+
    type Root_Xi_Model is abstract tagged
       record
          Active             : Boolean := False;
@@ -173,13 +210,12 @@ private
          Status_Label       : Xtk.Label.Xtk_Label;
          FPS_Label          : Xtk.Label.Xtk_Label;
          Clock_Label        : Xtk.Label.Xtk_Label;
+         Info_Panels        : Panel_Lists.List;
          Show_Clock_Time    : Boolean;
          Log_Ship_Movement  : Boolean;
          Cash_Label         : Xtk.Label.Xtk_Label;
          Faction_Name_Label : Xtk.Label.Xtk_Label;
       end record;
-
---   function Main_UI return Xtk.Builder.Xtk_Builder;
 
    type Model_Signal_Handler is
      abstract new Concorde.Objects.Object_Handler_Interface with

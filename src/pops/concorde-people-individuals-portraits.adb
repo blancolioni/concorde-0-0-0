@@ -6,7 +6,6 @@ with Ada.Text_IO;
 
 with Glib;
 
-with Cairo;
 with Cairo.Image_Surface;
 with Cairo.Png;
 
@@ -400,13 +399,16 @@ package body Concorde.People.Individuals.Portraits is
    end Configure_Portraits;
 
    -------------------
-   -- Save_Portrait --
+   -- Draw_Portrait --
    -------------------
 
-   procedure Save_Portrait
-     (Individual : not null access constant Root_Individual_Type'Class;
-      Path       : String)
+   procedure Draw_Portrait
+     (Context       : Cairo.Cairo_Context;
+      Individual    : not null access constant Root_Individual_Type'Class;
+      Width, Height : Positive)
    is
+      pragma Unreferenced (Width, Height);
+
       Surface : constant Cairo.Cairo_Surface :=
                   Cairo.Image_Surface.Create
                     (Format => Cairo.Image_Surface.Cairo_Format_ARGB32,
@@ -447,12 +449,6 @@ package body Concorde.People.Individuals.Portraits is
          X     : constant Glib.Gdouble :=
                    Glib.Gdouble (Dst_X - Index * Width);
       begin
---           Cairo.Set_Source_Rgb (Cr, 0.0, 0.0, 1.0);
---           Cairo.Rectangle
---             (Cr,
---              Gdouble (Dst_X), Gdouble (Dst_Y),
---              Gdouble (Width), Gdouble (Height));
---           Cairo.Fill (Cr);
          Cairo.Set_Source_Surface
            (Cr      => Cr,
             Surface => Base,
@@ -494,8 +490,8 @@ package body Concorde.People.Individuals.Portraits is
 
       Age_Suffix : constant String :=
                      (case Individual.Age is
-                         when 0 .. 35 => "",
-                         when 36 .. 60 => "1",
+                         when 0 .. 35   => "",
+                         when 36 .. 60  => "1",
                          when 61 .. 999 => "2",
                          when others    =>
                             raise Constraint_Error with
@@ -537,8 +533,8 @@ package body Concorde.People.Individuals.Portraits is
            and then Sprite_Map.Contains (Layer.Sprite_Name.all)
          then
             declare
-               Sprite : constant Sprite_Type :=
-                          Sprite_Map.Element (Layer.Sprite_Name.all);
+               Sprite   : constant Sprite_Type :=
+                            Sprite_Map.Element (Layer.Sprite_Name.all);
                Property : constant Property_Record :=
                             Property_Vector.Element (Layer.Property);
                Frame    : Natural := 0;
@@ -581,24 +577,34 @@ package body Concorde.People.Individuals.Portraits is
          end if;
       end loop;
 
---        declare
---           Surfaces : constant Portrait_Surface_Record :=
---                        Portrait_Map.Element ("western_female") (Young);
---        begin
---
---           Cairo.Set_Source_Surface
---             (Cr      => Cr,
---              Surface => Surfaces.Base,
---              X       => 0.0,
---              Y       => 0.0);
---           Cairo.Paint (Cr);
---
---           Add_Feature (Genetics.Eyes, Surfaces.Eyes,
---                        Dst_X  => 50,
---                        Dst_Y  => 8,
---                        Width  => 68,
---                        Height => 64,
---                        Count  => 13);
+      Cairo.Destroy (Cr);
+
+      Cairo.Set_Source_Surface (Context, Surface, 0.0, 0.0);
+      Cairo.Paint (Context);
+
+      Cairo.Surface_Destroy (Surface);
+
+   end Draw_Portrait;
+
+   -------------------
+   -- Save_Portrait --
+   -------------------
+
+   procedure Save_Portrait
+     (Individual : not null access constant Root_Individual_Type'Class;
+      Path       : String)
+   is
+
+      Surface : constant Cairo.Cairo_Surface :=
+                  Cairo.Image_Surface.Create
+                    (Format => Cairo.Image_Surface.Cairo_Format_ARGB32,
+                     Width  => Portrait_Width,
+                     Height => Portrait_Height);
+      Cr      : constant Cairo.Cairo_Context :=
+                  Cairo.Create (Surface);
+   begin
+
+      Draw_Portrait (Cr, Individual, Portrait_Width, Portrait_Height);
 
       Cairo.Destroy (Cr);
 

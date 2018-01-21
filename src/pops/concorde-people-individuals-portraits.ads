@@ -1,3 +1,5 @@
+with Cairo;
+
 with Tropos;
 
 package Concorde.People.Individuals.Portraits is
@@ -6,6 +8,11 @@ package Concorde.People.Individuals.Portraits is
      (Feature_Config  : Tropos.Configuration;
       Property_Config : Tropos.Configuration;
       Sprite_Config   : Tropos.Configuration);
+
+   procedure Draw_Portrait
+     (Context       : Cairo.Cairo_Context;
+      Individual    : not null access constant Root_Individual_Type'Class;
+      Width, Height : Positive);
 
    procedure Save_Portrait
      (Individual : not null access constant Root_Individual_Type'Class;

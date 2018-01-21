@@ -15,6 +15,7 @@ with Xi.Float_Arrays;
 with Xi.Matrices;
 
 with Xtk.Builder;
+
 with Xtk.Button;
 with Xtk.Page;
 
@@ -34,11 +35,11 @@ package body Concorde.Xi_UI is
    Local_Selector_Texture : Xi.Texture.Xi_Texture := null;
    Local_Selector_Entity  : Xi.Entity.Xi_Entity := null;
 
-   Local_Main_UI       : Xtk.Builder.Xtk_Builder;
-   Local_Main_Log_View : Xtk.Text.View.Xtk_Text_View;
    Local_Outliner_Div  : Xtk.Div_Element.Xtk_Div_Element;
 
    Update_Multiplier   : Non_Negative_Real := 24.0;
+
+   Local_Main_UI : Xtk.Builder.Xtk_Builder;
 
    type Model_Frame_Listener is
      new Xi.Frame_Event.Xi_Frame_Listener_Interface with
@@ -138,6 +139,41 @@ package body Concorde.Xi_UI is
    end Frame_Started;
 
    ----------------
+   -- Get_Widget --
+   ----------------
+
+   function Get_Widget
+     (Name : String)
+      return Xtk.Widget.Xtk_Widget
+   is
+   begin
+      return Local_Main_UI.Get (Name);
+   end Get_Widget;
+
+   ----------------
+   -- Hide_Panel --
+   ----------------
+
+   procedure Hide_Panel
+     (Model : in out Root_Xi_Model;
+      Panel : Panel_Type)
+   is
+      use Panel_Lists;
+      Position : Cursor := No_Element;
+   begin
+      for It in Model.Info_Panels.Iterate loop
+         if Element (It).Panel = Panel then
+            Position := It;
+            exit;
+         end if;
+      end loop;
+      if Has_Element (Position) then
+         Element (Position).Panel.Hide;
+         Model.Info_Panels.Delete (Position);
+      end if;
+   end Hide_Panel;
+
+   ----------------
    -- Initialize --
    ----------------
 
@@ -203,14 +239,9 @@ package body Concorde.Xi_UI is
    -------------------
 
    function Main_Log_View return Xtk.Text.View.Xtk_Text_View is
-      use type Xtk.Text.View.Xtk_Text_View;
    begin
-      if Local_Main_Log_View = null then
-         Local_Main_Log_View :=
-           Xtk.Text.View.Xtk_Text_View
-             (Local_Main_UI.Get ("log-text"));
-      end if;
-      return Local_Main_Log_View;
+      return Xtk.Text.View.Xtk_Text_View
+        (Local_Main_UI.Get ("log"));
    end Main_Log_View;
 
    ---------------------
@@ -635,16 +666,28 @@ package body Concorde.Xi_UI is
       end if;
    end Set_Status;
 
-   ------------
-   -- Window --
-   ------------
+   procedure Show_Panel
+     (Model : in out Root_Xi_Model;
+      Panel : Panel_Type;
+      X, Y  : Natural)
+   is
+      Found : Boolean := False;
+   begin
+      for Rec of Model.Info_Panels loop
+         if Rec.Panel = Panel then
+            Rec.X := X;
+            Rec.Y := Y;
+            Rec.Panel.Move (X, Y);
+            Found := True;
+            exit;
+         end if;
+      end loop;
 
---     function Window
---       (Model : Root_Xi_Model'Class)
---        return Xi.Render_Window.Xi_Render_Window
---     is
---     begin
---        return Model.Window;
---     end Window;
+      if not Found then
+         Panel.Show (X, Y);
+         Model.Info_Panels.Append ((Panel, X, Y));
+      end if;
+
+   end Show_Panel;
 
 end Concorde.Xi_UI;
