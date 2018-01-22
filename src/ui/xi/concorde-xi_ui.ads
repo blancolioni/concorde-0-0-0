@@ -31,6 +31,11 @@ package Concorde.Xi_UI is
 
    type Root_Panel_Interface is interface;
 
+   function Get_Xtk_Panel
+     (Panel : Root_Panel_Interface)
+      return Xtk.Panel.Xtk_Panel
+      is abstract;
+
    procedure Show (Panel : in out Root_Panel_Interface;
                    X, Y  : Natural)
    is abstract;

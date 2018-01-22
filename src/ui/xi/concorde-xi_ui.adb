@@ -666,6 +666,10 @@ package body Concorde.Xi_UI is
       end if;
    end Set_Status;
 
+   ----------------
+   -- Show_Panel --
+   ----------------
+
    procedure Show_Panel
      (Model : in out Root_Xi_Model;
       Panel : Panel_Type;

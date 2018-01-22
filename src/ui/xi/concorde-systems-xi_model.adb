@@ -368,7 +368,7 @@ package body Concorde.Systems.Xi_Model is
          Model.Show_Panel
            (Concorde.Xi_UI.Panels.Faction_Info_Panel
               (Faction),
-            X => 0,
+            X => 200,
             Y => 200);
 
          System_Models.Insert (System.Identifier, Model);

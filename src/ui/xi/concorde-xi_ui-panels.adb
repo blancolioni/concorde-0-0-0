@@ -13,7 +13,7 @@ package body Concorde.Xi_UI.Panels is
      and Xtk.Events.User_Data_Interface with
       record
          Faction          : Concorde.Factions.Faction_Type;
-         Panel            : Xtk.Widget.Xtk_Widget;
+         Panel            : Xtk.Panel.Xtk_Panel;
          Title            : Xtk.Label.Xtk_Label;
          Portrait_Widget  : Xtk.Widget.Xtk_Widget;
          Portrait_Surface : Cairo.Cairo_Surface;
@@ -21,6 +21,11 @@ package body Concorde.Xi_UI.Panels is
 
    type Faction_Info_Panel_Access is
      access all Faction_Info_Panel_Record'Class;
+
+   overriding function Get_Xtk_Panel
+     (Panel : Faction_Info_Panel_Record)
+      return Xtk.Panel.Xtk_Panel
+   is (Panel.Panel);
 
    overriding procedure Show
      (Panel : in out Faction_Info_Panel_Record;
@@ -69,9 +74,10 @@ package body Concorde.Xi_UI.Panels is
       Panel : constant Xtk.Widget.Xtk_Widget :=
                 Get_Widget ("faction-info-panel");
       Title : constant Xtk.Label.Xtk_Label :=
-                Xtk.Label.Xtk_Label (Get_Widget ("info-faction-name"));
+                Xtk.Label.Xtk_Label
+                  (Panel.Get_Child_Widget_By_Id ("info-faction-name"));
       Portrait : constant Xtk.Widget.Xtk_Widget :=
-                   Get_Widget ("faction-leader-portrait");
+                   (Panel.Get_Child_Widget_By_Id ("faction-leader-portrait"));
       Surface  : constant Cairo.Cairo_Surface :=
                    Cairo.Image_Surface.Create
                      (Cairo.Image_Surface.Cairo_Format_ARGB32,
@@ -94,7 +100,7 @@ package body Concorde.Xi_UI.Panels is
       Result :=
         new Faction_Info_Panel_Record'
           (Faction          => Faction,
-           Panel            => Panel,
+           Panel            => Xtk.Panel.Xtk_Panel (Panel),
            Title            => Title,
            Portrait_Widget  => Portrait,
            Portrait_Surface => Surface);
@@ -125,8 +131,10 @@ package body Concorde.Xi_UI.Panels is
       X, Y  : Natural)
    is
    begin
-      Panel.Panel.Set_Layout_Position
-        (Position => (Css.Css_Float (X), Css.Css_Float (Y)));
+      Panel.Panel.Set_Style
+        ("top", Css.Pixels (Y));
+      Panel.Panel.Set_Style
+        ("left", Css.Pixels (X));
    end Move;
 
    ----------
