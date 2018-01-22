@@ -15,6 +15,7 @@ package body Concorde.Xi_UI.Panels is
          Faction          : Concorde.Factions.Faction_Type;
          Panel            : Xtk.Panel.Xtk_Panel;
          Title            : Xtk.Label.Xtk_Label;
+         Leader_Name      : Xtk.Label.Xtk_Label;
          Portrait_Widget  : Xtk.Widget.Xtk_Widget;
          Portrait_Surface : Cairo.Cairo_Surface;
       end record;
@@ -76,12 +77,15 @@ package body Concorde.Xi_UI.Panels is
       Title : constant Xtk.Label.Xtk_Label :=
                 Xtk.Label.Xtk_Label
                   (Panel.Get_Child_Widget_By_Id ("info-faction-name"));
+      Leader_Name : constant Xtk.Label.Xtk_Label :=
+                      Xtk.Label.Xtk_Label
+                        (Panel.Get_Child_Widget_By_Id ("leader-name"));
       Portrait : constant Xtk.Widget.Xtk_Widget :=
                    (Panel.Get_Child_Widget_By_Id ("faction-leader-portrait"));
       Surface  : constant Cairo.Cairo_Surface :=
                    Cairo.Image_Surface.Create
                      (Cairo.Image_Surface.Cairo_Format_ARGB32,
-                      51, 51);
+                      102, 102);
       Cr       : constant Cairo.Cairo_Context :=
                    Cairo.Create (Surface);
       Result   : Faction_Info_Panel_Access;
@@ -92,16 +96,18 @@ package body Concorde.Xi_UI.Panels is
       Cairo.Restore (Cr);
 
       Concorde.People.Individuals.Portraits.Draw_Portrait
-        (Cr, Faction.Leader, 51, 51);
+        (Cr, Faction.Leader, 102, 102);
       Cairo.Destroy (Cr);
 
       Title.Set_Label ("House " & Faction.Name);
+      Leader_Name.Set_Label (Faction.Leader.Full_Name);
 
       Result :=
         new Faction_Info_Panel_Record'
           (Faction          => Faction,
            Panel            => Xtk.Panel.Xtk_Panel (Panel),
            Title            => Title,
+           Leader_Name      => Leader_Name,
            Portrait_Widget  => Portrait,
            Portrait_Surface => Surface);
 
