@@ -247,6 +247,10 @@ package body Concorde.Systems.Xi_Model is
         (Concorde.Ships.Ship_Type (Ship));
       Ada.Text_IO.Put_Line
         (System.Name & ": " & Ship.Name & " enters hyperspace");
+
+      Concorde.Xi_UI.Outliner.Remove_Item
+        ("outliner-ships", Ship.Identifier);
+
       while Has_Element (Position) loop
          if Ship = Concorde.Ships.Xi_Model.Get_Ship (Element (Position)) then
             Handler.Model.Ships.Delete (Position);
@@ -288,6 +292,17 @@ package body Concorde.Systems.Xi_Model is
    begin
       Ada.Text_IO.Put_Line
         (System.Name & ": " & Ship.Name & " exits hyperspace");
+
+      declare
+         use Concorde.Xi_UI.Outliner;
+      begin
+         Add_Item
+           (Category => "outliner-ships",
+            Identity => Ship.Identifier,
+            Element  => Text_Element (Ship.Name),
+            Tooltip  => No_Elements);
+      end;
+
       Handler.Model.Ships.Append
         (Concorde.Ships.Xi_Model.Activate_Ship
            (Ship     => Concorde.Ships.Ship_Type (Ship),
