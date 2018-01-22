@@ -407,8 +407,6 @@ package body Concorde.People.Individuals.Portraits is
       Individual    : not null access constant Root_Individual_Type'Class;
       Width, Height : Positive)
    is
-      pragma Unreferenced (Width, Height);
-
       Surface : constant Cairo.Cairo_Surface :=
                   Cairo.Image_Surface.Create
                     (Format => Cairo.Image_Surface.Cairo_Format_ARGB32,
@@ -578,6 +576,14 @@ package body Concorde.People.Individuals.Portraits is
       end loop;
 
       Cairo.Destroy (Cr);
+
+      declare
+         use Glib;
+      begin
+         Cairo.Scale (Context,
+                      Gdouble (Width) / Gdouble (Portrait_Width),
+                      Gdouble (Height) / Gdouble (Portrait_Height));
+      end;
 
       Cairo.Set_Source_Surface (Context, Surface, 0.0, 0.0);
       Cairo.Paint (Context);

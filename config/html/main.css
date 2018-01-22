@@ -160,6 +160,13 @@ label
     border: 1px solid white;
 }
 
+.portrait-small
+{
+    width: 51px;
+    height: 51px;
+    border: 1px solid white;
+}
+
 .dialog 
 {
     border: 1px solid #afeeee;

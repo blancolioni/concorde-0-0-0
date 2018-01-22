@@ -81,7 +81,7 @@ package body Concorde.Xi_UI.Panels is
       Surface  : constant Cairo.Cairo_Surface :=
                    Cairo.Image_Surface.Create
                      (Cairo.Image_Surface.Cairo_Format_ARGB32,
-                      152, 152);
+                      51, 51);
       Cr       : constant Cairo.Cairo_Context :=
                    Cairo.Create (Surface);
       Result   : Faction_Info_Panel_Access;
@@ -92,7 +92,7 @@ package body Concorde.Xi_UI.Panels is
       Cairo.Restore (Cr);
 
       Concorde.People.Individuals.Portraits.Draw_Portrait
-        (Cr, Faction.Leader, 152, 152);
+        (Cr, Faction.Leader, 51, 51);
       Cairo.Destroy (Cr);
 
       Title.Set_Label ("House " & Faction.Name);
