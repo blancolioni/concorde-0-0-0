@@ -28,7 +28,8 @@ with Concorde.Ships.Xi_Model;
 --  with Concorde.Worlds.Xi_Model;
 
 with Concorde.Xi_UI.Outliner;
-with Concorde.Xi_UI.Panels;
+
+with Concorde.Xi_UI.Factions;
 
 with Concorde.Systems.Events;
 
@@ -380,11 +381,12 @@ package body Concorde.Systems.Xi_Model is
             Model.Arrival_Handler := Arriving;
          end;
 
-         Model.Show_Panel
-           (Concorde.Xi_UI.Panels.Faction_Info_Panel
-              (Faction),
-            X => 200,
-            Y => 200);
+         Model.Show_Overlay
+           (Overlay =>
+              Concorde.Xi_UI.Factions.Faction_Overlay
+                (Faction),
+            X       => 10,
+            Y       => 60);
 
          System_Models.Insert (System.Identifier, Model);
       end if;

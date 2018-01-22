@@ -1,5 +1,7 @@
 with WL.Money;
 
+with Css;
+
 with Xi.Assets;
 with Xi.Color;
 with Xi.Font;
@@ -150,28 +152,29 @@ package body Concorde.Xi_UI is
       return Local_Main_UI.Get (Name);
    end Get_Widget;
 
-   ----------------
-   -- Hide_Panel --
-   ----------------
+   ------------------
+   -- Hide_Overlay --
+   ------------------
 
-   procedure Hide_Panel
-     (Model : in out Root_Xi_Model;
-      Panel : Panel_Type)
+   procedure Hide_Overlay
+     (Model   : in out Root_Xi_Model;
+      Overlay : Overlay_Type)
    is
-      use Panel_Lists;
+      use Overlay_Lists;
       Position : Cursor := No_Element;
    begin
       for It in Model.Info_Panels.Iterate loop
-         if Element (It).Panel = Panel then
+         if Element (It) = Overlay then
             Position := It;
             exit;
          end if;
       end loop;
       if Has_Element (Position) then
+         Element (Position).On_Hide;
          Element (Position).Panel.Hide;
          Model.Info_Panels.Delete (Position);
       end if;
-   end Hide_Panel;
+   end Hide_Overlay;
 
    ----------------
    -- Initialize --
@@ -212,6 +215,20 @@ package body Concorde.Xi_UI is
       Update_Multiplier :=
         Non_Negative_Real (Concorde.Options.Update_Speed);
 
+   end Initialize;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (Overlay    : in out Root_Overlay_Type'Class;
+      Element_Id : String)
+   is
+   begin
+      Overlay.Panel :=
+        Xtk.Panel.Xtk_Panel
+          (Local_Main_UI.Get (Element_Id));
    end Initialize;
 
    -------------
@@ -666,32 +683,33 @@ package body Concorde.Xi_UI is
       end if;
    end Set_Status;
 
-   ----------------
-   -- Show_Panel --
-   ----------------
+   ------------------
+   -- Show_Overlay --
+   ------------------
 
-   procedure Show_Panel
+   procedure Show_Overlay
      (Model : in out Root_Xi_Model;
-      Panel : Panel_Type;
+      Overlay : Overlay_Type;
       X, Y  : Natural)
    is
       Found : Boolean := False;
    begin
-      for Rec of Model.Info_Panels loop
-         if Rec.Panel = Panel then
-            Rec.X := X;
-            Rec.Y := Y;
-            Rec.Panel.Move (X, Y);
+      Overlay.Panel.Set_Style
+        ("top", Css.Pixels (Y));
+      Overlay.Panel.Set_Style
+        ("left", Css.Pixels (X));
+
+      for Item of Model.Info_Panels loop
+         if Item = Overlay then
             Found := True;
             exit;
          end if;
       end loop;
 
       if not Found then
-         Panel.Show (X, Y);
-         Model.Info_Panels.Append ((Panel, X, Y));
+         Model.Info_Panels.Append (Overlay);
       end if;
 
-   end Show_Panel;
+   end Show_Overlay;
 
 end Concorde.Xi_UI;

@@ -29,24 +29,25 @@ package Concorde.Xi_UI is
       Move_Up, Move_Down,
       Zoom_In, Zoom_Out);
 
-   type Root_Panel_Interface is interface;
+   type Root_Overlay_Type is abstract tagged private;
 
-   function Get_Xtk_Panel
-     (Panel : Root_Panel_Interface)
-      return Xtk.Panel.Xtk_Panel
-      is abstract;
+   procedure Initialize
+     (Overlay    : in out Root_Overlay_Type'Class;
+      Element_Id : String);
 
-   procedure Show (Panel : in out Root_Panel_Interface;
-                   X, Y  : Natural)
-   is abstract;
+   function Top_Panel
+     (Overlay : Root_Overlay_Type'Class)
+      return Xtk.Panel.Xtk_Panel;
 
-   procedure Move (Panel : in out Root_Panel_Interface;
-                   X, Y  : Natural)
-   is abstract;
+   procedure On_Show
+     (Overlay : in out Root_Overlay_Type)
+   is null;
 
-   procedure Hide (Panel : in out Root_Panel_Interface) is abstract;
+   procedure On_Hide
+     (Overlay : in out Root_Overlay_Type)
+   is null;
 
-   type Panel_Type is access all Root_Panel_Interface'Class;
+   type Overlay_Type is access all Root_Overlay_Type'Class;
 
    type Root_Xi_Model is abstract tagged private;
 
@@ -92,14 +93,14 @@ package Concorde.Xi_UI is
      (Model   : in out Root_Xi_Model;
       Message : String);
 
-   procedure Show_Panel
-     (Model : in out Root_Xi_Model;
-      Panel : Panel_Type;
-      X, Y  : Natural);
+   procedure Show_Overlay
+     (Model   : in out Root_Xi_Model;
+      Overlay : Overlay_Type;
+      X, Y    : Natural);
 
-   procedure Hide_Panel
-     (Model : in out Root_Xi_Model;
-      Panel : Panel_Type);
+   procedure Hide_Overlay
+     (Model   : in out Root_Xi_Model;
+      Overlay : Overlay_Type);
 
    type Xi_Model is access all Root_Xi_Model'Class;
 
@@ -191,14 +192,18 @@ private
        (Concorde.Transitions.Transition_Type,
         Concorde.Transitions."=");
 
-   type Panel_Record is
+   type Root_Overlay_Type is abstract tagged
       record
-         Panel : Panel_Type;
-         X, Y  : Natural;
+         Panel : Xtk.Panel.Xtk_Panel;
       end record;
 
-   package Panel_Lists is
-     new Ada.Containers.Doubly_Linked_Lists (Panel_Record);
+   function Top_Panel
+     (Overlay : Root_Overlay_Type'Class)
+      return Xtk.Panel.Xtk_Panel
+   is (Overlay.Panel);
+
+   package Overlay_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Overlay_Type);
 
    type Root_Xi_Model is abstract tagged
       record
@@ -215,7 +220,7 @@ private
          Status_Label       : Xtk.Label.Xtk_Label;
          FPS_Label          : Xtk.Label.Xtk_Label;
          Clock_Label        : Xtk.Label.Xtk_Label;
-         Info_Panels        : Panel_Lists.List;
+         Info_Panels        : Overlay_Lists.List;
          Show_Clock_Time    : Boolean;
          Log_Ship_Movement  : Boolean;
          Cash_Label         : Xtk.Label.Xtk_Label;
