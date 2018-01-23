@@ -100,6 +100,19 @@ package Concorde.People.Individuals is
       Career     : Concorde.People.Careers.Career_Type)
       return Boolean;
 
+   function Has_Office
+     (Individual : Root_Individual_Type'Class)
+      return Boolean;
+
+   function Office
+     (Individual : Root_Individual_Type'Class)
+      return Concorde.Offices.Office_Type
+     with Pre => Individual.Has_Office;
+
+   procedure Set_Office
+     (Individual : in out Root_Individual_Type'Class;
+      Office     : Concorde.Offices.Office_Type);
+
    function Has_Career
      (Individual : Root_Individual_Type'Class;
       Career     : Concorde.People.Careers.Career_Type)
@@ -183,6 +196,7 @@ private
                                  (others => 0);
          Career              : List_Of_Career_Records.List;
          Offices             : List_Of_Office_Records.List;
+         Current_Office      : Concorde.Offices.Office_Type;
          Skills              : Concorde.People.Skills.Skill_Set;
          Portrait_Props      : Portrait_Property_Array :=
                                  (others => Natural'Last);
@@ -262,6 +276,16 @@ private
      (Individual : Root_Individual_Type'Class)
       return Unit_Real
    is (Individual.Loyalty);
+
+   function Has_Office
+     (Individual : Root_Individual_Type'Class)
+      return Boolean
+   is (Concorde.Offices."/=" (Individual.Current_Office, null));
+
+   function Office
+     (Individual : Root_Individual_Type'Class)
+      return Concorde.Offices.Office_Type
+   is (Individual.Current_Office);
 
    package Db is
      new Memor.Database

@@ -142,6 +142,18 @@ package body Concorde.People.Individuals is
         Ada.Strings.Unbounded.To_Unbounded_String (Name);
    end Set_Name;
 
+   ----------------
+   -- Set_Office --
+   ----------------
+
+   procedure Set_Office
+     (Individual : in out Root_Individual_Type'Class;
+      Office     : Concorde.Offices.Office_Type)
+   is
+   begin
+      Individual.Current_Office := Office;
+   end Set_Office;
+
    ---------------------------
    -- Set_Proficiency_Level --
    ---------------------------
