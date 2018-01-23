@@ -1,5 +1,6 @@
 with Ada.Containers.Vectors;
 
+with Concorde.Factions.Events;
 with Concorde.Factions.Logging;
 with Concorde.Galaxy;
 with Concorde.Systems.Graphs;
@@ -736,8 +737,24 @@ package body Concorde.Factions is
       Minister : not null access constant
         Concorde.People.Individuals.Root_Individual_Type'Class)
    is
+      Old_Minister : constant Individual_Access :=
+                       Faction.Cabinet.Element (Office);
+      Event        : Concorde.Factions.Events.Office_Changed_Event;
+
    begin
       Faction.Cabinet.Replace_Element (Office, Individual_Access (Minister));
+      Event.Set_Time_Stamp (Concorde.Calendar.Clock);
+      Event.Office := Office;
+      Event.Old_Minister :=
+        Concorde.People.Individuals.Individual_Type (Old_Minister);
+      Event.New_Minister :=
+        Concorde.People.Individuals.Individual_Type
+          (Minister);
+
+      Faction.Signal
+        (Sig   => Concorde.Factions.Events.Signal_Office_Changed,
+         Event => Event);
+
    end Set_Minister;
 
    --------------
