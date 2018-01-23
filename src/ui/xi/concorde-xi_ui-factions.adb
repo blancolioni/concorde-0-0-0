@@ -63,6 +63,44 @@ package body Concorde.Xi_UI.Factions is
       Object : not null access constant
         Concorde.Objects.Root_Object_Type'Class);
 
+   function Create_Surface
+     (Individual : Concorde.People.Individuals.Individual_Type)
+      return Cairo.Cairo_Surface;
+
+   --------------------
+   -- Create_Surface --
+   --------------------
+
+   function Create_Surface
+     (Individual : Concorde.People.Individuals.Individual_Type)
+      return Cairo.Cairo_Surface
+   is
+      use Concorde.People.Individuals;
+
+      Surface     : constant Cairo.Cairo_Surface :=
+                      Cairo.Image_Surface.Create
+                        (Cairo.Image_Surface.Cairo_Format_ARGB32,
+                         102, 102);
+      Cr          : constant Cairo.Cairo_Context :=
+                      Cairo.Create (Surface);
+
+   begin
+      Cairo.Save (Cr);
+      Cairo.Set_Operator (Cr, Cairo.Cairo_Operator_Clear);
+      Cairo.Paint (Cr);
+      Cairo.Restore (Cr);
+
+      if Individual /= null then
+         Concorde.People.Individuals.Portraits.Draw_Portrait
+           (Cr, Individual, 102, 102);
+      end if;
+
+      Cairo.Destroy (Cr);
+
+      return Surface;
+
+   end Create_Surface;
+
    -------------------
    -- Draw_Portrait --
    -------------------
@@ -126,6 +164,10 @@ package body Concorde.Xi_UI.Factions is
          Portrait : constant Xtk.Widget.Xtk_Widget :=
                       (Panel.Get_Child_Widget_By_Id
                          ("faction-" & Office.Identifier & "-portrait"));
+         Minister : constant Concorde.People.Individuals.Individual_Type :=
+                      (if Faction.Has_Minister (Office)
+                       then Faction.Minister (Office)
+                       else null);
          Widgets  : Office_Widget_Access;
 
       begin
@@ -134,40 +176,17 @@ package body Concorde.Xi_UI.Factions is
          end if;
 
          if Faction.Has_Minister (Office) then
-            Name.Set_Label (Faction.Minister (Office).Full_Name);
+            Name.Set_Label (Minister.Full_Name);
          else
             Name.Set_Label ("Vacant");
          end if;
 
-         declare
-            Surface     : constant Cairo.Cairo_Surface :=
-                            Cairo.Image_Surface.Create
-                              (Cairo.Image_Surface.Cairo_Format_ARGB32,
-                               102, 102);
-            Cr          : constant Cairo.Cairo_Context :=
-                            Cairo.Create (Surface);
-
-         begin
-            Cairo.Save (Cr);
-            Cairo.Set_Operator (Cr, Cairo.Cairo_Operator_Clear);
-            Cairo.Paint (Cr);
-            Cairo.Restore (Cr);
-
-            if Faction.Has_Minister (Office) then
-               Concorde.People.Individuals.Portraits.Draw_Portrait
-                 (Cr, Faction.Minister (Office), 102, 102);
-            end if;
-
-            Cairo.Destroy (Cr);
-
-            Widgets :=
-              new Office_Widgets'
-                (Office           => Office,
-                 Minister_Name    => Name,
-                 Portrait_Widget  => Portrait,
-                 Portrait_Surface => Surface);
-
-         end;
+         Widgets :=
+           new Office_Widgets'
+             (Office           => Office,
+              Minister_Name    => Name,
+              Portrait_Widget  => Portrait,
+              Portrait_Surface => Create_Surface (Minister));
 
          Portrait.On_Draw (Draw_Portrait'Access, Widgets);
          Overlay.Widgets.Append (Widgets);
@@ -205,6 +224,7 @@ package body Concorde.Xi_UI.Factions is
       Object : not null access constant
         Concorde.Objects.Root_Object_Type'Class)
    is
+      use Cairo;
       use Concorde.Offices;
       use Concorde.People.Individuals;
       Ev      : Concorde.Factions.Events.Office_Changed_Event'Class renames
@@ -234,6 +254,11 @@ package body Concorde.Xi_UI.Factions is
                else
                   W.Minister_Name.Set_Label ("Vacant");
                end if;
+               if W.Portrait_Surface /= Null_Surface then
+                  Surface_Destroy (W.Portrait_Surface);
+               end if;
+               W.Portrait_Surface := Create_Surface (Ev.New_Minister);
+               W.Portrait_Widget.Queue_Draw;
                exit;
             end if;
          end loop;
