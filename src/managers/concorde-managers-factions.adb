@@ -90,6 +90,10 @@ package body Concorde.Managers.Factions is
                return;
             end if;
 
+            if Individual.Has_Office then
+               return;
+            end if;
+
             declare
                Score : constant Natural :=
                          Office.Score (Individual.all);
@@ -119,7 +123,9 @@ package body Concorde.Managers.Factions is
                & Best_Individual.Full_Name
                & " as "
                & Office.Name);
+
             Manager.Faction.Update.Set_Minister (Office, Best_Individual);
+            Best_Individual.Update.Set_Office (Office);
 
             for Responsibility in Concorde.Offices.Responsibility_Type loop
                if Office.Has_Responsibility (Responsibility) then
