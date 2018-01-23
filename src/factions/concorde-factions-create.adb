@@ -532,10 +532,18 @@ package body Concorde.Factions.Create is
 
          end if;
 
-         Concorde.People.Individuals.Create.Create_Family_Tree
-           (Faction,
-            Concorde.Locations.At_Installation
-              (Start_World.Colony_Hub));
+         declare
+            Ancestor : constant Concorde.People.Individuals.Individual_Type :=
+                         Concorde.People.Individuals.Create.Create_Family_Tree
+                           (Faction,
+                            Concorde.Locations.At_Installation
+                              (Start_World.Colony_Hub));
+            Leader   : constant Concorde.Offices.Office_Type :=
+                         Concorde.Offices.Get ("leader");
+         begin
+            Faction.Update.Set_Minister (Leader, Ancestor);
+            Ancestor.Update.Set_Office (Leader);
+         end;
 
          if Start_World.Has_Market then
             Set_Initial_Prices (Start_World.Market.Update);

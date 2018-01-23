@@ -14,9 +14,10 @@ package Concorde.People.Individuals.Create is
       Date_Of_Birth : Concorde.Calendar.Time)
       return Individual_Type;
 
-   procedure Create_Family_Tree
+   function Create_Family_Tree
      (Faction    : Concorde.Factions.Faction_Type;
-      Location   : Concorde.Locations.Object_Location);
+      Location   : Concorde.Locations.Object_Location)
+      return Individual_Type;
 
    function Create_Child
      (Parent_1, Parent_2 : not null access constant Root_Individual_Type'Class;

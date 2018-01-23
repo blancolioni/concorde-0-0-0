@@ -323,9 +323,10 @@ package body Concorde.People.Individuals.Create is
    -- Create_Family_Tree --
    ------------------------
 
-   procedure Create_Family_Tree
+   function Create_Family_Tree
      (Faction    : Concorde.Factions.Faction_Type;
       Location   : Concorde.Locations.Object_Location)
+      return Individual_Type
    is
       use Concorde.Calendar;
 
@@ -451,11 +452,10 @@ package body Concorde.People.Individuals.Create is
       Y : constant Individual_Type :=
             Create_Partner (X);
    begin
-      Faction.Update.Set_Minister
-        (Concorde.Offices.Get ("leader"), X);
       Report.Report (X);
       Report.Report (Y);
       Create_Generation (X, Y, 2);
+      return X;
    end Create_Family_Tree;
 
    --------------------
