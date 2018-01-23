@@ -197,13 +197,6 @@ package body Concorde.People.Individuals.Portraits is
                                         Height      =>
                                           Natural (Surface_Height));
                begin
---                    Ada.Text_IO.Put_Line
---                      ("sprite: " & Name & ": "
---                       & Sub_Directory & "/" & Base_File_Name & ".png"
---                       & Sprite.Width'Img & Sprite.Height'Img
---                       & Sprite.Frame_Count'Img
---                       & Stride'Img
---                       & " " & Format'Img);
                   Sprite_Map.Insert (Name, Sprite);
                end;
             else
@@ -344,13 +337,6 @@ package body Concorde.People.Individuals.Portraits is
                                     end if;
                                  end;
                               end if;
-
-                              Ada.Text_IO.Put_Line
-                                (Name & ": "
-                                 & Layer.Sprite_Name.all
-                                 & ": "
-                                 & Layer.Offset_X'Img
-                                 & Layer.Offset_Y'Img);
 
                            end if;
                         end;
@@ -503,6 +489,9 @@ package body Concorde.People.Individuals.Portraits is
                                "PORTRAIT_westerngfx_male" & Age_Suffix,
                             when None   =>
                                "PORTRAIT_westerngfx_none" & Age_Suffix);
+
+      Sprite        : Sprite_Type;
+
    begin
       Cairo.Save (Cr);
       Cairo.Set_Operator (Cr, Cairo.Cairo_Operator_Clear);
@@ -513,65 +502,69 @@ package body Concorde.People.Individuals.Portraits is
         Portrait_Map.Element (Portrait_Name).Layers
       loop
          if Layer.Gene > 0 then
-            declare
-               Sprite : constant Sprite_Type :=
-                          Sprite_Map.Element (Layer.Sprite_Name.all);
-            begin
-               Add_Layer
-                 (Sprite,
-                  Layer.Offset_X,
-                  Portrait_Height - Layer.Offset_Y - Sprite.Height,
-                  Positive
-                    (Genetics.Express
-                         (Individual.DNA,
-                          Concorde.People.Genetics.Get_Gene (Layer.Gene))));
-            end;
+            Sprite :=
+              Sprite_Map.Element (Layer.Sprite_Name.all);
+
+            Add_Layer
+              (Sprite,
+               Layer.Offset_X,
+               Portrait_Height - Layer.Offset_Y - Sprite.Height,
+               Positive
+                 (Genetics.Express
+                      (Individual.DNA,
+                       Concorde.People.Genetics.Get_Gene (Layer.Gene))));
          elsif Layer.Property > 0
            and then Layer.Sprite_Name /= null
            and then Sprite_Map.Contains (Layer.Sprite_Name.all)
          then
-            declare
-               Sprite   : constant Sprite_Type :=
-                            Sprite_Map.Element (Layer.Sprite_Name.all);
-               Property : constant Property_Record :=
-                            Property_Vector.Element (Layer.Property);
-               Frame    : Natural := 0;
 
-               package Frame_Choices is
-                 new Concorde.Weighted_Random_Choices (Positive);
+            Sprite := Sprite_Map.Element (Layer.Sprite_Name.all);
 
-               Choices  : Frame_Choices.Weighted_Choice_Set;
+            if Individual.Portrait_Props (Layer.Property) = Natural'Last then
+               declare
+                  Property : constant Property_Record :=
+                               Property_Vector.Element (Layer.Property);
+                  Frame    : Natural := 0;
 
-            begin
-               for Prop_Frame of Property.Frames loop
-                  declare
-                     Factor : Float := Float (Prop_Frame.Initial_Factor);
-                  begin
-                     for Modifier of Prop_Frame.Modifiers loop
-                        if Test (Individual, Modifier) then
-                           Factor := Factor * Modifier.Get ("factor");
+                  package Frame_Choices is
+                    new Concorde.Weighted_Random_Choices (Positive);
+
+                  Choices  : Frame_Choices.Weighted_Choice_Set;
+
+               begin
+                  for Prop_Frame of Property.Frames loop
+                     declare
+                        Factor : Float := Float (Prop_Frame.Initial_Factor);
+                     begin
+                        for Modifier of Prop_Frame.Modifiers loop
+                           if Test (Individual, Modifier) then
+                              Factor := Factor * Modifier.Get ("factor");
+                           end if;
+                           exit when Factor = 0.0;
+                        end loop;
+                        if Factor >= 100.0 then
+                           Frame := Prop_Frame.Frame;
+                           exit;
+                        elsif Factor > 0.0 then
+                           Choices.Insert
+                             (Prop_Frame.Frame, Positive (Factor + 0.5));
                         end if;
-                        exit when Factor = 0.0;
-                     end loop;
-                     if Factor >= 100.0 then
-                        Frame := Prop_Frame.Frame;
-                        exit;
-                     elsif Factor > 0.0 then
-                        Choices.Insert
-                          (Prop_Frame.Frame, Positive (Factor + 0.5));
-                     end if;
-                  end;
-               end loop;
+                     end;
+                  end loop;
 
-               if Frame = 0 and then not Choices.Is_Empty then
-                  Frame := Choices.Choose;
-               end if;
+                  if Frame = 0 and then not Choices.Is_Empty then
+                     Frame := Choices.Choose;
+                  end if;
 
-               if Frame > 0 then
-                  Add_Layer
-                    (Sprite, 0, 0, Frame);
-               end if;
-            end;
+                  Individual.Update.Portrait_Props (Layer.Property) := Frame;
+               end;
+            end if;
+
+            if Individual.Portrait_Props (Layer.Property) > 0 then
+               Add_Layer
+                 (Sprite, 0, 0,
+                  Individual.Portrait_Props (Layer.Property));
+            end if;
          end if;
       end loop;
 

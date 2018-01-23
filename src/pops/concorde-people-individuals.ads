@@ -154,6 +154,9 @@ private
      array (Concorde.People.Proficiencies.Proficiency_Type)
      of Concorde.People.Proficiencies.Proficiency_Score_Range;
 
+   type Portrait_Property_Array is
+     array (1 .. 16) of Natural;
+
    type Root_Individual_Type is
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Factions.Citizen_Interface
@@ -181,6 +184,8 @@ private
          Career              : List_Of_Career_Records.List;
          Offices             : List_Of_Office_Records.List;
          Skills              : Concorde.People.Skills.Skill_Set;
+         Portrait_Props      : Portrait_Property_Array :=
+                                 (others => Natural'Last);
       end record;
 
    overriding function Object_Database
