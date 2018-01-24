@@ -23,6 +23,7 @@ with Xtk.Page;
 
 with Concorde.Xi_UI.Key_Bindings;
 with Concorde.Xi_UI.Outliner;
+--  with Concorde.Xi_UI.Portraits;
 
 with Concorde.Calendar;
 with Concorde.Updates;
@@ -239,16 +240,21 @@ package body Concorde.Xi_UI is
      (Window : Xi.Render_Window.Xi_Render_Window;
       Path   : String)
    is
-      Builder : constant Xtk.Builder.Xtk_Builder :=
-                  Xtk.Builder.Xtk_New_From_File (Path);
-      Page : constant Xtk.Page.Xtk_Page :=
-               Builder.Get_Page;
    begin
-      Page.Set_Viewport (Window.Full_Viewport);
-      Page.Show_All;
-      Window.Add_Top_Level (Page);
+--        Concorde.Xi_UI.Portraits.Register;
 
-      Local_Main_UI := Builder;
+      declare
+         Builder : constant Xtk.Builder.Xtk_Builder :=
+                     Xtk.Builder.Xtk_New_From_File (Path);
+         Page    : constant Xtk.Page.Xtk_Page :=
+                     Builder.Get_Page;
+      begin
+         Page.Set_Viewport (Window.Full_Viewport);
+         Page.Show_All;
+         Window.Add_Top_Level (Page);
+
+         Local_Main_UI := Builder;
+      end;
    end Load_UI;
 
    -------------------

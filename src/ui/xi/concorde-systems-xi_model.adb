@@ -27,6 +27,7 @@ with Concorde.Ships.Xi_Model;
 with Concorde.Worlds.Xi_Model;
 
 with Concorde.Xi_UI.Outliner;
+with Concorde.Xi_UI.Worlds;
 
 with Concorde.Xi_UI.Factions;
 
@@ -426,6 +427,8 @@ package body Concorde.Systems.Xi_Model is
                         Scene.Create_Node ("selectors");
 
       Schematic_Offset_X : Non_Negative_Real := 0.0;
+      Overlay_Left       : Natural := 200;
+      Overlay_Top        : constant Natural := 600;
 
       procedure Create_Node
         (Object   : not null access constant
@@ -559,7 +562,21 @@ package body Concorde.Systems.Xi_Model is
                                  World.Radius,
                               when Schematic =>
                                  Sqrt (Sqrt (World.Radius)));
+
       begin
+
+         if View = Schematic then
+            if not World.Is_Moon then
+               declare
+                  Overlay      : constant Concorde.Xi_UI.Overlay_Type :=
+                                   Concorde.Xi_UI.Worlds.World_Overlay
+                                     (World);
+               begin
+                  Model.Show_Overlay (Overlay, Overlay_Left, Overlay_Top);
+                  Overlay_Left := Overlay_Left + 160;
+               end;
+            end if;
+         end if;
 
          Concorde.Worlds.Xi_Model.Load_World
            (World       => World,

@@ -111,6 +111,18 @@ label
     cursor: pointer;
 }
 
+.world-info
+{
+    width: 120px;
+    height: 200px;
+    position: absolute;
+    top: 60%;
+    left: 280px;
+    border: 1px solid #afeeee;
+    background-image: linear-gradient(to bottom, #dedede, #808080);
+    color: black;
+}
+
 .info-panel
 {
     width: 100px;
