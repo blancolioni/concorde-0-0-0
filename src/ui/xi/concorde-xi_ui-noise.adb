@@ -2,6 +2,8 @@ with Tropos.Reader;
 
 with Xi.Color;
 
+with WL.String_Maps;
+
 with Concorde.Paths;
 
 package body Concorde.Xi_UI.Noise is
@@ -9,6 +11,13 @@ package body Concorde.Xi_UI.Noise is
    function Create_Palette
      (Color_Config : Tropos.Configuration)
       return Xi.Color.Xi_Color_1D_Array;
+
+   package Palette_Maps is
+     new WL.String_Maps (Xi.Color.Xi_Color_1D_Array, Xi.Color."=");
+
+   Palette_Map : Palette_Maps.Map;
+
+   function Get_Palette (Name : String) return Xi.Color.Xi_Color_1D_Array;
 
    -------------------------
    -- Create_Noise_Shader --
@@ -25,11 +34,7 @@ package body Concorde.Xi_UI.Noise is
          Octaves    => 2.0,
          Roughness  => 0.5,
          Lacunarity => 2.0,
-         Palette    =>
-           Create_Palette
-             (Tropos.Reader.Read_Config
-                  (Concorde.Paths.Config_File
-                     ("palettes/" & Palette_Name & ".txt"))));
+         Palette    => Get_Palette (Palette_Name));
    end Create_Noise_Shader;
 
    --------------------
@@ -62,5 +67,28 @@ package body Concorde.Xi_UI.Noise is
          end loop;
       end return;
    end Create_Palette;
+
+   -----------------
+   -- Get_Palette --
+   -----------------
+
+   function Get_Palette (Name : String) return Xi.Color.Xi_Color_1D_Array is
+   begin
+      if not Palette_Map.Contains (Name) then
+         declare
+            Palette : constant Xi.Color.Xi_Color_1D_Array :=
+                     Create_Palette
+           (Tropos.Reader.Read_Config
+              (Concorde.Paths.Config_File
+                 ("palettes/" & Name & ".txt")));
+         begin
+            Palette_Map.Insert (Name, Palette);
+            return Palette;
+         end;
+      else
+         return Palette_Map.Element (Name);
+      end if;
+
+   end Get_Palette;
 
 end Concorde.Xi_UI.Noise;

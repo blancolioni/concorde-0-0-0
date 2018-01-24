@@ -725,10 +725,13 @@ package body Concorde.Worlds.Xi_Model is
       elsif True then
          declare
             Sphere_Near    : constant Xi.Entity.Xi_Entity :=
-                               Xi.Shapes.Icosohedral_Sphere (3);
+                                        Xi.Shapes.Icosohedral_Sphere (3);
+            Palette_Name   : constant String :=
+                               World_Category'Image (World.Category)
+                               & "-palette";
             Noise_Shader   : constant Xi.Shader.Noise.Xi_Noise_Shader :=
                                Concorde.Xi_UI.Noise.Create_Noise_Shader
-                                 (Palette_Name => "terrestrial-palette",
+                                 (Palette_Name => Palette_Name,
                                   Initiator    => World.Surface_Seed);
 
 --              Xi.Shader.Noise.Create_Noise_Shader
