@@ -1,3 +1,5 @@
+with Concorde.Localisation;
+
 package body Concorde.Xi_UI.Worlds is
 
    Max_World_Overlays : constant := 12;
@@ -8,6 +10,7 @@ package body Concorde.Xi_UI.Worlds is
          Active   : Boolean := False;
          World    : Concorde.Worlds.World_Type;
          Name     : Xtk.Label.Xtk_Label;
+         Category : Xtk.Label.Xtk_Label;
       end record;
 
    type World_Overlay_Access is access all Root_World_Overlay'Class;
@@ -30,14 +33,19 @@ package body Concorde.Xi_UI.Worlds is
       -----------------
 
       function New_Overlay (Index : Positive) return World_Overlay_Access is
+
          Overlay : constant World_Overlay_Access := new Root_World_Overlay;
+
+         function Child_Label (Id : String) return Xtk.Label.Xtk_Label
+         is (Xtk.Label.Xtk_Label
+             (Overlay.Top_Panel.Get_Child_Widget_By_Id (Id)));
+
       begin
          Overlay.Initialize ("world-info" & Integer'Image (-Index));
          Overlay.Active := False;
          Overlay.World := null;
-         Overlay.Name :=
-           Xtk.Label.Xtk_Label
-             (Overlay.Top_Panel.Get_Child_Widget_By_Id ("world-name"));
+         Overlay.Name := Child_Label ("world-name");
+         Overlay.Category := Child_Label ("world-category");
          return Overlay;
       end New_Overlay;
 
@@ -67,7 +75,11 @@ package body Concorde.Xi_UI.Worlds is
       begin
          Overlay.World := World;
          Overlay.Active := True;
-         Overlay.Name.Set_Text (World.Name);
+         Overlay.Name.Set_Label (World.Name);
+         Overlay.Category.Set_Label
+           (Concorde.Localisation.Local_Name
+              (Concorde.Worlds.World_Category'Image
+                   (World.Category)));
 
          return Overlay_Type (Overlay);
 
