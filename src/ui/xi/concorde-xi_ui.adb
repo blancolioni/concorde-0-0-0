@@ -264,7 +264,7 @@ package body Concorde.Xi_UI is
    function Main_Log_View return Xtk.Text.View.Xtk_Text_View is
    begin
       return Xtk.Text.View.Xtk_Text_View
-        (Local_Main_UI.Get ("log"));
+        (Local_Main_UI.Get ("log-text"));
    end Main_Log_View;
 
    ---------------------
