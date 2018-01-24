@@ -41,7 +41,7 @@ package body Concorde.Roman_Images is
             when 5 =>
                return (1 => Five);
             when 6 .. 8 =>
-               return S : constant String (1 .. D - 5) :=
+               return S : constant String (1 .. D - 4) :=
                  (1 => Five, others => One)
                do
                   null;
