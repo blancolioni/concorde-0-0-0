@@ -428,7 +428,7 @@ package body Concorde.Systems.Xi_Model is
 
       Schematic_Offset_X : Non_Negative_Real := 0.0;
       Overlay_Left       : Natural := 200;
-      Overlay_Top        : constant Natural := 600;
+      Overlay_Top        : constant Natural := 900;
 
       procedure Create_Node
         (Object   : not null access constant
@@ -523,11 +523,11 @@ package body Concorde.Systems.Xi_Model is
                declare
                   use Concorde.Elementary_Functions;
                   R : constant Xi_Float :=
-                        Sqrt (Sqrt (Star.Radius));
+                        Sqrt (Star.Radius);
                begin
                   Star_Node.Scale (R);
                   Light.Set_Position (0.0, 0.0, 0.0);
-                  Star_Node.Set_Position (-R, 0.0, 0.0);
+                  Star_Node.Set_Position (-R * 1.5, 0.0, 0.0);
                   Schematic_Offset_X := 0.0;
                end;
          end case;
@@ -561,7 +561,7 @@ package body Concorde.Systems.Xi_Model is
                               when Accurate =>
                                  World.Radius,
                               when Schematic =>
-                                 Sqrt (Sqrt (World.Radius)));
+                                 Sqrt (World.Radius));
 
       begin
 
