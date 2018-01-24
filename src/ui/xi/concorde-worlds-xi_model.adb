@@ -484,9 +484,12 @@ package body Concorde.Worlds.Xi_Model is
             Model.Scene.Active_Camera, True);
       end loop;
 
-      Model.World_Node.Set_Orientation
-        (Concorde.Geometry.Radians_To_Degrees (Model.World.Current_Local_Time),
-         0.0, 1.0, 0.0);
+      if False then
+         Model.World_Node.Set_Orientation
+           (Concorde.Geometry.Radians_To_Degrees
+              (Model.World.Current_Local_Time),
+            0.0, 1.0, 0.0);
+      end if;
 
       if Model.Selected_Ship /= null then
          declare
