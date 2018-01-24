@@ -113,13 +113,13 @@ label
 
 .info-panel
 {
-    width: 300px;
+    width: 100px;
     height: 600px;
     position: absolute;
     top: 100px;
     left: 10px;
     border: 1px solid #afeeee;
-    background-image: linear-gradient(to bottom, #dedede, #888);
+    background-image: linear-gradient(to bottom, #dedede, #808080);
     color: black;
 }
 

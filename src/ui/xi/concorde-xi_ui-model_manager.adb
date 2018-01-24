@@ -41,8 +41,10 @@ package body Concorde.Xi_UI.Model_Manager is
          return Concorde.Xi_UI.Galaxies.Galaxy_Model (Faction, Renderer);
       elsif For_Object.all in Concorde.Systems.Root_Star_System_Type'Class then
          return Concorde.Systems.Xi_Model.System_Model
-           (Concorde.Systems.Star_System_Type (For_Object),
-            Faction, Renderer);
+           (System  => Concorde.Systems.Star_System_Type (For_Object),
+            Faction => Faction,
+            View    => Concorde.Systems.Xi_Model.Schematic,
+            Target  => Renderer);
       elsif For_Object.all in Concorde.Worlds.Root_World_Type'Class then
          return Concorde.Worlds.Xi_Model.World_Model
            (Concorde.Worlds.World_Type (For_Object), Time,

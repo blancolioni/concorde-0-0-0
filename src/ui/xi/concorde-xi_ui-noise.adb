@@ -29,7 +29,7 @@ package body Concorde.Xi_UI.Noise is
            Create_Palette
              (Tropos.Reader.Read_Config
                   (Concorde.Paths.Config_File
-                     (Palette_Name))));
+                     ("palettes/" & Palette_Name & ".txt"))));
    end Create_Noise_Shader;
 
    --------------------

@@ -32,6 +32,7 @@ with Concorde.Hash_Table;
 with Concorde.Worlds.Tables;
 with Concorde.Ships.Xi_Model;
 
+with Concorde.Xi_UI.Noise;
 with Concorde.Xi_UI.Colours;
 
 with Concorde.Systems.Events;
@@ -721,17 +722,21 @@ package body Concorde.Worlds.Xi_Model is
          Entity := Xi.Shapes.Icosohedral_Sphere (3);
          Entity.Set_Material
            (Xi.Assets.Material ("Concorde/System/Moon"));
-      elsif False then
+      elsif True then
          declare
             Sphere_Near    : constant Xi.Entity.Xi_Entity :=
-                               Xi.Shapes.Icosohedral_Sphere (5);
+                               Xi.Shapes.Icosohedral_Sphere (3);
             Noise_Shader   : constant Xi.Shader.Noise.Xi_Noise_Shader :=
-                               Xi.Shader.Noise.Create_Noise_Shader
-                                 (Initiator  => World.Surface_Seed,
-                                  Octaves    => 10.0,
-                                  Roughness  => 0.8,
-                                  Lacunarity => 4.0,
-                                  Palette    => (1 => (0.5, 0.5, 0.5, 1.0)));
+                               Concorde.Xi_UI.Noise.Create_Noise_Shader
+                                 (Palette_Name => "terrestrial-palette",
+                                  Initiator    => World.Surface_Seed);
+
+--              Xi.Shader.Noise.Create_Noise_Shader
+--                (Initiator  => World.Surface_Seed,
+--                 Octaves    => 10.0,
+--                 Roughness  => 0.8,
+--                 Lacunarity => 4.0,
+--                 Palette    => (1 => (0.5, 0.5, 0.5, 1.0)));
             Material       : constant Xi.Materials.Material.Xi_Material :=
                                Noise_Shader.Material;
          begin
