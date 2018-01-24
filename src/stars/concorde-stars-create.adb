@@ -2,6 +2,8 @@ with Concorde.Elementary_Functions;
 
 with Concorde.Stars.Tables;
 
+with Concorde.Solar_System;
+
 package body Concorde.Stars.Create is
 
    --------------
@@ -40,7 +42,7 @@ package body Concorde.Stars.Create is
          Star.Subclass := Subclass;
          Star.Size := Main_Sequence;
          Star.Color := Color;
-         Star.Radius := Radius;
+         Star.Radius := Radius * Concorde.Solar_System.Solar_Radius;
          Star.Luminosity := Luminosity;
          Star.Ecosphere := Concorde.Elementary_Functions.Sqrt (Luminosity);
          Star.Age := 1.0E10 * Solar_Masses / Luminosity;
