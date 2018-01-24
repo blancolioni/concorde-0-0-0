@@ -125,7 +125,7 @@ label
 
 .info-panel
 {
-    width: 100px;
+    width: 300px;
     height: 600px;
     position: absolute;
     top: 100px;
@@ -135,12 +135,53 @@ label
     color: black;
 }
 
+.character-detail-overlay
+{
+    border: 1px solid #afeeee;
+    background-image: linear-gradient(to bottom, #dedede, #888);
+    color: black;
+    position:absolute;
+    left:300px;
+    top:300px;
+    width:600px;
+    height:300px;
+}
+
+.ability-div
+{
+    float:left;
+}
+
+#char-portrait
+{
+    position:absolute;
+    left:30px;
+    top:30px;
+    background-color: blue;
+}
+
+#char-partner-portrait
+{
+    position:absolute;
+    left:180px;
+    top:71px;
+    background-color: red;
+}
+
+#char-abilities
+{
+    position:absolute;
+    left:290px;
+    top:20px;
+    background-color: green;
+}
+
 .planet-name
 {
     border-bottom: 1px solid #afeeee;
 }
 
-.portrait-actual-size
+.portrait-large
 {
     width: 153px;
     height: 153px;
