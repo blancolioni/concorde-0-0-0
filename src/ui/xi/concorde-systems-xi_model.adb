@@ -468,7 +468,7 @@ package body Concorde.Systems.Xi_Model is
          Star_Node : constant Xi.Node.Xi_Node :=
                        System_Node.Create_Child (Star.Name);
          Star_Entity  : constant Xi.Entity.Xi_Entity :=
-                          Xi.Shapes.Icosohedral_Sphere (2);
+                          Xi.Shapes.Icosohedral_Sphere (3);
          Light     : Xi.Light.Xi_Light;
          Palette      : Xi.Color.Xi_Color_1D_Array (1 .. 20);
          Noise_Shader : Xi.Shader.Noise.Xi_Noise_Shader;
@@ -518,13 +518,14 @@ package body Concorde.Systems.Xi_Model is
 
             when Schematic =>
                declare
+                  use Concorde.Elementary_Functions;
                   R : constant Xi_Float :=
-                        Star.Radius;
+                        Sqrt (Sqrt (Star.Radius));
                begin
                   Star_Node.Scale (R);
                   Light.Set_Position (0.0, 0.0, 0.0);
-                  Star_Node.Set_Position (0.0, 0.0, 0.0);
-                  Schematic_Offset_X := R;
+                  Star_Node.Set_Position (-R, 0.0, 0.0);
+                  Schematic_Offset_X := 0.0;
                end;
          end case;
 
