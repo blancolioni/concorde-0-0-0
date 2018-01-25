@@ -181,7 +181,7 @@ begin
             elsif True then
                Model :=
                  Concorde.Xi_UI.Model_Manager.Model
-                   (Concorde.Galaxy.Get_System (1),
+                   (Faction.Capital.System,
                     Concorde.Calendar.Start, Faction, Window);
             else
                Model :=
