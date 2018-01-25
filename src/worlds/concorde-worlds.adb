@@ -852,6 +852,23 @@ package body Concorde.Worlds is
       World.Owner := Concorde.Factions.Faction_Type (Faction);
    end Set_Owner;
 
+   ----------------------
+   -- Total_Population --
+   ----------------------
+
+   function Total_Population
+     (World : Root_World_Type'Class)
+      return WL.Quantities.Quantity_Type
+   is
+      use WL.Quantities;
+   begin
+      return Result : Quantity_Type := Zero do
+         for Pop of World.Pops loop
+            Result := Result + Pop.Size_Quantity;
+         end loop;
+      end return;
+   end Total_Population;
+
    ------------
    -- Update --
    ------------

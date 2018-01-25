@@ -113,7 +113,9 @@ label
 
 .world-info
 {
-    width: 120px;
+    font-family: Tahoma;
+    font-size: 8pt;
+    width: 140px;
     height: 200px;
     position: absolute;
     top: 60%;

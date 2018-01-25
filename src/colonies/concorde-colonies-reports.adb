@@ -19,6 +19,10 @@ package body Concorde.Colonies.Reports is
       Concorde.Worlds.Scan_Market_Worlds (Report_World_Colony'Access);
    end Report_Colonies;
 
+   -------------------------
+   -- Report_World_Colony --
+   -------------------------
+
    procedure Report_World_Colony
      (World : Concorde.Worlds.World_Type)
    is

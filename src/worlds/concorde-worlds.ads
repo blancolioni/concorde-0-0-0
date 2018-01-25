@@ -244,6 +244,10 @@ package Concorde.Worlds is
      (World : Root_World_Type'Class;
       Ships : out Concorde.Ships.Lists.List);
 
+   function Total_Population
+     (World : Root_World_Type'Class)
+      return WL.Quantities.Quantity_Type;
+
    procedure Scan_Pops
      (World : Root_World_Type'Class;
       Process : not null access

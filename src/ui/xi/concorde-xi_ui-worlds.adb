@@ -1,4 +1,5 @@
 with WL.Localisation;
+with WL.Quantities;
 
 package body Concorde.Xi_UI.Worlds is
 
@@ -7,10 +8,11 @@ package body Concorde.Xi_UI.Worlds is
    type Root_World_Overlay is
      new Root_Overlay_Type with
       record
-         Active   : Boolean := False;
-         World    : Concorde.Worlds.World_Type;
-         Name     : Xtk.Label.Xtk_Label;
-         Category : Xtk.Label.Xtk_Label;
+         Active     : Boolean := False;
+         World      : Concorde.Worlds.World_Type;
+         Name       : Xtk.Label.Xtk_Label;
+         Category   : Xtk.Label.Xtk_Label;
+         Population : Xtk.Label.Xtk_Label;
       end record;
 
    type World_Overlay_Access is access all Root_World_Overlay'Class;
@@ -46,6 +48,7 @@ package body Concorde.Xi_UI.Worlds is
          Overlay.World := null;
          Overlay.Name := Child_Label ("world-name");
          Overlay.Category := Child_Label ("world-category");
+         Overlay.Population := Child_Label ("world-population");
          return Overlay;
       end New_Overlay;
 
@@ -81,7 +84,9 @@ package body Concorde.Xi_UI.Worlds is
          Overlay.Active := True;
          Overlay.Name.Set_Label (World.Name);
          Overlay.Category.Set_Label (Category);
-
+         Overlay.Population.Set_Label
+           (WL.Quantities.Show
+              (World.Total_Population));
          return Overlay_Type (Overlay);
 
       end;
