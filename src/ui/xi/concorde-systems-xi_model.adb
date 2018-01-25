@@ -427,8 +427,8 @@ package body Concorde.Systems.Xi_Model is
                         Scene.Create_Node ("selectors");
 
       Schematic_Offset_X : Non_Negative_Real := 0.0;
-      Overlay_Left       : Natural := 200;
-      Overlay_Top        : constant Natural := 900;
+      Overlay_Left       : Natural := 260;
+      Overlay_Top        : constant Natural := 500;
 
       procedure Create_Node
         (Object   : not null access constant
@@ -509,8 +509,8 @@ package body Concorde.Systems.Xi_Model is
 
          Xi.Light.Xi_New (Light, Xi.Light.Point);
          Light.Set_Color (Star.Color);
---           Light.Set_Attenuation (0.2);
---           Light.Set_Ambient_Coefficient (0.005);
+         Light.Set_Attenuation (0.2);
+         Light.Set_Ambient_Coefficient (0.005);
          Scene.Add_Light (Light);
 
          case View is
@@ -546,22 +546,18 @@ package body Concorde.Systems.Xi_Model is
          use Xi;
          use Concorde.Geometry;
          use Concorde.Elementary_Functions;
-         --  Position : constant Radians := World.Orbit_Progress;
+         use Concorde.Worlds;
          World_Node : constant Xi.Node.Xi_Node :=
                         System_Node.Create_Child (World.Name);
---           Orbit_Radius : constant Xi_Float :=
---                            Xi_Float (World.Semimajor_Axis)
---                            / Concorde.Solar_System.Earth_Orbit;
---           Scale        : constant Xi_Float :=
---                            Xi_Float (World.Radius)
---                            / Scene_Unit_Length;
          Ships        : Concorde.Ships.Lists.List;
          R            : constant Non_Negative_Real :=
                           (case View is
                               when Accurate =>
                                  World.Radius,
                               when Schematic =>
-                                 Sqrt (World.Radius));
+                             (if World.Category in Jovian_World
+                              then 0.5 else 1.0)
+                           * Sqrt (World.Radius));
 
       begin
 
@@ -573,7 +569,7 @@ package body Concorde.Systems.Xi_Model is
                                      (World);
                begin
                   Model.Show_Overlay (Overlay, Overlay_Left, Overlay_Top);
-                  Overlay_Left := Overlay_Left + 160;
+                  Overlay_Left := Overlay_Left + 178;
                end;
             end if;
          end if;
@@ -593,11 +589,11 @@ package body Concorde.Systems.Xi_Model is
                   World_Node.Set_Visible (False);
                else
                   World_Node.Set_Position
-                    (Schematic_Offset_X + 2.2 * R,
+                    (Schematic_Offset_X + 5_000.0,
                      0.0,
                      0.0);
                   Schematic_Offset_X :=
-                    World_Node.Position (1) + R;
+                    World_Node.Position (1) + 5_000.0;
                end if;
          end case;
 
@@ -713,10 +709,13 @@ package body Concorde.Systems.Xi_Model is
             Camera.Perspective (Camera_Start_Fov,
                                 Camera_Start_Near, Camera_Start_Far);
          when Schematic =>
-            Camera.Set_Position (Schematic_Offset_X / 2.0, 0.0,
-                                 Schematic_Offset_X);
-            Camera.Perspective (45.0, Schematic_Offset_X / 2.0,
-                                Schematic_Offset_X * 2.0);
+            Camera.Set_Position (30_000.0, 0.0, 60_000.0);
+            Camera.Perspective (45.0, 30_000.0, 120_000.0);
+
+--              Camera.Set_Position (Schematic_Offset_X / 2.0, 0.0,
+--                                   Schematic_Offset_X);
+--              Camera.Perspective (45.0, Schematic_Offset_X / 2.0,
+--                                  Schematic_Offset_X * 2.0);
       end case;
 
       Camera.Set_Orientation (0.0, 0.0, 1.0, 0.0);
