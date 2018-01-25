@@ -1,4 +1,4 @@
-with Concorde.Localisation;
+with WL.Localisation;
 with Concorde.Logging;
 
 package body Concorde.Objects is
@@ -171,7 +171,7 @@ package body Concorde.Objects is
       return String
    is
    begin
-      return Concorde.Localisation.Local_Name
+      return WL.Localisation.Local_Text
         (Root_Localised_Object_Type'Class (Item).Identifier);
    end Name;
 

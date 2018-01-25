@@ -1,4 +1,4 @@
-with Concorde.Localisation;
+with WL.Localisation;
 
 package body Concorde.Xi_UI.Outliner is
 
@@ -200,7 +200,7 @@ package body Concorde.Xi_UI.Outliner is
             declare
                Cat_Label : constant Xtk.Label.Xtk_Label :=
                              Xtk.Label.Xtk_New
-                               (Concorde.Localisation.Local_Name
+                               (WL.Localisation.Local_Text
                                   (To_String (Category.Identifier)));
             begin
                Cat_Label.Set_Attribute ("class", "outliner-category-label");

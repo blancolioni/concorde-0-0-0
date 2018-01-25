@@ -2,6 +2,8 @@ with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Directories;
 with Ada.Text_IO;
 
+with WL.Localisation;
+
 with Tropos.Reader;
 
 with Concorde.Names;
@@ -26,8 +28,6 @@ with Concorde.Terrain.Configure;
 
 with Concorde.Options;
 with Concorde.Scenarios;
-
-with Concorde.Localisation;
 
 with Concorde.Paths;
 
@@ -127,9 +127,32 @@ package body Concorde.Configure is
    ------------------------
 
    procedure Load_Configuration is
+
+      procedure Read_Localisation
+        (Item : Ada.Directories.Directory_Entry_Type);
+
+      -----------------------
+      -- Read_Localisation --
+      -----------------------
+
+      procedure Read_Localisation
+        (Item : Ada.Directories.Directory_Entry_Type)
+      is
+      begin
+         Ada.Text_IO.Put_Line
+           ("Reading localisation from: " & Ada.Directories.Full_Name (Item));
+         WL.Localisation.Read_Localisation
+           (Ada.Directories.Full_Name (Item));
+      end Read_Localisation;
+
    begin
-      Concorde.Localisation.Load_Localisation
-        (Concorde.Options.Display_Language);
+
+      Ada.Directories.Search
+        (Directory =>
+           Concorde.Paths.Config_File
+             ("localisation/" & Concorde.Options.Display_Language),
+         Pattern   => "*.txt",
+         Process   => Read_Localisation'Access);
 
       Concorde.Names.Configure_Names;
 

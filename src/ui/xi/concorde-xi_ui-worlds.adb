@@ -1,4 +1,4 @@
-with Concorde.Localisation;
+with WL.Localisation;
 
 package body Concorde.Xi_UI.Worlds is
 
@@ -72,14 +72,15 @@ package body Concorde.Xi_UI.Worlds is
       declare
          Overlay : constant World_Overlay_Access :=
                      Overlays (Index);
+         Category : constant String :=
+                      WL.Localisation.Local_Text
+                        (Concorde.Worlds.World_Category'Image
+                           (World.Category));
       begin
          Overlay.World := World;
          Overlay.Active := True;
          Overlay.Name.Set_Label (World.Name);
-         Overlay.Category.Set_Label
-           (Concorde.Localisation.Local_Name
-              (Concorde.Worlds.World_Category'Image
-                   (World.Category)));
+         Overlay.Category.Set_Label (Category);
 
          return Overlay_Type (Overlay);
 

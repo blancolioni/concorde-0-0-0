@@ -1,0 +1,4 @@
+jovian,Gas Giant
+martian,Martian
+rock,Rock
+terrestrial,Terrestrial
