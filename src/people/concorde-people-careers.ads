@@ -1,5 +1,5 @@
 private with Memor.Database;
-private with Concorde.Localisation;
+private with WL.Localisation;
 
 with Memor;
 
@@ -128,7 +128,7 @@ private
      (Career : Root_Career_Type'Class;
       Index  : Rank_Index)
       return String
-   is (Concorde.Localisation.Local_Name
+   is (WL.Localisation.Local_Text
          (Career.Ranks (Index).Name.all));
 
 end Concorde.People.Careers;
