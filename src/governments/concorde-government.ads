@@ -57,7 +57,17 @@ package Concorde.Government is
         Concorde.Commodities.Root_Commodity_Type'Class;
       Rate       : Unit_Real);
 
-      function Tax_Receipts
+   function Base_Tax_Rate
+     (Government : Root_Government_Type'Class;
+      Category   : Concorde.Trades.Market_Tax_Category)
+      return Unit_Real;
+
+   procedure Set_Base_Tax_Rate
+     (Government : in out Root_Government_Type'Class;
+      Category   : Concorde.Trades.Market_Tax_Category;
+      Rate       : Unit_Real);
+
+   function Tax_Receipts
      (Government : Root_Government_Type'Class;
       Category   : Concorde.Trades.Market_Tax_Category)
       return WL.Money.Money_Type;
@@ -106,9 +116,9 @@ private
      array (Concorde.Trades.Market_Tax_Category) of Unit_Real;
 
    Default_Tax_Rates : constant Array_Of_Tax_Rates :=
-                         (Concorde.Trades.Sales  => 0.1,
-                          Concorde.Trades.Import => 0.1,
-                          Concorde.Trades.Export => 0.1);
+                         (Concorde.Trades.Sales  => 0.0,
+                          Concorde.Trades.Import => 0.0,
+                          Concorde.Trades.Export => 0.0);
 
    type Array_Of_Tax_Receipts is
      array (Concorde.Trades.Market_Tax_Category) of WL.Money.Money_Type;
@@ -128,6 +138,7 @@ private
          Governor          : access constant
            Concorde.People.Individuals.Root_Individual_Type'Class;
          Headquarters      : Concorde.Installations.Installation_Type;
+         Base_Tax_Rate     : Array_Of_Tax_Rates;
          Tax_Rates         : Commodity_Tax_Rates.Vector;
          Tax_Receipts      : Array_Of_Tax_Receipts :=
                                (others => WL.Money.Zero);
@@ -173,6 +184,12 @@ private
      (Government : Root_Government_Type'Class)
       return Boolean
    is (Government.Slavery_Allowed);
+
+   function Base_Tax_Rate
+     (Government : Root_Government_Type'Class;
+      Category   : Concorde.Trades.Market_Tax_Category)
+      return Unit_Real
+   is (Government.Base_Tax_Rate (Category));
 
    package Db is
      new Memor.Database

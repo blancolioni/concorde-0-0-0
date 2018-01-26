@@ -73,6 +73,19 @@ package body Concorde.Government is
       return Db.Get_Database;
    end Object_Database;
 
+   -----------------------
+   -- Set_Base_Tax_Rate --
+   -----------------------
+
+   procedure Set_Base_Tax_Rate
+     (Government : in out Root_Government_Type'Class;
+      Category   : Concorde.Trades.Market_Tax_Category;
+      Rate       : Unit_Real)
+   is
+   begin
+      Government.Base_Tax_Rate (Category) := Rate;
+   end Set_Base_Tax_Rate;
+
    ---------------------------
    -- Set_Basic_Living_Wage --
    ---------------------------
@@ -129,8 +142,14 @@ package body Concorde.Government is
         Concorde.Commodities.Root_Commodity_Type'Class)
       return Unit_Real
    is
+      Rate : constant Unit_Real :=
+               Government.Tax_Rates.Element (Commodity) (Category);
    begin
-      return Government.Tax_Rates.Element (Commodity) (Category);
+      if Rate = 0.0 then
+         return Government.Base_Tax_Rate (Category);
+      else
+         return Rate;
+      end if;
    end Tax_Rate;
 
    -----------------
