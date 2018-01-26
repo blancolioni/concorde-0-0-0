@@ -1,6 +1,10 @@
 with WL.Localisation;
 with WL.Quantities;
 
+with Xi.Float_Images;
+
+with Concorde.Solar_System;
+
 package body Concorde.Xi_UI.Worlds is
 
    Max_World_Overlays : constant := 12;
@@ -12,6 +16,8 @@ package body Concorde.Xi_UI.Worlds is
          World      : Concorde.Worlds.World_Type;
          Name       : Xtk.Label.Xtk_Label;
          Category   : Xtk.Label.Xtk_Label;
+         Mass       : Xtk.Label.Xtk_Label;
+         Radius     : Xtk.Label.Xtk_Label;
          Population : Xtk.Label.Xtk_Label;
       end record;
 
@@ -48,6 +54,8 @@ package body Concorde.Xi_UI.Worlds is
          Overlay.World := null;
          Overlay.Name := Child_Label ("world-name");
          Overlay.Category := Child_Label ("world-category");
+         Overlay.Mass := Child_Label ("world-mass");
+         Overlay.Radius := Child_Label ("world-radius");
          Overlay.Population := Child_Label ("world-population");
          return Overlay;
       end New_Overlay;
@@ -84,6 +92,12 @@ package body Concorde.Xi_UI.Worlds is
          Overlay.Active := True;
          Overlay.Name.Set_Label (World.Name);
          Overlay.Category.Set_Label (Category);
+         Overlay.Mass.Set_Label
+           (Xi.Float_Images.Image
+              (World.Mass / Concorde.Solar_System.Earth_Mass));
+         Overlay.Radius.Set_Label
+           (Xi.Float_Images.Image
+              (World.Radius / Concorde.Solar_System.Earth_Radius));
          Overlay.Population.Set_Label
            (WL.Quantities.Show
               (World.Total_Population));

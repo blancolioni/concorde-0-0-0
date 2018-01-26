@@ -42,10 +42,11 @@ with Concorde.Calendar;
 package Concorde.Worlds is
 
    type World_Category is
-     (Rock, Martian, Venusian, Terrestrial, Water, Ice, Sub_Jovian, Jovian);
+     (Rock, Martian, Venusian, Terrestrial, Water, Ice,
+      Neptunian, Saturnian, Jovian);
 
    subtype Rocky_World is World_Category range Rock .. Ice;
-   subtype Jovian_World is World_Category range Sub_Jovian .. Jovian;
+   subtype Jovian_World is World_Category range Neptunian .. Jovian;
 
    type Root_World_Type is
      new Concorde.Objects.Root_User_Named_Object_Type
@@ -83,6 +84,10 @@ package Concorde.Worlds is
    function Category
      (World : Root_World_Type'Class)
       return World_Category;
+
+   function Is_Gas_Giant
+     (World : Root_World_Type'Class)
+      return Boolean;
 
    function Is_Moon
      (World : Root_World_Type'Class)
@@ -520,6 +525,11 @@ private
    is (World.System);
 
    overriding procedure Load (World : in out Root_World_Type);
+
+   function Is_Gas_Giant
+     (World : Root_World_Type'Class)
+      return Boolean
+   is (World.Category in Jovian_World);
 
    function Colony_Hub
      (World : Root_World_Type'Class)
