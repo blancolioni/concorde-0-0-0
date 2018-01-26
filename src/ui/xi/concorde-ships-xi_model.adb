@@ -219,7 +219,7 @@ package body Concorde.Ships.Xi_Model is
             Material  : constant Xi.Materials.Material.Xi_Material :=
                           Xi.Assets.Material
                             ("Concorde.Ships.Components."
-                             & Component.Name);
+                             & Component.Identifier);
          begin
 --              Material.Set_Parameter_Value
 --                ("color", Xi.Value.Color_Value (Colour));
