@@ -505,8 +505,7 @@ package body Concorde.Worlds.Create is
       World_Mass   : constant Real := World.Mass;
       World_Radius : constant Real := World.Radius;
       World_Year   : constant Real := World.Period;
-      Is_Jovian     : constant Boolean :=
-                        World.Category in Sub_Jovian .. Jovian;
+      Is_Jovian     : constant Boolean := World.Is_Gas_Giant;
       J             : constant Real := 1.46e-20;
       K2            : constant Real :=
                         (if Is_Jovian then 0.24 else 0.33);
@@ -1493,13 +1492,19 @@ package body Concorde.Worlds.Create is
             Category : World_Category;
          begin
             if Is_Jovian then
-               Category := Jovian;
+               if World.Mass > 1.0e27 then
+                  Category := Jovian;
+               elsif World.Mass > 1.0e26 then
+                  Category := Saturnian;
+               else
+                  Category := Neptunian;
+               end if;
             elsif Pressure < 1.0 then
                Category := Rock;
             elsif Pressure > 6000.0
               and then World.Min_Molecular_Weight <= 2.0
             then
-               Category := Sub_Jovian;
+               Category := Neptunian;
             else
                if World.Hydrosphere >= 0.95 then
                   Category := Water;

@@ -714,10 +714,11 @@ package body Concorde.Worlds.Xi_Model is
 
    begin
       World.Check_Loaded;
-      if World.Category in Jovian_World then
+      if World.Is_Gas_Giant then
          Entity := Xi.Shapes.Icosohedral_Sphere (3);
          Entity.Set_Material
-           (Xi.Assets.Material ("Concorde/System/Gas_Giant"));
+           (Xi.Assets.Material ("Concorde/System/"
+            & World_Category'Image (World.Category)));
       elsif World.Is_Moon then
          Entity := Xi.Shapes.Icosohedral_Sphere (3);
          Entity.Set_Material

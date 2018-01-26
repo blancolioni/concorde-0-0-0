@@ -50,7 +50,14 @@ package Concorde.Government is
       Category   : Concorde.Trades.Market_Tax_Category;
       Receipt    : WL.Money.Money_Type);
 
-   function Tax_Receipts
+   procedure Set_Tax_Rate
+     (Government : in out Root_Government_Type'Class;
+      Category   : Concorde.Trades.Market_Tax_Category;
+      Commodity  : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
+      Rate       : Unit_Real);
+
+      function Tax_Receipts
      (Government : Root_Government_Type'Class;
       Category   : Concorde.Trades.Market_Tax_Category)
       return WL.Money.Money_Type;

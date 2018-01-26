@@ -1,0 +1,2 @@
+sales_tax = 10%
+import_tariff = 20%
