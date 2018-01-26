@@ -14,7 +14,7 @@ package body Concorde.Laws.Tax_Laws is
    type Sales_Tax_Law is
      new Commodity_Tax_Law with null record;
 
-   overriding procedure Enact (Law : in out Sales_Tax_Law) is null;
+   overriding procedure Enact (Law : in out Sales_Tax_Law);
    overriding procedure Repeal (Law : in out Sales_Tax_Law) is null;
    overriding function Show (Law : Sales_Tax_Law) return String
    is ("sales tax");
@@ -22,7 +22,7 @@ package body Concorde.Laws.Tax_Laws is
    type Import_Tariff_Law is
      new Commodity_Tax_Law with null record;
 
-   overriding procedure Enact (Law : in out Import_Tariff_Law) is null;
+   overriding procedure Enact (Law : in out Import_Tariff_Law);
    overriding procedure Repeal (Law : in out Import_Tariff_Law) is null;
    overriding function Show (Law : Import_Tariff_Law) return String
    is ("import tariff");
@@ -70,6 +70,38 @@ package body Concorde.Laws.Tax_Laws is
       return Gov (Context.Target);
    end Context_Government;
 
+   -----------
+   -- Enact --
+   -----------
+
+   overriding procedure Enact (Law : in out Import_Tariff_Law) is
+      use type Concorde.Commodities.Commodity_Type;
+   begin
+      if Law.Commodity = null then
+         Law.Government.Update.Set_Base_Tax_Rate
+           (Concorde.Trades.Import, Law.Rate);
+      else
+         Law.Government.Update.Set_Tax_Rate
+           (Concorde.Trades.Import, Law.Commodity, Law.Rate);
+      end if;
+   end Enact;
+
+   -----------
+   -- Enact --
+   -----------
+
+   overriding procedure Enact (Law : in out Sales_Tax_Law) is
+      use type Concorde.Commodities.Commodity_Type;
+   begin
+      if Law.Commodity = null then
+         Law.Government.Update.Set_Base_Tax_Rate
+           (Concorde.Trades.Sales, Law.Rate);
+      else
+         Law.Government.Update.Set_Tax_Rate
+           (Concorde.Trades.Sales, Law.Commodity, Law.Rate);
+      end if;
+   end Enact;
+
    -------------------
    -- Import_Tariff --
    -------------------
@@ -111,7 +143,7 @@ package body Concorde.Laws.Tax_Laws is
       return new Import_Tariff_Law'
         (Level         => 2,
          Context       => Context,
-         Previous_Rate => 0.0,
+         Previous_Rate => Government.Base_Tax_Rate (Concorde.Trades.Import),
          New_Rate      => Rate,
          Commodity     => null,
          Government    => Government);
@@ -158,7 +190,7 @@ package body Concorde.Laws.Tax_Laws is
       return new Sales_Tax_Law'
         (Level         => 2,
          Context       => Context,
-         Previous_Rate => 0.0,
+         Previous_Rate => Government.Base_Tax_Rate (Concorde.Trades.Sales),
          New_Rate      => Rate,
          Commodity     => null,
          Government    => Government);
