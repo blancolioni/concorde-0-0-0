@@ -42,4 +42,7 @@ private
          New_Rate      : Unit_Real;
       end record;
 
+   function Rate (Law : Root_Tax_Law_Type'Class) return Unit_Real
+   is (Law.New_Rate);
+
 end Concorde.Laws.Tax_Laws;
