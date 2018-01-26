@@ -94,12 +94,12 @@ initial-ships = {
      }
 }
 
-initial-units = {
+initial_units = {
    mine = 2
    colonist = 2
 }
 
-initial-armies = {
+initial_armies = {
 }
 
 houses = {

@@ -15,9 +15,22 @@ package body Concorde.Factions is
 
    function All_Factions return Array_Of_Factions;
 
-   -----------------
+   -------------
+   -- Add_Law --
+   -------------
+
+   procedure Add_Law
+     (Faction : in out Root_Faction_Type'Class;
+      Law     : not null access constant
+        Concorde.Laws.Root_Law_Type'Class)
+   is
+   begin
+      Faction.Laws.Append (Law);
+   end Add_Law;
+
+   ------------------
    -- All_Factions --
-   -----------------
+   ------------------
 
    function All_Factions return Array_Of_Factions is
 

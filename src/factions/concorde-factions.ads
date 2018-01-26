@@ -17,6 +17,7 @@ with Lui.Colours;
 
 with Concorde.Agents;
 with Concorde.Calendar;
+with Concorde.Laws;
 with Concorde.Locations;
 with Concorde.Objects;
 with Concorde.Offices;
@@ -82,6 +83,11 @@ package Concorde.Factions is
       Office   : Concorde.Offices.Office_Type;
       Minister : not null access constant
         Concorde.People.Individuals.Root_Individual_Type'Class);
+
+   procedure Add_Law
+     (Faction : in out Root_Faction_Type'Class;
+      Law     : not null access constant
+        Concorde.Laws.Root_Law_Type'Class);
 
    function Capital_World
      (Faction : Root_Faction_Type'Class)
@@ -384,6 +390,10 @@ private
      new Memor.Element_Vectors
        (Concorde.Offices.Root_Office_Type, Individual_Access, null);
 
+   package Law_Lists is
+     new Ada.Containers.Doubly_Linked_Lists
+       (Concorde.Laws.Law_Type, Concorde.Laws."=");
+
    type Root_Faction_Type is
      new Concorde.Agents.Root_Agent_Type
      and Memor.Identifier_Record_Type
@@ -396,6 +406,7 @@ private
          System_Data        : access System_Data_Array;
          Faction_Data       : access Relation_Record;
          Cabinet            : Office_Holder_Vectors.Vector;
+         Laws               : Law_Lists.List;
          Current_Population : WL.Quantities.Quantity_Type;
          Current_Ships      : Natural := 0;
          Current_Units      : Natural := 0;

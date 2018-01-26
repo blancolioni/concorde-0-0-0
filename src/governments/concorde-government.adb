@@ -101,6 +101,23 @@ package body Concorde.Government is
       Government.Governor := Governor;
    end Set_Governor;
 
+   ------------------
+   -- Set_Tax_Rate --
+   ------------------
+
+   procedure Set_Tax_Rate
+     (Government : in out Root_Government_Type'Class;
+      Category   : Concorde.Trades.Market_Tax_Category;
+      Commodity  : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
+      Rate       : Unit_Real)
+   is
+      Rates : Array_Of_Tax_Rates := Government.Tax_Rates.Element (Commodity);
+   begin
+      Rates (Category) := Rate;
+      Government.Tax_Rates.Replace_Element (Commodity, Rates);
+   end Set_Tax_Rate;
+
    --------------
    -- Tax_Rate --
    --------------
