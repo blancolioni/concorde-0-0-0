@@ -1,3 +1,4 @@
+with Ada.Calendar;
 with Ada.Text_IO;
 
 with WL.Random;
@@ -67,6 +68,7 @@ package body Concorde.Systems.Xi_Model is
      new Concorde.Xi_UI.Root_Xi_Model with
       record
          System            : Star_System_Type;
+         Start_Time        : Ada.Calendar.Time;
          Worlds            : Rendered_World_Lists.List;
          Ships             : Rendered_Ship_Lists.List;
          Selected_Ship     : Concorde.Ships.Ship_Type;
@@ -209,7 +211,21 @@ package body Concorde.Systems.Xi_Model is
             end loop;
 
          when Schematic =>
-            null;
+            for Rendered_World of Model.Worlds loop
+               declare
+                  use Ada.Calendar;
+                  Elapsed : constant Duration :=
+                              Clock - Model.Start_Time;
+                  Rot     : constant Real :=
+                              Real (Elapsed) / 60.0
+                              * Rendered_World.World.Day_Length
+                              / 84_600.0
+                                * 360.0;
+               begin
+                  Rendered_World.Node.Set_Orientation
+                    (Rot, 0.0, 1.0, 0.0);
+               end;
+            end loop;
       end case;
 
       if False then
@@ -358,6 +374,7 @@ package body Concorde.Systems.Xi_Model is
          Model := new Root_System_Model;
          Model.Initialize (Faction, Target);
 
+         Model.Start_Time := Ada.Calendar.Clock;
          Model.View := View;
          Model.System := System;
          Model.Log := Concorde.Xi_UI.Main_Log_View;
@@ -428,7 +445,7 @@ package body Concorde.Systems.Xi_Model is
 
       Schematic_Offset_X : Non_Negative_Real := 0.0;
       Overlay_Left       : Natural := 260;
-      Overlay_Top        : constant Natural := 500;
+      Overlay_Top        : constant Natural := 900;
 
       procedure Create_Node
         (Object   : not null access constant
