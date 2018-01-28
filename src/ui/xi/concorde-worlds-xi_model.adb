@@ -1,6 +1,8 @@
+with Ada.Calendar;
 with Ada.Text_IO;
 
 with WL.Brownian_Noise;
+with WL.String_Maps;
 
 with Xi.Assets;
 with Xi.Camera;
@@ -30,13 +32,13 @@ with Newton;
 with Concorde.Hash_Table;
 
 with Concorde.Worlds.Tables;
+with Concorde.Worlds.Xi_Model.Palettes;
 with Concorde.Ships.Xi_Model;
 
-with Concorde.Xi_UI.Noise;
+--  with Concorde.Xi_UI.Noise;
 with Concorde.Xi_UI.Colours;
 
 with Concorde.Systems.Events;
-with WL.String_Maps;
 
 with Concorde.Options;
 
@@ -82,6 +84,7 @@ package body Concorde.Worlds.Xi_Model is
      new Concorde.Xi_UI.Root_Xi_Model with
       record
          World         : World_Type;
+         Start_Time    : Ada.Calendar.Time;
          Ships         : Rendered_Ship_Lists.List;
          Selected_Ship : Concorde.Ships.Ship_Type;
          World_Node    : Xi.Node.Xi_Node;
@@ -490,6 +493,19 @@ package body Concorde.Worlds.Xi_Model is
            (Concorde.Geometry.Radians_To_Degrees
               (Model.World.Current_Local_Time),
             0.0, 1.0, 0.0);
+      else
+         declare
+            use Ada.Calendar;
+            Elapsed : constant Duration :=
+                        Clock - Model.Start_Time;
+            Rot     : constant Real :=
+                        Real (Elapsed) / 60.0
+                        * Model.World.Day_Length
+                        / 84_600.0;
+         begin
+            Model.World_Node.Set_Orientation
+              (Rot, 0.0, 1.0, 0.0);
+         end;
       end if;
 
       if Model.Selected_Ship /= null then
@@ -680,6 +696,8 @@ package body Concorde.Worlds.Xi_Model is
       function Height_Noise (X, Y, Z : Xi_Signed_Unit_Float)
                              return Xi.Color.Xi_Color;
 
+      function World_Noise_Shader return Xi.Shader.Noise.Xi_Noise_Shader;
+
       ------------------
       -- Height_Noise --
       ------------------
@@ -712,6 +730,43 @@ package body Concorde.Worlds.Xi_Model is
          return Concorde.Xi_UI.Colours.To_Xi_Color (Height_Colour);
       end Height_Noise;
 
+      ------------------------
+      -- World_Noise_Shader --
+      ------------------------
+
+      function World_Noise_Shader return Xi.Shader.Noise.Xi_Noise_Shader is
+         Octaves        : constant Xi_Non_Negative_Float :=
+                            (case Rocky_World (World.Category) is
+                                when Water => 2.0,
+                                when Rock | Ice | Venusian => 4.0,
+                                when Martian | Terrestrial => 8.0);
+         Roughness      : constant Xi_Unit_Float :=
+                            (case Rocky_World (World.Category) is
+                                when Water       => 0.05,
+                                when Rock        => 0.5,
+                                when Venusian    => 0.1,
+                                when Martian     => 0.3,
+                                when Ice         => 0.2,
+                                when Terrestrial => 0.8);
+         Lacunarity     : constant Xi_Non_Negative_Float :=
+                            (case Rocky_World (World.Category) is
+                                when Water       => 2.0,
+                                when Rock        => 2.0,
+                                when Venusian    => 2.0,
+                                when Martian     => 2.0,
+                                when Ice         => 2.0,
+                                when Terrestrial => 2.0);
+         Noise_Shader   : constant Xi.Shader.Noise.Xi_Noise_Shader :=
+                            Xi.Shader.Noise.Create_Noise_Shader
+                              (Palette      => Palettes.Get_Palette (World),
+                               Initiator    => World.Surface_Seed,
+                               Octaves      => Octaves,
+                               Roughness    => Roughness,
+                               Lacunarity   => Lacunarity);
+      begin
+         return Noise_Shader;
+      end World_Noise_Shader;
+
    begin
       World.Check_Loaded;
       if World.Is_Gas_Giant then
@@ -726,25 +781,12 @@ package body Concorde.Worlds.Xi_Model is
       elsif True then
          declare
             Sphere_Near    : constant Xi.Entity.Xi_Entity :=
-                                        Xi.Shapes.Icosohedral_Sphere (3);
-            Palette_Name   : constant String :=
-                               World_Category'Image (World.Category)
-                               & "-palette";
+                                        Xi.Shapes.Icosohedral_Sphere (4);
             Noise_Shader   : constant Xi.Shader.Noise.Xi_Noise_Shader :=
-                               Concorde.Xi_UI.Noise.Create_Noise_Shader
-                                 (Palette_Name => Palette_Name,
-                                  Initiator    => World.Surface_Seed);
-
---              Xi.Shader.Noise.Create_Noise_Shader
---                (Initiator  => World.Surface_Seed,
---                 Octaves    => 10.0,
---                 Roughness  => 0.8,
---                 Lacunarity => 4.0,
---                 Palette    => (1 => (0.5, 0.5, 0.5, 1.0)));
+                               World_Noise_Shader;
             Material       : constant Xi.Materials.Material.Xi_Material :=
                                Noise_Shader.Material;
          begin
-            Noise_Shader.Set_Octaves (10.0);
             Sphere_Near.Set_Material (Material);
             Entity := Sphere_Near;
          end;
@@ -825,6 +867,7 @@ package body Concorde.Worlds.Xi_Model is
       else
          Model := new Root_World_Model;
          Model.Initialize (Faction, Target);
+         Model.Start_Time := Ada.Calendar.Clock;
          Model.World := World;
          Model.Set_Scene (World_Scene (World, Time, Model));
          Model.World_Node :=
