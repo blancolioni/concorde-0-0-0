@@ -1,3 +1,5 @@
+with Ada.Strings.Fixed;
+
 with WL.Localisation;
 with WL.Quantities;
 
@@ -12,13 +14,15 @@ package body Concorde.Xi_UI.Worlds is
    type Root_World_Overlay is
      new Root_Overlay_Type with
       record
-         Active     : Boolean := False;
-         World      : Concorde.Worlds.World_Type;
-         Name       : Xtk.Label.Xtk_Label;
-         Category   : Xtk.Label.Xtk_Label;
-         Mass       : Xtk.Label.Xtk_Label;
-         Radius     : Xtk.Label.Xtk_Label;
-         Population : Xtk.Label.Xtk_Label;
+         Active      : Boolean := False;
+         World       : Concorde.Worlds.World_Type;
+         Name        : Xtk.Label.Xtk_Label;
+         Category    : Xtk.Label.Xtk_Label;
+         Mass        : Xtk.Label.Xtk_Label;
+         Radius      : Xtk.Label.Xtk_Label;
+         Day_Length  : Xtk.Label.Xtk_Label;
+         Population  : Xtk.Label.Xtk_Label;
+         Hydrosphere : Xtk.Label.Xtk_Label;
       end record;
 
    type World_Overlay_Access is access all Root_World_Overlay'Class;
@@ -56,7 +60,9 @@ package body Concorde.Xi_UI.Worlds is
          Overlay.Category := Child_Label ("world-category");
          Overlay.Mass := Child_Label ("world-mass");
          Overlay.Radius := Child_Label ("world-radius");
+         Overlay.Day_Length := Child_Label ("world-day-length");
          Overlay.Population := Child_Label ("world-population");
+         Overlay.Hydrosphere := Child_Label ("world-ocean-coverage");
          return Overlay;
       end New_Overlay;
 
@@ -98,9 +104,19 @@ package body Concorde.Xi_UI.Worlds is
          Overlay.Radius.Set_Label
            (Xi.Float_Images.Image
               (World.Radius / Concorde.Solar_System.Earth_Radius));
+         Overlay.Day_Length.Set_Label
+           (Ada.Strings.Fixed.Trim
+              (Natural'Image (Natural (World.Day_Length / 3600.0)),
+               Ada.Strings.Left)
+            & "h");
          Overlay.Population.Set_Label
            (WL.Quantities.Show
               (World.Total_Population));
+         Overlay.Hydrosphere.Set_Label
+           (Ada.Strings.Fixed.Trim
+              (Natural'Image (Natural (World.Hydrosphere * 100.0)),
+               Ada.Strings.Left)
+            & "%");
          return Overlay_Type (Overlay);
 
       end;
