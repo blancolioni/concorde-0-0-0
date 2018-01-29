@@ -5,27 +5,24 @@ with Concorde.Worlds;
 package body Concorde.Laws.Tax_Laws is
 
    type Commodity_Tax_Law is
-     abstract new Root_Tax_Law_Type with
+     new Root_Tax_Law_Type with
       record
          Government : Concorde.Government.Government_Type;
          Commodity  : Concorde.Commodities.Commodity_Type;
+         Category   : Concorde.Trades.Market_Tax_Category;
       end record;
 
-   type Sales_Tax_Law is
-     new Commodity_Tax_Law with null record;
+   overriding procedure Enact (Law : in out Commodity_Tax_Law);
+   overriding procedure Repeal (Law : in out Commodity_Tax_Law);
+   overriding function Show (Law : Commodity_Tax_Law) return String;
 
-   overriding procedure Enact (Law : in out Sales_Tax_Law);
-   overriding procedure Repeal (Law : in out Sales_Tax_Law) is null;
-   overriding function Show (Law : Sales_Tax_Law) return String
-   is ("sales tax");
-
-   type Import_Tariff_Law is
-     new Commodity_Tax_Law with null record;
-
-   overriding procedure Enact (Law : in out Import_Tariff_Law);
-   overriding procedure Repeal (Law : in out Import_Tariff_Law) is null;
-   overriding function Show (Law : Import_Tariff_Law) return String
-   is ("import tariff");
+   function New_Tax_Law
+     (Context   : Law_Context;
+      Level     : Law_Level;
+      Category  : Concorde.Trades.Market_Tax_Category;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Rate      : Unit_Real)
+      return Law_Type;
 
    function Context_Government
      (Context : Law_Context)
@@ -74,31 +71,15 @@ package body Concorde.Laws.Tax_Laws is
    -- Enact --
    -----------
 
-   overriding procedure Enact (Law : in out Import_Tariff_Law) is
+   overriding procedure Enact (Law : in out Commodity_Tax_Law) is
       use type Concorde.Commodities.Commodity_Type;
    begin
       if Law.Commodity = null then
          Law.Government.Update.Set_Base_Tax_Rate
-           (Concorde.Trades.Import, Law.Rate);
+           (Law.Category, Law.Rate);
       else
          Law.Government.Update.Set_Tax_Rate
-           (Concorde.Trades.Import, Law.Commodity, Law.Rate);
-      end if;
-   end Enact;
-
-   -----------
-   -- Enact --
-   -----------
-
-   overriding procedure Enact (Law : in out Sales_Tax_Law) is
-      use type Concorde.Commodities.Commodity_Type;
-   begin
-      if Law.Commodity = null then
-         Law.Government.Update.Set_Base_Tax_Rate
-           (Concorde.Trades.Sales, Law.Rate);
-      else
-         Law.Government.Update.Set_Tax_Rate
-           (Concorde.Trades.Sales, Law.Commodity, Law.Rate);
+           (Law.Category, Law.Commodity, Law.Rate);
       end if;
    end Enact;
 
@@ -113,18 +94,10 @@ package body Concorde.Laws.Tax_Laws is
       Rate      : Unit_Real)
       return Law_Type
    is
-      Government : constant Concorde.Government.Government_Type :=
-                     Context_Government (Context);
-
    begin
-      return new Import_Tariff_Law'
-        (Level         => 2,
-         Context       => Context,
-         Previous_Rate =>
-           Government.Tax_Rate (Concorde.Trades.Sales, Commodity),
-         New_Rate      => Rate,
-         Commodity     => Concorde.Commodities.Commodity_Type (Commodity),
-         Government    => Government);
+      return New_Tax_Law
+        (Context, Legislation, Concorde.Trades.Import,
+         Concorde.Commodities.Commodity_Type (Commodity), Rate);
    end Import_Tariff;
 
    -------------------
@@ -136,18 +109,56 @@ package body Concorde.Laws.Tax_Laws is
       Rate      : Unit_Real)
       return Law_Type
    is
+   begin
+      return New_Tax_Law (Context, Legislation, Concorde.Trades.Import,
+                          null, Rate);
+   end Import_Tariff;
+
+   -----------------
+   -- New_Tax_Law --
+   -----------------
+
+   function New_Tax_Law
+     (Context   : Law_Context;
+      Level     : Law_Level;
+      Category  : Concorde.Trades.Market_Tax_Category;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Rate      : Unit_Real)
+      return Law_Type
+   is
+      use type Concorde.Commodities.Commodity_Type;
       Government : constant Concorde.Government.Government_Type :=
                      Context_Government (Context);
 
    begin
-      return new Import_Tariff_Law'
-        (Level         => 2,
+      return new Commodity_Tax_Law'
+        (Level         => Level,
          Context       => Context,
-         Previous_Rate => Government.Base_Tax_Rate (Concorde.Trades.Import),
+         Previous_Rate =>
+           (if Commodity = null
+            then Government.Base_Tax_Rate (Category)
+            else Government.Tax_Rate (Category, Commodity)),
          New_Rate      => Rate,
-         Commodity     => null,
-         Government    => Government);
-   end Import_Tariff;
+         Commodity     => Commodity,
+         Government    => Government,
+         Category      => Category);
+   end New_Tax_Law;
+
+   ------------
+   -- Repeal --
+   ------------
+
+   overriding procedure Repeal (Law : in out Commodity_Tax_Law) is
+      use type Concorde.Commodities.Commodity_Type;
+   begin
+      if Law.Commodity = null then
+         Law.Government.Update.Set_Base_Tax_Rate
+           (Law.Category, Law.Previous_Rate);
+      else
+         Law.Government.Update.Set_Tax_Rate
+           (Law.Category, Law.Commodity, Law.Previous_Rate);
+      end if;
+   end Repeal;
 
    ---------------
    -- Sales_Tax --
@@ -160,18 +171,10 @@ package body Concorde.Laws.Tax_Laws is
       Rate      : Unit_Real)
       return Law_Type
    is
-      Government : constant Concorde.Government.Government_Type :=
-                     Context_Government (Context);
-
    begin
-      return new Sales_Tax_Law'
-        (Level         => 2,
-         Context       => Context,
-         Previous_Rate =>
-           Government.Tax_Rate (Concorde.Trades.Sales, Commodity),
-         New_Rate      => Rate,
-         Commodity     => Concorde.Commodities.Commodity_Type (Commodity),
-         Government    => Government);
+      return New_Tax_Law
+        (Context, Legislation, Concorde.Trades.Sales,
+         Concorde.Commodities.Commodity_Type (Commodity), Rate);
    end Sales_Tax;
 
    ---------------
@@ -183,17 +186,38 @@ package body Concorde.Laws.Tax_Laws is
       Rate      : Unit_Real)
       return Law_Type
    is
-      Government : constant Concorde.Government.Government_Type :=
-                     Context_Government (Context);
-
    begin
-      return new Sales_Tax_Law'
-        (Level         => 2,
-         Context       => Context,
-         Previous_Rate => Government.Base_Tax_Rate (Concorde.Trades.Sales),
-         New_Rate      => Rate,
-         Commodity     => null,
-         Government    => Government);
+      return New_Tax_Law
+        (Context, Legislation, Concorde.Trades.Sales,
+         null, Rate);
    end Sales_Tax;
+
+   ----------
+   -- Show --
+   ----------
+
+   overriding function Show
+     (Law : Commodity_Tax_Law)
+      return String
+   is
+      use type Concorde.Commodities.Commodity_Type;
+      Category_Name : constant String :=
+                        (case Law.Category is
+                            when Concorde.Trades.Sales =>
+                               "sales tax",
+                            when Concorde.Trades.Import =>
+                               "import tariff",
+                            when Concorde.Trades.Export =>
+                               "export tariff");
+      Specific_Name : constant String :=
+                        (if Law.Commodity = null
+                         then "base " & Category_Name
+                         else Category_Name & " on " & Law.Commodity.Name);
+      Rate_Name : constant String :=
+                    " at" & Natural'Image (Natural (Law.Rate * 100.0))
+                    & "%";
+   begin
+      return Specific_Name & Rate_Name;
+   end Show;
 
 end Concorde.Laws.Tax_Laws;
