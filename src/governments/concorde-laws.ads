@@ -2,12 +2,14 @@ with Concorde.Objects;
 
 package Concorde.Laws is
 
-   type Law_Level is range 0 .. 4;
-   --  level 0: laws of the game
-   --  level 1: constitutional
-   --  level 2: legislation
-   --  level 3: regulation
-   --  level 4: customary
+   type Law_Level is
+     (
+      Axiom,                 --  rule of the game, unchangeable
+      Constitutional,        --  difficult to change
+      Legislation,           --  changed by repeal
+      Regulation,            --  changed by executive order
+      Custom                 --  customary behaviour only; no force of law
+     );
 
    type Law_Context is private;
 
