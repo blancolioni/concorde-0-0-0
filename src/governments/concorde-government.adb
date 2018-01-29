@@ -60,6 +60,18 @@ package body Concorde.Government is
       return Government.Headquarters;
    end Headquarters;
 
+   ------------
+   -- Insert --
+   ------------
+
+   overriding procedure Insert
+     (Government : in out Root_Government_Type;
+      Power      : Concorde.Powers.Power_Type)
+   is
+   begin
+      Government.Powers.Insert (Power);
+   end Insert;
+
    ---------------------
    -- Object_Database --
    ---------------------
@@ -72,6 +84,18 @@ package body Concorde.Government is
    begin
       return Db.Get_Database;
    end Object_Database;
+
+   ------------
+   -- Remove --
+   ------------
+
+   overriding procedure Remove
+     (Government : in out Root_Government_Type;
+      Power      : Concorde.Powers.Power_Type)
+   is
+   begin
+      Government.Powers.Remove (Power);
+   end Remove;
 
    -----------------------
    -- Set_Base_Tax_Rate --

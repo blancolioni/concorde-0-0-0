@@ -28,6 +28,18 @@ package body Concorde.Factions is
       Faction.Laws.Append (Law);
    end Add_Law;
 
+   ---------------
+   -- Add_Power --
+   ---------------
+
+   overriding procedure Add_Power
+     (Item  : in out Root_Faction_Type;
+      Power : Concorde.Powers.Power_Type)
+   is
+   begin
+      Item.Powers.Insert (Power);
+   end Add_Power;
+
    ------------------
    -- All_Factions --
    ------------------

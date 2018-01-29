@@ -16,11 +16,13 @@ limited with Concorde.Worlds;
 with Lui.Colours;
 
 with Concorde.Agents;
+with Concorde.Bureaucracy;
 with Concorde.Calendar;
 with Concorde.Laws;
 with Concorde.Locations;
 with Concorde.Objects;
 with Concorde.Offices;
+with Concorde.Powers;
 with Concorde.Systems;
 with Concorde.Trades;
 
@@ -36,7 +38,12 @@ package Concorde.Factions is
      new Concorde.Agents.Root_Agent_Type
      and Memor.Identifier_Record_Type
      and Concorde.Objects.User_Named_Object_Interface
+     and Concorde.Bureaucracy.Bureaucratic_Interface
    with private;
+
+   overriding procedure Add_Power
+     (Item  : in out Root_Faction_Type;
+      Power : Concorde.Powers.Power_Type);
 
    function Colour
      (Faction : Root_Faction_Type'Class)
@@ -397,7 +404,8 @@ private
    type Root_Faction_Type is
      new Concorde.Agents.Root_Agent_Type
      and Memor.Identifier_Record_Type
-     and Concorde.Objects.User_Named_Object_Interface with
+     and Concorde.Objects.User_Named_Object_Interface
+     and Concorde.Bureaucracy.Bureaucratic_Interface with
       record
          Identifier         : Ada.Strings.Unbounded.Unbounded_String;
          Faction_Name       : Ada.Strings.Unbounded.Unbounded_String;
@@ -405,7 +413,9 @@ private
          Central_Bank       : Boolean := False;
          System_Data        : access System_Data_Array;
          Faction_Data       : access Relation_Record;
+         Ruler              : Faction_Type;
          Cabinet            : Office_Holder_Vectors.Vector;
+         Powers             : Concorde.Powers.Power_Set;
          Laws               : Law_Lists.List;
          Current_Population : WL.Quantities.Quantity_Type;
          Current_Ships      : Natural := 0;

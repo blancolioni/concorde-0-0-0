@@ -17,13 +17,20 @@ package Concorde.Laws is
 
    type Law_Type is access all Root_Law_Type'Class;
 
+   function Can_Enact
+     (Law : Root_Law_Type)
+      return Boolean
+      is abstract;
+
    procedure Enact
      (Law : in out Root_Law_Type)
-   is abstract;
+   is abstract
+     with Pre'Class => Law.Can_Enact;
 
    procedure Repeal
      (Law : in out Root_Law_Type)
-   is abstract;
+   is abstract
+     with Pre'Class => Law.Can_Enact;
 
    function Show (Law : Root_Law_Type) return String is abstract;
 

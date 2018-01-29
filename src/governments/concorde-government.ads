@@ -7,6 +7,7 @@ with Concorde.Commodities;
 with Concorde.Installations;
 with Concorde.Locations;
 with Concorde.Objects;
+with Concorde.Powers;
 with Concorde.Trades;
 
 limited with Concorde.People.Individuals;
@@ -19,6 +20,7 @@ package Concorde.Government is
    type Root_Government_Type is
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Trades.Trade_Manager_Interface
+     and Concorde.Powers.Powered_Interface
    with private;
 
    function Governor
@@ -34,6 +36,19 @@ package Concorde.Government is
    function Headquarters
      (Government : Root_Government_Type'Class)
       return Concorde.Installations.Installation_Type;
+
+   overriding function Contains
+     (Government : Root_Government_Type;
+      Power      : Concorde.Powers.Power_Type)
+      return Boolean;
+
+   overriding procedure Insert
+     (Government : in out Root_Government_Type;
+      Power      : Concorde.Powers.Power_Type);
+
+   overriding procedure Remove
+     (Government : in out Root_Government_Type;
+      Power      : Concorde.Powers.Power_Type);
 
    overriding function Tax_Rate
      (Government : Root_Government_Type;
@@ -130,7 +145,8 @@ private
 
    type Root_Government_Type is
      new Concorde.Agents.Root_Agent_Type
-     and Concorde.Trades.Trade_Manager_Interface with
+     and Concorde.Trades.Trade_Manager_Interface
+     and Concorde.Powers.Powered_Interface with
       record
          Governed          : access constant Governed_Interface'Class;
          Owner             : access constant
@@ -138,6 +154,7 @@ private
          Governor          : access constant
            Concorde.People.Individuals.Root_Individual_Type'Class;
          Headquarters      : Concorde.Installations.Installation_Type;
+         Powers            : Concorde.Powers.Power_Set;
          Base_Tax_Rate     : Array_Of_Tax_Rates;
          Tax_Rates         : Commodity_Tax_Rates.Vector;
          Tax_Receipts      : Array_Of_Tax_Receipts :=
@@ -168,6 +185,12 @@ private
      (Government : not null access constant Root_Government_Type)
       return access Concorde.Agents.Root_Agent_Type'Class
    is (Government.Update.Item);
+
+   overriding function Contains
+     (Government : Root_Government_Type;
+      Power      : Concorde.Powers.Power_Type)
+      return Boolean
+   is (Government.Powers.Contains (Power));
 
    function Governor
      (Government : Root_Government_Type'Class)

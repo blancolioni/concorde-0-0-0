@@ -65,7 +65,12 @@ package body Concorde.Factions.Configure is
                              Config  => Law_Config);
                begin
                   Faction.Update.Add_Law (Law);
-                  Law.Enact;
+                  if Law.Can_Enact then
+                     Ada.Text_IO.Put_Line ("Enacting: " & Law.Show);
+                     Law.Enact;
+                  else
+                     Ada.Text_IO.Put_Line ("Cannot enact: " & Law.Show);
+                  end if;
                end;
             end loop;
          end;

@@ -1,4 +1,5 @@
 with Concorde.Government;
+with Concorde.Powers;
 with Concorde.Trades;
 with Concorde.Worlds;
 
@@ -11,6 +12,10 @@ package body Concorde.Laws.Tax_Laws is
          Commodity  : Concorde.Commodities.Commodity_Type;
          Category   : Concorde.Trades.Market_Tax_Category;
       end record;
+
+   overriding function Can_Enact (Law : Commodity_Tax_Law) return Boolean
+   is (Law.Government.Contains
+       (Concorde.Powers.Set_Tax_Rate (Law.Category)));
 
    overriding procedure Enact (Law : in out Commodity_Tax_Law);
    overriding procedure Repeal (Law : in out Commodity_Tax_Law);
