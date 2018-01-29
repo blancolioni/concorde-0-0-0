@@ -41,6 +41,11 @@ package Concorde.Factions is
      and Concorde.Bureaucracy.Bureaucratic_Interface
    with private;
 
+   overriding function Has_Power
+     (Item  : Root_Faction_Type;
+      Power : Concorde.Powers.Power_Type)
+      return Boolean;
+
    overriding procedure Add_Power
      (Item  : in out Root_Faction_Type;
       Power : Concorde.Powers.Power_Type);
@@ -469,6 +474,12 @@ private
      (Faction : in out Root_Faction_Type;
       Amount  : WL.Money.Money_Type);
 
+   overriding function Has_Power
+     (Item  : Root_Faction_Type;
+      Power : Concorde.Powers.Power_Type)
+      return Boolean
+   is (Item.Powers.Contains (Power));
+
    function Capital_World
      (Faction : Root_Faction_Type'Class)
       return access constant
@@ -520,5 +531,7 @@ private
       record
          Update : Db.Updateable_Reference (Item);
       end record;
+
+   Imperium_Faction : Faction_Type;
 
 end Concorde.Factions;

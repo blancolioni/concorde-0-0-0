@@ -155,7 +155,7 @@ private
            Concorde.People.Individuals.Root_Individual_Type'Class;
          Headquarters      : Concorde.Installations.Installation_Type;
          Powers            : Concorde.Powers.Power_Set;
-         Base_Tax_Rate     : Array_Of_Tax_Rates;
+         Base_Tax_Rate     : Array_Of_Tax_Rates := Default_Tax_Rates;
          Tax_Rates         : Commodity_Tax_Rates.Vector;
          Tax_Receipts      : Array_Of_Tax_Receipts :=
                                (others => WL.Money.Zero);

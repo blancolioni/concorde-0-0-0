@@ -1,3 +1,4 @@
+with Concorde.Factions;
 with Concorde.Government;
 with Concorde.Powers;
 with Concorde.Trades;
@@ -8,13 +9,14 @@ package body Concorde.Laws.Tax_Laws is
    type Commodity_Tax_Law is
      new Root_Tax_Law_Type with
       record
+         Faction    : Concorde.Factions.Faction_Type;
          Government : Concorde.Government.Government_Type;
          Commodity  : Concorde.Commodities.Commodity_Type;
          Category   : Concorde.Trades.Market_Tax_Category;
       end record;
 
    overriding function Can_Enact (Law : Commodity_Tax_Law) return Boolean
-   is (Law.Government.Contains
+   is (Law.Faction.Has_Power
        (Concorde.Powers.Set_Tax_Rate (Law.Category)));
 
    overriding procedure Enact (Law : in out Commodity_Tax_Law);
@@ -145,6 +147,7 @@ package body Concorde.Laws.Tax_Laws is
             else Government.Tax_Rate (Category, Commodity)),
          New_Rate      => Rate,
          Commodity     => Commodity,
+         Faction       => Concorde.Factions.Faction_Type (Context.Legislator),
          Government    => Government,
          Category      => Category);
    end New_Tax_Law;

@@ -5,7 +5,10 @@ with Concorde.Commodities;
 with Concorde.People.Individuals;
 with Concorde.Worlds;
 
+with Concorde.Laws.Bureaucracy;
 with Concorde.Laws.Tax_Laws;
+
+with Concorde.Powers.Configure;
 
 package body Concorde.Laws.Configure is
 
@@ -20,6 +23,11 @@ package body Concorde.Laws.Configure is
    Configure_Map : Configure_Function_Maps.Map;
 
    procedure Create_Configure_Function_Map;
+
+   function Configure_Power_Delegation
+     (Context : Law_Context;
+      Config  : Tropos.Configuration)
+      return Law_Type;
 
    function Configure_Import_Tariff
      (Context : Law_Context;
@@ -76,6 +84,22 @@ package body Concorde.Laws.Configure is
       end if;
    end Configure_Law;
 
+   --------------------------------
+   -- Configure_Power_Delegation --
+   --------------------------------
+
+   function Configure_Power_Delegation
+     (Context : Law_Context;
+      Config  : Tropos.Configuration)
+      return Law_Type
+   is
+   begin
+      return Concorde.Laws.Bureaucracy.Delegate_Power
+        (Context => Context,
+         Power   =>
+           Concorde.Powers.Configure.Configure_Power (Config.Child (1)));
+   end Configure_Power_Delegation;
+
    -------------------------
    -- Configure_Sales_Tax --
    -------------------------
@@ -105,9 +129,11 @@ package body Concorde.Laws.Configure is
    procedure Create_Configure_Function_Map is
    begin
       Configure_Map.Insert
-        ("sales_tax", Configure_Sales_Tax'Access);
+        ("delegate_power", Configure_Power_Delegation'Access);
       Configure_Map.Insert
         ("import_tariff", Configure_Import_Tariff'Access);
+      Configure_Map.Insert
+        ("sales_tax", Configure_Sales_Tax'Access);
    end Create_Configure_Function_Map;
 
    ------------------------
@@ -124,6 +150,23 @@ package body Concorde.Laws.Configure is
         (Legislator => Concorde.Objects.Object_Type (Individual.Faction),
          Target     => Concorde.Objects.Object_Type (Individual));
    end Individual_Context;
+
+   --------------------
+   -- Vassal_Context --
+   --------------------
+
+   function Vassal_Context
+     (Ruler  : not null access constant
+        Concorde.Factions.Root_Faction_Type'Class;
+      Vassal : not null access constant
+        Concorde.Factions.Root_Faction_Type'Class)
+      return Law_Context
+   is
+   begin
+      return Law_Context'
+        (Legislator => Concorde.Objects.Object_Type (Ruler),
+         Target     => Concorde.Objects.Object_Type (Vassal));
+   end Vassal_Context;
 
    -------------------
    -- World_Context --

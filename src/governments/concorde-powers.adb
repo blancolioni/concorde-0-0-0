@@ -43,4 +43,32 @@ package body Concorde.Powers is
       end if;
    end Remove;
 
+   ----------
+   -- Show --
+   ----------
+
+   function Show (Power : Power_Type) return String is
+   begin
+      case Power.Class is
+         when Set_Tax_Rate =>
+            case Power.Tax_Category is
+               when Concorde.Trades.Sales =>
+                  return "set sales tax rate";
+               when Concorde.Trades.Import =>
+                  return "set import tariffs";
+               when Concorde.Trades.Export =>
+                  return "set export tariffs";
+            end case;
+         when Collect_Tax =>
+            case Power.Tax_Category is
+               when Concorde.Trades.Sales =>
+                  return "collect sales tax";
+               when Concorde.Trades.Import =>
+                  return "collect import tariffs";
+               when Concorde.Trades.Export =>
+                  return "collect export tariffs";
+            end case;
+      end case;
+   end Show;
+
 end Concorde.Powers;
