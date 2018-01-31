@@ -1,6 +1,13 @@
 with WL.Money;
 with WL.Quantities;
 
+with Concorde.Calendar;
+with Concorde.Random;
+
+with Concorde.Objects.Queues;
+
+with Concorde.Managers.Ministries;
+
 package body Concorde.Ministries.Create is
 
    ---------------------
@@ -39,8 +46,16 @@ package body Concorde.Ministries.Create is
       end Create;
 
       Ministry : constant Ministry_Type := Db.Create (Create'Access);
+
+      use type Concorde.Calendar.Time;
+
    begin
       Ministry.Save_Agent;
+      Concorde.Managers.Ministries.Create_Manager (Ministry).Activate;
+      Concorde.Objects.Queues.Next_Event
+        (Ministry,
+         Concorde.Calendar.Clock
+         + Duration (Concorde.Random.Unit_Random * 86_400.0));
    end Create_Ministry;
 
 end Concorde.Ministries.Create;

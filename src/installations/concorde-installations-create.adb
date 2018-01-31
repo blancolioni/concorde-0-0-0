@@ -1,6 +1,7 @@
+with WL.Quantities;
+
 with Concorde.Calendar;
 with Concorde.Random;
-with WL.Quantities;
 
 with Concorde.Objects.Queues;
 

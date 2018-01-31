@@ -137,8 +137,18 @@ package body Concorde.Calendar is
       Include_Time_Fraction : Boolean := False)
       return String
    is
+      pragma Unreferenced (Include_Time_Fraction);
+      Year        : Year_Number;
+      Month       : Month_Number;
+      Day         : Day_Number;
+      Hour        : Hour_Number;
+      Minute      : Minute_Number;
+      Second      : Second_Number;
+      Sub_Second  : Second_Duration;
    begin
-      return Image (Time (Elapsed_Time), Include_Time_Fraction);
+      Split (Time (Elapsed_Time),
+             Year, Month, Day, Hour, Minute, Second, Sub_Second);
+      return Time_Image (Hour, Minute, Second, Sub_Second);
    end Image;
 
    ------------
