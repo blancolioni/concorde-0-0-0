@@ -46,6 +46,10 @@ package Concorde.Ministries is
      (Ministry : in out Root_Ministry_Type;
       Power      : Concorde.Powers.Power_Type);
 
+   function Daily_Work
+     (Ministry : Root_Ministry_Type'Class)
+      return Duration;
+
    type Updateable_Reference
      (Item : not null access Root_Ministry_Type'Class)
    is private with Implicit_Dereference => Item;

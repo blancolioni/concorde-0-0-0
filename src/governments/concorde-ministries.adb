@@ -1,3 +1,5 @@
+with Concorde.Powers.Execution;
+
 package body Concorde.Ministries is
 
    ---------------
@@ -11,6 +13,37 @@ package body Concorde.Ministries is
    begin
       Ministry.Powers.Insert (Power);
    end Add_Power;
+
+   ----------------
+   -- Daily_Work --
+   ----------------
+
+   function Daily_Work
+     (Ministry : Root_Ministry_Type'Class)
+      return Duration
+   is
+      Result : Duration := 0.0;
+
+      procedure Add_Work
+        (Power : Concorde.Powers.Power_Type);
+
+      --------------
+      -- Add_Work --
+      --------------
+
+      procedure Add_Work
+        (Power : Concorde.Powers.Power_Type)
+      is
+      begin
+         Result := Result
+           + Concorde.Powers.Execution.Daily_Work
+           (Power, Ministry.Headquarters.World);
+      end Add_Work;
+
+   begin
+      Ministry.Powers.Scan_Powers (Add_Work'Access);
+      return Result;
+   end Daily_Work;
 
    ------------------
    -- Set_Minister --
