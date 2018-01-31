@@ -1008,4 +1008,17 @@ package body Concorde.Installations is
       return Updateable_Reference'(Base_Update.Element, Base_Update);
    end Update;
 
+   -----------
+   -- World --
+   -----------
+
+   function World
+     (Installation : Root_Installation_Type'Class)
+      return access constant Concorde.Worlds.Root_World_Type'Class
+   is
+   begin
+      return Concorde.Worlds.World_Type
+        (Concorde.Locations.Primary (Installation.Current_Location));
+   end World;
+
 end Concorde.Installations;

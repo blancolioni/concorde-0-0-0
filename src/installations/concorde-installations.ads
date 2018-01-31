@@ -14,6 +14,7 @@ with Concorde.Facilities;
 
 with Concorde.Locations;
 
+limited with Concorde.Worlds;
 limited with Concorde.People.Individuals;
 
 with Concorde.People.Pops;
@@ -38,6 +39,10 @@ package Concorde.Installations is
    function Facility
      (Installation : Root_Installation_Type'Class)
       return Concorde.Facilities.Facility_Type;
+
+   function World
+     (Installation : Root_Installation_Type'Class)
+      return access constant Concorde.Worlds.Root_World_Type'Class;
 
    function Owner
      (Installation : Root_Installation_Type'Class)
