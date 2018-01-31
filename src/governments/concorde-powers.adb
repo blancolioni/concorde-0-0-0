@@ -1,5 +1,24 @@
 package body Concorde.Powers is
 
+   ------------------
+   -- Check_Powers --
+   ------------------
+
+   overriding function Check_Powers
+     (Container : Power_Set;
+      Test      : not null access
+        function (Power : Power_Type) return Boolean)
+      return Boolean
+   is
+   begin
+      for Power of Container.Set loop
+         if not Test (Power) then
+            return False;
+         end if;
+      end loop;
+      return True;
+   end Check_Powers;
+
    --------------
    -- Contains --
    --------------
@@ -42,6 +61,21 @@ package body Concorde.Powers is
          Container.Set.Delete (Position);
       end if;
    end Remove;
+
+   -----------------
+   -- Scan_Powers --
+   -----------------
+
+   overriding procedure Scan_Powers
+     (Container : Power_Set;
+      Process   : not null access
+        procedure (Power : Power_Type))
+   is
+   begin
+      for Power of Container.Set loop
+         Process (Power);
+      end loop;
+   end Scan_Powers;
 
    ----------
    -- Show --

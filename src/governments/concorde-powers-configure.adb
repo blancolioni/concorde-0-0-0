@@ -48,6 +48,21 @@ package body Concorde.Powers.Configure is
       end if;
    end Configure_Power;
 
+   -------------------------
+   -- Configure_Power_Set --
+   -------------------------
+
+   procedure Configure_Power_Set
+     (Config : Tropos.Configuration;
+      Set    : in out Power_Set)
+   is
+   begin
+      for Power_Config of Config loop
+         Set.Insert
+           (Configure_Power (Power_Config));
+      end loop;
+   end Configure_Power_Set;
+
    ----------------
    -- Create_Map --
    ----------------
@@ -67,5 +82,15 @@ package body Concorde.Powers.Configure is
       Simple_Map.Insert
         ("collect_export_tariff", (Collect_Tax, Concorde.Trades.Export));
    end Create_Map;
+
+   ---------------
+   -- Get_Power --
+   ---------------
+
+   function Get_Power (Name : String) return Power_Type is
+   begin
+      return Configure_Power
+        (Tropos.New_Config (Name));
+   end Get_Power;
 
 end Concorde.Powers.Configure;

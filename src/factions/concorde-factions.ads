@@ -10,6 +10,7 @@ private with Memor.Element_Vectors;
 
 with Memor;
 
+limited with Concorde.Installations;
 limited with Concorde.People.Individuals;
 limited with Concorde.Worlds;
 
@@ -105,6 +106,16 @@ package Concorde.Factions is
      (Faction : Root_Faction_Type'Class)
       return access constant
      Concorde.Worlds.Root_World_Type'Class;
+
+   function Capital_Building
+     (Faction : Root_Faction_Type'Class)
+      return access constant
+     Concorde.Installations.Root_Installation_Type'Class;
+
+   procedure Set_Capital_Building
+     (Faction : in out Root_Faction_Type'Class;
+      Building : not null access constant
+        Concorde.Installations.Root_Installation_Type'Class);
 
    function Current_Ships
      (Faction : Root_Faction_Type'Class)
@@ -434,6 +445,8 @@ private
          Border_Change      : Boolean;
          Capital_World      : access constant
            Concorde.Worlds.Root_World_Type'Class;
+         Capital_Building   : access constant
+           Concorde.Installations.Root_Installation_Type'Class;
          Default_Ship       : access String;
       end record;
 
@@ -470,6 +483,11 @@ private
       return access Concorde.Agents.Root_Agent_Type'Class
    is (Faction.Update.Item);
 
+   overriding function Variable_Reference
+     (Faction : not null access constant Root_Faction_Type)
+      return access Concorde.Bureaucracy.Bureaucratic_Interface'Class
+   is (Faction.Update.Item);
+
    overriding procedure Require_Cash
      (Faction : in out Root_Faction_Type;
       Amount  : WL.Money.Money_Type);
@@ -485,6 +503,12 @@ private
       return access constant
      Concorde.Worlds.Root_World_Type'Class
    is (Faction.Capital_World);
+
+   function Capital_Building
+     (Faction : Root_Faction_Type'Class)
+      return access constant
+     Concorde.Installations.Root_Installation_Type'Class
+   is (Faction.Capital_Building);
 
    function Has_Minister
      (Faction : Root_Faction_Type'Class;

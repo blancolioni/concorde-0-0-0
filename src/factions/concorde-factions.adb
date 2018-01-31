@@ -752,6 +752,19 @@ package body Concorde.Factions is
       Faction.Set (System.all, Flag);
    end Set;
 
+   --------------------------
+   -- Set_Capital_Building --
+   --------------------------
+
+   procedure Set_Capital_Building
+     (Faction  : in out Root_Faction_Type'Class;
+      Building : not null access constant
+        Concorde.Installations.Root_Installation_Type'Class)
+   is
+   begin
+      Faction.Capital_Building := Building;
+   end Set_Capital_Building;
+
    ------------------
    -- Set_Minister --
    ------------------

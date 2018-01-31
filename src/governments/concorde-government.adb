@@ -97,6 +97,19 @@ package body Concorde.Government is
       Government.Powers.Remove (Power);
    end Remove;
 
+   -----------------
+   -- Scan_Powers --
+   -----------------
+
+   overriding procedure Scan_Powers
+     (Government : Root_Government_Type;
+      Process    : not null access
+        procedure (Power : Concorde.Powers.Power_Type))
+   is
+   begin
+      Government.Powers.Scan_Powers (Process);
+   end Scan_Powers;
+
    -----------------------
    -- Set_Base_Tax_Rate --
    -----------------------

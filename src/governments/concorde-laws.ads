@@ -17,6 +17,8 @@ package Concorde.Laws is
 
    type Law_Type is access all Root_Law_Type'Class;
 
+   type Array_Of_Laws is array (Positive range <>) of Law_Type;
+
    function Can_Enact
      (Law : Root_Law_Type)
       return Boolean

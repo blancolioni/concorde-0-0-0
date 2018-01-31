@@ -50,6 +50,17 @@ package Concorde.Government is
      (Government : in out Root_Government_Type;
       Power      : Concorde.Powers.Power_Type);
 
+   overriding function Check_Powers
+     (Government : Root_Government_Type;
+      Test       : not null access
+        function (Power : Concorde.Powers.Power_Type) return Boolean)
+      return Boolean;
+
+   overriding procedure Scan_Powers
+     (Government : Root_Government_Type;
+      Process   : not null access
+        procedure (Power : Concorde.Powers.Power_Type));
+
    overriding function Tax_Rate
      (Government : Root_Government_Type;
       Category   : Concorde.Trades.Market_Tax_Category;
@@ -213,6 +224,13 @@ private
       Category   : Concorde.Trades.Market_Tax_Category)
       return Unit_Real
    is (Government.Base_Tax_Rate (Category));
+
+   overriding function Check_Powers
+     (Government : Root_Government_Type;
+      Test       : not null access
+        function (Power : Concorde.Powers.Power_Type) return Boolean)
+      return Boolean
+   is (Government.Powers.Check_Powers (Test));
 
    package Db is
      new Memor.Database

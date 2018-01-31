@@ -2,6 +2,7 @@ with WL.String_Maps;
 
 with Concorde.Commodities;
 
+with Concorde.Factions;
 with Concorde.People.Individuals;
 with Concorde.Worlds;
 
@@ -17,14 +18,25 @@ package body Concorde.Laws.Configure is
                Config  : Tropos.Configuration)
                return Law_Type;
 
+   type Simple_Configure_Function is access
+     function (Context : Law_Context;
+               Value   : String)
+               return Law_Type;
+
+   type Configure_Record is
+      record
+         General_Handler : Configure_Function;
+         Simple_Handler  : Simple_Configure_Function;
+      end record;
+
    package Configure_Function_Maps is
-     new WL.String_Maps (Configure_Function);
+     new WL.String_Maps (Configure_Record);
 
    Configure_Map : Configure_Function_Maps.Map;
 
    procedure Create_Configure_Function_Map;
 
-   function Configure_Power_Delegation
+   function Configure_Create_Ministry
      (Context : Law_Context;
       Config  : Tropos.Configuration)
       return Law_Type;
@@ -34,10 +46,38 @@ package body Concorde.Laws.Configure is
       Config  : Tropos.Configuration)
       return Law_Type;
 
+   function Configure_Power_Delegation
+     (Context : Law_Context;
+      Value   : String)
+      return Law_Type;
+
    function Configure_Sales_Tax
      (Context : Law_Context;
       Config  : Tropos.Configuration)
       return Law_Type;
+
+   -------------------------------
+   -- Configure_Create_Ministry --
+   -------------------------------
+
+   function Configure_Create_Ministry
+     (Context : Law_Context;
+      Config  : Tropos.Configuration)
+      return Law_Type
+   is
+      Powers : Concorde.Powers.Power_Set;
+   begin
+      Concorde.Powers.Configure.Configure_Power_Set
+        (Config.Child ("powers"), Powers);
+
+      return Concorde.Laws.Bureaucracy.Create_Ministry
+        (Context  => Context,
+         Name     => Config.Get ("name", "Ministry"),
+         Location =>
+           Concorde.Factions.Faction_Type
+             (Context.Legislator).Capital_Building,
+         Powers   => Powers);
+   end Configure_Create_Ministry;
 
    -----------------------------
    -- Configure_Import_Tariff --
@@ -76,8 +116,21 @@ package body Concorde.Laws.Configure is
       end if;
 
       if Configure_Map.Contains (Config.Config_Name) then
-         return Configure_Map.Element (Config.Config_Name)
-           (Context, Config);
+         declare
+            Rec : constant Configure_Record :=
+                    Configure_Map.Element (Config.Config_Name);
+         begin
+            if Rec.Simple_Handler /= null
+              and then Config.Child_Count = 1
+            then
+               return Rec.Simple_Handler (Context, Config.Value);
+            elsif Rec.General_Handler /= null then
+               return Rec.General_Handler (Context, Config);
+            else
+               raise Constraint_Error with "do not understand config for "
+                 & Config.Config_Name;
+            end if;
+         end;
       else
          raise Constraint_Error with
            "unknown law id: " & Config.Config_Name;
@@ -90,14 +143,13 @@ package body Concorde.Laws.Configure is
 
    function Configure_Power_Delegation
      (Context : Law_Context;
-      Config  : Tropos.Configuration)
+      Value   : String)
       return Law_Type
    is
    begin
       return Concorde.Laws.Bureaucracy.Delegate_Power
         (Context => Context,
-         Power   =>
-           Concorde.Powers.Configure.Configure_Power (Config.Child (1)));
+         Power   => Concorde.Powers.Configure.Get_Power (Value));
    end Configure_Power_Delegation;
 
    -------------------------
@@ -127,13 +179,63 @@ package body Concorde.Laws.Configure is
    -----------------------------------
 
    procedure Create_Configure_Function_Map is
+
+      procedure Configure
+        (Name    : String;
+         General : Configure_Function;
+         Simple  : Simple_Configure_Function);
+
+      procedure Configure
+        (Name : String;
+         Config : Simple_Configure_Function);
+
+      procedure Configure
+        (Name   : String;
+         Config : Configure_Function);
+
+      ---------------
+      -- Configure --
+      ---------------
+
+      procedure Configure
+        (Name    : String;
+         General : Configure_Function;
+         Simple  : Simple_Configure_Function)
+      is
+      begin
+         Configure_Map.Insert
+           (Name, (General, Simple));
+      end Configure;
+
+      ---------------
+      -- Configure --
+      ---------------
+
+      procedure Configure
+        (Name   : String;
+         Config : Simple_Configure_Function)
+      is
+      begin
+         Configure (Name, null, Config);
+      end Configure;
+
+      ---------------
+      -- Configure --
+      ---------------
+
+      procedure Configure
+        (Name   : String;
+         Config : Configure_Function)
+      is
+      begin
+         Configure (Name, Config, null);
+      end Configure;
+
    begin
-      Configure_Map.Insert
-        ("delegate_power", Configure_Power_Delegation'Access);
-      Configure_Map.Insert
-        ("import_tariff", Configure_Import_Tariff'Access);
-      Configure_Map.Insert
-        ("sales_tax", Configure_Sales_Tax'Access);
+      Configure ("create_ministry", Configure_Create_Ministry'Access);
+      Configure ("delegate_power", Configure_Power_Delegation'Access);
+      Configure ("import_tariff", Configure_Import_Tariff'Access);
+      Configure ("sales_tax", Configure_Sales_Tax'Access);
    end Create_Configure_Function_Map;
 
    ------------------------

@@ -37,6 +37,19 @@ package Concorde.Powers is
       Power     : Power_Type)
    is abstract;
 
+   procedure Scan_Powers
+     (Container : Powered_Interface;
+      Process   : not null access
+        procedure (Power : Power_Type))
+   is abstract;
+
+   function Check_Powers
+     (Container : Powered_Interface;
+      Test      : not null access
+        function (Power : Power_Type) return Boolean)
+      return Boolean
+      is abstract;
+
    type Power_Set is new Powered_Interface with private;
 
    overriding function Contains
@@ -51,6 +64,17 @@ package Concorde.Powers is
    overriding procedure Remove
      (Container : in out Power_Set;
       Power     : Power_Type);
+
+   overriding function Check_Powers
+     (Container : Power_Set;
+      Test      : not null access
+        function (Power : Power_Type) return Boolean)
+      return Boolean;
+
+   overriding procedure Scan_Powers
+     (Container : Power_Set;
+      Process   : not null access
+        procedure (Power : Power_Type));
 
 private
 

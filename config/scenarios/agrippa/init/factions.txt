@@ -1,6 +1,0 @@
-imperium_laws = {
-   delegate_power set_sales_tax
-   delegate_power collect_sales_tax
-   delegate_power set_import_tariff
-   delegate_power collect_import_tariff
-}

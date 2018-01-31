@@ -533,6 +533,8 @@ package body Concorde.Colonies.Configure is
       World.Update.Add_Installation (Current_Tile, Hub);
       World.Update.Set_Government (Government);
 
+      World.Owner.Update.Set_Capital_Building (Hub);
+
       Hub.Update.Set_Market (World.Market);
 
       for Pop_Config of Template.Child ("pops") loop
