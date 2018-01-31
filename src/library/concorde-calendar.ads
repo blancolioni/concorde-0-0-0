@@ -102,6 +102,7 @@ package Concorde.Calendar is
    function ">"  (Left, Right : Time) return Boolean;
    function ">=" (Left, Right : Time) return Boolean;
 
+   function Hours (Count : Natural) return Duration;
    function Days (Count : Natural) return Duration;
 
    Time_Error : exception;
@@ -137,5 +138,8 @@ private
 
    function Days (Count : Natural) return Duration
    is (Duration (Count) * Day_Length);
+
+   function Hours (Count : Natural) return Duration
+   is (Duration (Count) * 3_600.0);
 
 end Concorde.Calendar;
