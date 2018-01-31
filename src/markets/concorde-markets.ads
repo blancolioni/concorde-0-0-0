@@ -57,6 +57,12 @@ package Concorde.Markets is
      (Market : Root_Market_Type'Class)
       return String;
 
+   function Recent_Transaction_Count
+     (Market : Root_Market_Type'Class;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
+      return Natural;
+
    type Market_Type is access constant Root_Market_Type'Class;
 
    function Create_Market
@@ -89,18 +95,18 @@ private
       Proportional,
       Quadratic);
 
-   type Quantity_Metric_Array is
-     array (Concorde.Trades.Trade_Metric) of WL.Quantities.Quantity_Type;
-
-   type Historical_Quantity_Record is
-      record
-         Date       : Concorde.Calendar.Time;
-         Quantities : Quantity_Metric_Array :=
-                        (others => WL.Quantities.Zero);
-      end record;
-
-   package Quantity_Metric_Lists is
-     new Ada.Containers.Doubly_Linked_Lists (Historical_Quantity_Record);
+--     type Quantity_Metric_Array is
+--       array (Concorde.Trades.Trade_Metric) of WL.Quantities.Quantity_Type;
+--
+--     type Historical_Quantity_Record is
+--        record
+--           Date       : Concorde.Calendar.Time;
+--           Quantities : Quantity_Metric_Array :=
+--                          (others => WL.Quantities.Zero);
+--        end record;
+--
+--     package Quantity_Metric_Lists is
+--       new Ada.Containers.Doubly_Linked_Lists (Historical_Quantity_Record);
 
    type Offer_Info is
       record
@@ -156,6 +162,7 @@ private
       record
          Time_Stamp : Concorde.Calendar.Time;
          Offer      : Concorde.Trades.Offer_Type;
+         Resident   : Boolean;
          Quantity   : WL.Quantities.Quantity_Type;
          Price      : WL.Money.Price_Type;
       end record;
@@ -163,22 +170,22 @@ private
    package Recent_Offer_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Offer_Record);
 
+   type Quantity_Metric_Array is
+     array (Concorde.Trades.Quantity_Metric) of WL.Quantities.Quantity_Type;
+
    type Cached_Commodity_Record is
       record
-         Metrics               : Quantity_Metric_Lists.List;
-         Daily_Trade_Value     : WL.Money.Money_Type :=
-                                   WL.Money.Zero;
-         Daily_Trade_Volume    : WL.Quantities.Quantity_Type :=
-                                   WL.Quantities.Zero;
-         Daily_Demand          : WL.Quantities.Quantity_Type :=
-                                   WL.Quantities.Zero;
-         Daily_Supply          : WL.Quantities.Quantity_Type :=
-                                   WL.Quantities.Zero;
          Historical_Mean_Price : WL.Money.Price_Type :=
                                    WL.Money.Zero;
          Recent_Transactions   : Recent_Transaction_Lists.List;
          Recent_Offers         : Recent_Offer_Lists.List;
          Recent_Time           : Concorde.Calendar.Time;
+         Quantity_Metrics      : Quantity_Metric_Array :=
+                                   (others => WL.Quantities.Zero);
+         Recent_Trade_Value    : WL.Money.Money_Type :=
+                                   WL.Money.Zero;
+         Recent_Trade_Volume   : WL.Quantities.Quantity_Type :=
+                                   WL.Quantities.Zero;
          Current_Demand        : WL.Quantities.Quantity_Type :=
                                    WL.Quantities.Zero;
          Current_Supply        : WL.Quantities.Quantity_Type :=
@@ -192,6 +199,7 @@ private
    procedure Add_Commodity_Offer
      (Info     : Cached_Commodity;
       Offer    : Concorde.Trades.Offer_Type;
+      Resident : Boolean;
       Quantity : WL.Quantities.Quantity_Type;
       Price    : WL.Money.Price_Type);
 
@@ -228,14 +236,9 @@ private
       return access constant Concorde.Trades.Trade_Manager_Interface'Class
    is (Market.Manager);
 
-   overriding function Current_Supply
+   overriding function Current_Quantity
      (Market    : Root_Market_Type;
-      Item      : not null access constant
-        Concorde.Commodities.Root_Commodity_Type'Class)
-      return WL.Quantities.Quantity_Type;
-
-   overriding function Current_Demand
-     (Market    : Root_Market_Type;
+      Metric    : Concorde.Trades.Quantity_Metric;
       Item      : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
       return WL.Quantities.Quantity_Type;
@@ -282,8 +285,8 @@ private
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class);
 
-   procedure Check_Market
-     (Market : Root_Market_Type'Class);
+--     procedure Check_Market
+--       (Market : Root_Market_Type'Class);
 
    procedure Log_Offer
      (Market    : Root_Market_Type'Class;

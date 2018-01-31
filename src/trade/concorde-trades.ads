@@ -4,17 +4,14 @@ with WL.Quantities;
 
 package Concorde.Trades is
 
-   type Trade_Metric is
-     (Export_Demand, Import_Supply,
-      Total_Traded, Total_Imported, Total_Exported,
-      Local_Demand, Local_Supply);
-
-   function Metric_Id (Metric : Trade_Metric) return String;
-
    type Offer_Type is (Ask, Bid);
 
    type Offer_Price_Strategy is
      (Belief_Based, Fixed_Price, Average_Price);
+
+   type Quantity_Metric is
+     (Current_Supply, Current_Demand,
+      Current_Imports, Current_Exports);
 
    type Trade_Interface is limited interface;
 
@@ -26,15 +23,9 @@ package Concorde.Trades is
      with Post'Class =>
        WL.Money.">" (Current_Price'Result, WL.Money.Zero);
 
-   function Current_Supply
+   function Current_Quantity
      (Trade     : Trade_Interface;
-      Commodity : not null access constant
-        Concorde.Commodities.Root_Commodity_Type'Class)
-      return WL.Quantities.Quantity_Type
-      is abstract;
-
-   function Current_Demand
-     (Trade     : Trade_Interface;
+      Metric    : Quantity_Metric;
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
       return WL.Quantities.Quantity_Type
@@ -55,6 +46,34 @@ package Concorde.Trades is
         Concorde.Commodities.Root_Commodity_Type'Class)
       return WL.Money.Price_Type
       is abstract;
+
+   function Current_Supply
+     (Trade     : Trade_Interface'Class;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
+      return WL.Quantities.Quantity_Type
+   is (Trade.Current_Quantity (Current_Supply, Commodity));
+
+   function Current_Demand
+     (Trade     : Trade_Interface'Class;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
+      return WL.Quantities.Quantity_Type
+   is (Trade.Current_Quantity (Current_Demand, Commodity));
+
+   function Current_Imports
+     (Trade     : Trade_Interface'Class;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
+      return WL.Quantities.Quantity_Type
+   is (Trade.Current_Quantity (Current_Imports, Commodity));
+
+   function Current_Exports
+     (Trade     : Trade_Interface'Class;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
+      return WL.Quantities.Quantity_Type
+   is (Trade.Current_Quantity (Current_Exports, Commodity));
 
    type Market_Tax_Category is (Sales, Export, Import);
 
