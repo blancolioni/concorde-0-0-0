@@ -28,6 +28,19 @@ package body Concorde.Factions is
       Faction.Laws.Append (Law);
    end Add_Law;
 
+   ------------------
+   -- Add_Ministry --
+   ------------------
+
+   procedure Add_Ministry
+     (Faction  : in out Root_Faction_Type'Class;
+      Ministry : not null access constant
+        Concorde.Ministries.Root_Ministry_Type'Class)
+   is
+   begin
+      Faction.Ministries.Append (Ministry);
+   end Add_Ministry;
+
    ---------------
    -- Add_Power --
    ---------------
@@ -723,6 +736,22 @@ package body Concorde.Factions is
    begin
       Db.Scan (Process);
    end Scan_Factions;
+
+   ---------------------
+   -- Scan_Ministries --
+   ---------------------
+
+   procedure Scan_Ministries
+     (Faction : Root_Faction_Type'Class;
+      Process : not null access
+        procedure (Ministry : not null access constant
+                     Concorde.Ministries.Root_Ministry_Type'Class))
+   is
+   begin
+      for Ministry of Faction.Ministries loop
+         Process (Ministry);
+      end loop;
+   end Scan_Ministries;
 
    ---------
    -- Set --

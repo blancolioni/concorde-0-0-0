@@ -21,6 +21,7 @@ with Concorde.Bureaucracy;
 with Concorde.Calendar;
 with Concorde.Laws;
 with Concorde.Locations;
+with Concorde.Ministries;
 with Concorde.Objects;
 with Concorde.Offices;
 with Concorde.Powers;
@@ -101,6 +102,17 @@ package Concorde.Factions is
      (Faction : in out Root_Faction_Type'Class;
       Law     : not null access constant
         Concorde.Laws.Root_Law_Type'Class);
+
+   procedure Add_Ministry
+     (Faction : in out Root_Faction_Type'Class;
+      Ministry : not null access constant
+        Concorde.Ministries.Root_Ministry_Type'Class);
+
+   procedure Scan_Ministries
+     (Faction : Root_Faction_Type'Class;
+      Process : not null access
+        procedure (Ministry : not null access constant
+                     Concorde.Ministries.Root_Ministry_Type'Class));
 
    function Capital_World
      (Faction : Root_Faction_Type'Class)
@@ -413,6 +425,10 @@ private
      new Memor.Element_Vectors
        (Concorde.Offices.Root_Office_Type, Individual_Access, null);
 
+   package Ministry_Lists is
+     new Ada.Containers.Doubly_Linked_Lists
+       (Concorde.Ministries.Ministry_Type, Concorde.Ministries."=");
+
    package Law_Lists is
      new Ada.Containers.Doubly_Linked_Lists
        (Concorde.Laws.Law_Type, Concorde.Laws."=");
@@ -433,6 +449,7 @@ private
          Cabinet            : Office_Holder_Vectors.Vector;
          Powers             : Concorde.Powers.Power_Set;
          Laws               : Law_Lists.List;
+         Ministries         : Ministry_Lists.List;
          Current_Population : WL.Quantities.Quantity_Type;
          Current_Ships      : Natural := 0;
          Current_Units      : Natural := 0;

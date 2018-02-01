@@ -38,7 +38,6 @@ package body Concorde.Ministries.Create is
             Cash           => WL.Money.Zero,
             Stock_Capacity => WL.Quantities.Zero);
 
-         Ministry.Faction := Faction;
          Ministry.Name := Ada.Strings.Unbounded.To_Unbounded_String (Name);
          Ministry.Area := Concorde.Objects.Object_Type (Area);
          Ministry.Headquarters := Location;
@@ -50,6 +49,7 @@ package body Concorde.Ministries.Create is
       use type Concorde.Calendar.Time;
 
    begin
+      Faction.Update.Add_Ministry (Ministry);
       Ministry.Save_Agent;
       Concorde.Managers.Ministries.Create_Manager (Ministry).Activate;
       Concorde.Objects.Queues.Next_Event

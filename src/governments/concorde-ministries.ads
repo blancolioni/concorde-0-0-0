@@ -3,7 +3,6 @@ private with Memor.Database;
 
 with Concorde.Agents;
 with Concorde.Bureaucracy;
-with Concorde.Factions;
 with Concorde.Installations;
 with Concorde.Objects;
 with Concorde.Powers;
@@ -65,7 +64,6 @@ private
      and Concorde.Bureaucracy.Bureaucratic_Interface with
       record
          Name              : Ada.Strings.Unbounded.Unbounded_String;
-         Faction           : Concorde.Factions.Faction_Type;
          Minister          : access constant
            Concorde.People.Individuals.Root_Individual_Type'Class;
          Area              : Concorde.Objects.Object_Type;
