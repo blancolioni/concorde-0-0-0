@@ -15,7 +15,7 @@ package body Concorde.Powers.Execution is
       Index : Positive)
       return Concorde.People.Attributes.Attribute_Reference
    is
-      pragma Unreferenced (Index);
+      pragma Unreferenced (Index, Power);
    begin
       return Concorde.People.Attributes.Skill_Reference
         (Concorde.People.Skills.Get ("administration"));
@@ -70,19 +70,50 @@ package body Concorde.Powers.Execution is
                         Result :=
                           Duration
                             (World.Market.Recent_Transaction_Count
-                               (Commodity));
+                               (Commodity)) * 300.0;
+                        if Result > 0.0 then
+                           World.Log
+                             ("tax work: sales tax on "
+                              & Commodity.Name
+                              & " with"
+                              & Natural'Image
+                                (World.Market.Recent_Transaction_Count
+                                     (Commodity))
+                              & " transactions yields "
+                              & Concorde.Calendar.Image (Result) & " work");
+                        end if;
                      when Concorde.Trades.Import =>
                         Result :=
                           Duration
                             (WL.Quantities.To_Float
                                (World.Market.Current_Imports (Commodity))
-                             / 1_000.0);
+                             / 100.0);
+                        if Result > 0.0 then
+                           World.Log
+                             ("tax work: import tariff on "
+                              & Commodity.Name
+                              & " with volume "
+                              & WL.Quantities.Show
+                                (World.Market.Current_Imports (Commodity))
+                              & " yields "
+                              & Concorde.Calendar.Image (Result) & " work");
+                        end if;
                      when Concorde.Trades.Export =>
                         Result :=
                           Duration
                             (WL.Quantities.To_Float
                                (World.Market.Current_Exports (Commodity))
-                             / 1_000.0);
+                             / 100.0);
+                        if Result > 0.0 then
+                           World.Log
+                             ("tax work: export tariff on "
+                              & Commodity.Name
+                              & " with volume "
+                              & WL.Quantities.Show
+                                (World.Market.Current_Exports (Commodity))
+                              & " yields "
+                              & Concorde.Calendar.Image (Result) & " work");
+                        end if;
                   end case;
                   if Result > 0.0 then
                      Result := Result + Concorde.Calendar.Hours (1);
@@ -143,7 +174,7 @@ package body Concorde.Powers.Execution is
       Index : Positive)
       return Duration
    is
-      pragma Unreferenced (Index);
+      pragma Unreferenced (Index, Power);
    begin
       return Concorde.Calendar.Hours (4);
    end Pop_Group_Effect;
