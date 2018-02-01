@@ -63,9 +63,9 @@ package body Concorde.Managers.Ministries is
       use type Concorde.Facilities.Facility_Type;
    begin
       Manager.Ministry.Log_Government
-        ("activated; daily work is "
-         & Concorde.Calendar.Image
-           (Manager.Ministry.Daily_Work, True));
+        ("activated; daily work is"
+         & Natural'Image (Natural (Manager.Ministry.Daily_Work / 3600.0))
+         & " hours");
       Concorde.Objects.Queues.Next_Event
         (Manager.Ministry, Manager.Time + 86_400.0);
    end On_Activated;

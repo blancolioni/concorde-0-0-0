@@ -1,6 +1,8 @@
-with Concorde.Commodities;
 with WL.Money;
 with WL.Quantities;
+
+with Concorde.Commodities;
+with Concorde.Contracts;
 
 package Concorde.Trades is
 
@@ -30,6 +32,14 @@ package Concorde.Trades is
         Concorde.Commodities.Root_Commodity_Type'Class)
       return WL.Quantities.Quantity_Type
       is abstract;
+
+   procedure Add_Quantity
+     (Trade     : Trade_Interface;
+      Metric    : Quantity_Metric;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
+      Quantity  : WL.Quantities.Quantity_Type)
+   is abstract;
 
    function Price
      (Trade     : Trade_Interface;
@@ -106,7 +116,8 @@ package Concorde.Trades is
       return access constant Trade_Manager_Interface'Class
       is abstract;
 
-   type Trader_Interface is limited interface;
+   type Trader_Interface is limited interface
+     and Concorde.Contracts.Contractor_Interface;
 
    function Short_Name
      (Trader : Trader_Interface)
@@ -166,6 +177,16 @@ package Concorde.Trades is
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class;
       New_Price : WL.Money.Price_Type)
+   is abstract;
+
+   procedure Notify_Foreign_Trade
+     (Trade     : Trade_Interface;
+      Offer     : Offer_Type;
+      Trader    : not null access constant Trader_Interface'Class;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
+      Quantity  : WL.Quantities.Quantity_Type;
+      Price     : WL.Money.Price_Type)
    is abstract;
 
    procedure Execute_Trade
