@@ -14,6 +14,7 @@ with Concorde.Ships.Designs;
 with Concorde.Commodities.Configure;
 with Concorde.Facilities.Configure;
 with Concorde.Offices.Configure;
+with Concorde.Powers.Execution;
 
 with Concorde.People.Careers.Configure;
 with Concorde.People.Groups.Configure;
@@ -182,6 +183,12 @@ package body Concorde.Configure is
         (Tropos.Reader.Read_Config
            (Path      => Directory_Path ("offices"),
             Extension => "txt"));
+
+      Tropos.Reader.Read_Config
+        (Path      => Directory_Path ("powers"),
+         Extension => "txt",
+         Configure =>
+           Concorde.Powers.Execution.Configure_Power_Execution'Access);
 
       Concorde.Components.Configure.Configure_Components;
       Concorde.Facilities.Configure.Configure_Facilities;

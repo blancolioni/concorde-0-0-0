@@ -88,6 +88,8 @@ private
          end case;
       end record;
 
+   function Identifier (Power : Power_Type) return String;
+
    function Set_Tax_Rate
      (Category : Concorde.Trades.Market_Tax_Category)
       return Power_Type
