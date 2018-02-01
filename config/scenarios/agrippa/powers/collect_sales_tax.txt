@@ -1,6 +1,6 @@
 daily_work = {
   base = 8 
-  commodity =
+  commodity = {
        value = recent_transaction_count
        factor = 300
        }

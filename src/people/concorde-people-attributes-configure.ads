@@ -6,4 +6,8 @@ package Concorde.People.Attributes.Configure is
      (Container : in out Attribute_Container'Class;
       Config    : Tropos.Configuration);
 
+   function Configure_Attribute
+     (Config : Tropos.Configuration)
+      return Attribute_Reference;
+
 end Concorde.People.Attributes.Configure;

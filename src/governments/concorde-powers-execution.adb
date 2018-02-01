@@ -1,4 +1,5 @@
 with Ada.Containers.Indefinite_Holders;
+with Ada.Containers.Indefinite_Vectors;
 with Ada.Containers.Vectors;
 
 with WL.Quantities;
@@ -20,6 +21,11 @@ package body Concorde.Powers.Execution is
 
    package Power_Pop_Group_Vectors is
      new Ada.Containers.Vectors (Positive, Power_Pop_Group_Record);
+
+   package Attribute_Vectors is
+     new Ada.Containers.Indefinite_Vectors
+       (Positive, Concorde.People.Attributes.Attribute_Reference,
+        Concorde.People.Attributes."=");
 
    type Commodity_Work_Calculation is (By_Metric, By_Transaction_Count);
 
@@ -45,7 +51,7 @@ package body Concorde.Powers.Execution is
 
    type Power_Execution_Record is
       record
-         Attributes       : Concorde.People.Attributes.Attribute_Container;
+         Attributes       : Attribute_Vectors.Vector;
          Pop_Groups       : Power_Pop_Group_Vectors.Vector;
          Legislative_Work : Work_Record;
          Daily_Work       : Work_Record;
@@ -64,6 +70,9 @@ package body Concorde.Powers.Execution is
      (Config : Tropos.Configuration)
       return Commodity_Work;
 
+   function P (Power : Power_Type) return Power_Execution_Record
+   is (Power_Execution_Map.Element (Identifier (Power)));
+
    ---------------
    -- Attribute --
    ---------------
@@ -73,10 +82,8 @@ package body Concorde.Powers.Execution is
       Index : Positive)
       return Concorde.People.Attributes.Attribute_Reference
    is
-      pragma Unreferenced (Index, Power);
    begin
-      return Concorde.People.Attributes.Skill_Reference
-        (Concorde.People.Skills.Get ("administration"));
+      return P (Power).Attributes (Index);
    end Attribute;
 
    ---------------------
@@ -87,10 +94,38 @@ package body Concorde.Powers.Execution is
      (Power : Power_Type)
       return Natural
    is
-      pragma Unreferenced (Power);
    begin
-      return 1;
+      return P (Power).Attributes.Last_Index;
    end Attribute_Count;
+
+   ------------------------------
+   -- Configure_Commodity_Work --
+   ------------------------------
+
+   function Configure_Commodity_Work
+     (Config : Tropos.Configuration)
+      return Commodity_Work
+   is
+      Value : constant String := Config.Get ("value", "none");
+   begin
+      if Value = "recent_transaction_count" then
+         return Commodity_Work'
+           (Calculation => By_Transaction_Count,
+            Factor      =>
+              Non_Negative_Real (Float'(Config.Get ("factor", 1.0))));
+      elsif Value = "daily_quantity" then
+         return Commodity_Work'
+           (Calculation => By_Metric,
+            Factor      =>
+              Non_Negative_Real (Float'(Config.Get ("factor", 1.0))),
+            Metric      =>
+              Concorde.Trades.Quantity_Metric'Value
+                (Config.Get ("metric")));
+      else
+         raise Constraint_Error with
+           "unknown commodity work type: " & Value;
+      end if;
+   end Configure_Commodity_Work;
 
    -------------------------------
    -- Configure_Power_Execution --
@@ -101,18 +136,20 @@ package body Concorde.Powers.Execution is
    is
       Rec : Power_Execution_Record;
    begin
-      if Config.Contains ("attributes") then
-         Concorde.People.Attributes.Configure.Configure_Attributes
-           (Container => Rec.Attributes,
-            Config    => Config.Child ("attributes"));
-      end if;
+      for Attr_Config of Config.Child ("attributes") loop
+         Rec.Attributes.Append
+           (Concorde.People.Attributes.Configure.Configure_Attribute
+              (Attr_Config));
+      end loop;
+
       for Group_Config of Config.Child ("pops") loop
          Rec.Pop_Groups.Append
            (Power_Pop_Group_Record'
               (Group  =>
                    Concorde.People.Groups.Get (Group_Config.Config_Name),
                Effect =>
-                 3600.0 * Duration (Float'(Group_Config.Get ("effect")))));
+                 Concorde.Calendar.Hours
+                   (Group_Config.Get ("effect"))));
       end loop;
 
       Configure_Work (Config.Child ("legislative_work"), Rec.Legislative_Work);
@@ -151,90 +188,53 @@ package body Concorde.Powers.Execution is
       World : Concorde.Worlds.World_Type)
       return Duration
    is
+      Rec : constant Power_Execution_Record := P (Power);
+      Result : Duration := Rec.Daily_Work.Base;
    begin
-      case Power.Class is
-         when Set_Tax_Rate =>
-            return Concorde.Calendar.Hours (8);
+      if not Rec.Daily_Work.Commodity.Is_Empty then
+         declare
+            Item : Commodity_Work renames
+                     Rec.Daily_Work.Commodity.Element;
 
-         when Collect_Tax =>
-            declare
-               Work : Duration :=
-                        Concorde.Calendar.Hours (8);
+            procedure Add_Commodity
+              (Commodity : Concorde.Commodities.Commodity_Type);
 
-               procedure Add_Commodity
-                 (Commodity : Concorde.Commodities.Commodity_Type);
+            -------------------
+            -- Add_Commodity --
+            -------------------
 
-               -------------------
-               -- Add_Commodity --
-               -------------------
-
-               procedure Add_Commodity
-                 (Commodity : Concorde.Commodities.Commodity_Type)
-               is
-                  Result : Duration := 0.0;
-               begin
-                  case Power.Tax_Category is
-                     when Concorde.Trades.Sales =>
-                        Result :=
-                          Duration
-                            (World.Market.Recent_Transaction_Count
-                               (Commodity)) * 300.0;
-                        if Result > 0.0 then
-                           World.Log
-                             ("tax work: sales tax on "
-                              & Commodity.Name
-                              & " with"
-                              & Natural'Image
-                                (World.Market.Recent_Transaction_Count
-                                     (Commodity))
-                              & " transactions yields "
-                              & Concorde.Calendar.Image (Result) & " work");
-                        end if;
-                     when Concorde.Trades.Import =>
-                        Result :=
-                          Duration
-                            (WL.Quantities.To_Float
-                               (World.Market.Current_Imports (Commodity))
-                             / 100.0);
-                        if Result > 0.0 then
-                           World.Log
-                             ("tax work: import tariff on "
-                              & Commodity.Name
-                              & " with volume "
-                              & WL.Quantities.Show
-                                (World.Market.Current_Imports (Commodity))
-                              & " yields "
-                              & Concorde.Calendar.Image (Result) & " work");
-                        end if;
-                     when Concorde.Trades.Export =>
-                        Result :=
-                          Duration
-                            (WL.Quantities.To_Float
-                               (World.Market.Current_Exports (Commodity))
-                             / 100.0);
-                        if Result > 0.0 then
-                           World.Log
-                             ("tax work: export tariff on "
-                              & Commodity.Name
-                              & " with volume "
-                              & WL.Quantities.Show
-                                (World.Market.Current_Exports (Commodity))
-                              & " yields "
-                              & Concorde.Calendar.Image (Result) & " work");
-                        end if;
-                  end case;
-                  if Result > 0.0 then
-                     Result := Result + Concorde.Calendar.Hours (1);
-                  end if;
-                  Work := Work + Result;
-               end Add_Commodity;
-
+            procedure Add_Commodity
+              (Commodity : Concorde.Commodities.Commodity_Type)
+            is
+               W : Duration := 0.0;
             begin
-               Concorde.Commodities.Scan (Add_Commodity'Access);
-               return Work;
-            end;
+               case Item.Calculation is
+                  when By_Metric =>
+                     W :=
+                       Duration
+                         (WL.Quantities.To_Float
+                            (World.Market.Current_Quantity
+                               (Item.Metric, Commodity))
+                             * Float (Item.Factor));
+                  when By_Transaction_Count =>
+                     W :=
+                       Duration
+                         (Real
+                            (World.Market.Recent_Transaction_Count (Commodity))
+                             * Item.Factor);
+               end case;
+               if W > 0.0 then
+                  W := W + Concorde.Calendar.Hours (1);
+               end if;
+               Result := Result + W;
+            end Add_Commodity;
 
-      end case;
+         begin
+            Concorde.Commodities.Scan (Add_Commodity'Access);
+         end;
+      end if;
+
+      return Result;
    end Daily_Work;
 
    ---------------
@@ -246,14 +246,8 @@ package body Concorde.Powers.Execution is
       Index : Positive)
       return Concorde.People.Groups.Pop_Group
    is
-      pragma Unreferenced (Index);
    begin
-      case Power.Class is
-         when Set_Tax_Rate =>
-            return Concorde.People.Groups.Get ("clerks");
-         when Collect_Tax =>
-            return Concorde.People.Groups.Get ("bureaucrats");
-      end case;
+      return P (Power).Pop_Groups.Element (Index).Group;
    end Pop_Group;
 
    ---------------------
@@ -265,12 +259,7 @@ package body Concorde.Powers.Execution is
       return Natural
    is
    begin
-      case Power.Class is
-         when Set_Tax_Rate =>
-            return 1;
-         when Collect_Tax =>
-            return 1;
-      end case;
+      return P (Power).Pop_Groups.Last_Index;
    end Pop_Group_Count;
 
    ----------------------
@@ -282,9 +271,8 @@ package body Concorde.Powers.Execution is
       Index : Positive)
       return Duration
    is
-      pragma Unreferenced (Index, Power);
    begin
-      return Concorde.Calendar.Hours (4);
+      return P (Power).Pop_Groups.Element (Index).Effect;
    end Pop_Group_Effect;
 
 end Concorde.Powers.Execution;
