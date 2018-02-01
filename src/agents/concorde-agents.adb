@@ -1724,6 +1724,16 @@ package body Concorde.Agents is
                Ref.Add_Cash (Contract.Total_Cost);
                Ref.Contracted_Quantities.Remove_Quantity
                  (Contract.Commodity, Contract.Quantity, Contract.Total_Cost);
+               if not Ref.Market_Resident then
+                  Ref.Log_Trade
+                    ("notifying foreign trade");
+                  Ref.Market.Notify_Foreign_Trade
+                    (Trader    => Ref,
+                     Offer     => Concorde.Trades.Ask,
+                     Commodity => Contract.Commodity,
+                     Quantity  => Contract.Quantity,
+                     Price     => Contract.Price);
+               end if;
             end if;
 --              declare
 --               Accepted_Position : Current_Contract_Lists.Cursor :=

@@ -333,7 +333,9 @@ package body Concorde.Locations is
          when At_Installation =>
             return "at "
               & Concorde.Installations.Installation_Type
-              (Location.Reference).Facility.Name;
+              (Location.Reference).Facility.Name
+              & " on "
+              & Current_World (Location).Name;
          when In_Unit =>
             return "in unit";
       end case;
@@ -498,7 +500,9 @@ package body Concorde.Locations is
          when At_Installation =>
             return "at "
               & Concorde.Installations.Installation_Type
-              (Location.Reference).Facility.Name;
+              (Location.Reference).Facility.Name
+              & " on "
+              & Current_World (Location).Name;
          when In_Unit =>
             return "in unit";
       end case;

@@ -1,0 +1,6 @@
+legislative_work = 8
+pops = {
+  clerks = {
+    effect = 4
+  }
+}

@@ -1,3 +1,5 @@
+with Tropos;
+
 with Concorde.People.Attributes;
 with Concorde.People.Groups;
 with Concorde.Worlds;
@@ -47,5 +49,8 @@ package Concorde.Powers.Execution is
    --  Individual who manages a ministry which executes the power gets half
    --  That individual's boss gets less, depending on how much time they
    --  can contribute
+
+   procedure Configure_Power_Execution
+     (Config : Tropos.Configuration);
 
 end Concorde.Powers.Execution;

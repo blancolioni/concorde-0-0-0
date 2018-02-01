@@ -32,6 +32,23 @@ package body Concorde.Powers is
       return Power_Lists.Has_Element (Container.Set.Find (Power));
    end Contains;
 
+   function Identifier (Power : Power_Type) return String is
+   begin
+      case Power.Class is
+         when Set_Tax_Rate =>
+            return "set_tax_rate";
+         when Collect_Tax =>
+            case Power.Tax_Category is
+               when Concorde.Trades.Sales =>
+                  return "collect_sales_tax";
+               when Concorde.Trades.Import =>
+                  return "collect_import_tariffs";
+               when Concorde.Trades.Export =>
+                  return "collect_export_tariffs";
+            end case;
+      end case;
+   end Identifier;
+
    ------------
    -- Insert --
    ------------

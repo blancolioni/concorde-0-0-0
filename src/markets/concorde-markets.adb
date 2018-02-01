@@ -77,6 +77,25 @@ package body Concorde.Markets is
    -- Add_Quantity --
    ------------------
 
+   overriding procedure Add_Quantity
+     (Market    : Root_Market_Type;
+      Metric    : Concorde.Trades.Quantity_Metric;
+      Item      : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
+      Quantity  : WL.Quantities.Quantity_Type)
+   is
+      use type WL.Quantities.Quantity_Type;
+      Info : constant Cached_Commodity :=
+               Market.Get_Commodity (Item);
+   begin
+      Info.Quantity_Metrics (Metric) :=
+        Info.Quantity_Metrics (Metric) + Quantity;
+   end Add_Quantity;
+
+   ------------------
+   -- Add_Quantity --
+   ------------------
+
    procedure Add_Quantity
      (Info     : Cached_Commodity;
       Bid      : Concorde.Trades.Offer_Type;
@@ -807,6 +826,61 @@ package body Concorde.Markets is
    begin
       return Market.Owner.Name;
    end Name;
+
+   --------------------------
+   -- Notify_Foreign_Trade --
+   --------------------------
+
+   overriding procedure Notify_Foreign_Trade
+     (Market    : Root_Market_Type;
+      Offer     : Concorde.Trades.Offer_Type;
+      Trader    : not null access constant
+        Concorde.Trades.Trader_Interface'Class;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
+      Quantity  : WL.Quantities.Quantity_Type;
+      Price     : WL.Money.Price_Type)
+   is
+      use WL.Money;
+      use WL.Quantities;
+      Info  : constant Cached_Commodity :=
+                Market.Get_Commodity (Commodity);
+
+      Offer_Name : constant String :=
+                     (case Offer is
+                         when Concorde.Trades.Ask =>
+                            "ask",
+                         when Concorde.Trades.Bid =>
+                            "bid");
+
+      Market_Log_Path  : constant String :=
+                           Market.Identifier
+                           & "/" & Commodity.Identifier
+                           & "/" & Offer_Name;
+   begin
+
+      if Quantity = Zero then
+         Market.Log ("error: quantity is zero");
+      end if;
+
+      pragma Assert (Quantity > Zero);
+
+      Concorde.Logs.Log_Fields
+        (Market_Log_Path,
+         Trader.Short_Name,
+         Market.Identifier,
+         Commodity.Identifier,
+         Image (Quantity),
+         Image (Price));
+
+      Add_Commodity_Offer
+        (Info     => Info,
+         Offer    => Offer,
+         Resident => Trader.Market_Resident,
+         Quantity => Quantity,
+         Price    => Price);
+
+   end Notify_Foreign_Trade;
 
    ---------------------
    -- Object_Database --

@@ -243,6 +243,23 @@ private
         Concorde.Commodities.Root_Commodity_Type'Class)
       return WL.Quantities.Quantity_Type;
 
+   overriding procedure Add_Quantity
+     (Market    : Root_Market_Type;
+      Metric    : Concorde.Trades.Quantity_Metric;
+      Item      : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
+      Quantity  : WL.Quantities.Quantity_Type);
+
+   overriding procedure Notify_Foreign_Trade
+     (Market    : Root_Market_Type;
+      Offer     : Concorde.Trades.Offer_Type;
+      Trader    : not null access constant
+        Concorde.Trades.Trader_Interface'Class;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
+      Quantity  : WL.Quantities.Quantity_Type;
+      Price     : WL.Money.Price_Type);
+
    overriding procedure Update_Offer
      (Market    : Root_Market_Type;
       Offer     : Concorde.Trades.Offer_Type;
