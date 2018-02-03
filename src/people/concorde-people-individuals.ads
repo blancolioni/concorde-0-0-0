@@ -6,6 +6,7 @@ private with Memor.Database;
 
 with Concorde.Agents;
 with Concorde.Factions;
+with Concorde.Managers;
 with Concorde.Objects;
 with Concorde.Offices;
 with Concorde.Trades;
@@ -29,6 +30,7 @@ package Concorde.People.Individuals is
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Factions.Citizen_Interface
      and Concorde.Objects.User_Named_Object_Interface
+     and Concorde.Managers.Managed_Interface
      and Concorde.People.Skills.Has_Skills_Interface
      and Concorde.People.Attributes.Has_Attributes
      and Concorde.People.Careers.Career_Interface
@@ -174,6 +176,7 @@ private
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Factions.Citizen_Interface
      and Concorde.Objects.User_Named_Object_Interface
+     and Concorde.Managers.Managed_Interface
      and Concorde.People.Skills.Has_Skills_Interface
      and Concorde.People.Careers.Career_Interface with
       record
@@ -182,6 +185,7 @@ private
          Last_Name           : Ada.Strings.Unbounded.Unbounded_String;
          DNA                 : Concorde.People.Genetics.Genome;
          Gender              : Gender_Type;
+         Manager             : Concorde.Managers.Manager_Type;
          Partner_Gender      : Gender_Type;
          Preference_Strength : Unit_Real;
          Birth               : Concorde.Calendar.Time;
@@ -235,6 +239,15 @@ private
      (Individual : not null access constant Root_Individual_Type)
       return access Concorde.Agents.Root_Agent_Type'Class
    is (Individual.Update.Item);
+
+   overriding function Manager
+     (Individual  : Root_Individual_Type)
+      return Concorde.Managers.Manager_Type
+   is (Individual.Manager);
+
+   overriding procedure Set_Manager
+     (Individual  : in out Root_Individual_Type;
+      Manager     : Concorde.Managers.Manager_Type);
 
    overriding function Skill_Level
      (Individual : Root_Individual_Type;

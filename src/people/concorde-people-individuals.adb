@@ -117,6 +117,18 @@ package body Concorde.People.Individuals is
       Individual.Abilities (Ability) := Score;
    end Set_Ability_Score;
 
+   -----------------
+   -- Set_Manager --
+   -----------------
+
+   overriding procedure Set_Manager
+     (Individual  : in out Root_Individual_Type;
+      Manager     : Concorde.Managers.Manager_Type)
+   is
+   begin
+      Individual.Manager := Manager;
+   end Set_Manager;
+
    --------------
    -- Set_Name --
    --------------

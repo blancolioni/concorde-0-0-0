@@ -13,10 +13,19 @@ package Concorde.Ministries is
 
    type Root_Ministry_Type is
      new Concorde.Agents.Root_Agent_Type
+     and Concorde.Objects.User_Named_Object_Interface
      and Concorde.Bureaucracy.Bureaucratic_Interface
    with private;
 
    type Ministry_Type is access constant Root_Ministry_Type'Class;
+
+   overriding function Name
+     (Ministry : Root_Ministry_Type)
+      return String;
+
+   overriding procedure Set_Name
+     (Ministry : in out Root_Ministry_Type;
+      New_Name : String);
 
    function Minister
      (Ministry : Root_Ministry_Type'Class)
@@ -45,6 +54,11 @@ package Concorde.Ministries is
      (Ministry : in out Root_Ministry_Type;
       Power      : Concorde.Powers.Power_Type);
 
+   overriding procedure Scan_Powers
+     (Item    : Root_Ministry_Type;
+      Process : not null access
+        procedure (Power : Concorde.Powers.Power_Type));
+
    function Daily_Work
      (Ministry : Root_Ministry_Type'Class)
       return Duration;
@@ -61,6 +75,7 @@ private
 
    type Root_Ministry_Type is
      new Concorde.Agents.Root_Agent_Type
+     and Concorde.Objects.User_Named_Object_Interface
      and Concorde.Bureaucracy.Bureaucratic_Interface with
       record
          Name              : Ada.Strings.Unbounded.Unbounded_String;
@@ -100,6 +115,11 @@ private
      (Ministry : Root_Ministry_Type)
       return String
    is ("ministry");
+
+   overriding function Name
+     (Ministry : Root_Ministry_Type)
+      return String
+   is (Ada.Strings.Unbounded.To_String (Ministry.Name));
 
    function Minister
      (Ministry : Root_Ministry_Type'Class)

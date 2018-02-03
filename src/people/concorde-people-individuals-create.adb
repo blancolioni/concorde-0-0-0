@@ -8,6 +8,8 @@ with WL.Quantities;
 with Concorde.Names;
 with Concorde.Random;
 
+with Concorde.Objects.Queues;
+
 with Concorde.Government;
 with Concorde.Markets;
 with Concorde.Worlds;
@@ -15,6 +17,8 @@ with Concorde.Worlds;
 with Concorde.People.Attributes;
 with Concorde.People.Individuals.Portraits;
 with Concorde.People.Individuals.Report;
+
+with Concorde.Managers.Individuals;
 
 with Concorde.Options;
 
@@ -307,6 +311,20 @@ package body Concorde.People.Individuals.Create is
         Db.Create (Create'Access)
       do
          Update_Location (Individual);
+         declare
+            use type Concorde.Calendar.Time;
+            Manager : constant Concorde.Managers.Manager_Type :=
+                        Concorde.Managers.Individuals.Create_Manager
+                          (Individual);
+         begin
+            Manager.Activate;
+            Individual.Update.Set_Manager (Manager);
+            Concorde.Objects.Queues.Next_Event
+              (Individual,
+               Concorde.Calendar.Clock
+               + Duration (Concorde.Random.Unit_Random * 86_400.0));
+         end;
+
          if Concorde.Options.Write_Character_Portraits then
             Concorde.People.Individuals.Portraits.Save_Portrait
               (Individual,

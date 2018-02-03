@@ -93,6 +93,11 @@ package Concorde.People.Attributes is
       Score       : Concorde.People.Proficiencies.Proficiency_Score_Range)
       is abstract;
 
+   function Attribute_Score
+     (Attrs     : Has_Attributes'Class;
+      Reference : Attribute_Reference)
+      return Natural;
+
    procedure Improve
      (Attrs     : in out Has_Attributes'Class;
       Reference : Attribute_Reference);

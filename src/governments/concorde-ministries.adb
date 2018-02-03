@@ -1,3 +1,4 @@
+with Concorde.People.Individuals;
 with Concorde.Powers.Execution;
 
 package body Concorde.Ministries is
@@ -45,6 +46,19 @@ package body Concorde.Ministries is
       return Result;
    end Daily_Work;
 
+   -----------------
+   -- Scan_Powers --
+   -----------------
+
+   overriding procedure Scan_Powers
+     (Item    : Root_Ministry_Type;
+      Process : not null access
+        procedure (Power : Concorde.Powers.Power_Type))
+   is
+   begin
+      Item.Powers.Scan_Powers (Process);
+   end Scan_Powers;
+
    ------------------
    -- Set_Minister --
    ------------------
@@ -57,6 +71,18 @@ package body Concorde.Ministries is
    begin
       Ministry.Minister := Minister;
    end Set_Minister;
+
+   --------------
+   -- Set_Name --
+   --------------
+
+   overriding procedure Set_Name
+     (Ministry : in out Root_Ministry_Type;
+      New_Name : String)
+   is
+   begin
+      Ministry.Name := Ada.Strings.Unbounded.To_Unbounded_String (New_Name);
+   end Set_Name;
 
    ------------
    -- Update --

@@ -5,7 +5,7 @@ with Concorde.Factions.Logging;
 with Concorde.Galaxy;
 with Concorde.Systems.Graphs;
 
-with Concorde.People.Individuals;
+with Concorde.People.Individuals.Work;
 
 package body Concorde.Factions is
 
@@ -39,6 +39,8 @@ package body Concorde.Factions is
    is
    begin
       Faction.Ministries.Append (Ministry);
+      Faction.Leader.Manager.Add_Work_Item
+        (Concorde.People.Individuals.Work.Appoint_Minister (Ministry));
    end Add_Ministry;
 
    ---------------
@@ -744,14 +746,26 @@ package body Concorde.Factions is
    procedure Scan_Ministries
      (Faction : Root_Faction_Type'Class;
       Process : not null access
-        procedure (Ministry : not null access constant
-                     Concorde.Ministries.Root_Ministry_Type'Class))
+        procedure (Ministry : Concorde.Ministries.Ministry_Type))
    is
    begin
       for Ministry of Faction.Ministries loop
          Process (Ministry);
       end loop;
    end Scan_Ministries;
+
+   -----------------
+   -- Scan_Powers --
+   -----------------
+
+   overriding procedure Scan_Powers
+     (Item    : Root_Faction_Type;
+      Process : not null access
+        procedure (Power : Concorde.Powers.Power_Type))
+   is
+   begin
+      Item.Powers.Scan_Powers (Process);
+   end Scan_Powers;
 
    ---------
    -- Set --
@@ -804,24 +818,38 @@ package body Concorde.Factions is
       Minister : not null access constant
         Concorde.People.Individuals.Root_Individual_Type'Class)
    is
-      Old_Minister : constant Individual_Access :=
-                       Faction.Cabinet.Element (Office);
-      Event        : Concorde.Factions.Events.Office_Changed_Event;
-
    begin
       Faction.Cabinet.Replace_Element (Office, Individual_Access (Minister));
+   end Set_Minister;
+
+   ------------------
+   -- Set_Minister --
+   ------------------
+
+   procedure Set_Minister
+     (Faction  : in out Root_Faction_Type'Class;
+      Ministry : Concorde.Ministries.Ministry_Type;
+      Minister : not null access constant
+        Concorde.People.Individuals.Root_Individual_Type'Class)
+   is
+      use Concorde.People.Individuals;
+      Old_Minister : constant Individual_Type :=
+                       Individual_Type (Ministry.Minister);
+      Event        : Concorde.Factions.Events.Ministry_Changed_Event;
+   begin
+
+      Ministry.Update.Set_Minister (Minister);
+
       Event.Set_Time_Stamp (Concorde.Calendar.Clock);
-      Event.Office := Office;
-      Event.Old_Minister :=
-        Concorde.People.Individuals.Individual_Type (Old_Minister);
+      Event.Ministry := Ministry;
+      Event.Old_Minister := Old_Minister;
       Event.New_Minister :=
         Concorde.People.Individuals.Individual_Type
           (Minister);
 
       Faction.Signal
-        (Sig   => Concorde.Factions.Events.Signal_Office_Changed,
+        (Sig   => Concorde.Factions.Events.Signal_Ministry_Changed,
          Event => Event);
-
    end Set_Minister;
 
    --------------

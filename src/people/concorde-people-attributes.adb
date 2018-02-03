@@ -2,6 +2,26 @@ with WL.Random;
 
 package body Concorde.People.Attributes is
 
+   ---------------------
+   -- Attribute_Score --
+   ---------------------
+
+   function Attribute_Score
+     (Attrs     : Has_Attributes'Class;
+      Reference : Attribute_Reference)
+      return Natural
+   is
+   begin
+      case Reference.Attribute is
+         when Ability_Attribute =>
+            return Natural (Attrs.Ability_Score (Reference.Ability));
+         when Skill_Attribute =>
+            return Natural (Attrs.Skill_Level (Reference.Skill));
+         when Proficiency_Attribute =>
+            return Natural (Attrs.Proficiency_Level (Reference.Proficiency));
+      end case;
+   end Attribute_Score;
+
    ------------
    -- Chance --
    ------------

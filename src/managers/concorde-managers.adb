@@ -17,6 +17,20 @@ package body Concorde.Managers is
       Manager_List.Append (Manager);
    end Activate;
 
+   -------------------
+   -- Add_Work_Item --
+   -------------------
+
+   procedure Add_Work_Item
+     (Manager : in out Root_Manager_Type'Class;
+      Item    : not null access constant
+        Concorde.Work.Root_Work_Item'Class)
+   is
+   begin
+      Manager.Work_Queue.Insert
+        (Item.Priority, Concorde.Work.Work_Item (Item));
+   end Add_Work_Item;
+
    ----------------
    -- Deactivate --
    ----------------

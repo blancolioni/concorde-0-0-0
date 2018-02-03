@@ -41,7 +41,7 @@ package Concorde.Powers.Execution is
      (Power : Power_Type;
       Index : Positive)
       return Concorde.People.Attributes.Attribute_Reference
-     with Pre => Pop_Group_Count (Power) >= Index;
+     with Pre => Attribute_Count (Power) >= Index;
    --  Attributes reduce the daily work required to execute this power
    --  They are contributed by individuals executing the power.
    --  Effect is reduced for each degree of separation from execution.

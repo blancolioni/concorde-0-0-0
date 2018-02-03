@@ -52,6 +52,11 @@ package Concorde.Factions is
      (Item  : in out Root_Faction_Type;
       Power : Concorde.Powers.Power_Type);
 
+   overriding procedure Scan_Powers
+     (Item  : Root_Faction_Type;
+      Process : not null access
+        procedure (Power : Concorde.Powers.Power_Type));
+
    function Colour
      (Faction : Root_Faction_Type'Class)
       return Lui.Colours.Colour_Type;
@@ -111,8 +116,13 @@ package Concorde.Factions is
    procedure Scan_Ministries
      (Faction : Root_Faction_Type'Class;
       Process : not null access
-        procedure (Ministry : not null access constant
-                     Concorde.Ministries.Root_Ministry_Type'Class));
+        procedure (Ministry : Concorde.Ministries.Ministry_Type));
+
+   procedure Set_Minister
+     (Faction  : in out Root_Faction_Type'Class;
+      Ministry : Concorde.Ministries.Ministry_Type;
+      Minister : not null access constant
+        Concorde.People.Individuals.Root_Individual_Type'Class);
 
    function Capital_World
      (Faction : Root_Faction_Type'Class)
