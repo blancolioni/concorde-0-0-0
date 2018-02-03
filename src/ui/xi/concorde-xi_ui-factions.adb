@@ -4,41 +4,48 @@ with Ada.Text_IO;
 with Cairo;
 with Cairo.Image_Surface;
 
+with WL.Localisation;
 with WL.String_Maps;
 
 with Css;
 
 with Xtk.Events;
+
+with Xtk.Div_Element;
+with Xtk.Table_Element;
 with Xtk.Widget;
 
 with Concorde.Events;
-with Concorde.Offices;
+with Concorde.Ministries;
 with Concorde.People.Individuals.Portraits;
 
 with Concorde.Factions.Events;
 
 package body Concorde.Xi_UI.Factions is
 
-   type Office_Widgets is
+   type Table_Row is
      new Xtk.Events.User_Data_Interface with
       record
-         Office           : Concorde.Offices.Office_Type;
+         Ministry         : Concorde.Ministries.Ministry_Type;
+         Minister         : Concorde.People.Individuals.Individual_Type;
+         Ministry_Name    : Xtk.Label.Xtk_Label;
          Minister_Name    : Xtk.Label.Xtk_Label;
-         Portrait_Widget  : Xtk.Widget.Xtk_Widget;
+         Portrait_Widget  : Xtk.Div_Element.Xtk_Div_Element;
          Portrait_Surface : Cairo.Cairo_Surface;
       end record;
 
-   type Office_Widget_Access is access all Office_Widgets'Class;
+   type Table_Row_Access is access all Table_Row'Class;
 
-   package Office_Widget_Lists is
-     new Ada.Containers.Doubly_Linked_Lists (Office_Widget_Access);
+   package Table_Row_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Table_Row_Access);
 
    type Root_Faction_Overlay is
      new Root_Overlay_Type with
       record
          Faction : Concorde.Factions.Faction_Type;
          Title   : Xtk.Label.Xtk_Label;
-         Widgets : Office_Widget_Lists.List;
+         Table   : Xtk.Table_Element.Xtk_Table;
+         Rows    : Table_Row_Lists.List;
       end record;
 
    type Faction_Overlay_Access is access all Root_Faction_Overlay'Class;
@@ -58,7 +65,7 @@ package body Concorde.Xi_UI.Factions is
      (Faction : Concorde.Factions.Faction_Type)
       return Faction_Overlay_Access;
 
-   procedure On_Office_Assigned
+   procedure On_Ministry_Assigned
      (Event  : Concorde.Events.Root_Event_Type'Class;
       Object : not null access constant
         Concorde.Objects.Root_Object_Type'Class);
@@ -66,6 +73,9 @@ package body Concorde.Xi_UI.Factions is
    function Create_Surface
      (Individual : Concorde.People.Individuals.Individual_Type)
       return Cairo.Cairo_Surface;
+
+   procedure Update_Table
+     (Overlay : Faction_Overlay_Access);
 
    --------------------
    -- Create_Surface --
@@ -112,8 +122,8 @@ package body Concorde.Xi_UI.Factions is
       return Xtk.Events.Event_Response
    is
       pragma Unreferenced (Widget);
-      Ws : constant Office_Widget_Access :=
-             Office_Widget_Access (User_Data);
+      Ws : constant Table_Row_Access :=
+             Table_Row_Access (User_Data);
    begin
       Cairo.Set_Source_Surface (Context, Ws.Portrait_Surface, 0.0, 0.0);
       Cairo.Paint (Context);
@@ -147,52 +157,6 @@ package body Concorde.Xi_UI.Factions is
       Overlay : constant Faction_Overlay_Access :=
                   new Root_Faction_Overlay;
 
-      procedure Add_Widgets (Office : Concorde.Offices.Office_Type);
-
-      -----------------
-      -- Add_Widgets --
-      -----------------
-
-      procedure Add_Widgets (Office : Concorde.Offices.Office_Type) is
-         use type Xtk.Widget.Xtk_Widget;
-         use type Concorde.People.Individuals.Individual_Type;
-         Panel    : constant Xtk.Panel.Xtk_Panel := Overlay.Top_Panel;
-         Name     : constant Xtk.Label.Xtk_Label :=
-                      Xtk.Label.Xtk_Label
-                        (Panel.Get_Child_Widget_By_Id
-                           ("faction-" & Office.Identifier & "-name"));
-         Portrait : constant Xtk.Widget.Xtk_Widget :=
-                      (Panel.Get_Child_Widget_By_Id
-                         ("faction-" & Office.Identifier & "-portrait"));
-         Minister : constant Concorde.People.Individuals.Individual_Type :=
-                      (if Faction.Has_Minister (Office)
-                       then Faction.Minister (Office)
-                       else null);
-         Widgets  : Office_Widget_Access;
-
-      begin
-         if Portrait = null then
-            return;
-         end if;
-
-         if Faction.Has_Minister (Office) then
-            Name.Set_Label (Minister.Full_Name);
-         else
-            Name.Set_Label ("Vacant");
-         end if;
-
-         Widgets :=
-           new Office_Widgets'
-             (Office           => Office,
-              Minister_Name    => Name,
-              Portrait_Widget  => Portrait,
-              Portrait_Surface => Create_Surface (Minister));
-
-         Portrait.On_Draw (Draw_Portrait'Access, Widgets);
-         Overlay.Widgets.Append (Widgets);
-
-      end Add_Widgets;
-
    begin
       Overlay.Initialize ("faction-info-panel");
 
@@ -203,32 +167,36 @@ package body Concorde.Xi_UI.Factions is
             (Overlay.Top_Panel.Get_Child_Widget_By_Id
                ("info-faction-name"));
 
-            Overlay.Title.Set_Label ("House " & Faction.Name);
+      Overlay.Title.Set_Label ("House " & Faction.Name);
 
-      Concorde.Offices.Scan_Offices (Add_Widgets'Access);
+      Overlay.Table :=
+        Xtk.Table_Element.Xtk_Table
+          (Overlay.Top_Panel.Get_Child_Widget_By_Id
+             ("info-table"));
+
+      Update_Table (Overlay);
 
       Faction.Update.Add_Handler
-        (Signal  => Concorde.Factions.Events.Signal_Office_Changed,
-         Handler => On_Office_Assigned'Access);
+        (Signal  => Concorde.Factions.Events.Signal_Ministry_Changed,
+         Handler => On_Ministry_Assigned'Access);
 
       return Overlay;
 
    end New_Faction_Overlay;
 
-   ------------------------
-   -- On_Office_Assigned --
-   ------------------------
+   --------------------------
+   -- On_Ministry_Assigned --
+   --------------------------
 
-   procedure On_Office_Assigned
+   procedure On_Ministry_Assigned
      (Event  : Concorde.Events.Root_Event_Type'Class;
       Object : not null access constant
         Concorde.Objects.Root_Object_Type'Class)
    is
       use Cairo;
-      use Concorde.Offices;
       use Concorde.People.Individuals;
-      Ev      : Concorde.Factions.Events.Office_Changed_Event'Class renames
-                  Concorde.Factions.Events.Office_Changed_Event'Class
+      Ev      : Concorde.Factions.Events.Ministry_Changed_Event'Class renames
+                  Concorde.Factions.Events.Ministry_Changed_Event'Class
                     (Event);
       Overlay : constant Faction_Overlay_Access :=
                   (if Overlay_Map.Contains (Object.Identifier)
@@ -237,32 +205,137 @@ package body Concorde.Xi_UI.Factions is
    begin
       if Ev.Old_Minister /= null then
          Ada.Text_IO.Put_Line
-           (Object.Identifier & ": " & Ev.Office.Name
+           (Object.Identifier & ": " & Ev.Ministry.Name
             & ": fired " & Ev.Old_Minister.Full_Name);
       end if;
       if Ev.New_Minister /= null then
          Ada.Text_IO.Put_Line
-           (Object.Identifier & ": " & Ev.Office.Name
+           (Object.Identifier & ": " & Ev.Ministry.Name
             & ": appointed " & Ev.New_Minister.Full_Name);
       end if;
 
-      if Overlay /= null then
-         for W of Overlay.Widgets loop
-            if W.Office = Ev.Office then
-               if Ev.New_Minister /= null then
-                  W.Minister_Name.Set_Label (Ev.New_Minister.Full_Name);
-               else
-                  W.Minister_Name.Set_Label ("Vacant");
-               end if;
-               if W.Portrait_Surface /= Null_Surface then
-                  Surface_Destroy (W.Portrait_Surface);
-               end if;
-               W.Portrait_Surface := Create_Surface (Ev.New_Minister);
-               W.Portrait_Widget.Queue_Draw;
+      Update_Table (Overlay);
+
+--        if Overlay /= null then
+--           for W of Overlay.Widgets loop
+--              if W.Office = Ev.Office then
+--                 if Ev.New_Minister /= null then
+--                    W.Minister_Name.Set_Label (Ev.New_Minister.Full_Name);
+--                 else
+--                    W.Minister_Name.Set_Label ("Vacant");
+--                 end if;
+--                 if W.Portrait_Surface /= Null_Surface then
+--                    Surface_Destroy (W.Portrait_Surface);
+--                 end if;
+--                 W.Portrait_Surface := Create_Surface (Ev.New_Minister);
+--                 W.Portrait_Widget.Queue_Draw;
+--                 exit;
+--              end if;
+--           end loop;
+--        end if;
+   end On_Ministry_Assigned;
+
+   ------------------
+   -- Update_Table --
+   ------------------
+
+   procedure Update_Table
+     (Overlay : Faction_Overlay_Access)
+   is
+      procedure Update_Widgets (Ministry : Concorde.Ministries.Ministry_Type);
+
+      --------------------
+      -- Update_Widgets --
+      --------------------
+
+      procedure Update_Widgets
+        (Ministry : Concorde.Ministries.Ministry_Type)
+      is
+
+         use Concorde.People.Individuals;
+         use Concorde.Ministries;
+
+         Found : Boolean := False;
+
+         use type Xtk.Widget.Xtk_Widget;
+         use type Concorde.People.Individuals.Individual_Type;
+
+         procedure Update_Row
+           (Row : Table_Row_Access);
+
+         ----------------
+         -- Update_Row --
+         ----------------
+
+         procedure Update_Row
+           (Row : Table_Row_Access)
+         is
+         begin
+            Row.Minister_Name.Set_Label
+              (if Ministry.Minister = null
+               then WL.Localisation.Local_Text ("vacant")
+               else Ministry.Minister.Full_Name);
+            Row.Portrait_Surface :=
+              Create_Surface (Ministry.Minister);
+         end Update_Row;
+
+      begin
+
+         for Row of Overlay.Rows loop
+            if Row.Ministry = Ministry then
+               declare
+                  Current : constant Individual_Type :=
+                              Individual_Type (Ministry.Minister);
+               begin
+                  if Row.Minister /= Current then
+                     Update_Row (Row);
+                  end if;
+               end;
+               Found := True;
                exit;
             end if;
          end loop;
-      end if;
-   end On_Office_Assigned;
+
+         if not Found then
+            declare
+               Row : constant Table_Row_Access :=
+                       new Table_Row'
+                         (Ministry         => Ministry,
+                          Minister         => Ministry.Minister,
+                          Minister_Name    => null,
+                          Ministry_Name    => null,
+                          Portrait_Widget  => null,
+                          Portrait_Surface => Cairo.Null_Surface);
+               TR  : constant Xtk.Table_Element.Xtk_Table_Row :=
+                       Xtk.Table_Element.Xtk_New;
+               TD  : Xtk.Table_Element.Xtk_Table_Data;
+            begin
+               Xtk.Table_Element.Xtk_New (TD);
+               Xtk.Div_Element.Xtk_New (Row.Portrait_Widget);
+               Row.Portrait_Widget.Set_Attribute
+                 ("class", "portrait-medium");
+               Row.Portrait_Widget.On_Draw
+                 (Draw_Portrait'Access, Row);
+               TD.Add_Child (Row.Portrait_Widget);
+               TR.Add_Child (TD);
+               Xtk.Label.Xtk_New (Row.Ministry_Name, Ministry.Name);
+               Xtk.Table_Element.Xtk_New (TD);
+               TD.Add_Child (Row.Ministry_Name);
+               TR.Add_Child (TD);
+               Xtk.Label.Xtk_New (Row.Minister_Name, "Jimbo");
+               Xtk.Table_Element.Xtk_New (TD);
+               TD.Add_Child (Row.Minister_Name);
+               TR.Add_Child (TD);
+               Overlay.Table.Add_Child (TR);
+               Overlay.Rows.Append (Row);
+               Update_Row (Row);
+            end;
+         end if;
+      end Update_Widgets;
+
+   begin
+      Overlay.Faction.Scan_Ministries (Update_Widgets'Access);
+      Overlay.Table.Show_All;
+   end Update_Table;
 
 end Concorde.Xi_UI.Factions;
