@@ -457,7 +457,7 @@ private
          Faction_Data       : access Relation_Record;
          Ruler              : Faction_Type;
          Cabinet            : Office_Holder_Vectors.Vector;
-         Powers             : Concorde.Powers.Power_Set;
+--           Powers             : Concorde.Powers.Power_Set;
          Laws               : Law_Lists.List;
          Ministries         : Ministry_Lists.List;
          Current_Population : WL.Quantities.Quantity_Type;
@@ -523,7 +523,8 @@ private
      (Item  : Root_Faction_Type;
       Power : Concorde.Powers.Power_Type)
       return Boolean
-   is (Item.Powers.Contains (Power));
+   is (for some Ministry of Item.Ministries =>
+          Ministry.Has_Power (Power));
 
    function Capital_World
      (Faction : Root_Faction_Type'Class)

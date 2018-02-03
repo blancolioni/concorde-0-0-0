@@ -27,6 +27,10 @@ package Concorde.Ministries is
      (Ministry : in out Root_Ministry_Type;
       New_Name : String);
 
+   function Has_Minister
+     (Ministry : Root_Ministry_Type'Class)
+      return Boolean;
+
    function Minister
      (Ministry : Root_Ministry_Type'Class)
       return access constant
@@ -120,6 +124,11 @@ private
      (Ministry : Root_Ministry_Type)
       return String
    is (Ada.Strings.Unbounded.To_String (Ministry.Name));
+
+   function Has_Minister
+     (Ministry : Root_Ministry_Type'Class)
+      return Boolean
+   is (not Concorde.Ministries."=" (Ministry.Minister, null));
 
    function Minister
      (Ministry : Root_Ministry_Type'Class)

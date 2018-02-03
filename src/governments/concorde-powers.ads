@@ -52,6 +52,8 @@ package Concorde.Powers is
 
    type Power_Set is new Powered_Interface with private;
 
+   function No_Powers return Power_Set;
+
    overriding function Contains
      (Container : Power_Set;
       Power     : Power_Type)
@@ -108,5 +110,7 @@ private
       record
          Set : Power_Lists.List;
       end record;
+
+   function No_Powers return Power_Set is (Set => <>);
 
 end Concorde.Powers;

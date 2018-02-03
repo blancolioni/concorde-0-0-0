@@ -6,6 +6,7 @@ with Concorde.Paths;
 with Concorde.Configure;
 
 with Concorde.Factions.Create;
+with Concorde.Ministries.Create;
 
 with Lui.Colours;
 
@@ -54,6 +55,9 @@ package body Concorde.Factions.Configure is
                                 Lui.Colours.Colour_Byte (Blue)),
                            Default_Ship_Design =>
                              Config.Get ("design", "defender"));
+            House_Ministry  : constant Concorde.Ministries.Ministry_Type :=
+                                Concorde.Ministries.Create
+                                  .Create_Faction_Ministry (Faction);
             Laws_Config     : constant Tropos.Configuration :=
                                 Tropos.Reader.Read_Config
                                   (Concorde.Configure.File_Path
@@ -69,7 +73,7 @@ package body Concorde.Factions.Configure is
 
             for Law_Config of Imperium_Config.Child ("faction_laws") loop
                if Current = 0 then
-                  Faction.Update.Add_Power
+                  House_Ministry.Update.Add_Power
                     (Concorde.Powers.Configure.Configure_Power
                        (Law_Config.Child (1)));
                else

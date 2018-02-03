@@ -39,8 +39,10 @@ package body Concorde.Factions is
    is
    begin
       Faction.Ministries.Append (Ministry);
-      Faction.Leader.Manager.Add_Work_Item
-        (Concorde.People.Individuals.Work.Appoint_Minister (Ministry));
+      if not Ministry.Has_Minister then
+         Faction.Leader.Manager.Add_Work_Item
+           (Concorde.People.Individuals.Work.Appoint_Minister (Ministry));
+      end if;
    end Add_Ministry;
 
    ---------------
@@ -52,7 +54,7 @@ package body Concorde.Factions is
       Power : Concorde.Powers.Power_Type)
    is
    begin
-      Item.Powers.Insert (Power);
+      Item.Ministries.First_Element.Update.Add_Power (Power);
    end Add_Power;
 
    ------------------
@@ -764,7 +766,7 @@ package body Concorde.Factions is
         procedure (Power : Concorde.Powers.Power_Type))
    is
    begin
-      Item.Powers.Scan_Powers (Process);
+      Item.Ministries.First_Element.Scan_Powers (Process);
    end Scan_Powers;
 
    ---------
