@@ -32,6 +32,10 @@ package body Concorde.Powers is
       return Power_Lists.Has_Element (Container.Set.Find (Power));
    end Contains;
 
+   ----------------
+   -- Identifier --
+   ----------------
+
    function Identifier (Power : Power_Type) return String is
    begin
       case Power.Class is
@@ -46,6 +50,8 @@ package body Concorde.Powers is
                when Concorde.Trades.Export =>
                   return "collect_export_tariffs";
             end case;
+         when Appoint_Minister =>
+            return "appoint_minister";
       end case;
    end Identifier;
 
@@ -119,6 +125,8 @@ package body Concorde.Powers is
                when Concorde.Trades.Export =>
                   return "collect export tariffs";
             end case;
+         when Appoint_Minister =>
+            return "appoint minister";
       end case;
    end Show;
 

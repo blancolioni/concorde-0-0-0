@@ -19,6 +19,8 @@ package Concorde.Powers is
       Category : Concorde.Trades.Market_Tax_Category)
       return Power_Type;
 
+   function Appoint_Minister return Power_Type;
+
    type Powered_Interface is limited interface;
 
    function Contains
@@ -80,13 +82,15 @@ package Concorde.Powers is
 
 private
 
-   type Power_Class is (Set_Tax_Rate, Collect_Tax);
+   type Power_Class is (Set_Tax_Rate, Collect_Tax, Appoint_Minister);
 
    type Power_Type (Class : Power_Class) is
       record
          case Class is
             when Set_Tax_Rate | Collect_Tax =>
                Tax_Category : Concorde.Trades.Market_Tax_Category;
+            when Appoint_Minister =>
+               null;
          end case;
       end record;
 
@@ -102,6 +106,9 @@ private
       Category : Concorde.Trades.Market_Tax_Category)
       return Power_Type
    is (Collect_Tax, Category);
+
+   function Appoint_Minister return Power_Type
+   is (Class => Appoint_Minister);
 
    package Power_Lists is
      new Ada.Containers.Indefinite_Doubly_Linked_Lists (Power_Type);

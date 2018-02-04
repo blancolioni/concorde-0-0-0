@@ -12,8 +12,10 @@ package body Concorde.People.Individuals.Work is
    overriding function Show (Item : Appoint_Minister_Work_Item) return String
    is ("appoint minister to " & Item.Ministry.Name);
 
-   overriding function Cost (Item : Appoint_Minister_Work_Item) return Duration
-   is (Concorde.Calendar.Days (5));
+   overriding function Power
+     (Item : Appoint_Minister_Work_Item)
+      return Concorde.Powers.Power_Type
+   is (Concorde.Powers.Appoint_Minister);
 
    overriding procedure Execute
      (Work       : Appoint_Minister_Work_Item;

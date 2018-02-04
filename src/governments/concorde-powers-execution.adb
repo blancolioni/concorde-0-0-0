@@ -237,6 +237,23 @@ package body Concorde.Powers.Execution is
       return Result;
    end Daily_Work;
 
+   --------------------
+   -- Execution_Work --
+   --------------------
+
+   function Execution_Work
+     (Power  : Power_Type;
+      Target : access constant
+        Concorde.Objects.Root_Object_Type'Class)
+      return Duration
+   is
+      pragma Unreferenced (Target);
+      Rec : constant Power_Execution_Record := P (Power);
+      Result : constant Duration := Rec.Daily_Work.Base;
+   begin
+      return Result;
+   end Execution_Work;
+
    ---------------
    -- Pop_Group --
    ---------------

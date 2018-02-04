@@ -1,5 +1,6 @@
 with Tropos;
 
+with Concorde.Objects;
 with Concorde.People.Attributes;
 with Concorde.People.Groups;
 with Concorde.Worlds;
@@ -12,6 +13,14 @@ package Concorde.Powers.Execution is
       return Duration;
    --  How many person-seconds required
    --  to execute this power on the given world today
+
+   function Execution_Work
+     (Power  : Power_Type;
+      Target : access constant
+        Concorde.Objects.Root_Object_Type'Class)
+      return Duration;
+   --  How many person-seconds required
+   --  to execute this power on the given target
 
    function Pop_Group_Count
      (Power : Power_Type)

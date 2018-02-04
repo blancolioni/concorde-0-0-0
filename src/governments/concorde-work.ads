@@ -1,4 +1,6 @@
 with Concorde.Calendar;
+with Concorde.Objects;
+with Concorde.Powers;
 
 package Concorde.Work is
 
@@ -9,10 +11,12 @@ package Concorde.Work is
    type Root_Work_Item is abstract tagged private;
 
    function Show (Item : Root_Work_Item) return String is abstract;
-   function Cost (Item : Root_Work_Item) return Duration is abstract;
+   function Power (Item : Root_Work_Item) return Concorde.Powers.Power_Type
+                   is abstract;
 
    function Priority (Item : Root_Work_Item) return Work_Priority;
    function Deadline (Item : Root_Work_Item) return Concorde.Calendar.Time;
+   function Target (Item : Root_Work_Item) return Concorde.Objects.Object_Type;
 
    type Work_Item is access constant Root_Work_Item'Class;
 
@@ -27,6 +31,7 @@ private
       record
          Priority : Work_Priority           := 1;
          Deadline : Concorde.Calendar.Time  := Concorde.Calendar.Start;
+         Target   : Concorde.Objects.Object_Type := null;
       end record;
 
    function Priority (Item : Root_Work_Item) return Work_Priority
@@ -34,5 +39,8 @@ private
 
    function Deadline (Item : Root_Work_Item) return Concorde.Calendar.Time
    is (Item.Deadline);
+
+   function Target (Item : Root_Work_Item) return Concorde.Objects.Object_Type
+   is (Item.Target);
 
 end Concorde.Work;

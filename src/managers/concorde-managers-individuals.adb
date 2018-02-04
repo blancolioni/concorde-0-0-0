@@ -5,6 +5,7 @@ with Concorde.Commodities;
 with Concorde.Facilities;
 with Concorde.Trades;
 
+with Concorde.Powers.Execution;
 with Concorde.People.Individuals.Work;
 
 package body Concorde.Managers.Individuals is
@@ -83,7 +84,10 @@ package body Concorde.Managers.Individuals is
          Concorde.Objects.Queues.Next_Event
            (Object => Manager.Individual,
             Date   =>
-              Concorde.Calendar.Clock + Manager.Current_Work.Cost);
+              Concorde.Calendar.Clock
+            + Concorde.Powers.Execution.Execution_Work
+              (Manager.Current_Work.Power,
+               Manager.Current_Work.Target));
       else
          Concorde.Objects.Queues.Next_Event
            (Manager.Individual, Manager.Time, Delay_Days => 1);
