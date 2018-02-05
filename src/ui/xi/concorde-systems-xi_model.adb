@@ -2,6 +2,7 @@ with Ada.Calendar;
 with Ada.Text_IO;
 
 with WL.Random;
+with WL.String_Maps;
 
 with Memor.Element_Vectors;
 
@@ -19,7 +20,6 @@ with Xi.Shapes;
 with Xtk.Text.View;
 
 with Concorde.Elementary_Functions;
-with Concorde.Hash_Table;
 with Concorde.Solar_System;
 
 with Concorde.Stars;
@@ -107,7 +107,7 @@ package body Concorde.Systems.Xi_Model is
    type System_Model_Access is access all Root_System_Model'Class;
 
    package System_Model_Table is
-     new Concorde.Hash_Table (System_Model_Access);
+     new WL.String_Maps (System_Model_Access);
 
    System_Models : System_Model_Table.Map;
 

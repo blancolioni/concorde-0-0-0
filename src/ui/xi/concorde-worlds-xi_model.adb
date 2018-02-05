@@ -29,8 +29,6 @@ with Lui.Colours;
 
 with Newton;
 
-with Concorde.Hash_Table;
-
 with Concorde.Worlds.Tables;
 with Concorde.Worlds.Xi_Model.Palettes;
 with Concorde.Ships.Xi_Model;
@@ -71,7 +69,7 @@ package body Concorde.Worlds.Xi_Model is
       end record;
 
    package Rendered_World_Table is
-     new Concorde.Hash_Table (Rendered_World_Record);
+     new WL.String_Maps (Rendered_World_Record);
 
    Rendered_Worlds : Rendered_World_Table.Map;
 
@@ -118,7 +116,7 @@ package body Concorde.Worlds.Xi_Model is
    type World_Model_Access is access all Root_World_Model'Class;
 
    package World_Model_Table is
-     new Concorde.Hash_Table (World_Model_Access);
+     new WL.String_Maps (World_Model_Access);
 
    World_Models : World_Model_Table.Map;
 

@@ -1,9 +1,9 @@
-with Concorde.Hash_Table;
+with WL.String_Maps;
 
 package body Concorde.Components.Manager is
 
    package Component_Tables is
-     new Concorde.Hash_Table (Component_Type);
+     new WL.String_Maps (Component_Type);
 
    Table : Component_Tables.Map;
 
