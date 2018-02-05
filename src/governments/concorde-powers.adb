@@ -52,6 +52,8 @@ package body Concorde.Powers is
             end case;
          when Appoint_Minister =>
             return "appoint_minister";
+         when Law_Enforcement =>
+            return "law_enforcement";
       end case;
    end Identifier;
 
@@ -127,6 +129,8 @@ package body Concorde.Powers is
             end case;
          when Appoint_Minister =>
             return "appoint minister";
+         when Law_Enforcement =>
+            return "law enforcement";
       end case;
    end Show;
 
