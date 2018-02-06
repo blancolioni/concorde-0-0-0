@@ -2,6 +2,7 @@ with Ada.Containers.Indefinite_Holders;
 with Ada.Containers.Indefinite_Vectors;
 with Ada.Containers.Vectors;
 
+with WL.Money;
 with WL.Quantities;
 with WL.String_Maps;
 
@@ -10,6 +11,7 @@ with Concorde.Commodities;
 with Concorde.People.Skills;
 
 with Concorde.People.Attributes.Configure;
+with Concorde.People.Pops;
 
 package body Concorde.Powers.Execution is
 
@@ -43,10 +45,21 @@ package body Concorde.Powers.Execution is
    package Commodity_Work_Holders is
       new Ada.Containers.Indefinite_Holders (Commodity_Work);
 
+   type Population_Work_Calculation is (By_Quantity, By_Pop_Count, By_Wealth);
+
+   type Population_Work (Calculation : Population_Work_Calculation) is
+      record
+         Factor : Non_Negative_Real;
+      end record;
+
+   package Population_Work_Holders is
+     new Ada.Containers.Indefinite_Holders (Population_Work);
+
    type Work_Record is
       record
-         Base      : Duration;
-         Commodity : Commodity_Work_Holders.Holder;
+         Base       : Duration;
+         Commodity  : Commodity_Work_Holders.Holder;
+         Population : Population_Work_Holders.Holder;
       end record;
 
    type Power_Execution_Record is
@@ -69,6 +82,10 @@ package body Concorde.Powers.Execution is
    function Configure_Commodity_Work
      (Config : Tropos.Configuration)
       return Commodity_Work;
+
+   function Configure_Population_Work
+     (Config : Tropos.Configuration)
+      return Population_Work;
 
    function P (Power : Power_Type) return Power_Execution_Record
    is (Power_Execution_Map.Element (Identifier (Power)));
@@ -128,6 +145,30 @@ package body Concorde.Powers.Execution is
    end Configure_Commodity_Work;
 
    -------------------------------
+   -- Configure_Population_Work --
+   -------------------------------
+
+   function Configure_Population_Work
+     (Config : Tropos.Configuration)
+      return Population_Work
+   is
+      Value : constant String := Config.Get ("value", "none");
+      Factor : constant Non_Negative_Real :=
+                 Non_Negative_Real (Float'(Config.Get ("factor", 1.0)));
+   begin
+      if Value = "quantity" then
+         return (By_Quantity, Factor);
+      elsif Value = "pop_count" then
+         return (By_Pop_Count, Factor);
+      elsif Value = "wealth" then
+         return (By_Wealth, Factor);
+      else
+         raise Constraint_Error with
+           "unknown population work type: " & Value;
+      end if;
+   end Configure_Population_Work;
+
+   -------------------------------
    -- Configure_Power_Execution --
    -------------------------------
 
@@ -175,6 +216,10 @@ package body Concorde.Powers.Execution is
          if Config.Contains ("commodity") then
             Target.Commodity.Replace_Element
               (Configure_Commodity_Work (Config.Child ("commodity")));
+         end if;
+         if Config.Contains ("population") then
+            Target.Population.Replace_Element
+              (Configure_Population_Work (Config.Child ("population")));
          end if;
       end if;
    end Configure_Work;
@@ -232,6 +277,39 @@ package body Concorde.Powers.Execution is
          begin
             Concorde.Commodities.Scan (Add_Commodity'Access);
          end;
+      end if;
+
+      if not Rec.Daily_Work.Population.Is_Empty then
+         declare
+
+            Item  : constant Population_Work :=
+                      Rec.Daily_Work.Population.Element;
+
+            procedure Add_Pop (Pop : Concorde.People.Pops.Pop_Type);
+
+            -------------
+            -- Add_Pop --
+            -------------
+
+            procedure Add_Pop (Pop : Concorde.People.Pops.Pop_Type) is
+               W : Duration := 0.0;
+            begin
+               case Item.Calculation is
+                  when By_Quantity =>
+                     W := W + Duration (Real (Pop.Size) * Item.Factor);
+                  when By_Pop_Count =>
+                     W := W + Duration (Item.Factor);
+                  when By_Wealth =>
+                     W := W + Duration (WL.Money.To_Float (Pop.Cash)
+                                        * Float (Item.Factor));
+               end case;
+
+            end Add_Pop;
+
+         begin
+            World.Scan_Pops (Add_Pop'Access);
+         end;
+
       end if;
 
       return Result;

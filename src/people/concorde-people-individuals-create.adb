@@ -1,5 +1,3 @@
-with Ada.Text_IO;
-
 with WL.Random;
 
 with WL.Money;
@@ -148,9 +146,8 @@ package body Concorde.People.Individuals.Create is
                Current_Start := Date;
                Leave_Career := False;
 
-               Ada.Text_IO.Put_Line
-                 (Image (Date)
-                  & ": " & Individual.Full_Name & ": new career: "
+               Individual.Log
+                 ("new career: "
                   & Current_Career.Name
                   & " rank " & Current_Career.Rank_Name (Current_Rank));
             else
@@ -162,15 +159,10 @@ package body Concorde.People.Individuals.Create is
                                  WL.Random.Random_Number (1, 6)
                                  + WL.Random.Random_Number (1, 6);
                begin
-                  Ada.Text_IO.Put_Line
-                    ("promotion chance:"
-                     & Natural'Image (Natural (Chance * 100.0))
-                     & "%");
                   if Concorde.Random.Unit_Random < Chance then
                      Current_Rank := Current_Rank + 1;
-                     Ada.Text_IO.Put_Line
-                       (Image (Date)
-                        & ": " & Individual.Full_Name & ": promoted to "
+                     Individual.Log
+                       ("promoted to "
                         & Current_Career.Rank_Name (Current_Rank));
                   end if;
 
@@ -189,8 +181,7 @@ package body Concorde.People.Individuals.Create is
             Date := Date + Days (4 * 360);
 
             if Leave_Career then
-               Ada.Text_IO.Put_Line
-                 (Individual.Full_Name & " retires");
+               Individual.Log ("retires");
                Complete_Current_Career;
                Current_Career := null;
             end if;
@@ -398,7 +389,7 @@ package body Concorde.People.Individuals.Create is
                end;
             end loop;
 
-            Ada.Text_IO.Put_Line
+            Parent_1.Log
               (Parent_1.Full_Name
                & " (age" & Natural'Image (Parent_1.Age)
                & ")"

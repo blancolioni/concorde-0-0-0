@@ -81,6 +81,10 @@ package body Concorde.Powers.Configure is
         ("set_export_tariff", (Set_Tax_Rate, Concorde.Trades.Export));
       Simple_Map.Insert
         ("collect_export_tariff", (Collect_Tax, Concorde.Trades.Export));
+      Simple_Map.Insert
+        ("appoint_minister", (Class => Appoint_Minister));
+      Simple_Map.Insert
+        ("law_enforcement", (Class => Law_Enforcement));
    end Create_Map;
 
    ---------------

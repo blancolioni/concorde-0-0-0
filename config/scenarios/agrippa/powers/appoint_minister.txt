@@ -6,4 +6,4 @@ pops = {
     }
 }
 
-attributes = { administration energy }
+attributes = { administration energy persuasion }
