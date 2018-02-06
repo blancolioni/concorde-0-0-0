@@ -62,6 +62,7 @@ initial_colony = {
      clerks = 1000
      clergy = 1000
      soldiers = 5000
+     spacers = 5000
      craftsmen = 5000
      bureaucrats = 1000
      aristocrats = 1000

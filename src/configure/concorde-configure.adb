@@ -23,6 +23,8 @@ with Concorde.People.Skills.Configure;
 with Concorde.People.Individuals.Portraits;
 with Concorde.People.Genetics;
 
+with Concorde.Units.Configure;
+
 with Concorde.Atmosphere.Configure;
 with Concorde.Features.Configure;
 with Concorde.Terrain.Configure;
@@ -189,6 +191,12 @@ package body Concorde.Configure is
          Extension => "txt",
          Configure =>
            Concorde.Powers.Execution.Configure_Power_Execution'Access);
+
+      Tropos.Reader.Read_Config
+        (Path      => Directory_Path ("units"),
+         Extension => "txt",
+         Configure =>
+           Concorde.Units.Configure.Configure_Unit'Access);
 
       Concorde.Components.Configure.Configure_Components;
       Concorde.Facilities.Configure.Configure_Facilities;

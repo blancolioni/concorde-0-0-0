@@ -28,6 +28,7 @@ source_dir = src/ships
 source_dir = src/trade
 source_dir = src/ui
 source_dir = src/ui/xi
+source_dir = src/units
 source_dir = src/update
 source_dir = src/voronoi
 source_dir = src/worlds
