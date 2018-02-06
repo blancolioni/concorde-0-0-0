@@ -11,9 +11,17 @@ package Concorde.Xi_UI.Portraits is
 
    type Xtk_Portrait is access all Xtk_Portrait_Div_Record'Class;
 
+   procedure Xtk_New (Portrait : in out Xtk_Portrait);
+   procedure Destroy (Portrait : in out Xtk_Portrait);
+
    procedure Set_Portrait
-     (Widget     : in out Xtk_Portrait_Div_Record'Class;
+     (Portrait   : in out Xtk_Portrait_Div_Record'Class;
       Individual : Concorde.People.Individuals.Individual_Type);
+
+   procedure On_Click
+     (Portrait : Xtk_Portrait_Div_Record'Class;
+      Handler  : not null access
+        procedure (Individual : Concorde.People.Individuals.Individual_Type));
 
    procedure Register;
 

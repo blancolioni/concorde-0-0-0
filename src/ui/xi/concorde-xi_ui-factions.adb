@@ -2,7 +2,6 @@ with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Text_IO;
 
 with Cairo;
-with Cairo.Image_Surface;
 
 with WL.Localisation;
 with WL.String_Maps;
@@ -11,15 +10,16 @@ with Css;
 
 with Xtk.Events;
 
-with Xtk.Div_Element;
 with Xtk.Table_Element;
 with Xtk.Widget;
 
 with Concorde.Events;
 with Concorde.Ministries;
-with Concorde.People.Individuals.Portraits;
+with Concorde.People.Individuals;
 
 with Concorde.Factions.Events;
+
+with Concorde.Xi_UI.Portraits;
 
 package body Concorde.Xi_UI.Factions is
 
@@ -30,7 +30,7 @@ package body Concorde.Xi_UI.Factions is
          Minister         : Concorde.People.Individuals.Individual_Type;
          Ministry_Name    : Xtk.Label.Xtk_Label;
          Minister_Name    : Xtk.Label.Xtk_Label;
-         Portrait_Widget  : Xtk.Div_Element.Xtk_Div_Element;
+         Portrait_Widget  : Concorde.Xi_UI.Portraits.Xtk_Portrait;
          Portrait_Surface : Cairo.Cairo_Surface;
       end record;
 
@@ -55,12 +55,6 @@ package body Concorde.Xi_UI.Factions is
 
    Overlay_Map : Overlay_Maps.Map;
 
-   function Draw_Portrait
-     (Widget    : not null access Xtk.Widget.Xtk_Widget_Record'Class;
-      Context   : Cairo.Cairo_Context;
-      User_Data : Xtk.Events.User_Data)
-      return Xtk.Events.Event_Response;
-
    function New_Faction_Overlay
      (Faction : Concorde.Factions.Faction_Type)
       return Faction_Overlay_Access;
@@ -70,65 +64,8 @@ package body Concorde.Xi_UI.Factions is
       Object : not null access constant
         Concorde.Objects.Root_Object_Type'Class);
 
-   function Create_Surface
-     (Individual : Concorde.People.Individuals.Individual_Type)
-      return Cairo.Cairo_Surface;
-
    procedure Update_Table
      (Overlay : Faction_Overlay_Access);
-
-   --------------------
-   -- Create_Surface --
-   --------------------
-
-   function Create_Surface
-     (Individual : Concorde.People.Individuals.Individual_Type)
-      return Cairo.Cairo_Surface
-   is
-      use Concorde.People.Individuals;
-
-      Surface     : constant Cairo.Cairo_Surface :=
-                      Cairo.Image_Surface.Create
-                        (Cairo.Image_Surface.Cairo_Format_ARGB32,
-                         102, 102);
-      Cr          : constant Cairo.Cairo_Context :=
-                      Cairo.Create (Surface);
-
-   begin
-      Cairo.Save (Cr);
-      Cairo.Set_Operator (Cr, Cairo.Cairo_Operator_Clear);
-      Cairo.Paint (Cr);
-      Cairo.Restore (Cr);
-
-      if Individual /= null then
-         Concorde.People.Individuals.Portraits.Draw_Portrait
-           (Cr, Individual, 102, 102);
-      end if;
-
-      Cairo.Destroy (Cr);
-
-      return Surface;
-
-   end Create_Surface;
-
-   -------------------
-   -- Draw_Portrait --
-   -------------------
-
-   function Draw_Portrait
-     (Widget    : not null access Xtk.Widget.Xtk_Widget_Record'Class;
-      Context   : Cairo.Cairo_Context;
-      User_Data : Xtk.Events.User_Data)
-      return Xtk.Events.Event_Response
-   is
-      pragma Unreferenced (Widget);
-      Ws : constant Table_Row_Access :=
-             Table_Row_Access (User_Data);
-   begin
-      Cairo.Set_Source_Surface (Context, Ws.Portrait_Surface, 0.0, 0.0);
-      Cairo.Paint (Context);
-      return Xtk.Events.Propagate_Event;
-   end Draw_Portrait;
 
    ---------------------
    -- Faction_Overlay --
@@ -275,8 +212,8 @@ package body Concorde.Xi_UI.Factions is
               (if Ministry.Minister = null
                then WL.Localisation.Local_Text ("vacant")
                else Ministry.Minister.Full_Name);
-            Row.Portrait_Surface :=
-              Create_Surface (Ministry.Minister);
+            Row.Portrait_Widget.Set_Portrait
+              (Ministry.Minister);
          end Update_Row;
 
       begin
@@ -311,11 +248,11 @@ package body Concorde.Xi_UI.Factions is
                TD  : Xtk.Table_Element.Xtk_Table_Data;
             begin
                Xtk.Table_Element.Xtk_New (TD);
-               Xtk.Div_Element.Xtk_New (Row.Portrait_Widget);
+               Concorde.Xi_UI.Portraits.Xtk_New (Row.Portrait_Widget);
                Row.Portrait_Widget.Set_Attribute
                  ("class", "portrait-medium");
-               Row.Portrait_Widget.On_Draw
-                 (Draw_Portrait'Access, Row);
+--                 Row.Portrait_Widget.On_Draw
+--                   (Draw_Portrait'Access, Row);
                TD.Add_Child (Row.Portrait_Widget);
                TR.Add_Child (TD);
                Xtk.Label.Xtk_New (Row.Ministry_Name, Ministry.Name);

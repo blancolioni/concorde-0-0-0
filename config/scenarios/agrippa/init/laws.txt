@@ -7,4 +7,4 @@ create_ministry = {
 create_ministry = {
    name = Justice
    powers = { law_enforcement }
-}
+}  

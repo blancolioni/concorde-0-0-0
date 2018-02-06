@@ -23,7 +23,7 @@ with Xtk.Page;
 
 with Concorde.Xi_UI.Key_Bindings;
 with Concorde.Xi_UI.Outliner;
---  with Concorde.Xi_UI.Portraits;
+with Concorde.Xi_UI.Portraits;
 
 with Concorde.Calendar;
 with Concorde.Updates;
@@ -241,7 +241,8 @@ package body Concorde.Xi_UI is
       Path   : String)
    is
    begin
---        Concorde.Xi_UI.Portraits.Register;
+
+      Concorde.Xi_UI.Portraits.Register;
 
       declare
          Builder : constant Xtk.Builder.Xtk_Builder :=
