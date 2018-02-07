@@ -57,6 +57,7 @@ package body Concorde.Ministries.Create is
                      (Faction, null, Concorde.Objects.Object_Type (Area),
                       Location, Market, Name, Powers);
    begin
+      Faction.Update.Add_Power (Concorde.Powers.Direct_Minister (Ministry));
       pragma Unreferenced (Ministry);
    end Create_Ministry;
 
@@ -82,6 +83,22 @@ package body Concorde.Ministries.Create is
 
       procedure Create (Ministry : in out Root_Ministry_Type'Class) is
          use type Concorde.Objects.Object_Type;
+
+         procedure Transfer_Power
+           (Power : Concorde.Powers.Power_Type);
+
+         --------------------
+         -- Transfer_Power --
+         --------------------
+
+         procedure Transfer_Power
+           (Power : Concorde.Powers.Power_Type)
+         is
+         begin
+            Faction.Update.Remove_Power (Power);
+            Ministry.Update.Add_Power (Power);
+         end Transfer_Power;
+
       begin
          Ministry.New_Agent
            (Location       => Concorde.Locations.At_Installation (Location),
@@ -97,7 +114,9 @@ package body Concorde.Ministries.Create is
             then Concorde.Objects.Object_Type (Faction)
             else Area);
          Ministry.Headquarters := Location;
-         Ministry.Powers := Powers;
+
+         Powers.Scan_Powers (Transfer_Power'Access);
+
       end Create;
 
       Ministry : constant Ministry_Type := Db.Create (Create'Access);
