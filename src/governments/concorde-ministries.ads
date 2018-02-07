@@ -1,4 +1,5 @@
 private with Ada.Strings.Unbounded;
+private with Ada.Characters.Handling;
 private with Memor.Database;
 
 with Concorde.Agents;
@@ -56,6 +57,10 @@ package Concorde.Ministries is
 
    overriding procedure Add_Power
      (Ministry : in out Root_Ministry_Type;
+      Power      : Concorde.Powers.Power_Type);
+
+   overriding procedure Remove_Power
+     (Ministry   : in out Root_Ministry_Type;
       Power      : Concorde.Powers.Power_Type);
 
    overriding procedure Scan_Powers

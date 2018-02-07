@@ -22,6 +22,11 @@ package Concorde.Bureaucracy is
       Power : Concorde.Powers.Power_Type)
    is abstract;
 
+   procedure Remove_Power
+     (Item  : in out Bureaucratic_Interface;
+      Power : Concorde.Powers.Power_Type)
+   is abstract;
+
    procedure Scan_Powers
      (Item : Bureaucratic_Interface;
       Process : not null access

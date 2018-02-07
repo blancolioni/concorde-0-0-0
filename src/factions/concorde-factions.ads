@@ -52,6 +52,10 @@ package Concorde.Factions is
      (Item  : in out Root_Faction_Type;
       Power : Concorde.Powers.Power_Type);
 
+   overriding procedure Remove_Power
+     (Item  : in out Root_Faction_Type;
+      Power : Concorde.Powers.Power_Type);
+
    overriding procedure Scan_Powers
      (Item  : Root_Faction_Type;
       Process : not null access
