@@ -1,3 +1,5 @@
+with Concorde.Ministries;
+
 package body Concorde.Powers is
 
    ------------------
@@ -18,6 +20,37 @@ package body Concorde.Powers is
       end loop;
       return True;
    end Check_Powers;
+
+   ----------------------
+   -- Class_Identifier --
+   ----------------------
+
+   function Class_Identifier (Power : Power_Type) return String is
+   begin
+      case Power.Class is
+         when Set_Tax_Rate =>
+            return "set_tax_rate";
+         when Collect_Tax =>
+            case Power.Tax_Category is
+               when Concorde.Trades.Sales =>
+                  return "collect_sales_tax";
+               when Concorde.Trades.Import =>
+                  return "collect_import_tariffs";
+               when Concorde.Trades.Export =>
+                  return "collect_export_tariffs";
+            end case;
+         when Appoint_Minister =>
+            return "appoint_minister";
+         when Direct_Minister =>
+            return "direct_minister";
+         when Law_Enforcement =>
+            return "law_enforcement";
+         when Appoint_General =>
+            return "appoint_general";
+         when Command_Army =>
+            return "command_army";
+      end case;
+   end Class_Identifier;
 
    --------------
    -- Contains --
@@ -40,20 +73,19 @@ package body Concorde.Powers is
    begin
       case Power.Class is
          when Set_Tax_Rate =>
-            return "set_tax_rate";
+            return Class_Identifier (Power);
          when Collect_Tax =>
-            case Power.Tax_Category is
-               when Concorde.Trades.Sales =>
-                  return "collect_sales_tax";
-               when Concorde.Trades.Import =>
-                  return "collect_import_tariffs";
-               when Concorde.Trades.Export =>
-                  return "collect_export_tariffs";
-            end case;
+            return Class_Identifier (Power);
          when Appoint_Minister =>
-            return "appoint_minister";
+            return Class_Identifier (Power);
+         when Direct_Minister =>
+            return Class_Identifier (Power) & "_" & Power.Ministry.Identifier;
          when Law_Enforcement =>
-            return "law_enforcement";
+            return Class_Identifier (Power);
+         when Appoint_General =>
+            return Class_Identifier (Power);
+         when Command_Army =>
+            return Class_Identifier (Power);
       end case;
    end Identifier;
 
@@ -129,8 +161,14 @@ package body Concorde.Powers is
             end case;
          when Appoint_Minister =>
             return "appoint minister";
+         when Direct_Minister =>
+            return "direct minister of " & Power.Ministry.Name;
          when Law_Enforcement =>
             return "law enforcement";
+         when Appoint_General =>
+            return "appoint general";
+         when Command_Army =>
+            return "command army";
       end case;
    end Show;
 

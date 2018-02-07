@@ -113,9 +113,11 @@ package body Concorde.Laws.Bureaucracy is
    -----------
 
    overriding procedure Enact (Law : in out Create_Ministry_Law) is
+      Faction : constant Concorde.Factions.Faction_Type :=
+                  Concorde.Factions.Faction_Type (Law.Context.Legislator);
    begin
       Concorde.Ministries.Create.Create_Ministry
-        (Faction  => Concorde.Factions.Faction_Type (Law.Context.Legislator),
+        (Faction  => Faction,
          Area     => Law.Context.Target,
          Location => Law.Location,
          Market   => Law.Location.Market,

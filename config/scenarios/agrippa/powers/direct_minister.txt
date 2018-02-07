@@ -1,0 +1,3 @@
+daily_work = 1
+
+attributes = { administration energy persuasion }

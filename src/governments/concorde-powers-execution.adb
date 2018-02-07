@@ -88,7 +88,7 @@ package body Concorde.Powers.Execution is
       return Population_Work;
 
    function P (Power : Power_Type) return Power_Execution_Record
-   is (Power_Execution_Map.Element (Identifier (Power)));
+   is (Power_Execution_Map.Element (Class_Identifier (Power)));
 
    ---------------
    -- Attribute --
@@ -304,12 +304,20 @@ package body Concorde.Powers.Execution is
                                         * Float (Item.Factor));
                end case;
 
+               Result := Result + W;
+
             end Add_Pop;
 
          begin
             World.Scan_Pops (Add_Pop'Access);
          end;
 
+      end if;
+
+      if Power.Class = Direct_Minister
+        and then not Power.Ministry.Has_Minister
+      then
+         Result := Result + Power.Ministry.Daily_Work;
       end if;
 
       return Result;

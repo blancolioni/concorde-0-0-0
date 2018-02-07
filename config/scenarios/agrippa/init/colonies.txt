@@ -19,6 +19,7 @@ imperial_capital = {
      clerks = 5000
      clerks = 5000
      craftsmen = 20000
+     soldiers = 500000
   }
    
    basic_living_wage = { cattle wool fish fruit grain  }
@@ -33,7 +34,10 @@ imperial_capital = {
        fabric_factory = 3
          }  
   regiments = {
-     infantry
+     militia = 40
+     infantry = 20
+     armour = 10
+     artillery = 10
   }
   infrastructure = 40%
   
@@ -61,7 +65,7 @@ initial_colony = {
      artisans = 1000
      clerks = 1000
      clergy = 1000
-     soldiers = 5000
+     soldiers = 50000
      spacers = 5000
      craftsmen = 5000
      bureaucrats = 1000
@@ -74,8 +78,12 @@ initial_colony = {
   building = {  }
   
   regiments = {
-     infantry
+     militia = 4
+     infantry = 2
+     armour = 1
+     artillery = 1
   }
+  
   infrastructure = 20%
   
   regions = {
