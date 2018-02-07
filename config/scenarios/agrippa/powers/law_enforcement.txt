@@ -1,0 +1,15 @@
+daily_work = {
+   base = 8
+   population = {
+      value = quantity
+      factor = 0.1
+   }
+}
+
+pops = {
+  bureaucrats = {
+    effect = 4
+    }
+}
+
+attributes = { administration energy investigation }
