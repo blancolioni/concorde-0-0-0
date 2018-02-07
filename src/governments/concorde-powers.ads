@@ -4,6 +4,8 @@ with Concorde.Trades;
 
 with Concorde.Markets;
 
+limited with Concorde.Ministries;
+
 package Concorde.Powers is
 
    type Power_Type (<>) is private;
@@ -20,6 +22,11 @@ package Concorde.Powers is
       return Power_Type;
 
    function Appoint_Minister return Power_Type;
+
+   function Direct_Minister
+     (Ministry : not null access constant
+        Concorde.Ministries.Root_Ministry_Type'Class)
+     return Power_Type;
 
    function Law_Enforcement return Power_Type;
 
@@ -84,8 +91,12 @@ package Concorde.Powers is
 
 private
 
+   type Ministry_Access is access constant
+     Concorde.Ministries.Root_Ministry_Type'Class;
+
    type Power_Class is (Set_Tax_Rate, Collect_Tax,
-                        Appoint_Minister, Law_Enforcement);
+                        Appoint_Minister, Direct_Minister,
+                        Law_Enforcement);
 
    type Power_Type (Class : Power_Class) is
       record
@@ -94,12 +105,16 @@ private
                Tax_Category : Concorde.Trades.Market_Tax_Category;
             when Appoint_Minister =>
                null;
+            when Direct_Minister =>
+               Ministry     : Ministry_Access;
             when Law_Enforcement =>
                null;
          end case;
       end record;
 
    function Identifier (Power : Power_Type) return String;
+
+   function Class_Identifier (Power : Power_Type) return String;
 
    function Set_Tax_Rate
      (Category : Concorde.Trades.Market_Tax_Category)
@@ -114,6 +129,12 @@ private
 
    function Appoint_Minister return Power_Type
    is (Class => Appoint_Minister);
+
+   function Direct_Minister
+     (Ministry : not null access constant
+        Concorde.Ministries.Root_Ministry_Type'Class)
+      return Power_Type
+   is (Direct_Minister, Ministry_Access (Ministry));
 
    function Law_Enforcement return Power_Type
    is (Class => Law_Enforcement);

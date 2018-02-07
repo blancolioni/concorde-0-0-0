@@ -680,6 +680,18 @@ package body Concorde.Factions is
       end if;
    end Relationship;
 
+   ------------------
+   -- Remove_Power --
+   ------------------
+
+   overriding procedure Remove_Power
+     (Item  : in out Root_Faction_Type;
+      Power : Concorde.Powers.Power_Type)
+   is
+   begin
+      Item.Ministries.First_Element.Update.Remove_Power (Power);
+   end Remove_Power;
+
    -----------------
    -- Remove_Ship --
    -----------------

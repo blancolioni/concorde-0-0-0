@@ -1,4 +1,5 @@
 private with Ada.Strings.Unbounded;
+private with Ada.Characters.Handling;
 private with Memor.Database;
 
 with Concorde.Agents;
@@ -58,6 +59,10 @@ package Concorde.Ministries is
      (Ministry : in out Root_Ministry_Type;
       Power      : Concorde.Powers.Power_Type);
 
+   overriding procedure Remove_Power
+     (Ministry   : in out Root_Ministry_Type;
+      Power      : Concorde.Powers.Power_Type);
+
    overriding procedure Scan_Powers
      (Item    : Root_Ministry_Type;
       Process : not null access
@@ -115,15 +120,17 @@ private
       return Boolean
    is (Ministry.Powers.Contains (Power));
 
-   overriding function Short_Name
-     (Ministry : Root_Ministry_Type)
-      return String
-   is ("ministry");
-
    overriding function Name
      (Ministry : Root_Ministry_Type)
       return String
    is (Ada.Strings.Unbounded.To_String (Ministry.Name));
+
+   overriding function Short_Name
+     (Ministry : Root_Ministry_Type)
+      return String
+   is (Ada.Characters.Handling.To_Lower
+       (Name (Ministry))
+       & "-ministry");
 
    function Has_Minister
      (Ministry : Root_Ministry_Type'Class)

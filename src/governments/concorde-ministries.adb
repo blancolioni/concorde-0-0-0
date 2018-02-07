@@ -46,6 +46,18 @@ package body Concorde.Ministries is
       return Result;
    end Daily_Work;
 
+   ------------------
+   -- Remove_Power --
+   ------------------
+
+   overriding procedure Remove_Power
+     (Ministry   : in out Root_Ministry_Type;
+      Power      : Concorde.Powers.Power_Type)
+   is
+   begin
+      Ministry.Powers.Remove (Power);
+   end Remove_Power;
+
    -----------------
    -- Scan_Powers --
    -----------------

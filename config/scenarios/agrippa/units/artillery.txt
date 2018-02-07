@@ -1,0 +1,21 @@
+movement = wheel
+speed = 4
+recon = 4
+stealth = 2
+armour = 20
+attack = { indirect = 80 air = 10 close = 30 }
+can-be-cargo = yes
+combat = yes
+maintenance = 5
+credit-cost = 0
+tax = 0
+flock = 0
+range = 6
+eat = 1
+rank = 4
+rop = 1
+resources = { metal = 8
+            }
+required-building = 13
+turns-to-build = 1
+icon = art
