@@ -6,6 +6,20 @@ with Concorde.Worlds.Create;
 
 package body Concorde.Worlds is
 
+   --------------
+   -- Add_Army --
+   --------------
+
+   procedure Add_Army
+     (World   : in out Root_World_Type'Class;
+      Sector  : Concorde.Surfaces.Surface_Tile_Index;
+      Army    : Concorde.Armies.Army_Type)
+   is
+   begin
+      World.Sectors (Sector).Armies.Append (Army);
+      World.Armies.Append (Army);
+   end Add_Army;
+
    --------------------
    -- Add_Individual --
    --------------------

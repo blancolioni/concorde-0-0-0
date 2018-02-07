@@ -30,6 +30,14 @@ package Concorde.People.Groups is
      (Group : Root_Pop_Group'Class)
       return Boolean;
 
+   function Is_Soldier
+     (Group : Root_Pop_Group'Class)
+      return Boolean;
+
+   function Is_Spacer
+     (Group : Root_Pop_Group'Class)
+      return Boolean;
+
    function Is_Slave
      (Group : Root_Pop_Group'Class)
       return Boolean;
@@ -71,6 +79,8 @@ private
       record
          Unemployment        : Boolean;
          Is_Artisan          : Boolean;
+         Is_Soldier          : Boolean;
+         Is_Spacer           : Boolean;
          Is_Slave            : Boolean;
          Wealth              : Wealth_Level;
          Initial_Cash_Factor : Non_Negative_Real;
@@ -97,6 +107,16 @@ private
      (Group : Root_Pop_Group'Class)
       return Boolean
    is (Group.Is_Artisan);
+
+   function Is_Soldier
+     (Group : Root_Pop_Group'Class)
+      return Boolean
+   is (Group.Is_Soldier);
+
+   function Is_Spacer
+     (Group : Root_Pop_Group'Class)
+      return Boolean
+   is (Group.Is_Spacer);
 
    function Is_Slave
      (Group : Root_Pop_Group'Class)

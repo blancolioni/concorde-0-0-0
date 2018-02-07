@@ -19,6 +19,7 @@ with Concorde.Terrain;
 
 with Concorde.Systems;
 
+with Concorde.Armies;
 with Concorde.Commodities;
 with Concorde.Government;
 with Concorde.People.Individuals;
@@ -33,10 +34,12 @@ with Concorde.Ships.Lists;
 
 with Concorde.Locations;
 
+private with Concorde.Armies.Lists;
 private with Concorde.Commodities.Lists;
 private with Concorde.Installations.Lists;
 private with Concorde.People.Individuals.Lists;
 private with Concorde.People.Pops.Lists;
+
 with Concorde.Calendar;
 
 package Concorde.Worlds is
@@ -241,6 +244,11 @@ package Concorde.Worlds is
       Sector       : Concorde.Surfaces.Surface_Tile_Index;
       Installation : Concorde.Installations.Installation_Type);
 
+   procedure Add_Army
+     (World   : in out Root_World_Type'Class;
+      Sector  : Concorde.Surfaces.Surface_Tile_Index;
+      Army    : Concorde.Armies.Army_Type);
+
    procedure Add_Ship
      (World : in out Root_World_Type'Class;
       Ship  : Concorde.Ships.Ship_Type);
@@ -358,6 +366,7 @@ private
          Wind           : Wind_Record;
          Moisture       : Non_Negative_Real;
          Infrastructure : Unit_Real := 0.0;
+         Armies         : Concorde.Armies.Lists.List;
          Pops           : Concorde.People.Pops.Lists.List;
          Individuals    : Concorde.People.Individuals.Lists.List;
          Installations  : Concorde.Installations.Lists.List;
@@ -430,6 +439,7 @@ private
          Government            : Concorde.Government.Government_Type;
          Pops                  : Concorde.People.Pops.Lists.List;
          Individuals           : Concorde.People.Individuals.Lists.List;
+         Armies                : Concorde.Armies.Lists.List;
       end record;
 
    overriding function Object_Database

@@ -99,6 +99,8 @@ package body Concorde.People.Groups.Configure is
       begin
          Group.Set_Local_Tag (Name);
          Group.Is_Artisan := Config.Get ("is_artisan");
+         Group.Is_Soldier := Config.Get ("is_soldier");
+         Group.Is_Spacer := Config.Get ("is_spacer");
          Group.Is_Slave := Config.Get ("is_slave");
          Group.Unemployment := Config.Get ("unemployment");
 

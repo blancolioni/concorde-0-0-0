@@ -24,6 +24,10 @@ with Concorde.Installations.Create;
 with Concorde.People.Pops.Create;
 with Concorde.Government.Create;
 
+with Concorde.Armies.Create;
+with Concorde.Regiments.Create;
+with Concorde.Units;
+
 with Concorde.Features;
 with Concorde.Terrain;
 with Concorde.Surfaces;
@@ -90,9 +94,11 @@ package body Concorde.Colonies.Configure is
       function Current_Tile return Concorde.Surfaces.Surface_Tile_Index;
       procedure Next_Tile;
 
-      Hub        : Concorde.Installations.Installation_Type;
-      Port       : Concorde.Installations.Installation_Type;
-      Government : Concorde.Government.Government_Type;
+      Hub         : Concorde.Installations.Installation_Type;
+      Port        : Concorde.Installations.Installation_Type;
+      Government  : Concorde.Government.Government_Type;
+
+      Soldier_Pop : Concorde.People.Pops.Pop_Type;
 
       function Start_Sector_Good
         (Tile_Index : Positive)
@@ -263,6 +269,10 @@ package body Concorde.Colonies.Configure is
             Pop.Update.Set_Production (Artisan_Facilities (Next_Artisan));
             Pop.Log_Production (Artisan_Facilities (Next_Artisan).Name);
          end if;
+         if Group.Is_Soldier then
+            Soldier_Pop := Pop;
+         end if;
+
          World.Update.Add_Pop (Sector, Pop);
       end Create_Pop;
 
@@ -541,6 +551,35 @@ package body Concorde.Colonies.Configure is
          Create_Pop_From_Config
            (Pop_Config, Current_Tile);
       end loop;
+
+      declare
+         Army : constant Concorde.Armies.Army_Type :=
+                  Concorde.Armies.Create.New_Army
+                    (Faction  => World.Owner,
+                     Location =>
+                       Concorde.Locations.At_Installation (Hub));
+      begin
+         for Regiment_Config of Template.Child ("regiments") loop
+            declare
+               Unit  : constant String := Regiment_Config.Config_Name;
+               Count : constant Positive :=
+                         (if Regiment_Config.Child_Count = 1
+                          then Regiment_Config.Value else 1);
+            begin
+               for I in 1 .. Count loop
+                  declare
+                     Regiment : constant Concorde.Regiments.Regiment_Type :=
+                                  Concorde.Regiments.Create.New_Regiment
+                                    (Pop  => Soldier_Pop,
+                                     Unit =>
+                                       Concorde.Units.Get (Unit));
+                  begin
+                     Army.Update.Add_Regiment (Regiment);
+                  end;
+               end loop;
+            end;
+         end loop;
+      end;
 
       if Template.Contains ("basic_living_wage") then
          declare
