@@ -1,5 +1,8 @@
 with Ada.Text_IO;
 
+with WL.Money;
+with WL.Quantities;
+
 with Concorde.Options;
 with Concorde.Random;
 with Concorde.Real_Images;
@@ -22,10 +25,10 @@ with Concorde.Scenarios;
 with Concorde.Colonies.Configure;
 
 with Concorde.Commodities;
-with WL.Money;
-with WL.Quantities;
 
 with Concorde.Systems.Lists;
+
+with Concorde.Ministries.Create;
 
 with Concorde.Managers.Factions;
 with Concorde.Managers.Ships.Trade;
@@ -533,16 +536,18 @@ package body Concorde.Factions.Create is
          end if;
 
          declare
-            Ancestor : constant Concorde.People.Individuals.Individual_Type :=
+            use Concorde.People.Individuals;
+            House_Ministry  : constant Concorde.Ministries.Ministry_Type :=
+                                Concorde.Ministries.Create
+                                  .Create_Faction_Ministry (Faction);
+            Ancestor        : constant Individual_Type :=
                          Concorde.People.Individuals.Create.Create_Family_Tree
-                           (Faction,
-                            Concorde.Locations.At_Installation
-                              (Start_World.Colony_Hub));
-            Leader   : constant Concorde.Offices.Office_Type :=
-                         Concorde.Offices.Get ("leader");
+                                  (Faction,
+                                   Concorde.Locations.At_Installation
+                                     (Start_World.Colony_Hub));
          begin
-            Faction.Update.Set_Minister (Leader, Ancestor);
-            Ancestor.Update.Set_Office (Leader);
+            House_Ministry.Update.Set_Minister (Ancestor);
+            Ancestor.Update.Set_Office (House_Ministry);
          end;
 
          if Start_World.Has_Market then

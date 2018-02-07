@@ -22,6 +22,8 @@ with Concorde.People.Proficiencies;
 with Concorde.People.Skills;
 with Concorde.People.Attributes;
 
+limited with Concorde.Ministries;
+
 package Concorde.People.Individuals is
 
    type Gender_Type is (Female, Male, None);
@@ -108,12 +110,18 @@ package Concorde.People.Individuals is
 
    function Office
      (Individual : Root_Individual_Type'Class)
-      return Concorde.Offices.Office_Type
+      return not null access constant
+     Concorde.Ministries.Root_Ministry_Type'Class
      with Pre => Individual.Has_Office;
 
    procedure Set_Office
      (Individual : in out Root_Individual_Type'Class;
-      Office     : Concorde.Offices.Office_Type);
+      Office     : not null access constant
+        Concorde.Ministries.Root_Ministry_Type'Class);
+
+   procedure Clear_Office
+     (Individual : in out Root_Individual_Type'Class)
+     with Pre => Individual.Has_Office;
 
    function Has_Career
      (Individual : Root_Individual_Type'Class;
@@ -172,6 +180,9 @@ private
    type Portrait_Property_Array is
      array (1 .. 16) of Natural;
 
+   type Ministry_Access is
+     access constant Concorde.Ministries.Root_Ministry_Type'Class;
+
    type Root_Individual_Type is
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Factions.Citizen_Interface
@@ -199,8 +210,7 @@ private
          Proficiencies       : Proficiency_Level_Array :=
                                  (others => 0);
          Career              : List_Of_Career_Records.List;
-         Offices             : List_Of_Office_Records.List;
-         Current_Office      : Concorde.Offices.Office_Type;
+         Current_Office      : Ministry_Access;
          Skills              : Concorde.People.Skills.Skill_Set;
          Portrait_Props      : Portrait_Property_Array :=
                                  (others => Natural'Last);
@@ -293,11 +303,12 @@ private
    function Has_Office
      (Individual : Root_Individual_Type'Class)
       return Boolean
-   is (Concorde.Offices."/=" (Individual.Current_Office, null));
+   is (Individual.Current_Office /= null);
 
    function Office
      (Individual : Root_Individual_Type'Class)
-      return Concorde.Offices.Office_Type
+      return not null access constant
+     Concorde.Ministries.Root_Ministry_Type'Class
    is (Individual.Current_Office);
 
    package Db is

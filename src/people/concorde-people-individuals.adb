@@ -41,6 +41,17 @@ package body Concorde.People.Individuals is
       raise Program_Error;
    end Career_Rank;
 
+   ------------------
+   -- Clear_Office --
+   ------------------
+
+   procedure Clear_Office
+     (Individual : in out Root_Individual_Type'Class)
+   is
+   begin
+      Individual.Current_Office := null;
+   end Clear_Office;
+
    ---------------
    -- Full_Name --
    ---------------
@@ -160,10 +171,11 @@ package body Concorde.People.Individuals is
 
    procedure Set_Office
      (Individual : in out Root_Individual_Type'Class;
-      Office     : Concorde.Offices.Office_Type)
+      Office     : not null access constant
+        Concorde.Ministries.Root_Ministry_Type'Class)
    is
    begin
-      Individual.Current_Office := Office;
+      Individual.Current_Office := Ministry_Access (Office);
    end Set_Office;
 
    ---------------------------

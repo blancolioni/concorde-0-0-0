@@ -4,6 +4,7 @@ faction_laws = {
    delegate_power = set_import_tariff
    delegate_power = collect_import_tariff
    delegate_power = law_enforcement
+   delegate_power = appoint_general
 }
 
 tithe = 10%

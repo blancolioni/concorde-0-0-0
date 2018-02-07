@@ -70,6 +70,8 @@ package body Concorde.Managers.Individuals is
       use type Concorde.Work.Work_Item;
    begin
       if Manager.Current_Work /= null then
+         Manager.Individual.Log
+           ("executing: " & Manager.Current_Work.Show);
          Concorde.People.Individuals.Work.Perform_Work
            (Manager.Individual, Manager.Current_Work);
          Manager.Current_Work := null;

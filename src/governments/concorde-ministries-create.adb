@@ -32,7 +32,7 @@ package body Concorde.Ministries.Create is
       return Ministry_Type
    is (Create_Ministry
        (Faction  => Faction,
-        Minister => Faction.Leader,
+        Minister => null,
         Area     => null,
         Location => Faction.Capital_Building,
         Market   => Faction.Capital_World.Market,

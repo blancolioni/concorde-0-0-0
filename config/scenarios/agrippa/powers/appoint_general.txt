@@ -1,0 +1,3 @@
+action_cost = 4
+
+attributes = { energy persuasion diplomacy command }

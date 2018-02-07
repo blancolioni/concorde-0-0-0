@@ -23,7 +23,6 @@ with Concorde.Laws;
 with Concorde.Locations;
 with Concorde.Ministries;
 with Concorde.Objects;
-with Concorde.Offices;
 with Concorde.Powers;
 with Concorde.Systems;
 with Concorde.Trades;
@@ -84,28 +83,14 @@ package Concorde.Factions is
       To      : Root_Faction_Type'Class;
       Change  : Faction_Relationship_Range);
 
-   function Has_Minister
-     (Faction : Root_Faction_Type'Class;
-      Office  : Concorde.Offices.Office_Type)
-      return Boolean;
-
    function Leader
      (Faction : Root_Faction_Type'Class)
       return access constant
      Concorde.People.Individuals.Root_Individual_Type'Class;
 
-   function Minister
-     (Faction : Root_Faction_Type'Class;
-      Office  : Concorde.Offices.Office_Type)
-      return access constant
-     Concorde.People.Individuals.Root_Individual_Type'Class
-       with Pre => Faction.Has_Minister (Office);
-
-   procedure Set_Minister
-     (Faction  : in out Root_Faction_Type'Class;
-      Office   : Concorde.Offices.Office_Type;
-      Minister : not null access constant
-        Concorde.People.Individuals.Root_Individual_Type'Class);
+   function First_Ministry
+     (Faction : Root_Faction_Type'Class)
+      return Concorde.Ministries.Ministry_Type;
 
    procedure Add_Law
      (Faction : in out Root_Faction_Type'Class;
@@ -126,6 +111,11 @@ package Concorde.Factions is
      (Faction  : in out Root_Faction_Type'Class;
       Ministry : Concorde.Ministries.Ministry_Type;
       Minister : not null access constant
+        Concorde.People.Individuals.Root_Individual_Type'Class);
+
+   procedure Set_Leader
+     (Faction  : in out Root_Faction_Type'Class;
+      Leader   : not null access constant
         Concorde.People.Individuals.Root_Individual_Type'Class);
 
    function Capital_World
@@ -170,16 +160,6 @@ package Concorde.Factions is
    function Default_Ship_Design
      (Faction : Root_Faction_Type'Class)
       return String;
-
-   function Portfolio_Size
-     (Faction   : Root_Faction_Type'Class;
-      Portfolio : Concorde.Offices.Responsibility_Type)
-      return Concorde.Offices.Portfolio_Size_Range;
-
-   function Current_Effectiveness
-     (Faction : Root_Faction_Type'Class;
-      Portfolio : Concorde.Offices.Responsibility_Type)
-      return Unit_Real;
 
    type Faction_Type is access constant Root_Faction_Type'Class;
 
@@ -435,10 +415,6 @@ private
    type Individual_Access is access constant
      Concorde.People.Individuals.Root_Individual_Type'Class;
 
-   package Office_Holder_Vectors is
-     new Memor.Element_Vectors
-       (Concorde.Offices.Root_Office_Type, Individual_Access, null);
-
    package Ministry_Lists is
      new Ada.Containers.Doubly_Linked_Lists
        (Concorde.Ministries.Ministry_Type, Concorde.Ministries."=");
@@ -460,8 +436,6 @@ private
          System_Data        : access System_Data_Array;
          Faction_Data       : access Relation_Record;
          Ruler              : Faction_Type;
-         Cabinet            : Office_Holder_Vectors.Vector;
---           Powers             : Concorde.Powers.Power_Set;
          Laws               : Law_Lists.List;
          Ministries         : Ministry_Lists.List;
          Current_Population : WL.Quantities.Quantity_Type;
@@ -542,26 +516,16 @@ private
      Concorde.Installations.Root_Installation_Type'Class
    is (Faction.Capital_Building);
 
-   function Has_Minister
-     (Faction : Root_Faction_Type'Class;
-      Office  : Concorde.Offices.Office_Type)
-      return Boolean
-   is (Faction.Cabinet.Element (Office) /= null);
-
-   function Minister
-     (Faction : Root_Faction_Type'Class;
-      Office  : Concorde.Offices.Office_Type)
-      return access constant
-     Concorde.People.Individuals.Root_Individual_Type'Class
-   is (Faction.Cabinet.Element (Office));
+   function First_Ministry
+     (Faction : Root_Faction_Type'Class)
+      return Concorde.Ministries.Ministry_Type
+   is (Faction.Ministries.First_Element);
 
    function Leader
      (Faction : Root_Faction_Type'Class)
       return access constant
      Concorde.People.Individuals.Root_Individual_Type'Class
-   is (Faction.Minister
-       (Concorde.Offices.Get
-        (Concorde.Offices.Leader)));
+   is (Faction.Ministries.First_Element.Minister);
 
    package Faction_Vectors is
      new Memor.Element_Vectors

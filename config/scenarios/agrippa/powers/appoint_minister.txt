@@ -1,9 +1,1 @@
-daily_work = 8
-
-pops = {
-  bureaucrats = {
-    effect = 4
-    }
-}
-
-attributes = { administration energy persuasion }
+action_cost = 8

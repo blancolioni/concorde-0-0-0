@@ -1,0 +1,9 @@
+daily_work = 8
+
+pops = {
+  bureaucrats = {
+    effect = 4
+    }
+}
+
+attributes = { intelligence investigation }

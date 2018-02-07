@@ -84,6 +84,10 @@ package body Concorde.Powers.Configure is
       Simple_Map.Insert
         ("appoint_minister", (Class => Appoint_Minister));
       Simple_Map.Insert
+        ("appoint_general", Appoint_General);
+      Simple_Map.Insert
+        ("command_army", Command_Army);
+      Simple_Map.Insert
         ("law_enforcement", (Class => Law_Enforcement));
    end Create_Map;
 

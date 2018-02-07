@@ -8,3 +8,8 @@ create_ministry = {
    name = Justice
    powers = { law_enforcement }
 }  
+
+create_ministry = {
+   name = Defence
+   powers = { appoint_general }
+}

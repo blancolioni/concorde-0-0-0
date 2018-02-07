@@ -4,14 +4,12 @@ with Tropos.Reader;
 with Concorde.Paths;
 
 with Concorde.Configure;
-
+with Concorde.Powers.Configure;
 with Concorde.Factions.Create;
-with Concorde.Ministries.Create;
 
 with Lui.Colours;
 
 with Concorde.Laws.Configure;
-with Concorde.Powers.Configure;
 
 with Concorde.Worlds;
 
@@ -55,9 +53,9 @@ package body Concorde.Factions.Configure is
                                 Lui.Colours.Colour_Byte (Blue)),
                            Default_Ship_Design =>
                              Config.Get ("design", "defender"));
-            House_Ministry  : constant Concorde.Ministries.Ministry_Type :=
-                                Concorde.Ministries.Create
-                                  .Create_Faction_Ministry (Faction);
+            House_Ministry : constant Concorde.Ministries.Ministry_Type :=
+                               Faction.First_Ministry;
+
             Laws_Config     : constant Tropos.Configuration :=
                                 Tropos.Reader.Read_Config
                                   (Concorde.Configure.File_Path

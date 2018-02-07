@@ -64,10 +64,10 @@ package body Concorde.Powers.Execution is
 
    type Power_Execution_Record is
       record
-         Attributes       : Attribute_Vectors.Vector;
-         Pop_Groups       : Power_Pop_Group_Vectors.Vector;
-         Legislative_Work : Work_Record;
-         Daily_Work       : Work_Record;
+         Attributes  : Attribute_Vectors.Vector;
+         Pop_Groups  : Power_Pop_Group_Vectors.Vector;
+         Action_Cost : Work_Record;
+         Daily_Work  : Work_Record;
       end record;
 
    package Power_Execution_Maps is
@@ -86,6 +86,12 @@ package body Concorde.Powers.Execution is
    function Configure_Population_Work
      (Config : Tropos.Configuration)
       return Population_Work;
+
+   function Calculate_Work
+     (Power : Power_Type;
+      Work  : Work_Record;
+      World : Concorde.Worlds.World_Type)
+      return Duration;
 
    function P (Power : Power_Type) return Power_Execution_Record
    is (Power_Execution_Map.Element (Class_Identifier (Power)));
@@ -114,6 +120,105 @@ package body Concorde.Powers.Execution is
    begin
       return P (Power).Attributes.Last_Index;
    end Attribute_Count;
+
+   --------------------
+   -- Calculate_Work --
+   --------------------
+
+   function Calculate_Work
+     (Power : Power_Type;
+      Work  : Work_Record;
+      World : Concorde.Worlds.World_Type)
+      return Duration
+   is
+      Result : Duration := Work.Base;
+   begin
+      if not Work.Commodity.Is_Empty then
+         declare
+            Item : Commodity_Work renames
+                     Work.Commodity.Element;
+
+            procedure Add_Commodity
+              (Commodity : Concorde.Commodities.Commodity_Type);
+
+            -------------------
+            -- Add_Commodity --
+            -------------------
+
+            procedure Add_Commodity
+              (Commodity : Concorde.Commodities.Commodity_Type)
+            is
+               W : Duration := 0.0;
+            begin
+               case Item.Calculation is
+                  when By_Metric =>
+                     W :=
+                       Duration
+                         (WL.Quantities.To_Float
+                            (World.Market.Current_Quantity
+                               (Item.Metric, Commodity))
+                          * Float (Item.Factor));
+                  when By_Transaction_Count =>
+                     W :=
+                       Duration
+                         (Real
+                            (World.Market.Recent_Transaction_Count (Commodity))
+                          * Item.Factor);
+               end case;
+               if W > 0.0 then
+                  W := W + Concorde.Calendar.Hours (1);
+               end if;
+               Result := Result + W;
+            end Add_Commodity;
+
+         begin
+            Concorde.Commodities.Scan (Add_Commodity'Access);
+         end;
+      end if;
+
+      if not Work.Population.Is_Empty then
+         declare
+
+            Item  : constant Population_Work :=
+                      Work.Population.Element;
+
+            procedure Add_Pop (Pop : Concorde.People.Pops.Pop_Type);
+
+            -------------
+            -- Add_Pop --
+            -------------
+
+            procedure Add_Pop (Pop : Concorde.People.Pops.Pop_Type) is
+               W : Duration := 0.0;
+            begin
+               case Item.Calculation is
+                  when By_Quantity =>
+                     W := W + Duration (Real (Pop.Size) * Item.Factor);
+                  when By_Pop_Count =>
+                     W := W + Duration (Item.Factor);
+                  when By_Wealth =>
+                     W := W + Duration (WL.Money.To_Float (Pop.Cash)
+                                        * Float (Item.Factor));
+               end case;
+
+               Result := Result + W;
+
+            end Add_Pop;
+
+         begin
+            World.Scan_Pops (Add_Pop'Access);
+         end;
+
+      end if;
+
+      if Power.Class = Direct_Minister
+        and then not Power.Ministry.Has_Minister
+      then
+         Result := Result + Power.Ministry.Daily_Work;
+      end if;
+
+      return Result;
+   end Calculate_Work;
 
    ------------------------------
    -- Configure_Commodity_Work --
@@ -193,7 +298,7 @@ package body Concorde.Powers.Execution is
                    (Group_Config.Get ("effect"))));
       end loop;
 
-      Configure_Work (Config.Child ("legislative_work"), Rec.Legislative_Work);
+      Configure_Work (Config.Child ("action_cost"), Rec.Action_Cost);
       Configure_Work (Config.Child ("daily_work"), Rec.Daily_Work);
 
       Power_Execution_Map.Insert (Config.Config_Name, Rec);
@@ -234,93 +339,8 @@ package body Concorde.Powers.Execution is
       return Duration
    is
       Rec : constant Power_Execution_Record := P (Power);
-      Result : Duration := Rec.Daily_Work.Base;
    begin
-      if not Rec.Daily_Work.Commodity.Is_Empty then
-         declare
-            Item : Commodity_Work renames
-                     Rec.Daily_Work.Commodity.Element;
-
-            procedure Add_Commodity
-              (Commodity : Concorde.Commodities.Commodity_Type);
-
-            -------------------
-            -- Add_Commodity --
-            -------------------
-
-            procedure Add_Commodity
-              (Commodity : Concorde.Commodities.Commodity_Type)
-            is
-               W : Duration := 0.0;
-            begin
-               case Item.Calculation is
-                  when By_Metric =>
-                     W :=
-                       Duration
-                         (WL.Quantities.To_Float
-                            (World.Market.Current_Quantity
-                               (Item.Metric, Commodity))
-                             * Float (Item.Factor));
-                  when By_Transaction_Count =>
-                     W :=
-                       Duration
-                         (Real
-                            (World.Market.Recent_Transaction_Count (Commodity))
-                             * Item.Factor);
-               end case;
-               if W > 0.0 then
-                  W := W + Concorde.Calendar.Hours (1);
-               end if;
-               Result := Result + W;
-            end Add_Commodity;
-
-         begin
-            Concorde.Commodities.Scan (Add_Commodity'Access);
-         end;
-      end if;
-
-      if not Rec.Daily_Work.Population.Is_Empty then
-         declare
-
-            Item  : constant Population_Work :=
-                      Rec.Daily_Work.Population.Element;
-
-            procedure Add_Pop (Pop : Concorde.People.Pops.Pop_Type);
-
-            -------------
-            -- Add_Pop --
-            -------------
-
-            procedure Add_Pop (Pop : Concorde.People.Pops.Pop_Type) is
-               W : Duration := 0.0;
-            begin
-               case Item.Calculation is
-                  when By_Quantity =>
-                     W := W + Duration (Real (Pop.Size) * Item.Factor);
-                  when By_Pop_Count =>
-                     W := W + Duration (Item.Factor);
-                  when By_Wealth =>
-                     W := W + Duration (WL.Money.To_Float (Pop.Cash)
-                                        * Float (Item.Factor));
-               end case;
-
-               Result := Result + W;
-
-            end Add_Pop;
-
-         begin
-            World.Scan_Pops (Add_Pop'Access);
-         end;
-
-      end if;
-
-      if Power.Class = Direct_Minister
-        and then not Power.Ministry.Has_Minister
-      then
-         Result := Result + Power.Ministry.Daily_Work;
-      end if;
-
-      return Result;
+      return Calculate_Work (Power, Rec.Daily_Work, World);
    end Daily_Work;
 
    --------------------
@@ -335,9 +355,8 @@ package body Concorde.Powers.Execution is
    is
       pragma Unreferenced (Target);
       Rec : constant Power_Execution_Record := P (Power);
-      Result : constant Duration := Rec.Daily_Work.Base;
    begin
-      return Result;
+      return Calculate_Work (Power, Rec.Action_Cost, null);
    end Execution_Work;
 
    ---------------
