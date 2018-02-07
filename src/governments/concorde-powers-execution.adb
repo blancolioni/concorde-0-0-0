@@ -88,7 +88,7 @@ package body Concorde.Powers.Execution is
       return Population_Work;
 
    function P (Power : Power_Type) return Power_Execution_Record
-   is (Power_Execution_Map.Element (Identifier (Power)));
+   is (Power_Execution_Map.Element (Class_Identifier (Power)));
 
    ---------------
    -- Attribute --
