@@ -314,6 +314,12 @@ package body Concorde.Powers.Execution is
 
       end if;
 
+      if Power.Class = Direct_Minister
+        and then not Power.Ministry.Has_Minister
+      then
+         Result := Result + Power.Ministry.Daily_Work;
+      end if;
+
       return Result;
    end Daily_Work;
 
