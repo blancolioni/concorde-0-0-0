@@ -23,12 +23,16 @@ package Concorde.Powers is
 
    function Appoint_Minister return Power_Type;
 
+   function Appoint_General return Power_Type;
+
    function Direct_Minister
      (Ministry : not null access constant
         Concorde.Ministries.Root_Ministry_Type'Class)
      return Power_Type;
 
    function Law_Enforcement return Power_Type;
+
+   function Command_Army return Power_Type;
 
    type Powered_Interface is limited interface;
 
@@ -96,7 +100,8 @@ private
 
    type Power_Class is (Set_Tax_Rate, Collect_Tax,
                         Appoint_Minister, Direct_Minister,
-                        Law_Enforcement);
+                        Law_Enforcement,
+                        Appoint_General, Command_Army);
 
    type Power_Type (Class : Power_Class) is
       record
@@ -108,6 +113,10 @@ private
             when Direct_Minister =>
                Ministry     : Ministry_Access;
             when Law_Enforcement =>
+               null;
+            when Appoint_General =>
+               null;
+            when Command_Army =>
                null;
          end case;
       end record;
@@ -129,6 +138,12 @@ private
 
    function Appoint_Minister return Power_Type
    is (Class => Appoint_Minister);
+
+   function Appoint_General return Power_Type
+   is (Class => Appoint_General);
+
+   function Command_Army return Power_Type
+   is (Class => Command_Army);
 
    function Direct_Minister
      (Ministry : not null access constant

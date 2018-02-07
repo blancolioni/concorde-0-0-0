@@ -21,6 +21,10 @@ package body Concorde.Powers is
       return True;
    end Check_Powers;
 
+   ----------------------
+   -- Class_Identifier --
+   ----------------------
+
    function Class_Identifier (Power : Power_Type) return String is
    begin
       case Power.Class is
@@ -41,6 +45,10 @@ package body Concorde.Powers is
             return "direct_minister";
          when Law_Enforcement =>
             return "law_enforcement";
+         when Appoint_General =>
+            return "appoint_general";
+         when Command_Army =>
+            return "command_army";
       end case;
    end Class_Identifier;
 
@@ -73,6 +81,10 @@ package body Concorde.Powers is
          when Direct_Minister =>
             return Class_Identifier (Power) & "_" & Power.Ministry.Identifier;
          when Law_Enforcement =>
+            return Class_Identifier (Power);
+         when Appoint_General =>
+            return Class_Identifier (Power);
+         when Command_Army =>
             return Class_Identifier (Power);
       end case;
    end Identifier;
@@ -153,6 +165,10 @@ package body Concorde.Powers is
             return "direct minister of " & Power.Ministry.Name;
          when Law_Enforcement =>
             return "law enforcement";
+         when Appoint_General =>
+            return "appoint general";
+         when Command_Army =>
+            return "command army";
       end case;
    end Show;
 
