@@ -120,15 +120,17 @@ private
       return Boolean
    is (Ministry.Powers.Contains (Power));
 
-   overriding function Short_Name
-     (Ministry : Root_Ministry_Type)
-      return String
-   is ("ministry");
-
    overriding function Name
      (Ministry : Root_Ministry_Type)
       return String
    is (Ada.Strings.Unbounded.To_String (Ministry.Name));
+
+   overriding function Short_Name
+     (Ministry : Root_Ministry_Type)
+      return String
+   is (Ada.Characters.Handling.To_Lower
+       (Name (Ministry))
+       & "-ministry");
 
    function Has_Minister
      (Ministry : Root_Ministry_Type'Class)
