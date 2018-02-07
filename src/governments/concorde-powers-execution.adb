@@ -304,6 +304,8 @@ package body Concorde.Powers.Execution is
                                         * Float (Item.Factor));
                end case;
 
+               Result := Result + W;
+
             end Add_Pop;
 
          begin
