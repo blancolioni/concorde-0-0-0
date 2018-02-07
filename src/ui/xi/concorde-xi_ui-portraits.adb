@@ -82,12 +82,11 @@ package body Concorde.Xi_UI.Portraits is
    --------------
 
    procedure On_Click
-     (Portrait : Xtk_Portrait_Div_Record'Class;
-      Handler  : not null access
-        procedure (Individual : Concorde.People.Individuals.Individual_Type))
+     (Portrait : in out Xtk_Portrait_Div_Record'Class;
+      Handler  : Portrait_Click_Handler)
    is
    begin
-      Handler (Portrait.Individual);
+      Portrait.Click_Handler := Handler;
    end On_Click;
 
    --------------
