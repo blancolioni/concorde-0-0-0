@@ -1,0 +1,21 @@
+movement = foot
+speed = 4
+recon = 4
+stealth = 3
+armour = 15
+attack = { air = 20 close = 40 }
+can-be-cargo = yes
+combat = yes
+maintenance = 10
+credit-cost = 0
+tax = 0
+flock = 0
+range = 3
+eat = 1
+rank = 4
+rop = 1
+resources = { metal = 8
+            }
+required-building = 13
+turns-to-build = 1
+icon = inf
