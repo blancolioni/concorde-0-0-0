@@ -18,11 +18,14 @@ with Concorde.People.Genetics;
 with Concorde.People.Groups;
 
 with Concorde.People.Abilities;
+with Concorde.People.Attributes;
 with Concorde.People.Proficiencies;
 with Concorde.People.Skills;
-with Concorde.People.Attributes;
+with Concorde.People.Traits;
 
 limited with Concorde.Ministries;
+
+private with Concorde.People.Traits.Lists;
 
 package Concorde.People.Individuals is
 
@@ -59,6 +62,11 @@ package Concorde.People.Individuals is
       Proficiency : Concorde.People.Proficiencies.Proficiency_Type)
       return Concorde.People.Proficiencies.Proficiency_Score_Range;
 
+   overriding function Has_Trait
+     (Individual  : Root_Individual_Type;
+      Trait       : Concorde.People.Traits.Trait_Type)
+      return Boolean;
+
    overriding procedure Set_Ability_Score
      (Individual : in out Root_Individual_Type;
       Ability    : Concorde.People.Abilities.Ability_Type;
@@ -73,6 +81,11 @@ package Concorde.People.Individuals is
      (Individual : in out Root_Individual_Type;
       Skill      : Concorde.People.Skills.Skill_Type;
       Level      : Concorde.People.Skills.Skill_Level_Range);
+
+   overriding procedure Set_Trait
+     (Individual : in out Root_Individual_Type;
+      Trait      : Concorde.People.Traits.Trait_Type;
+      Present    : Boolean);
 
    function Last_Name (Individual : Root_Individual_Type'Class)
                        return String;
@@ -209,6 +222,7 @@ private
          Abilities           : Ability_Score_Array;
          Proficiencies       : Proficiency_Level_Array :=
                                  (others => 0);
+         Traits              : Concorde.People.Traits.Lists.List;
          Career              : List_Of_Career_Records.List;
          Current_Office      : Ministry_Access;
          Skills              : Concorde.People.Skills.Skill_Set;
@@ -276,6 +290,12 @@ private
       Proficiency : Concorde.People.Proficiencies.Proficiency_Type)
       return Concorde.People.Proficiencies.Proficiency_Score_Range
    is (Individual.Proficiencies (Proficiency));
+
+   overriding function Has_Trait
+     (Individual  : Root_Individual_Type;
+      Trait       : Concorde.People.Traits.Trait_Type)
+      return Boolean
+   is (Individual.Traits.Contains (Trait));
 
    function Last_Name (Individual : Root_Individual_Type'Class)
                        return String

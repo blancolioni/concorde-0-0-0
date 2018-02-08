@@ -204,6 +204,32 @@ package body Concorde.People.Individuals is
       Individual.Skills.Set_Level (Skill, Level);
    end Set_Skill_Level;
 
+   ---------------
+   -- Set_Trait --
+   ---------------
+
+   overriding procedure Set_Trait
+     (Individual : in out Root_Individual_Type;
+      Trait      : Concorde.People.Traits.Trait_Type;
+      Present    : Boolean)
+   is
+   begin
+      if Present then
+         if not Individual.Has_Trait (Trait) then
+            Individual.Traits.Append (Trait);
+         end if;
+      else
+         declare
+            use Concorde.People.Traits.Lists;
+            Position : Cursor := Individual.Traits.Find (Trait);
+         begin
+            if Has_Element (Position) then
+               Individual.Traits.Delete (Position);
+            end if;
+         end;
+      end if;
+   end Set_Trait;
+
    ------------
    -- Update --
    ------------

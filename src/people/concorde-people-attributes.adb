@@ -19,6 +19,8 @@ package body Concorde.People.Attributes is
             return Natural (Attrs.Skill_Level (Reference.Skill));
          when Proficiency_Attribute =>
             return Natural (Attrs.Proficiency_Level (Reference.Proficiency));
+         when Trait_Attribute =>
+            return (if Attrs.Has_Trait (Reference.Trait) then 1 else 0);
       end case;
    end Attribute_Score;
 
@@ -81,6 +83,10 @@ package body Concorde.People.Attributes is
             when Skill_Attribute =>
                Score := Score
                  + Natural (Attrs.Skill_Level (Reference.Skill));
+            when Trait_Attribute =>
+               if Attrs.Has_Trait (Reference.Trait) then
+                  Score := Score + 1;
+               end if;
          end case;
       end loop;
 
@@ -147,6 +153,8 @@ package body Concorde.People.Attributes is
                  (Reference.Skill,
                   Attrs.Skill_Level (Reference.Skill) + 1);
             end if;
+         when Trait_Attribute =>
+            null;
       end case;
 
    end Improve;
@@ -211,6 +219,8 @@ package body Concorde.People.Attributes is
                then
                   return False;
                end if;
+            when Trait_Attribute =>
+               return Attrs.Has_Trait (Ref.Trait);
          end case;
       end loop;
       return True;
@@ -255,6 +265,10 @@ package body Concorde.People.Attributes is
             when Skill_Attribute =>
                Result := Result
                  + Natural (Attrs.Skill_Level (Reference.Skill));
+            when Trait_Attribute =>
+               if Attrs.Has_Trait (Reference.Trait) then
+                  Result := Result + 1;
+               end if;
          end case;
       end loop;
       return Result;

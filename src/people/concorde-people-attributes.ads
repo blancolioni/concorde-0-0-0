@@ -3,6 +3,7 @@ private with Ada.Containers.Indefinite_Vectors;
 with Concorde.People.Abilities;
 with Concorde.People.Proficiencies;
 with Concorde.People.Skills;
+with Concorde.People.Traits;
 
 package Concorde.People.Attributes is
 
@@ -19,6 +20,10 @@ package Concorde.People.Attributes is
    function Proficiency_Reference
      (Proficiency : Concorde.People.Proficiencies.Proficiency_Type)
       return Attribute_Reference;
+
+--     function Trait_Reference
+--       (Trait  : Concorde.People.Traits.Trait_Type)
+--        return Attribute_Reference;
 
    function Ability_Reference
      (Ability : Concorde.People.Abilities.Ability_Type;
@@ -75,6 +80,12 @@ package Concorde.People.Attributes is
       return Concorde.People.Proficiencies.Proficiency_Score_Range
       is abstract;
 
+   function Has_Trait
+     (Attrs       : Has_Attributes;
+      Trait  : Concorde.People.Traits.Trait_Type)
+      return Boolean
+      is abstract;
+
    procedure Set_Ability_Score
      (Attrs   : in out Has_Attributes;
       Ability : Concorde.People.Abilities.Ability_Type;
@@ -92,6 +103,12 @@ package Concorde.People.Attributes is
       Proficiency : Concorde.People.Proficiencies.Proficiency_Type;
       Score       : Concorde.People.Proficiencies.Proficiency_Score_Range)
       is abstract;
+
+   procedure Set_Trait
+     (Attrs   : in out Has_Attributes;
+      Trait   : Concorde.People.Traits.Trait_Type;
+      Present : Boolean)
+   is abstract;
 
    function Attribute_Score
      (Attrs     : Has_Attributes'Class;
@@ -126,7 +143,8 @@ package Concorde.People.Attributes is
 private
 
    type Attribute_Type is
-     (Ability_Attribute, Skill_Attribute, Proficiency_Attribute);
+     (Ability_Attribute, Skill_Attribute,
+      Proficiency_Attribute, Trait_Attribute);
 
    type Attribute_Reference (Attribute : Attribute_Type) is
       record
@@ -134,11 +152,13 @@ private
          Value     : Natural;
          case Attribute is
             when Ability_Attribute =>
-               Ability : Concorde.People.Abilities.Ability_Type;
+               Ability     : Concorde.People.Abilities.Ability_Type;
             when Skill_Attribute =>
-               Skill   : Concorde.People.Skills.Skill_Type;
+               Skill       : Concorde.People.Skills.Skill_Type;
             when Proficiency_Attribute =>
                Proficiency : Concorde.People.Proficiencies.Proficiency_Type;
+            when Trait_Attribute =>
+               Trait       : Concorde.People.Traits.Trait_Type;
          end case;
       end record;
 
@@ -156,6 +176,11 @@ private
      (Proficiency : Concorde.People.Proficiencies.Proficiency_Type)
       return Attribute_Reference
    is (Proficiency_Attribute, False, 0, Proficiency);
+
+--     function Trait_Reference
+--       (Trait : Concorde.People.Traits.Trait_Type)
+--        return Attribute_Reference
+--     is (Trait_Attribute, False, 0, Trait);
 
    function Ability_Reference
      (Ability : Concorde.People.Abilities.Ability_Type;
