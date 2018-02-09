@@ -27,7 +27,16 @@ package body Concorde.Factions.Configure is
                           Tropos.Reader.Read_Config
                             (Concorde.Configure.File_Path
                                ("init", "imperium-laws", "txt"));
-      Current       : Natural := 0;
+      pragma Unreferenced (Imperium_Config);
+      Power_Config    : constant Tropos.Configuration :=
+                          Tropos.Reader.Read_Config
+                            (Concorde.Configure.File_Path
+                               ("init", "faction-powers", "txt"));
+      Laws_Config     : constant Tropos.Configuration :=
+                          Tropos.Reader.Read_Config
+                            (Concorde.Configure.File_Path
+                               ("init", "laws", "txt"));
+      Current         : Natural := 0;
    begin
       for Config of Faction_Config loop
          exit when Current >= Count;
@@ -56,10 +65,6 @@ package body Concorde.Factions.Configure is
             House_Ministry : constant Concorde.Ministries.Ministry_Type :=
                                Faction.First_Ministry;
 
-            Laws_Config     : constant Tropos.Configuration :=
-                                Tropos.Reader.Read_Config
-                                  (Concorde.Configure.File_Path
-                                     ("init", "laws", "txt"));
             Capital_Context : constant Concorde.Laws.Law_Context :=
                                 Concorde.Laws.Configure.World_Context
                                   (Faction.Capital_World);
@@ -69,31 +74,36 @@ package body Concorde.Factions.Configure is
                Imperium_Faction := Faction;
             end if;
 
-            for Law_Config of Imperium_Config.Child ("faction_laws") loop
-               if Current = 0 then
-                  House_Ministry.Update.Add_Power
-                    (Concorde.Powers.Configure.Configure_Power
-                       (Law_Config.Child (1)));
-               else
-                  declare
-                     Context : constant Concorde.Laws.Law_Context :=
-                                 Concorde.Laws.Configure.Vassal_Context
-                                   (Imperium_Faction, Faction);
-                     Law     : constant Concorde.Laws.Law_Type :=
-                                 Concorde.Laws.Configure.Configure_Law
-                                   (Context => Context,
-                                    Config  => Law_Config);
-                  begin
-                     Imperium_Faction.Update.Add_Law (Law);
-                     if Law.Can_Enact then
-                        Ada.Text_IO.Put_Line ("Enacting: " & Law.Show);
-                        Law.Enact;
-                     else
-                        Ada.Text_IO.Put_Line ("Cannot enact: " & Law.Show);
-                     end if;
-                  end;
-               end if;
+            for Pwr of Power_Config loop
+               House_Ministry.Update.Add_Power
+                 (Concorde.Powers.Configure.Configure_Power (Pwr));
             end loop;
+
+--              for Law_Config of Imperium_Config.Child ("faction_laws") loop
+--                 if Current = 0 then
+--                    House_Ministry.Update.Add_Power
+--                      (Concorde.Powers.Configure.Configure_Power
+--                         (Law_Config.Child (1)));
+--                 else
+--                    declare
+--                       Context : constant Concorde.Laws.Law_Context :=
+--                                   Concorde.Laws.Configure.Vassal_Context
+--                                     (Imperium_Faction, Faction);
+--                       Law     : constant Concorde.Laws.Law_Type :=
+--                                   Concorde.Laws.Configure.Configure_Law
+--                                     (Context => Context,
+--                                      Config  => Law_Config);
+--                    begin
+--                       Imperium_Faction.Update.Add_Law (Law);
+--                       if Law.Can_Enact then
+--                          Ada.Text_IO.Put_Line ("Enacting: " & Law.Show);
+--                          Law.Enact;
+--                       else
+--                          Ada.Text_IO.Put_Line ("Cannot enact: " & Law.Show);
+--                       end if;
+--                    end;
+--                 end if;
+--              end loop;
 
             for Law_Config of Laws_Config loop
                declare

@@ -15,6 +15,7 @@ package body Concorde.Laws.Bureaucracy is
    type Power_Delegation_Law is
      new Root_Law_Type with
       record
+         Copy  : Boolean;
          Power : Power_Holder.Holder;
       end record;
 
@@ -82,6 +83,23 @@ package body Concorde.Laws.Bureaucracy is
          Powers   => Powers);
    end Create_Ministry;
 
+   ------------------
+   -- Create_Power --
+   ------------------
+
+   function Create_Power
+     (Context   : Law_Context;
+      Power     : Concorde.Powers.Power_Type)
+      return Law_Type
+   is
+   begin
+      return new Power_Delegation_Law'
+        (Level         => Legislation,
+         Context       => Context,
+         Copy          => True,
+         Power         => Power_Holder.To_Holder (Power));
+   end Create_Power;
+
    --------------------
    -- Delegate_Power --
    --------------------
@@ -95,6 +113,7 @@ package body Concorde.Laws.Bureaucracy is
       return new Power_Delegation_Law'
         (Level         => Legislation,
          Context       => Context,
+         Copy          => False,
          Power         => Power_Holder.To_Holder (Power));
    end Delegate_Power;
 
@@ -104,8 +123,22 @@ package body Concorde.Laws.Bureaucracy is
 
    overriding procedure Enact (Law : in out Power_Delegation_Law) is
    begin
-      Concorde.Bureaucracy.Bureaucracy_Type (Law.Context.Target)
-        .Variable_Reference.Add_Power (Law.Power.Element);
+      if Law.Copy then
+         Concorde.Bureaucracy.Bureaucracy_Type (Law.Context.Target)
+           .Variable_Reference.Add_Power (Law.Power.Element);
+      else
+         declare
+            use Concorde.Bureaucracy;
+            From : constant Bureaucracy_Type :=
+                     Bureaucracy_Type (Law.Context.Legislator);
+            To   : constant Bureaucracy_Type :=
+                     Bureaucracy_Type (Law.Context.Target);
+         begin
+            From.Variable_Reference.Remove_Power (Law.Power.Element);
+            From.Variable_Reference.Delegate_Power (Law.Power.Element, To);
+            To.Variable_Reference.Add_Power (Law.Power.Element);
+         end;
+      end if;
    end Enact;
 
    -----------

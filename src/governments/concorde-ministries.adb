@@ -46,6 +46,43 @@ package body Concorde.Ministries is
       return Result;
    end Daily_Work;
 
+   ---------------------
+   -- Delegated_Power --
+   ---------------------
+
+   overriding procedure Delegate_Power
+     (Ministry   : in out Root_Ministry_Type;
+      Power      : Concorde.Powers.Power_Type;
+      To         : not null access constant
+        Concorde.Bureaucracy.Bureaucratic_Interface'Class)
+   is
+   begin
+      Ministry.Delegated_Powers.Append
+        ((Power_Holder.To_Holder (Power), To));
+   end Delegate_Power;
+
+   ------------------
+   -- Delegated_To --
+   ------------------
+
+   overriding function Delegated_To
+     (Ministry : Root_Ministry_Type;
+      Power    : Concorde.Powers.Power_Type)
+      return not null access constant
+     Concorde.Bureaucracy.Bureaucratic_Interface'Class
+   is
+      use type Concorde.Powers.Power_Type;
+   begin
+      for Rec of Ministry.Delegated_Powers loop
+         if Rec.Power.Element = Power then
+            return Rec.Delegated_To;
+         end if;
+      end loop;
+      raise Constraint_Error with
+        Ministry.Short_Name & " does not delegate"
+        & Concorde.Powers.Show (Power);
+   end Delegated_To;
+
    ------------------
    -- Remove_Power --
    ------------------

@@ -42,10 +42,26 @@ package Concorde.Factions is
      and Concorde.Bureaucracy.Bureaucratic_Interface
    with private;
 
+   overriding function Director
+     (Faction : Root_Faction_Type)
+      return access constant
+     Concorde.People.Individuals.Root_Individual_Type'Class;
+
    overriding function Has_Power
-     (Item  : Root_Faction_Type;
-      Power : Concorde.Powers.Power_Type)
+     (Faction : Root_Faction_Type;
+      Power   : Concorde.Powers.Power_Type)
       return Boolean;
+
+   overriding function Has_Delegated_Power
+     (Faction : Root_Faction_Type;
+      Power   : Concorde.Powers.Power_Type)
+      return Boolean;
+
+   overriding function Delegated_To
+     (Faction : Root_Faction_Type;
+      Power   : Concorde.Powers.Power_Type)
+      return not null access constant
+     Concorde.Bureaucracy.Bureaucratic_Interface'Class;
 
    overriding procedure Add_Power
      (Item  : in out Root_Faction_Type;
@@ -54,6 +70,12 @@ package Concorde.Factions is
    overriding procedure Remove_Power
      (Item  : in out Root_Faction_Type;
       Power : Concorde.Powers.Power_Type);
+
+   overriding procedure Delegate_Power
+     (Faction : in out Root_Faction_Type;
+      Power   : Concorde.Powers.Power_Type;
+      To      : not null access constant
+        Concorde.Bureaucracy.Bureaucratic_Interface'Class);
 
    overriding procedure Scan_Powers
      (Item  : Root_Faction_Type;
@@ -497,12 +519,31 @@ private
      (Faction : in out Root_Faction_Type;
       Amount  : WL.Money.Money_Type);
 
+   overriding function Director
+     (Faction : Root_Faction_Type)
+      return access constant
+     Concorde.People.Individuals.Root_Individual_Type'Class
+   is (Faction.Ministries.First_Element.Director);
+
    overriding function Has_Power
-     (Item  : Root_Faction_Type;
-      Power : Concorde.Powers.Power_Type)
+     (Faction : Root_Faction_Type;
+      Power   : Concorde.Powers.Power_Type)
       return Boolean
-   is (for some Ministry of Item.Ministries =>
+   is (for some Ministry of Faction.Ministries =>
           Ministry.Has_Power (Power));
+
+   overriding function Has_Delegated_Power
+     (Faction : Root_Faction_Type;
+      Power   : Concorde.Powers.Power_Type)
+      return Boolean
+   is (Faction.Ministries.First_Element.Has_Delegated_Power (Power));
+
+   overriding function Delegated_To
+     (Faction : Root_Faction_Type;
+      Power   : Concorde.Powers.Power_Type)
+      return not null access constant
+     Concorde.Bureaucracy.Bureaucratic_Interface'Class
+   is (Faction.Ministries.First_Element.Delegated_To (Power));
 
    function Capital_World
      (Faction : Root_Faction_Type'Class)
@@ -525,7 +566,7 @@ private
      (Faction : Root_Faction_Type'Class)
       return access constant
      Concorde.People.Individuals.Root_Individual_Type'Class
-   is (Faction.Ministries.First_Element.Minister);
+   is (Faction.Director);
 
    package Faction_Vectors is
      new Memor.Element_Vectors

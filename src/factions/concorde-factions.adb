@@ -389,6 +389,21 @@ package body Concorde.Factions is
       return Faction.Default_Ship.all;
    end Default_Ship_Design;
 
+   ---------------------
+   -- Delegated_Power --
+   ---------------------
+
+   overriding procedure Delegate_Power
+     (Faction : in out Root_Faction_Type;
+      Power   : Concorde.Powers.Power_Type;
+      To      : not null access constant
+        Concorde.Bureaucracy.Bureaucratic_Interface'Class)
+   is
+   begin
+      Faction.Ministries.First_Element.Update.Delegate_Power
+        (Power, To);
+   end Delegate_Power;
+
    ---------
    -- Get --
    ---------

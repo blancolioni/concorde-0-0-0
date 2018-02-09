@@ -1,5 +1,6 @@
 sales_tax = 10%
 import_tariff = 20%
+
 create_ministry = {
    name = Finance
    powers = { collect_sales_tax collect_import_tariff }

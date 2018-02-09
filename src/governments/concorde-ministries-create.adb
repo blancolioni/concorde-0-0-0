@@ -58,7 +58,6 @@ package body Concorde.Ministries.Create is
                       Location, Market, Name, Powers);
    begin
       Faction.Update.Add_Power (Concorde.Powers.Direct_Minister (Ministry));
-      pragma Unreferenced (Ministry);
    end Create_Ministry;
 
    ---------------------

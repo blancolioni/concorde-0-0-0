@@ -51,6 +51,11 @@ package body Concorde.Laws.Configure is
       Value   : String)
       return Law_Type;
 
+   function Configure_Power_Creation
+     (Context : Law_Context;
+      Value   : String)
+      return Law_Type;
+
    function Configure_Sales_Tax
      (Context : Law_Context;
       Config  : Tropos.Configuration)
@@ -136,6 +141,21 @@ package body Concorde.Laws.Configure is
            "unknown law id: " & Config.Config_Name;
       end if;
    end Configure_Law;
+
+   ------------------------------
+   -- Configure_Power_Creation --
+   ------------------------------
+
+   function Configure_Power_Creation
+     (Context : Law_Context;
+      Value   : String)
+      return Law_Type
+   is
+   begin
+      return Concorde.Laws.Bureaucracy.Create_Power
+        (Context => Context,
+         Power   => Concorde.Powers.Configure.Get_Power (Value));
+   end Configure_Power_Creation;
 
    --------------------------------
    -- Configure_Power_Delegation --
@@ -234,6 +254,7 @@ package body Concorde.Laws.Configure is
    begin
       Configure ("create_ministry", Configure_Create_Ministry'Access);
       Configure ("delegate_power", Configure_Power_Delegation'Access);
+      Configure ("create_power", Configure_Power_Creation'Access);
       Configure ("import_tariff", Configure_Import_Tariff'Access);
       Configure ("sales_tax", Configure_Sales_Tax'Access);
    end Create_Configure_Function_Map;
