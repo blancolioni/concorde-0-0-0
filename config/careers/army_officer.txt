@@ -1,0 +1,46 @@
+qualification = { intelligence = 2 health = 3 education = 3 }
+promotion = { intelligence = 10 charisma energy health }
+advanced = { education = 8 }
+
+prestige = 8
+titles = yes
+
+progression = {
+   development = {
+      empathy energy health intelligence strength ground_tactics
+   }
+
+   service = {
+      leadership ground_tactics administration melee_combat
+   }
+   
+   advanced = {
+      infantry_tactics armour_tactics artillery_tactics
+      remote_operations
+      engineering
+      administration
+   }
+}
+
+ranks = {
+   0 = {
+      name = lieutenant
+      progression = { melee_combat }
+      }
+   1 = {
+      name = captain
+      progression = { leadership }
+      }
+   2 = {
+      name = major
+      progression = { ground_tactics }
+   }
+   3 = {
+      name = colonel
+      progression = { ground_tactics }
+   }
+   4 = {
+      name = general
+      progression = { prestige }
+   }
+}
