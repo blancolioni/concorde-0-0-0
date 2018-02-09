@@ -2,6 +2,7 @@ with WL.Money;
 with WL.Quantities;
 
 with Concorde.Factions;
+with Concorde.Powers;
 with Concorde.Worlds;
 
 package body Concorde.Armies.Create is
@@ -30,13 +31,18 @@ package body Concorde.Armies.Create is
             Market         => Faction.Capital_World.Market,
             Cash           => WL.Money.Zero,
             Stock_Capacity => WL.Quantities.Zero);
+         Army.Set_Name ("1st " & Faction.Name & " regulars");
          Army.Faction := Faction;
-         Army.Location := Location;
          Army.Loyalty := 1.0;
+
       end Create;
 
+      Army : constant Army_Type := Db.Create (Create'Access);
    begin
-      return Db.Create (Create'Access);
+
+      Update_Location (Army);
+
+      return Army;
    end New_Army;
 
 end Concorde.Armies.Create;

@@ -2,6 +2,18 @@ with Concorde.Factions;
 
 package body Concorde.Government is
 
+   ---------------
+   -- Add_Power --
+   ---------------
+
+   overriding procedure Add_Power
+     (Government : in out Root_Government_Type;
+      Power      : Concorde.Powers.Power_Type)
+   is
+   begin
+      Government.Powers.Add_Power (Power);
+   end Add_Power;
+
    ----------------------
    -- Add_Trade_Offers --
    ----------------------
@@ -60,18 +72,6 @@ package body Concorde.Government is
       return Government.Headquarters;
    end Headquarters;
 
-   ------------
-   -- Insert --
-   ------------
-
-   overriding procedure Insert
-     (Government : in out Root_Government_Type;
-      Power      : Concorde.Powers.Power_Type)
-   is
-   begin
-      Government.Powers.Insert (Power);
-   end Insert;
-
    ---------------------
    -- Object_Database --
    ---------------------
@@ -85,17 +85,17 @@ package body Concorde.Government is
       return Db.Get_Database;
    end Object_Database;
 
-   ------------
-   -- Remove --
-   ------------
+   ------------------
+   -- Remove_Power --
+   ------------------
 
-   overriding procedure Remove
+   overriding procedure Remove_Power
      (Government : in out Root_Government_Type;
       Power      : Concorde.Powers.Power_Type)
    is
    begin
-      Government.Powers.Remove (Power);
-   end Remove;
+      Government.Powers.Remove_Power (Power);
+   end Remove_Power;
 
    -----------------
    -- Scan_Powers --

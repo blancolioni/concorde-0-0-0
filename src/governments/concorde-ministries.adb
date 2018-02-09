@@ -12,7 +12,7 @@ package body Concorde.Ministries is
       Power      : Concorde.Powers.Power_Type)
    is
    begin
-      Ministry.Powers.Insert (Power);
+      Ministry.Powers.Add_Power (Power);
    end Add_Power;
 
    ----------------
@@ -92,7 +92,7 @@ package body Concorde.Ministries is
       Power      : Concorde.Powers.Power_Type)
    is
    begin
-      Ministry.Powers.Remove (Power);
+      Ministry.Powers.Remove_Power (Power);
    end Remove_Power;
 
    -----------------
@@ -100,12 +100,12 @@ package body Concorde.Ministries is
    -----------------
 
    overriding procedure Scan_Powers
-     (Item    : Root_Ministry_Type;
-      Process : not null access
+     (Ministry   : Root_Ministry_Type;
+      Process    : not null access
         procedure (Power : Concorde.Powers.Power_Type))
    is
    begin
-      Item.Powers.Scan_Powers (Process);
+      Ministry.Powers.Scan_Powers (Process);
    end Scan_Powers;
 
    ------------------

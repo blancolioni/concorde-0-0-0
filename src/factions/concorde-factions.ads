@@ -21,6 +21,7 @@ with Concorde.Bureaucracy;
 with Concorde.Calendar;
 with Concorde.Laws;
 with Concorde.Locations;
+with Concorde.Managers;
 with Concorde.Ministries;
 with Concorde.Objects;
 with Concorde.Powers;
@@ -40,6 +41,7 @@ package Concorde.Factions is
      and Memor.Identifier_Record_Type
      and Concorde.Objects.User_Named_Object_Interface
      and Concorde.Bureaucracy.Bureaucratic_Interface
+     and Concorde.Managers.Managed_Interface
    with private;
 
    overriding function Director
@@ -81,6 +83,20 @@ package Concorde.Factions is
      (Item  : Root_Faction_Type;
       Process : not null access
         procedure (Power : Concorde.Powers.Power_Type));
+
+   overriding function Check_Powers
+     (Faction   : Root_Faction_Type;
+      Test      : not null access
+        function (Power : Concorde.Powers.Power_Type) return Boolean)
+      return Boolean;
+
+   overriding function Manager
+     (Faction : Root_Faction_Type)
+      return Concorde.Managers.Manager_Type;
+
+   overriding procedure Set_Manager
+     (Faction : in out Root_Faction_Type;
+      Manager : Concorde.Managers.Manager_Type);
 
    function Colour
      (Faction : Root_Faction_Type'Class)
@@ -449,7 +465,8 @@ private
      new Concorde.Agents.Root_Agent_Type
      and Memor.Identifier_Record_Type
      and Concorde.Objects.User_Named_Object_Interface
-     and Concorde.Bureaucracy.Bureaucratic_Interface with
+     and Concorde.Bureaucracy.Bureaucratic_Interface
+     and Concorde.Managers.Managed_Interface with
       record
          Identifier         : Ada.Strings.Unbounded.Unbounded_String;
          Faction_Name       : Ada.Strings.Unbounded.Unbounded_String;
@@ -458,6 +475,7 @@ private
          System_Data        : access System_Data_Array;
          Faction_Data       : access Relation_Record;
          Ruler              : Faction_Type;
+         Manager            : Concorde.Managers.Manager_Type;
          Laws               : Law_Lists.List;
          Ministries         : Ministry_Lists.List;
          Current_Population : WL.Quantities.Quantity_Type;
@@ -538,12 +556,25 @@ private
       return Boolean
    is (Faction.Ministries.First_Element.Has_Delegated_Power (Power));
 
+   overriding function Check_Powers
+     (Faction : Root_Faction_Type;
+      Test      : not null access
+        function (Power : Concorde.Powers.Power_Type) return Boolean)
+      return Boolean
+   is (for some Ministry of Faction.Ministries =>
+          Ministry.Check_Powers (Test));
+
    overriding function Delegated_To
      (Faction : Root_Faction_Type;
       Power   : Concorde.Powers.Power_Type)
       return not null access constant
      Concorde.Bureaucracy.Bureaucratic_Interface'Class
    is (Faction.Ministries.First_Element.Delegated_To (Power));
+
+   overriding function Manager
+     (Faction : Root_Faction_Type)
+      return Concorde.Managers.Manager_Type
+   is (Faction.Manager);
 
    function Capital_World
      (Faction : Root_Faction_Type'Class)

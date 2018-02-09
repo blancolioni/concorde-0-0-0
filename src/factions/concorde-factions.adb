@@ -791,6 +791,18 @@ package body Concorde.Factions is
       Faction.Set_Minister (Faction.Ministries.First_Element, Leader);
    end Set_Leader;
 
+   -----------------
+   -- Set_Manager --
+   -----------------
+
+   overriding procedure Set_Manager
+     (Faction : in out Root_Faction_Type;
+      Manager : Concorde.Managers.Manager_Type)
+   is
+   begin
+      Faction.Manager := Manager;
+   end Set_Manager;
+
    ------------------
    -- Set_Minister --
    ------------------

@@ -37,16 +37,16 @@ package Concorde.Government is
      (Government : Root_Government_Type'Class)
       return Concorde.Installations.Installation_Type;
 
-   overriding function Contains
+   overriding function Has_Power
      (Government : Root_Government_Type;
       Power      : Concorde.Powers.Power_Type)
       return Boolean;
 
-   overriding procedure Insert
+   overriding procedure Add_Power
      (Government : in out Root_Government_Type;
       Power      : Concorde.Powers.Power_Type);
 
-   overriding procedure Remove
+   overriding procedure Remove_Power
      (Government : in out Root_Government_Type;
       Power      : Concorde.Powers.Power_Type);
 
@@ -197,11 +197,11 @@ private
       return access Concorde.Agents.Root_Agent_Type'Class
    is (Government.Update.Item);
 
-   overriding function Contains
+   overriding function Has_Power
      (Government : Root_Government_Type;
       Power      : Concorde.Powers.Power_Type)
       return Boolean
-   is (Government.Powers.Contains (Power));
+   is (Government.Powers.Has_Power (Power));
 
    function Governor
      (Government : Root_Government_Type'Class)

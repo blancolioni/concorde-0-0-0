@@ -261,6 +261,11 @@ package Concorde.Worlds is
      (World : Root_World_Type'Class)
       return WL.Quantities.Quantity_Type;
 
+   procedure Scan_Armies
+     (World   : Root_World_Type'Class;
+      Process : not null access
+        procedure (Army : Concorde.Armies.Army_Type));
+
    procedure Scan_Pops
      (World : Root_World_Type'Class;
       Process : not null access

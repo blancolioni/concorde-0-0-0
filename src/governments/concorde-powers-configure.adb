@@ -58,7 +58,7 @@ package body Concorde.Powers.Configure is
    is
    begin
       for Power_Config of Config loop
-         Set.Insert
+         Set.Add_Power
            (Configure_Power (Power_Config));
       end loop;
    end Configure_Power_Set;

@@ -36,18 +36,18 @@ package Concorde.Powers is
 
    type Powered_Interface is limited interface;
 
-   function Contains
+   function Has_Power
      (Container : Powered_Interface;
       Power     : Power_Type)
       return Boolean
       is abstract;
 
-   procedure Insert
+   procedure Add_Power
      (Container : in out Powered_Interface;
       Power     : Power_Type)
    is abstract;
 
-   procedure Remove
+   procedure Remove_Power
      (Container : in out Powered_Interface;
       Power     : Power_Type)
    is abstract;
@@ -69,16 +69,16 @@ package Concorde.Powers is
 
    function No_Powers return Power_Set;
 
-   overriding function Contains
+   overriding function Has_Power
      (Container : Power_Set;
       Power     : Power_Type)
       return Boolean;
 
-   overriding procedure Insert
+   overriding procedure Add_Power
      (Container : in out Power_Set;
       Power     : Power_Type);
 
-   overriding procedure Remove
+   overriding procedure Remove_Power
      (Container : in out Power_Set;
       Power     : Power_Type);
 

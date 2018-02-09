@@ -2,6 +2,20 @@ with Concorde.Ministries;
 
 package body Concorde.Powers is
 
+   ---------------
+   -- Add_Power --
+   ---------------
+
+   overriding procedure Add_Power
+     (Container : in out Power_Set;
+      Power     : Power_Type)
+   is
+   begin
+      if not Container.Has_Power (Power) then
+         Container.Set.Append (Power);
+      end if;
+   end Add_Power;
+
    ------------------
    -- Check_Powers --
    ------------------
@@ -56,14 +70,14 @@ package body Concorde.Powers is
    -- Contains --
    --------------
 
-   overriding function Contains
+   overriding function Has_Power
      (Container : Power_Set;
       Power     : Power_Type)
       return Boolean
    is
    begin
       return Power_Lists.Has_Element (Container.Set.Find (Power));
-   end Contains;
+   end Has_Power;
 
    ----------------
    -- Identifier --
@@ -90,24 +104,10 @@ package body Concorde.Powers is
    end Identifier;
 
    ------------
-   -- Insert --
-   ------------
-
-   overriding procedure Insert
-     (Container : in out Power_Set;
-      Power     : Power_Type)
-   is
-   begin
-      if not Container.Contains (Power) then
-         Container.Set.Append (Power);
-      end if;
-   end Insert;
-
-   ------------
    -- Remove --
    ------------
 
-   overriding procedure Remove
+   overriding procedure Remove_Power
      (Container : in out Power_Set;
       Power     : Power_Type)
    is
@@ -117,7 +117,7 @@ package body Concorde.Powers is
       if Has_Element (Position) then
          Container.Set.Delete (Position);
       end if;
-   end Remove;
+   end Remove_Power;
 
    -----------------
    -- Scan_Powers --

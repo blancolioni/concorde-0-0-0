@@ -1,3 +1,4 @@
+with Concorde.Powers.Configure;
 with Concorde.Powers.Execution;
 with Concorde.Worlds;
 
@@ -21,6 +22,44 @@ package body Concorde.People.Individuals.Work is
      (Work       : Appoint_Minister_Work_Item;
       Individual : Individual_Type);
 
+   type Appoint_General_Work_Item is
+     new Root_Individual_Work_Item with
+      record
+         Army : Concorde.Armies.Army_Type;
+      end record;
+
+   overriding function Show (Item : Appoint_General_Work_Item) return String
+   is ("appoint general to " & Item.Army.Name);
+
+   overriding function Power
+     (Item : Appoint_General_Work_Item)
+      return Concorde.Powers.Power_Type
+   is (Concorde.Powers.Appoint_General);
+
+   overriding procedure Execute
+     (Work       : Appoint_General_Work_Item;
+      Individual : Individual_Type);
+
+   function Best_Candidate
+     (World  : Concorde.Worlds.World_Type;
+      Powers : Concorde.Powers.Powered_Interface'Class)
+      return Concorde.People.Individuals.Individual_Type;
+
+   ---------------------
+   -- Appoint_General --
+   ---------------------
+
+   function Appoint_General
+     (Army : not null access constant
+        Concorde.Armies.Root_Army_Type'Class)
+      return Concorde.Work.Work_Item
+   is
+   begin
+      return new Appoint_General_Work_Item'
+        (Concorde.Work.Root_Work_Item with
+           Army => Concorde.Armies.Army_Type (Army));
+   end Appoint_General;
+
    ----------------------
    -- Appoint_Minister --
    ----------------------
@@ -36,15 +75,15 @@ package body Concorde.People.Individuals.Work is
            Ministry => Concorde.Ministries.Ministry_Type (Ministry));
    end Appoint_Minister;
 
-   -------------
-   -- Execute --
-   -------------
+   --------------------
+   -- Best_Candidate --
+   --------------------
 
-   overriding procedure Execute
-     (Work       : Appoint_Minister_Work_Item;
-      Individual : Individual_Type)
+   function Best_Candidate
+     (World  : Concorde.Worlds.World_Type;
+      Powers : Concorde.Powers.Powered_Interface'Class)
+      return Concorde.People.Individuals.Individual_Type
    is
-
       Best_Score      : Natural := 0;
       Best_Individual : Concorde.People.Individuals.Individual_Type;
 
@@ -60,7 +99,7 @@ package body Concorde.People.Individuals.Work is
       is
          use type Concorde.Factions.Faction_Type;
       begin
-         if Candidate.Faction /= Individual.Faction then
+         if Candidate.Faction /= World.Owner then
             return;
          end if;
 
@@ -88,7 +127,7 @@ package body Concorde.People.Individuals.Work is
             end Score_Power;
 
          begin
-            Work.Ministry.Scan_Powers (Score_Power'Access);
+            Powers.Scan_Powers (Score_Power'Access);
 
             if Score > 0 then
                if Score > Best_Score
@@ -105,18 +144,64 @@ package body Concorde.People.Individuals.Work is
       end Score_Individual;
 
    begin
+      World.Scan_Individuals (Score_Individual'Access);
 
-      Individual.Faction.Capital_World.Scan_Individuals
-        (Score_Individual'Access);
+      return Best_Individual;
+   end Best_Candidate;
 
-      if Best_Score > 0 then
+   -------------
+   -- Execute --
+   -------------
+
+   overriding procedure Execute
+     (Work       : Appoint_Minister_Work_Item;
+      Individual : Individual_Type)
+   is
+      use type Concorde.People.Individuals.Individual_Type;
+      New_Minister : constant Concorde.People.Individuals.Individual_Type :=
+                       Best_Candidate
+                         (World  => Individual.Faction.Capital_World,
+                          Powers => Work.Ministry.all);
+   begin
+      if New_Minister /= null then
          Individual.Log_Government
            ("appointing "
-            & Best_Individual.Full_Name
+            & New_Minister.Full_Name
             & " to run "
             & Work.Ministry.Name);
          Individual.Faction.Update.Set_Minister
-           (Work.Ministry, Best_Individual);
+           (Work.Ministry, New_Minister);
+      end if;
+
+   end Execute;
+
+   -------------
+   -- Execute --
+   -------------
+
+   overriding procedure Execute
+     (Work       : Appoint_General_Work_Item;
+      Individual : Individual_Type)
+   is
+      use type Concorde.People.Individuals.Individual_Type;
+      Power : constant Concorde.Powers.Power_Type :=
+                Concorde.Powers.Configure.Get_Power
+                  (Name => "command_army");
+      Set : Concorde.Powers.Power_Set;
+      General : Concorde.People.Individuals.Individual_Type;
+   begin
+      Set.Add_Power (Power);
+      General :=
+        Best_Candidate
+          (World  => Individual.Faction.Capital_World,
+           Powers => Set);
+
+      if General /= null then
+         Individual.Log_Government
+           ("appointing "
+            & General.Full_Name
+            & " to command of "
+            & Work.Army.Name);
       end if;
 
    end Execute;

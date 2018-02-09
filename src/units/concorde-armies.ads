@@ -81,7 +81,6 @@ private
          Faction   : access constant Concorde.Factions.Root_Faction_Type'Class;
          Commander : access constant
            Concorde.People.Individuals.Root_Individual_Type'Class;
-         Location  : Concorde.Locations.Object_Location;
          Loyalty   : Unit_Real;
          Manager   : Concorde.Managers.Manager_Type;
          Regiments : Regiment_Vectors.Vector;

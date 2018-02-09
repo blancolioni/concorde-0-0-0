@@ -1,3 +1,4 @@
+with Concorde.Armies;
 with Concorde.Ministries;
 with Concorde.Work;
 
@@ -6,6 +7,11 @@ package Concorde.People.Individuals.Work is
    function Appoint_Minister
      (Ministry : not null access constant
         Concorde.Ministries.Root_Ministry_Type'Class)
+      return Concorde.Work.Work_Item;
+
+   function Appoint_General
+     (Army : not null access constant
+        Concorde.Armies.Root_Army_Type'Class)
       return Concorde.Work.Work_Item;
 
    procedure Perform_Work

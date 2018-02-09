@@ -88,9 +88,15 @@ package Concorde.Ministries is
         Concorde.Bureaucracy.Bureaucratic_Interface'Class);
 
    overriding procedure Scan_Powers
-     (Item    : Root_Ministry_Type;
-      Process : not null access
+     (Ministry   : Root_Ministry_Type;
+      Process    : not null access
         procedure (Power : Concorde.Powers.Power_Type));
+
+   overriding function Check_Powers
+     (Ministry   : Root_Ministry_Type;
+      Test       : not null access
+        function (Power : Concorde.Powers.Power_Type) return Boolean)
+      return Boolean;
 
    function Daily_Work
      (Ministry : Root_Ministry_Type'Class)
@@ -163,7 +169,7 @@ private
      (Ministry : Root_Ministry_Type;
       Power      : Concorde.Powers.Power_Type)
       return Boolean
-   is (Ministry.Powers.Contains (Power));
+   is (Ministry.Powers.Has_Power (Power));
 
    overriding function Has_Delegated_Power
      (Ministry : Root_Ministry_Type;
@@ -171,6 +177,13 @@ private
       return Boolean
    is (for some Rec of Ministry.Delegated_Powers =>
           Concorde.Powers."=" (Rec.Power.Element, Power));
+
+   overriding function Check_Powers
+     (Ministry   : Root_Ministry_Type;
+      Test       : not null access
+        function (Power : Concorde.Powers.Power_Type) return Boolean)
+      return Boolean
+   is (Ministry.Powers.Check_Powers (Test));
 
    overriding function Name
      (Ministry : Root_Ministry_Type)

@@ -1,4 +1,18 @@
+with Concorde.People.Individuals;
+
 package body Concorde.Bureaucracy is
+
+   -------------------
+   -- Add_Work_Item --
+   -------------------
+
+   procedure Add_Work_Item
+     (Bureaucracy : in out Bureaucratic_Interface'Class;
+      Work        : Concorde.Work.Work_Item)
+   is
+   begin
+      Bureaucracy.Director.Manager.Add_Work_Item (Work);
+   end Add_Work_Item;
 
    ---------------------
    -- Find_With_Power --

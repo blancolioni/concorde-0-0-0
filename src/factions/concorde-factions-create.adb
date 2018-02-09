@@ -10,6 +10,7 @@ with Concorde.Real_Images;
 with Concorde.Calendar;
 with Concorde.Objects.Queues;
 
+with Concorde.Armies;
 with Concorde.Galaxy;
 with Concorde.Locations;
 with Concorde.Markets;
@@ -19,6 +20,7 @@ with Concorde.Worlds;
 with Concorde.Systems;
 
 with Concorde.People.Individuals.Create;
+with Concorde.People.Individuals.Work;
 
 with Concorde.Scenarios;
 
@@ -560,6 +562,24 @@ package body Concorde.Factions.Create is
 
          Faction.Save_Agent;
          Concorde.Managers.Factions.Create_Manager (Faction).Activate;
+
+         declare
+            procedure Add_Work (Army : Concorde.Armies.Army_Type);
+
+            --------------
+            -- Add_Work --
+            --------------
+
+            procedure Add_Work (Army : Concorde.Armies.Army_Type) is
+            begin
+               Faction.Manager.Add_Work_Item
+                 (Concorde.People.Individuals.Work.Appoint_General
+                    (Army));
+            end Add_Work;
+
+         begin
+            Faction.Capital_World.Scan_Armies (Add_Work'Access);
+         end;
 
          declare
             use Concorde.Calendar;

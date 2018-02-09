@@ -513,6 +513,21 @@ package body Concorde.Worlds is
       end return;
    end Resources;
 
+   -----------------
+   -- Scan_Armies --
+   -----------------
+
+   procedure Scan_Armies
+     (World   : Root_World_Type'Class;
+      Process : not null access
+        procedure (Army : Concorde.Armies.Army_Type))
+   is
+   begin
+      for Army of World.Armies loop
+         Process (Army);
+      end loop;
+   end Scan_Armies;
+
    ----------------------
    -- Scan_Individuals --
    ----------------------
