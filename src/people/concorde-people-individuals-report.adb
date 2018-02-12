@@ -29,7 +29,8 @@ package body Concorde.People.Individuals.Report is
       for Ability in Individual.Abilities'Range loop
          Put (Concorde.People.Abilities.Ability_Type'Image (Ability) & ":");
          Set_Col (16);
-         Put (Individual.Abilities (Ability)'Img);
+         Put (Concorde.People.Abilities.Ability_Score_Range'Image
+              (Ability_Score (Individual.all, Ability)));
          New_Line;
       end loop;
 
