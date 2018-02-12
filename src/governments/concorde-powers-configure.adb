@@ -1,5 +1,13 @@
 with WL.String_Maps;
 
+with Concorde.Trades;
+
+with Concorde.Powers.Armies;
+with Concorde.Powers.Ministries;
+with Concorde.Powers.Taxation;
+
+with Concorde.Powers.Execution;
+
 package body Concorde.Powers.Configure is
 
    type Simple_Configure_Function is access
@@ -48,6 +56,17 @@ package body Concorde.Powers.Configure is
       end if;
    end Configure_Power;
 
+   -------------------------------
+   -- Configure_Power_Execution --
+   -------------------------------
+
+   procedure Configure_Power_Execution
+     (Config : Tropos.Configuration)
+   is
+   begin
+      Concorde.Powers.Execution.Configure_Power_Execution (Config);
+   end Configure_Power_Execution;
+
    -------------------------
    -- Configure_Power_Set --
    -------------------------
@@ -70,25 +89,29 @@ package body Concorde.Powers.Configure is
    procedure Create_Map is
    begin
       Simple_Map.Insert
-        ("set_sales_tax", (Set_Tax_Rate, Concorde.Trades.Sales));
+        ("set_sales_tax",
+         Concorde.Powers.Taxation.Set_Tax_Rate (Concorde.Trades.Sales));
       Simple_Map.Insert
-        ("collect_sales_tax", (Collect_Tax, Concorde.Trades.Sales));
+        ("collect_sales_tax",
+         Concorde.Powers.Taxation.Collect_Tax (Concorde.Trades.Sales));
       Simple_Map.Insert
-        ("set_import_tariff", (Set_Tax_Rate, Concorde.Trades.Import));
+        ("set_import_tariff",
+         Concorde.Powers.Taxation.Set_Tax_Rate (Concorde.Trades.Import));
       Simple_Map.Insert
-        ("collect_import_tariff", (Collect_Tax, Concorde.Trades.Import));
+        ("collect_import_tariff",
+         Concorde.Powers.Taxation.Collect_Tax (Concorde.Trades.Import));
       Simple_Map.Insert
-        ("set_export_tariff", (Set_Tax_Rate, Concorde.Trades.Export));
+        ("set_export_tariff",
+         Concorde.Powers.Taxation.Set_Tax_Rate (Concorde.Trades.Export));
       Simple_Map.Insert
-        ("collect_export_tariff", (Collect_Tax, Concorde.Trades.Export));
+        ("collect_export_tariff",
+         Concorde.Powers.Taxation.Collect_Tax (Concorde.Trades.Export));
       Simple_Map.Insert
-        ("appoint_minister", (Class => Appoint_Minister));
+        ("appoint_minister", Concorde.Powers.Ministries.Appoint_Minister);
       Simple_Map.Insert
-        ("appoint_general", Appoint_General);
+        ("appoint_general", Concorde.Powers.Armies.Appoint_General);
       Simple_Map.Insert
-        ("command_army", Command_Army);
-      Simple_Map.Insert
-        ("law_enforcement", (Class => Law_Enforcement));
+        ("law_enforcement", Concorde.Powers.Ministries.Law_Enforcement);
    end Create_Map;
 
    ---------------

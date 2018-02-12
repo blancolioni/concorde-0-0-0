@@ -5,11 +5,11 @@ with Concorde.People.Attributes;
 with Concorde.People.Groups;
 with Concorde.Worlds;
 
-package Concorde.Powers.Execution is
+private package Concorde.Powers.Execution is
 
    function Daily_Work
      (Power : Power_Type;
-      World : Concorde.Worlds.World_Type)
+      World : not null access constant Concorde.Worlds.Root_World_Type'Class)
       return Duration;
    --  How many person-seconds required
    --  to execute this power on the given world today

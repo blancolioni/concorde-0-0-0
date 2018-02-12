@@ -1,4 +1,6 @@
-with Concorde.Ministries;
+with WL.Localisation;
+
+with Concorde.Powers.Execution;
 
 package body Concorde.Powers is
 
@@ -11,10 +13,33 @@ package body Concorde.Powers is
       Power     : Power_Type)
    is
    begin
-      if not Container.Has_Power (Power) then
-         Container.Set.Append (Power);
-      end if;
+      Container.Set.Append (Power);
    end Add_Power;
+
+   ---------------
+   -- Attribute --
+   ---------------
+
+   function Attribute
+     (Power : Root_Power_Type'Class;
+      Index : Positive)
+      return Concorde.People.Attributes.Attribute_Reference
+   is
+   begin
+      return Concorde.Powers.Execution.Attribute (Power, Index);
+   end Attribute;
+
+   ---------------------
+   -- Attribute_Count --
+   ---------------------
+
+   function Attribute_Count
+     (Power : Root_Power_Type'Class)
+      return Natural
+   is
+   begin
+      return Concorde.Powers.Execution.Attribute_Count (Power);
+   end Attribute_Count;
 
    ------------------
    -- Check_Powers --
@@ -27,48 +52,41 @@ package body Concorde.Powers is
       return Boolean
    is
    begin
-      for Power of Container.Set loop
-         if not Test (Power) then
-            return False;
-         end if;
-      end loop;
-      return True;
+      return (for all Power of Container.Set => Test (Power));
    end Check_Powers;
 
-   ----------------------
-   -- Class_Identifier --
-   ----------------------
+   ----------------
+   -- Daily_Work --
+   ----------------
 
-   function Class_Identifier (Power : Power_Type) return String is
+   function Daily_Work
+     (Power : Root_Power_Type'Class;
+      World : not null access constant
+        Concorde.Worlds.Root_World_Type'Class)
+      return Duration
+   is
    begin
-      case Power.Class is
-         when Set_Tax_Rate =>
-            return "set_tax_rate";
-         when Collect_Tax =>
-            case Power.Tax_Category is
-               when Concorde.Trades.Sales =>
-                  return "collect_sales_tax";
-               when Concorde.Trades.Import =>
-                  return "collect_import_tariffs";
-               when Concorde.Trades.Export =>
-                  return "collect_export_tariffs";
-            end case;
-         when Appoint_Minister =>
-            return "appoint_minister";
-         when Direct_Minister =>
-            return "direct_minister";
-         when Law_Enforcement =>
-            return "law_enforcement";
-         when Appoint_General =>
-            return "appoint_general";
-         when Command_Army =>
-            return "command_army";
-      end case;
-   end Class_Identifier;
+      return Concorde.Powers.Execution.Daily_Work
+        (Power, World);
+   end Daily_Work;
 
-   --------------
-   -- Contains --
-   --------------
+   --------------------
+   -- Execution_Work --
+   --------------------
+
+   function Execution_Work
+     (Power  : Root_Power_Type'Class;
+      Target : access constant
+        Concorde.Objects.Root_Object_Type'Class)
+      return Duration
+   is
+   begin
+      return Concorde.Powers.Execution.Execution_Work (Power, Target);
+   end Execution_Work;
+
+   ---------------
+   -- Has_Power --
+   ---------------
 
    overriding function Has_Power
      (Container : Power_Set;
@@ -76,47 +94,63 @@ package body Concorde.Powers is
       return Boolean
    is
    begin
-      return Power_Lists.Has_Element (Container.Set.Find (Power));
+      return Container.Set.Contains (Power);
    end Has_Power;
 
-   ----------------
-   -- Identifier --
-   ----------------
+   ---------------
+   -- Pop_Group --
+   ---------------
 
-   function Identifier (Power : Power_Type) return String is
+   function Pop_Group
+     (Power : Root_Power_Type'Class;
+      Index : Positive)
+      return not null access constant
+     Concorde.People.Groups.Root_Pop_Group'Class
+   is
    begin
-      case Power.Class is
-         when Set_Tax_Rate =>
-            return Class_Identifier (Power);
-         when Collect_Tax =>
-            return Class_Identifier (Power);
-         when Appoint_Minister =>
-            return Class_Identifier (Power);
-         when Direct_Minister =>
-            return Class_Identifier (Power) & "_" & Power.Ministry.Identifier;
-         when Law_Enforcement =>
-            return Class_Identifier (Power);
-         when Appoint_General =>
-            return Class_Identifier (Power);
-         when Command_Army =>
-            return Class_Identifier (Power);
-      end case;
-   end Identifier;
+      return Concorde.Powers.Execution.Pop_Group (Power, Index);
+   end Pop_Group;
 
-   ------------
-   -- Remove --
-   ------------
+   ---------------------
+   -- Pop_Group_Count --
+   ---------------------
+
+   function Pop_Group_Count
+     (Power : Root_Power_Type'Class)
+      return Natural
+   is
+   begin
+      return Concorde.Powers.Execution.Pop_Group_Count (Power);
+   end Pop_Group_Count;
+
+   ----------------------
+   -- Pop_Group_Effect --
+   ----------------------
+
+   function Pop_Group_Effect
+     (Power : Root_Power_Type'Class;
+      Index : Positive)
+      return Duration
+   is
+   begin
+      return Concorde.Powers.Execution.Pop_Group_Effect (Power, Index);
+   end Pop_Group_Effect;
+
+   ------------------
+   -- Remove_Power --
+   ------------------
 
    overriding procedure Remove_Power
      (Container : in out Power_Set;
       Power     : Power_Type)
    is
-      use Power_Lists;
-      Position : Cursor := Container.Set.Find (Power);
+      Position : Power_Lists.Cursor := Container.Set.Find (Power);
    begin
-      if Has_Element (Position) then
-         Container.Set.Delete (Position);
+      if not Power_Lists.Has_Element (Position) then
+         raise Constraint_Error with
+           "power not present in list: " & Power.Show;
       end if;
+      Container.Set.Delete (Position);
    end Remove_Power;
 
    -----------------
@@ -138,38 +172,10 @@ package body Concorde.Powers is
    -- Show --
    ----------
 
-   function Show (Power : Power_Type) return String is
+   function Show (Power : Root_Power_Type) return String is
    begin
-      case Power.Class is
-         when Set_Tax_Rate =>
-            case Power.Tax_Category is
-               when Concorde.Trades.Sales =>
-                  return "set sales tax rate";
-               when Concorde.Trades.Import =>
-                  return "set import tariffs";
-               when Concorde.Trades.Export =>
-                  return "set export tariffs";
-            end case;
-         when Collect_Tax =>
-            case Power.Tax_Category is
-               when Concorde.Trades.Sales =>
-                  return "collect sales tax";
-               when Concorde.Trades.Import =>
-                  return "collect import tariffs";
-               when Concorde.Trades.Export =>
-                  return "collect export tariffs";
-            end case;
-         when Appoint_Minister =>
-            return "appoint minister";
-         when Direct_Minister =>
-            return "direct minister of " & Power.Ministry.Name;
-         when Law_Enforcement =>
-            return "law enforcement";
-         when Appoint_General =>
-            return "appoint general";
-         when Command_Army =>
-            return "command army";
-      end case;
+      return WL.Localisation.Local_Text
+        (Root_Power_Type'Class (Power).Class_Identifier);
    end Show;
 
 end Concorde.Powers;

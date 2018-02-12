@@ -6,7 +6,7 @@ with Concorde.Facilities;
 with Concorde.Ministries;
 with Concorde.Trades;
 
-with Concorde.Powers.Execution;
+with Concorde.Powers;
 with Concorde.People.Individuals.Work;
 
 package body Concorde.Managers.Individuals is
@@ -121,9 +121,8 @@ package body Concorde.Managers.Individuals is
            (Object => Manager.Individual,
             Date   =>
               Concorde.Calendar.Clock
-            + Concorde.Powers.Execution.Execution_Work
-              (Manager.Current_Work.Power,
-               Manager.Current_Work.Target));
+            + Manager.Current_Work.Power.Execution_Work
+              (Manager.Current_Work.Target));
       else
          Concorde.Objects.Queues.Next_Event
            (Manager.Individual, Manager.Time, Delay_Days => 1);

@@ -1,0 +1,3 @@
+daily_work = 8
+
+attributes = { energy command ground_tactics armour_tactics infantry_tactics artillery_tactics }
