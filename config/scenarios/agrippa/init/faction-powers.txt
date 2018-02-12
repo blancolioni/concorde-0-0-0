@@ -1,0 +1,7 @@
+set_sales_tax 
+collect_sales_tax 
+set_import_tariff 
+collect_import_tariff 
+law_enforcement 
+appoint_general
+appoint_trader_captain
