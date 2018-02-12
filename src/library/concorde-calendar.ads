@@ -104,6 +104,7 @@ package Concorde.Calendar is
 
    function Hours (Count : Natural) return Duration;
    function Days (Count : Natural) return Duration;
+   function Years (Count : Natural) return Duration;
 
    Time_Error : exception;
 
@@ -141,5 +142,8 @@ private
 
    function Hours (Count : Natural) return Duration
    is (Duration (Count) * 3_600.0);
+
+   function Years (Count : Natural) return Duration
+   is (Count * Days (360));
 
 end Concorde.Calendar;
