@@ -1,6 +1,8 @@
 with Concorde.Objects.Queues;
 with Concorde.Signals.Standard;
+
 with Concorde.Facilities;
+with Concorde.People.Individuals;
 
 package body Concorde.Managers.Ministries is
 
@@ -61,11 +63,34 @@ package body Concorde.Managers.Ministries is
    is
       use type Concorde.Calendar.Time;
       use type Concorde.Facilities.Facility_Type;
+      Changed        : Boolean := False;
+      Remaining_Work : Work_Item_Queue.Heap;
    begin
-      Manager.Ministry.Log_Government
-        ("activated; daily work is"
-         & Natural'Image (Natural (Manager.Ministry.Daily_Work / 3600.0))
-         & " hours");
+      while not Manager.Work_Queue.Is_Empty loop
+         declare
+            Priority : constant Concorde.Work.Work_Priority :=
+                         Manager.Work_Queue.Maximum_Key;
+            Work     : constant Concorde.Work.Work_Item :=
+                         Manager.Work_Queue.Maximum_Element;
+         begin
+            Manager.Work_Queue.Delete_Maximum;
+            if Manager.Ministry.Has_Delegated_Power (Work.Power) then
+               Manager.Ministry.Find_With_Power (Work.Power)
+                 .Director.Manager.Add_Work_Item (Work);
+               Changed := True;
+            elsif Manager.Ministry.Has_Power (Work.Power) then
+               Manager.Ministry.Minister.Manager.Add_Work_Item (Work);
+               Changed := True;
+            else
+               Remaining_Work.Insert (Priority, Work);
+            end if;
+         end;
+      end loop;
+
+      if Changed then
+         Manager.Work_Queue := Remaining_Work;
+      end if;
+
       Concorde.Objects.Queues.Next_Event
         (Manager.Ministry, Manager.Time + 86_400.0);
    end On_Activated;

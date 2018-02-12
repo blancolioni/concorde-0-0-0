@@ -3,6 +3,7 @@ with Concorde.Signals.Standard;
 
 with Concorde.Commodities;
 with Concorde.Facilities;
+with Concorde.Ministries;
 with Concorde.Trades;
 
 with Concorde.Powers.Execution;
@@ -75,6 +76,39 @@ package body Concorde.Managers.Individuals is
          Concorde.People.Individuals.Work.Perform_Work
            (Manager.Individual, Manager.Current_Work);
          Manager.Current_Work := null;
+      end if;
+
+      if Manager.Individual.Has_Office then
+         declare
+            use Concorde.Ministries;
+            Changed        : Boolean := False;
+            Remaining_Work : Work_Item_Queue.Heap;
+            Ministry       : constant Concorde.Ministries.Ministry_Type :=
+                               Ministry_Type
+                                 (Manager.Individual.Office);
+         begin
+            while not Manager.Work_Queue.Is_Empty loop
+               declare
+                  Priority : constant Concorde.Work.Work_Priority :=
+                               Manager.Work_Queue.Maximum_Key;
+                  Work     : constant Concorde.Work.Work_Item :=
+                               Manager.Work_Queue.Maximum_Element;
+               begin
+                  Manager.Work_Queue.Delete_Maximum;
+                  if Ministry.Has_Delegated_Power (Work.Power) then
+                     Ministry.Find_With_Power (Work.Power)
+                       .Director.Manager.Add_Work_Item (Work);
+                     Changed := True;
+                  else
+                     Remaining_Work.Insert (Priority, Work);
+                  end if;
+               end;
+            end loop;
+
+            if Changed then
+               Manager.Work_Queue := Remaining_Work;
+            end if;
+         end;
       end if;
 
       if not Manager.Work_Queue.Is_Empty then
