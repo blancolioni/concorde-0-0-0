@@ -279,12 +279,6 @@ private
       return Concorde.People.Skills.Skill_Level_Range
    is (Individual.Skills.Skill_Level (Skill));
 
-   overriding function Ability_Score
-     (Individual : Root_Individual_Type;
-      Ability    : Concorde.People.Abilities.Ability_Type)
-      return Concorde.People.Abilities.Ability_Score_Range
-   is (Individual.Abilities (Ability));
-
    overriding function Proficiency_Level
      (Individual  : Root_Individual_Type;
       Proficiency : Concorde.People.Proficiencies.Proficiency_Type)

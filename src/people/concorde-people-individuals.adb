@@ -6,6 +6,35 @@ with Concorde.Worlds;
 
 package body Concorde.People.Individuals is
 
+   -------------------
+   -- Ability_Score --
+   -------------------
+
+   overriding function Ability_Score
+     (Individual : Root_Individual_Type;
+      Ability    : Concorde.People.Abilities.Ability_Type)
+      return Concorde.People.Abilities.Ability_Score_Range
+   is
+      use Concorde.Calendar;
+      use Concorde.People.Abilities;
+   begin
+      if Individual.Age < 20 then
+         declare
+            Age_Duration : constant Real :=
+                             Real (Clock - Individual.Birth);
+            Maturity_Duration : constant Real :=
+                                  Real (Years (20));
+            Final_Score       : constant Ability_Score_Range :=
+                                  Individual.Abilities (Ability);
+         begin
+            return Ability_Score_Range
+              (Real (Final_Score) * Age_Duration / Maturity_Duration);
+         end;
+      else
+         return Individual.Abilities (Ability);
+      end if;
+   end Ability_Score;
+
    ---------
    -- Age --
    ---------
