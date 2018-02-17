@@ -170,7 +170,7 @@ package body Concorde.Markets is
       loop
          if Bid_Quantity = Zero then
             exit when Info.Bids.Is_Empty;
-            Bid_Offer := Info.Bids.Maximum_Element;
+            Bid_Offer := Info.Bids.First_Element;
             Bid_Quantity := Bid_Offer.Remaining_Quantity;
             if not Commodity.Is_Set (Concorde.Commodities.Virtual) then
                Bid_Quantity :=
@@ -182,7 +182,7 @@ package body Concorde.Markets is
 
          if Ask_Quantity = Zero then
             exit when Info.Asks.Is_Empty;
-            Ask_Offer := Info.Asks.Maximum_Element;
+            Ask_Offer := Info.Asks.First_Element;
             Ask_Quantity := Ask_Offer.Remaining_Quantity;
             Ask_Price := Ask_Offer.Offer_Price;
          end if;
@@ -233,24 +233,24 @@ package body Concorde.Markets is
                 (Info.Historical_Mean_Price + Final_Price, 0.5);
 
             if Ask_Quantity = Zero then
-               Info.Asks.Delete_Maximum;
+               Info.Asks.Delete_First;
             end if;
 
             if Bid_Quantity = Zero then
-               Info.Bids.Delete_Maximum;
+               Info.Bids.Delete_First;
             end if;
          end;
 
       end loop;
 
       if Ask_Quantity > Zero then
-         Info.Asks.Delete_Maximum;
+         Info.Asks.Delete_First;
          Ask_Offer.Remaining_Quantity := Ask_Quantity;
          Info.Asks.Insert (Ask_Offer.Offer_Price, Ask_Offer);
       end if;
 
       if Bid_Quantity > Zero then
-         Info.Bids.Delete_Maximum;
+         Info.Bids.Delete_First;
          Bid_Offer.Remaining_Quantity := Bid_Quantity;
          Info.Bids.Insert (Bid_Offer.Offer_Price, Bid_Offer);
       end if;
@@ -439,11 +439,11 @@ package body Concorde.Markets is
                      use type Concorde.Agents.Agent_Reference;
                      use type WL.Quantities.Quantity_Type;
                      Price : constant Price_Type :=
-                               Info.Bids.Maximum_Key;
+                               Info.Bids.First_Key;
                      Element : constant Offer_Info :=
-                                 Info.Bids.Maximum_Element;
+                                 Info.Bids.First_Element;
                   begin
-                     Info.Bids.Delete_Maximum;
+                     Info.Bids.Delete_First;
                      if Element.Agent.Reference /= Agent.Reference then
                         New_Queue.Insert (Price, Element);
                      else
@@ -474,11 +474,11 @@ package body Concorde.Markets is
                      use type Concorde.Agents.Agent_Reference;
                      use type WL.Quantities.Quantity_Type;
                      Price   : constant Price_Type :=
-                                 Info.Asks.Maximum_Key;
+                                 Info.Asks.First_Key;
                      Element : constant Offer_Info :=
-                                 Info.Asks.Maximum_Element;
+                                 Info.Asks.First_Element;
                   begin
-                     Info.Asks.Delete_Maximum;
+                     Info.Asks.Delete_First;
                      if Element.Agent.Reference /= Agent.Reference then
                         New_Queue.Insert (Price, Element);
                      else
@@ -914,13 +914,13 @@ package body Concorde.Markets is
       case Offer is
          when Concorde.Trades.Ask =>
             if not Info.Bids.Is_Empty then
-               return Info.Bids.Maximum_Key;
+               return Info.Bids.First_Key;
             else
                return WL.Money.Zero;
             end if;
          when Concorde.Trades.Bid =>
             if not Info.Asks.Is_Empty then
-               return Info.Asks.Maximum_Key;
+               return Info.Asks.First_Key;
             else
                return WL.Money.Zero;
             end if;
@@ -1143,11 +1143,11 @@ package body Concorde.Markets is
                      use type Concorde.Agents.Agent_Reference;
                      use type WL.Quantities.Quantity_Type;
                      Price : constant Price_Type :=
-                               Info.Bids.Maximum_Key;
+                               Info.Bids.First_Key;
                      Element : constant Offer_Info :=
-                                 Info.Bids.Maximum_Element;
+                                 Info.Bids.First_Element;
                   begin
-                     Info.Bids.Delete_Maximum;
+                     Info.Bids.Delete_First;
                      if Element.Agent.Reference /= Agent.Reference then
                         New_Queue.Insert (Price, Element);
                      else
@@ -1176,11 +1176,11 @@ package body Concorde.Markets is
                   declare
                      use type WL.Quantities.Quantity_Type;
                      Price   : constant Price_Type :=
-                                 Info.Asks.Maximum_Key;
+                                 Info.Asks.First_Key;
                      Element : constant Offer_Info :=
-                                 Info.Asks.Maximum_Element;
+                                 Info.Asks.First_Element;
                   begin
-                     Info.Asks.Delete_Maximum;
+                     Info.Asks.Delete_First;
                      if Element.Agent.Reference /= Agent.Reference then
                         New_Queue.Insert (Price, Element);
                      else

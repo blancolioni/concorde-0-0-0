@@ -104,18 +104,18 @@ package body Concorde.Objects.Queues is
       Now : constant Time := Concorde.Calendar.Clock;
    begin
       while not Queue.Is_Empty
-        and then Queue.Maximum_Key <= Now
+        and then Queue.First_Key <= Now
       loop
          declare
             Element    : constant Queue_Element :=
-                           Queue.Maximum_Element;
+                           Queue.First_Element;
             Signal     : constant Concorde.Signals.Signal_Type :=
                            Element.Signal.Element;
             Event      : Concorde.Events.Root_Event_Type'Class :=
                            Element.Event.Element;
          begin
-            Event.Set_Time_Stamp (Queue.Maximum_Key);
-            Queue.Delete_Maximum;
+            Event.Set_Time_Stamp (Queue.First_Key);
+            Queue.Delete_First;
             Element.Object.Signal (Signal, Event);
          end;
       end loop;
