@@ -1,20 +1,17 @@
-with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Vectors;
 
 with Ada.Text_IO;
 
-with Cairo;
-
-with WL.Localisation;
+--  with Cairo;
+--
+--  with WL.Localisation;
 with WL.String_Maps;
 
 with Css;
 
-with Xtk.Events;
-
 with Xtk.Grids.Models;
 with Xtk.Grids.Views;
-with Xtk.Values;
+with Xtk.Values.Renderers;
 
 with Xtk.Widget;
 
@@ -24,7 +21,8 @@ with Concorde.People.Individuals;
 
 with Concorde.Factions.Events;
 
-with Concorde.Xi_UI.Portraits;
+with Concorde.Xi_UI.Individuals;
+--  with Concorde.Xi_UI.Portraits;
 
 package body Concorde.Xi_UI.Factions is
 
@@ -39,11 +37,10 @@ package body Concorde.Xi_UI.Factions is
        (Index_Type   => Positive,
         Element_Type => Overlay_Row);
 
-   subtype Column_Index is Positive range 1 .. 3;
+   subtype Column_Index is Positive range 1 .. 2;
 
-   Minister_Portrait_Column : constant Column_Index := 1;
-   Minister_Ministry_Column : constant Column_Index := 2;
-   Minister_Name_Column : constant Column_Index := 3;
+   Minister_Column : constant Column_Index := 1;
+   Ministry_Column : constant Column_Index := 2;
 
    type Faction_Overlay_Model_Record is
      new Xtk.Grids.Models.Xtk_Grid_Model_Record with
@@ -75,22 +72,6 @@ package body Concorde.Xi_UI.Factions is
    is null;
 
    type Faction_Overlay_Model is access all Faction_Overlay_Model_Record'Class;
-
-   type Table_Row is
-     new Xtk.Events.User_Data_Interface with
-      record
-         Ministry         : Concorde.Ministries.Ministry_Type;
-         Minister         : Concorde.People.Individuals.Individual_Type;
-         Ministry_Name    : Xtk.Label.Xtk_Label;
-         Minister_Name    : Xtk.Label.Xtk_Label;
-         Portrait_Widget  : Concorde.Xi_UI.Portraits.Xtk_Portrait;
-         Portrait_Surface : Cairo.Cairo_Surface;
-      end record;
-
-   type Table_Row_Access is access all Table_Row'Class;
-
-   package Table_Row_Lists is
-     new Ada.Containers.Doubly_Linked_Lists (Table_Row_Access);
 
    type Root_Faction_Overlay is
      new Root_Overlay_Type with
@@ -130,26 +111,14 @@ package body Concorde.Xi_UI.Factions is
       Col   : Positive)
       return Xtk.Values.Xtk_Value_Interface'Class
    is
-      function V (S : String) return Xtk.Values.Xtk_Value_Interface'Class
-                  renames Xtk.Values.To_Xtk_Value;
    begin
       case Column_Index (Col) is
-         when Minister_Portrait_Column =>
-            return V ("");
-         when Minister_Ministry_Column =>
-            return V (Model.Ministries.Element (Row).Ministry.Name);
-         when Minister_Name_Column =>
-            declare
-               use Concorde.People.Individuals;
-               Minister : constant Individual_Type :=
-                            Model.Ministries.Element (Row).Minister;
-            begin
-               if Minister = null then
-                  return V (WL.Localisation.Local_Text ("vacant"));
-               else
-                  return V (Minister.Full_Name);
-               end if;
-            end;
+         when Minister_Column =>
+            return Concorde.Xi_UI.Individuals.To_Value
+              (Model.Ministries.Element (Row).Minister);
+         when Ministry_Column =>
+            return Xtk.Values.To_Xtk_Value
+              (Model.Ministries.Element (Row).Ministry.Name);
       end case;
    end Cell_Value;
 
@@ -203,6 +172,12 @@ package body Concorde.Xi_UI.Factions is
              Ministries => <>);
 
       Overlay.Grid.Set_Model (Overlay.Model);
+      Overlay.Grid.Append_Column
+        (1, Concorde.Xi_UI.Individuals.Portrait_Renderer);
+      Overlay.Grid.Append_Column
+        (2, Xtk.Values.Renderers.Text_Renderer);
+      Overlay.Grid.Append_Column
+        (1, Xtk.Values.Renderers.Text_Renderer);
 
       Update_Table (Overlay);
 
@@ -223,7 +198,7 @@ package body Concorde.Xi_UI.Factions is
       Object : not null access constant
         Concorde.Objects.Root_Object_Type'Class)
    is
-      use Cairo;
+--        use Cairo;
       use Concorde.People.Individuals;
       Ev      : Concorde.Factions.Events.Ministry_Changed_Event'Class renames
                   Concorde.Factions.Events.Ministry_Changed_Event'Class
@@ -318,7 +293,7 @@ package body Concorde.Xi_UI.Factions is
                  /= New_Vector.Element (I).Minister
                then
                   Old_Vector (I).Minister := New_Vector.Element (I).Minister;
-                  Overlay.Model.Cell_Changed (I, Minister_Name_Column);
+                  Overlay.Model.Cell_Changed (I, Minister_Column);
                end if;
             else
                Old_Vector.Append (New_Vector.Element (I));
