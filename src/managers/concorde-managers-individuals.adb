@@ -113,10 +113,10 @@ package body Concorde.Managers.Individuals is
 
       if not Manager.Work_Queue.Is_Empty then
          Manager.Individual.Log
-           ("next work item: " & Manager.Work_Queue.Maximum_Element.Show);
+           ("next work item: " & Manager.Work_Queue.First_Element.Show);
          Manager.Current_Work :=
-           Manager.Work_Queue.Maximum_Element;
-         Manager.Work_Queue.Delete_Maximum;
+           Manager.Work_Queue.First_Element;
+         Manager.Work_Queue.Delete_First;
          Concorde.Objects.Queues.Next_Event
            (Object => Manager.Individual,
             Date   =>

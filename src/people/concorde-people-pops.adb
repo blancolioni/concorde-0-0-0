@@ -247,12 +247,12 @@ package body Concorde.People.Pops is
             while not Queue.Is_Empty and then Remaining > 0.0 loop
                declare
                   Item     : constant Artisan_Consumption :=
-                               Queue.Maximum_Element;
+                               Queue.First_Element;
                   Required : constant Quantity_Type :=
                                Scale (Item.Input_Per, Float (Remaining));
                   Cost     : Money_Type;
                begin
-                  Queue.Delete_Maximum;
+                  Queue.Delete_First;
 
                   if Required <= Item.Have then
                      Remaining := 0.0;

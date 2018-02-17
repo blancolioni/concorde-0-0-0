@@ -146,9 +146,9 @@ package body Concorde.Managers.Ships.Trade is
             use Concorde.Worlds;
             use Concorde.Contracts;
             Contract : constant Contract_Type :=
-                         Contract_Queue.Maximum_Element;
+                         Contract_Queue.First_Element;
          begin
-            Contract_Queue.Delete_Maximum;
+            Contract_Queue.Delete_First;
             if (Manager.Next_Destination = null
                 or else Object_Type (Manager.Next_Destination)
                 = Primary (Contract.Location))

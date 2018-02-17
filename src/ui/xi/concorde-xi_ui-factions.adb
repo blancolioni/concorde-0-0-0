@@ -1,4 +1,6 @@
 with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Containers.Vectors;
+
 with Ada.Text_IO;
 
 with Cairo;
@@ -10,7 +12,10 @@ with Css;
 
 with Xtk.Events;
 
-with Xtk.Table_Element;
+with Xtk.Grids.Models;
+with Xtk.Grids.Views;
+with Xtk.Values;
+
 with Xtk.Widget;
 
 with Concorde.Events;
@@ -22,6 +27,54 @@ with Concorde.Factions.Events;
 with Concorde.Xi_UI.Portraits;
 
 package body Concorde.Xi_UI.Factions is
+
+   type Overlay_Row is
+      record
+         Ministry : Concorde.Ministries.Ministry_Type;
+         Minister : Concorde.People.Individuals.Individual_Type;
+      end record;
+
+   package Ministry_Vectors is
+     new Ada.Containers.Vectors
+       (Index_Type   => Positive,
+        Element_Type => Overlay_Row);
+
+   subtype Column_Index is Positive range 1 .. 3;
+
+   Minister_Portrait_Column : constant Column_Index := 1;
+   Minister_Ministry_Column : constant Column_Index := 2;
+   Minister_Name_Column : constant Column_Index := 3;
+
+   type Faction_Overlay_Model_Record is
+     new Xtk.Grids.Models.Xtk_Grid_Model_Record with
+      record
+         Ministries : Ministry_Vectors.Vector;
+      end record;
+
+   overriding function Row_Count
+     (Model : Faction_Overlay_Model_Record)
+      return Natural
+   is (Model.Ministries.Last_Index);
+
+   overriding function Col_Count
+     (Model : Faction_Overlay_Model_Record)
+      return Natural
+   is (Column_Index'Last);
+
+   overriding function Cell_Value
+     (Model : Faction_Overlay_Model_Record;
+      Row   : Positive;
+      Col   : Positive)
+      return Xtk.Values.Xtk_Value_Interface'Class;
+
+   overriding procedure Set_Cell_Value
+     (Model : in out Faction_Overlay_Model_Record;
+      Row   : Positive;
+      Col   : Positive;
+      Value : Xtk.Values.Xtk_Value_Interface'Class)
+   is null;
+
+   type Faction_Overlay_Model is access all Faction_Overlay_Model_Record'Class;
 
    type Table_Row is
      new Xtk.Events.User_Data_Interface with
@@ -44,8 +97,8 @@ package body Concorde.Xi_UI.Factions is
       record
          Faction : Concorde.Factions.Faction_Type;
          Title   : Xtk.Label.Xtk_Label;
-         Table   : Xtk.Table_Element.Xtk_Table;
-         Rows    : Table_Row_Lists.List;
+         Grid    : Xtk.Grids.Views.Xtk_Grid_View;
+         Model   : Faction_Overlay_Model;
       end record;
 
    type Faction_Overlay_Access is access all Root_Faction_Overlay'Class;
@@ -66,6 +119,39 @@ package body Concorde.Xi_UI.Factions is
 
    procedure Update_Table
      (Overlay : Faction_Overlay_Access);
+
+   ----------------
+   -- Cell_Value --
+   ----------------
+
+   overriding function Cell_Value
+     (Model : Faction_Overlay_Model_Record;
+      Row   : Positive;
+      Col   : Positive)
+      return Xtk.Values.Xtk_Value_Interface'Class
+   is
+      function V (S : String) return Xtk.Values.Xtk_Value_Interface'Class
+                  renames Xtk.Values.To_Xtk_Value;
+   begin
+      case Column_Index (Col) is
+         when Minister_Portrait_Column =>
+            return V ("");
+         when Minister_Ministry_Column =>
+            return V (Model.Ministries.Element (Row).Ministry.Name);
+         when Minister_Name_Column =>
+            declare
+               use Concorde.People.Individuals;
+               Minister : constant Individual_Type :=
+                            Model.Ministries.Element (Row).Minister;
+            begin
+               if Minister = null then
+                  return V (WL.Localisation.Local_Text ("vacant"));
+               else
+                  return V (Minister.Full_Name);
+               end if;
+            end;
+      end case;
+   end Cell_Value;
 
    ---------------------
    -- Faction_Overlay --
@@ -106,10 +192,17 @@ package body Concorde.Xi_UI.Factions is
 
       Overlay.Title.Set_Label ("House " & Faction.Name);
 
-      Overlay.Table :=
-        Xtk.Table_Element.Xtk_Table
+      Overlay.Grid :=
+        Xtk.Grids.Views.Xtk_Grid_View
           (Overlay.Top_Panel.Get_Child_Widget_By_Id
              ("info-table"));
+
+      Overlay.Model :=
+        new Faction_Overlay_Model_Record'
+          (Xtk.Grids.Models.Xtk_Grid_Model_Record with
+             Ministries => <>);
+
+      Overlay.Grid.Set_Model (Overlay.Model);
 
       Update_Table (Overlay);
 
@@ -179,100 +272,63 @@ package body Concorde.Xi_UI.Factions is
    procedure Update_Table
      (Overlay : Faction_Overlay_Access)
    is
-      procedure Update_Widgets (Ministry : Concorde.Ministries.Ministry_Type);
 
-      --------------------
-      -- Update_Widgets --
-      --------------------
+      use Concorde.Ministries;
+      use Concorde.People.Individuals;
 
-      procedure Update_Widgets
-        (Ministry : Concorde.Ministries.Ministry_Type)
-      is
+      New_Vector     : Ministry_Vectors.Vector;
+      Old_Vector     : Ministry_Vectors.Vector renames
+                         Overlay.Model.Ministries;
+      Layout_Changed : Boolean := False;
 
-         use Concorde.People.Individuals;
-         use Concorde.Ministries;
+      procedure Add_Ministry (Ministry : Concorde.Ministries.Ministry_Type);
 
-         Found : Boolean := False;
+      ------------------
+      -- Add_Ministry --
+      ------------------
 
-         use type Xtk.Widget.Xtk_Widget;
-         use type Concorde.People.Individuals.Individual_Type;
-
-         procedure Update_Row
-           (Row : Table_Row_Access);
-
-         ----------------
-         -- Update_Row --
-         ----------------
-
-         procedure Update_Row
-           (Row : Table_Row_Access)
-         is
-         begin
-            Row.Minister_Name.Set_Label
-              (if Ministry.Minister = null
-               then WL.Localisation.Local_Text ("vacant")
-               else Ministry.Minister.Full_Name);
-            Row.Portrait_Widget.Set_Portrait
-              (Ministry.Minister);
-         end Update_Row;
-
+      procedure Add_Ministry (Ministry : Concorde.Ministries.Ministry_Type) is
       begin
+         New_Vector.Append ((Ministry, Ministry.Minister));
+      end Add_Ministry;
 
-         for Row of Overlay.Rows loop
-            if Row.Ministry = Ministry then
-               declare
-                  Current : constant Individual_Type :=
-                              Individual_Type (Ministry.Minister);
-               begin
-                  if Row.Minister /= Current then
-                     Update_Row (Row);
-                  end if;
-               end;
-               Found := True;
+   begin
+      Overlay.Faction.Scan_Ministries (Add_Ministry'Access);
+
+      if New_Vector.Last_Index >= Old_Vector.Last_Index then
+         for I in 1 .. Old_Vector.Last_Index loop
+            if New_Vector.Element (I).Ministry /=
+              Old_Vector.Element (I).Ministry
+            then
+               Layout_Changed := True;
                exit;
             end if;
          end loop;
+      else
+         Layout_Changed := True;
+      end if;
 
-         if not Found then
-            declare
-               Row : constant Table_Row_Access :=
-                       new Table_Row'
-                         (Ministry         => Ministry,
-                          Minister         => Ministry.Minister,
-                          Minister_Name    => null,
-                          Ministry_Name    => null,
-                          Portrait_Widget  => null,
-                          Portrait_Surface => Cairo.Null_Surface);
-               TR  : constant Xtk.Table_Element.Xtk_Table_Row :=
-                       Xtk.Table_Element.Xtk_New;
-               TD  : Xtk.Table_Element.Xtk_Table_Data;
-            begin
-               Xtk.Table_Element.Xtk_New (TD);
-               Concorde.Xi_UI.Portraits.Xtk_New (Row.Portrait_Widget);
-               Row.Portrait_Widget.Set_Attribute
-                 ("class", "portrait-medium");
---                 Row.Portrait_Widget.On_Draw
---                   (Draw_Portrait'Access, Row);
-               TD.Add_Child (Row.Portrait_Widget);
-               TR.Add_Child (TD);
-               Xtk.Label.Xtk_New (Row.Ministry_Name, Ministry.Name);
-               Xtk.Table_Element.Xtk_New (TD);
-               TD.Add_Child (Row.Ministry_Name);
-               TR.Add_Child (TD);
-               Xtk.Label.Xtk_New (Row.Minister_Name, "Jimbo");
-               Xtk.Table_Element.Xtk_New (TD);
-               TD.Add_Child (Row.Minister_Name);
-               TR.Add_Child (TD);
-               Overlay.Table.Add_Child (TR);
-               Overlay.Rows.Append (Row);
-               Update_Row (Row);
-            end;
-         end if;
-      end Update_Widgets;
+      if Layout_Changed then
+         Overlay.Model.Ministries := New_Vector;
+         Overlay.Model.Layout_Changed;
+      else
+         for I in 1 .. New_Vector.Last_Index loop
+            if I <= Old_Vector.Last_Index then
+               if Old_Vector.Element (I).Minister
+                 /= New_Vector.Element (I).Minister
+               then
+                  Old_Vector (I).Minister := New_Vector.Element (I).Minister;
+                  Overlay.Model.Cell_Changed (I, Minister_Name_Column);
+               end if;
+            else
+               Old_Vector.Append (New_Vector.Element (I));
+               Overlay.Model.Row_Added (I - 1);
+            end if;
+         end loop;
+      end if;
 
-   begin
-      Overlay.Faction.Scan_Ministries (Update_Widgets'Access);
-      Overlay.Table.Show_All;
+      Overlay.Grid.Show_All;
+
    end Update_Table;
 
 end Concorde.Xi_UI.Factions;

@@ -429,12 +429,12 @@ package body Concorde.Installations is
             while not Queue.Is_Empty and then Remaining > 0.0 loop
                declare
                   Item : constant Consumption_Record :=
-                           Queue.Maximum_Element;
+                           Queue.First_Element;
                   Required : constant Quantity_Type :=
                                Scale (Item.Input_Per, Float (Remaining));
                   Cost     : Money_Type;
                begin
-                  Queue.Delete_Maximum;
+                  Queue.Delete_First;
 
                   if Required <= Item.Have then
                      Remaining := 0.0;

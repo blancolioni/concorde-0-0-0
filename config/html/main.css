@@ -137,6 +137,18 @@ label
     color: black;
 }
 
+.ship-summary-panel
+{
+    width: 500px;
+    height: 300px;
+    position: absolute;
+    top: 100px;
+    right: 240px;
+    border: 1px solid #afeeee;
+    background-image: linear-gradient(to bottom, #dedede, #808080);
+    color: black;
+}
+
 .character-detail-overlay
 {
     border: 1px solid #afeeee;
