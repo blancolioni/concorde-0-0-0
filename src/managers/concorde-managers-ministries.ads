@@ -25,6 +25,11 @@ private
          Ministry : Concorde.Ministries.Ministry_Type;
       end record;
 
+   overriding function Description
+     (Manager : Root_Ministry_Manager)
+      return String
+   is ("Ministry " & Manager.Ministry.Name & " manager");
+
    overriding procedure On_Activated
      (Manager : in out Root_Ministry_Manager);
 

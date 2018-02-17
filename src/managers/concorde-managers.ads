@@ -9,6 +9,11 @@ package Concorde.Managers is
 
    type Root_Manager_Type is abstract tagged private;
 
+   function Description
+     (Manager : Root_Manager_Type)
+      return String
+      is abstract;
+
    procedure Deactivate (Manager : not null access Root_Manager_Type'Class);
    procedure Activate (Manager : not null access Root_Manager_Type'Class);
 

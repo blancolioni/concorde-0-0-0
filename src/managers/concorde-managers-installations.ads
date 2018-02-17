@@ -25,6 +25,11 @@ private
          Installation : Concorde.Installations.Installation_Type;
       end record;
 
+   overriding function Description
+     (Manager : Root_Installation_Manager)
+      return String
+   is (Manager.Installation.Identifier & " manager");
+
    overriding procedure On_Activated
      (Manager : in out Root_Installation_Manager);
 

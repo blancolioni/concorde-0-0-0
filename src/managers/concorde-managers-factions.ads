@@ -25,6 +25,11 @@ private
          Faction : Concorde.Factions.Faction_Type;
       end record;
 
+   overriding function Description
+     (Manager : Root_Faction_Manager)
+      return String
+   is (Manager.Faction.Name);
+
    overriding procedure On_Activated
      (Manager : in out Root_Faction_Manager);
 

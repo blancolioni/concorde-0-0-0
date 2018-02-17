@@ -27,6 +27,11 @@ private
          Government : Concorde.Government.Government_Type;
       end record;
 
+   overriding function Description
+     (Manager : Root_Pop_Manager)
+      return String
+   is (Manager.Pop.Identifier & " manager");
+
    overriding procedure On_Activated
      (Manager : in out Root_Pop_Manager);
 

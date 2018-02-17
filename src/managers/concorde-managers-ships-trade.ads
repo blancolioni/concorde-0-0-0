@@ -33,6 +33,11 @@ private
          Contract_Accepted : Boolean;
       end record;
 
+   overriding function Description
+     (Manager : Root_Ship_Trade_Manager)
+      return String
+   is ("Trade manager for " & Manager.Ship.Name);
+
    overriding procedure On_Idle
      (Manager : in out Root_Ship_Trade_Manager);
 

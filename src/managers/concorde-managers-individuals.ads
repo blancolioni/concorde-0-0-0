@@ -27,6 +27,11 @@ private
          Government : Concorde.Government.Government_Type;
       end record;
 
+   overriding function Description
+     (Manager : Root_Individual_Manager)
+      return String
+   is (Manager.Individual.Full_Name & " manager");
+
    overriding procedure On_Activated
      (Manager : in out Root_Individual_Manager);
 
