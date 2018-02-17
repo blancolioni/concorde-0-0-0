@@ -81,7 +81,6 @@ package body Concorde.Managers.Individuals is
       if Manager.Individual.Has_Office then
          declare
             use Concorde.Ministries;
-            Changed        : Boolean := False;
             Remaining_Work : Work_Item_Queue.Heap;
             Ministry       : constant Concorde.Ministries.Ministry_Type :=
                                Ministry_Type
@@ -90,30 +89,25 @@ package body Concorde.Managers.Individuals is
             while not Manager.Work_Queue.Is_Empty loop
                declare
                   Priority : constant Concorde.Work.Work_Priority :=
-                               Manager.Work_Queue.Maximum_Key;
+                               Manager.Work_Queue.First_Key;
                   Work     : constant Concorde.Work.Work_Item :=
-                               Manager.Work_Queue.Maximum_Element;
+                               Manager.Work_Queue.First_Element;
                begin
-                  Manager.Work_Queue.Delete_Maximum;
+                  Manager.Work_Queue.Delete_First;
                   if Ministry.Has_Delegated_Power (Work.Power) then
                      Ministry.Find_With_Power (Work.Power)
                        .Director.Manager.Add_Work_Item (Work);
-                     Changed := True;
                   else
                      Remaining_Work.Insert (Priority, Work);
                   end if;
                end;
             end loop;
 
-            if Changed then
-               Manager.Work_Queue := Remaining_Work;
-            end if;
+            Manager.Work_Queue := Remaining_Work;
          end;
       end if;
 
       if not Manager.Work_Queue.Is_Empty then
-         Manager.Individual.Log
-           ("next work item: " & Manager.Work_Queue.First_Element.Show);
          Manager.Current_Work :=
            Manager.Work_Queue.First_Element;
          Manager.Work_Queue.Delete_First;

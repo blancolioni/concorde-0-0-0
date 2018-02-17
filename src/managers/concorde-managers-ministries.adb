@@ -69,11 +69,11 @@ package body Concorde.Managers.Ministries is
       while not Manager.Work_Queue.Is_Empty loop
          declare
             Priority : constant Concorde.Work.Work_Priority :=
-                         Manager.Work_Queue.Maximum_Key;
+                         Manager.Work_Queue.First_Key;
             Work     : constant Concorde.Work.Work_Item :=
-                         Manager.Work_Queue.Maximum_Element;
+                         Manager.Work_Queue.First_Element;
          begin
-            Manager.Work_Queue.Delete_Maximum;
+            Manager.Work_Queue.Delete_First;
             if Manager.Ministry.Has_Delegated_Power (Work.Power) then
                Manager.Ministry.Find_With_Power (Work.Power)
                  .Director.Manager.Add_Work_Item (Work);
