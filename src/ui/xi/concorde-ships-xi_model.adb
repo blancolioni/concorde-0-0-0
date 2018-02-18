@@ -415,18 +415,21 @@ package body Concorde.Ships.Xi_Model is
      (Ship    : Ship_Type)
    is
       Active : constant Active_Ship := Active_Ship_Vector.Element (Ship);
-      Holder : constant Xi.Node.Xi_Node := Active.Primary_Node;
+      Holder : constant Xi.Node.Xi_Node :=
+                 (if Active = null then null else Active.Primary_Node);
    begin
-      Ship.Log_Movement
-        ("deactivated at "
-         & Concorde.Locations.Long_Name
-           (Ship.Location_At (Concorde.Calendar.Clock)));
+      if Active /= null then
+         Ship.Log_Movement
+           ("deactivated at "
+            & Concorde.Locations.Long_Name
+              (Ship.Location_At (Concorde.Calendar.Clock)));
 
-      Holder.Delete_Child (Active.Holder_Node);
-      if False then
-         Holder.Delete_Child (Active.Selector);
+         Holder.Delete_Child (Active.Holder_Node);
+         if False then
+            Holder.Delete_Child (Active.Selector);
+         end if;
+         Active_Ship_Vector.Replace_Element (Ship, Active);
       end if;
-      Active_Ship_Vector.Replace_Element (Ship, Active);
    end Deactivate_Ship;
 
    ---------------------
