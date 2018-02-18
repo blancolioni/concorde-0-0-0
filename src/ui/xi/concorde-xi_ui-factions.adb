@@ -298,6 +298,8 @@ package body Concorde.Xi_UI.Factions is
             else
                Old_Vector.Append (New_Vector.Element (I));
                Overlay.Model.Row_Added (I - 1);
+               Overlay.Model.Cell_Changed (I, Minister_Column);
+               Overlay.Model.Cell_Changed (I, Ministry_Column);
             end if;
          end loop;
       end if;
