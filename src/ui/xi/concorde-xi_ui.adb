@@ -695,16 +695,23 @@ package body Concorde.Xi_UI is
    ------------------
 
    procedure Show_Overlay
-     (Model : in out Root_Xi_Model;
-      Overlay : Overlay_Type;
-      X, Y  : Natural)
+     (Model    : in out Root_Xi_Model;
+      Overlay  : Overlay_Type;
+      Left     : String := "";
+      Top      : String := "";
+      Right    : String := "";
+      Bottom   : String := "")
    is
       Found : Boolean := False;
    begin
       Overlay.Panel.Set_Style
-        ("top", Css.Pixels (Y));
+        ("left", Left);
       Overlay.Panel.Set_Style
-        ("left", Css.Pixels (X));
+        ("top", Top);
+      Overlay.Panel.Set_Style
+        ("right", Right);
+      Overlay.Panel.Set_Style
+        ("bottom", Bottom);
 
       for Item of Model.Info_Panels loop
          if Item = Overlay then

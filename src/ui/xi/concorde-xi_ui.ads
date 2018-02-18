@@ -94,9 +94,13 @@ package Concorde.Xi_UI is
       Message : String);
 
    procedure Show_Overlay
-     (Model   : in out Root_Xi_Model;
-      Overlay : Overlay_Type;
-      X, Y    : Natural);
+     (Model    : in out Root_Xi_Model;
+      Overlay  : Overlay_Type;
+      Left     : String := "";
+      Top      : String := "";
+      Right    : String := "";
+      Bottom   : String := "");
+   --  top, left, right and bottom are css measurements
 
    procedure Hide_Overlay
      (Model   : in out Root_Xi_Model;

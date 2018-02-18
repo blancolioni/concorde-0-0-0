@@ -1,4 +1,5 @@
 with Ada.Calendar;
+with Ada.Strings.Fixed;
 with Ada.Text_IO;
 
 with WL.Random;
@@ -415,8 +416,8 @@ package body Concorde.Systems.Xi_Model is
            (Overlay =>
               Concorde.Xi_UI.Factions.Faction_Overlay
                 (Faction),
-            X       => 10,
-            Y       => 60);
+            Left  => "10px",
+            Top   => "60px");
 
          System_Models.Insert (System.Identifier, Model);
       end if;
@@ -444,8 +445,8 @@ package body Concorde.Systems.Xi_Model is
                         Scene.Create_Node ("selectors");
 
       Schematic_Offset_X : Non_Negative_Real := 0.0;
-      Overlay_Left       : Natural := 260;
-      Overlay_Top        : constant Natural := 900;
+      Overlay_Left       : Natural := 20;
+      Overlay_Bottom     : constant String := "40px";
 
       procedure Create_Node
         (Object   : not null access constant
@@ -584,9 +585,14 @@ package body Concorde.Systems.Xi_Model is
                   Overlay      : constant Concorde.Xi_UI.Overlay_Type :=
                                    Concorde.Xi_UI.Worlds.World_Overlay
                                      (World);
+                  Left         : constant String :=
+                                   Ada.Strings.Fixed.Trim
+                                     (Natural'Image (Overlay_Left),
+                                      Ada.Strings.Left);
                begin
-                  Model.Show_Overlay (Overlay, Overlay_Left, Overlay_Top);
-                  Overlay_Left := Overlay_Left + 178;
+                  Model.Show_Overlay
+                    (Overlay, Left => Left & "%", Bottom => Overlay_Bottom);
+                  Overlay_Left := Overlay_Left + 10;
                end;
             end if;
          end if;
