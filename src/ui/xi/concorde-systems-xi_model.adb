@@ -32,6 +32,7 @@ with Concorde.Xi_UI.Outliner;
 with Concorde.Xi_UI.Worlds;
 
 with Concorde.Xi_UI.Factions;
+with Concorde.Xi_UI.Ships;
 
 with Concorde.Systems.Events;
 
@@ -73,6 +74,8 @@ package body Concorde.Systems.Xi_Model is
          Worlds            : Rendered_World_Lists.List;
          Ships             : Rendered_Ship_Lists.List;
          Selected_Ship     : Concorde.Ships.Ship_Type;
+         Ships_Model       : Concorde.Xi_UI.Ships.Ship_Summary_Model;
+         Ships_Overlay     : Concorde.Xi_UI.Overlay_Type;
          System_Node       : Xi.Node.Xi_Node;
          View              : System_Model_View;
          Log               : Xtk.Text.View.Xtk_Text_View;
@@ -278,6 +281,8 @@ package body Concorde.Systems.Xi_Model is
       Concorde.Xi_UI.Outliner.Remove_Item
         ("outliner-ships", Ship.Identifier);
 
+      Handler.Model.Ships_Model.Remove_Ship (Ship);
+
       while Has_Element (Position) loop
          if Ship = Concorde.Ships.Xi_Model.Get_Ship (Element (Position)) then
             Handler.Model.Ships.Delete (Position);
@@ -330,6 +335,8 @@ package body Concorde.Systems.Xi_Model is
             Tooltip  => No_Elements);
       end;
 
+      Handler.Model.Ships_Model.Add_Ship (Ship);
+
       Handler.Model.Ships.Append
         (Concorde.Ships.Xi_Model.Activate_Ship
            (Ship     => Concorde.Ships.Ship_Type (Ship),
@@ -379,7 +386,10 @@ package body Concorde.Systems.Xi_Model is
          Model.View := View;
          Model.System := System;
          Model.Log := Concorde.Xi_UI.Main_Log_View;
-
+         Model.Ships_Model := Concorde.Xi_UI.Ships.New_Ship_Summary;
+         Model.Ships_Overlay :=
+           Concorde.Xi_UI.Ships.Ships_Overlay
+             (Model.Ships_Model);
          Model.Set_Scene
            (System_Scene (Model, System, Concorde.Calendar.Clock,
             View, Target.Full_Viewport));
@@ -713,7 +723,7 @@ package body Concorde.Systems.Xi_Model is
                      end if;
                   end;
                when Schematic =>
-                  null;
+                  Model.Ships_Model.Add_Ship (Ship);
             end case;
          end loop;
       end Create_World;
