@@ -20,14 +20,6 @@ package Concorde.Xi_UI.Individuals is
    function Portrait_Renderer
      return Xtk.Values.Renderers.Xtk_Value_Renderer;
 
---     type Portrait_Renderer is
---       new Xtk.Values.Renderers.Xtk_Value_Renderer_Interface with private;
---
---     overriding procedure Render
---       (Renderer : Portrait_Renderer;
---        Widget   : not null access Xtk.Widget.Xtk_Widget_Record'Class;
---        Value    : Xtk.Values.Xtk_Value_Interface'Class);
-
 private
 
    type Individual_Value is
@@ -35,8 +27,5 @@ private
       record
          Individual : Concorde.People.Individuals.Individual_Type;
       end record;
-
---     type Portrait_Renderer is
---    new Xtk.Values.Renderers.Xtk_Value_Renderer_Interface with null record;
 
 end Concorde.Xi_UI.Individuals;
