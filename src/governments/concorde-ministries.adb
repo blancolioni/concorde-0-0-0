@@ -1,5 +1,4 @@
 with Concorde.People.Individuals;
-with Concorde.Powers.Execution;
 
 package body Concorde.Ministries is
 
@@ -37,8 +36,7 @@ package body Concorde.Ministries is
       is
       begin
          Result := Result
-           + Concorde.Powers.Execution.Daily_Work
-           (Power, Ministry.Headquarters.World);
+           + Power.Daily_Work (Ministry.Headquarters.World);
       end Add_Work;
 
    begin

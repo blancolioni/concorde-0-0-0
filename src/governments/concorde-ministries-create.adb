@@ -10,6 +10,7 @@ with Concorde.People.Individuals;
 with Concorde.Worlds;
 
 with Concorde.Managers.Ministries;
+with Concorde.Powers.Ministries;
 
 package body Concorde.Ministries.Create is
 
@@ -57,7 +58,8 @@ package body Concorde.Ministries.Create is
                      (Faction, null, Concorde.Objects.Object_Type (Area),
                       Location, Market, Name, Powers);
    begin
-      Faction.Update.Add_Power (Concorde.Powers.Direct_Minister (Ministry));
+      Faction.Update.Add_Power
+        (Concorde.Powers.Ministries.Direct_Minister (Ministry));
    end Create_Ministry;
 
    ---------------------

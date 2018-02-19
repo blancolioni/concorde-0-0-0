@@ -12,4 +12,7 @@ package Concorde.Powers.Configure is
      (Config : Tropos.Configuration;
       Set    : in out Power_Set);
 
+   procedure Configure_Power_Execution
+     (Config : Tropos.Configuration);
+
 end Concorde.Powers.Configure;

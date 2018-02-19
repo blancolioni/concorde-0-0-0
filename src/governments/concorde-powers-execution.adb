@@ -8,10 +8,13 @@ with WL.String_Maps;
 
 with Concorde.Calendar;
 with Concorde.Commodities;
-with Concorde.People.Skills;
+with Concorde.Trades;
 
 with Concorde.People.Attributes.Configure;
+with Concorde.People.Skills;
 with Concorde.People.Pops;
+
+with Concorde.Powers.Ministries;
 
 package body Concorde.Powers.Execution is
 
@@ -90,7 +93,7 @@ package body Concorde.Powers.Execution is
    function Calculate_Work
      (Power : Power_Type;
       Work  : Work_Record;
-      World : Concorde.Worlds.World_Type)
+      World : access constant Concorde.Worlds.Root_World_Type'Class)
       return Duration;
 
    function P (Power : Power_Type) return Power_Execution_Record
@@ -128,7 +131,7 @@ package body Concorde.Powers.Execution is
    function Calculate_Work
      (Power : Power_Type;
       Work  : Work_Record;
-      World : Concorde.Worlds.World_Type)
+      World : access constant Concorde.Worlds.Root_World_Type'Class)
       return Duration
    is
       Result : Duration := Work.Base;
@@ -211,10 +214,11 @@ package body Concorde.Powers.Execution is
 
       end if;
 
-      if Power.Class = Direct_Minister
-        and then not Power.Ministry.Has_Minister
+      if Concorde.Powers.Ministries.Is_Direct_Minister (Power)
+        and then not Concorde.Powers.Ministries.Ministry (Power).Has_Minister
       then
-         Result := Result + Power.Ministry.Daily_Work;
+         Result := Result
+           + Concorde.Powers.Ministries.Ministry (Power).Daily_Work;
       end if;
 
       return Result;
@@ -335,7 +339,7 @@ package body Concorde.Powers.Execution is
 
    function Daily_Work
      (Power : Power_Type;
-      World : Concorde.Worlds.World_Type)
+      World : not null access constant Concorde.Worlds.Root_World_Type'Class)
       return Duration
    is
       Rec : constant Power_Execution_Record := P (Power);

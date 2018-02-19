@@ -1,38 +1,76 @@
-private with Ada.Containers.Indefinite_Doubly_Linked_Lists;
+with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 
-with Concorde.Trades;
+with Concorde.Objects;
+with Concorde.People.Attributes;
 
-with Concorde.Markets;
-
-limited with Concorde.Ministries;
+limited with Concorde.People.Groups;
+limited with Concorde.Worlds;
 
 package Concorde.Powers is
 
-   type Power_Type (<>) is private;
+   type Root_Power_Type is abstract tagged private;
 
-   function Show (Power : Power_Type) return String;
+   subtype Power_Type is Root_Power_Type'Class;
 
-   function Set_Tax_Rate
-     (Category : Concorde.Trades.Market_Tax_Category)
-      return Power_Type;
+   function Class_Identifier (Power : Root_Power_Type) return String
+                              is abstract;
 
-   function Collect_Tax
-     (Market   : Concorde.Markets.Market_Type;
-      Category : Concorde.Trades.Market_Tax_Category)
-      return Power_Type;
+   function Identifier (Power : Root_Power_Type) return String;
 
-   function Appoint_Minister return Power_Type;
+   function Show (Power : Root_Power_Type) return String;
 
-   function Appoint_General return Power_Type;
+   function Daily_Work
+     (Power : Root_Power_Type'Class;
+      World : not null access constant
+        Concorde.Worlds.Root_World_Type'Class)
+      return Duration;
+   --  How many person-seconds required
+   --  to execute this power on the given world today
 
-   function Direct_Minister
-     (Ministry : not null access constant
-        Concorde.Ministries.Root_Ministry_Type'Class)
-     return Power_Type;
+   function Execution_Work
+     (Power  : Root_Power_Type'Class;
+      Target : access constant
+        Concorde.Objects.Root_Object_Type'Class)
+      return Duration;
+   --  How many person-seconds required
+   --  to execute this power on the given target
 
-   function Law_Enforcement return Power_Type;
+   function Pop_Group_Count
+     (Power : Root_Power_Type'Class)
+      return Natural;
+   --  Number of pop group categories that can execute this power
 
-   function Command_Army return Power_Type;
+   function Pop_Group
+     (Power : Root_Power_Type'Class;
+      Index : Positive)
+      return not null access constant
+     Concorde.People.Groups.Root_Pop_Group'Class
+       with Pre => Pop_Group_Count (Power) >= Index;
+
+   function Pop_Group_Effect
+     (Power : Root_Power_Type'Class;
+      Index : Positive)
+      return Duration
+     with Pre => Pop_Group_Count (Power) >= Index;
+   --  Number of seconds per day contributed by each
+   --  person in this pop group
+
+   function Attribute_Count
+     (Power : Root_Power_Type'Class)
+      return Natural;
+
+   function Attribute
+     (Power : Root_Power_Type'Class;
+      Index : Positive)
+      return Concorde.People.Attributes.Attribute_Reference
+     with Pre => Attribute_Count (Power) >= Index;
+   --  Attributes reduce the daily work required to execute this power
+   --  They are contributed by individuals executing the power.
+   --  Effect is reduced for each degree of separation from execution.
+   --  E.g. an individual directly executing a power gets full effect
+   --  Individual who manages a ministry which executes the power gets half
+   --  That individual's boss gets less, depending on how much time they
+   --  can contribute
 
    type Powered_Interface is limited interface;
 
@@ -95,64 +133,13 @@ package Concorde.Powers is
 
 private
 
-   type Ministry_Access is access constant
-     Concorde.Ministries.Root_Ministry_Type'Class;
-
-   type Power_Class is (Set_Tax_Rate, Collect_Tax,
-                        Appoint_Minister, Direct_Minister,
-                        Law_Enforcement,
-                        Appoint_General, Command_Army);
-
-   type Power_Type (Class : Power_Class) is
+   type Root_Power_Type is abstract tagged
       record
-         case Class is
-            when Set_Tax_Rate | Collect_Tax =>
-               Tax_Category : Concorde.Trades.Market_Tax_Category;
-            when Appoint_Minister =>
-               null;
-            when Direct_Minister =>
-               Ministry     : Ministry_Access;
-            when Law_Enforcement =>
-               null;
-            when Appoint_General =>
-               null;
-            when Command_Army =>
-               null;
-         end case;
+         null;
       end record;
 
-   function Identifier (Power : Power_Type) return String;
-
-   function Class_Identifier (Power : Power_Type) return String;
-
-   function Set_Tax_Rate
-     (Category : Concorde.Trades.Market_Tax_Category)
-      return Power_Type
-   is (Set_Tax_Rate, Category);
-
-   function Collect_Tax
-     (Market   : Concorde.Markets.Market_Type;
-      Category : Concorde.Trades.Market_Tax_Category)
-      return Power_Type
-   is (Collect_Tax, Category);
-
-   function Appoint_Minister return Power_Type
-   is (Class => Appoint_Minister);
-
-   function Appoint_General return Power_Type
-   is (Class => Appoint_General);
-
-   function Command_Army return Power_Type
-   is (Class => Command_Army);
-
-   function Direct_Minister
-     (Ministry : not null access constant
-        Concorde.Ministries.Root_Ministry_Type'Class)
-      return Power_Type
-   is (Direct_Minister, Ministry_Access (Ministry));
-
-   function Law_Enforcement return Power_Type
-   is (Class => Law_Enforcement);
+   function Identifier (Power : Root_Power_Type) return String
+   is (Root_Power_Type'Class (Power).Class_Identifier);
 
    package Power_Lists is
      new Ada.Containers.Indefinite_Doubly_Linked_Lists (Power_Type);

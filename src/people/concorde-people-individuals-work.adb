@@ -1,5 +1,8 @@
 with Concorde.Powers.Configure;
-with Concorde.Powers.Execution;
+
+with Concorde.Powers.Armies;
+with Concorde.Powers.Ministries;
+
 with Concorde.Worlds;
 
 package body Concorde.People.Individuals.Work is
@@ -16,7 +19,7 @@ package body Concorde.People.Individuals.Work is
    overriding function Power
      (Item : Appoint_Minister_Work_Item)
       return Concorde.Powers.Power_Type
-   is (Concorde.Powers.Appoint_Minister);
+   is (Concorde.Powers.Ministries.Appoint_Minister);
 
    overriding procedure Execute
      (Work       : Appoint_Minister_Work_Item;
@@ -34,7 +37,7 @@ package body Concorde.People.Individuals.Work is
    overriding function Power
      (Item : Appoint_General_Work_Item)
       return Concorde.Powers.Power_Type
-   is (Concorde.Powers.Appoint_General);
+   is (Concorde.Powers.Armies.Appoint_General);
 
    overriding procedure Execute
      (Work       : Appoint_General_Work_Item;
@@ -117,12 +120,11 @@ package body Concorde.People.Individuals.Work is
             -----------------
 
             procedure Score_Power (Power : Concorde.Powers.Power_Type) is
-               use Concorde.Powers.Execution;
             begin
-               for I in 1 .. Attribute_Count (Power) loop
+               for I in 1 .. Power.Attribute_Count loop
                   Score := Score
                     + Concorde.People.Attributes.Attribute_Score
-                    (Candidate.all, Attribute (Power, I));
+                    (Candidate.all, Power.Attribute (I));
                end loop;
             end Score_Power;
 
