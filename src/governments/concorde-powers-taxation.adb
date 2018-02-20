@@ -6,8 +6,8 @@ package body Concorde.Powers.Taxation is
    is (Taxation_Power'Class (Power).Base_Id
        & (case Power.Category is
              when Concorde.Trades.Sales => "_sales_tax",
-             when Concorde.Trades.Import => "_import_tariff",
-             when Concorde.Trades.Export => "_export_tariff"));
+             when Concorde.Trades.Import => "_import_tariffs",
+             when Concorde.Trades.Export => "_export_tariffs"));
 
    type Collect_Tax_Power is new Taxation_Power with null record;
 
