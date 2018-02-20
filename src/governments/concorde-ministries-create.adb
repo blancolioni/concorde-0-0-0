@@ -78,27 +78,15 @@ package body Concorde.Ministries.Create is
    is
       procedure Create (Ministry : in out Root_Ministry_Type'Class);
 
+      procedure Transfer_Power
+        (Power : Concorde.Powers.Power_Type);
+
       ------------
       -- Create --
       ------------
 
       procedure Create (Ministry : in out Root_Ministry_Type'Class) is
          use type Concorde.Objects.Object_Type;
-
-         procedure Transfer_Power
-           (Power : Concorde.Powers.Power_Type);
-
-         --------------------
-         -- Transfer_Power --
-         --------------------
-
-         procedure Transfer_Power
-           (Power : Concorde.Powers.Power_Type)
-         is
-         begin
-            Faction.Update.Remove_Power (Power);
-            Ministry.Update.Add_Power (Power);
-         end Transfer_Power;
 
       begin
          Ministry.New_Agent
@@ -116,16 +104,29 @@ package body Concorde.Ministries.Create is
             else Area);
          Ministry.Headquarters := Location;
 
-         Powers.Scan_Powers (Transfer_Power'Access);
-
       end Create;
 
       Ministry : constant Ministry_Type := Db.Create (Create'Access);
+
+      --------------------
+      -- Transfer_Power --
+      --------------------
+
+      procedure Transfer_Power
+        (Power : Concorde.Powers.Power_Type)
+      is
+      begin
+         Faction.Update.Remove_Power (Power);
+         Faction.First_Ministry.Update.Delegate_Power (Power, Ministry);
+         Ministry.Update.Add_Power (Power);
+      end Transfer_Power;
 
       use type Concorde.Calendar.Time;
 
    begin
       Faction.Update.Add_Ministry (Ministry);
+      Powers.Scan_Powers (Transfer_Power'Access);
+
       Ministry.Save_Agent;
       Concorde.Managers.Ministries.Create_Manager (Ministry).Activate;
       Concorde.Objects.Queues.Next_Event
