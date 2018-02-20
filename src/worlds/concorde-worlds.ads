@@ -266,6 +266,11 @@ package Concorde.Worlds is
       Process : not null access
         procedure (Army : Concorde.Armies.Army_Type));
 
+   procedure Scan_Ships
+     (World   : Root_World_Type'Class;
+      Process : not null access
+        procedure (Ship : Concorde.Ships.Ship_Type));
+
    procedure Scan_Pops
      (World : Root_World_Type'Class;
       Process : not null access

@@ -583,6 +583,21 @@ package body Concorde.Worlds is
       end loop;
    end Scan_Pops;
 
+   ----------------
+   -- Scan_Ships --
+   ----------------
+
+   procedure Scan_Ships
+     (World   : Root_World_Type'Class;
+      Process : not null access
+        procedure (Ship : Concorde.Ships.Ship_Type))
+   is
+   begin
+      for Ship of World.Ships loop
+         Process (Ship);
+      end loop;
+   end Scan_Ships;
+
    -----------------
    -- Scan_Worlds --
    -----------------
