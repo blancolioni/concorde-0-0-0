@@ -14,3 +14,8 @@ create_ministry = {
    name = Defence
    powers = { appoint_general }
 }
+
+create_ministry = {
+   name = Trade
+   powers = { appoint_trader_captain }
+}
