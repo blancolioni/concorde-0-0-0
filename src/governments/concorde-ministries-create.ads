@@ -17,6 +17,7 @@ package Concorde.Ministries.Create is
       Location : Concorde.Installations.Installation_Type;
       Market   : Concorde.Markets.Market_Type;
       Name     : String;
+      Budget   : WL.Money.Money_Type;
       Powers   : Concorde.Powers.Power_Set);
 
 end Concorde.Ministries.Create;

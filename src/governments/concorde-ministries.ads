@@ -4,6 +4,8 @@ private with Ada.Strings.Unbounded;
 private with Ada.Characters.Handling;
 private with Memor.Database;
 
+with WL.Money;
+
 with Concorde.Agents;
 with Concorde.Bureaucracy;
 with Concorde.Installations;
@@ -43,6 +45,10 @@ package Concorde.Ministries is
      (Ministry : in out Root_Ministry_Type'Class;
       Minister : access constant
         Concorde.People.Individuals.Root_Individual_Type'Class);
+
+   function Daily_Budget
+     (Ministry : Root_Ministry_Type'Class)
+      return WL.Money.Money_Type;
 
    function Headquarters
      (Ministry : Root_Ministry_Type'Class)
@@ -138,6 +144,7 @@ private
          Headquarters      : Concorde.Installations.Installation_Type;
          Powers            : Concorde.Powers.Power_Set;
          Delegated_Powers  : Delegated_Power_Lists.List;
+         Daily_Budget      : WL.Money.Money_Type;
       end record;
 
    overriding function Class_Name
@@ -207,6 +214,11 @@ private
       return access constant
      Concorde.People.Individuals.Root_Individual_Type'Class
    is (Ministry.Director);
+
+   function Daily_Budget
+     (Ministry : Root_Ministry_Type'Class)
+      return WL.Money.Money_Type
+   is (Ministry.Daily_Budget);
 
    function Headquarters
      (Ministry : Root_Ministry_Type'Class)

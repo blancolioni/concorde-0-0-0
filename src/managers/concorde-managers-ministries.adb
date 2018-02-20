@@ -66,6 +66,8 @@ package body Concorde.Managers.Ministries is
       Changed        : Boolean := False;
       Remaining_Work : Work_Item_Queue.Heap;
    begin
+      Manager.Ministry.Update.Require_Cash (Manager.Ministry.Daily_Budget);
+
       while not Manager.Work_Queue.Is_Empty loop
          declare
             Priority : constant Concorde.Work.Work_Priority :=

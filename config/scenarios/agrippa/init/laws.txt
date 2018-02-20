@@ -12,6 +12,7 @@ create_ministry = {
 
 create_ministry = {
    name = Defence
+   budget = 80000
    powers = { appoint_general }
 }
 

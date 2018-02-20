@@ -1,3 +1,5 @@
+with WL.Money;
+
 with Concorde.Installations;
 with Concorde.Powers;
 
@@ -17,6 +19,7 @@ package Concorde.Laws.Bureaucracy is
      (Context  : Law_Context;
       Name     : String;
       Location : Concorde.Installations.Installation_Type;
+      Budget   : WL.Money.Money_Type;
       Powers   : Concorde.Powers.Power_Set)
       return Law_Type;
 

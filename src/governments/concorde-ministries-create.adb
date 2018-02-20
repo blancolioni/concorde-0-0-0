@@ -21,6 +21,7 @@ package body Concorde.Ministries.Create is
       Location : Concorde.Installations.Installation_Type;
       Market   : Concorde.Markets.Market_Type;
       Name     : String;
+      Budget   : WL.Money.Money_Type;
       Powers   : Concorde.Powers.Power_Set)
       return Ministry_Type;
 
@@ -38,6 +39,7 @@ package body Concorde.Ministries.Create is
         Location => Faction.Capital_Building,
         Market   => Faction.Capital_World.Market,
         Name     => "House " & Faction.Name,
+        Budget   => WL.Money.Zero,
         Powers   => Concorde.Powers.No_Powers));
 
    ---------------------
@@ -51,12 +53,13 @@ package body Concorde.Ministries.Create is
       Location : Concorde.Installations.Installation_Type;
       Market   : Concorde.Markets.Market_Type;
       Name     : String;
+      Budget   : WL.Money.Money_Type;
       Powers   : Concorde.Powers.Power_Set)
    is
       Ministry : constant Ministry_Type :=
                    Create_Ministry
                      (Faction, null, Concorde.Objects.Object_Type (Area),
-                      Location, Market, Name, Powers);
+                      Location, Market, Name, Budget, Powers);
    begin
       Faction.Update.Add_Power
         (Concorde.Powers.Ministries.Direct_Minister (Ministry));
@@ -73,6 +76,7 @@ package body Concorde.Ministries.Create is
       Location : Concorde.Installations.Installation_Type;
       Market   : Concorde.Markets.Market_Type;
       Name     : String;
+      Budget   : WL.Money.Money_Type;
       Powers   : Concorde.Powers.Power_Set)
       return Ministry_Type
    is
@@ -98,11 +102,13 @@ package body Concorde.Ministries.Create is
 
          Ministry.Name := Ada.Strings.Unbounded.To_Unbounded_String (Name);
          Ministry.Minister := Minister;
+         Ministry.Daily_Budget := Budget;
          Ministry.Area :=
            (if Area = null
             then Concorde.Objects.Object_Type (Faction)
             else Area);
          Ministry.Headquarters := Location;
+         Ministry.Set_Guarantor (Faction);
 
       end Create;
 

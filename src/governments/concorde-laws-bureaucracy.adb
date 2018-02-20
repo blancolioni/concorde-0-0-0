@@ -29,6 +29,7 @@ package body Concorde.Laws.Bureaucracy is
       record
          Name     : Ada.Strings.Unbounded.Unbounded_String;
          Location : Concorde.Installations.Installation_Type;
+         Budget   : WL.Money.Money_Type;
          Powers   : Concorde.Powers.Power_Set;
       end record;
 
@@ -71,6 +72,7 @@ package body Concorde.Laws.Bureaucracy is
      (Context  : Law_Context;
       Name     : String;
       Location : Concorde.Installations.Installation_Type;
+      Budget   : WL.Money.Money_Type;
       Powers   : Concorde.Powers.Power_Set)
       return Law_Type
    is
@@ -80,6 +82,7 @@ package body Concorde.Laws.Bureaucracy is
          Context  => Context,
          Name     => Ada.Strings.Unbounded.To_Unbounded_String (Name),
          Location => Location,
+         Budget   => Budget,
          Powers   => Powers);
    end Create_Ministry;
 
@@ -155,6 +158,7 @@ package body Concorde.Laws.Bureaucracy is
          Location => Law.Location,
          Market   => Law.Location.Market,
          Name     => Ada.Strings.Unbounded.To_String (Law.Name),
+         Budget   => Law.Budget,
          Powers   => Law.Powers);
    end Enact;
 

@@ -1,3 +1,4 @@
+with WL.Money;
 with WL.String_Maps;
 
 with Concorde.Commodities;
@@ -78,6 +79,8 @@ package body Concorde.Laws.Configure is
       return Concorde.Laws.Bureaucracy.Create_Ministry
         (Context  => Context,
          Name     => Config.Get ("name", "Ministry"),
+         Budget   => WL.Money.To_Money
+           (Config.Get ("budget", 0.0)),
          Location =>
            Concorde.Factions.Faction_Type
              (Context.Legislator).Capital_Building,
