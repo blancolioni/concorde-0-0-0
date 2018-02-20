@@ -1,5 +1,6 @@
 with Concorde.Armies;
 with Concorde.Ministries;
+with Concorde.Ships;
 with Concorde.Work;
 
 package Concorde.People.Individuals.Work is
@@ -12,6 +13,10 @@ package Concorde.People.Individuals.Work is
    function Appoint_General
      (Army : not null access constant
         Concorde.Armies.Root_Army_Type'Class)
+      return Concorde.Work.Work_Item;
+
+   function Appoint_Trader_Captain
+     (Ship : Concorde.Ships.Ship_Type)
       return Concorde.Work.Work_Item;
 
    procedure Perform_Work

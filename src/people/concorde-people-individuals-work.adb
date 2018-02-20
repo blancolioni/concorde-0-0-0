@@ -1,5 +1,6 @@
 with Concorde.Powers.Armies;
 with Concorde.Powers.Ministries;
+with Concorde.Powers.Ships;
 
 with Concorde.Worlds;
 
@@ -41,6 +42,26 @@ package body Concorde.People.Individuals.Work is
      (Work       : Appoint_General_Work_Item;
       Individual : Individual_Type);
 
+   type Appoint_Trader_Captain_Work_Item is
+     new Root_Individual_Work_Item with
+      record
+         Ship : Concorde.Ships.Ship_Type;
+      end record;
+
+   overriding function Show
+     (Item : Appoint_Trader_Captain_Work_Item)
+      return String
+   is ("appoint captain for trader " & Item.Ship.Name);
+
+   overriding function Power
+     (Item : Appoint_Trader_Captain_Work_Item)
+      return Concorde.Powers.Power_Type
+   is (Concorde.Powers.Ships.Appoint_Trader_Captain);
+
+   overriding procedure Execute
+     (Work       : Appoint_Trader_Captain_Work_Item;
+      Individual : Individual_Type);
+
    function Best_Candidate
      (World  : Concorde.Worlds.World_Type;
       Powers : Concorde.Powers.Powered_Interface'Class)
@@ -75,6 +96,19 @@ package body Concorde.People.Individuals.Work is
         (Concorde.Work.Root_Work_Item with
            Ministry => Concorde.Ministries.Ministry_Type (Ministry));
    end Appoint_Minister;
+
+   ----------------------------
+   -- Appoint_Trader_Captain --
+   ----------------------------
+
+   function Appoint_Trader_Captain
+     (Ship : Concorde.Ships.Ship_Type)
+      return Concorde.Work.Work_Item
+   is
+   begin
+      return new Appoint_Trader_Captain_Work_Item'
+        (Concorde.Work.Root_Work_Item with Ship => Ship);
+   end Appoint_Trader_Captain;
 
    --------------------
    -- Best_Candidate --
@@ -202,6 +236,36 @@ package body Concorde.People.Individuals.Work is
             & General.Full_Name
             & " to command of "
             & Work.Army.Name);
+      end if;
+
+   end Execute;
+
+   -------------
+   -- Execute --
+   -------------
+
+   overriding procedure Execute
+     (Work       : Appoint_Trader_Captain_Work_Item;
+      Individual : Individual_Type)
+   is
+      use type Concorde.People.Individuals.Individual_Type;
+      Power   : constant Concorde.Powers.Power_Type :=
+                  Concorde.Powers.Ships.Captain_Trader_Ship (Work.Ship);
+      Set     : Concorde.Powers.Power_Set;
+      Captain : Concorde.People.Individuals.Individual_Type;
+   begin
+      Set.Add_Power (Power);
+      Captain :=
+        Best_Candidate
+          (World  => Individual.Faction.Capital_World,
+           Powers => Set);
+
+      if Captain /= null then
+         Individual.Log_Government
+           ("appointing "
+            & Captain.Full_Name
+            & " as captain of trade ship "
+            & Work.Ship.Name);
       end if;
 
    end Execute;
