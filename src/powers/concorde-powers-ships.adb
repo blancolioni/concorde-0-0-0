@@ -14,26 +14,29 @@ package body Concorde.Powers.Ships is
    is ("appoint_trader_captain");
 
    type Captain_Ship_Power is
-     new Root_Power_Type with
+     abstract new Root_Power_Type with
       record
          Ship : Concorde.Ships.Ship_Type;
       end record;
 
+   type Captain_Trader_Ship_Power is
+     new Captain_Ship_Power with null record;
+
    overriding function Class_Identifier
-     (Power : Captain_Ship_Power)
+     (Power : Captain_Trader_Ship_Power)
       return String
-   is ("captain_ship");
+   is ("captain_trader_ship");
 
    overriding function Identifier
-     (Power : Captain_Ship_Power)
+     (Power : Captain_Trader_Ship_Power)
       return String
-   is ("captain_ship_" & Power.Ship.Identifier);
+   is ("captain_trader_ship_" & Power.Ship.Identifier);
 
    overriding function Show
-     (Power : Captain_Ship_Power)
+     (Power : Captain_Trader_Ship_Power)
       return String
    is (WL.Localisation.Local_Text
-       ("captain_ship", Power.Ship.Name));
+       ("captain_trader_ship", Power.Ship.Name));
 
    ----------------------------
    -- Appoint_Trader_Captain --
@@ -48,13 +51,13 @@ package body Concorde.Powers.Ships is
    -- Captain_Ship --
    ------------------
 
-   function Captain_Ship
+   function Captain_Trader_Ship
      (Ship : Concorde.Ships.Ship_Type)
       return Power_Type
    is
    begin
-      return Captain_Ship_Power'
+      return Captain_Trader_Ship_Power'
         (Ship => Ship);
-   end Captain_Ship;
+   end Captain_Trader_Ship;
 
 end Concorde.Powers.Ships;
