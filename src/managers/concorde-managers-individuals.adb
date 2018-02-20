@@ -1,6 +1,7 @@
 with Concorde.Objects.Queues;
 with Concorde.Signals.Standard;
 
+with Concorde.Bureaucracy;
 with Concorde.Commodities;
 with Concorde.Facilities;
 with Concorde.Ministries;
@@ -94,9 +95,30 @@ package body Concorde.Managers.Individuals is
                                Manager.Work_Queue.First_Element;
                begin
                   Manager.Work_Queue.Delete_First;
+
                   if Ministry.Has_Delegated_Power (Work.Power) then
-                     Ministry.Find_With_Power (Work.Power)
-                       .Director.Manager.Add_Work_Item (Work);
+
+                     declare
+                        use Concorde.People.Individuals;
+                        B : constant Concorde.Bureaucracy.Bureaucracy_Type :=
+                              Ministry.Find_With_Power (Work.Power);
+                        Director : constant Individual_Type :=
+                                     Individual_Type (B.Director);
+                     begin
+                        Manager.Individual.Log
+                          ("work",
+                           "delegated to "
+                           & B.Identifier
+                           & " headed by "
+                           & (if Director = null then "nobody"
+                             else Director.Full_Name));
+
+                        if Director /= null then
+                           Director.Manager.Add_Work_Item (Work);
+                        else
+                           Remaining_Work.Insert (Priority, Work);
+                        end if;
+                     end;
                   else
                      Remaining_Work.Insert (Priority, Work);
                   end if;
