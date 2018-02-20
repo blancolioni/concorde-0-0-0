@@ -582,6 +582,31 @@ package body Concorde.Factions.Create is
          end;
 
          declare
+            procedure Add_Work (Ship : Concorde.Ships.Ship_Type);
+
+            --------------
+            -- Add_Work --
+            --------------
+
+            procedure Add_Work (Ship : Concorde.Ships.Ship_Type) is
+               use Concorde.Ships, Concorde.People.Individuals.Work;
+            begin
+               if Ship.Owner = Faction then
+                  case Ship.Classification is
+                     when Civilian =>
+                        Faction.Manager.Add_Work_Item
+                          (Appoint_Trader_Captain (Ship));
+                     when Military =>
+                        null;
+                  end case;
+               end if;
+            end Add_Work;
+
+         begin
+            Faction.Capital_World.Scan_Ships (Add_Work'Access);
+         end;
+
+         declare
             use Concorde.Calendar;
          begin
             Concorde.Objects.Queues.Next_Event
