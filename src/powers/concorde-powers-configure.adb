@@ -4,6 +4,7 @@ with Concorde.Trades;
 
 with Concorde.Powers.Armies;
 with Concorde.Powers.Ministries;
+with Concorde.Powers.Ships;
 with Concorde.Powers.Taxation;
 
 with Concorde.Powers.Execution;
@@ -110,6 +111,9 @@ package body Concorde.Powers.Configure is
         ("appoint_minister", Concorde.Powers.Ministries.Appoint_Minister);
       Simple_Map.Insert
         ("appoint_general", Concorde.Powers.Armies.Appoint_General);
+      Simple_Map.Insert
+        ("appoint_trader_captain",
+         Concorde.Powers.Ships.Appoint_Trader_Captain);
       Simple_Map.Insert
         ("law_enforcement", Concorde.Powers.Ministries.Law_Enforcement);
    end Create_Map;
