@@ -26,7 +26,8 @@ package body Concorde.Ships.Designs is
 
    type Ship_Design is
       record
-         Components : Component_Vectors.Vector;
+         Classification : Ship_Classification;
+         Components     : Component_Vectors.Vector;
       end record;
 
    package Ship_Design_Tables is
@@ -46,6 +47,7 @@ package body Concorde.Ships.Designs is
    is
       Design : Ship_Design;
    begin
+      Design.Classification := Civilian;
       for Cfg of Config loop
          declare
             Component_Name : constant String :=
@@ -66,6 +68,11 @@ package body Concorde.Ships.Designs is
             Orientation    : Module_Orientation :=
                                (Axis => Z_Axis, Forward => True);
          begin
+
+            if Component.Class in Concorde.Components.Military_Class then
+               Design.Classification := Military;
+            end if;
+
             if Cfg.Contains ("orientation") then
                declare
                   Orn : constant Tropos.Configuration :=
@@ -120,6 +127,8 @@ package body Concorde.Ships.Designs is
       Min_W, Min_H, Min_L : Integer := Integer'Last;
       Max_W, Max_H, Max_L : Integer := Integer'First;
    begin
+      Ship.Classification := Design.Classification;
+
       for Component of Design.Components loop
          declare
             use Ada.Strings.Unbounded;

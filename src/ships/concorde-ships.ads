@@ -28,6 +28,8 @@ with Concorde.Events;
 
 package Concorde.Ships is
 
+   type Ship_Classification is (Civilian, Military);
+
    type Root_Ship_Type is
      new Concorde.Agents.Root_Agent_Type
      and Memor.Identifier_Record_Type
@@ -45,6 +47,10 @@ package Concorde.Ships is
    function Alive
      (Ship : Root_Ship_Type'Class)
       return Boolean;
+
+   function Classification
+     (Ship : Root_Ship_Type'Class)
+      return Ship_Classification;
 
    function Owner
      (Ship : Root_Ship_Type'Class)
@@ -280,6 +286,7 @@ private
          Ship_Name             : Ada.Strings.Unbounded.Unbounded_String;
          Owner                 : access constant
            Concorde.Factions.Root_Faction_Type'Class;
+         Classification        : Ship_Classification;
          Destination           : Concorde.Locations.Object_Location;
          Start_Time            : Concorde.Calendar.Time;
          Arrival_Time          : Concorde.Calendar.Time;
@@ -336,7 +343,7 @@ private
       return Boolean
    is (False);
 
---     overriding procedure Add_Trade_Offers
+   --     overriding procedure Add_Trade_Offers
 --       (Ship : not null access constant Root_Ship_Type)
 --     is null;
 
@@ -356,6 +363,11 @@ private
      (Ship : not null access constant Root_Ship_Type)
       return access Concorde.Agents.Root_Agent_Type'Class
    is (Ship.Update.Item);
+
+   function Classification
+     (Ship : Root_Ship_Type'Class)
+      return Ship_Classification
+   is (Ship.Classification);
 
    function Destination
      (Ship : Root_Ship_Type'Class)

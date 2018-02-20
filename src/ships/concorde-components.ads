@@ -25,6 +25,9 @@ package Concorde.Components is
 
    subtype Weapon_Class is Component_Class range Energy_Weapon .. Launcher;
 
+   subtype Military_Class is
+     Component_Class range Energy_Weapon .. Point_Defense;
+
    type Root_Component_Type is
      new Concorde.Objects.Root_Localised_Object_Type
    with private;
