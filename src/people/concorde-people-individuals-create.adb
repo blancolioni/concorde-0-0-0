@@ -24,6 +24,9 @@ with Concorde.Weighted_Random_Choices;
 
 package body Concorde.People.Individuals.Create is
 
+   procedure Start
+     (Individual : Individual_Type);
+
    procedure Random_Features
      (Individual : in out Root_Individual_Type'Class);
 
@@ -242,16 +245,7 @@ package body Concorde.People.Individuals.Create is
       return Individual : constant Individual_Type :=
         Db.Create (Create'Access)
       do
-         Update_Location (Individual);
-         if Concorde.Options.Write_Character_Portraits then
-            Concorde.People.Individuals.Portraits.Save_Portrait
-              (Individual,
-               "portraits/"
-               & Ada.Strings.Unbounded.To_String (Individual.Last_Name)
-               & "-"
-               & Ada.Strings.Unbounded.To_String (Individual.First_Name)
-               & ".png");
-         end if;
+         Start (Individual);
       end return;
    end Create_Child;
 
@@ -301,30 +295,7 @@ package body Concorde.People.Individuals.Create is
       return Individual : constant Individual_Type :=
         Db.Create (Create'Access)
       do
-         Update_Location (Individual);
-         declare
-            use type Concorde.Calendar.Time;
-            Manager : constant Concorde.Managers.Manager_Type :=
-                        Concorde.Managers.Individuals.Create_Manager
-                          (Individual);
-         begin
-            Manager.Activate;
-            Individual.Update.Set_Manager (Manager);
-            Concorde.Objects.Queues.Next_Event
-              (Individual,
-               Concorde.Calendar.Clock
-               + Duration (Concorde.Random.Unit_Random * 86_400.0));
-         end;
-
-         if Concorde.Options.Write_Character_Portraits then
-            Concorde.People.Individuals.Portraits.Save_Portrait
-              (Individual,
-               "portraits/"
-               & Ada.Strings.Unbounded.To_String (Individual.Last_Name)
-               & "-"
-               & Ada.Strings.Unbounded.To_String (Individual.First_Name)
-               & ".png");
-         end if;
+         Start (Individual);
       end return;
    end Create_Family_Member;
 
@@ -525,16 +496,7 @@ package body Concorde.People.Individuals.Create is
       return Individual : constant Individual_Type :=
         Db.Create (Create'Access)
       do
-         Update_Location (Individual);
-         if Concorde.Options.Write_Character_Portraits then
-            Concorde.People.Individuals.Portraits.Save_Portrait
-              (Individual,
-               "portraits/"
-               & Ada.Strings.Unbounded.To_String (Individual.Last_Name)
-               & "-"
-               & Ada.Strings.Unbounded.To_String (Individual.First_Name)
-               & ".png");
-         end if;
+         Start (Individual);
       end return;
    end Create_Partner;
 
@@ -578,8 +540,10 @@ package body Concorde.People.Individuals.Create is
 
       end Create;
 
+      Individual : constant Individual_Type :=
+                     Db.Create (Create'Access);
    begin
-      Update_Location (Db.Create (Create'Access));
+      Start (Individual);
    end Create_Random_Individual;
 
    ---------------------
@@ -639,5 +603,39 @@ package body Concorde.People.Individuals.Create is
          then Concorde.Names.Random_Female_First_Name
          else Concorde.Names.Random_Male_First_Name);
    end Random_Gender;
+
+   -----------
+   -- Start --
+   -----------
+
+   procedure Start
+     (Individual : Individual_Type)
+   is
+   begin
+      Update_Location (Individual);
+      declare
+         use type Concorde.Calendar.Time;
+         Manager : constant Concorde.Managers.Manager_Type :=
+                     Concorde.Managers.Individuals.Create_Manager
+                       (Individual);
+      begin
+         Manager.Activate;
+         Individual.Update.Set_Manager (Manager);
+         Concorde.Objects.Queues.Next_Event
+           (Individual,
+            Concorde.Calendar.Clock
+            + Duration (Concorde.Random.Unit_Random * 86_400.0));
+      end;
+
+      if Concorde.Options.Write_Character_Portraits then
+         Concorde.People.Individuals.Portraits.Save_Portrait
+           (Individual,
+            "portraits/"
+            & Ada.Strings.Unbounded.To_String (Individual.Last_Name)
+            & "-"
+            & Ada.Strings.Unbounded.To_String (Individual.First_Name)
+            & ".png");
+      end if;
+   end Start;
 
 end Concorde.People.Individuals.Create;
