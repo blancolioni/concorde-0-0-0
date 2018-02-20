@@ -10,6 +10,11 @@ package Concorde.Bureaucracy is
 
    type Bureaucracy_Type is access constant Bureaucratic_Interface'Class;
 
+   function Identifier
+     (Item : Bureaucratic_Interface)
+      return String
+      is abstract;
+
    function Variable_Reference
      (Item : not null access constant Bureaucratic_Interface)
       return access Bureaucratic_Interface'Class
