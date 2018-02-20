@@ -157,6 +157,10 @@ package Concorde.Commodities is
      (Stock    : in out Stock_Interface'Class)
       return WL.Money.Money_Type;
 
+   procedure Add
+     (To   : in out Stock_Interface'Class;
+      From : Stock_Interface'Class);
+
    type Root_Stock_Type is new Stock_Interface with private;
 
    procedure Create_Stock

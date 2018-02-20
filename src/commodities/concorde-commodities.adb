@@ -12,6 +12,26 @@ package body Concorde.Commodities is
         function (Commodity : Commodity_Type) return Boolean)
       return Array_Of_Commodities;
 
+   ---------
+   -- Add --
+   ---------
+
+   procedure Add
+     (To   : in out Stock_Interface'Class;
+      From : Stock_Interface'Class)
+   is
+      use WL.Quantities;
+   begin
+      for Item of Commodity_Vector loop
+         if From.Get_Quantity (Item) > Zero then
+            To.Add_Quantity
+              (Item     => Item,
+               Quantity => From.Get_Quantity (Item),
+               Value    => From.Get_Value (Item));
+         end if;
+      end loop;
+   end Add;
+
    ------------------
    -- Add_Quantity --
    ------------------

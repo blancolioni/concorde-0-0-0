@@ -189,6 +189,38 @@ package body Concorde.Commodities.Configure is
 
    end Configure_Commodity;
 
+   ---------------------
+   -- Configure_Stock --
+   ---------------------
+
+   procedure Configure_Stock
+     (From_Config : Tropos.Configuration;
+      Stock       : in out Stock_Interface'Class;
+      Factor      : Non_Negative_Real := 1.0)
+   is
+   begin
+      for Config of From_Config loop
+         declare
+            use WL.Quantities, WL.Money;
+            Item : constant Commodity_Type := Get (Config.Config_Name);
+            Quantity : constant Float :=
+                         (if Config.Contains ("quantity")
+                          then Config.Get ("quantity")
+                          else Config.Value);
+            Value    : constant Float :=
+                         (if Config.Contains ("value")
+                          then Config.Get ("value")
+                          else To_Float
+                            (Adjust_Price (Item.Base_Price, Quantity)));
+         begin
+            Stock.Add_Quantity
+              (Item     => Item,
+               Quantity => To_Quantity (Quantity * Float (Factor)),
+               Value    => To_Money (Value * Float (Factor)));
+         end;
+      end loop;
+   end Configure_Stock;
+
    ------------
    -- Create --
    ------------

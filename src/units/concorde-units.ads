@@ -5,17 +5,24 @@ private with Memor.Database;
 with Concorde.Objects;
 
 with Concorde.Commodities;
+with Concorde.Construction;
 
 package Concorde.Units is
 
-   type Movement_Category is
-     (Air, Crawler, Foot, Hover, Tread, Wheel);
-
-   type Weapon_Category is
-     (Indirect, Air, Direct, Close);
+   type Movement_Category is (Air, Land, Sea);
 
    type Root_Unit_Type is
-     new Concorde.Objects.Root_Localised_Object_Type with private;
+     new Concorde.Objects.Root_Localised_Object_Type
+     and Concorde.Construction.Constructed_Interface
+   with private;
+
+   overriding function Construction_Stock
+     (Unit : Root_Unit_Type)
+      return Concorde.Commodities.Stock_Interface'Class;
+
+   overriding function Maintenance_Stock
+     (Unit : Root_Unit_Type)
+      return Concorde.Commodities.Stock_Interface'Class;
 
    type Unit_Type is access constant Root_Unit_Type'Class;
 
@@ -31,26 +38,7 @@ package Concorde.Units is
      (Unit : Root_Unit_Type)
       return Natural;
 
-   function Stealth
-     (Unit : Root_Unit_Type)
-      return Natural;
-
-   function Armour
-     (Unit : Root_Unit_Type)
-      return Natural;
-
-   function Has_Attack
-     (Unit   : Root_Unit_Type;
-      Weapon : Weapon_Category)
-      return Boolean;
-
-   function Strength
-     (Unit   : Root_Unit_Type;
-      Weapon : Weapon_Category)
-      return Positive
-     with Pre => Unit.Has_Attack (Weapon);
-
-   function Rank
+   function Priority
      (Unit : Root_Unit_Type)
       return Natural;
 
@@ -70,28 +58,34 @@ private
          Strength : Natural := 0;
       end record;
 
-   type Weapon_Array is array (Weapon_Category) of Weapon_Record;
-
    type Root_Unit_Type is
-     new Concorde.Objects.Root_Localised_Object_Type with
+     new Concorde.Objects.Root_Localised_Object_Type
+       and Concorde.Construction.Constructed_Interface with
       record
          Movement       : Movement_Category;
          Speed          : Natural := 0;
          Recon          : Natural := 0;
-         Stealth        : Natural := 0;
-         Armour         : Natural := 0;
-         Weapons        : Weapon_Array := (others => (Strength => 0));
          Cargo          : Natural := 0;
          Can_Be_Cargo   : Boolean := False;
          Combat         : Boolean := False;
-         Rank           : Natural := 0;
-         Turns_To_Build : Natural := 0;
+         Priority       : Natural := 0;
+         Construct      : Concorde.Construction.Constructed_Record;
          Image_Resource : Ada.Strings.Unbounded.Unbounded_String;
       end record;
 
    overriding function Object_Database
      (Item : Root_Unit_Type)
       return Memor.Memor_Database;
+
+   overriding function Construction_Stock
+     (Unit : Root_Unit_Type)
+      return Concorde.Commodities.Stock_Interface'Class
+   is (Unit.Construct.Construction_Stock);
+
+   overriding function Maintenance_Stock
+     (Unit : Root_Unit_Type)
+      return Concorde.Commodities.Stock_Interface'Class
+   is (Unit.Construct.Maintenance_Stock);
 
    function Movement
      (Unit : Root_Unit_Type)
@@ -103,37 +97,15 @@ private
       return Natural
    is (Unit.Speed);
 
-   function Stealth
-     (Unit : Root_Unit_Type)
-      return Natural
-   is (Unit.Stealth);
-
    function Recon
      (Unit : Root_Unit_Type)
       return Natural
    is (Unit.Recon);
 
-   function Armour
+   function Priority
      (Unit : Root_Unit_Type)
       return Natural
-   is (Unit.Armour);
-
-   function Rank
-     (Unit : Root_Unit_Type)
-      return Natural
-   is (Unit.Rank);
-
-   function Has_Attack
-     (Unit   : Root_Unit_Type;
-      Weapon : Weapon_Category)
-      return Boolean
-   is (Unit.Weapons (Weapon).Strength > 0);
-
-   function Strength
-     (Unit   : Root_Unit_Type;
-      Weapon : Weapon_Category)
-      return Positive
-   is (Unit.Weapons (Weapon).Strength);
+   is (Unit.Priority);
 
    function Image_Resource
      (Unit : Root_Unit_Type)
