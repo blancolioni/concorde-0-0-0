@@ -1,5 +1,3 @@
-with Concorde.Powers.Configure;
-
 with Concorde.Powers.Armies;
 with Concorde.Powers.Ministries;
 
@@ -187,8 +185,8 @@ package body Concorde.People.Individuals.Work is
    is
       use type Concorde.People.Individuals.Individual_Type;
       Power : constant Concorde.Powers.Power_Type :=
-                Concorde.Powers.Configure.Get_Power
-                  (Name => "command_army");
+                Concorde.Powers.Armies.Command_Army
+                  (Army => Work.Army);
       Set : Concorde.Powers.Power_Set;
       General : Concorde.People.Individuals.Individual_Type;
    begin
