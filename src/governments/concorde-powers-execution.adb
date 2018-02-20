@@ -96,8 +96,7 @@ package body Concorde.Powers.Execution is
       World : access constant Concorde.Worlds.Root_World_Type'Class)
       return Duration;
 
-   function P (Power : Power_Type) return Power_Execution_Record
-   is (Power_Execution_Map.Element (Class_Identifier (Power)));
+   function P (Power : Power_Type) return Power_Execution_Record;
 
    ---------------
    -- Attribute --
@@ -362,6 +361,22 @@ package body Concorde.Powers.Execution is
    begin
       return Calculate_Work (Power, Rec.Action_Cost, null);
    end Execution_Work;
+
+   -------
+   -- P --
+   -------
+
+   function P (Power : Power_Type) return Power_Execution_Record
+   is
+      Id : constant String := Power.Class_Identifier;
+   begin
+      if Power_Execution_Map.Contains (Id) then
+         return Power_Execution_Map.Element (Id);
+      else
+         raise Constraint_Error with
+           "no such power: " & Id;
+      end if;
+   end P;
 
    ---------------
    -- Pop_Group --
