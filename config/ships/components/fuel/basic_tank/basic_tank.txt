@@ -1,0 +1,17 @@
+bounding_cube = { -0.5 0.5 -0.5 0.5 -5 5 }
+shape = cylinder
+mass = 890
+attachments = {
+   { 0 0 -5 }
+   { 0 0 5 }
+}
+fuel = { volume = 12 }
+color = { 189 145 116 }
+max_acceleration = {
+   linear = 30
+   angular = 5
+}
+max_temperature = {
+   normal = 400
+   failure = 600
+}

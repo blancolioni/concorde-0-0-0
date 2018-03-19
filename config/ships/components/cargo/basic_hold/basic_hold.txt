@@ -1,0 +1,22 @@
+bounding_cube = { -5 5 -5 5 -5 5 }
+shape = rectangular_prism
+mass = 16200
+attachments = {
+   { -5 0 0 }
+   { 5 0 0 }
+   { 0 -5 0 }
+   { 0 5 0 }
+   { 0 0 -5 }
+   { 0 0 5 }
+}
+cargo = { volume = 800 }
+color = { 184 162 151 }
+max_acceleration = {
+   linear = 30
+   angular = 10
+}
+max_temperature = {
+   normal = 500
+   failure = 800
+}
+explosion = 0
