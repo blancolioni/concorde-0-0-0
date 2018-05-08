@@ -39,7 +39,7 @@ package body Concorde.AI.Default is
    overriding procedure Order_Ship
      (AI     : in out Root_Default_AI_Type;
       Faction : in out Concorde.Factions.Root_Faction_Type'Class;
-      Ship   : in out Concorde.Ships.Root_Ship_Type'Class);
+      Ship   : in out Concorde.Ships.Root_Vessel_Type'Class);
 
    overriding procedure Start
      (AI     : in out Root_Default_AI_Type;
@@ -579,7 +579,7 @@ package body Concorde.AI.Default is
    overriding procedure Order_Ship
      (AI     : in out Root_Default_AI_Type;
       Faction : in out Concorde.Factions.Root_Faction_Type'Class;
-      Ship   : in out Concorde.Ships.Root_Ship_Type'Class)
+      Ship   : in out Concorde.Ships.Root_Vessel_Type'Class)
    is
 
       procedure Choose_Destination
@@ -927,13 +927,13 @@ package body Concorde.AI.Default is
      (Ship        : Concorde.Ships.Ship_Type;
       Destination : Concorde.Systems.Star_System_Type)
    is
-      procedure Update (Ship : in out Concorde.Ships.Root_Ship_Type'Class);
+      procedure Update (Ship : in out Concorde.Ships.Root_Vessel_Type'Class);
 
       ------------
       -- Update --
       ------------
 
-      procedure Update (Ship : in out Concorde.Ships.Root_Ship_Type'Class) is
+      procedure Update (Ship : in out Concorde.Ships.Root_Vessel_Type'Class) is
       begin
          Ship.Set_Destination (Destination);
       end Update;

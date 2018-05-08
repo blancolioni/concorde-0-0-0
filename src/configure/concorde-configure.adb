@@ -8,8 +8,8 @@ with Tropos.Reader;
 
 with Concorde.Names;
 
-with Concorde.Components.Configure;
-with Concorde.Ships.Designs;
+with Concorde.Ships.Components.Configure;
+with Concorde.Ships.Designs.Configure;
 
 with Concorde.Commodities.Configure;
 with Concorde.Facilities.Configure;
@@ -205,9 +205,9 @@ package body Concorde.Configure is
          Configure =>
            Concorde.Units.Configure.Configure_Unit'Access);
 
-      Concorde.Components.Configure.Configure_Components;
+      Concorde.Ships.Components.Configure.Configure_Components;
       Concorde.Facilities.Configure.Configure_Facilities;
-      Concorde.Ships.Designs.Configure_Designs;
+      Concorde.Ships.Designs.Configure.Configure_Designs;
 
       Concorde.Commodities.Configure.Calculate_Base_Prices;
 

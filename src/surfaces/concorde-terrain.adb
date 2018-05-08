@@ -3,16 +3,16 @@ package body Concorde.Terrain is
    Local_Mountain : Terrain_Type;
 
    ------------
-   -- Colour --
+   -- Color --
    ------------
 
-   function Colour
+   function Color
      (Terrain : Root_Terrain_Type'Class)
-      return Lui.Colours.Colour_Type
+      return Lui.Colors.Color_Type
    is
    begin
-      return Terrain.Colour;
-   end Colour;
+      return Terrain.Color;
+   end Color;
 
    ---------
    -- Get --

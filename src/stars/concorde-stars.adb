@@ -15,7 +15,7 @@ package body Concorde.Stars is
    end Age;
 
    ------------
-   -- Colour --
+   -- Color --
    ------------
 
    overriding function Color

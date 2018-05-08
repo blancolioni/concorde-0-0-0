@@ -1,13 +1,13 @@
-with Lui.Colours;
+with Lui.Colors;
 
 private package Concorde.Worlds.Tables is
 
-   function Height_Colour
+   function Height_Color
      (Height : Height_Range)
-      return Lui.Colours.Colour_Type;
+      return Lui.Colors.Color_Type;
 
-   function Temperature_Colour
+   function Temperature_Color
      (Temperature : Non_Negative_Real)
-      return Lui.Colours.Colour_Type;
+      return Lui.Colors.Color_Type;
 
 end Concorde.Worlds.Tables;

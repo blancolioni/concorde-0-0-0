@@ -14,7 +14,7 @@ with Concorde.Armies;
 with Concorde.Galaxy;
 with Concorde.Locations;
 with Concorde.Markets;
-with Concorde.Ships.Create;
+with Concorde.Ships.Vessels.Create;
 with Concorde.Stars;
 with Concorde.Worlds;
 with Concorde.Systems;
@@ -57,13 +57,13 @@ package body Concorde.Factions.Create is
      (World : Concorde.Worlds.World_Type)
    is
       Defender : constant Concorde.Ships.Ship_Type :=
-                   Concorde.Ships.Create.New_Ship
-                     (Owner  => World.Owner,
-                      Name   =>
+                   Concorde.Ships.Vessels.Create.Create_Start_Vessel
+                     (Owner       => World.Owner,
+                      Name        =>
                         World.Owner.Name
                       & " Defender",
-                      World  => World,
-                      Design => "defender");
+                      World       => World,
+                      Design_Name => "defender");
 
    begin
 
@@ -72,15 +72,15 @@ package body Concorde.Factions.Create is
       for I in 1 .. Concorde.Options.Initial_Trade_Ships loop
          declare
             Capital : constant Concorde.Worlds.World_Type :=
-                        Concorde.Galaxy.Capital_World;
+                         Concorde.Galaxy.Capital_World;
             Trader   : constant Concorde.Ships.Ship_Type :=
-                         Concorde.Ships.Create.New_Ship
-                           (Owner  => World.Owner,
-                            Name   =>
+                         Concorde.Ships.Vessels.Create.Create_Start_Vessel
+                           (Owner       => World.Owner,
+                            Name        =>
                               World.Owner.Name & " Trader" & I'Img,
-                            World  =>
+                            World       =>
                               (if I mod 2 = 1 then World else Capital),
-                            Design => "trader");
+                            Design_Name => "trader");
          begin
 
             declare
@@ -245,7 +245,7 @@ package body Concorde.Factions.Create is
    function New_Faction
      (Name                : String;
       Capital             : String;
-      Colour              : Lui.Colours.Colour_Type;
+      Color              : Lui.Colors.Color_Type;
       Default_Ship_Design : String)
       return Faction_Type
    is
@@ -438,7 +438,7 @@ package body Concorde.Factions.Create is
          New_Faction.Set_Name (Name);
          New_Faction.System_Data :=
            new System_Data_Array (1 .. Galaxy.System_Count);
-         New_Faction.Colour := Colour;
+         New_Faction.Color := Color;
          New_Faction.Capital_World := Start_World;
 
          if Imperial_Centre then
@@ -591,7 +591,7 @@ package body Concorde.Factions.Create is
             procedure Add_Work (Ship : Concorde.Ships.Ship_Type) is
                use Concorde.Ships, Concorde.People.Individuals.Work;
             begin
-               if Ship.Owner = Faction then
+               if Ship.Owned_By (Faction) then
                   case Ship.Classification is
                      when Civilian =>
                         Faction.Manager.Add_Work_Item

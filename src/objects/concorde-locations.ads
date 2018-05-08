@@ -1,9 +1,9 @@
-with Newton;
-
 with Concorde.Calendar;
 with Concorde.Geometry;
 
 with Concorde.Objects;
+with Concorde.Vectors;
+
 limited with Concorde.Systems;
 limited with Concorde.Worlds;
 
@@ -31,12 +31,12 @@ package Concorde.Locations is
    function Primary_Relative_Position
      (Location : Object_Location;
       Time     : Concorde.Calendar.Time)
-      return Newton.Vector_3;
+      return Concorde.Vectors.Vector_3;
 
    function System_Relative_Position
      (Location : Object_Location;
       Time     : Concorde.Calendar.Time)
-      return Newton.Vector_3;
+      return Concorde.Vectors.Vector_3;
 
    function Current_System
      (Location : Object_Location)
@@ -76,8 +76,8 @@ package Concorde.Locations is
    function Orbit
      (Primary        : not null access constant
         Concorde.Objects.Massive_Object_Interface'Class;
-      Position       : Newton.Vector_3;
-      Velocity       : Newton.Vector_3)
+      Position       : Concorde.Vectors.Vector_3;
+      Velocity       : Concorde.Vectors.Vector_3)
       return Object_Location;
 
    function System_Transfer_Orbit
@@ -105,8 +105,8 @@ package Concorde.Locations is
    function System_Point
      (System            : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
-      Relative_Position : Newton.Vector_3;
-      Relative_Velocity : Newton.Vector_3)
+      Relative_Position : Concorde.Vectors.Vector_3;
+      Relative_Velocity : Concorde.Vectors.Vector_3)
       return Object_Location;
 
    function World_Surface
@@ -184,12 +184,12 @@ package Concorde.Locations is
    function System_Relative_Position
      (Located  : Located_Interface'Class;
       Time     : Concorde.Calendar.Time)
-      return Newton.Vector_3;
+      return Concorde.Vectors.Vector_3;
 
    function Primary_Relative_Position
      (Located  : Located_Interface'Class;
       Time     : Concorde.Calendar.Time)
-      return Newton.Vector_3
+      return Concorde.Vectors.Vector_3
    is (Primary_Relative_Position (Located.Current_Location, Time));
 
 private
@@ -205,12 +205,12 @@ private
                  Concorde.Objects.Root_Object_Type'Class;
                Progress           : Unit_Real;
             when System_Point =>
-               Relative_Position  : Newton.Vector_3;
-               Relative_Velocity  : Newton.Vector_3;
+               Relative_Position  : Concorde.Vectors.Vector_3;
+               Relative_Velocity  : Concorde.Vectors.Vector_3;
             when Orbit =>
                Angle              : Concorde.Geometry.Radians;
-               Apoapsis           : Newton.Vector_3;
-               Periapsis          : Newton.Vector_3;
+               Apoapsis           : Concorde.Vectors.Vector_3;
+               Periapsis          : Concorde.Vectors.Vector_3;
                Start_Time         : Concorde.Calendar.Time;
                Start_Offset       : Unit_Real;
                Period             : Duration;

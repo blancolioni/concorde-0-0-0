@@ -2,7 +2,7 @@ with Ada.Containers.Vectors;
 
 with Memor.Element_Vectors;
 
-with Lui.Colours;
+with Lui.Colors;
 with Lui.Rendering;
 with Lui.Tables;
 
@@ -138,12 +138,12 @@ package body Concorde.Galaxy.Model is
       record
          X, Y   : Integer;
          Radius : Positive;
-         Colour : Lui.Colours.Colour_Type;
+         Color : Lui.Colors.Color_Type;
       end record;
 
    package Rendered_System_Vectors is
      new Memor.Element_Vectors
-       (Rendered_System, (0, 0, 1, Lui.Colours.Black));
+       (Rendered_System, (0, 0, 1, Lui.Colors.Black));
 
    type Root_Galaxy_Model is
      new Lui.Models.Root_Object_Model
@@ -235,9 +235,9 @@ package body Concorde.Galaxy.Model is
       Max_Days : Positive)
       return Boolean;
 
-   Unexplored_Colour : constant Lui.Colours.Colour_Type :=
+   Unexplored_Color : constant Lui.Colors.Color_Type :=
                          (0.5, 0.5, 0.5, 0.6);
-   Border_Colour     : constant Lui.Colours.Colour_Type :=
+   Border_Color     : constant Lui.Colors.Color_Type :=
                          (1.0, 1.0, 1.0, 1.0);
 
    type Galaxy_Model_Access is access all Root_Galaxy_Model'Class;
@@ -429,12 +429,12 @@ package body Concorde.Galaxy.Model is
       A_Owner  : constant Concorde.Factions.Faction_Type := A_System.Owner;
       B_Owner  : constant Concorde.Factions.Faction_Type := B_System.Owner;
 
-      Link_Colour    : constant Lui.Colours.Colour_Type :=
+      Link_Color    : constant Lui.Colors.Color_Type :=
                          (if A_Owner /= null and then B_Owner = A_Owner
-                          then A_Owner.Colour
+                          then A_Owner.Color
                           elsif A_Owner = null or else B_Owner = null
-                          then Unexplored_Colour
-                          else Border_Colour);
+                          then Unexplored_Color
+                          else Border_Color);
       Link_Width     : constant Positive :=
                          Natural'Min
                            (A_System.Traffic (B_System)
@@ -445,7 +445,7 @@ package body Concorde.Galaxy.Model is
    begin
       Model.Star_System_Screen (A_System, X1, Y1);
       Model.Star_System_Screen (B_System, X2, Y2);
-      Renderer.Draw_Line (X1, Y1, X2, Y2, Link_Colour, Link_Width);
+      Renderer.Draw_Line (X1, Y1, X2, Y2, Link_Color, Link_Width);
    end Draw_Connection;
 
    ------------------
@@ -496,7 +496,7 @@ package body Concorde.Galaxy.Model is
                   Y1         => Natural (Date - Start),
                   X2         => New_X,
                   Y2         => Natural (Date - Start),
-                  Colour     => Faction.Colour,
+                  Color     => Faction.Color,
                   Line_Width => 1);
                X := New_X;
             end Draw_Power;
@@ -542,7 +542,7 @@ package body Concorde.Galaxy.Model is
       Boundary : constant Concorde.Systems.System_Influence_Boundary :=
                    System.Influence_Boundary;
       Points   : Lui.Rendering.Buffer_Points (Boundary'Range);
-      Bg       : Lui.Colours.Colour_Type := System.Owner.Colour;
+      Bg       : Lui.Colors.Color_Type := System.Owner.Color;
    begin
       for I in Points'Range loop
          declare
@@ -559,7 +559,7 @@ package body Concorde.Galaxy.Model is
       Bg.Alpha := System.Loyalty * 0.3;
       Renderer.Draw_Polygon
         (Vertices => Points,
-         Colour   => Bg,
+         Color   => Bg,
          Filled   => True);
 
    end Draw_Influence;
@@ -583,7 +583,7 @@ package body Concorde.Galaxy.Model is
       Y := Y + System_Radius + 12;
       for E of Es loop
          Renderer.Draw_String
-           (X, Y, 10, E.Colour,
+           (X, Y, 10, E.Color,
             Ship_Count_Image
               (Concorde.Ships.Battles.Faction_Ship_Count
                    (E, Ships)));
@@ -779,10 +779,10 @@ package body Concorde.Galaxy.Model is
                   Screen_Z : Real;
                   Owner    : constant Concorde.Factions.Faction_Type :=
                                System.Owner;
-                  Colour   : Lui.Colours.Colour_Type :=
+                  Color   : Lui.Colors.Color_Type :=
                                (if Owner /= null
-                                then Owner.Colour
-                                else System.Main_Object.Colour);
+                                then Owner.Color
+                                else System.Main_Object.Color);
                begin
                   Model.Get_Screen_Coordinates
                     (X, Y, Z, Screen_X, Screen_Y, Screen_Z);
@@ -797,7 +797,7 @@ package body Concorde.Galaxy.Model is
                         else 1.0);
                      Model.Rendered_Systems.Replace_Element
                        (System.Reference,
-                        (Screen_X, Screen_Y, System_Radius, Colour));
+                        (Screen_X, Screen_Y, System_Radius, Color));
 
                      if System.Owned then
                         Draw_Influence
@@ -825,7 +825,7 @@ package body Concorde.Galaxy.Model is
                                 (X          => Screen_X,
                                  Y          => Screen_Y,
                                  Radius     => Size - Days,
-                                 Colour     => (1.0, 0.0, 0.0,
+                                 Color     => (1.0, 0.0, 0.0,
                                                 1.0
                                                 - Real (Days)
                                                 / Real (Size)),
@@ -836,23 +836,23 @@ package body Concorde.Galaxy.Model is
                      end if;
 
                      if Screen_Z >= -0.5 then
-                        Colour :=
-                          Lui.Colours.Brighten (Colour, Screen_Z + 1.0);
+                        Color :=
+                          Lui.Colors.Brighten (Color, Screen_Z + 1.0);
                      elsif Screen_Z > -3.2 then
-                        Colour :=
-                          Lui.Colours.Apply_Alpha
-                            (Colour, (4.0 + Screen_Z) / 4.0);
+                        Color :=
+                          Lui.Colors.Apply_Alpha
+                            (Color, (4.0 + Screen_Z) / 4.0);
                      else
-                        Colour :=
-                          Lui.Colours.Apply_Alpha
-                            (Colour, 0.2);
+                        Color :=
+                          Lui.Colors.Apply_Alpha
+                            (Color, 0.2);
                      end if;
 
                      Renderer.Draw_Circle
                        (X          => Screen_X,
                         Y          => Screen_Y,
                         Radius     => Natural'Max (Natural (Radius), 1),
-                        Colour     => Colour,
+                        Color     => Color,
                         Filled     => True,
                         Line_Width => 1);
 
@@ -866,7 +866,7 @@ package body Concorde.Galaxy.Model is
                           (X      => Screen_X - 20,
                            Y      => Screen_Y - 10,
                            Size   => 12,
-                           Colour => Lui.Colours.White,
+                           Color => Lui.Colors.White,
                            Text   => System.Name);
                      end if;
 
@@ -902,7 +902,7 @@ package body Concorde.Galaxy.Model is
 --                                  (X          => Screen_X,
 --                                   Y          => Screen_Y,
 --                                   Radius     => Radius,
---                                   Colour     => Faction.Colour,
+--                                   Color     => Faction.Color,
 --                                   Filled     => False,
 --                                   Line_Width => 1);
 --                                Radius := Radius + 2;
@@ -915,14 +915,14 @@ package body Concorde.Galaxy.Model is
 
                      if False and then Owner /= null then
                         declare
-                           Colour : Lui.Colours.Colour_Type := Owner.Colour;
+                           Color : Lui.Colors.Color_Type := Owner.Color;
                         begin
-                           Colour.Alpha := 0.4;
+                           Color.Alpha := 0.4;
                            Renderer.Draw_Circle
                              (X          => Screen_X,
                               Y          => Screen_Y,
                               Radius     => 30,
-                              Colour     => Colour,
+                              Color     => Color,
                               Filled     => True,
                               Line_Width => 1);
                         end;

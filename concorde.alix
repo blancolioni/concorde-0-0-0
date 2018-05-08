@@ -26,6 +26,10 @@ source_dir = src/stars
 source_dir = src/surfaces
 source_dir = src/systems
 source_dir = src/ships
+source_dir = src/ships/components
+source_dir = src/ships/designs
+source_dir = src/ships/modules
+source_dir = src/ships/vessels
 source_dir = src/trade
 source_dir = src/ui
 source_dir = src/ui/xi
@@ -34,6 +38,7 @@ source_dir = src/update
 source_dir = src/voronoi
 source_dir = src/worlds
 depend = { project = Tropos version = any }
+depend = { project = Lith version = any }
 depend = { project = Lui version = any }
 depend = { project = Wlib version = any }
 depend = { project = xi version = any }

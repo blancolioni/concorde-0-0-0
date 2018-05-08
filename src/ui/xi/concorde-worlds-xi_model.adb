@@ -25,20 +25,20 @@ with Xi.Transition.Translation;
 
 with Xi.Logging;
 
-with Lui.Colours;
-
-with Newton;
+with Lui.Colors;
 
 with Concorde.Worlds.Tables;
 with Concorde.Worlds.Xi_Model.Palettes;
+with Concorde.Ships.Vessels;
 with Concorde.Ships.Xi_Model;
 
 --  with Concorde.Xi_UI.Noise;
-with Concorde.Xi_UI.Colours;
+with Concorde.Xi_UI.Colors;
 
 with Concorde.Systems.Events;
 
 with Concorde.Options;
+with Concorde.Vectors;
 
 package body Concorde.Worlds.Xi_Model is
 
@@ -47,9 +47,9 @@ package body Concorde.Worlds.Xi_Model is
 
    Current_Map_Mode : Map_Mode_Type := Height_Mode;
 
-   Selected_Colour : constant Lui.Colours.Colour_Type :=
+   Selected_Color : constant Lui.Colors.Color_Type :=
                        (0.8, 0.7, 0.1, 0.5);
-   pragma Unreferenced (Selected_Colour);
+   pragma Unreferenced (Selected_Color);
 
    Height_Material_Array                : array (Height_Range)
      of Xi.Materials.Material.Xi_Material :=
@@ -248,7 +248,7 @@ package body Concorde.Worlds.Xi_Model is
          Result.Set_Material (Material);
 
          Result.Begin_Operation (Xi.Render_Operation.Triangle_Fan);
-         --  Result.Color (Concorde.Xi_UI.Colours.To_Xi_Color (Colour));
+         --  Result.Color (Concorde.Xi_UI.Colors.To_Xi_Color (Color));
 
          for V of Boundary loop
             Normal := Normal + V;
@@ -352,17 +352,17 @@ package body Concorde.Worlds.Xi_Model is
          Material := Base_Material.Instantiate;
          declare
             use Xi;
-            Height_Colour : constant Lui.Colours.Colour_Type :=
-                              Concorde.Worlds.Tables.Height_Colour
+            Height_Color : constant Lui.Colors.Color_Type :=
+                              Concorde.Worlds.Tables.Height_Color
                                 (Height);
          begin
             Material.Set_Parameter_Value
               (Parameter_Name => "color",
                Value          =>
                  Xi.Value.Color_Value
-                   (Xi_Unit_Float (Height_Colour.Red),
-                    Xi_Unit_Float (Height_Colour.Green),
-                    Xi_Unit_Float (Height_Colour.Blue),
+                   (Xi_Unit_Float (Height_Color.Red),
+                    Xi_Unit_Float (Height_Color.Green),
+                    Xi_Unit_Float (Height_Color.Blue),
                     1.0));
          end;
       end if;
@@ -394,9 +394,9 @@ package body Concorde.Worlds.Xi_Model is
             Material.Set_Parameter_Value
               ("color",
                Xi.Value.Color_Value
-                 (Concorde.Xi_UI.Colours.To_Xi_Color
+                 (Concorde.Xi_UI.Colors.To_Xi_Color
                       (Concorde.Factions.Faction_Type (Installation.Owner)
-                       .Colour)));
+                       .Color)));
             Owner_Material_Map.Insert (Key, Material);
          end if;
       else
@@ -481,8 +481,9 @@ package body Concorde.Worlds.Xi_Model is
       for Rendered_Ship of Model.Ships loop
          Concorde.Ships.Xi_Model.Update_Ship_Position
            (Rendered_Ship, Concorde.Calendar.Clock,
-            Model.World.Primary_Relative_Position
-              (Concorde.Calendar.Clock),
+            Xi.Float_Arrays.Real_Vector
+              (Model.World.Primary_Relative_Position
+                   (Concorde.Calendar.Clock)),
             Model.Scene.Active_Camera, True);
       end loop;
 
@@ -509,7 +510,7 @@ package body Concorde.Worlds.Xi_Model is
       if Model.Selected_Ship /= null then
          declare
             use Xi.Float_Arrays;
-            Ship_Position : constant Newton.Vector_3 :=
+            Ship_Position : constant Concorde.Vectors.Vector_3 :=
                               Model.Selected_Ship.Primary_Relative_Position
                                 (Concorde.Calendar.Clock);
          begin
@@ -611,7 +612,7 @@ package body Concorde.Worlds.Xi_Model is
       Position : Cursor := Handler.Model.Ships.First;
    begin
       Concorde.Ships.Xi_Model.Deactivate_Ship
-        (Concorde.Ships.Ship_Type (Ship));
+        (Concorde.Ships.Vessels.Vessel_Type (Ship));
       Ada.Text_IO.Put_Line
         (System.Name & ": " & Ship.Name & " enters hyperspace");
       while Has_Element (Position) loop
@@ -639,7 +640,7 @@ package body Concorde.Worlds.Xi_Model is
    is
       use Xi;
       use Concorde.Ships.Xi_Model;
-      Pos           : constant Newton.Vector_3 :=
+      Pos           : constant Concorde.Vectors.Vector_3 :=
                         Ship.Primary_Relative_Position (Time);
       Selector      : constant Concorde.Xi_UI.Select_Handler :=
                         new World_Ship_Selector'
@@ -657,7 +658,7 @@ package body Concorde.Worlds.Xi_Model is
         (System.Name & ": " & Ship.Name & " exits hyperspace");
       Handler.Model.Ships.Append
         (Concorde.Ships.Xi_Model.Activate_Ship
-           (Ship    => Concorde.Ships.Ship_Type (Ship),
+           (Ship    => Concorde.Ships.Vessels.Vessel_Type (Ship),
             Time    => Time,
             Scene   => Handler.Model.Scene,
             Primary => Handler.Model.Ships_Node,
@@ -675,7 +676,8 @@ package body Concorde.Worlds.Xi_Model is
    is
       pragma Unreferenced (Model);
    begin
-      return Concorde.Ships.Xi_Model.Get_Active_Ship (Ship);
+      return Concorde.Ships.Xi_Model.Get_Active_Ship
+        (Concorde.Ships.Vessels.Vessel_Type (Ship));
    end Ship_Record;
 
    ------------------
@@ -721,11 +723,11 @@ package body Concorde.Worlds.Xi_Model is
                          else (Raw_Height - Hydrosphere)
                            / (1.0 - Hydrosphere)
                          * Xi_Float (Max_Height));
-         Height_Colour : constant Lui.Colours.Colour_Type :=
-                           Concorde.Worlds.Tables.Height_Colour
+         Height_Color : constant Lui.Colors.Color_Type :=
+                           Concorde.Worlds.Tables.Height_Color
                              (Height_Range (Map_Height));
       begin
-         return Concorde.Xi_UI.Colours.To_Xi_Color (Height_Colour);
+         return Concorde.Xi_UI.Colors.To_Xi_Color (Height_Color);
       end Height_Noise;
 
       ------------------------
@@ -969,7 +971,7 @@ package body Concorde.Worlds.Xi_Model is
                Node : constant Xi.Node.Xi_Node :=
                         Moons_Node.Create_Child
                           (Moon.Name);
-               Pos  : constant Newton.Vector_3 :=
+               Pos  : constant Concorde.Vectors.Vector_3 :=
                         Moon.Primary_Relative_Position (Time);
             begin
                Node.Set_Position
@@ -988,7 +990,7 @@ package body Concorde.Worlds.Xi_Model is
             declare
                use Xi;
                use Concorde.Ships.Xi_Model;
-               Pos      : constant Newton.Vector_3 :=
+               Pos      : constant Concorde.Vectors.Vector_3 :=
                             Ship.Primary_Relative_Position (Time);
                Selector : constant Concorde.Xi_UI.Select_Handler :=
                             new World_Ship_Selector'
@@ -1003,7 +1005,8 @@ package body Concorde.Worlds.Xi_Model is
                                     Selector);
                Rec           : constant Active_Ship :=
                                  Activate_Ship
-                                   (Ship, Time, Scene,
+                                   (Concorde.Ships.Vessels.Vessel_Type (Ship),
+                                    Time, Scene,
                                     Ships_Node, Selector_Node);
             begin
                Model.Ships.Append (Rec);

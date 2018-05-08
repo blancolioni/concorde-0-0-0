@@ -64,14 +64,14 @@ package body Concorde.Worlds.Updates is
 --                 for Ship of World.Ships loop
 --                    declare
 --                       procedure Repair
---                         (Ship : in out Concorde.Ships.Root_Ship_Type'Class);
+--                         (Ship : in out Concorde.Ships.Root_Vessel_Type'Class);
 --
 --                       ------------
 --                       -- Repair --
 --                       ------------
 --
 --                       procedure Repair
---                         (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
+--                         (Ship : in out Concorde.Ships.Root_Vessel_Type'Class)
 --                       is
 --                       begin
 --                          Ship.Repair (Pts);

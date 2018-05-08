@@ -5,8 +5,6 @@ private with Memor.Database;
 
 with Xi.Color;
 
-with Newton;
-
 limited with Concorde.Factions;
 
 with Concorde.Geometry;
@@ -24,6 +22,8 @@ with Concorde.Government;
 
 with Concorde.Events;
 with Concorde.Signals;
+
+with Concorde.Vectors;
 
 package Concorde.Systems is
 
@@ -67,7 +67,7 @@ package Concorde.Systems is
 
 --     function Primary_Relative_Position
 --       (Object : Star_System_Object_Interface'Class)
---        return Newton.Vector_3;
+--        return Concorde.Vectors.Vector_3;
 
    type Root_Star_System_Type is
      new Concorde.Objects.Root_User_Named_Object_Type
@@ -101,12 +101,12 @@ package Concorde.Systems is
    function Jump_Departure_Point
      (From : Root_Star_System_Type'Class;
       To   : not null access Root_Star_System_Type'Class)
-      return Newton.Vector_3;
+      return Concorde.Vectors.Vector_3;
 
    function Jump_Arrival_Point
      (Arrival_System   : Root_Star_System_Type'Class;
       Departure_System : not null access Root_Star_System_Type'Class)
-      return Newton.Vector_3;
+      return Concorde.Vectors.Vector_3;
 
    procedure Scan_System_Objects
      (System : Root_Star_System_Type'Class;
@@ -147,23 +147,27 @@ package Concorde.Systems is
 
    procedure Add_Ship
      (System : in out Root_Star_System_Type'Class;
-      Ship   : Concorde.Ships.Ship_Type);
+      Ship   : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class);
 
    procedure Remove_Ship
      (System : in out Root_Star_System_Type'Class;
-      Ship   : Concorde.Ships.Ship_Type);
+      Ship   : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class);
 
    procedure Remove_Dead_Ships
      (System : in out Root_Star_System_Type'Class);
 
    procedure Arriving
      (System : in out Root_Star_System_Type'Class;
-      Ship   : Concorde.Ships.Ship_Type;
+      Ship   : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class;
       Time   : Concorde.Calendar.Time);
 
    procedure Departing
      (System : in out Root_Star_System_Type'Class;
-      Ship   : Concorde.Ships.Ship_Type;
+      Ship   : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class;
       Time   : Concorde.Calendar.Time);
 
    procedure Clear_Ship_Movement
@@ -255,7 +259,8 @@ package Concorde.Systems is
 
    function Create_Ship_Event
      (Time_Stamp : Concorde.Calendar.Time;
-      Ship       : Concorde.Ships.Ship_Type)
+      Ship   : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
       return Concorde.Events.Root_Event_Type'Class;
 
 private

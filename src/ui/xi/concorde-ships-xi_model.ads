@@ -5,27 +5,33 @@ with Xi.Scene;
 
 --  with Concorde.Scripts;
 
+with Concorde.Calendar;
 with Concorde.Xi_UI;
+
+with Concorde.Ships.Vessels;
 
 package Concorde.Ships.Xi_Model is
 
    type Active_Ship is private;
 
    procedure Transit_To_Ship
-     (Ship  : Ship_Type;
+     (Ship  : not null access constant
+        Concorde.Ships.Vessels.Root_Vessel_Type'Class;
       Start : Concorde.Calendar.Time;
       Model : in out Concorde.Xi_UI.Root_Xi_Model'Class);
 
    function Get_Active_Ship
-     (Ship : Ship_Type)
+     (Ship : not null access constant
+        Concorde.Ships.Vessels.Root_Vessel_Type'Class)
       return Active_Ship;
 
    function Get_Ship
      (Active : Active_Ship)
-      return Ship_Type;
+      return Concorde.Ships.Ship_Type;
 
    function Activate_Ship
-     (Ship     : Ship_Type;
+     (Ship     : not null access constant
+        Concorde.Ships.Vessels.Root_Vessel_Type'Class;
       Time     : Concorde.Calendar.Time;
       Scene    : Xi.Scene.Xi_Scene;
       Primary  : Xi.Node.Xi_Node;
@@ -33,7 +39,8 @@ package Concorde.Ships.Xi_Model is
       return Active_Ship;
 
    procedure Deactivate_Ship
-     (Ship    : Ship_Type);
+     (Ship     : not null access constant
+        Concorde.Ships.Vessels.Root_Vessel_Type'Class);
 
    procedure Update_Ship_Position
      (Ship          : Active_Ship;

@@ -1,6 +1,6 @@
 with Tropos.Reader;
 
-with Lui.Colours.Config;
+with Lui.Colors.Config;
 
 with Concorde.Configure;
 
@@ -28,9 +28,9 @@ package body Concorde.Features.Configure is
          Feature.Set_Local_Tag (Config.Config_Name);
          Feature.Is_Ice := Config.Get ("ice", False);
          Feature.Is_Desert := Config.Config_Name = "desert";
-         Feature.Colour :=
-           Lui.Colours.Config.Configure_Colour
-             (Config, "colour");
+         Feature.Color :=
+           Lui.Colors.Config.Configure_Color
+             (Config, "color");
       end Create;
 
    begin

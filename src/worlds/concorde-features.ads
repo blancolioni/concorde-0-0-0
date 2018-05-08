@@ -1,7 +1,7 @@
 private with Memor;
 private with Memor.Database;
 
-with Lui.Colours;
+with Lui.Colors;
 
 with Concorde.Objects;
 
@@ -11,9 +11,9 @@ package Concorde.Features is
      new Concorde.Objects.Root_Localised_Object_Type
    with private;
 
-   function Colour
+   function Color
      (Feature : Root_Feature_Type'Class)
-      return Lui.Colours.Colour_Type;
+      return Lui.Colors.Color_Type;
 
    type Feature_Type is access constant Root_Feature_Type'Class;
 
@@ -27,7 +27,7 @@ private
    type Root_Feature_Type is
      new Concorde.Objects.Root_Localised_Object_Type with
       record
-         Colour    : Lui.Colours.Colour_Type;
+         Color    : Lui.Colors.Color_Type;
          Is_Ice    : Boolean;
          Is_Desert : Boolean;
       end record;

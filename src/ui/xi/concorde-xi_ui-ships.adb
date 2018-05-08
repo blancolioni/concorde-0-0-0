@@ -18,7 +18,8 @@ package body Concorde.Xi_UI.Ships is
 
    procedure Add_Ship
      (Model : in out Ship_Summary_Model_Record;
-      Ship  : not null access constant Concorde.Ships.Root_Ship_Type'Class)
+      Ship  : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
    is
    begin
       Model.Append_Row;
@@ -47,7 +48,8 @@ package body Concorde.Xi_UI.Ships is
 
    procedure Remove_Ship
      (Model : in out Ship_Summary_Model_Record;
-      Ship  : not null access constant Concorde.Ships.Root_Ship_Type'Class)
+      Ship  : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
    is
       use Concorde.Ships;
       Ship_Row : Natural := 0;

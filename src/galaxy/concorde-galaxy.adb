@@ -1,18 +1,8 @@
 with Ada.Containers.Indefinite_Holders;
-with Ada.Containers.Vectors;
 
 with Concorde.Scenarios;
 
 package body Concorde.Galaxy is
-
-   package Battle_Vectors is
-     new Ada.Containers.Vectors
-       (Positive,
-        Concorde.Combat.Ship_Combat.Space_Combat_Arena,
-        Concorde.Combat.Ship_Combat."=");
-
-   Local_Battle_Container : Battle_Vectors.Vector;
-   Local_Battle_Manager   : Battle_Manager;
 
    Local_Capital_World    : Concorde.Worlds.World_Type;
 
@@ -37,17 +27,6 @@ package body Concorde.Galaxy is
         Concorde.Systems.Root_Star_System_Type'Class)
       return Cached_System_Relation;
 
-   ----------------
-   -- Add_Battle --
-   ----------------
-
-   procedure Add_Battle
-     (Arena : Concorde.Combat.Ship_Combat.Space_Combat_Arena)
-   is
-   begin
-      Local_Battle_Container.Append (Arena);
-   end Add_Battle;
-
    -----------------
    -- Add_Systems --
    -----------------
@@ -64,15 +43,6 @@ package body Concorde.Galaxy is
       Concorde.Systems.Graphs.Append (To.Collection, Sub);
    end Add_Systems;
 
-   ------------------
-   -- Battle_Count --
-   ------------------
-
-   function Battle_Count return Natural is
-   begin
-      return Local_Battle_Container.Last_Index;
-   end Battle_Count;
-
    -------------------
    -- Capital_World --
    -------------------
@@ -81,53 +51,6 @@ package body Concorde.Galaxy is
    begin
       return Local_Capital_World;
    end Capital_World;
-
-   -------------------
-   -- Clear_Battles --
-   -------------------
-
-   procedure Clear_Battles is
-   begin
-      for Position in Local_Battle_Container.Iterate loop
-         declare
-            Arena : Concorde.Combat.Ship_Combat.Space_Combat_Arena :=
-                      Battle_Vectors.Element (Position);
-         begin
-            Concorde.Combat.Ship_Combat.Close_Arena (Arena);
-         end;
-      end loop;
-      Local_Battle_Container.Clear;
-   end Clear_Battles;
-
-   ---------------------
-   -- Complete_Battle --
-   ---------------------
-
-   procedure Complete_Battle
-     (Arena : not null access
-        Concorde.Combat.Root_Combat_Arena'Class)
-   is
-   begin
-      Arena.Execute;
-      if Local_Battle_Manager /= null then
-         Local_Battle_Manager.On_Battle_End (Arena);
-      end if;
-   end Complete_Battle;
-
-   ----------------------
-   -- Complete_Battles --
-   ----------------------
-
-   procedure Complete_Battles is
-   begin
-      for Arena of Local_Battle_Container loop
-         Arena.Execute;
-         if Local_Battle_Manager /= null then
-            Local_Battle_Manager.On_Battle_End (Arena);
-         end if;
-      end loop;
-      Clear_Battles;
-   end Complete_Battles;
 
    -------------
    -- Connect --
@@ -182,18 +105,6 @@ package body Concorde.Galaxy is
       end if;
       return null;
    end Find_System;
-
-   ----------------
-   -- Get_Battle --
-   ----------------
-
-   function Get_Battle
-     (Index : Positive)
-      return Concorde.Combat.Ship_Combat.Space_Combat_Arena
-   is
-   begin
-      return Local_Battle_Container.Element (Index);
-   end Get_Battle;
 
    ----------------
    -- Get_System --
@@ -501,17 +412,6 @@ package body Concorde.Galaxy is
    begin
       return Galaxy_Graph.Connected (System_1, System_2);
    end Neighbours;
-
-   ------------------------
-   -- Set_Battle_Manager --
-   ------------------------
-
-   procedure Set_Battle_Manager
-     (Manager : Battle_Manager)
-   is
-   begin
-      Local_Battle_Manager := Manager;
-   end Set_Battle_Manager;
 
    -----------------------
    -- Set_Capital_World --

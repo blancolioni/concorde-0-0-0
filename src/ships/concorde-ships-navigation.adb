@@ -1,8 +1,7 @@
 with Xi.Float_Images;
 
-with Concorde.Solar_System;
-
 with Concorde.Elementary_Functions;
+with Concorde.Solar_System;
 
 package body Concorde.Ships.Navigation is
 
@@ -11,17 +10,17 @@ package body Concorde.Ships.Navigation is
    ------------------
 
    function Journey_Time
-     (Ship        : Concorde.Ships.Ship_Type;
-      Start_Time  : Concorde.Calendar.Time;
+     (Ship        : not null access constant Root_Ship_Type'Class;
+      Departure   : Concorde.Calendar.Time;
       Destination : Concorde.Locations.Object_Location)
       return Duration
    is
       use Concorde.Elementary_Functions;
       use Concorde.Locations;
       From : constant System_Point_Location :=
-               To_System_Point (Ship.Location_At (Start_Time), Start_Time);
+               To_System_Point (Ship.Location_At (Departure), Departure);
       To   : constant System_Point_Location :=
-               To_System_Point (Destination, Start_Time);
+               To_System_Point (Destination, Departure);
       D    : constant Non_Negative_Real :=
                System_Distance (From, To);
       F    : constant Non_Negative_Real := Ship.Maximum_Thrust;

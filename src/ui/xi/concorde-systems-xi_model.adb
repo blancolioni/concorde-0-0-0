@@ -9,6 +9,7 @@ with Memor.Element_Vectors;
 
 with Xi.Camera;
 with Xi.Entity;
+with Xi.Float_Arrays;
 with Xi.Float_Images;
 with Xi.Light;
 with Xi.Materials.Material;
@@ -35,6 +36,7 @@ with Concorde.Xi_UI.Factions;
 with Concorde.Xi_UI.Ships;
 
 with Concorde.Systems.Events;
+with Concorde.Ships.Vessels;
 
 package body Concorde.Systems.Xi_Model is
 
@@ -201,11 +203,13 @@ package body Concorde.Systems.Xi_Model is
          when Accurate =>
             for Rendered_World of Model.Worlds loop
                Rendered_World.Node.Set_Position
-                 (Rendered_World.World.System_Relative_Position
-                    (Concorde.Calendar.Clock));
+                 (Xi.Float_Arrays.Real_Vector
+                    (Rendered_World.World.System_Relative_Position
+                         (Concorde.Calendar.Clock)));
                Rendered_World.Selector_Node.Set_Position
-                 (Rendered_World.World.System_Relative_Position
-                    (Concorde.Calendar.Clock));
+                 (Xi.Float_Arrays.Real_Vector
+                    (Rendered_World.World.System_Relative_Position
+                         (Concorde.Calendar.Clock)));
             end loop;
 
             for Rendered_Ship of Model.Ships loop
@@ -274,7 +278,7 @@ package body Concorde.Systems.Xi_Model is
       Position : Cursor := Handler.Model.Ships.First;
    begin
       Concorde.Ships.Xi_Model.Deactivate_Ship
-        (Concorde.Ships.Ship_Type (Ship));
+        (Concorde.Ships.Vessels.Vessel_Type (Ship));
       Ada.Text_IO.Put_Line
         (System.Name & ": " & Ship.Name & " enters hyperspace");
 
@@ -308,7 +312,7 @@ package body Concorde.Systems.Xi_Model is
    is
       use Xi;
       use Concorde.Ships.Xi_Model;
-      Pos           : constant Newton.Vector_3 :=
+      Pos           : constant Concorde.Vectors.Vector_3 :=
                         Ship.System_Relative_Position (Time);
       Selector      : constant Concorde.Xi_UI.Select_Handler :=
                         new System_Ship_Selector'
@@ -339,7 +343,7 @@ package body Concorde.Systems.Xi_Model is
 
       Handler.Model.Ships.Append
         (Concorde.Ships.Xi_Model.Activate_Ship
-           (Ship     => Concorde.Ships.Ship_Type (Ship),
+           (Ship     => Concorde.Ships.Vessels.Vessel_Type (Ship),
             Time     => Time,
             Scene    => Handler.Model.Scene,
             Primary  => Handler.Model.System_Node,
@@ -357,7 +361,8 @@ package body Concorde.Systems.Xi_Model is
    is
       pragma Unreferenced (Model);
    begin
-      return Concorde.Ships.Xi_Model.Get_Active_Ship (Ship);
+      return Concorde.Ships.Xi_Model.Get_Active_Ship
+        (Concorde.Ships.Vessels.Vessel_Type (Ship));
    end Ship_Record;
 
    ------------------
@@ -616,7 +621,8 @@ package body Concorde.Systems.Xi_Model is
          case View is
             when Accurate =>
                World_Node.Set_Position
-                 (World.System_Relative_Position (Time));
+                 (Xi.Float_Arrays.Real_Vector
+                    (World.System_Relative_Position (Time)));
             when Schematic =>
                if World.Is_Moon then
                   World_Node.Set_Visible (False);
@@ -651,7 +657,9 @@ package body Concorde.Systems.Xi_Model is
          declare
             use Xi;
             use Concorde.Ships.Xi_Model;
-            Pos           : constant Newton.Vector_3 := World_Node.Position_3;
+            Pos           : constant Concorde.Vectors.Vector_3 :=
+                              Concorde.Vectors.Vector_3
+                                (World_Node.Position_3);
             Selector      : constant Concorde.Xi_UI.Select_Handler :=
                               new System_World_Selector'
                                 (Model => Model,
@@ -689,7 +697,7 @@ package body Concorde.Systems.Xi_Model is
                      use Xi;
                      use Concorde.Ships.Xi_Model;
                      use type Concorde.Ships.Ship_Type;
-                     Pos           : constant Newton.Vector_3 :=
+                     Pos           : constant Concorde.Vectors.Vector_3 :=
                                        Ship.System_Relative_Position (Time);
                      Selector      : constant Concorde.Xi_UI.Select_Handler :=
                                        new System_Ship_Selector'
@@ -704,7 +712,9 @@ package body Concorde.Systems.Xi_Model is
                                           Selector);
                      Rec           : constant Active_Ship :=
                                        Activate_Ship
-                                         (Ship, Time,
+                                         (Concorde.Ships.Vessels.Vessel_Type
+                                            (Ship),
+                                          Time,
                                           Scene, System_Node, Selector_Node);
                   begin
                      Model.Ships.Append (Rec);

@@ -96,7 +96,8 @@ package body Concorde.Managers.Ships.Trade is
                                    Total (Local_Price, Contract.Quantity);
             begin
                if Contract.Class = Buy_Goods
-                 and then Contract.Quantity <= Manager.Ship.Hold_Quantity
+                 and then Contract.Quantity
+                   <= Manager.Ship.Available_Capacity (Contract.Commodity)
                  and then Local_Supply > Zero
                  and then Primary (Contract.Location)
                  /= Primary (Manager.Ship.Current_Location)
@@ -137,7 +138,7 @@ package body Concorde.Managers.Ships.Trade is
 
       Manager.Next_Destination := null;
 
-      while Manager.Ship.Contracted_Quantity < Manager.Ship.Hold_Quantity
+      while Manager.Ship.Contracted_Quantity < Manager.Ship.Cargo_Capacity
         and then not Contract_Queue.Is_Empty
       loop
          declare
@@ -154,7 +155,7 @@ package body Concorde.Managers.Ships.Trade is
                 = Primary (Contract.Location))
               and then
                 Contract.Quantity <=
-                  Manager.Ship.Hold_Quantity
+                  Manager.Ship.Cargo_Capacity
                     - Manager.Ship.Contracted_Quantity
             then
                Manager.Ship.Accept_Contract (Contract);

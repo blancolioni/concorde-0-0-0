@@ -15,7 +15,7 @@ package body Concorde.Stars.Tables is
          Class        : Stellar_Class_Type;
          Subclass     : Stellar_Subclass_Type;
          Surface_Temp : Non_Negative_Real;
-         Colour       : Xi.Color.Xi_Color;
+         Color       : Xi.Color.Xi_Color;
          Radius       : Non_Negative_Real;
          Luminosity   : Non_Negative_Real;
       end record;
@@ -96,7 +96,7 @@ package body Concorde.Stars.Tables is
          Subclass := Info.Subclass;
          Radius := Info.Radius;
          Luminosity := Info.Luminosity;
-         Color := Info.Colour;
+         Color := Info.Color;
       end;
 
    end Get_Main_Sequence_Info;
@@ -131,7 +131,7 @@ package body Concorde.Stars.Tables is
             Red          : constant Natural := Info_Config.Get ("r");
             Green        : constant Natural := Info_Config.Get ("g");
             Blue         : constant Natural := Info_Config.Get ("b");
-            Colour       : constant Xi.Color.Xi_Color :=
+            Color       : constant Xi.Color.Xi_Color :=
                              Xi.Color.Xi_Color'
                                (Red   => Xi_Float (Red) / 255.0,
                                 Green => Xi_Float (Green) / 255.0,
@@ -146,8 +146,8 @@ package body Concorde.Stars.Tables is
                                 Stellar_Subclass_Type'Value
                                   ((1 => Class (Class'First + 1))),
                               Surface_Temp => Surface_Temp,
-                              Colour       =>
-                                Brighten (Colour, Surface_Temp),
+                              Color       =>
+                                Brighten (Color, Surface_Temp),
                               Radius       => Radius,
                               Luminosity   => Luminosity);
          begin

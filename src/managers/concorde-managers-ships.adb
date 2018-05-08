@@ -50,13 +50,13 @@ package body Concorde.Managers.Ships is
    begin
       Manager.Ship := Ship;
       Manager.Object := Ship;
-      Ship.Update.Add_Handler
+      Ship.Variable_Reference.Add_Handler
         (Concorde.Signals.Standard.Object_Activated,
          new Object_Activated_Handler'(Manager => Manager_Type (Manager)));
-      Ship.Update.Add_Handler
+      Ship.Variable_Reference.Add_Handler
         (Concorde.Signals.Standard.Object_Idle,
          new Ship_Idle_Handler'(Manager => Ship_Manager (Manager)));
-      Ship.Update.Add_Handler
+      Ship.Variable_Reference.Add_Handler
         (Concorde.Signals.Standard.Object_Arrived,
          new Ship_Arrival_Handler'(Manager => Ship_Manager (Manager)));
    end Create;

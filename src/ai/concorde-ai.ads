@@ -46,7 +46,7 @@ package Concorde.AI is
    procedure Order_Ship
      (AI     : in out Root_AI_Type;
       Faction : in out Concorde.Factions.Root_Faction_Type'Class;
-      Ship   : in out Concorde.Ships.Root_Ship_Type'Class)
+      Ship   : in out Concorde.Ships.Root_Vessel_Type'Class)
    is abstract;
 
    function Awake (AI : Root_AI_Type) return Boolean;

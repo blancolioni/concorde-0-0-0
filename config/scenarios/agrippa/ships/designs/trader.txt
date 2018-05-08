@@ -1,0 +1,20 @@
+version = 1.0
+description = "Initial trading ship"
+classification = civilian
+size = { 30 75 20 }
+components = {
+   hold_1 = {
+      component = basic_hold
+      position = { 5 5 35 }
+      attach = {
+         fuel_tank_1 = { 0 0 -1 }
+      }
+   }
+   fuel_tank_1 = {
+      component = basic_cryo_tank
+      position = { 15 10 34.5 }
+      attach = {
+         hold_1 = { 0 0 1 }
+      }
+   }
+}

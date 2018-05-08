@@ -179,7 +179,7 @@ package body Concorde.Systems.Models is
            (X          => Model.Width / 2,
             Y          => Model.Height / 2,
             Radius     => Natural (World.Semimajor_Axis * Scale_Factor),
-            Colour     => (0.0, 0.6, 0.0, 1.0),
+            Color     => (0.0, 0.6, 0.0, 1.0),
             Filled     => False,
             Line_Width => 1);
 

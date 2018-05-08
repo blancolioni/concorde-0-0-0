@@ -14,7 +14,7 @@ limited with Concorde.Installations;
 limited with Concorde.People.Individuals;
 limited with Concorde.Worlds;
 
-with Lui.Colours;
+with Lui.Colors;
 
 with Concorde.Agents;
 with Concorde.Bureaucracy;
@@ -24,6 +24,7 @@ with Concorde.Locations;
 with Concorde.Managers;
 with Concorde.Ministries;
 with Concorde.Objects;
+with Concorde.Ownership;
 with Concorde.Powers;
 with Concorde.Systems;
 with Concorde.Trades;
@@ -40,6 +41,7 @@ package Concorde.Factions is
      new Concorde.Agents.Root_Agent_Type
      and Memor.Identifier_Record_Type
      and Concorde.Objects.User_Named_Object_Interface
+     and Concorde.Ownership.Owner_Interface
      and Concorde.Bureaucracy.Bureaucratic_Interface
      and Concorde.Managers.Managed_Interface
    with private;
@@ -98,9 +100,9 @@ package Concorde.Factions is
      (Faction : in out Root_Faction_Type;
       Manager : Concorde.Managers.Manager_Type);
 
-   function Colour
+   function Color
      (Faction : Root_Faction_Type'Class)
-      return Lui.Colours.Colour_Type;
+      return Lui.Colors.Color_Type;
 
    function Capital
      (Faction : Root_Faction_Type'Class)
@@ -465,12 +467,13 @@ private
      new Concorde.Agents.Root_Agent_Type
      and Memor.Identifier_Record_Type
      and Concorde.Objects.User_Named_Object_Interface
+     and Concorde.Ownership.Owner_Interface
      and Concorde.Bureaucracy.Bureaucratic_Interface
      and Concorde.Managers.Managed_Interface with
       record
          Identifier         : Ada.Strings.Unbounded.Unbounded_String;
          Faction_Name       : Ada.Strings.Unbounded.Unbounded_String;
-         Colour             : Lui.Colours.Colour_Type;
+         Color             : Lui.Colors.Color_Type;
          Central_Bank       : Boolean := False;
          System_Data        : access System_Data_Array;
          Faction_Data       : access Relation_Record;

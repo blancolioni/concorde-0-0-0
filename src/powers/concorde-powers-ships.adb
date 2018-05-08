@@ -52,12 +52,13 @@ package body Concorde.Powers.Ships is
    ------------------
 
    function Captain_Trader_Ship
-     (Ship : Concorde.Ships.Ship_Type)
+     (Ship : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
       return Power_Type
    is
    begin
       return Captain_Trader_Ship_Power'
-        (Ship => Ship);
+        (Ship => Concorde.Ships.Ship_Type (Ship));
    end Captain_Trader_Ship;
 
 end Concorde.Powers.Ships;

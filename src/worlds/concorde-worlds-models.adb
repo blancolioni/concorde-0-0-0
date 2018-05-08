@@ -1,6 +1,6 @@
 with Ada.Characters.Handling;
 
-with Lui.Colours;
+with Lui.Colors;
 with Lui.Rendering;
 
 with Concorde.Hash_Table;
@@ -13,10 +13,10 @@ package body Concorde.Worlds.Models is
    Base_Sector_Width  : constant := 32.0;
    Base_Sector_Height : constant := 32.0;
 
-   type Colour_Element_Array is
-     array (Height_Range) of Lui.Colours.Colour_Byte;
+   type Color_Element_Array is
+     array (Height_Range) of Lui.Colors.Color_Byte;
 
-   Height_Red     : constant Colour_Element_Array :=
+   Height_Red     : constant Color_Element_Array :=
                       (0,
                        0, 0, 0, 0, 0, 0, 0, 34,
                        68, 102, 119, 136, 153, 170, 187, 0,
@@ -25,7 +25,7 @@ package body Concorde.Worlds.Models is
                        250, 245, 240, 235, 230, 225, 220, 215,
                        210, 205, 200, 195, 190, 185, 180, 175);
 
-   Height_Green   : constant Colour_Element_Array :=
+   Height_Green   : constant Color_Element_Array :=
                       (0,
                        0, 17, 51, 85, 119, 153, 204, 221,
                        238, 255, 255, 255, 255, 255, 255, 68,
@@ -34,7 +34,7 @@ package body Concorde.Worlds.Models is
                        250, 245, 240, 235, 230, 225, 220, 215,
                        210, 205, 200, 195, 190, 185, 180, 175);
 
-   Height_Blue    : constant Colour_Element_Array :=
+   Height_Blue    : constant Color_Element_Array :=
                       (0,
                        68, 102, 136, 170, 187, 221, 255, 255,
                        255, 255, 255, 255, 255, 255, 255, 0,
@@ -252,14 +252,14 @@ package body Concorde.Worlds.Models is
                             D_Start + D_X - 1;
                   Height      : constant Height_Range :=
                                   Model.World.Heights (D_Idx);
-                  Colour      : constant Lui.Colours.Colour_Type :=
-                                  Lui.Colours.To_Colour
+                  Color      : constant Lui.Colors.Color_Type :=
+                                  Lui.Colors.To_Color
                                     (Height_Red (Height),
                                      Height_Green (Height),
                                      Height_Blue (Height));
                begin
                   Renderer.Draw_Rectangle
-                    (X, Y, 1, 1, Colour, True);
+                    (X, Y, 1, 1, Color, True);
                end;
             end loop;
          end;
@@ -288,12 +288,12 @@ package body Concorde.Worlds.Models is
                                   Model.World.Sectors (Sector_Index);
                   Height      : constant Height_Range :=
                                   Sector.Height;
-                  Colour      : constant Lui.Colours.Colour_Type :=
-                                  Lui.Colours.To_Colour
+                  Color      : constant Lui.Colors.Color_Type :=
+                                  Lui.Colors.To_Color
                                     (Height_Red (Height),
                                      Height_Green (Height),
                                      Height_Blue (Height));
-                  Border_Colour : constant Lui.Colours.Colour_Type :=
+                  Border_Color : constant Lui.Colors.Color_Type :=
                                     (0.6, 0.6, 0.6, 0.5);
                begin
                   if False then
@@ -302,7 +302,7 @@ package body Concorde.Worlds.Models is
                         Y      => Row_Top,
                         W      => Sector_Width,
                         H      => Sector_Height,
-                        Colour => Colour,
+                        Color => Color,
                         Filled => True);
                   end if;
 
@@ -312,7 +312,7 @@ package body Concorde.Worlds.Models is
                         Y      => Row_Top,
                         W      => Sector_Width,
                         H      => Sector_Height,
-                        Colour => Border_Colour,
+                        Color => Border_Color,
                         Filled => False);
                   end if;
                   Model.Sectors.Append
@@ -334,7 +334,7 @@ package body Concorde.Worlds.Models is
                Y      => Highlight.Y,
                W      => Highlight.Width,
                H      => Highlight.Height,
-               Colour => (0.6, 0.6, 0.0, 1.0),
+               Color => (0.6, 0.6, 0.0, 1.0),
                Filled => False);
 
             declare
@@ -363,7 +363,7 @@ package body Concorde.Worlds.Models is
                              Target.Y + Target.Height / 2;
                begin
                   Renderer.Draw_Line
-                    (X1, Y1, X2, Y2, Lui.Colours.White, 1);
+                    (X1, Y1, X2, Y2, Lui.Colors.White, 1);
                end Draw_Connection;
 
             begin

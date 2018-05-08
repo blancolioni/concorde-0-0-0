@@ -77,10 +77,12 @@ package body Concorde.Worlds is
 
    procedure Add_Ship
      (World : in out Root_World_Type'Class;
-      Ship  : Concorde.Ships.Ship_Type)
+      Ship  : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
    is
    begin
-      World.Ships.Append (Ship);
+      World.Ships.Append
+        (Concorde.Ships.Ship_Type (Ship));
    end Add_Ship;
 
    ---------
@@ -590,7 +592,7 @@ package body Concorde.Worlds is
    procedure Scan_Ships
      (World   : Root_World_Type'Class;
       Process : not null access
-        procedure (Ship : Concorde.Ships.Ship_Type))
+        procedure (Ship  : Concorde.Ships.Ship_Type))
    is
    begin
       for Ship of World.Ships loop

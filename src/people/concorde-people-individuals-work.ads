@@ -16,7 +16,8 @@ package Concorde.People.Individuals.Work is
       return Concorde.Work.Work_Item;
 
    function Appoint_Trader_Captain
-     (Ship : Concorde.Ships.Ship_Type)
+     (Ship : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
       return Concorde.Work.Work_Item;
 
    procedure Perform_Work

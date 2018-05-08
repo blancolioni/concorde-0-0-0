@@ -1,6 +1,6 @@
 with Ada.Unchecked_Deallocation;
 
-with Lui.Colours;
+with Lui.Colors;
 
 with Concorde.Real_Images;
 
@@ -193,7 +193,7 @@ package body Concorde.Combat.Ship_Combat is
                   for Ship_Index of Team.Ships loop
                      declare
                         use Concorde.Ships;
-                        Ship : constant Ship_Type :=
+                        Ship : constant Vessel_Type :=
                                  Arena.Ships (Ship_Index).Ship;
                      begin
                         if Ship.Alive
@@ -518,7 +518,7 @@ package body Concorde.Combat.Ship_Combat is
                            Y1         => Beam_Y1,
                            X2         => Beam_X2,
                            Y2         => Beam_Y2,
-                           Colour     => (0.2, 0.9, 0.15, 1.0),
+                           Color     => (0.2, 0.9, 0.15, 1.0),
                            Line_Width => 1);
                      end;
                   when Kinetic =>
@@ -546,8 +546,8 @@ package body Concorde.Combat.Ship_Combat is
             use Concorde.Ships;
             Outline  : constant Lui.Rendering.Buffer_Points :=
                          Model.Ship_Outline (Combat_Ship);
-            Colour   : Lui.Colours.Colour_Type :=
-                         Combat_Ship.Ship.Owner.Colour;
+            Color   : Lui.Colors.Color_Type :=
+                         Combat_Ship.Ship.Owner.Color;
             X, Y     : Integer;
             Health_X : Integer;
             W        : constant Natural :=
@@ -558,11 +558,11 @@ package body Concorde.Combat.Ship_Combat is
             Shield_R2 : Natural := 0;
          begin
             if not Combat_Ship.Ship.Alive then
-               Colour.Alpha := 0.3;
+               Color.Alpha := 0.3;
             end if;
             Renderer.Draw_Polygon
               (Vertices => Outline,
-               Colour   => Colour,
+               Color   => Color,
                Filled   => True);
 
             Model.Ship_Centre (Combat_Ship, X, Y);
@@ -581,21 +581,21 @@ package body Concorde.Combat.Ship_Combat is
 
                declare
                   Base   : constant Unit_Real := 0.1 + Shields * 0.8;
-                  Colour : Lui.Colours.Colour_Type :=
+                  Color : Lui.Colors.Color_Type :=
                              (Lui.Unit_Real (Base),
                               Lui.Unit_Real (Base),
                               Lui.Unit_Real (Base),
                               1.0);
                begin
                   if Combat_Ship.Hit then
-                     Colour := (1.0, 1.0, 1.0, 1.0);
+                     Color := (1.0, 1.0, 1.0, 1.0);
                   end if;
                   Renderer.Draw_Ellipse
                     (X          => X,
                      Y          => Y,
                      R1         => Shield_R1 + 2,
                      R2         => Shield_R2 + 2,
-                     Colour     => Colour,
+                     Color     => Color,
                      Filled     => False,
                      Line_Width => 1);
                end;
@@ -645,7 +645,7 @@ package body Concorde.Combat.Ship_Combat is
                                 (X          => X,
                                  Y          => Y,
                                  Radius     => Radius,
-                                 Colour     => (0.89, 0.34, 0.13,
+                                 Color     => (0.89, 0.34, 0.13,
                                                 Lui.Unit_Real (Alpha)),
                                  Filled     => True,
                                  Line_Width => 1);
@@ -680,7 +680,7 @@ package body Concorde.Combat.Ship_Combat is
                      Renderer.Draw_Rectangle
                        (Charge_X, Charge_Y,
                         Width, Charge_Bar_Height,
-                     Colour => (0.0, 1.0, 1.0, 1.0),
+                     Color => (0.0, 1.0, 1.0, 1.0),
                         Filled => True);
                   end;
 
@@ -695,7 +695,7 @@ package body Concorde.Combat.Ship_Combat is
             use type Concorde.Factions.Faction_Type;
          begin
             Renderer.Draw_String
-              (10, 10, 16, Lui.Colours.White,
+              (10, 10, 16, Lui.Colors.White,
                (if Model.Winner /= null
                 then "Victory to " & Model.Winner.Name
                 else "The battle continues"));

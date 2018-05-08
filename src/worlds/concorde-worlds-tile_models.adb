@@ -2,7 +2,7 @@ with Ada.Calendar;
 with Ada.Characters.Handling;
 with Ada.Containers.Vectors;
 
-with Lui.Colours;
+with Lui.Colors;
 with Lui.Models.Model_3D;
 with Lui.Tables;
 
@@ -24,10 +24,10 @@ package body Concorde.Worlds.Tile_Models is
 
    Current_Map_Mode : Map_Mode_Type := Height_Mode;
 
-   type Colour_Element_Array is
-     array (Height_Range) of Lui.Colours.Colour_Byte;
+   type Color_Element_Array is
+     array (Height_Range) of Lui.Colors.Color_Byte;
 
-   Height_Red     : constant Colour_Element_Array :=
+   Height_Red     : constant Color_Element_Array :=
                       (0,
                        0, 0, 0, 0, 0, 0, 0, 34,
                        68, 102, 119, 136, 153, 170, 187, 0,
@@ -36,7 +36,7 @@ package body Concorde.Worlds.Tile_Models is
                        250, 245, 240, 235, 230, 225, 220, 215,
                        210, 205, 200, 195, 190, 185, 180, 175);
 
-   Height_Green   : constant Colour_Element_Array :=
+   Height_Green   : constant Color_Element_Array :=
                       (0,
                        0, 17, 51, 85, 119, 153, 204, 221,
                        238, 255, 255, 255, 255, 255, 255, 68,
@@ -45,7 +45,7 @@ package body Concorde.Worlds.Tile_Models is
                        250, 245, 240, 235, 230, 225, 220, 215,
                        210, 205, 200, 195, 190, 185, 180, 175);
 
-   Height_Blue    : constant Colour_Element_Array :=
+   Height_Blue    : constant Color_Element_Array :=
                       (0,
                        68, 102, 136, 170, 187, 221, 255, 255,
                        255, 255, 255, 255, 255, 255, 255, 0,
@@ -55,7 +55,7 @@ package body Concorde.Worlds.Tile_Models is
                        210, 205, 200, 195, 190, 185, 180, 175);
 
    type Temperature_Palette_Array is
-     array (250 .. 339, 1 .. 3) of Lui.Colours.Colour_Byte;
+     array (250 .. 339, 1 .. 3) of Lui.Colors.Color_Byte;
 
    Temperature_Palette : constant Temperature_Palette_Array :=
                            ((255, 14, 240),
@@ -149,7 +149,7 @@ package body Concorde.Worlds.Tile_Models is
                             (4, 0, 255),
                             (5, 0, 255));
 
-   Selected_Colour : constant Lui.Colours.Colour_Type :=
+   Selected_Color : constant Lui.Colors.Color_Type :=
                        (0.8, 0.7, 0.1, 0.5);
 
    Sector_Column_Count : constant := 2;
@@ -743,7 +743,7 @@ package body Concorde.Worlds.Tile_Models is
 
       procedure Draw_Tile
         (Index  : Surface_Tile_Index;
-         Colour : Lui.Colours.Colour_Type);
+         Color : Lui.Colors.Color_Type);
 
       ---------------
       -- Draw_Tile --
@@ -751,7 +751,7 @@ package body Concorde.Worlds.Tile_Models is
 
       procedure Draw_Tile
         (Index  : Surface_Tile_Index;
-         Colour : Lui.Colours.Colour_Type)
+         Color : Lui.Colors.Color_Type)
       is
          Boundary : constant Tile_Vertex_Array :=
                       Surface.Tile_Boundary (Index);
@@ -763,7 +763,7 @@ package body Concorde.Worlds.Tile_Models is
                        else 1.0 + Real (Height) / 1000.0);
       begin
          Model.Begin_Object (Positive (Index));
-         Model.Begin_Surface (Colour);
+         Model.Begin_Surface (Color);
          for V of Boundary loop
             Model.Vertex (V * Factor);
          end loop;
@@ -776,7 +776,7 @@ package body Concorde.Worlds.Tile_Models is
       Model.Rotate_Y (Model.Rotation);
 
       if Model.Selected_Sector /= 0 then
-         Draw_Tile (Model.Selected_Sector, Selected_Colour);
+         Draw_Tile (Model.Selected_Sector, Selected_Color);
       end if;
 
       for I in 1 .. Surface.Tile_Count loop
@@ -797,13 +797,13 @@ package body Concorde.Worlds.Tile_Models is
                                Integer'Min
                                  (Temperature_Palette'Last (1),
                                   Integer (Ave_Temp)));
-            Temp_Colour : constant Lui.Colours.Colour_Type :=
-                            Lui.Colours.To_Colour
+            Temp_Color : constant Lui.Colors.Color_Type :=
+                            Lui.Colors.To_Color
                               (Temperature_Palette (Int_Temp, 1),
                                Temperature_Palette (Int_Temp, 2),
                                Temperature_Palette (Int_Temp, 3));
-            Height_Colour : constant Lui.Colours.Colour_Type :=
-                              Lui.Colours.To_Colour
+            Height_Color : constant Lui.Colors.Color_Type :=
+                              Lui.Colors.To_Color
                                 (Height_Red (Height),
                                  Height_Green (Height),
                                  Height_Blue (Height));
@@ -816,21 +816,21 @@ package body Concorde.Worlds.Tile_Models is
                 (if not Model.World.Sectors (I).Installations.Is_Empty
                  then Model.World.Owner
                  else null);
-            Colour     : constant Lui.Colours.Colour_Type :=
+            Color     : constant Lui.Colors.Color_Type :=
                            (case Current_Map_Mode is
                                when Height_Mode      =>
                               (if Feature /= null
-                               then Feature.Colour
+                               then Feature.Color
                                elsif Terrain /= null
-                               then Terrain.Colour
-                               else Height_Colour),
+                               then Terrain.Color
+                               else Height_Color),
                                when Temperature_Mode =>
-                                  Temp_Colour);
+                                  Temp_Color);
          begin
             if Owner /= null then
-               Draw_Tile (I, Lui.Colours.Apply_Alpha (Owner.Colour, 0.8));
+               Draw_Tile (I, Lui.Colors.Apply_Alpha (Owner.Color, 0.8));
             end if;
-            Draw_Tile (I, Colour);
+            Draw_Tile (I, Color);
          end;
       end loop;
 

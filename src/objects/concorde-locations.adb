@@ -2,9 +2,6 @@ with Ada.Exceptions;
 with Ada.Numerics;
 with Ada.Text_IO;
 
-with Xi.Float_Arrays;
-with Xi.Float_Images;
-
 with Concorde.Constants;
 with Concorde.Solar_System;
 with Concorde.Elementary_Functions;
@@ -160,13 +157,13 @@ package body Concorde.Locations is
       Time      : Concorde.Calendar.Time)
       return System_Point_Location
    is
-      use Xi.Float_Arrays;
+      use Concorde.Vectors;
       Primary_Position : constant Object_Location :=
                            To_System_Point
                              (Located_Interface'Class
                                 (Orbit_Loc.Reference.all).Location_At (Time),
                               Time);
-      Orbit_Position   : constant Newton.Vector_3 :=
+      Orbit_Position   : constant Concorde.Vectors.Vector_3 :=
                            Primary_Relative_Position
                              (Orbit_Loc, Time);
    begin
@@ -208,12 +205,12 @@ package body Concorde.Locations is
          end if;
 
          declare
-            use Xi.Float_Arrays;
+            use Concorde.Vectors;
             Start_Loc  : constant Object_Location :=
                            To_System_Point (Start, Concorde.Calendar.Clock);
             Finish_Loc : constant Object_Location :=
                            To_System_Point (Finish, Concorde.Calendar.Clock);
-            Position   : constant Newton.Vector_3 :=
+            Position   : constant Concorde.Vectors.Vector_3 :=
                            Start_Loc.Relative_Position
                              + Progress * (Finish_Loc.Relative_Position
                                            - Start_Loc.Relative_Position);
@@ -308,16 +305,13 @@ package body Concorde.Locations is
               (Location.Destination_System).Name;
          when System_Point =>
             declare
-               use Xi.Float_Arrays;
+               use Concorde.Vectors;
             begin
                return Concorde.Real_Images.Approximate_Image
                  (abs (Location.Relative_Position
                   / Concorde.Solar_System.Earth_Orbit))
                  & " AU from "
-                 & Location.Reference.Identifier
-                 & Xi.Float_Images.Image
-                 (Location.Relative_Position
-                  / Concorde.Solar_System.Earth_Orbit);
+                 & Location.Reference.Identifier;
             end;
          when Orbit =>
             return "orbiting "
@@ -328,8 +322,7 @@ package body Concorde.Locations is
               & Concorde.Worlds.World_Type (Location.Reference).Name;
          when On_Ship =>
             return "on "
-              & Concorde.Ships.Ship_Type
-              (Location.Reference).Short_Description;
+              & Concorde.Ships.Ship_Type (Location.Reference).Name;
          when At_Installation =>
             return "at "
               & Concorde.Installations.Installation_Type
@@ -357,12 +350,12 @@ package body Concorde.Locations is
    function Orbit
      (Primary        : not null access constant
         Concorde.Objects.Massive_Object_Interface'Class;
-      Position       : Newton.Vector_3;
-      Velocity       : Newton.Vector_3)
+      Position       : Concorde.Vectors.Vector_3;
+      Velocity       : Concorde.Vectors.Vector_3)
       return Object_Location
    is
       pragma Unreferenced (Velocity);
-      use Newton.Matrices;
+      use Concorde.Vectors;
       use Concorde.Elementary_Functions;
       Pi : constant := Ada.Numerics.Pi;
       Radius : constant Non_Negative_Real := abs Position;
@@ -436,14 +429,14 @@ package body Concorde.Locations is
    function Primary_Relative_Position
      (Location : Object_Location;
       Time     : Concorde.Calendar.Time)
-      return Newton.Vector_3
+      return Concorde.Vectors.Vector_3
    is
    begin
       if Location.Loc_Type = System_Point then
          return Location.Relative_Position;
       else
          declare
-            use Newton.Matrices;
+            use Concorde.Vectors;
             use type Concorde.Calendar.Time;
             use Concorde.Geometry;
             R            : constant Non_Negative_Real :=
@@ -478,7 +471,7 @@ package body Concorde.Locations is
               (Location.Destination_System).Name;
          when System_Point =>
             declare
-               use Xi.Float_Arrays;
+               use Concorde.Vectors;
             begin
                return Concorde.Real_Images.Approximate_Image
                  (abs (Location.Relative_Position
@@ -487,16 +480,27 @@ package body Concorde.Locations is
                  & Location.Reference.Identifier;
             end;
          when Orbit =>
-            return "orbiting "
-              & Concorde.Systems.Star_System_Object_Interface'Class
-              (Location.Reference.all).Name;
+            declare
+               use Concorde.Vectors;
+               Obj : Concorde.Systems.Star_System_Object_Interface'Class
+               renames Concorde.Systems.Star_System_Object_Interface'Class
+                 (Location.Reference.all);
+            begin
+               return "orbiting "
+                 & Obj.Name
+                 & "at"
+                 & Natural'Image
+                 (Natural
+                    ((abs (Location.Apoapsis) - Obj.Radius) / 1000.0))
+                 & "km";
+            end;
+
          when World_Surface =>
             return "on "
               & Concorde.Worlds.World_Type (Location.Reference).Name;
          when On_Ship =>
             return "on "
-              & Concorde.Ships.Ship_Type
-              (Location.Reference).Short_Description;
+              & Concorde.Ships.Ship_Type (Location.Reference).Name;
          when At_Installation =>
             return "at "
               & Concorde.Installations.Installation_Type
@@ -516,7 +520,7 @@ package body Concorde.Locations is
      (From, To : Object_Location)
       return Non_Negative_Real
    is
-      use Xi.Float_Arrays;
+      use Concorde.Vectors;
       pragma Assert (From in System_Point_Location);
       pragma Assert (To in System_Point_Location);
    begin
@@ -530,8 +534,8 @@ package body Concorde.Locations is
    function System_Point
      (System            : not null access constant
         Concorde.Systems.Root_Star_System_Type'Class;
-      Relative_Position : Newton.Vector_3;
-      Relative_Velocity : Newton.Vector_3)
+      Relative_Position : Concorde.Vectors.Vector_3;
+      Relative_Velocity : Concorde.Vectors.Vector_3)
       return Object_Location
    is
    begin
@@ -546,7 +550,7 @@ package body Concorde.Locations is
    function System_Relative_Position
      (Located  : Located_Interface'Class;
       Time     : Concorde.Calendar.Time)
-      return Newton.Vector_3
+      return Concorde.Vectors.Vector_3
    is
    begin
       return To_System_Point (Located.Location_At (Time), Time)
@@ -560,7 +564,7 @@ package body Concorde.Locations is
    function System_Relative_Position
      (Location : Object_Location;
       Time     : Concorde.Calendar.Time)
-      return Newton.Vector_3
+      return Concorde.Vectors.Vector_3
    is
    begin
       return To_System_Point (Location, Time).Relative_Position;
@@ -575,7 +579,7 @@ package body Concorde.Locations is
         Concorde.Systems.Root_Star_System_Type'Class)
       return Object_Location
    is
-      use Xi.Float_Arrays;
+      use Concorde.Vectors;
       Star : constant Concorde.Stars.Star_Type :=
                Concorde.Stars.Star_Type
                  (From_System.Main_Object);
@@ -588,9 +592,9 @@ package body Concorde.Locations is
       Y2       : constant Real := To_System.Y;
       Z1       : constant Real := From_System.Z;
       Z2       : constant Real := To_System.Z;
-      V        : constant Real_Vector :=
+      V        : constant Vector_3 :=
                    (X1, Y1, Z1) - (X2, Y2, Z2);
-      U        : constant Real_Vector := V / abs V;
+      U        : constant Vector_3 := V / abs V;
    begin
 
       return System_Point
@@ -621,13 +625,13 @@ package body Concorde.Locations is
             return Loc;
          when Orbit =>
             declare
-               use Xi.Float_Arrays;
+               use Concorde.Vectors;
                Primary_Position : constant Object_Location :=
                                     To_System_Point
                                       (Located_Interface'Class
                                          (Loc.Reference.all).Current_Location,
                                        Time);
-               Orbit_Position   : constant Newton.Vector_3 :=
+               Orbit_Position   : constant Concorde.Vectors.Vector_3 :=
                                     Primary_Relative_Position
                                       (Loc, Time);
             begin

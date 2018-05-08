@@ -2,56 +2,56 @@ imperium = {
    name = Imperium
    adjective = Imperial
    capital = "Byzantium Secundus"
-   colour = { 102 2 60 }
+   color = { 102 2 60 }
    }
 
 musitello = {
    name = Musitello
    capital = Aramael
-   colour = { 106 90 205 }
+   color = { 106 90 205 }
 }
 
 atreides = {
    name = Atreides
    capital = Caladan
-   colour = { 255 144 30 }
+   color = { 255 144 30 }
 }
 
 harkonnen = {
    name = Harkonnen
    capital = "Geidi Prime"
-   colour = { 102 102 20 }
+   color = { 102 102 20 }
 }
 
 corrino = {
    name = Corrino
    capital = Kaitan
-   colour = { 144 255 30 }
+   color = { 144 255 30 }
 }
 
 paleologos = {
    name = Paleologos
    adjective = Paleologian
    capital = Constantinople
-   colour = { 0 120 0 }
+   color = { 0 120 0 }
 }
 
 komnenos = {
    name = Komnenos
    adjective = Komnenon
    capital = Antioch
-   colour = { 135 206 250 }
+   color = { 135 206 250 }
 }
 
 hapsburg = {
    name = Hapsburg
    capital = Vienna
-   colour = { 192 41 66 }
+   color = { 192 41 66 }
 }
 
 plantagent = {
    name = Plantagenet
    capital = London
-   colour = { 229 252 194 }
+   color = { 229 252 194 }
 }
 

@@ -25,26 +25,26 @@ package body Concorde.Generate.Surfaces is
      (Surface : in out Surface_Type'Class;
       Frequency       : Surface_Frequency);
 
-   Colour_Heights : constant Positive := 49;
+   Color_Heights : constant Positive := 49;
    Ocean_Heights  : constant Positive := 16;
 
-   type Colour_Element_Array is array (1 .. Colour_Heights) of Natural;
+   type Color_Element_Array is array (1 .. Color_Heights) of Natural;
 
-   Height_Red     : constant Colour_Element_Array :=
+   Height_Red     : constant Color_Element_Array :=
                       (0, 0, 0, 0, 0, 0, 0, 0, 34, 68,
                        102, 119, 136, 153, 170, 187, 0, 34, 34, 119,
                        187, 255, 238, 221, 204, 187, 170, 153, 136, 119,
                        85, 68, 255, 250, 245, 240, 235, 230, 225, 220,
                        215, 210, 205, 200, 195, 190, 185, 180, 175);
 
-   Height_Green   : constant Colour_Element_Array :=
+   Height_Green   : constant Color_Element_Array :=
                       (0, 0, 17, 51, 85, 119, 153, 204, 221, 238,
                        255, 255, 255, 255, 255, 255, 68, 102, 136, 170,
                        221, 187, 170, 136, 136, 102, 85, 85, 68, 51,
                        51, 34, 255, 250, 245, 240, 235, 230, 225, 220,
                        215, 210, 205, 200, 195, 190, 185, 180, 175);
 
-   Height_Blue    : constant Colour_Element_Array :=
+   Height_Blue    : constant Color_Element_Array :=
                       (0, 68, 102, 136, 170, 187, 221, 255, 255, 255,
                        255, 255, 255, 255, 255, 255, 0, 0, 0, 0,
                        0, 34, 34, 34, 34, 34, 34, 34, 34, 34,
@@ -738,16 +738,16 @@ package body Concorde.Generate.Surfaces is
             declare
                Index : constant Positive := Surface.Detail (X, Y);
 --                           (Surface.Detail (X, Y) - Height_Min)
---                           * Colour_Heights
+--                           * Color_Heights
 --                           / (Height_Max - Height_Min + 1) + 1;
                R     : constant Natural := Height_Red (Index);
                G     : constant Natural := Height_Green (Index);
                B     : constant Natural := Height_Blue (Index);
             begin
-               Set_Colour (BM, X - 1, Surface.Detail_Down - Y,
-                           (Colour_Element (B),
-                            Colour_Element (G),
-                            Colour_Element (R),
+               Set_Color (BM, X - 1, Surface.Detail_Down - Y,
+                           (Color_Element (B),
+                            Color_Element (G),
+                            Color_Element (R),
                             255));
             end;
          end loop;

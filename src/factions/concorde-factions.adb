@@ -321,16 +321,16 @@ package body Concorde.Factions is
    end Clear_System_Flags;
 
    ------------
-   -- Colour --
+   -- Color --
    ------------
 
-   function Colour
+   function Color
      (Faction : Root_Faction_Type'Class)
-      return Lui.Colours.Colour_Type
+      return Lui.Colors.Color_Type
    is
    begin
-      return Faction.Colour;
-   end Colour;
+      return Faction.Color;
+   end Color;
 
    ---------------------------
    -- Current_Effectiveness --

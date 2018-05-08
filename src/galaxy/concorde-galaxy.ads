@@ -1,4 +1,3 @@
-with Concorde.Combat.Ship_Combat;
 with Concorde.Systems.Graphs;
 
 with Concorde.Worlds;
@@ -96,35 +95,6 @@ package Concorde.Galaxy is
      (To           : in out Star_System_Set;
       Start        : Concorde.Systems.Star_System_Type;
       Max_Distance : Non_Negative_Real);
-
-   procedure Clear_Battles;
-
-   procedure Add_Battle
-     (Arena : Concorde.Combat.Ship_Combat.Space_Combat_Arena);
-
-   function Battle_Count return Natural;
-
-   function Get_Battle
-     (Index : Positive)
-      return Concorde.Combat.Ship_Combat.Space_Combat_Arena;
-
-   procedure Complete_Battle
-     (Arena : not null access
-        Concorde.Combat.Root_Combat_Arena'Class);
-
-   procedure Complete_Battles;
-
-   type Battle_Manager_Interface is interface;
-
-   procedure On_Battle_End
-     (Manager : in out Battle_Manager_Interface;
-      Battle  : not null access Concorde.Combat.Root_Combat_Arena'Class)
-   is abstract;
-
-   type Battle_Manager is access all Battle_Manager_Interface'Class;
-
-   procedure Set_Battle_Manager
-     (Manager : Battle_Manager);
 
    function Capital_World return Concorde.Worlds.World_Type;
 

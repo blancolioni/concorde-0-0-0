@@ -251,7 +251,8 @@ package Concorde.Worlds is
 
    procedure Add_Ship
      (World : in out Root_World_Type'Class;
-      Ship  : Concorde.Ships.Ship_Type);
+      Ship  : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class);
 
    procedure Get_Ships
      (World : Root_World_Type'Class;
@@ -269,7 +270,7 @@ package Concorde.Worlds is
    procedure Scan_Ships
      (World   : Root_World_Type'Class;
       Process : not null access
-        procedure (Ship : Concorde.Ships.Ship_Type));
+        procedure (Ship  : Concorde.Ships.Ship_Type));
 
    procedure Scan_Pops
      (World : Root_World_Type'Class;

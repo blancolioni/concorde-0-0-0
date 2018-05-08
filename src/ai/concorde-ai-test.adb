@@ -30,7 +30,7 @@ package body Concorde.AI.Test is
 
    overriding procedure Order_Ship
      (AI : in out Root_Test_AI_Type;
-      Ship : not null access Concorde.Ships.Root_Ship_Type'Class);
+      Ship : not null access Concorde.Ships.Root_Vessel_Type'Class);
 
    overriding procedure Start
      (AI     : in out Root_Test_AI_Type;
@@ -463,7 +463,7 @@ package body Concorde.AI.Test is
 
    overriding procedure Order_Ship
      (AI : in out Root_Test_AI_Type;
-      Ship : not null access Concorde.Ships.Root_Ship_Type'Class)
+      Ship : not null access Concorde.Ships.Root_Vessel_Type'Class)
    is
 
       procedure Choose_Destination

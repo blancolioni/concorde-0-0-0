@@ -18,11 +18,13 @@ package Concorde.Xi_UI.Ships is
 
    procedure Add_Ship
      (Model : in out Ship_Summary_Model_Record;
-      Ship  : not null access constant Concorde.Ships.Root_Ship_Type'Class);
+      Ship  : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class);
 
    procedure Remove_Ship
      (Model : in out Ship_Summary_Model_Record;
-      Ship  : not null access constant Concorde.Ships.Root_Ship_Type'Class);
+      Ship  : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class);
 
    function Ships_Overlay
      (Model : Ship_Summary_Model)
@@ -39,7 +41,7 @@ private
    overriding function To_String
      (Value : Ship_Value)
       return String
-   is (Value.Ship.Short_Description);
+   is (Value.Ship.Name);
 
    type Ship_Summary_Model_Record is
      new Xtk.Grids.Models.List_Model.Xtk_List_Model_Record with null record;

@@ -1,9 +1,9 @@
 package body Concorde.Worlds.Tables is
 
-   type Colour_Element_Array is
-     array (Height_Range) of Lui.Colours.Colour_Byte;
+   type Color_Element_Array is
+     array (Height_Range) of Lui.Colors.Color_Byte;
 
-   Height_Red     : constant Colour_Element_Array :=
+   Height_Red     : constant Color_Element_Array :=
                       (0,
                        0, 0, 0, 0, 0, 0, 0, 34,
                        68, 102, 119, 136, 153, 170, 187, 0,
@@ -12,7 +12,7 @@ package body Concorde.Worlds.Tables is
                        250, 245, 240, 235, 230, 225, 220, 215,
                        210, 205, 200, 195, 190, 185, 180, 175);
 
-   Height_Green   : constant Colour_Element_Array :=
+   Height_Green   : constant Color_Element_Array :=
                       (0,
                        0, 17, 51, 85, 119, 153, 204, 221,
                        238, 255, 255, 255, 255, 255, 255, 68,
@@ -21,7 +21,7 @@ package body Concorde.Worlds.Tables is
                        250, 245, 240, 235, 230, 225, 220, 215,
                        210, 205, 200, 195, 190, 185, 180, 175);
 
-   Height_Blue    : constant Colour_Element_Array :=
+   Height_Blue    : constant Color_Element_Array :=
                       (0,
                        68, 102, 136, 170, 187, 221, 255, 255,
                        255, 255, 255, 255, 255, 255, 255, 0,
@@ -31,7 +31,7 @@ package body Concorde.Worlds.Tables is
                        210, 205, 200, 195, 190, 185, 180, 175);
 
    type Temperature_Palette_Array is
-     array (250 .. 339, 1 .. 3) of Lui.Colours.Colour_Byte;
+     array (250 .. 339, 1 .. 3) of Lui.Colors.Color_Byte;
 
    Temperature_Palette : constant Temperature_Palette_Array :=
                            ((255, 14, 240),
@@ -126,30 +126,30 @@ package body Concorde.Worlds.Tables is
                             (5, 0, 255));
 
    -------------------
-   -- Height_Colour --
+   -- Height_Color --
    -------------------
 
-   function Height_Colour
+   function Height_Color
      (Height : Height_Range)
-      return Lui.Colours.Colour_Type
+      return Lui.Colors.Color_Type
    is
    begin
-      return Colour : Lui.Colours.Colour_Type do
-         Colour := Lui.Colours.To_Colour
+      return Color : Lui.Colors.Color_Type do
+         Color := Lui.Colors.To_Color
            (Height_Red (Height),
             Height_Green (Height),
             Height_Blue (Height));
       end return;
 
-   end Height_Colour;
+   end Height_Color;
 
    ------------------------
-   -- Temperature_Colour --
+   -- Temperature_Color --
    ------------------------
 
-   function Temperature_Colour
+   function Temperature_Color
      (Temperature : Non_Negative_Real)
-      return Lui.Colours.Colour_Type
+      return Lui.Colors.Color_Type
    is
       Int_Temp    : constant Integer :=
                       Integer'Max
@@ -157,13 +157,13 @@ package body Concorde.Worlds.Tables is
                          Integer'Min
                            (Temperature_Palette'Last (1),
                             Integer (Temperature)));
-      Temp_Colour : constant Lui.Colours.Colour_Type :=
-                      Lui.Colours.To_Colour
+      Temp_Color : constant Lui.Colors.Color_Type :=
+                      Lui.Colors.To_Color
                         (Temperature_Palette (Int_Temp, 1),
                          Temperature_Palette (Int_Temp, 2),
                          Temperature_Palette (Int_Temp, 3));
    begin
-      return Temp_Colour;
-   end Temperature_Colour;
+      return Temp_Color;
+   end Temperature_Color;
 
 end Concorde.Worlds.Tables;

@@ -38,7 +38,8 @@ package body Concorde.Systems is
 
    procedure Add_Ship
      (System : in out Root_Star_System_Type'Class;
-      Ship   : Concorde.Ships.Ship_Type)
+      Ship   : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
    is
    begin
       System.Ships.Append (Ship);
@@ -77,13 +78,14 @@ package body Concorde.Systems is
 
    procedure Arriving
      (System : in out Root_Star_System_Type'Class;
-      Ship   : Concorde.Ships.Ship_Type;
+      Ship   : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class;
       Time   : Concorde.Calendar.Time)
    is
       Event : Ship_Event;
    begin
       Event.Set_Time_Stamp (Time);
-      Event.Ship := Ship;
+      Event.Ship := Concorde.Ships.Ship_Type (Ship);
       System.Signal
         (Signal_Ship_Arrived, Event);
    end Arriving;
@@ -129,13 +131,14 @@ package body Concorde.Systems is
 
    function Create_Ship_Event
      (Time_Stamp : Concorde.Calendar.Time;
-      Ship       : Concorde.Ships.Ship_Type)
+      Ship   : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
       return Concorde.Events.Root_Event_Type'Class
    is
    begin
       return Event : Ship_Event do
          Event.Set_Time_Stamp (Time_Stamp);
-         Event.Ship := Ship;
+         Event.Ship := Concorde.Ships.Ship_Type (Ship);
       end return;
    end Create_Ship_Event;
 
@@ -145,13 +148,14 @@ package body Concorde.Systems is
 
    procedure Departing
      (System : in out Root_Star_System_Type'Class;
-      Ship   : Concorde.Ships.Ship_Type;
+      Ship   : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class;
       Time   : Concorde.Calendar.Time)
    is
       Event : Ship_Event;
    begin
       Event.Set_Time_Stamp (Time);
-      Event.Ship := Ship;
+      Event.Ship := Concorde.Ships.Ship_Type (Ship);
       System.Signal
         (Signal_Ship_Departed, Event);
    end Departing;
@@ -216,15 +220,15 @@ package body Concorde.Systems is
    function Jump_Arrival_Point
      (Arrival_System   : Root_Star_System_Type'Class;
       Departure_System : not null access Root_Star_System_Type'Class)
-      return Newton.Vector_3
+      return Concorde.Vectors.Vector_3
    is
-      use Newton.Matrices;
-      Start  : constant Newton.Vector_3 :=
+      use Concorde.Vectors;
+      Start  : constant Concorde.Vectors.Vector_3 :=
                  (Departure_System.X, Departure_System.Y, Departure_System.Z);
-      Finish : constant Newton.Vector_3 :=
+      Finish : constant Concorde.Vectors.Vector_3 :=
                  (Arrival_System.X, Arrival_System.Y, Arrival_System.Z);
 
-      Vector : constant Newton.Vector_3 := abs (Start - Finish);
+      Vector : constant Concorde.Vectors.Vector_3 := abs (Start - Finish);
       Distance : constant Non_Negative_Real :=
                    Arrival_System.Main_Object.Mass
                      / Concorde.Solar_System.Solar_Mass
@@ -240,15 +244,15 @@ package body Concorde.Systems is
    function Jump_Departure_Point
      (From : Root_Star_System_Type'Class;
       To   : not null access Root_Star_System_Type'Class)
-      return Newton.Vector_3
+      return Concorde.Vectors.Vector_3
    is
-      use Newton.Matrices;
-      Start  : constant Newton.Vector_3 :=
+      use Concorde.Vectors;
+      Start  : constant Concorde.Vectors.Vector_3 :=
                  (From.X, From.Y, From.Z);
-      Finish : constant Newton.Vector_3 :=
+      Finish : constant Concorde.Vectors.Vector_3 :=
                  (To.X, To.Y, To.Z);
 
-      Vector : constant Newton.Vector_3 := abs (Finish - Start);
+      Vector : constant Concorde.Vectors.Vector_3 := abs (Finish - Start);
       Distance : constant Non_Negative_Real :=
                    From.Main_Object.Mass
                      / Concorde.Solar_System.Solar_Mass
@@ -392,7 +396,7 @@ package body Concorde.Systems is
 
 --     function Primary_Relative_Position
 --       (Object : Star_System_Object_Interface'Class)
---        return Newton.Vector_3
+--        return Concorde.Vectors.Vector_3
 --     is
 --        use Newton.Matrices;
 --        use Concorde.Geometry;
@@ -430,14 +434,13 @@ package body Concorde.Systems is
 
    procedure Remove_Ship
      (System : in out Root_Star_System_Type'Class;
-      Ship   : Concorde.Ships.Ship_Type)
+      Ship   : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
    is
       use Concorde.Ships.Lists;
       Position : Cursor := System.Ships.Find (Ship);
    begin
-      pragma Assert (Has_Element (Position),
-                     "could not find ship " & Ship.Name
-                     & " at " & System.Name);
+      pragma Assert (Has_Element (Position));
       System.Ships.Delete (Position);
    end Remove_Ship;
 

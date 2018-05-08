@@ -102,12 +102,14 @@ package body Concorde.People.Individuals.Work is
    ----------------------------
 
    function Appoint_Trader_Captain
-     (Ship : Concorde.Ships.Ship_Type)
+     (Ship : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
       return Concorde.Work.Work_Item
    is
    begin
       return new Appoint_Trader_Captain_Work_Item'
-        (Concorde.Work.Root_Work_Item with Ship => Ship);
+        (Concorde.Work.Root_Work_Item with
+           Ship => Concorde.Ships.Ship_Type (Ship));
    end Appoint_Trader_Captain;
 
    --------------------

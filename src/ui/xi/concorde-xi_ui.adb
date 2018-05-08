@@ -467,7 +467,7 @@ package body Concorde.Xi_UI is
       use type Xi.Xi_Float;
       use Xi.Matrices, Xi.Float_Arrays;
       Class : Root_Xi_Model'Class renames Root_Xi_Model'Class (Model);
-      Translation : Vector_3 := (0.0, 0.0, 0.0);
+      Translation : Xi.Matrices.Vector_3 := (0.0, 0.0, 0.0);
       Yaw         : Xi.Xi_Float := 0.0;
       Pitch       : Xi.Xi_Float := 0.0;
    begin

@@ -7,7 +7,7 @@ with Concorde.Configure;
 with Concorde.Powers.Configure;
 with Concorde.Factions.Create;
 
-with Lui.Colours;
+with Lui.Colors.Config;
 
 with Concorde.Laws.Configure;
 
@@ -46,20 +46,13 @@ package body Concorde.Factions.Configure is
                      Config.Get ("name", Config.Config_Name);
             Capital : constant String :=
                         Config.Get ("capital", Name);
-            Colour  : constant Tropos.Configuration :=
-                        Config.Child ("colour");
-            Red     : constant Natural := Colour.Get (1);
-            Green   : constant Natural := Colour.Get (2);
-            Blue    : constant Natural := Colour.Get (3);
             Faction : constant Faction_Type :=
                         Concorde.Factions.Create.New_Faction
                           (Name    => Name,
                            Capital => Capital,
-                           Colour  =>
-                             Lui.Colours.To_Colour
-                               (Lui.Colours.Colour_Byte (Red),
-                                Lui.Colours.Colour_Byte (Green),
-                                Lui.Colours.Colour_Byte (Blue)),
+                           Color  =>
+                             Lui.Colors.Config.Configure_Color
+                               (Config, "color"),
                            Default_Ship_Design =>
                              Config.Get ("design", "defender"));
             House_Ministry : constant Concorde.Ministries.Ministry_Type :=

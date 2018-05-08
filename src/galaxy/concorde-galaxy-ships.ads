@@ -11,7 +11,7 @@ package Concorde.Galaxy.Ships is
    procedure Commit_Ship_Moves;
 
    function Can_Move_To
-     (Ship : Concorde.Ships.Root_Ship_Type'Class;
+     (Ship : Concorde.Ships.Root_Vessel_Type'Class;
       Destination : Concorde.Systems.Star_System_Type)
       return Boolean;
 
