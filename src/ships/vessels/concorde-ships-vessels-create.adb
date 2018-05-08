@@ -1,6 +1,7 @@
+with Xi.Float_Images;
+
 with WL.Money;
 
-with Concorde.Factions.Logging;
 with Concorde.Roman_Images;
 
 package body Concorde.Ships.Vessels.Create is
@@ -31,7 +32,10 @@ package body Concorde.Ships.Vessels.Create is
          use WL.Quantities;
 
          Design : constant Concorde.Ships.Designs.Design_Type :=
-                    Concorde.Ships.Designs.Get (Design_Name);
+                    (if Concorde.Ships.Designs.Exists (Design_Name)
+                     then Concorde.Ships.Designs.Get (Design_Name)
+                     else raise Constraint_Error with
+                       "no such ship design: " & Design_Name);
       begin
          Vessel.New_Agent
            (Location       =>
@@ -40,6 +44,8 @@ package body Concorde.Ships.Vessels.Create is
             Market         => World.Market,
             Cash           => WL.Money.To_Money (1_000_000.0),
             Stock_Capacity => Design.Cargo_Capacity);
+
+         Vessel.Design := Design;
 
          if Name = "" then
             if Suffix = 0 then
@@ -62,6 +68,14 @@ package body Concorde.Ships.Vessels.Create is
          Vessel.Set_Guarantor (Owner);
          Vessel.Is_Alive := True;
 
+         for I in 1 .. Vessel.Design.Get_Module_Count loop
+            Vessel.Modules.Append
+              (Ship_Module_Record'
+                 (Stock     => <>,
+                  Heat      => 0.0,
+                  Condition => 1.0));
+         end loop;
+
          declare
             Id : constant String :=
                    "00000" & Memor.To_String (Vessel.Reference);
@@ -71,8 +85,35 @@ package body Concorde.Ships.Vessels.Create is
 
          Owner.Update.New_Ship;
 
-         Concorde.Factions.Logging.Log
-           (Owner, World.Name & ": new ship: " & Vessel.Name);
+         Vessel.Log
+           (World.Name & ": new ship: " & Vessel.Name);
+
+         declare
+            Full_Cargo_Mass : constant Non_Negative_Real :=
+                                Non_Negative_Real
+                                  (WL.Quantities.To_Float
+                                     (Vessel.Cargo_Capacity))
+                                * 1000.0;
+         begin
+            Vessel.Log
+              ("mass: "
+               & Xi.Float_Images.Image (Vessel.Current_Mass / 1_000.0)
+               & "t"
+               & "; max thrust: "
+               & Xi.Float_Images.Image (Vessel.Maximum_Thrust / 1_000.0)
+               & "kN"
+               & "; hold: "
+               & WL.Quantities.Image (Vessel.Cargo_Capacity)
+               & "m" & Character'Val (16#C2#) & Character'Val (16#B3#)
+               & "; acceleration (empty): "
+               & Xi.Float_Images.Image
+                 (Vessel.Maximum_Thrust / Vessel.Current_Mass / 9.81) & "g"
+               & "; acceleration (full): "
+               & Xi.Float_Images.Image
+                 (Vessel.Maximum_Thrust
+                  / (Vessel.Current_Mass + Full_Cargo_Mass) / 9.81) & "g");
+         end;
+
       end Create;
 
       Vessel : constant Vessel_Type := Db.Create (Create'Access);

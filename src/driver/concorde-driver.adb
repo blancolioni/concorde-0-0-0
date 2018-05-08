@@ -100,12 +100,12 @@ begin
       end if;
 
       if Concorde.Options.Create_Factions then
-         Concorde.Factions.Configure.Create_Factions
-           (Count => Concorde.Options.Faction_Count);
-
          if Concorde.Options.Enable_Faction_Logging then
             Concorde.Factions.Logging.Start_Logging;
          end if;
+
+         Concorde.Factions.Configure.Create_Factions
+           (Count => Concorde.Options.Faction_Count);
 
          Concorde.Agents.Enable_Offer_Logging
            (Enabled => Concorde.Options.Log_Trade_Offers);

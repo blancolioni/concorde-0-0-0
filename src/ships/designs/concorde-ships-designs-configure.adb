@@ -3,6 +3,7 @@ with Ada.Text_IO;
 with Tropos.Reader;
 
 with Concorde.Configure;
+with Concorde.Ships.Modules.Configure;
 
 package body Concorde.Ships.Designs.Configure is
 
@@ -24,8 +25,19 @@ package body Concorde.Ships.Designs.Configure is
 
       procedure Create (Design : in out Root_Design_Type'Class) is
       begin
-         Ada.Text_IO.Put_Line ("component: " & Config.Config_Name);
+         Ada.Text_IO.Put_Line ("design: " & Config.Config_Name);
+         Design.Identifier :=
+           Ada.Strings.Unbounded.To_Unbounded_String (Config.Config_Name);
          Design.Set_Name (Config.Get ("name", Config.Config_Name));
+         Design.Classification :=
+           Ship_Classification'Value (Config.Get ("classification"));
+
+         for Component_Config of Config.Child ("components") loop
+            Design.Installed_Modules.Append
+              (Installed_Module_Record'
+                 (Module => Modules.Configure.Create_Module
+                      (Component_Config)));
+         end loop;
       end Create;
 
    begin

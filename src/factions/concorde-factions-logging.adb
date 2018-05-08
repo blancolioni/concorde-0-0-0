@@ -58,7 +58,7 @@ package body Concorde.Factions.Logging is
                          "-- "
                          & Concorde.Calendar.Image
                            (Current_Log_Date,
-                            Include_Time_Fraction => True)
+                            Include_Time_Fraction => False)
                          & " --");
                Put_Line (File, "----------------");
                New_Line (File);

@@ -65,6 +65,7 @@ private
    type Root_Design_Type is
      new Concorde.Objects.Root_User_Named_Object_Type with
       record
+         Identifier        : Ada.Strings.Unbounded.Unbounded_String;
          Installed_Modules : Installed_Module_Vectors.Vector;
          Attached_Modules  : Module_Attachment_Lists.List;
          Classification    : Ship_Classification;
@@ -73,6 +74,10 @@ private
    overriding function Object_Database
      (Item : Root_Design_Type)
       return Memor.Memor_Database;
+
+   overriding function Identifier
+     (Item : Root_Design_Type)
+      return String;
 
    package Db is
      new Memor.Database

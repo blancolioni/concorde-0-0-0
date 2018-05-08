@@ -45,6 +45,10 @@ package Concorde.Ships.Components is
 
    type Component_Type is access constant Root_Component_Type'Class;
 
+   function Exists (Tag : String) return Boolean;
+   function Get (Tag : String) return Component_Type
+     with Pre => Exists (Tag);
+
 private
 
    type Component_Shape is
@@ -76,6 +80,7 @@ private
       record
          Throttled                 : Boolean := False;
          Pressurised               : Boolean := False;
+         Cryogenic                 : Boolean := False;
          Cargo                     : Boolean := False;
          Tank                      : Boolean := False;
          Thruster                  : Boolean := False;
@@ -138,5 +143,11 @@ private
      new Ada.Containers.Vectors (Positive, Component_Type);
 
    Component_Vector : Component_Vectors.Vector;
+
+   function Exists (Tag : String) return Boolean
+   is (Db.Exists (Tag));
+
+   function Get (Tag : String) return Component_Type
+   is (Db.Get (Tag));
 
 end Concorde.Ships.Components;

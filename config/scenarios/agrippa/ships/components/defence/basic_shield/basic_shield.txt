@@ -1,4 +1,6 @@
 colour = { 209 146 117 }
+shape = sphere
+mass = 100000
 class = shield_generator
 density = 50
 nominal_max_output = 1

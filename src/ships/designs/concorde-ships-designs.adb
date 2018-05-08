@@ -16,4 +16,16 @@ package body Concorde.Ships.Designs is
       return WL.Quantities.To_Quantity (Float (Volume));
    end Cargo_Capacity;
 
+   ----------------
+   -- Identifier --
+   ----------------
+
+   overriding function Identifier
+     (Item : Root_Design_Type)
+      return String
+   is
+   begin
+      return Ada.Strings.Unbounded.To_String (Item.Identifier);
+   end Identifier;
+
 end Concorde.Ships.Designs;

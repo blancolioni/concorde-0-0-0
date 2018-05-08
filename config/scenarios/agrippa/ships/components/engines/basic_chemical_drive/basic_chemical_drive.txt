@@ -16,7 +16,7 @@ max_temperature = {
 }
 
 thrust_minimum = 0
-thrust_maximum = 6_000_000
+thrust_maximum = 6000000
 
 heat = 1000
 throttled = yes

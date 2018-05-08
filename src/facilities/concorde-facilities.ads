@@ -278,7 +278,7 @@ private
          Inputs              : access Array_Of_Inputs;
          Workers             : access Array_Of_Workers;
          Output              : Concorde.Commodities.Commodity_Type;
-         Output_Value        : Non_Negative_Real;
+         Output_Value        : Non_Negative_Real := 0.0;
          Base_Service_Charge : WL.Money.Price_Type;
       end record;
 

@@ -1,20 +1,106 @@
-version = 1.0
+version = 0.1
 description = "Initial trading ship"
 classification = civilian
-size = { 30 75 20 }
+size = { 30 70 20 }
 components = {
    hold_1 = {
       component = basic_hold
       position = { 5 5 35 }
-      attach = {
-         fuel_tank_1 = { 0 0 -1 }
-      }
+   }
+   hold_2 = {
+      component = basic_hold
+      position = { 15 5 35 }
+   }
+   hold_3 = {
+      component = basic_hold
+      position = { 25 5 35 }
+   }
+   hold_4 = {
+      component = basic_hold
+      position = { 5 5 45 }
+   }
+   hold_5 = {
+      component = basic_hold
+      position = { 15 5 45 }
+   }
+   hold_6 = {
+      component = basic_hold
+      position = { 25 5 45 }
+   }
+   hold_7 = {
+      component = basic_hold
+      position = { 5 5 55 }
+   }
+   hold_8 = {
+      component = basic_hold
+      position = { 15 5 55 }
+   }
+   hold_9 = {
+      component = basic_hold
+      position = { 25 5 55 }
+   }
+   hold_10 = {
+      component = basic_hold
+      position = { 5 5 65 }
+   }
+   hold_11 = {
+      component = basic_hold
+      position = { 15 5 65 }
+   }
+   hold_12 = {
+      component = basic_hold
+      position = { 25 5 65 }
+   }
+   hold_13 = {
+      component = basic_hold
+      position = { 15 15 35 }
    }
    fuel_tank_1 = {
+      component = basic_cryo_tank
+      position = { 13 10 34.5 }
+      attach = {
+         hold_1 = { 0 0 1 }
+      }
+   }
+   fuel_tank_2 = {
+      component = basic_cryo_tank
+      position = { 14 10 34.5 }
+      attach = {
+         hold_1 = { 0 0 1 }
+      }
+   }
+   fuel_tank_3 = {
       component = basic_cryo_tank
       position = { 15 10 34.5 }
       attach = {
          hold_1 = { 0 0 1 }
       }
    }
+   fuel_tank_4 = {
+      component = basic_cryo_tank
+      position = { 16 10 34.5 }
+      attach = {
+         hold_1 = { 0 0 1 }
+      }
+   }
+   fuel_tank_5 = {
+      component = basic_cryo_tank
+      position = { 17 10 34.5 }
+      attach = {
+         hold_1 = { 0 0 1 }
+      }
+   }
+   engine_1 = {
+      component = basic_chemical_drive
+      position = { 12 10 32.5 }
+   }
+   engine_2 = {
+      component = basic_chemical_drive
+      position = { 15 10 32.5 }
+   }
+   engine_3 = {
+      component = basic_chemical_drive
+      position = { 18 10 32.5 }
+   }
+      
 }
