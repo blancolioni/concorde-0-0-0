@@ -36,6 +36,7 @@ package body Concorde.Ships.Vessels is
             Mass := Mass + Ship.Design.Get_Module (I).Mass
               + Ship.Modules.Element (I).Stock.Total_Mass;
          end loop;
+         Mass := Mass + Ship.Total_Mass;
       end return;
    end Current_Mass;
 
