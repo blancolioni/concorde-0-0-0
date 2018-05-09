@@ -9,3 +9,4 @@ grains,Grain
 herb,Herbs
 fungi,Fungi
 salt,Salt
+liquid_oxygen,LOX

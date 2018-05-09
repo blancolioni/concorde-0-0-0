@@ -17,6 +17,7 @@ max_temperature = {
 
 thrust_minimum = 0
 thrust_maximum = 6000000
+Ve = 60000
 
 heat = 1000
 throttled = yes
@@ -29,14 +30,10 @@ start = {
 propellant = {
    liquid_hydrogen = {
      ratio = 1.7
-     }
+   }
    liquid_oxygen = {
      ratio = 1
-     }
-
+   }
 }
 
-fuel = {
-   propellant = yes
-   consumption = 1
-}
+fuel = propellant

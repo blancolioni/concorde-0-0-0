@@ -1,106 +1,151 @@
 version = 0.1
 description = "Initial trading ship"
 classification = civilian
-size = { 30 70 20 }
+size = { 30 20 56 }
 components = {
    hold_1 = {
       component = basic_hold
-      position = { 5 5 35 }
+      position = { 5 5 21 }
    }
    hold_2 = {
       component = basic_hold
-      position = { 15 5 35 }
+      position = { 15 5 21 }
    }
    hold_3 = {
       component = basic_hold
-      position = { 25 5 35 }
+      position = { 25 5 21 }
    }
    hold_4 = {
       component = basic_hold
-      position = { 5 5 45 }
+      position = { 5 5 31 }
    }
    hold_5 = {
       component = basic_hold
-      position = { 15 5 45 }
+      position = { 15 5 31 }
    }
    hold_6 = {
       component = basic_hold
-      position = { 25 5 45 }
+      position = { 25 5 31 }
    }
    hold_7 = {
       component = basic_hold
-      position = { 5 5 55 }
+      position = { 5 5 41 }
    }
    hold_8 = {
       component = basic_hold
-      position = { 15 5 55 }
+      position = { 15 5 41 }
    }
    hold_9 = {
       component = basic_hold
-      position = { 25 5 55 }
+      position = { 25 5 41 }
    }
    hold_10 = {
       component = basic_hold
-      position = { 5 5 65 }
+      position = { 5 5 51 }
    }
    hold_11 = {
       component = basic_hold
-      position = { 15 5 65 }
+      position = { 15 5 51 }
    }
    hold_12 = {
       component = basic_hold
-      position = { 25 5 65 }
+      position = { 25 5 51 }
    }
    hold_13 = {
       component = basic_hold
-      position = { 15 15 35 }
+      position = { 15 15 21 }
    }
    fuel_tank_1 = {
       component = basic_cryo_tank
-      position = { 13 10 34.5 }
+      position = { 9 9.5 11 }
       attach = {
          hold_1 = { 0 0 1 }
       }
    }
    fuel_tank_2 = {
       component = basic_cryo_tank
-      position = { 14 10 34.5 }
+      position = { 13 9.5 11 }
       attach = {
          hold_1 = { 0 0 1 }
       }
    }
    fuel_tank_3 = {
       component = basic_cryo_tank
-      position = { 15 10 34.5 }
+      position = { 17 9.5 11 }
       attach = {
          hold_1 = { 0 0 1 }
       }
    }
    fuel_tank_4 = {
       component = basic_cryo_tank
-      position = { 16 10 34.5 }
+      position = { 21 9.5 11 }
       attach = {
          hold_1 = { 0 0 1 }
       }
    }
    fuel_tank_5 = {
       component = basic_cryo_tank
-      position = { 17 10 34.5 }
+      position = { 9 10.5 11 }
+      attach = {
+         hold_1 = { 0 0 1 }
+      }
+   }
+   fuel_tank_6 = {
+      component = basic_cryo_tank
+      position = { 13 10.5 11 }
+      attach = {
+         hold_1 = { 0 0 1 }
+      }
+   }
+   fuel_tank_7 = {
+      component = basic_cryo_tank
+      position = { 17 10.5 11 }
+      attach = {
+         hold_1 = { 0 0 1 }
+      }
+   }
+   fuel_tank_8 = {
+      component = basic_cryo_tank
+      position = { 21 10.5 11 }
       attach = {
          hold_1 = { 0 0 1 }
       }
    }
    engine_1 = {
       component = basic_chemical_drive
-      position = { 12 10 32.5 }
+      position = { 12 10 5 }
    }
    engine_2 = {
       component = basic_chemical_drive
-      position = { 15 10 32.5 }
+      position = { 15 10 5 }
    }
    engine_3 = {
       component = basic_chemical_drive
-      position = { 18 10 32.5 }
+      position = { 18 10 5 }
+   }
+   engine_4 = {
+      component = basic_chemical_drive
+      position = { 12 13 5 }
+   }
+   engine_5 = {
+      component = basic_chemical_drive
+      position = { 15 13 5 }
+   }
+   engine_6 = {
+      component = basic_chemical_drive
+      position = { 18 13 5 }
+   }
+   engine_7 = {
+      component = basic_chemical_drive
+      position = { 12 7 5 }
+   }
+   engine_8 = {
+      component = basic_chemical_drive
+      position = { 15 7 5 }
+   }
+   engine_9 = {
+      component = basic_chemical_drive
+      position = { 18 7 5 }
    }
       
 }

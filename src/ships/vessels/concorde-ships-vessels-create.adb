@@ -42,7 +42,7 @@ package body Concorde.Ships.Vessels.Create is
               Concorde.Locations.Geosynchronous_Orbit (World),
             Government     => Owner.Capital.Government,
             Market         => World.Market,
-            Cash           => WL.Money.To_Money (1_000_000.0),
+            Cash           => WL.Money.To_Money (100_000.0),
             Stock_Capacity => Design.Cargo_Capacity);
 
          Vessel.Design := Design;
@@ -83,10 +83,37 @@ package body Concorde.Ships.Vessels.Create is
             Vessel.Identity := "1" & Id (Id'Last - 4 .. Id'Last);
          end;
 
-         Owner.Update.New_Ship;
-
          Vessel.Log
            (World.Name & ": new ship: " & Vessel.Name);
+
+         declare
+            Fuel : Concorde.Commodities.Root_Stock_Type;
+
+            procedure Log_Fuel (Item : Concorde.Commodities.Commodity_Type);
+
+            --------------
+            -- Log_Fuel --
+            --------------
+
+            procedure Log_Fuel (Item : Concorde.Commodities.Commodity_Type) is
+            begin
+               Vessel.Log
+                 ("loading "
+                  & Xi.Float_Images.Image
+                    (Non_Negative_Real
+                         (WL.Quantities.To_Float (Fuel.Get_Quantity (Item)))
+                     * Item.Unit_Mass / 1000.0)
+                  & "t " & Item.Name);
+            end Log_Fuel;
+
+         begin
+            Fuel.Create_Stock (WL.Quantities.To_Quantity (999_999.0), True);
+            Design.Get_Fuel_Requirements (Fuel);
+            Fuel.Scan_Stock (Log_Fuel'Access);
+            Vessel.Add (Fuel);
+         end;
+
+         Owner.Update.New_Ship;
 
          declare
             Full_Cargo_Mass : constant Non_Negative_Real :=

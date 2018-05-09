@@ -18,7 +18,7 @@ package Concorde.Commodities is
       Skill, Service);
 
    type Commodity_Flag is
-     (Organic, Mineral, Metal, Fissile, Fuel, Gas, Liquid,
+     (Organic, Mineral, Metal, Fissile, Fuel, Gas, Liquid, Cryogenic,
       Food, Drink, Intoxicant, Clothing,
       Alloy, Ceramic, Electronic, Plastic,
       Virtual, Power, Generator,

@@ -27,6 +27,19 @@ package Concorde.Ships.Components is
      (Component : Root_Component_Type)
       return Non_Negative_Real;
 
+   function Is_Tank
+     (Component : Root_Component_Type)
+      return Boolean;
+
+   function Is_Cryogenic
+     (Component : Root_Component_Type)
+      return Boolean;
+
+   function Propellant_Payload_Volume
+     (Component : Root_Component_Type)
+      return Non_Negative_Real
+     with Pre => Component.Is_Tank;
+
    function Commodity_Payload_Volume
      (Component : Root_Component_Type;
       Commodity : not null access constant
@@ -42,6 +55,12 @@ package Concorde.Ships.Components is
    function Maximum_Thrust
      (Component : Root_Component_Type'Class)
       return Non_Negative_Real;
+
+   procedure Scan_Propellant
+     (Component : Root_Component_Type'Class;
+      Process   : not null access
+        procedure (Propellant : Concorde.Commodities.Commodity_Type;
+                   Ratio      : Non_Negative_Real));
 
    type Component_Type is access constant Root_Component_Type'Class;
 
@@ -68,7 +87,7 @@ private
    type Component_Fuel_Record is
       record
          Fuel  : Concorde.Commodities.Commodity_Type;
-         Ratio : Unit_Real;
+         Ratio : Non_Negative_Real;
       end record;
 
    package Component_Fuel_Lists is
@@ -94,6 +113,7 @@ private
          Max_Operating_Temperature : Non_Negative_Real := 0.0;
          Failure_Temperature       : Non_Negative_Real := 0.0;
          Payload_Volume            : Non_Negative_Real := 0.0;
+         Exhaust_Velocity          : Non_Negative_Real := 0.0;
          Thrust_Minimum            : Non_Negative_Real := 0.0;
          Thrust_Maximum            : Non_Negative_Real := 0.0;
          Heat                      : Non_Negative_Real := 0.0;
@@ -138,6 +158,21 @@ private
      (Component : Root_Component_Type'Class)
       return Non_Negative_Real
    is (Component.Thrust_Maximum);
+
+   function Is_Tank
+     (Component : Root_Component_Type)
+      return Boolean
+   is (Component.Tank);
+
+   function Is_Cryogenic
+     (Component : Root_Component_Type)
+      return Boolean
+   is (Component.Cryogenic);
+
+   function Propellant_Payload_Volume
+     (Component : Root_Component_Type)
+      return Non_Negative_Real
+   is (Component.Payload_Volume);
 
    package Component_Vectors is
      new Ada.Containers.Vectors (Positive, Component_Type);

@@ -2,6 +2,22 @@ with Xi.Float_Arrays;
 
 package body Concorde.Ships.Components is
 
+   ---------------------
+   -- Scan_Propellant --
+   ---------------------
+
+   procedure Scan_Propellant
+     (Component : Root_Component_Type'Class;
+      Process   : not null access
+        procedure (Propellant : Concorde.Commodities.Commodity_Type;
+                   Ratio      : Non_Negative_Real))
+   is
+   begin
+      for Propellant of Component.Propellant loop
+         Process (Propellant.Fuel, Propellant.Ratio);
+      end loop;
+   end Scan_Propellant;
+
    ----------------------
    -- Thrust_Component --
    ----------------------

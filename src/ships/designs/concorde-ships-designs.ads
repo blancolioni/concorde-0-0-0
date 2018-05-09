@@ -34,6 +34,10 @@ package Concorde.Ships.Designs is
      (Design : Root_Design_Type'Class)
       return WL.Quantities.Quantity_Type;
 
+   procedure Get_Fuel_Requirements
+     (Design       : Root_Design_Type'Class;
+      Requirements : in out Concorde.Commodities.Stock_Interface'Class);
+
    type Design_Type is access constant Root_Design_Type'Class;
 
    function Exists (Name : String) return Boolean;

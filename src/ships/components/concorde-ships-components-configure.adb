@@ -2,8 +2,6 @@ with Ada.Text_IO;
 
 with Tropos.Reader;
 
-with Xi.Float_Images;
-
 with Concorde.Configure;
 
 package body Concorde.Ships.Components.Configure is
@@ -73,17 +71,26 @@ package body Concorde.Ships.Components.Configure is
          Component.Thruster := Config.Contains ("thrust_maximum");
          Component.Thrust_Maximum := Get ("thrust_maximum");
          Component.Thrust_Minimum := Get ("thrust_minimum");
+         Component.Exhaust_Velocity := Get ("ve");
 
-         Ada.Text_IO.Put_Line ("component: " & Config.Config_Name
-                               & ": mass "
-                               & Xi.Float_Images.Image
-                                 (Component.Mass) & "kg"
-                               & (if Component.Thrust_Maximum > 0.0
-                                 then "; thrust: "
-                                 & Xi.Float_Images.Image
-                                   (Component.Thrust_Maximum / 1000.0)
-                                 & "kN"
-                                 else ""));
+         Component.Fuel_Is_Propellant :=
+           Config.Get ("fuel", "") = "propellant";
+
+         for Propellant_Config of Config.Child ("propellant") loop
+            declare
+               Rec : constant Component_Fuel_Record :=
+                       Component_Fuel_Record'
+                         (Fuel  =>
+                            Concorde.Commodities.Get
+                              (Propellant_Config.Config_Name),
+                          Ratio =>
+                            Non_Negative_Real
+                              (Float'(Propellant_Config.Get ("ratio"))));
+            begin
+               Component.Propellant.Append (Rec);
+            end;
+         end loop;
+
       exception
          when others =>
             Ada.Text_IO.Put_Line
