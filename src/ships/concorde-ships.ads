@@ -10,6 +10,7 @@ with Concorde.Commodities;
 with Concorde.Locations;
 with Concorde.Objects;
 with Concorde.Ownership;
+with Concorde.Trades;
 
 limited with Concorde.Systems;
 
@@ -131,6 +132,13 @@ private
          Start_Time       : Concorde.Calendar.Time;
          Arrival_Time     : Concorde.Calendar.Time;
       end record;
+
+   overriding function Offer_Strategy
+     (Ship      : Root_Ship_Type;
+      Commodity : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
+      return Concorde.Trades.Offer_Price_Strategy
+   is (Concorde.Trades.Average_Price);
 
    overriding function Name
      (Ship : Root_Ship_Type)
