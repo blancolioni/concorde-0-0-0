@@ -488,7 +488,7 @@ package body Concorde.Locations is
             begin
                return "orbiting "
                  & Obj.Name
-                 & "at"
+                 & " at"
                  & Natural'Image
                  (Natural
                     ((abs (Location.Apoapsis) - Obj.Radius) / 1000.0))
