@@ -36,9 +36,17 @@ package body Concorde.Ships.Navigation is
          & ": distance "
          & Xi.Float_Images.Image
            (D / Concorde.Solar_System.Earth_Orbit)
-         & " AU; accel "
+         & " AU"
+         & "; cargo mass: "
+         & Xi.Float_Images.Image (Ship.Total_Mass / 1000.0)
+         & "t"
+         & "; total mass: "
+         & Xi.Float_Images.Image (Ship.Current_Mass / 1000.0)
+         & "t"
+         & "; accel "
          & Xi.Float_Images.Image (A / 9.81)
-         & "g; travel time "
+         & "g"
+         & "; travel time "
          & Xi.Float_Images.Image (T / 3600.0) & " hours");
       return Duration (T);
    end Journey_Time;
