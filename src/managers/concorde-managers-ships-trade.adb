@@ -79,14 +79,6 @@ package body Concorde.Managers.Ships.Trade is
                     Concorde.Galaxy.Shortest_Path_Distance
                      (Current_System, Destination);
       begin
---           Manager.Ship.Log_Trade
---             ("checking contract: " & Contract.Show);
---           Manager.Ship.Log_Trade
---             ("   local supply/demand: "
---              & Show (Local_Supply)
---              & "/"
---              & Show (Local_Demand));
-
          if Local_Supply > Zero then
             declare
                Local_Price     : constant Price_Type :=
@@ -95,6 +87,23 @@ package body Concorde.Managers.Ships.Trade is
                Local_Cost      : constant Money_Type :=
                                    Total (Local_Price, Contract.Quantity);
             begin
+
+               if False then
+                  Manager.Ship.Log_Trade
+                    ("checking contract: " & Contract.Show);
+                  Manager.Ship.Log_Trade
+                    ("   local supply/demand: "
+                     & Show (Local_Supply)
+                     & "/"
+                     & Show (Local_Demand)
+                     & "; local price: "
+                     & Show (Local_Price)
+                     & "; limit cash/local cost: "
+                     & Show (Manager.Ship.Limit_Cash)
+                     & "/"
+                     & Show (Local_Cost));
+               end if;
+
                if Contract.Class = Buy_Goods
                  and then Contract.Quantity
                    <= Manager.Ship.Available_Capacity (Contract.Commodity)
