@@ -417,7 +417,6 @@ package body Concorde.Xi_UI is
          Model.Current_Transition.Start;
       else
          declare
-            use type Xi.Xi_Float;
             use Concorde.Xi_UI.Key_Bindings;
             Active : constant Array_Of_Key_Bindings :=
                        Current_Active_Bindings;

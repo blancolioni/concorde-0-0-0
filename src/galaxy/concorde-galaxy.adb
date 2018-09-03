@@ -360,7 +360,6 @@ package body Concorde.Galaxy is
       return Array_Of_Star_Systems
 
    is
-      use Concorde.Systems;
       Result : Array_Of_Star_Systems (1 .. 40);
       Count  : Natural := 0;
 

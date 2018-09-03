@@ -195,7 +195,6 @@ package body Concorde.Systems.Xi_Model is
      (Model      : in out Root_System_Model;
       Time_Delta : Duration)
    is
-      use type Concorde.Ships.Ship_Type;
    begin
       Concorde.Xi_UI.Root_Xi_Model (Model).On_Frame_Start (Time_Delta);
 
@@ -311,7 +310,6 @@ package body Concorde.Systems.Xi_Model is
         Concorde.Ships.Root_Ship_Type'Class)
    is
       use Xi;
-      use Concorde.Ships.Xi_Model;
       Pos           : constant Concorde.Vectors.Vector_3 :=
                         Ship.System_Relative_Position (Time);
       Selector      : constant Concorde.Xi_UI.Select_Handler :=
@@ -577,7 +575,6 @@ package body Concorde.Systems.Xi_Model is
       is
          pragma Unreferenced (Primary);
          use Xi;
-         use Concorde.Geometry;
          use Concorde.Elementary_Functions;
          use Concorde.Worlds;
          World_Node : constant Xi.Node.Xi_Node :=
@@ -656,7 +653,6 @@ package body Concorde.Systems.Xi_Model is
 
          declare
             use Xi;
-            use Concorde.Ships.Xi_Model;
             Pos           : constant Concorde.Vectors.Vector_3 :=
                               Concorde.Vectors.Vector_3
                                 (World_Node.Position_3);

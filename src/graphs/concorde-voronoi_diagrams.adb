@@ -36,7 +36,7 @@ package body Concorde.Voronoi_Diagrams is
    procedure Calculate_Voronoi_Diagram
      (In_File : Interfaces.C.Strings.chars_ptr;
       Out_File : Interfaces.C.Strings.chars_ptr);
-   pragma Import (C, Calculate_Voronoi_Diagram);
+   pragma Import (C, Calculate_Voronoi_Diagram, "calculate_voronoi_diagram");
 
    ---------------
    -- Add_Point --

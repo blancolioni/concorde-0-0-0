@@ -257,18 +257,6 @@ package body Concorde.Worlds is
       end loop;
    end Get_Ships;
 
-   ----------------
-   -- Government --
-   ----------------
-
-   function Government
-     (World : Root_World_Type'Class)
-      return Concorde.Government.Government_Type
-   is
-   begin
-      return World.Government;
-   end Government;
-
    --------------------
    -- Has_Government --
    --------------------
@@ -464,7 +452,6 @@ package body Concorde.Worlds is
      (World : Root_World_Type'Class)
       return Boolean
    is
-      use type Concorde.Factions.Faction_Type;
    begin
       return World.Owner /= null;
    end Owned;

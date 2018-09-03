@@ -21,14 +21,7 @@ package body Concorde.Markets is
         Concorde.Trades.Trader_Interface'Class;
       Commodity     : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
-      return Concorde.Trades.Market_Tax_Category
-   is (if Buyer.Market_Resident
-       then (if Seller.Market_Resident
-             then Concorde.Trades.Sales
-             else Concorde.Trades.Import)
-       elsif Seller.Market_Resident
-       then Concorde.Trades.Export
-       else Concorde.Trades.Sales);
+      return Concorde.Trades.Market_Tax_Category;
 
    procedure Remove_Quantity
      (Info     : Cached_Commodity;
@@ -59,7 +52,6 @@ package body Concorde.Markets is
       Quantity : WL.Quantities.Quantity_Type;
       Price    : WL.Money.Price_Type)
    is
-      use WL.Quantities;
    begin
       Remove_Old_Offers (Info);
       Add_Quantity (Info, Offer, Resident, Quantity);
@@ -748,6 +740,35 @@ package body Concorde.Markets is
 --
 --        return Result;
 --     end Get_Quantity;
+
+   ----------------------
+   -- Get_Tax_Category --
+   ----------------------
+
+   function Get_Tax_Category
+     (Market        : Root_Market_Type'Class;
+      Buyer, Seller : not null access constant
+        Concorde.Trades.Trader_Interface'Class;
+      Commodity     : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class)
+      return Concorde.Trades.Market_Tax_Category
+   is
+      pragma Unreferenced (Market, Commodity);
+   begin
+      if Buyer.Market_Resident then
+         if Seller.Market_Resident then
+            return Concorde.Trades.Sales;
+         else
+            return Concorde.Trades.Import;
+         end if;
+      else
+         if Seller.Market_Resident then
+            return Concorde.Trades.Export;
+         else
+            return Concorde.Trades.Sales;
+         end if;
+      end if;
+   end Get_Tax_Category;
 
    ---------------------------
    -- Historical_Mean_Price --

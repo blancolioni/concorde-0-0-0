@@ -138,7 +138,7 @@ private
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
       return Concorde.Trades.Offer_Price_Strategy
-   is (Concorde.Trades.Average_Price);
+   is (case Commodity.Class is when others => Concorde.Trades.Average_Price);
 
    overriding function Name
      (Ship : Root_Ship_Type)

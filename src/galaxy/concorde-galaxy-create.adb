@@ -9,7 +9,7 @@ with Tropos.Reader;
 with Concorde.Elementary_Functions;
 with Concorde.Geometry;
 with Concorde.Random;
-with Concorde.Voronoi_Diagrams;
+--  with Concorde.Voronoi_Diagrams;
 
 with Concorde.Options;
 
@@ -96,7 +96,6 @@ package body Concorde.Galaxy.Create is
 
       for Config of Galaxy_Config loop
          declare
-            use Concorde.Stars;
             Rec : Catalogue_Star;
             Name : constant String := Config.Get ("proper");
             Spectrum : constant String := Config.Get ("spect");
@@ -182,9 +181,9 @@ package body Concorde.Galaxy.Create is
       Min_Distance      : constant Non_Negative_Real :=
                             (1.0 / (2.0 * Real (System_Count)));
       Total_Connections : Natural := 0;
-      Influence         : Concorde.Voronoi_Diagrams.Voronoi_Diagram;
-      Create_Voronoi    : constant Boolean :=
-                            Concorde.Options.Create_Voronoi_Diagram;
+--        Influence         : Concorde.Voronoi_Diagrams.Voronoi_Diagram;
+--        Create_Voronoi    : constant Boolean :=
+--                              Concorde.Options.Create_Voronoi_Diagram;
       Xs, Ys, Zs        : array (1 .. System_Count) of Real;
       Retries           : Natural := 0;
       Class_Count       : array (Concorde.Stars.Stellar_Class_Type)
@@ -264,9 +263,9 @@ package body Concorde.Galaxy.Create is
             Ys (I) := Y;
             Zs (I) := Z;
 
-            if Create_Voronoi then
-               Influence.Add_Point (X, Y);
-            end if;
+--              if Create_Voronoi then
+--                 Influence.Add_Point (X, Y);
+--              end if;
 
          end;
 
@@ -275,20 +274,20 @@ package body Concorde.Galaxy.Create is
       Ada.Text_IO.Put_Line
         ("retries:" & Integer'Image (Retries - System_Count));
 
-      if Create_Voronoi then
-         Influence.Generate;
-
-         Ada.Text_IO.Put_Line ("created Voronoi map");
-      end if;
+--        if Create_Voronoi then
+--           Influence.Generate;
+--
+--           Ada.Text_IO.Put_Line ("created Voronoi map");
+--        end if;
 
       for I in 1 .. System_Count loop
          declare
-            Vertex_Count : constant Natural :=
-                             (if Create_Voronoi
-                              then Influence.Vertex_Count (I)
-                              else 0);
-            Boundary : Concorde.Systems.System_Influence_Boundary
-              (1 .. Vertex_Count);
+--              Vertex_Count : constant Natural := 0;
+--                               (if Create_Voronoi
+--                                then Influence.Vertex_Count (I)
+--                                else 0);
+--              Boundary : Concorde.Systems.System_Influence_Boundary
+--                (1 .. Vertex_Count);
             Name     : constant String :=
                          WL.Random.Names.Random_Name
                                (Name_Generator);
@@ -297,10 +296,10 @@ package body Concorde.Galaxy.Create is
                                     Concorde.Scenarios.Imperial_Centre;
 
          begin
-            for J in Boundary'Range loop
-               Boundary (J) :=
-                 (Influence.Vertex_X (I, J), Influence.Vertex_Y (I, J));
-            end loop;
+--              for J in Boundary'Range loop
+--                 Boundary (J) :=
+--                   (Influence.Vertex_X (I, J), Influence.Vertex_Y (I, J));
+--              end loop;
 
             declare
                System : constant Concorde.Systems.Star_System_Type :=

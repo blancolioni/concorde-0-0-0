@@ -33,9 +33,6 @@ package body Concorde.People.Attributes is
       Attrs     : Has_Attributes'Class)
       return Unit_Real
    is
-      use Concorde.People.Abilities;
-      use Concorde.People.Proficiencies;
-      use Concorde.People.Skills;
       Attr_Score : constant Natural := Container.Score (Attrs);
       Target     : Natural := 0;
       Chance     : constant array (0 .. 6) of Unit_Real :=
@@ -65,9 +62,6 @@ package body Concorde.People.Attributes is
       Attrs     : Has_Attributes'Class)
       return Unit_Real
    is
-      use Concorde.People.Abilities;
-      use Concorde.People.Proficiencies;
-      use Concorde.People.Skills;
       Score  : Natural := 0;
       Chance : constant array (0 .. 6) of Unit_Real :=
                  (0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9);
@@ -249,9 +243,6 @@ package body Concorde.People.Attributes is
       Attrs     : Has_Attributes'Class)
       return Natural
    is
-      use Concorde.People.Abilities;
-      use Concorde.People.Proficiencies;
-      use Concorde.People.Skills;
       Result : Natural := 0;
    begin
       for Reference of Container.Vector loop

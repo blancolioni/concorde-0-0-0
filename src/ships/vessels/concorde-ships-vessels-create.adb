@@ -29,7 +29,6 @@ package body Concorde.Ships.Vessels.Create is
       procedure Create
         (Vessel : in out Root_Vessel_Type'Class)
       is
-         use WL.Quantities;
 
          Design : constant Concorde.Ships.Designs.Design_Type :=
                     (if Concorde.Ships.Designs.Exists (Design_Name)

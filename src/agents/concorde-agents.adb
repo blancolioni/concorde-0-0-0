@@ -1425,6 +1425,16 @@ package body Concorde.Agents is
 --        return Agent.Location;
 --     end Location;
 
+   overriding function Location_At
+     (Agent : Root_Agent_Type;
+      Time  : Concorde.Calendar.Time)
+      return Concorde.Locations.Object_Location
+   is
+      pragma Unreferenced (Time);
+   begin
+      return Root_Agent_Type'Class (Agent).Current_Location;
+   end Location_At;
+
    --------------------
    -- Location_Index --
    --------------------

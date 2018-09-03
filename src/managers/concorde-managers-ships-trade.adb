@@ -247,7 +247,7 @@ package body Concorde.Managers.Ships.Trade is
      (Manager : in out Root_Ship_Trade_Manager)
    is
       use WL.Quantities;
-      use Concorde.Worlds, World_Lists;
+      use Concorde.Worlds;
 
       procedure Deliver_Goods
         (Contract : Concorde.Contracts.Contract_Type);

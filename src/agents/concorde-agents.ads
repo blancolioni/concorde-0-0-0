@@ -99,7 +99,7 @@ package Concorde.Agents is
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
       return Concorde.Trades.Offer_Price_Strategy
-   is (Concorde.Trades.Belief_Based);
+   is (case Commodity.Class is when others => Concorde.Trades.Belief_Based);
 
    overriding function Maximum_Quantity
      (Agent : Root_Agent_Type)
@@ -159,8 +159,7 @@ package Concorde.Agents is
    overriding function Location_At
      (Agent : Root_Agent_Type;
       Time  : Concorde.Calendar.Time)
-      return Concorde.Locations.Object_Location
-   is (Root_Agent_Type'Class (Agent).Current_Location);
+      return Concorde.Locations.Object_Location;
 
    overriding procedure Set_Location
      (Agent    : in out Root_Agent_Type;

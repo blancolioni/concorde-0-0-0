@@ -333,8 +333,6 @@ package body Concorde.Xi_UI.Galaxies is
      (Model      : in out Root_Galaxy_Model;
       Time_Delta : Duration)
    is
-      use Xi;
-      use type Concorde.Systems.Star_System_Type;
    begin
 
       Root_Xi_Model (Model).On_Frame_Start (Time_Delta);

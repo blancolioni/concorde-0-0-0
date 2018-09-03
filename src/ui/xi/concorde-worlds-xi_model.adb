@@ -293,8 +293,6 @@ package body Concorde.Worlds.Xi_Model is
 
       for I in 1 .. Surface.Tile_Count loop
          declare
-            use type Concorde.Features.Feature_Type;
-            use type Concorde.Terrain.Terrain_Type;
             Raw_Height  : constant Height_Range :=
                             World.Sectors (I).Height;
             Height      : constant Height_Range :=
@@ -509,7 +507,6 @@ package body Concorde.Worlds.Xi_Model is
 
       if Model.Selected_Ship /= null then
          declare
-            use Xi.Float_Arrays;
             Ship_Position : constant Concorde.Vectors.Vector_3 :=
                               Model.Selected_Ship.Primary_Relative_Position
                                 (Concorde.Calendar.Clock);
@@ -539,9 +536,6 @@ package body Concorde.Worlds.Xi_Model is
    overriding procedure On_Select
      (Handler : World_Ship_Selector)
    is
-      use Xi;
-      use Xi.Float_Arrays;
-      use Xi.Matrices;
       use Xi.Transition.Container.Sequential;
       use Concorde.Ships.Xi_Model;
 
@@ -639,7 +633,6 @@ package body Concorde.Worlds.Xi_Model is
         Concorde.Ships.Root_Ship_Type'Class)
    is
       use Xi;
-      use Concorde.Ships.Xi_Model;
       Pos           : constant Concorde.Vectors.Vector_3 :=
                         Ship.Primary_Relative_Position (Time);
       Selector      : constant Concorde.Xi_UI.Select_Handler :=

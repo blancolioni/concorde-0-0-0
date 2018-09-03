@@ -35,7 +35,6 @@ package body Concorde.Xi_UI.Model_Manager is
         Xi.Scene_Renderer.Xi_Scene_Renderer_Record'Class)
       return Xi_Model
    is
-      use type Concorde.Objects.Object_Type;
    begin
       if For_Object = null then
          return Concorde.Xi_UI.Galaxies.Galaxy_Model (Faction, Renderer);

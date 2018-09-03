@@ -129,10 +129,6 @@ package Concorde.Worlds is
      (World : Root_World_Type'Class)
       return Boolean;
 
-   function Government
-     (World : Root_World_Type'Class)
-      return Concorde.Government.Government_Type;
-
    function Has_Market
      (World : Root_World_Type'Class)
       return Boolean;

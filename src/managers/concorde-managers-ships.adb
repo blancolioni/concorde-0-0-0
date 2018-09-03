@@ -230,7 +230,6 @@ package body Concorde.Managers.Ships is
       World   : not null access constant
         Concorde.Worlds.Root_World_Type'Class)
    is
-      use Concorde.Calendar;
       use type Concorde.Systems.Star_System_Type;
       Target_System : constant Concorde.Systems.Star_System_Type :=
                         World.System;

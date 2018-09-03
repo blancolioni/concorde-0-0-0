@@ -480,8 +480,18 @@ package body Concorde.Graphs is
       From, To  : Index_Type)
       return Path
    is
-      function OK (Vertex : Vertex_Type) return Boolean
-      is (True);
+      function OK (Vertex : Vertex_Type) return Boolean;
+
+      --------
+      -- OK --
+      --------
+
+      function OK (Vertex : Vertex_Type) return Boolean is
+         pragma Unreferenced (Vertex);
+      begin
+         return True;
+      end OK;
+
    begin
       return Container.Shortest_Path (From, To, OK'Access);
    end Shortest_Path;

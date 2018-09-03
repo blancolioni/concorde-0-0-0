@@ -62,7 +62,6 @@ package body Concorde.Managers.Ministries is
      (Manager : in out Root_Ministry_Manager)
    is
       use type Concorde.Calendar.Time;
-      use type Concorde.Facilities.Facility_Type;
       Changed        : Boolean := False;
       Remaining_Work : Work_Item_Queue.Heap;
    begin

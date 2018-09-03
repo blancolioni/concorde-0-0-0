@@ -247,7 +247,6 @@ package body Concorde.Colonies.Configure is
          Group  : Concorde.People.Groups.Pop_Group;
          Size   : Concorde.People.Pops.Pop_Size)
       is
-         use Concorde.Commodities;
          Cash  : constant Non_Negative_Real :=
                    Real (Size) * Real (Group.Initial_Cash_Factor);
          Location : constant Concorde.Locations.Object_Location :=

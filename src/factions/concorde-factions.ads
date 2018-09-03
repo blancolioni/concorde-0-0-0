@@ -523,8 +523,7 @@ private
    overriding function Location_At
      (Faction : Root_Faction_Type;
       Time    : Concorde.Calendar.Time)
-      return Concorde.Locations.Object_Location
-   is (Root_Faction_Type'Class (Faction).Current_Location);
+      return Concorde.Locations.Object_Location;
 
    overriding function Variable_Reference
      (Faction : not null access constant Root_Faction_Type)

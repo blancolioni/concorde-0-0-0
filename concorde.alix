@@ -35,7 +35,6 @@ source_dir = src/ui
 source_dir = src/ui/xi
 source_dir = src/units
 source_dir = src/update
-source_dir = src/voronoi
 source_dir = src/worlds
 depend = { project = Tropos version = any }
 depend = { project = Lith version = any }
@@ -47,8 +46,6 @@ main_unit = concorde-driver
 exec_name = concorde
 config_dir = config
 path_unit = { unit = Concorde.Paths path = src/concorde-paths.ads }
-language = Ada
-language = C
 builder_option = "-g"
 builder_option = "-k"
 builder_option = "-s"

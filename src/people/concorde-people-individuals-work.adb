@@ -193,7 +193,6 @@ package body Concorde.People.Individuals.Work is
      (Work       : Appoint_Minister_Work_Item;
       Individual : Individual_Type)
    is
-      use type Concorde.People.Individuals.Individual_Type;
       New_Minister : constant Concorde.People.Individuals.Individual_Type :=
                        Best_Candidate
                          (World  => Individual.Faction.Capital_World,
@@ -219,7 +218,6 @@ package body Concorde.People.Individuals.Work is
      (Work       : Appoint_General_Work_Item;
       Individual : Individual_Type)
    is
-      use type Concorde.People.Individuals.Individual_Type;
       Power : constant Concorde.Powers.Power_Type :=
                 Concorde.Powers.Armies.Command_Army
                   (Army => Work.Army);
@@ -250,7 +248,6 @@ package body Concorde.People.Individuals.Work is
      (Work       : Appoint_Trader_Captain_Work_Item;
       Individual : Individual_Type)
    is
-      use type Concorde.People.Individuals.Individual_Type;
       Power   : constant Concorde.Powers.Power_Type :=
                   Concorde.Powers.Ships.Captain_Trader_Ship (Work.Ship);
       Set     : Concorde.Powers.Power_Set;

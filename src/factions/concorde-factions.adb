@@ -175,13 +175,26 @@ package body Concorde.Factions is
         or else Data.Next_Node (To.Index).Next_Node = -1
       then
          declare
+
+            function OK
+              (System : Concorde.Systems.Star_System_Type)
+               return Boolean;
+
+            --------
+            -- OK --
+            --------
+
             function OK
               (System : Concorde.Systems.Star_System_Type)
                return Boolean
-            is (True);
---              is (not System.Owned
---                  or else Faction.Owned_System (System)
---                  or else not Relations.At_War (Faction, System.Owner.all));
+            is
+               pragma Unreferenced (System);
+            begin
+               return True;
+--                 return not System.Owned
+--                   or else Faction.Owned_System (System)
+--                   or else not Relations.At_War (Faction, System.Owner.all);
+            end OK;
 
             Path : constant Concorde.Systems.Graphs.Array_Of_Vertices :=
                      Concorde.Galaxy.Shortest_Path
@@ -235,8 +248,6 @@ package body Concorde.Factions is
       -----------
 
       procedure Check (Faction : Root_Faction_Type'Class) is
-         use type Memor.Database_Reference;
-         use type Concorde.Systems.Star_System_Type;
       begin
          if Faction.Current_Systems > 0 then
             pragma Assert (Faction.Capital_World /= null,
@@ -481,6 +492,20 @@ package body Concorde.Factions is
    begin
       return Faction.System_Data (System.Index).Flags (Flag);
    end Is_Set;
+
+   -----------------
+   -- Location_At --
+   -----------------
+
+   overriding function Location_At
+     (Faction : Root_Faction_Type;
+      Time    : Concorde.Calendar.Time)
+      return Concorde.Locations.Object_Location
+   is
+      pragma Unreferenced (Time);
+   begin
+      return Root_Faction_Type'Class (Faction).Current_Location;
+   end Location_At;
 
    ----------------
    -- New_Ships --

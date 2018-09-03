@@ -267,7 +267,6 @@ package body Concorde.Commodities is
       Item     : Commodity_Type;
       Quantity : WL.Quantities.Quantity_Type)
    is
-      use type WL.Money.Money_Type;
       New_Quantity : constant WL.Quantities.Quantity_Type :=
                        Stock.Get_Quantity (Item) - Quantity;
       New_Value : constant WL.Money.Money_Type :=

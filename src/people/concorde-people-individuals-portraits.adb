@@ -130,7 +130,8 @@ package body Concorde.People.Individuals.Portraits is
      (Individual : not null access constant Root_Individual_Type'Class;
       Config     : Tropos.Configuration)
       return Boolean
-   is (Boolean_Test (Config, False));
+   is (case Individual.Gender is when others =>
+          Boolean_Test (Config, False));
 
    function Age_At_Least
      (Individual : not null access constant Root_Individual_Type'Class;

@@ -80,7 +80,6 @@ begin
       else
          declare
             use Xi;
-            use type Concorde.Galaxy.Create.Galaxy_Shape;
             Shape : constant Concorde.Galaxy.Create.Galaxy_Shape :=
                       Concorde.Galaxy.Create.Galaxy_Shape'Value
                         (Concorde.Options.Galaxy_Shape);
@@ -116,9 +115,9 @@ begin
 
    if Concorde.Options.Console then
       declare
-         Process : WL.Processes.Process_Type;
+         Process      : WL.Processes.Process_Type;
          Update_Count : constant Natural :=
-                      Concorde.Options.Update_Count * 24 * 60;
+                          Concorde.Options.Update_Count * 24 * 60;
       begin
          Process.Start_Percentage
            ("Updating",
@@ -164,7 +163,7 @@ begin
            (Window, Concorde.Paths.Config_File ("html/main.html"));
 
          declare
-            Model : Concorde.Xi_UI.Xi_Model;
+            Model          : Concorde.Xi_UI.Xi_Model;
             Faction_Option : constant String :=
                                Concorde.Options.Faction_Name;
             Faction_Name   : constant String :=

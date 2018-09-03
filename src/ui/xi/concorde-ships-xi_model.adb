@@ -170,7 +170,6 @@ package body Concorde.Ships.Xi_Model is
         Concorde.Ships.Vessels.Root_Vessel_Type'Class;
       Top  : Xi.Node.Xi_Node)
    is
-      use Xi;
    begin
 
       for Mount_Index in 1 .. Ship.Get_Design.Get_Module_Count loop
@@ -376,7 +375,6 @@ package body Concorde.Ships.Xi_Model is
    is
       use Xi;
       use Xi.Float_Arrays;
-      use type Xi.Entity.Xi_Entity;
    begin
 --        Concorde.Scripts.Execute (Ship.Script);
 --        if Concorde.Scripts.Complete (Ship.Script) then

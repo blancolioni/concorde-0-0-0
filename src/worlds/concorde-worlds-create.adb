@@ -742,7 +742,6 @@ package body Concorde.Worlds.Create is
       Surface_Temperature : Real)
       return Real
    is
-      use Concorde.Elementary_Functions;
       Result : Real :=
                  (328.0 - Real'Min (Surface_Temperature, 328.0)) / 90.0;
    begin
@@ -765,7 +764,6 @@ package body Concorde.Worlds.Create is
      return Real
    is
       use Concorde.Elementary_Functions;
-      use Concorde.Solar_System;
 
       Mass_Ratio : constant Real := 1.0 / Earth_Masses;
 
@@ -1282,7 +1280,6 @@ package body Concorde.Worlds.Create is
    procedure Create_Sector_Layout
      (World : in out Root_World_Type'Class)
    is
-      use Concorde.Elementary_Functions;
       Seed             : constant Positive :=
                            WL.Random.Random_Number (1, Positive'Last);
    begin
@@ -1550,9 +1547,6 @@ package body Concorde.Worlds.Create is
       Star   : Concorde.Stars.Star_Type;
       List   : in out Concorde.Worlds.Lists.List)
    is
-      use Concorde.Elementary_Functions;
-      use Concorde.Solar_System;
-
       Rock_Line     : constant Real :=
                         0.3 * Star.Solar_Masses;
       Frost_Line    : constant Real :=
@@ -1801,7 +1795,6 @@ package body Concorde.Worlds.Create is
      (Star    : in     Concorde.Stars.Star_Type;
       World  : in out Root_World_Type'Class)
    is
-      use Concorde.Solar_System;
 --        Initial_Temp : Real :=
 --                         Estimated_Temperature
 --                           (Star.Ecosphere,
@@ -1965,7 +1958,6 @@ package body Concorde.Worlds.Create is
      return Non_Negative_Real
    is
       use Concorde.Constants;
-      use Concorde.Solar_System;
       Velocity_Ratio : constant Non_Negative_Real :=
         Escape_Velocity / RMS_Velocity;
       Proportion : Non_Negative_Real;

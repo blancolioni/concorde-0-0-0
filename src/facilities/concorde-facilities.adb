@@ -132,7 +132,6 @@ package body Concorde.Facilities is
         function (Facility : Facility_Type) return Boolean)
       return Array_Of_Facilities
    is
-      use type Concorde.Commodities.Commodity_Type;
 
       Result : Array_Of_Facilities (1 .. Db.Upper_Bound);
       Count  : Natural := 0;
