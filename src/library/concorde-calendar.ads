@@ -78,6 +78,9 @@ package Concorde.Calendar is
       Second     : Second_Number := 0;
       Sub_Second : Second_Duration := 0.0) return Day_Duration;
 
+   function Max (Left, Right : Time) return Time;
+   function Min (Left, Right : Time) return Time;
+
    function Image
      (Date                  : Time;
       Include_Time_Fraction : Boolean := False)
@@ -145,5 +148,11 @@ private
 
    function Years (Count : Natural) return Duration
    is (Count * Days (360));
+
+   function Max (Left, Right : Time) return Time
+   is (Time'Max (Left, Right));
+
+   function Min (Left, Right : Time) return Time
+   is (Time'Min (Left, Right));
 
 end Concorde.Calendar;
