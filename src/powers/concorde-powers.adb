@@ -61,13 +61,13 @@ package body Concorde.Powers is
 
    function Daily_Work
      (Power : Root_Power_Type'Class;
-      World : not null access constant
-        Concorde.Worlds.Root_World_Type'Class)
+      Community : not null access constant
+        Concorde.People.Communities.Root_Community_Type'Class)
       return Duration
    is
    begin
       return Concorde.Powers.Execution.Daily_Work
-        (Power, World);
+        (Power, Community);
    end Daily_Work;
 
    --------------------

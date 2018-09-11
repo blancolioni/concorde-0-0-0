@@ -8,6 +8,7 @@ with WL.String_Maps;
 
 with Concorde.Calendar;
 with Concorde.Commodities;
+with Concorde.Markets;
 with Concorde.Trades;
 
 with Concorde.People.Attributes.Configure;
@@ -91,9 +92,10 @@ package body Concorde.Powers.Execution is
       return Population_Work;
 
    function Calculate_Work
-     (Power : Power_Type;
-      Work  : Work_Record;
-      World : access constant Concorde.Worlds.Root_World_Type'Class)
+     (Power     : Power_Type;
+      Work      : Work_Record;
+      Community : not null access constant
+        Concorde.People.Communities.Root_Community_Type'Class)
       return Duration;
 
    function P (Power : Power_Type) return Power_Execution_Record;
@@ -128,12 +130,15 @@ package body Concorde.Powers.Execution is
    --------------------
 
    function Calculate_Work
-     (Power : Power_Type;
-      Work  : Work_Record;
-      World : access constant Concorde.Worlds.Root_World_Type'Class)
+     (Power     : Power_Type;
+      Work      : Work_Record;
+      Community : not null access constant
+        Concorde.People.Communities.Root_Community_Type'Class)
       return Duration
    is
       Result : Duration := Work.Base;
+      Market : constant Concorde.Markets.Market_Type :=
+                 Community.Market;
    begin
       if not Work.Commodity.Is_Empty then
          declare
@@ -157,14 +162,14 @@ package body Concorde.Powers.Execution is
                      W :=
                        Duration
                          (WL.Quantities.To_Float
-                            (World.Market.Current_Quantity
+                            (Market.Current_Quantity
                                (Item.Metric, Commodity))
                           * Float (Item.Factor));
                   when By_Transaction_Count =>
                      W :=
                        Duration
                          (Real
-                            (World.Market.Recent_Transaction_Count (Commodity))
+                            (Market.Recent_Transaction_Count (Commodity))
                           * Item.Factor);
                end case;
                if W > 0.0 then
@@ -208,7 +213,7 @@ package body Concorde.Powers.Execution is
             end Add_Pop;
 
          begin
-            World.Scan_Pops (Add_Pop'Access);
+            Community.Scan_Pops (Add_Pop'Access);
          end;
 
       end if;
@@ -338,12 +343,13 @@ package body Concorde.Powers.Execution is
 
    function Daily_Work
      (Power : Power_Type;
-      World : not null access constant Concorde.Worlds.Root_World_Type'Class)
+      Community : not null access constant
+        Concorde.People.Communities.Root_Community_Type'Class)
       return Duration
    is
       Rec : constant Power_Execution_Record := P (Power);
    begin
-      return Calculate_Work (Power, Rec.Daily_Work, World);
+      return Calculate_Work (Power, Rec.Daily_Work, Community);
    end Daily_Work;
 
    --------------------
@@ -356,10 +362,11 @@ package body Concorde.Powers.Execution is
         Concorde.Objects.Root_Object_Type'Class)
       return Duration
    is
-      pragma Unreferenced (Target);
       Rec : constant Power_Execution_Record := P (Power);
    begin
-      return Calculate_Work (Power, Rec.Action_Cost, null);
+      return Calculate_Work (Power, Rec.Action_Cost,
+                             Concorde.People.Communities.Community_Type
+                               (Target));
    end Execution_Work;
 
    -------

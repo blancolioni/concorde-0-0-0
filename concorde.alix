@@ -22,6 +22,7 @@ source_dir = src/markets
 source_dir = src/net
 source_dir = src/objects
 source_dir = src/people
+source_dir = src/politics
 source_dir = src/powers
 source_dir = src/stars
 source_dir = src/surfaces

@@ -1,132 +1,130 @@
 private with Ada.Containers.Doubly_Linked_Lists;
-
+private with Ada.Containers.Vectors;
 private with Memor.Database;
-
-with WL.Quantities;
 
 with Memor;
 
 with Concorde.Commodities;
-with Concorde.Objects;
+
+with Concorde.Network.Expressions;
+with Concorde.Network.Nodes;
+with Concorde.Politics;
 
 package Concorde.People.Groups is
 
-   type Need_Level is (Basic, Daily, Desire);
-
-   type Wealth_Level is (Poor, Middle, Rich);
-
    type Root_Pop_Group is
-     new Concorde.Objects.Root_Localised_Object_Type with private;
-
-   function Initial_Cash_Factor
-     (Group : Root_Pop_Group'Class)
-      return Non_Negative_Real;
-
-   function Unemployment
-     (Group : Root_Pop_Group'Class)
-      return Boolean;
-
-   function Is_Artisan
-     (Group : Root_Pop_Group'Class)
-      return Boolean;
-
-   function Is_Soldier
-     (Group : Root_Pop_Group'Class)
-      return Boolean;
-
-   function Is_Spacer
-     (Group : Root_Pop_Group'Class)
-      return Boolean;
-
-   function Is_Slave
-     (Group : Root_Pop_Group'Class)
-      return Boolean;
-
-   function Work_Commodity
-     (Group : Root_Pop_Group'Class)
-      return Concorde.Commodities.Commodity_Type
-     with Pre => Group.Unemployment;
-
-   procedure Scan_Needs
-     (Group   : Root_Pop_Group'Class;
-      Level   : Need_Level;
-      Size    : WL.Quantities.Quantity_Type;
-      Process : not null access
-        procedure (Commodity : Concorde.Commodities.Commodity_Type;
-                   Quantity : WL.Quantities.Quantity_Type));
+     new Concorde.Network.Nodes.Root_Node_Type
+     and Concorde.Politics.Political_Interface
+   with private;
 
    type Pop_Group is access constant Root_Pop_Group'Class;
+
+   type Array_Of_Pop_Groups is
+     array (Positive range <>) of Pop_Group;
+
+   function All_Groups return Array_Of_Pop_Groups;
+   function Wealth_Groups return Array_Of_Pop_Groups;
+   function Political_Groups return Array_Of_Pop_Groups;
+   function Everybody return Pop_Group;
+
+   function Is_Political_Left
+     (Group : Root_Pop_Group'Class)
+      return Boolean;
+
+   function Is_Political_Right
+     (Group : Root_Pop_Group'Class)
+      return Boolean;
+
+   function Has_Wealth_Proportion
+     (Group : Root_Pop_Group'Class)
+      return Boolean;
+
+   function Wealth_Proportion
+     (Group : Root_Pop_Group'Class)
+      return Concorde.Network.Expressions.Expression_Type
+     with Pre => Group.Has_Wealth_Proportion;
+
+   function Default_Proportion
+     (Group : Root_Pop_Group'Class)
+      return Unit_Real;
+
+   function Influence
+     (Group : Root_Pop_Group'Class;
+      Other : Pop_Group)
+      return Signed_Unit_Real;
 
    function Get (Name : String) return Pop_Group;
 
 private
 
-   type Need_Record is
+   type Group_Influence is
       record
-         Commodity     : Concorde.Commodities.Commodity_Type;
-         Need_Quantity : WL.Quantities.Quantity_Type;
-         Pop_Quantity  : WL.Quantities.Quantity_Type;
+         Group     : Pop_Group;
+         Influence : Signed_Unit_Real;
       end record;
-   --  'Pop_Quantity' people need 'Need_Quantity' commodities
 
-   package Needs_List is
-     new Ada.Containers.Doubly_Linked_Lists (Need_Record);
-
-   type Needs_Array is array (Need_Level) of Needs_List.List;
+   package Group_Influence_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Group_Influence);
 
    type Root_Pop_Group is
-     new Concorde.Objects.Root_Localised_Object_Type with
+     new Concorde.Network.Nodes.Root_Node_Type
+     and Concorde.Politics.Political_Interface with
       record
-         Unemployment        : Boolean;
-         Is_Artisan          : Boolean;
-         Is_Soldier          : Boolean;
-         Is_Spacer           : Boolean;
-         Is_Slave            : Boolean;
-         Wealth              : Wealth_Level;
-         Initial_Cash_Factor : Non_Negative_Real;
-         Max_Size            : WL.Quantities.Quantity_Type;
-         Work_Commodity      : Concorde.Commodities.Commodity_Type;
-         Needs               : Needs_Array;
+         Default_Politics      : Concorde.Politics.Political_Record;
+         Default_Proportion    : Unit_Real := 0.0;
+         Expression_Proportion : Concorde.Network.Expressions.Expression_Type;
+         Political_Wing        : Boolean := False;
+         Left_Bias             : Boolean := False;
+         Wealth_Group          : Boolean := False;
+         Wealth_Proportion     : Boolean := False;
+         Influences            : Group_Influence_Lists.List;
       end record;
 
    overriding function Object_Database
      (Item : Root_Pop_Group)
       return Memor.Memor_Database;
 
-   function Initial_Cash_Factor
-     (Group : Root_Pop_Group'Class)
-      return Non_Negative_Real
-   is (Group.Initial_Cash_Factor);
+   overriding function Position
+     (Group : Root_Pop_Group;
+      Axis  : Concorde.Politics.Political_Axis)
+      return Unit_Real
+   is (Group.Default_Politics.Position (Axis));
 
-   function Unemployment
+   overriding function Strength
+     (Group : Root_Pop_Group;
+      Axis  : Concorde.Politics.Political_Axis)
+      return Unit_Real
+   is (Group.Default_Politics.Strength (Axis));
+
+   function Is_Wealth_Group
      (Group : Root_Pop_Group'Class)
       return Boolean
-   is (Group.Unemployment);
+   is (Group.Wealth_Group);
 
-   function Is_Artisan
+   function Default_Proportion
+     (Group : Root_Pop_Group'Class)
+      return Unit_Real
+   is (Group.Default_Proportion);
+
+   function Has_Wealth_Proportion
      (Group : Root_Pop_Group'Class)
       return Boolean
-   is (Group.Is_Artisan);
+   is (Group.Wealth_Proportion);
 
-   function Is_Soldier
+   function Wealth_Proportion
+     (Group : Root_Pop_Group'Class)
+      return Concorde.Network.Expressions.Expression_Type
+   is (Group.Expression_Proportion);
+
+   function Is_Political_Left
      (Group : Root_Pop_Group'Class)
       return Boolean
-   is (Group.Is_Soldier);
+   is (Group.Political_Wing and then Group.Left_Bias);
 
-   function Is_Spacer
+   function Is_Political_Right
      (Group : Root_Pop_Group'Class)
       return Boolean
-   is (Group.Is_Spacer);
-
-   function Is_Slave
-     (Group : Root_Pop_Group'Class)
-      return Boolean
-   is (Group.Is_Slave);
-
-   function Work_Commodity
-     (Group : Root_Pop_Group'Class)
-      return Concorde.Commodities.Commodity_Type
-   is (Group.Work_Commodity);
+   is (Group.Political_Wing and then not Group.Left_Bias);
 
    package Db is
      new Memor.Database
@@ -136,5 +134,10 @@ private
      (Item : Root_Pop_Group)
       return Memor.Memor_Database
    is (Db.Get_Database);
+
+   package Pop_Group_Vectors is
+     new Ada.Containers.Vectors (Positive, Pop_Group);
+
+   Vector : Pop_Group_Vectors.Vector;
 
 end Concorde.People.Groups;

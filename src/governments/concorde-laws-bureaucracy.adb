@@ -3,6 +3,7 @@ with Ada.Strings.Unbounded;
 
 with Concorde.Bureaucracy;
 with Concorde.Factions;
+with Concorde.People.Communities;
 
 with Concorde.Ministries.Create;
 
@@ -28,7 +29,6 @@ package body Concorde.Laws.Bureaucracy is
      new Root_Law_Type with
       record
          Name     : Ada.Strings.Unbounded.Unbounded_String;
-         Location : Concorde.Installations.Installation_Type;
          Budget   : WL.Money.Money_Type;
          Powers   : Concorde.Powers.Power_Set;
       end record;
@@ -71,7 +71,6 @@ package body Concorde.Laws.Bureaucracy is
    function Create_Ministry
      (Context  : Law_Context;
       Name     : String;
-      Location : Concorde.Installations.Installation_Type;
       Budget   : WL.Money.Money_Type;
       Powers   : Concorde.Powers.Power_Set)
       return Law_Type
@@ -81,7 +80,6 @@ package body Concorde.Laws.Bureaucracy is
         (Level    => Legislation,
          Context  => Context,
          Name     => Ada.Strings.Unbounded.To_Unbounded_String (Name),
-         Location => Location,
          Budget   => Budget,
          Powers   => Powers);
    end Create_Ministry;
@@ -151,12 +149,15 @@ package body Concorde.Laws.Bureaucracy is
    overriding procedure Enact (Law : in out Create_Ministry_Law) is
       Faction : constant Concorde.Factions.Faction_Type :=
                   Concorde.Factions.Faction_Type (Law.Context.Legislator);
+      Community : constant Concorde.People.Communities.Community_Type :=
+                    Concorde.People.Communities.Community_Type
+                      (Law.Context.Target);
    begin
       Concorde.Ministries.Create.Create_Ministry
         (Faction  => Faction,
          Area     => Law.Context.Target,
-         Location => Law.Location,
-         Market   => Law.Location.Market,
+         Location => Community,
+         Market   => Community.Market,
          Name     => Ada.Strings.Unbounded.To_String (Law.Name),
          Budget   => Law.Budget,
          Powers   => Law.Powers);
@@ -169,7 +170,8 @@ package body Concorde.Laws.Bureaucracy is
    overriding function Show (Law : Power_Delegation_Law) return String is
    begin
       return "delegate " & Concorde.Powers.Show (Law.Power.Element)
-        & " to " & Law.Context.Target.Identifier;
+        & " to "
+        & Concorde.Objects.Object_Type (Law.Context.Target).Identifier;
    end Show;
 
    ----------

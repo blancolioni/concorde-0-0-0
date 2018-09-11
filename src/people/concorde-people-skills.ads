@@ -6,7 +6,6 @@ with Memor;
 with Concorde.Objects;
 
 with Concorde.Commodities;
-with Concorde.People.Groups;
 
 package Concorde.People.Skills is
 

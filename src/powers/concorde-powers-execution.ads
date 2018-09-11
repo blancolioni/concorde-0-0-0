@@ -2,17 +2,18 @@ with Tropos;
 
 with Concorde.Objects;
 with Concorde.People.Attributes;
+with Concorde.People.Communities;
 with Concorde.People.Groups;
-with Concorde.Worlds;
 
 private package Concorde.Powers.Execution is
 
    function Daily_Work
      (Power : Power_Type;
-      World : not null access constant Concorde.Worlds.Root_World_Type'Class)
+      Community : not null access constant
+        Concorde.People.Communities.Root_Community_Type'Class)
       return Duration;
    --  How many person-seconds required
-   --  to execute this power on the given world today
+   --  to execute this power in the given community today
 
    function Execution_Work
      (Power  : Power_Type;

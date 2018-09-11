@@ -22,7 +22,7 @@ package body Concorde.Ministries is
      (Ministry : Root_Ministry_Type'Class)
       return Duration
    is
-      Result : Duration := 0.0;
+      Result : constant Duration := 0.0;
 
       procedure Add_Work
         (Power : Concorde.Powers.Power_Type);
@@ -35,8 +35,9 @@ package body Concorde.Ministries is
         (Power : Concorde.Powers.Power_Type)
       is
       begin
-         Result := Result
-           + Power.Daily_Work (Ministry.Headquarters.World);
+         null;
+--           Result := Result
+--             + Power.Daily_Work (Ministry.Headquarters.Community);
       end Add_Work;
 
    begin

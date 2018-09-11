@@ -6,6 +6,7 @@ private with Memor.Database;
 
 with Concorde.Agents;
 with Concorde.Factions;
+with Concorde.Laws;
 with Concorde.Managers;
 with Concorde.Objects;
 with Concorde.Offices;
@@ -36,6 +37,7 @@ package Concorde.People.Individuals is
      and Concorde.Factions.Citizen_Interface
      and Concorde.Objects.User_Named_Object_Interface
      and Concorde.Managers.Managed_Interface
+     and Concorde.Laws.Law_Target_Interface
      and Concorde.People.Skills.Has_Skills_Interface
      and Concorde.People.Attributes.Has_Attributes
      and Concorde.People.Careers.Career_Interface
@@ -201,6 +203,7 @@ private
      and Concorde.Factions.Citizen_Interface
      and Concorde.Objects.User_Named_Object_Interface
      and Concorde.Managers.Managed_Interface
+     and Concorde.Laws.Law_Target_Interface
      and Concorde.People.Skills.Has_Skills_Interface
      and Concorde.People.Careers.Career_Interface with
       record

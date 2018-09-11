@@ -36,7 +36,16 @@ package body Concorde.Factions.Configure is
                           Tropos.Reader.Read_Config
                             (Concorde.Configure.File_Path
                                ("init", "laws", "txt"));
-      Current         : Natural := 0;
+      Faction_Template : constant Tropos.Configuration :=
+                           Tropos.Reader.Read_Config
+                             (Concorde.Configure.File_Path
+                                ("init", "faction-template", "txt"));
+      Imperium_Template : constant Tropos.Configuration :=
+                            Tropos.Reader.Read_Config
+                              (Concorde.Configure.File_Path
+                                 ("init", "imperium-template", "txt"));
+
+      Current           : Natural := 0;
    begin
       for Config of Faction_Config loop
          exit when Current >= Count;
@@ -48,19 +57,23 @@ package body Concorde.Factions.Configure is
                         Config.Get ("capital", Name);
             Faction : constant Faction_Type :=
                         Concorde.Factions.Create.New_Faction
-                          (Name    => Name,
-                           Capital => Capital,
-                           Color  =>
+                          (Name                => Name,
+                           Capital             => Capital,
+                           Color               =>
                              Lui.Colors.Config.Configure_Color
                                (Config, "color"),
                            Default_Ship_Design =>
-                             Config.Get ("design", "defender"));
+                             Config.Get ("design", "defender"),
+                           Template            =>
+                             (if Current = 0
+                              then Imperium_Template
+                              else Faction_Template));
             House_Ministry : constant Concorde.Ministries.Ministry_Type :=
                                Faction.First_Ministry;
 
             Capital_Context : constant Concorde.Laws.Law_Context :=
-                                Concorde.Laws.Configure.World_Context
-                                  (Faction.Capital_World);
+                                Concorde.Laws.Configure.Community_Context
+                                  (Faction.Capital_Community);
          begin
 
             if Current = 0 then

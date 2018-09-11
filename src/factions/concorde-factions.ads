@@ -10,7 +10,7 @@ private with Memor.Element_Vectors;
 
 with Memor;
 
-limited with Concorde.Installations;
+limited with Concorde.People.Communities;
 limited with Concorde.People.Individuals;
 limited with Concorde.Worlds;
 
@@ -43,6 +43,7 @@ package Concorde.Factions is
      and Concorde.Objects.User_Named_Object_Interface
      and Concorde.Ownership.Owner_Interface
      and Concorde.Bureaucracy.Bureaucratic_Interface
+     and Concorde.Laws.Law_Target_Interface
      and Concorde.Managers.Managed_Interface
    with private;
 
@@ -104,10 +105,6 @@ package Concorde.Factions is
      (Faction : Root_Faction_Type'Class)
       return Lui.Colors.Color_Type;
 
-   function Capital
-     (Faction : Root_Faction_Type'Class)
-      return access constant Concorde.Worlds.Root_World_Type'Class;
-
    function Relationship
      (Faction : Root_Faction_Type'Class;
       To     : Root_Faction_Type'Class)
@@ -158,20 +155,15 @@ package Concorde.Factions is
       Leader   : not null access constant
         Concorde.People.Individuals.Root_Individual_Type'Class);
 
+   function Capital_Community
+     (Faction : Root_Faction_Type'Class)
+      return access constant
+     Concorde.People.Communities.Root_Community_Type'Class;
+
    function Capital_World
      (Faction : Root_Faction_Type'Class)
       return access constant
      Concorde.Worlds.Root_World_Type'Class;
-
-   function Capital_Building
-     (Faction : Root_Faction_Type'Class)
-      return access constant
-     Concorde.Installations.Root_Installation_Type'Class;
-
-   procedure Set_Capital_Building
-     (Faction : in out Root_Faction_Type'Class;
-      Building : not null access constant
-        Concorde.Installations.Root_Installation_Type'Class);
 
    function Current_Ships
      (Faction : Root_Faction_Type'Class)
@@ -469,6 +461,7 @@ private
      and Concorde.Objects.User_Named_Object_Interface
      and Concorde.Ownership.Owner_Interface
      and Concorde.Bureaucracy.Bureaucratic_Interface
+     and Concorde.Laws.Law_Target_Interface
      and Concorde.Managers.Managed_Interface with
       record
          Identifier         : Ada.Strings.Unbounded.Unbounded_String;
@@ -491,10 +484,8 @@ private
          Lost_Ships         : Natural := 0;
          Destroyed_Ships    : Natural := 0;
          Border_Change      : Boolean;
-         Capital_World      : access constant
-           Concorde.Worlds.Root_World_Type'Class;
-         Capital_Building   : access constant
-           Concorde.Installations.Root_Installation_Type'Class;
+         Capital_Community  : access constant
+           Concorde.People.Communities.Root_Community_Type'Class;
          Default_Ship       : access String;
       end record;
 
@@ -577,18 +568,6 @@ private
      (Faction : Root_Faction_Type)
       return Concorde.Managers.Manager_Type
    is (Faction.Manager);
-
-   function Capital_World
-     (Faction : Root_Faction_Type'Class)
-      return access constant
-     Concorde.Worlds.Root_World_Type'Class
-   is (Faction.Capital_World);
-
-   function Capital_Building
-     (Faction : Root_Faction_Type'Class)
-      return access constant
-     Concorde.Installations.Root_Installation_Type'Class
-   is (Faction.Capital_Building);
 
    function First_Ministry
      (Faction : Root_Faction_Type'Class)

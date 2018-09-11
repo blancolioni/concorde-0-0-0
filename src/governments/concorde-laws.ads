@@ -11,6 +11,8 @@ package Concorde.Laws is
       Custom                 --  customary behaviour only; no force of law
      );
 
+   type Law_Target_Interface is limited interface;
+
    type Law_Context is private;
 
    type Root_Law_Type is abstract tagged private;
@@ -41,7 +43,7 @@ private
    type Law_Context is
       record
          Legislator : Concorde.Objects.Object_Type;
-         Target     : Concorde.Objects.Object_Type;
+         Target     : access constant Law_Target_Interface'Class;
       end record;
 
    type Root_Law_Type is abstract tagged

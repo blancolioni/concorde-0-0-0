@@ -12,7 +12,7 @@ with Concorde.Ships.Components.Configure;
 with Concorde.Ships.Designs.Configure;
 
 with Concorde.Commodities.Configure;
-with Concorde.Facilities.Configure;
+--  with Concorde.Facilities.Configure;
 with Concorde.Offices.Configure;
 with Concorde.Powers.Configure;
 
@@ -206,7 +206,7 @@ package body Concorde.Configure is
            Concorde.Units.Configure.Configure_Unit'Access);
 
       Concorde.Ships.Components.Configure.Configure_Components;
-      Concorde.Facilities.Configure.Configure_Facilities;
+--        Concorde.Facilities.Configure.Configure_Facilities;
       Concorde.Ships.Designs.Configure.Configure_Designs;
 
       Concorde.Commodities.Configure.Calculate_Base_Prices;

@@ -19,12 +19,13 @@ with Concorde.Stars;
 with Concorde.Worlds;
 with Concorde.Systems;
 
+with Concorde.People.Communities.Create;
 with Concorde.People.Individuals.Create;
 with Concorde.People.Individuals.Work;
 
 with Concorde.Scenarios;
 
-with Concorde.Colonies.Configure;
+--  with Concorde.Colonies.Configure;
 
 with Concorde.Commodities;
 
@@ -40,7 +41,8 @@ package body Concorde.Factions.Create is
    Imperial_Centre : Boolean := True;
 
    procedure Create_Initial_Ships
-     (World : Concorde.Worlds.World_Type);
+     (World : Concorde.Worlds.World_Type)
+     with Unreferenced;
 
    function Find_System
      (Start  : Concorde.Systems.Star_System_Type;
@@ -245,15 +247,23 @@ package body Concorde.Factions.Create is
    function New_Faction
      (Name                : String;
       Capital             : String;
-      Color              : Lui.Colors.Color_Type;
-      Default_Ship_Design : String)
+      Color               : Lui.Colors.Color_Type;
+      Default_Ship_Design : String;
+      Template            : Tropos.Configuration)
       return Faction_Type
    is
+      pragma Unreferenced (Capital);
 
       Taken : Concorde.Galaxy.Star_System_Set;
 
       Start_World  : Concorde.Worlds.World_Type;
       Start_System : Concorde.Systems.Star_System_Type;
+
+      Init_Config  : constant Tropos.Configuration :=
+                       Template.Child ("init");
+
+      function Init_Value (Name : String) return Real
+      is (Real (Float'(Init_Config.Get (Name, 0.0))));
 
       procedure Add_Taken_Systems
         (Faction : Root_Faction_Type'Class);
@@ -273,7 +283,7 @@ package body Concorde.Factions.Create is
       is
       begin
          Concorde.Galaxy.Add_Systems
-           (Taken, Faction.Capital.System, 0.4);
+           (Taken, Faction.Capital_World.System, 0.4);
       end Add_Taken_Systems;
 
       ------------
@@ -439,7 +449,6 @@ package body Concorde.Factions.Create is
          New_Faction.System_Data :=
            new System_Data_Array (1 .. Galaxy.System_Count);
          New_Faction.Color := Color;
-         New_Faction.Capital_World := Start_World;
 
          if Imperial_Centre then
             Galaxy.Set_Capital_World (Start_World);
@@ -513,29 +522,37 @@ package body Concorde.Factions.Create is
 
       declare
          Faction : constant Faction_Type :=
-                    Db.Create (Create'Access);
+                     Db.Create (Create'Access);
+         Base_Pop : constant Non_Negative_Real := Init_Value ("population");
+         Gini     : constant Unit_Real :=
+                      Unit_Real (Float'(Template.Get ("gini", 0.5)));
+         Capital : constant Concorde.People.Communities.Community_Type :=
+                     Concorde.People.Communities.Create.New_Community
+                       (World      => Start_World,
+                        Faction    => Faction,
+                        Population =>
+                          WL.Quantities.To_Quantity (Float (Base_Pop)),
+                        Gini       => Gini,
+                        Initial_Value => Init_Value'Access);
       begin
          Start_System.Update.Set_Owner (Faction);
          Start_System.Update.Set_Capital (True);
 
-         Start_World.Update.Set_Owner (Faction);
-         Start_World.Update.Set_Capital (True);
-         if True then
-            Start_World.Update.Set_Name (Capital);
-         end if;
+         Faction.Update.Capital_Community := Capital;
+         Capital.Update.Set_Owner (Faction);
 
          Start_World.Check_Loaded;
 
-         if Imperial_Centre then
-            Concorde.Colonies.Configure.Create_Colony_From_Template
-              (Start_World, "imperial_capital");
-         else
-            Concorde.Colonies.Configure.Create_Colony_From_Template
-              (Start_World, "initial_colony");
-
-            Create_Initial_Ships (Start_World);
-
-         end if;
+--           if Imperial_Centre then
+--              Concorde.Colonies.Configure.Create_Colony_From_Template
+--                (Start_World, "imperial_capital");
+--           else
+--              Concorde.Colonies.Configure.Create_Colony_From_Template
+--                (Start_World, "initial_colony");
+--
+--              Create_Initial_Ships (Start_World);
+--
+--           end if;
 
          declare
             use Concorde.People.Individuals;
@@ -545,20 +562,23 @@ package body Concorde.Factions.Create is
             Ancestor        : constant Individual_Type :=
                          Concorde.People.Individuals.Create.Create_Family_Tree
                                   (Faction,
-                                   Concorde.Locations.At_Installation
-                                     (Start_World.Colony_Hub));
+                                   Concorde.Locations.In_Community
+                                     (Faction.Capital_Community));
          begin
             House_Ministry.Update.Set_Minister (Ancestor);
             Ancestor.Update.Set_Office (House_Ministry);
          end;
 
-         if Start_World.Has_Market then
-            Set_Initial_Prices (Start_World.Market.Update);
-         else
-            Ada.Text_IO.Put_Line
-              ("Could not create initial colony on "
-               & Start_World.Name);
-         end if;
+         Set_Initial_Prices
+           (Faction.Capital_Community.Market.Update);
+
+--           if Start_World.Has_Market then
+--              Set_Initial_Prices (Start_World.Market.Update);
+--           else
+--              Ada.Text_IO.Put_Line
+--                ("Could not create initial colony on "
+--                 & Start_World.Name);
+--           end if;
 
          Faction.Save_Agent;
          Concorde.Managers.Factions.Create_Manager (Faction).Activate;

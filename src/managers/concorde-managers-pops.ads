@@ -35,10 +35,6 @@ private
    overriding procedure On_Activated
      (Manager : in out Root_Pop_Manager);
 
-   procedure Choose_Artisan_Production
-     (Manager : in out Root_Pop_Manager)
-     with Pre => Manager.Pop.Group.Is_Artisan;
-
    type Root_Pop_Event_Handler is
      abstract new Concorde.Objects.Object_Handler_Interface with
       record

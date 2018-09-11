@@ -4,6 +4,8 @@ with WL.Money;
 
 with Concorde.Roman_Images;
 
+with Concorde.People.Communities;
+
 package body Concorde.Ships.Vessels.Create is
 
    -------------------------
@@ -39,8 +41,8 @@ package body Concorde.Ships.Vessels.Create is
          Vessel.New_Agent
            (Location       =>
               Concorde.Locations.Geosynchronous_Orbit (World),
-            Government     => Owner.Capital.Government,
-            Market         => World.Market,
+            Government     => Owner.Capital_Community.Government,
+            Market         => Owner.Capital_Community.Market,
             Cash           => WL.Money.To_Money (100_000.0),
             Stock_Capacity => Design.Cargo_Capacity);
 

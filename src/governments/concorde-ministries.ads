@@ -12,6 +12,7 @@ with Concorde.Installations;
 with Concorde.Objects;
 with Concorde.Powers;
 
+limited with Concorde.People.Communities;
 limited with Concorde.People.Individuals;
 
 package Concorde.Ministries is
@@ -49,10 +50,6 @@ package Concorde.Ministries is
    function Daily_Budget
      (Ministry : Root_Ministry_Type'Class)
       return WL.Money.Money_Type;
-
-   function Headquarters
-     (Ministry : Root_Ministry_Type'Class)
-      return Concorde.Installations.Installation_Type;
 
    overriding function Short_Name
      (Ministry : Root_Ministry_Type)
@@ -141,7 +138,8 @@ private
          Minister          : access constant
            Concorde.People.Individuals.Root_Individual_Type'Class;
          Area              : Concorde.Objects.Object_Type;
-         Headquarters      : Concorde.Installations.Installation_Type;
+         Community         : access constant
+           Concorde.People.Communities.Root_Community_Type'Class;
          Powers            : Concorde.Powers.Power_Set;
          Delegated_Powers  : Delegated_Power_Lists.List;
          Daily_Budget      : WL.Money.Money_Type;
@@ -219,11 +217,6 @@ private
      (Ministry : Root_Ministry_Type'Class)
       return WL.Money.Money_Type
    is (Ministry.Daily_Budget);
-
-   function Headquarters
-     (Ministry : Root_Ministry_Type'Class)
-      return Concorde.Installations.Installation_Type
-   is (Ministry.Headquarters);
 
    package Db is
      new Memor.Database

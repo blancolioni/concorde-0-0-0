@@ -1,17 +1,18 @@
 with Concorde.Locations;
-with WL.Money;
 with Concorde.Trades;
 
+with Concorde.Government;
 with Concorde.People.Groups;
 
 package Concorde.People.Pops.Create is
 
    function New_Pop
-     (Location : Concorde.Locations.Object_Location;
-      Market   : access constant Concorde.Trades.Trade_Interface'Class;
-      Group    : Concorde.People.Groups.Pop_Group;
+     (Market   : access constant Concorde.Trades.Trade_Interface'Class;
+      Government : not null access constant
+        Concorde.Government.Root_Government_Type'Class;
+      Groups   : Concorde.People.Groups.Array_Of_Pop_Groups;
       Size     : Pop_Size;
-      Cash     : WL.Money.Money_Type)
+      Apathy   : Unit_Real)
       return Pop_Type;
 
 end Concorde.People.Pops.Create;

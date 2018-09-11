@@ -5,7 +5,6 @@ private with Memor.Database;
 
 with Concorde.Geometry;
 
-with WL.Money;
 with WL.Quantities;
 
 with Concorde.Maps;
@@ -22,10 +21,10 @@ with Concorde.Systems;
 with Concorde.Armies;
 with Concorde.Commodities;
 with Concorde.Government;
+with Concorde.Markets;
 with Concorde.People.Individuals;
 with Concorde.People.Pops;
 with Concorde.Installations;
-with Concorde.Markets;
 with Concorde.Trades;
 
 limited with Concorde.Factions;
@@ -54,7 +53,6 @@ package Concorde.Worlds is
    type Root_World_Type is
      new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Systems.Star_System_Object_Interface
-     and Concorde.Government.Governed_Interface
      and Concorde.Maps.Tile_Layout_Interface
    with private;
 
@@ -113,22 +111,22 @@ package Concorde.Worlds is
       return Boolean
    is (World.Category in Jovian_World);
 
-   procedure Set_Capital
-     (World      : in out Root_World_Type'Class;
-      Is_Capital : Boolean);
+--     procedure Set_Capital
+--       (World      : in out Root_World_Type'Class;
+--        Is_Capital : Boolean);
 
-   function Is_Capital
-     (World : Root_World_Type'Class)
-      return Boolean;
+--     function Is_Capital
+--       (World : Root_World_Type'Class)
+--        return Boolean;
 
-   procedure Set_Government
-     (World      : in out Root_World_Type'Class;
-      Government : Concorde.Government.Government_Type);
-
-   function Has_Government
-     (World : Root_World_Type'Class)
-      return Boolean;
-
+--     procedure Set_Government
+--       (World      : in out Root_World_Type'Class;
+--        Government : Concorde.Government.Government_Type);
+--
+--     function Has_Government
+--       (World : Root_World_Type'Class)
+--        return Boolean;
+--
    function Has_Market
      (World : Root_World_Type'Class)
       return Boolean;
@@ -137,9 +135,9 @@ package Concorde.Worlds is
      (World : Root_World_Type'Class)
       return Concorde.Markets.Market_Type;
 
-   function Colony_Hub
-     (World : Root_World_Type'Class)
-      return Concorde.Installations.Installation_Type;
+   procedure Set_Market
+     (World  : in out Root_World_Type'Class;
+      Market : Concorde.Markets.Market_Type);
 
    function Resources
      (World : Root_World_Type'Class)
@@ -235,11 +233,6 @@ package Concorde.Worlds is
       Sector     : Concorde.Surfaces.Surface_Tile_Index;
       Individual : Concorde.People.Individuals.Individual_Type);
 
-   procedure Add_Installation
-     (World        : in out Root_World_Type'Class;
-      Sector       : Concorde.Surfaces.Surface_Tile_Index;
-      Installation : Concorde.Installations.Installation_Type);
-
    procedure Add_Army
      (World   : in out Root_World_Type'Class;
       Sector  : Concorde.Surfaces.Surface_Tile_Index;
@@ -278,41 +271,37 @@ package Concorde.Worlds is
       Process : not null access
         procedure (Individual : Concorde.People.Individuals.Individual_Type));
 
-   function Buy_Price
-     (World     : Root_World_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return WL.Money.Price_Type;
-
-   function Sell_Price
-     (World     : Root_World_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return WL.Money.Price_Type;
-
-   function Import_Market_Size
-     (World     : Root_World_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return WL.Quantities.Quantity_Type;
-
-   function Export_Market_Size
-     (World     : Root_World_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return WL.Quantities.Quantity_Type;
-
-   procedure Buy
-     (World     : in out Root_World_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : in out WL.Quantities.Quantity_Type);
-
-   procedure Sell
-     (World     : in out Root_World_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : in out WL.Quantities.Quantity_Type);
+--     function Buy_Price
+--       (World     : Root_World_Type'Class;
+--        Commodity : Concorde.Commodities.Commodity_Type)
+--        return WL.Money.Price_Type;
+--
+--     function Sell_Price
+--       (World     : Root_World_Type'Class;
+--        Commodity : Concorde.Commodities.Commodity_Type)
+--        return WL.Money.Price_Type;
+--
+--     function Import_Market_Size
+--       (World     : Root_World_Type'Class;
+--        Commodity : Concorde.Commodities.Commodity_Type)
+--        return WL.Quantities.Quantity_Type;
+--
+--     function Export_Market_Size
+--       (World     : Root_World_Type'Class;
+--        Commodity : Concorde.Commodities.Commodity_Type)
+--        return WL.Quantities.Quantity_Type;
+--
+--     procedure Buy
+--       (World     : in out Root_World_Type'Class;
+--        Commodity : Concorde.Commodities.Commodity_Type;
+--        Quantity  : in out WL.Quantities.Quantity_Type);
+--
+--     procedure Sell
+--       (World     : in out Root_World_Type'Class;
+--        Commodity : Concorde.Commodities.Commodity_Type;
+--        Quantity  : in out WL.Quantities.Quantity_Type);
 
    type World_Type is access constant Root_World_Type'Class;
-
-   procedure Scan_Market_Worlds
-     (Process : not null access
-        procedure (World : World_Type));
 
    procedure Scan_Worlds
      (Process : not null access
@@ -389,7 +378,6 @@ private
    type Root_World_Type is
      new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Systems.Star_System_Object_Interface
-     and Concorde.Government.Governed_Interface
      and Concorde.Maps.Tile_Layout_Interface with
       record
          System                : Concorde.Systems.Star_System_Type;
@@ -437,16 +425,12 @@ private
          Cloud_Cover           : Unit_Real;
          Ice_Cover             : Unit_Real;
          Sector_Count          : Natural;
-         Is_Capital_World      : Boolean := False;
-         Hub                   : Concorde.Installations.Installation_Type;
-         Port                  : Concorde.Installations.Installation_Type;
          Resources             : Concorde.Commodities.Lists.List;
          Ships                 : Concorde.Ships.Lists.List;
-         Market                : Concorde.Markets.Market_Type;
-         Government            : Concorde.Government.Government_Type;
          Pops                  : Concorde.People.Pops.Lists.List;
          Individuals           : Concorde.People.Individuals.Lists.List;
          Armies                : Concorde.Armies.Lists.List;
+         Market                : Concorde.Markets.Market_Type;
       end record;
 
    overriding function Object_Database
@@ -531,11 +515,6 @@ private
       Tile_Index : Positive;
       Height     : Positive);
 
-   overriding function Government
-     (World : Root_World_Type)
-      return Concorde.Government.Government_Type
-   is (World.Government);
-
    overriding function System
      (World : Root_World_Type)
       return access constant Concorde.Systems.Root_Star_System_Type'Class
@@ -548,10 +527,10 @@ private
       return Boolean
    is (World.Category in Jovian_World);
 
-   function Colony_Hub
+   function Market
      (World : Root_World_Type'Class)
-      return Concorde.Installations.Installation_Type
-   is (World.Hub);
+      return Concorde.Markets.Market_Type
+   is (World.Market);
 
    package Db is
      new Memor.Database

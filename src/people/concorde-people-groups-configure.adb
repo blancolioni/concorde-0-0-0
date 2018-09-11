@@ -1,9 +1,9 @@
-with WL.Money;
-
 with Tropos.Reader;
 
 with Concorde.Configure;
-with Concorde.Commodities.Configure;
+with Concorde.Politics.Configure;
+
+with Concorde.Network.Expressions.Parser;
 
 package body Concorde.People.Groups.Configure is
 
@@ -33,8 +33,9 @@ package body Concorde.People.Groups.Configure is
                  Tropos.Reader.Read_Config
                    (Path      =>
                       Concorde.Configure.Directory_Path
-                        ("poptypes"),
-                    Extension => "txt");
+                        ("groups"),
+                    Extension => "group");
+
    begin
       for Group_Config of Config loop
          Create_Pop_Group (Group_Config);
@@ -61,81 +62,39 @@ package body Concorde.People.Groups.Configure is
 
       procedure Create (Group : in out Root_Pop_Group'Class) is
 
-         procedure Configure_Needs
-           (Name  : String;
-            Level : Need_Level);
+         procedure Configure_Proportion (Pop_Config : Tropos.Configuration);
 
-         ---------------------
-         -- Configure_Needs --
-         ---------------------
+         --------------------------
+         -- Configure_Proportion --
+         --------------------------
 
-         procedure Configure_Needs
-           (Name        : String;
-            Level       : Need_Level)
-         is
-            Need_Config : constant Tropos.Configuration :=
-                            (if Config.Contains (Name)
-                             then Config.Child (Name)
-                             else Tropos.Empty_Config);
+         procedure Configure_Proportion (Pop_Config : Tropos.Configuration) is
+            P : constant Float := Pop_Config.Get ("base", 0.0);
+            W : constant String := Pop_Config.Get ("wealth-bias", "");
+            L : constant Boolean := Pop_Config.Get ("left");
          begin
-            for Item of Need_Config loop
-               declare
-                  Commodity : constant Concorde.Commodities.Commodity_Type :=
-                                Concorde.Commodities.Get
-                                  (Item.Config_Name);
-                  Value     : constant Float := Item.Value;
-               begin
-                  Group.Needs (Level).Append
-                    (Need_Record'
-                       (Commodity     => Commodity,
-                        Need_Quantity =>
-                          WL.Quantities.To_Quantity (Value * 1000.0),
-                        Pop_Quantity  =>
-                          WL.Quantities.To_Quantity (10_000.0)));
-               end;
-            end loop;
-         end Configure_Needs;
+            Group.Default_Proportion := Unit_Real (P);
+            if W /= "" then
+               Group.Expression_Proportion :=
+                 Concorde.Network.Expressions.Parser.Parse_String (W);
+               Group.Wealth_Proportion := True;
+            end if;
+            Group.Left_Bias := L;
+            if Pop_Config.Contains ("left") then
+               Group.Political_Wing := True;
+            end if;
+         end Configure_Proportion;
 
       begin
          Group.Set_Local_Tag (Name);
-         Group.Is_Artisan := Config.Get ("is_artisan");
-         Group.Is_Soldier := Config.Get ("is_soldier");
-         Group.Is_Spacer := Config.Get ("is_spacer");
-         Group.Is_Slave := Config.Get ("is_slave");
-         Group.Unemployment := Config.Get ("unemployment");
-
-         Group.Wealth := Wealth_Level'Value (Config.Get ("strata"));
-         if Group.Is_Artisan then
-            Group.Initial_Cash_Factor := 100.0;
-         else
-            Group.Initial_Cash_Factor :=
-              (case Group.Wealth is
-                  when Poor => 10.0,
-                  when Middle => 50.0,
-                  when Rich   => 200.0);
-         end if;
-
-         if Group.Unemployment then
-            Group.Work_Commodity :=
-              Concorde.Commodities.Configure.Create_From_Group
-                (Name,
-                 WL.Money.To_Price
-                   (Float (Group.Initial_Cash_Factor) / 5.0));
-
-         end if;
-
-         Group.Max_Size :=
-           WL.Quantities.To_Quantity
-             (Config.Get ("max_size", 1.0e9));
-
-         Configure_Needs ("life_needs", Basic);
-         Configure_Needs ("everyday_needs", Daily);
-         Configure_Needs ("luxury_needs", Desire);
-
+         Concorde.Politics.Configure.Configure
+           (Group.Default_Politics, Config.Child ("politics"));
+         Group.Wealth_Group := Config.Get ("wealth-group");
+         Configure_Proportion (Config.Child ("proportion"));
       end Create;
 
    begin
-      Db.Create (Create'Access);
+      Vector.Append (Db.Create (Create'Access));
    end Create_Pop_Group;
 
 end Concorde.People.Groups.Configure;

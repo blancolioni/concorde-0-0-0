@@ -1,8 +1,6 @@
+with WL.Money;
+
 with Concorde.Objects.Queues;
-
-with Concorde.Government;
-
-with Concorde.Installations.Create;
 
 with Concorde.Managers.Pops;
 
@@ -16,11 +14,12 @@ package body Concorde.People.Pops.Create is
    -------------
 
    function New_Pop
-     (Location : Concorde.Locations.Object_Location;
-      Market   : access constant Concorde.Trades.Trade_Interface'Class;
-      Group    : Concorde.People.Groups.Pop_Group;
+     (Market   : access constant Concorde.Trades.Trade_Interface'Class;
+      Government : not null access constant
+        Concorde.Government.Root_Government_Type'Class;
+      Groups     : Concorde.People.Groups.Array_Of_Pop_Groups;
       Size     : Pop_Size;
-      Cash     : WL.Money.Money_Type)
+      Apathy   : Unit_Real)
       return Pop_Type
    is
       procedure Create (Pop : in out Root_Pop_Type'Class);
@@ -32,21 +31,19 @@ package body Concorde.People.Pops.Create is
       procedure Create (Pop : in out Root_Pop_Type'Class) is
          use WL.Quantities;
       begin
-         Pop.Group := Group;
+         for Group of Groups loop
+            Pop.Groups.Append ((Group, 1.0));
+         end loop;
+
+         Pop.Apathy := Apathy;
          Pop.Size := Size;
          Pop.New_Agent
-           (Location       => Location,
-            Government     => Concorde.Government.Get_Government (Location),
+           (Location       => Concorde.Locations.Nowhere,
+            Government     => Government,
             Market         => Market,
-            Cash           => Cash,
+            Cash           => WL.Money.Zero,
             Stock_Capacity => Pop.Size_Quantity * To_Quantity (70.0));
-         if Pop.Group.Unemployment then
-            Pop.Add_Quantity (Group.Work_Commodity, Pop.Size_Quantity,
-                              WL.Money.Total
-                                (WL.Money.Adjust_Price
-                                   (Group.Work_Commodity.Base_Price, 0.01),
-                                 Pop.Size_Quantity));
-         end if;
+
       end Create;
 
       use type Concorde.Calendar.Time;
@@ -59,17 +56,6 @@ package body Concorde.People.Pops.Create is
            (Pop,
             Concorde.Calendar.Clock
             + Duration (Concorde.Random.Unit_Random * 86_400.0));
-
-         if Pop.Group.Is_Artisan then
-            Pop.Update.Installation :=
-              Concorde.Installations.Create.Create
-                (Location => Location,
-                 Market   => Market,
-                 Facility => null,
-                 Cash     => Cash,
-                 Owner    => Pop,
-                 Size     => Pop.Size_Quantity);
-         end if;
       end return;
    end New_Pop;
 

@@ -9,6 +9,7 @@ with Concorde.Random;
 with Concorde.Real_Images;
 
 with Concorde.Installations;
+with Concorde.People.Communities;
 with Concorde.Ships;
 with Concorde.Stars;
 with Concorde.Systems;
@@ -84,7 +85,7 @@ package body Concorde.Locations is
             return null;
          when System_Point =>
             return Concorde.Systems.Star_System_Type (Location.Reference);
-         when Orbit | World_Surface =>
+         when Orbit | World_Surface | In_Community =>
             return Concorde.Systems.Star_System_Object_Interface'Class
               (Location.Reference.all).System;
          when On_Ship =>
@@ -176,6 +177,19 @@ package body Concorde.Locations is
               Relative_Velocity =>
                 Primary_Position.Relative_Velocity);
    end Get_Orbit_Location;
+
+   ------------------
+   -- In_Community --
+   ------------------
+
+   function In_Community
+     (Community : not null access constant
+        Concorde.Objects.Root_Object_Type'Class)
+      return Object_Location
+   is
+   begin
+      return (In_Community, Community);
+   end In_Community;
 
    ---------------------------
    -- Intermediate_Location --
@@ -280,6 +294,8 @@ package body Concorde.Locations is
             return Get_Orbit_Location (Location, Time);
          when World_Surface =>
             return Location;
+         when In_Community =>
+            return Location;
          when On_Ship =>
             return Location;
          when At_Installation =>
@@ -320,6 +336,10 @@ package body Concorde.Locations is
          when World_Surface =>
             return "on "
               & Concorde.Worlds.World_Type (Location.Reference).Name;
+         when In_Community =>
+            return "in community on "
+              & Concorde.People.Communities.Community_Type (Location.Reference)
+              .World.Name;
          when On_Ship =>
             return "on "
               & Concorde.Ships.Ship_Type (Location.Reference).Name;
@@ -494,7 +514,10 @@ package body Concorde.Locations is
                     ((abs (Location.Apoapsis) - Obj.Radius) / 1000.0))
                  & "km";
             end;
-
+         when In_Community =>
+            return "in community on "
+              & Concorde.People.Communities.Community_Type (Location.Reference)
+              .World.Name;
          when World_Surface =>
             return "on "
               & Concorde.Worlds.World_Type (Location.Reference).Name;
@@ -644,7 +667,8 @@ package body Concorde.Locations is
                        Relative_Velocity =>
                          Primary_Position.Relative_Velocity);
             end;
-         when World_Surface | On_Ship | At_Installation | In_Unit =>
+         when World_Surface | In_Community
+            | On_Ship | At_Installation | In_Unit =>
             return To_System_Point
               (Located_Interface'Class
                  (Loc.Reference.all).Current_Location,

@@ -18,7 +18,7 @@ package body Concorde.Ministries.Create is
      (Faction  : Concorde.Factions.Faction_Type;
       Minister : Concorde.People.Individuals.Individual_Type;
       Area     : Concorde.Objects.Object_Type;
-      Location : Concorde.Installations.Installation_Type;
+      Location : Concorde.People.Communities.Community_Type;
       Market   : Concorde.Markets.Market_Type;
       Name     : String;
       Budget   : WL.Money.Money_Type;
@@ -36,8 +36,8 @@ package body Concorde.Ministries.Create is
        (Faction  => Faction,
         Minister => null,
         Area     => null,
-        Location => Faction.Capital_Building,
-        Market   => Faction.Capital_World.Market,
+        Location => Faction.Capital_Community,
+        Market   => Faction.Capital_Community.Market,
         Name     => "House " & Faction.Name,
         Budget   => WL.Money.Zero,
         Powers   => Concorde.Powers.No_Powers));
@@ -49,8 +49,8 @@ package body Concorde.Ministries.Create is
    procedure Create_Ministry
      (Faction  : Concorde.Factions.Faction_Type;
       Area     : not null access constant
-        Concorde.Objects.Root_Object_Type'Class;
-      Location : Concorde.Installations.Installation_Type;
+        Concorde.Laws.Law_Target_Interface'Class;
+      Location : Concorde.People.Communities.Community_Type;
       Market   : Concorde.Markets.Market_Type;
       Name     : String;
       Budget   : WL.Money.Money_Type;
@@ -73,7 +73,7 @@ package body Concorde.Ministries.Create is
      (Faction  : Concorde.Factions.Faction_Type;
       Minister : Concorde.People.Individuals.Individual_Type;
       Area     : Concorde.Objects.Object_Type;
-      Location : Concorde.Installations.Installation_Type;
+      Location : Concorde.People.Communities.Community_Type;
       Market   : Concorde.Markets.Market_Type;
       Name     : String;
       Budget   : WL.Money.Money_Type;
@@ -94,7 +94,7 @@ package body Concorde.Ministries.Create is
 
       begin
          Ministry.New_Agent
-           (Location       => Concorde.Locations.At_Installation (Location),
+           (Location       => Concorde.Locations.In_Community (Location),
             Government     => null,
             Market         => Market,
             Cash           => WL.Money.Zero,
@@ -107,7 +107,6 @@ package body Concorde.Ministries.Create is
            (if Area = null
             then Concorde.Objects.Object_Type (Faction)
             else Area);
-         Ministry.Headquarters := Location;
          Ministry.Set_Guarantor (Faction);
 
       end Create;

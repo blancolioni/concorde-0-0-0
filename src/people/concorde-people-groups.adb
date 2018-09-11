@@ -1,5 +1,30 @@
 package body Concorde.People.Groups is
 
+   function Get_Groups
+     (Test : not null access
+        function (Group : Pop_Group) return Boolean)
+      return Array_Of_Pop_Groups;
+
+   ----------------
+   -- All_Groups --
+   ----------------
+
+   function All_Groups return Array_Of_Pop_Groups is
+      function Always (Group : Pop_Group) return Boolean
+      is (Group /= null);
+   begin
+      return Get_Groups (Always'Access);
+   end All_Groups;
+
+   ---------------
+   -- Everybody --
+   ---------------
+
+   function Everybody return Pop_Group is
+   begin
+      return Get ("everybody");
+   end Everybody;
+
    ---------
    -- Get --
    ---------
@@ -8,36 +33,67 @@ package body Concorde.People.Groups is
    begin
       if Db.Exists (Name) then
          return Db.Get (Name);
-      elsif Db.Exists (Name & "s") then
-         return Db.Get (Name & "s");
-      elsif Name (Name'Last - 2 .. Name'Last) = "man"
-        and then Db.Exists (Name (Name'First .. Name'Last - 3) & "men")
-      then
-         return Db.Get (Name (Name'First .. Name'Last - 2) & "men");
       else
          raise Constraint_Error with
            "no such pop group: " & Name;
       end if;
    end Get;
 
-   ----------------
-   -- Scan_Needs --
-   ----------------
-
-   procedure Scan_Needs
-     (Group   : Root_Pop_Group'Class;
-      Level   : Need_Level;
-      Size    : WL.Quantities.Quantity_Type;
-      Process : not null access
-        procedure (Commodity : Concorde.Commodities.Commodity_Type;
-                   Quantity : WL.Quantities.Quantity_Type))
+   function Get_Groups
+     (Test : not null access
+        function (Group : Pop_Group) return Boolean)
+      return Array_Of_Pop_Groups
    is
-      use WL.Quantities;
+      Result : Array_Of_Pop_Groups (1 .. Vector.Last_Index);
+      Count  : Natural := 0;
    begin
-      for Needs of Group.Needs (Level) loop
-         Process (Needs.Commodity,
-                  Needs.Need_Quantity * Size / Needs.Pop_Quantity);
+      for Group of Vector loop
+         if Test (Group) then
+            Count := Count + 1;
+            Result (Count) := Group;
+         end if;
       end loop;
-   end Scan_Needs;
+      return Result (1 .. Count);
+   end Get_Groups;
+
+   ---------------
+   -- Influence --
+   ---------------
+
+   function Influence
+     (Group : Root_Pop_Group'Class;
+      Other : Pop_Group)
+      return Signed_Unit_Real
+   is
+   begin
+      for Item of Group.Influences loop
+         if Item.Group.Identifier = Other.Identifier then
+            return Item.Influence;
+         end if;
+      end loop;
+      return 0.0;
+   end Influence;
+
+   ----------------------
+   -- Political_Groups --
+   ----------------------
+
+   function Political_Groups return Array_Of_Pop_Groups is
+      function Is_Political (Group : Pop_Group) return Boolean
+      is (Group.Political_Wing);
+   begin
+      return Get_Groups (Is_Political'Access);
+   end Political_Groups;
+
+   -------------------
+   -- Wealth_Groups --
+   -------------------
+
+   function Wealth_Groups return Array_Of_Pop_Groups is
+      function Is_Wealth (Group : Pop_Group) return Boolean
+      is (Group.Wealth_Group);
+   begin
+      return Get_Groups (Is_Wealth'Access);
+   end Wealth_Groups;
 
 end Concorde.People.Groups;

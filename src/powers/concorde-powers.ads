@@ -3,8 +3,8 @@ with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Concorde.Objects;
 with Concorde.People.Attributes;
 
+limited with Concorde.People.Communities;
 limited with Concorde.People.Groups;
-limited with Concorde.Worlds;
 
 package Concorde.Powers is
 
@@ -20,12 +20,12 @@ package Concorde.Powers is
    function Show (Power : Root_Power_Type) return String;
 
    function Daily_Work
-     (Power : Root_Power_Type'Class;
-      World : not null access constant
-        Concorde.Worlds.Root_World_Type'Class)
+     (Power     : Root_Power_Type'Class;
+      Community : not null access constant
+        Concorde.People.Communities.Root_Community_Type'Class)
       return Duration;
    --  How many person-seconds required
-   --  to execute this power on the given world today
+   --  to execute this power in the given community today
 
    function Execution_Work
      (Power  : Root_Power_Type'Class;

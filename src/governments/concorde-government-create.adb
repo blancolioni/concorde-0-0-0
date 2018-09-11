@@ -7,13 +7,11 @@ package body Concorde.Government.Create is
    -----------------------
 
    function Create_Government
-     (Governed          : not null access constant Governed_Interface'Class;
-      Cash              : WL.Money.Money_Type;
-      Owner             : not null access constant
-        Concorde.Agents.Root_Agent_Type'Class;
-      Headquarters      : not null access constant
-        Concorde.Installations.Root_Installation_Type'Class;
-      Basic_Living_Wage : WL.Money.Price_Type)
+     (Governed : not null access constant Governed_Interface'Class;
+      Location : Concorde.Locations.Object_Location;
+      Cash     : WL.Money.Money_Type;
+      Owner    : not null access constant
+        Concorde.Agents.Root_Agent_Type'Class)
       return Government_Type
    is
       procedure Create (Government : in out Root_Government_Type'Class);
@@ -25,15 +23,12 @@ package body Concorde.Government.Create is
       procedure Create (Government : in out Root_Government_Type'Class) is
       begin
          Government.New_Agent
-           (Concorde.Locations.At_Installation (Headquarters),
+           (Location,
             null, null,
             Cash, WL.Quantities.Zero);
          Government.Governed := Governed;
-         Government.Headquarters :=
-           Concorde.Installations.Installation_Type (Headquarters);
          Government.Owner := Owner;
          Government.Set_Guarantor (Owner);
-         Government.Basic_Living_Wage := Basic_Living_Wage;
       end Create;
 
    begin

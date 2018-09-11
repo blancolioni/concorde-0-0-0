@@ -12,7 +12,7 @@ package Concorde.Locations is
    type Location_Type is
      (Nowhere,
       Interstellar, System_Point, Orbit,
-      World_Surface, On_Ship, At_Installation, In_Unit);
+      World_Surface, In_Community, On_Ship, At_Installation, In_Unit);
 
    type Object_Location (Loc_Type : Location_Type := Nowhere) is private;
 
@@ -129,6 +129,11 @@ package Concorde.Locations is
         Concorde.Objects.Root_Object_Type'Class)
       return Object_Location;
 
+   function In_Community
+     (Community : not null access constant
+        Concorde.Objects.Root_Object_Type'Class)
+      return Object_Location;
+
    function System_Distance
      (From, To : Object_Location)
       return Non_Negative_Real;
@@ -218,6 +223,8 @@ private
             when World_Surface =>
                Sector             : Positive;
             when At_Installation =>
+               null;
+            when In_Community =>
                null;
             when On_Ship =>
                Module             : Positive;

@@ -15,6 +15,7 @@ with Concorde.Facilities;
 with Concorde.Locations;
 
 limited with Concorde.Worlds;
+limited with Concorde.People.Communities;
 limited with Concorde.People.Individuals;
 
 with Concorde.People.Pops;
@@ -43,6 +44,11 @@ package Concorde.Installations is
    function World
      (Installation : Root_Installation_Type'Class)
       return access constant Concorde.Worlds.Root_World_Type'Class;
+
+   function Community
+     (Installation : Root_Installation_Type'Class)
+      return access constant
+     Concorde.People.Communities.Root_Community_Type'Class;
 
    function Owner
      (Installation : Root_Installation_Type'Class)
@@ -73,14 +79,8 @@ package Concorde.Installations is
      (Installation : Root_Installation_Type'Class)
       return WL.Quantities.Quantity_Type;
 
-   procedure Pay_Workers
-     (Installation : in out Root_Installation_Type'Class);
-
    overriding procedure Execute_Production
      (Installation : in out Root_Installation_Type);
-
-   procedure Add_Trade_Offers
-     (Item   : not null access constant Root_Installation_Type);
 
    procedure Set_Artisan_Production
      (Installation : in out Root_Installation_Type'Class;

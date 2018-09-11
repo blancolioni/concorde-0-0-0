@@ -68,7 +68,7 @@ package body Concorde.Managers.Individuals is
    overriding procedure On_Activated
      (Manager : in out Root_Individual_Manager)
    is
-      use type Concorde.Calendar.Time;
+      --  use type Concorde.Calendar.Time;
       use type Concorde.Work.Work_Item;
    begin
       if Manager.Current_Work /= null then
@@ -133,12 +133,12 @@ package body Concorde.Managers.Individuals is
          Manager.Current_Work :=
            Manager.Work_Queue.First_Element;
          Manager.Work_Queue.Delete_First;
-         Concorde.Objects.Queues.Next_Event
-           (Object => Manager.Individual,
-            Date   =>
-              Concorde.Calendar.Clock
-            + Manager.Current_Work.Power.Execution_Work
-              (Manager.Current_Work.Target));
+--           Concorde.Objects.Queues.Next_Event
+--             (Object => Manager.Individual,
+--              Date   =>
+--                Concorde.Calendar.Clock
+--              + Manager.Current_Work.Power.Execution_Work
+--                (Manager.Current_Work.Target));
       else
          Concorde.Objects.Queues.Next_Event
            (Manager.Individual, Manager.Time, Delay_Days => 1);

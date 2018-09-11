@@ -4,6 +4,7 @@ with WL.String_Maps;
 with Concorde.Commodities;
 
 with Concorde.Factions;
+with Concorde.People.Communities;
 with Concorde.People.Individuals;
 with Concorde.Worlds;
 
@@ -62,6 +63,21 @@ package body Concorde.Laws.Configure is
       Config  : Tropos.Configuration)
       return Law_Type;
 
+   -----------------------
+   -- Community_Context --
+   -----------------------
+
+   function Community_Context
+     (Community : not null access constant
+        Concorde.People.Communities.Root_Community_Type'Class)
+      return Law_Context
+   is
+   begin
+      return Law_Context'
+        (Legislator => Concorde.Objects.Object_Type (Community.Owner),
+         Target     => Community);
+   end Community_Context;
+
    -------------------------------
    -- Configure_Create_Ministry --
    -------------------------------
@@ -81,9 +97,6 @@ package body Concorde.Laws.Configure is
          Name     => Config.Get ("name", "Ministry"),
          Budget   => WL.Money.To_Money
            (Config.Get ("budget", 0.0)),
-         Location =>
-           Concorde.Factions.Faction_Type
-             (Context.Legislator).Capital_Building,
          Powers   => Powers);
    end Configure_Create_Ministry;
 
@@ -274,7 +287,7 @@ package body Concorde.Laws.Configure is
    begin
       return Law_Context'
         (Legislator => Concorde.Objects.Object_Type (Individual.Faction),
-         Target     => Concorde.Objects.Object_Type (Individual));
+         Target     => Individual);
    end Individual_Context;
 
    --------------------
@@ -291,22 +304,7 @@ package body Concorde.Laws.Configure is
    begin
       return Law_Context'
         (Legislator => Concorde.Objects.Object_Type (Ruler),
-         Target     => Concorde.Objects.Object_Type (Vassal));
+         Target     => Vassal);
    end Vassal_Context;
-
-   -------------------
-   -- World_Context --
-   -------------------
-
-   function World_Context
-     (World : not null access constant
-        Concorde.Worlds.Root_World_Type'Class)
-      return Law_Context
-   is
-   begin
-      return Law_Context'
-        (Legislator => Concorde.Objects.Object_Type (World.Owner),
-         Target     => Concorde.Objects.Object_Type (World));
-   end World_Context;
 
 end Concorde.Laws.Configure;

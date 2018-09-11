@@ -19,15 +19,11 @@ package Concorde.Network.Nodes is
                    Input_Inertia : Duration;
                    Expression : Concorde.Network.Expressions.Expression_Type));
 
-   type Node_Network is tagged private;
-
    procedure Add_Node
-     (Map  : in out Node_Network'Class;
-      Node : Node_Type);
+     (Node : Node_Type);
 
    function Node
-     (Network : Node_Network'Class;
-      Name    : String)
+     (Name    : String)
       return Node_Type;
 
    type Node_State_Map is new Network_State_Interface with private;

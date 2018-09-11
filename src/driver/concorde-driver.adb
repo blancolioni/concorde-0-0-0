@@ -180,7 +180,7 @@ begin
             elsif True then
                Model :=
                  Concorde.Xi_UI.Model_Manager.Model
-                   (Faction.Capital.System,
+                   (Faction.Capital_World.System,
                     Concorde.Calendar.Start, Faction, Window);
             else
                Model :=

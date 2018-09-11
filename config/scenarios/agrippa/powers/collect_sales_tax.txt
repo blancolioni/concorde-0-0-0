@@ -7,10 +7,4 @@ daily_work = {
     }
 }
        
-pops = {
-  bureaucrats = {
-    effect = 4
-    }
-}
-
 attributes = { administration energy }

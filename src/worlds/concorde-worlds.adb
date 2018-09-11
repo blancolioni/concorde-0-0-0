@@ -1,6 +1,5 @@
 with Concorde.Factions;
 with Concorde.Facilities;
-with Concorde.Options;
 
 with Concorde.Worlds.Create;
 
@@ -34,29 +33,6 @@ package body Concorde.Worlds is
       World.Individuals.Append (Individual);
    end Add_Individual;
 
-   ----------------------
-   -- Add_Installation --
-   ----------------------
-
-   procedure Add_Installation
-     (World        : in out Root_World_Type'Class;
-      Sector       : Concorde.Surfaces.Surface_Tile_Index;
-      Installation : Concorde.Installations.Installation_Type)
-   is
-   begin
-      World.Sectors (Sector).Installations.Append (Installation);
-
-      case Installation.Facility.Class is
-         when Concorde.Facilities.Colony_Hub =>
-            World.Hub := Installation;
-         when Concorde.Facilities.Port =>
-            World.Port := Installation;
-         when others =>
-            null;
-      end case;
-
-   end Add_Installation;
-
    -------------
    -- Add_Pop --
    -------------
@@ -89,49 +65,49 @@ package body Concorde.Worlds is
    -- Buy --
    ---------
 
-   procedure Buy
-     (World     : in out Root_World_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : in out WL.Quantities.Quantity_Type)
-   is
-      use WL.Money, WL.Quantities;
-      New_Quantity : constant Quantity_Type :=
-                       Min (Quantity, World.Import_Market_Size (Commodity));
-      Cash : constant Money_Type :=
-                       Total (World.Buy_Price (Commodity), New_Quantity);
-
-   begin
-
-      declare
-         Upd : constant Concorde.Installations.Updateable_Reference :=
-                 World.Port.Update;
-      begin
-         Upd.Remove_Cash (Cash);
-         Upd.Add_Quantity (Commodity, New_Quantity, Cash);
-
-      end;
-
-      Quantity := New_Quantity;
-   end Buy;
+--     procedure Buy
+--       (World     : in out Root_World_Type'Class;
+--        Commodity : Concorde.Commodities.Commodity_Type;
+--        Quantity  : in out WL.Quantities.Quantity_Type)
+--     is
+--        use WL.Money, WL.Quantities;
+--        New_Quantity : constant Quantity_Type :=
+--                    Min (Quantity, World.Import_Market_Size (Commodity));
+--        Cash : constant Money_Type :=
+--                         Total (World.Buy_Price (Commodity), New_Quantity);
+--
+--     begin
+--
+--        declare
+--           Upd : constant Concorde.Installations.Updateable_Reference :=
+--                   World.Port.Update;
+--        begin
+--           Upd.Remove_Cash (Cash);
+--           Upd.Add_Quantity (Commodity, New_Quantity, Cash);
+--
+--        end;
+--
+--        Quantity := New_Quantity;
+--     end Buy;
 
    ---------------
    -- Buy_Price --
    ---------------
 
-   function Buy_Price
-     (World     : Root_World_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return WL.Money.Price_Type
-   is
-   begin
-      return WL.Money.Adjust_Price
-        (WL.Money.Without_Tax
-           (World.Market.Current_Price (Commodity),
-            Float
-              (World.Government.Tax_Rate
-                   (Concorde.Trades.Import, Commodity))),
-         0.9);
-   end Buy_Price;
+--     function Buy_Price
+--       (World     : Root_World_Type'Class;
+--        Commodity : Concorde.Commodities.Commodity_Type)
+--        return WL.Money.Price_Type
+--     is
+--     begin
+--        return WL.Money.Adjust_Price
+--          (WL.Money.Without_Tax
+--             (World.Market.Current_Price (Commodity),
+--              Float
+--                (World.Government.Tax_Rate
+--                     (Concorde.Trades.Import, Commodity))),
+--           0.9);
+--     end Buy_Price;
 
    --------------
    -- Category --
@@ -178,14 +154,14 @@ package body Concorde.Worlds is
    -- Export_Market_Size --
    ------------------------
 
-   function Export_Market_Size
-     (World     : Root_World_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return WL.Quantities.Quantity_Type
-   is
-   begin
-      return World.Port.Get_Quantity (Commodity);
-   end Export_Market_Size;
+--     function Export_Market_Size
+--       (World     : Root_World_Type'Class;
+--        Commodity : Concorde.Commodities.Commodity_Type)
+--        return WL.Quantities.Quantity_Type
+--     is
+--     begin
+--        return World.Port.Get_Quantity (Commodity);
+--     end Export_Market_Size;
 
    -------------------------------
    -- Get_Sector_Infrastructure --
@@ -261,14 +237,14 @@ package body Concorde.Worlds is
    -- Has_Government --
    --------------------
 
-   function Has_Government
-     (World : Root_World_Type'Class)
-      return Boolean
-   is
-      use type Concorde.Government.Government_Type;
-   begin
-      return World.Government /= null;
-   end Has_Government;
+--     function Has_Government
+--       (World : Root_World_Type'Class)
+--        return Boolean
+--     is
+--        use type Concorde.Government.Government_Type;
+--     begin
+--        return World.Government /= null;
+--     end Has_Government;
 
    ----------------
    -- Has_Market --
@@ -299,35 +275,35 @@ package body Concorde.Worlds is
    -- Import_Market_Size --
    ------------------------
 
-   function Import_Market_Size
-     (World     : Root_World_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return WL.Quantities.Quantity_Type
-   is
-      use WL.Quantities;
-      Supply : constant Quantity_Type :=
-                 World.Market.Current_Supply (Commodity);
-      Demand : constant Quantity_Type :=
-                 World.Market.Current_Demand (Commodity);
-   begin
-      if Supply < Demand then
-         return Demand - Supply;
-      else
-         return Zero;
-      end if;
-   end Import_Market_Size;
+--     function Import_Market_Size
+--       (World     : Root_World_Type'Class;
+--        Commodity : Concorde.Commodities.Commodity_Type)
+--        return WL.Quantities.Quantity_Type
+--     is
+--        use WL.Quantities;
+--        Supply : constant Quantity_Type :=
+--                   World.Market.Current_Supply (Commodity);
+--        Demand : constant Quantity_Type :=
+--                   World.Market.Current_Demand (Commodity);
+--     begin
+--        if Supply < Demand then
+--           return Demand - Supply;
+--        else
+--           return Zero;
+--        end if;
+--     end Import_Market_Size;
 
    ----------------
    -- Is_Capital --
    ----------------
 
-   function Is_Capital
-     (World : Root_World_Type'Class)
-      return Boolean
-   is
-   begin
-      return World.Is_Capital_World;
-   end Is_Capital;
+--     function Is_Capital
+--       (World : Root_World_Type'Class)
+--        return Boolean
+--     is
+--     begin
+--        return World.Is_Capital_World;
+--     end Is_Capital;
 
    -------------
    -- Is_Moon --
@@ -354,18 +330,6 @@ package body Concorde.Worlds is
          Concorde.Worlds.Create.Create_Resources (World);
       end if;
    end Load;
-
-   ------------
-   -- Market --
-   ------------
-
-   function Market
-     (World : Root_World_Type'Class)
-      return Concorde.Markets.Market_Type
-   is
-   begin
-      return World.Market;
-   end Market;
 
    -------------------------
    -- Maximum_Temperature --
@@ -532,31 +496,6 @@ package body Concorde.Worlds is
       end loop;
    end Scan_Individuals;
 
-   ------------------------
-   -- Scan_Market_Worlds --
-   ------------------------
-
-   procedure Scan_Market_Worlds
-     (Process : not null access
-        procedure (World : World_Type))
-   is
-      procedure Local_Process (World : World_Type);
-
-      -------------------
-      -- Local_Process --
-      -------------------
-
-      procedure Local_Process (World : World_Type) is
-      begin
-         if World.Has_Market then
-            Process (World);
-         end if;
-      end Local_Process;
-
-   begin
-      Db.Scan (Local_Process'Access);
-   end Scan_Market_Worlds;
-
    ---------------
    -- Scan_Pops --
    ---------------
@@ -722,46 +661,46 @@ package body Concorde.Worlds is
    -- Sell --
    ----------
 
-   procedure Sell
-     (World     : in out Root_World_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : in out WL.Quantities.Quantity_Type)
-   is
-      use WL.Money, WL.Quantities;
-      New_Quantity : constant WL.Quantities.Quantity_Type :=
-                       Min (Quantity, World.Export_Market_Size (Commodity));
-      Cash         : constant Money_Type :=
-                       Total (World.Sell_Price (Commodity), New_Quantity);
-   begin
-
-      declare
-         Upd : constant Concorde.Installations.Updateable_Reference :=
-                 World.Port.Update;
-      begin
-         Upd.Add_Cash (Cash);
-         Upd.Remove_Quantity (Commodity, New_Quantity, Cash);
-
-      end;
-
-      Quantity := New_Quantity;
-   end Sell;
+--     procedure Sell
+--       (World     : in out Root_World_Type'Class;
+--        Commodity : Concorde.Commodities.Commodity_Type;
+--        Quantity  : in out WL.Quantities.Quantity_Type)
+--     is
+--        use WL.Money, WL.Quantities;
+--        New_Quantity : constant WL.Quantities.Quantity_Type :=
+--                     Min (Quantity, World.Export_Market_Size (Commodity));
+--        Cash         : constant Money_Type :=
+--                         Total (World.Sell_Price (Commodity), New_Quantity);
+--     begin
+--
+--        declare
+--           Upd : constant Concorde.Installations.Updateable_Reference :=
+--                   World.Port.Update;
+--        begin
+--           Upd.Add_Cash (Cash);
+--           Upd.Remove_Quantity (Commodity, New_Quantity, Cash);
+--
+--        end;
+--
+--        Quantity := New_Quantity;
+--     end Sell;
 
    ----------------
    -- Sell_Price --
    ----------------
 
-   function Sell_Price
-     (World     : Root_World_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return WL.Money.Price_Type
-   is
---        use WL.Money;
-      use WL.Quantities;
-      Base_Price : constant WL.Money.Price_Type :=
-                     (if World.Port.Get_Quantity (Commodity) > Zero
-                      then World.Port.Get_Average_Price (Commodity)
-                      else World.Market.Current_Price (Commodity));
-   begin
+--     function Sell_Price
+--       (World     : Root_World_Type'Class;
+--        Commodity : Concorde.Commodities.Commodity_Type)
+--        return WL.Money.Price_Type
+--     is
+--  --        use WL.Money;
+--        use WL.Quantities;
+--        Base_Price : constant WL.Money.Price_Type :=
+--                       (if World.Port.Get_Quantity (Commodity) > Zero
+--                        then World.Port.Get_Average_Price (Commodity)
+--                        else World.Market.Current_Price (Commodity));
+--     begin
 --        World.Port.Log_Price
 --          (Commodity.Name & ": stock price "
 --           & (if World.Port.Get_Quantity (Commodity) > Zero
@@ -775,71 +714,59 @@ package body Concorde.Worlds is
 --                  World.Government.Tax_Rate
 --                    (Concorde.Trades.Export, Commodity))));
 
-      return WL.Money.Adjust_Price
-        (WL.Money.Add_Tax
-           (Base_Price,
-            Float
-              (World.Government.Tax_Rate
-                   (Concorde.Trades.Export, Commodity))),
-         1.1);
-   end Sell_Price;
-
-   -----------------
-   -- Set_Capital --
-   -----------------
-
-   procedure Set_Capital
-     (World      : in out Root_World_Type'Class;
-      Is_Capital : Boolean)
-   is
-   begin
-      World.Is_Capital_World := Is_Capital;
-   end Set_Capital;
+--        return WL.Money.Adjust_Price
+--          (WL.Money.Add_Tax
+--             (Base_Price,
+--              Float
+--                (World.Government.Tax_Rate
+--                     (Concorde.Trades.Export, Commodity))),
+--           1.1);
+--     end Sell_Price;
 
    --------------------
    -- Set_Government --
    --------------------
 
-   procedure Set_Government
-     (World      : in out Root_World_Type'Class;
-      Government : Concorde.Government.Government_Type)
-   is
-
-      procedure Set_Initial_Prices
-        (Market : Concorde.Markets.Updateable_Reference);
-
-      ------------------------
-      -- Set_Initial_Prices --
-      ------------------------
-
-      procedure Set_Initial_Prices
-        (Market : Concorde.Markets.Updateable_Reference)
-      is
-         Factor : Non_Negative_Real := 0.1;
-      begin
-         for Resource of World.Resources loop
-            Market.Initial_Price
-              (Resource,
-               WL.Money.Adjust_Price
-                 (Resource.Base_Price, Float (Factor)));
-            Factor := Factor + (0.8 - Factor) / 2.0;
-         end loop;
-      end Set_Initial_Prices;
-
-   begin
-      World.Government := Government;
-      World.Market :=
-        Concorde.Markets.Create_Market
-          (World.Identifier,
-           Concorde.Worlds.Db.Reference (World.Reference),
-           World.Government,
-           Enable_Logging => Concorde.Options.Enable_Market_Logging);
-
-      Government.Update.Set_Market (World.Market);
-
-      Set_Initial_Prices (World.Market.Update);
-
-   end Set_Government;
+--     procedure Set_Government
+--       (World      : in out Root_World_Type'Class;
+--        Government : Concorde.Government.Government_Type)
+--     is
+--
+--        procedure Set_Initial_Prices
+--          (Market : Concorde.Markets.Updateable_Reference);
+--
+--        ------------------------
+--        -- Set_Initial_Prices --
+--        ------------------------
+--
+--        procedure Set_Initial_Prices
+--          (Market : Concorde.Markets.Updateable_Reference)
+--        is
+--           Factor : Non_Negative_Real := 0.1;
+--        begin
+--           for Resource of World.Resources loop
+--              Market.Initial_Price
+--                (Resource,
+--                 WL.Money.Adjust_Price
+--                   (Resource.Base_Price, Float (Factor)));
+--              Factor := Factor + (0.8 - Factor) / 2.0;
+--           end loop;
+--        end Set_Initial_Prices;
+--
+--     begin
+--        World.Government := Government;
+--        World.Market :=
+--          Concorde.Markets.Create_Market
+--            (World.Identifier,
+--             Concorde.Worlds.Db.Reference (World.Reference),
+--             World.Government,
+--             Enable_Logging => Concorde.Options.Enable_Market_Logging);
+--
+--        Government.Update.Set_Market (World.Market);
+--
+--        Set_Initial_Prices (World.Market.Update);
+--
+--     end Set_Government;
 
    ----------------
    -- Set_Height --
@@ -870,6 +797,18 @@ package body Concorde.Worlds is
    begin
       World.Location := Location;
    end Set_Location;
+
+   ----------------
+   -- Set_Market --
+   ----------------
+
+   procedure Set_Market
+     (World  : in out Root_World_Type'Class;
+      Market : Concorde.Markets.Market_Type)
+   is
+   begin
+      World.Market := Market;
+   end Set_Market;
 
    ---------------
    -- Set_Owner --

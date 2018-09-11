@@ -1,5 +1,5 @@
-with Concorde.Installations;
-with Concorde.Objects;
+with Concorde.People.Communities;
+with Concorde.Laws;
 with Concorde.Factions;
 with Concorde.Locations;
 with Concorde.Markets;
@@ -13,8 +13,8 @@ package Concorde.Ministries.Create is
    procedure Create_Ministry
      (Faction  : Concorde.Factions.Faction_Type;
       Area     : not null access constant
-        Concorde.Objects.Root_Object_Type'Class;
-      Location : Concorde.Installations.Installation_Type;
+        Concorde.Laws.Law_Target_Interface'Class;
+      Location : Concorde.People.Communities.Community_Type;
       Market   : Concorde.Markets.Market_Type;
       Name     : String;
       Budget   : WL.Money.Money_Type;

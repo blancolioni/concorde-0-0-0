@@ -1,8 +1,8 @@
 with Tropos;
 
+limited with Concorde.People.Communities;
 limited with Concorde.Factions;
 limited with Concorde.People.Individuals;
-limited with Concorde.Worlds;
 
 package Concorde.Laws.Configure is
 
@@ -23,9 +23,9 @@ package Concorde.Laws.Configure is
         Concorde.People.Individuals.Root_Individual_Type'Class)
       return Law_Context;
 
-   function World_Context
-     (World : not null access constant
-        Concorde.Worlds.Root_World_Type'Class)
+   function Community_Context
+     (Community : not null access constant
+        Concorde.People.Communities.Root_Community_Type'Class)
       return Law_Context;
 
 end Concorde.Laws.Configure;

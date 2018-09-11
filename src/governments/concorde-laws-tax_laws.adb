@@ -3,6 +3,7 @@ with Concorde.Government;
 with Concorde.Powers.Taxation;
 with Concorde.Trades;
 with Concorde.Worlds;
+with Concorde.People.Communities;
 
 package body Concorde.Laws.Tax_Laws is
 
@@ -45,7 +46,7 @@ package body Concorde.Laws.Tax_Laws is
    is
       function Gov
         (Item : not null access constant
-           Concorde.Objects.Root_Object_Type'Class)
+           Concorde.Laws.Law_Target_Interface'Class)
          return Concorde.Government.Government_Type;
 
       ---------
@@ -54,19 +55,20 @@ package body Concorde.Laws.Tax_Laws is
 
       function Gov
         (Item : not null access constant
-           Concorde.Objects.Root_Object_Type'Class)
+           Concorde.Laws.Law_Target_Interface'Class)
          return Concorde.Government.Government_Type
       is
          use Concorde.Government;
-         use Concorde.Worlds;
+         use Concorde.People.Communities;
       begin
          if Item.all in Root_Government_Type'Class then
             return Government_Type (Item);
-         elsif Item.all in Root_World_Type'Class then
-            return Root_World_Type'Class (Item.all).Government;
+         elsif Item.all in Root_Community_Type'Class then
+            return Root_Community_Type'Class (Item.all).Government;
          else
             raise Constraint_Error with
-              "cannot find a government for object " & Item.Identifier;
+              "cannot find a government for object "
+              & Concorde.Objects.Object_Type (Item).Identifier;
          end if;
       end Gov;
 

@@ -1,12 +1,13 @@
 package body Concorde.Network.Nodes is
 
+   Map : Node_Network;
+
    --------------
    -- Add_Node --
    --------------
 
    procedure Add_Node
-     (Map  : in out Node_Network'Class;
-      Node : Node_Type)
+     (Node : Node_Type)
    is
    begin
       Map.Map.Insert (Node.Identifier, Node);
@@ -30,12 +31,11 @@ package body Concorde.Network.Nodes is
    ----------
 
    function Node
-     (Network : Node_Network'Class;
-      Name    : String)
+     (Name    : String)
       return Node_Type
    is
    begin
-      return Network.Map.Element (Name);
+      return Map.Map.Element (Name);
    end Node;
 
    -----------------

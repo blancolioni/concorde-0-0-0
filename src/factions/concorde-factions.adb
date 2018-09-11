@@ -5,6 +5,7 @@ with Concorde.Factions.Logging;
 with Concorde.Galaxy;
 with Concorde.Systems.Graphs;
 
+with Concorde.People.Communities;
 with Concorde.People.Individuals.Work;
 
 package body Concorde.Factions is
@@ -92,17 +93,31 @@ package body Concorde.Factions is
 
    end All_Factions;
 
-   -------------
-   -- Capital --
-   -------------
+   -----------------------
+   -- Capital_Community --
+   -----------------------
 
-   function Capital
+   function Capital_Community
      (Faction : Root_Faction_Type'Class)
-      return access constant Concorde.Worlds.Root_World_Type'Class
+      return access constant
+     Concorde.People.Communities.Root_Community_Type'Class
    is
    begin
-      return Faction.Capital_World;
-   end Capital;
+      return Faction.Capital_Community;
+   end Capital_Community;
+
+   -------------------
+   -- Capital_World --
+   -------------------
+
+   function Capital_World
+     (Faction : Root_Faction_Type'Class)
+      return access constant
+     Concorde.Worlds.Root_World_Type'Class
+   is
+   begin
+      return Faction.Capital_Community.World;
+   end Capital_World;
 
    -------------------------
    -- Change_Relationship --
@@ -253,11 +268,11 @@ package body Concorde.Factions is
             pragma Assert (Faction.Capital_World /= null,
                            Faction.Name & ": no capital");
             pragma Assert (Faction.Owned_World
-                           (Faction.Capital),
+                           (Faction.Capital_World),
                            Faction.Name & " does not own capital system "
-                           & Faction.Capital.Name);
-            pragma Assert (Faction.Capital.Is_Capital,
-                           Faction.Name & ": capital system is not a capital");
+                           & Faction.Capital_World.Name);
+--              pragma Assert (Faction.Capital.Is_Capital,
+--                        Faction.Name & ": capital system is not a capital");
          end if;
       end Check;
    begin
@@ -789,19 +804,6 @@ package body Concorde.Factions is
    begin
       Faction.Set (System.all, Flag);
    end Set;
-
-   --------------------------
-   -- Set_Capital_Building --
-   --------------------------
-
-   procedure Set_Capital_Building
-     (Faction  : in out Root_Faction_Type'Class;
-      Building : not null access constant
-        Concorde.Installations.Root_Installation_Type'Class)
-   is
-   begin
-      Faction.Capital_Building := Building;
-   end Set_Capital_Building;
 
    ----------------
    -- Set_Leader --
