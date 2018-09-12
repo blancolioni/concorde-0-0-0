@@ -17,7 +17,7 @@ private package Concorde.Network.Expressions.Lexical is
                  Tok_Integer        => Tok_Integer_Constant,
                  Tok_Float          => Tok_Float_Constant,
                  First_Keyword      => Tok_If,
-                 Keywords           => "if then else",
+                 Keywords           => "if then else sum",
                  First_Symbol       => Tok_Colon,
                  Symbols            => ": ; ( ) { } , => | . + - * / **",
                  Identifier_Start   => "abcdefghijklmnopqrstuvwxyz" &

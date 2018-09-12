@@ -5,7 +5,7 @@ private package Concorde.Network.Expressions.Tokens is
        Tok_Identifier,
        Tok_Integer_Constant, Tok_Float_Constant, Tok_String_Constant,
 
-       Tok_If, Tok_Then, Tok_Else,
+       Tok_If, Tok_Then, Tok_Else, Tok_Sum,
 
        Tok_Colon, Tok_Semi,
        Tok_Left_Paren, Tok_Right_Paren,

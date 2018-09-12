@@ -14,8 +14,8 @@ package Concorde.Network.Expressions is
 private
 
    type Expression_Node_Type is
-     (Constant_Node, Variable_Node, Primitive_Node, Constraint_Node,
-      Field_Selector_Node);
+     (Constant_Node, Variable_Node, Primitive_Node,
+      Constraint_Node, Field_Selector_Node);
 
    type Primitive_Type is
      (Negate, Add, Subtract, Multiply, Divide, Power, Square_Root, Sum);
