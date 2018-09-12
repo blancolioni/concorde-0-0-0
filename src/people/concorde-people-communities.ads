@@ -21,6 +21,7 @@ package Concorde.People.Communities is
      new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Government.Governed_Interface
      and Concorde.Laws.Law_Target_Interface
+     and Concorde.Network.Network_State_Interface
      and Concorde.Locations.Located_Interface with private;
 
    type Community_Type is access constant Root_Community_Type'Class;
@@ -81,6 +82,7 @@ private
      new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Government.Governed_Interface
      and Concorde.Laws.Law_Target_Interface
+     and Concorde.Network.Network_State_Interface
      and Concorde.Locations.Located_Interface with
       record
          World       : Concorde.Worlds.World_Type;
@@ -113,6 +115,25 @@ private
      (Community : Root_Community_Type;
       Time      : Concorde.Calendar.Time)
       return Concorde.Locations.Object_Location;
+
+   overriding function Node
+     (Community : Root_Community_Type;
+      Name  : String)
+      return Concorde.Network.Node_State_Access;
+
+   overriding procedure Add_Node
+     (Community : in out Root_Community_Type;
+      Node      : Concorde.Network.Node_State_Access);
+
+   overriding procedure Update
+     (Community : in out Root_Community_Type);
+
+   overriding function Evaluate_Constraint
+     (From             : Root_Community_Type;
+      Class_Name       : String;
+      Constraint_Name  : String;
+      Constraint_Value : String)
+      return Concorde.Network.Array_Of_Values;
 
    function World
      (Community : Root_Community_Type'Class)

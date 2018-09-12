@@ -1,23 +1,30 @@
 with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Text_IO;
+
+with Concorde.Network.Expressions.Tokens;
+with Concorde.Network.Expressions.Lexical;
 
 package body Concorde.Network.Expressions.Parser is
 
-   Precedence : constant array (Operator_Type) of Natural :=
-                  (3, 3, 3, 4, 4, 5, 5);
+   use Tokens, Lexical;
+
+   subtype Operator_Token is Token range Tok_Plus .. Tok_Power;
+
+   Precedence : constant array (Operator_Token) of Natural :=
+                  (Tok_Plus     => 4, Tok_Minus => 4,
+                   Tok_Multiply => 6, Tok_Divide => 6,
+                   Tok_Power    => 8);
+   To_Primitive : constant array (Operator_Token) of Primitive_Type :=
+                    (Tok_Plus     => Add, Tok_Minus => Subtract,
+                     Tok_Multiply => Multiply, Tok_Divide => Divide,
+                     Tok_Power    => Power);
 
    procedure Error (Message : String;
-                    Expr    : String);
+                    Expr    : String)
+     with Unreferenced;
 
-   package Expression_Node_Lists is
-     new Ada.Containers.Doubly_Linked_Lists (Expression_Node);
-
-   procedure Lex
-     (Text : String;
-      List : in out Expression_Node_Lists.List);
-
-   function Parse
-     (Expr : Expression_Node_Lists.List)
-      return Expression_Node;
+   function Parse_Expression_Line
+     return Expression_Node;
 
    -----------
    -- Error --
@@ -28,142 +35,82 @@ package body Concorde.Network.Expressions.Parser is
    is
    begin
       raise Constraint_Error with
-        "error: " & Message & " in expression: " & Expr;
+        "error: " & Message & " in: " & Expr;
    end Error;
 
-   ---------
-   -- Lex --
-   ---------
+   -------------------------
+   -- Parse_Configuration --
+   -------------------------
 
-   procedure Lex
-     (Text : String;
-      List : in out Expression_Node_Lists.List)
+   procedure Parse_Configuration
+     (Path      : String;
+      On_Config : not null access
+        procedure (Field_Name : String;
+                   Field_Value : Expression_Type))
    is
-      Index  : Positive := 1;
-      Expr   : constant String := Text & ' ';
-      Token  : String (Expr'Range);
-      Length : Natural := 0;
-      Ch     : Character := Expr (Expr'First);
+      procedure Parse (Base : String);
 
-      procedure Skip;
-      procedure Add_Character;
+      -----------
+      -- Parse --
+      -----------
 
-      procedure Save_Token (Node : Expression_Node := null);
-
-      -------------------
-      -- Add_Character --
-      -------------------
-
-      procedure Add_Character is
+      procedure Parse (Base : String) is
+         Field_Name : constant String := Tok_Text;
       begin
-         Length := Length + 1;
-         Token (Length) := Ch;
-         Skip;
-      end Add_Character;
-
-      ----------------
-      -- Save_Token --
-      ----------------
-
-      procedure Save_Token (Node : Expression_Node := null) is
-         N : Expression_Node := Node;
-      begin
-         if N = null then
-            N := Make (Token (1 .. Length));
+         if Tok /= Tok_Identifier then
+            Error ("missing identifier");
+            raise Constraint_Error;
          end if;
-         List.Append (N);
-      end Save_Token;
 
-      ----------
-      -- Skip --
-      ----------
+         Scan;
 
-      procedure Skip is
-      begin
-         Index := Index + 1;
-         if Index <= Expr'Last then
-            Ch := Expr (Index);
+         if Tok = Tok_Colon then
+            Scan;
+            declare
+               E : constant Expression_Type :=
+                     Expression_Type'
+                       (Root => Parse_Expression_Line);
+            begin
+               On_Config (Base & Field_Name, E);
+            end;
+         elsif Tok = Tok_Left_Brace then
+            Scan;
+            while Tok /= Tok_Right_Brace loop
+               Parse (Base & Field_Name & ".");
+            end loop;
+            Scan;
          else
-            Ch := Character'Val (0);
+            Error ("syntax error");
+            raise Constraint_Error;
          end if;
-      end Skip;
+      end Parse;
 
    begin
-
-      while Ch = ' ' loop
-         Skip;
+      Open (Path);
+      while Tok /= Tok_End_Of_File loop
+         Parse ("");
       end loop;
+      Close;
+   end Parse_Configuration;
 
-      while Index <= Text'Last loop
-         Length := 0;
+   ---------------------------
+   -- Parse_Expression_Line --
+   ---------------------------
 
-         case Ch is
-            when '0' .. '9' =>
-               while Ch in '0' .. '9' | '.' | '_' | 'e' | 'E' loop
-                  Add_Character;
-               end loop;
-               Save_Token;
-
-            when 'a' .. 'z' | 'A' .. 'Z' | '_' =>
-               while Ch in 'a' .. 'z' | 'A' .. 'Z'
-                   | '0' .. '9'
-                   | '_' | '-'
-               loop
-                  Add_Character;
-               end loop;
-               Save_Token;
-
-            when '(' =>
-               Save_Token (Left_Parenthesis);
-               Skip;
-
-            when ')' =>
-               Save_Token (Right_Parenthesis);
-               Skip;
-
-            when '*' =>
-               Skip;
-               if Ch = '*' then
-                  Skip;
-                  Save_Token (Op (Power));
-               else
-                  Save_Token (Op (Multiply));
-               end if;
-
-            when '+' =>
-               Skip;
-               Save_Token (Op (Add));
-
-            when '-' =>
-               Skip;
-               Save_Token (Op (Subtract));
-
-            when '/' =>
-               Skip;
-               Save_Token (Op (Divide));
-
-            when others =>
-               Error ("bad character '" & Ch & "'", Text);
-
-         end case;
-
-         while Ch = ' ' loop
-            Skip;
-         end loop;
-
-      end loop;
-   end Lex;
-
-   -----------
-   -- Parse --
-   -----------
-
-   function Parse
-     (Expr : Expression_Node_Lists.List)
-      return Expression_Node
+   function Parse_Expression_Line
+     return Expression_Node
    is
-      Output : Expression_Node_Lists.List;
-      Stack  : Expression_Node_Lists.List;
+
+      Indent : constant Positive := Tok_Indent;
+
+      package Stacks is
+        new Ada.Containers.Doubly_Linked_Lists (Token);
+
+      package Exprs is
+        new Ada.Containers.Doubly_Linked_Lists (Expression_Node);
+
+      Output : Exprs.List;
+      Stack  : Stacks.List;
 
       procedure Pop_Operator;
 
@@ -172,62 +119,93 @@ package body Concorde.Network.Expressions.Parser is
       ------------------
 
       procedure Pop_Operator is
-         Op : constant Expression_Node :=
-                Stack.First_Element;
+         Op : constant Token := Stack.First_Element;
+         Left, Right : Expression_Node;
+         Expr        : Expression_Node;
       begin
          Stack.Delete_First;
-         Op.Right := Output.Last_Element;
+         Right := Output.Last_Element;
          Output.Delete_Last;
+
          if Output.Is_Empty then
-            if Op.Operator = Subtract then
-               Op.Operator := Negate;
-               Op.Left := Op.Right;
-               Op.Right := null;
+            if Op = Tok_Minus then
+               Expr := Prim (Negate, Right);
             else
                raise Constraint_Error with
                  "operator: missing argument";
             end if;
          else
-            Op.Left := Output.Last_Element;
+            Left := Output.Last_Element;
             Output.Delete_Last;
+            Expr := Prim (To_Primitive (Op), Left, Right);
          end if;
 
-         Output.Append (Op);
+         Output.Append (Expr);
 
       end Pop_Operator;
 
    begin
-      for Node of Expr loop
-         case Node.Node_Type is
-            when Constant_Node | Variable_Node =>
-               Output.Append (Node);
-            when Operator_Node =>
-               while not Stack.Is_Empty
-                 and then Stack.First_Element.Node_Type = Operator_Node
-                 and then Precedence (Stack.First_Element.Operator)
-                 >= Precedence (Node.Operator)
-               loop
-                  Pop_Operator;
-               end loop;
-               Stack.Insert (Stack.First, Node);
-            when Parenthesis_Node =>
-               case Node.Parenthesis is
-                  when '(' =>
-                     Stack.Insert (Stack.First, Node);
-                  when ')' =>
-                     while not Stack.Is_Empty
-                       and then Stack.First_Element.Node_Type
-                         /= Parenthesis_Node
-                     loop
-                        Pop_Operator;
-                     end loop;
-                     if Stack.Is_Empty then
-                        raise Constraint_Error with "mismatched parentheses";
-                     else
-                        Stack.Delete_First;
-                     end if;
-               end case;
-         end case;
+
+      while Tok_Indent >= Indent loop
+         Ada.Text_IO.Put_Line (Token'Image (Tok) & " " & Tok_Text);
+         if Tok = Tok_Identifier then
+            Output.Append (new Expression_Node_Record'
+                             (Node_Type        => Variable_Node,
+                              Variable_Name    => new String'(Tok_Text)));
+            Scan;
+         elsif Tok = Tok_Integer_Constant
+           or else Tok = Tok_Float_Constant
+         then
+            Output.Append (new Expression_Node_Record'
+                             (Node_Type      => Constant_Node,
+                              Constant_Value => Real'Value (Tok_Text)));
+            Scan;
+         elsif Tok = Tok_Dot then
+            if Next_Tok /= Tok_Identifier then
+               Error ("missing field name");
+               raise Constraint_Error;
+            end if;
+            Scan;
+
+            declare
+               Selector : constant Expression_Node :=
+                            new Expression_Node_Record'
+                              (Node_Type        => Field_Selector_Node,
+                               Field_Container  => Output.Last_Element,
+                               Field_Name       => new String'(Tok_Text));
+            begin
+               Scan;
+               Output.Delete_Last;
+               Output.Append (Selector);
+            end;
+         elsif Tok in Operator_Token then
+            while not Stack.Is_Empty
+              and then Stack.First_Element in Operator_Token
+              and then Precedence (Stack.First_Element)
+              >= Precedence (Tok)
+            loop
+               Pop_Operator;
+            end loop;
+            Stack.Insert (Stack.First, Tok);
+            Scan;
+         elsif Tok = Tok_Left_Paren then
+            Stack.Insert (Stack.First, Tok);
+            Scan;
+         elsif Tok = Tok_Right_Paren then
+            while not Stack.Is_Empty
+              and then Stack.First_Element /= Tok_Left_Paren
+            loop
+               Pop_Operator;
+            end loop;
+            if Stack.Is_Empty then
+               raise Constraint_Error with "mismatched parentheses";
+            else
+               Stack.Delete_First;
+            end if;
+            Scan;
+         else
+            raise Constraint_Error with "syntax error at " & Tok_Text;
+         end if;
       end loop;
 
       while not Stack.Is_Empty loop
@@ -235,7 +213,7 @@ package body Concorde.Network.Expressions.Parser is
       end loop;
 
       return Output.First_Element;
-   end Parse;
+   end Parse_Expression_Line;
 
    ------------------
    -- Parse_String --
@@ -245,11 +223,11 @@ package body Concorde.Network.Expressions.Parser is
      (Text : String)
       return Expression_Type
    is
-      List : Expression_Node_Lists.List;
    begin
-      Lex (Text, List);
       return Expr : Expression_Type do
-         Expr.Root := Parse (List);
+         Open_String (Text);
+         Expr.Root := Parse_Expression_Line;
+         Close;
       end return;
    end Parse_String;
 

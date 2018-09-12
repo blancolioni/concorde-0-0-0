@@ -1,9 +1,5 @@
-with Tropos;
+package Concorde.Policies.Configure is
 
-package Accord.Policies.Configure is
+   procedure Configure_Policies;
 
-   function Configure_Policy
-     (Config : Tropos.Configuration)
-      return Accord_Policy_Type'Class;
-
-end Accord.Policies.Configure;
+end Concorde.Policies.Configure;

@@ -15,6 +15,7 @@ with Concorde.Commodities.Configure;
 --  with Concorde.Facilities.Configure;
 with Concorde.Offices.Configure;
 with Concorde.Powers.Configure;
+with Concorde.Policies.Configure;
 
 with Concorde.People.Careers.Configure;
 with Concorde.People.Groups.Configure;
@@ -192,6 +193,8 @@ package body Concorde.Configure is
          Extension => "txt",
          Configure =>
            Concorde.People.Traits.Configure.Configure_Trait'Access);
+
+      Concorde.Policies.Configure.Configure_Policies;
 
       Tropos.Reader.Read_Config
         (Path      => Directory_Path ("powers"),

@@ -1,18 +1,15 @@
-pragma Ada_2012;
-package body Accord.Policies is
+package body Concorde.Policies is
 
-   -----------------------
-   -- Set_Initial_Value --
-   -----------------------
+   -----------------
+   -- Policy_Node --
+   -----------------
 
-   overriding procedure Set_Initial_Value
-     (Policy        : in out Accord_Policy_Type;
-      Initial_Value : Non_Negative_Real)
+   function Policy_Node
+     (Policy : Root_Policy_Type'Class)
+      return Concorde.Network.Nodes.Node_Type
    is
    begin
-      Accord.Network.Nodes.Root_Accord_Node (Policy)
-        .Set_Initial_Value (Initial_Value);
-      Policy.Active := True;
-   end Set_Initial_Value;
+      return Policy.Node;
+   end Policy_Node;
 
-end Accord.Policies;
+end Concorde.Policies;

@@ -28,7 +28,7 @@ package body Concorde.Scenarios is
       Config : constant Tropos.Configuration :=
                  Tropos.Reader.Read_Config
                    (Concorde.Paths.Config_File
-                      ("scenarios/" & Name & "/scenario.txt"));
+                      ("scenarios/" & Name & "/" & Name & ".scenario"));
    begin
       Current_Scenario :=
         (Imperial_Centre => Config.Get ("imperial_centre"));

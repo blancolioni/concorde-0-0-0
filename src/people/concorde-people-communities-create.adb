@@ -23,6 +23,11 @@ package body Concorde.People.Communities.Create is
       Initial_Value : not null access
         function (Parameter_Name : String) return Real);
 
+   procedure Create_Network_State
+     (Community     : in out Root_Community_Type'Class;
+      Initial_Value : not null access
+        function (Parameter_Name : String) return Real);
+
    -------------------------
    -- Create_Initial_Pops --
    -------------------------
@@ -360,6 +365,31 @@ package body Concorde.People.Communities.Create is
 
    end Create_Initial_Pops;
 
+   --------------------------
+   -- Create_Network_State --
+   --------------------------
+
+   procedure Create_Network_State
+     (Community     : in out Root_Community_Type'Class;
+      Initial_Value : not null access
+        function (Parameter_Name : String) return Real)
+   is
+   begin
+      for Group of Concorde.People.Groups.All_Groups loop
+         declare
+            Income : constant Concorde.Network.Nodes.Node_Type :=
+                       Group.Income_Node;
+            Happiness : constant Concorde.Network.Nodes.Node_Type :=
+                          Group.Happiness_Node;
+         begin
+            Community.Network.Add_Node
+              (Income.Create_State (0.0));
+            Community.Network.Add_Node
+              (Happiness.Create_State (Initial_Value (Happiness.Identifier)));
+         end;
+      end loop;
+   end Create_Network_State;
+
    -------------------
    -- New_Community --
    -------------------
@@ -386,6 +416,7 @@ package body Concorde.People.Communities.Create is
          Community.Set_Name (World.Name);
          Community.World := Concorde.Worlds.World_Type (World);
          Community.Owner := Concorde.Factions.Faction_Type (Faction);
+         Create_Network_State (Community, Initial_Value);
       end Create;
 
       Community : constant Community_Type :=

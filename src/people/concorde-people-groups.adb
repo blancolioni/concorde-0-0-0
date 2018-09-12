@@ -56,6 +56,30 @@ package body Concorde.People.Groups is
       return Result (1 .. Count);
    end Get_Groups;
 
+   --------------------
+   -- Happiness_Node --
+   --------------------
+
+   function Happiness_Node
+     (Group : Root_Pop_Group'Class)
+      return Concorde.Network.Nodes.Node_Type
+   is
+   begin
+      return Group.Happiness_Node;
+   end Happiness_Node;
+
+   -----------------
+   -- Income_Node --
+   -----------------
+
+   function Income_Node
+     (Group : Root_Pop_Group'Class)
+      return Concorde.Network.Nodes.Node_Type
+   is
+   begin
+      return Group.Income_Node;
+   end Income_Node;
+
    ---------------
    -- Influence --
    ---------------

@@ -3,7 +3,9 @@ with Tropos.Reader;
 with Concorde.Configure;
 with Concorde.Politics.Configure;
 
+with Concorde.Network.Expressions;
 with Concorde.Network.Expressions.Parser;
+with Concorde.Network.Metrics;
 
 package body Concorde.People.Groups.Configure is
 
@@ -93,8 +95,31 @@ package body Concorde.People.Groups.Configure is
          Configure_Proportion (Config.Child ("proportion"));
       end Create;
 
+      Group : constant Pop_Group := Db.Create (Create'Access);
    begin
-      Vector.Append (Db.Create (Create'Access));
+
+      declare
+         procedure Create_Metrics (Group : in out Root_Pop_Group'Class);
+
+         --------------------
+         -- Create_Metrics --
+         --------------------
+
+         procedure Create_Metrics (Group : in out Root_Pop_Group'Class) is
+         begin
+            Group.Income_Node :=
+              Concorde.Network.Metrics.New_Rating_Metric
+                (Group.Identifier & "-income");
+            Group.Happiness_Node :=
+              Concorde.Network.Metrics.New_Rating_Metric
+                (Group.Identifier);
+         end Create_Metrics;
+
+      begin
+         Db.Update (Group.Reference, Create_Metrics'Access);
+      end;
+
+      Vector.Append (Group);
    end Create_Pop_Group;
 
 end Concorde.People.Groups.Configure;

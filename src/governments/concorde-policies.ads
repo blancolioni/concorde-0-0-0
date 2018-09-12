@@ -1,23 +1,46 @@
-with Accord.Network.Nodes;
+private with Ada.Containers.Vectors;
+private with Memor.Database;
 
-package Accord.Policies is
+with Concorde.Objects;
 
-   type Accord_Policy_Type is
-     new Accord.Network.Nodes.Root_Accord_Node with private;
+with Concorde.Network.Nodes;
+
+package Concorde.Policies is
+
+   type Root_Policy_Type is
+     new Concorde.Objects.Root_Localised_Object_Type with private;
+
+   type Policy_Type is access constant Root_Policy_Type'Class;
+
+   function Policy_Node
+     (Policy : Root_Policy_Type'Class)
+      return Concorde.Network.Nodes.Node_Type;
 
 private
 
-   type Accord_Policy_Type is
-     new Accord.Network.Nodes.Root_Accord_Node with
+   type Root_Policy_Type is
+     new Concorde.Objects.Root_Localised_Object_Type with
       record
          Active : Boolean := False;
+         Node   : Concorde.Network.Nodes.Node_Type;
       end record;
 
-   overriding function Is_Active (Policy : Accord_Policy_Type) return Boolean
-   is (Policy.Active);
+   overriding function Object_Database
+     (Item : Root_Policy_Type)
+      return Memor.Memor_Database;
 
-   overriding procedure Set_Initial_Value
-     (Policy        : in out Accord_Policy_Type;
-      Initial_Value : Non_Negative_Real);
+   package Db is
+     new Memor.Database
+       ("policy", Root_Policy_Type, Policy_Type);
 
-end Accord.Policies;
+   overriding function Object_Database
+     (Item : Root_Policy_Type)
+      return Memor.Memor_Database
+   is (Db.Get_Database);
+
+   package Policy_Vectors is
+     new Ada.Containers.Vectors (Positive, Policy_Type);
+
+   Vector : Policy_Vectors.Vector;
+
+end Concorde.Policies;

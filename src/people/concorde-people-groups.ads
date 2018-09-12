@@ -4,6 +4,8 @@ private with Memor.Database;
 
 with Memor;
 
+with Concorde.Objects;
+
 with Concorde.Commodities;
 
 with Concorde.Network.Expressions;
@@ -13,7 +15,7 @@ with Concorde.Politics;
 package Concorde.People.Groups is
 
    type Root_Pop_Group is
-     new Concorde.Network.Nodes.Root_Node_Type
+     new Concorde.Objects.Root_Localised_Object_Type
      and Concorde.Politics.Political_Interface
    with private;
 
@@ -53,6 +55,14 @@ package Concorde.People.Groups is
       Other : Pop_Group)
       return Signed_Unit_Real;
 
+   function Income_Node
+     (Group : Root_Pop_Group'Class)
+      return Concorde.Network.Nodes.Node_Type;
+
+   function Happiness_Node
+     (Group : Root_Pop_Group'Class)
+      return Concorde.Network.Nodes.Node_Type;
+
    function Get (Name : String) return Pop_Group;
 
 private
@@ -67,12 +77,14 @@ private
      new Ada.Containers.Doubly_Linked_Lists (Group_Influence);
 
    type Root_Pop_Group is
-     new Concorde.Network.Nodes.Root_Node_Type
+     new Concorde.Objects.Root_Localised_Object_Type
      and Concorde.Politics.Political_Interface with
       record
          Default_Politics      : Concorde.Politics.Political_Record;
          Default_Proportion    : Unit_Real := 0.0;
          Expression_Proportion : Concorde.Network.Expressions.Expression_Type;
+         Income_Node           : Concorde.Network.Nodes.Node_Type;
+         Happiness_Node        : Concorde.Network.Nodes.Node_Type;
          Political_Wing        : Boolean := False;
          Left_Bias             : Boolean := False;
          Wealth_Group          : Boolean := False;

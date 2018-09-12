@@ -1,16 +1,26 @@
 private with Ada.Containers.Doubly_Linked_Lists;
 private with WL.String_Maps;
 
-with Concorde.Objects;
 with Concorde.Network.Expressions;
 
 package Concorde.Network.Nodes is
 
    type Root_Node_Type is
-     abstract new Concorde.Objects.Root_Localised_Object_Type with private;
+     abstract tagged private;
+
+   function Identifier (Node : Root_Node_Type) return String;
+
+   procedure Initialise
+     (Node : in out Root_Node_Type'Class;
+      Id   : String);
 
    subtype Root_Node_Class is Root_Node_Type'Class;
    type Node_Type is access constant Root_Node_Type'Class;
+
+   function Create_State
+     (Node          : not null access constant Root_Node_Type;
+      Initial_Value : Real)
+      return Node_State_Access;
 
    procedure Scan_Inputs
      (Node    : Root_Node_Type'Class;
@@ -40,19 +50,14 @@ private
    package Node_Input_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Node_Input);
 
-   type Root_Node_Type is
-     abstract new Concorde.Objects.Root_Localised_Object_Type with
+   type Root_Node_Type is abstract tagged
       record
-         Current_Value : Non_Negative_Real := 0.0;
-         Inputs        : Node_Input_Lists.List;
+         Id     : access String;
+         Inputs : Node_Input_Lists.List;
       end record;
 
---     procedure Set_Outputs
---       (Node  : in out Root_Node_Type'Class;
---        State : in out Concorde.Network.Expressions.Environment'Class);
---
---     procedure Update_From_Inputs
---       (Node  : in out Root_Node_Type'Class);
+   function Identifier (Node : Root_Node_Type) return String
+   is (Node.Id.all);
 
    package Node_Maps is
      new WL.String_Maps (Node_Type);
@@ -71,6 +76,10 @@ private
          Env : Network_State_Access;
       end record;
 
+   overriding procedure Add_Node
+     (State : in out Node_State_Map;
+      Node  : Node_State_Access);
+
    overriding function Node
      (State : Node_State_Map;
       Name  : String)
@@ -79,12 +88,11 @@ private
    overriding procedure Update
      (State : in out Node_State_Map);
 
---     function Node
---       (Map  : Node_Map'Class;
---        Name : String)
---        return Node_Type
---     is (if Map.Map.Contains (Name)
---         then Map.Map.Element (Name)
---         else raise Constraint_Error with "no such node: " & Name);
+   overriding function Evaluate_Constraint
+     (From             : Node_State_Map;
+      Class_Name       : String;
+      Constraint_Name  : String;
+      Constraint_Value : String)
+      return Array_Of_Values;
 
 end Concorde.Network.Nodes;

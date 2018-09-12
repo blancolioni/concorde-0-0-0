@@ -6,10 +6,20 @@ with Concorde.Network.Nodes;
 package Concorde.Network.State is
 
    function New_Internal_Node_State
-     (Node       : Concorde.Network.Nodes.Node_Type)
+     (Node       : not null access constant
+        Concorde.Network.Nodes.Root_Node_Type'Class)
       return Node_State_Access;
 
    type Root_Node_State_Type is new Node_State_Interface with private;
+
+   procedure Initialize_State
+     (State : in out Root_Node_State_Type'Class;
+      Node  : not null access constant
+        Concorde.Network.Nodes.Root_Node_Type'Class;
+      Init  : Real);
+
+   overriding function Identifier
+     (Node_State : Root_Node_State_Type) return String;
 
    overriding function Current_Value
      (Node_State : Root_Node_State_Type) return Unit_Real;
@@ -62,5 +72,9 @@ private
          Base_Value    : Real      := 1.0;
          Active        : Boolean   := True;
       end record;
+
+   overriding function Identifier
+     (Node_State : Root_Node_State_Type) return String
+   is (Node_State.Node.Identifier);
 
 end Concorde.Network.State;

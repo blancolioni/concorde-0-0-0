@@ -120,6 +120,21 @@ package body Concorde.Network.State is
       return Node_State.Current_Value;
    end Current_Value;
 
+   ----------------------
+   -- Initialize_State --
+   ----------------------
+
+   procedure Initialize_State
+     (State : in out Root_Node_State_Type'Class;
+      Node  : not null access constant
+        Concorde.Network.Nodes.Root_Node_Type'Class;
+      Init  : Real)
+   is
+   begin
+      State.Node := Concorde.Network.Nodes.Node_Type (Node);
+      State.Set_Initial_Value (Init);
+   end Initialize_State;
+
    ---------------
    -- Is_Active --
    ---------------
@@ -137,12 +152,13 @@ package body Concorde.Network.State is
    -----------------------------
 
    function New_Internal_Node_State
-     (Node       : Concorde.Network.Nodes.Node_Type)
+     (Node       : not null access constant
+        Concorde.Network.Nodes.Root_Node_Type'Class)
       return Node_State_Access
    is
    begin
       return new Root_Node_State_Type'
-        (Node          => Node,
+        (Node          => Concorde.Network.Nodes.Node_Type (Node),
          others        => <>);
    end New_Internal_Node_State;
 

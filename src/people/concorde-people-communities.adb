@@ -1,5 +1,17 @@
 package body Concorde.People.Communities is
 
+   --------------
+   -- Add_Node --
+   --------------
+
+   overriding procedure Add_Node
+     (Community : in out Root_Community_Type;
+      Node      : Concorde.Network.Node_State_Access)
+   is
+   begin
+      Community.Network.Add_Node (Node);
+   end Add_Node;
+
    -------------
    -- Add_Pop --
    -------------
@@ -26,6 +38,22 @@ package body Concorde.People.Communities is
         (Community.World, 1);
    end Current_Location;
 
+   -------------------------
+   -- Evaluate_Constraint --
+   -------------------------
+
+   overriding function Evaluate_Constraint
+     (From             : Root_Community_Type;
+      Class_Name       : String;
+      Constraint_Name  : String;
+      Constraint_Value : String)
+      return Concorde.Network.Array_Of_Values
+   is
+   begin
+      return From.Network.Evaluate_Constraint
+        (Class_Name, Constraint_Name, Constraint_Value);
+   end Evaluate_Constraint;
+
    -----------------
    -- Location_At --
    -----------------
@@ -39,6 +67,19 @@ package body Concorde.People.Communities is
    begin
       return Root_Community_Type'Class (Community).Current_Location;
    end Location_At;
+
+   ----------
+   -- Node --
+   ----------
+
+   overriding function Node
+     (Community : Root_Community_Type;
+      Name      : String)
+      return Concorde.Network.Node_State_Access
+   is
+   begin
+      return Community.Network.Node (Name);
+   end Node;
 
    ---------------------
    -- Object_Database --
@@ -131,6 +172,17 @@ package body Concorde.People.Communities is
       Base_Update : constant Db.Updateable_Reference := Db.Update (Item);
    begin
       return Updateable_Reference'(Base_Update.Element, Base_Update);
+   end Update;
+
+   ------------
+   -- Update --
+   ------------
+
+   overriding procedure Update
+     (Community : in out Root_Community_Type)
+   is
+   begin
+      Community.Network.Update;
    end Update;
 
 end Concorde.People.Communities;
