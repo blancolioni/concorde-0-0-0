@@ -1,0 +1,26 @@
+init = {
+   gdp = ~10G
+   population = ~10M
+   tax-evasion = 0.5
+   income-tax = 0.1
+   luxury-tax = 0.1
+   sales-tax = 0.1
+   technology = 1
+   worker-productivity = 0.5
+   import-tariffs = 0.4
+   state-healthcare = 0.8
+   state-pensions = 0.8
+   military-spending = 0.1
+   research-spending = 0.1
+   pollution-controls = 0.0
+   voting-rights = 1
+   foreign-relations = 1
+   poor-income = 1
+   middle-class-income = 5
+   wealthy-income = 20
+   megarich-income = 100
+}
+
+pop-size = 10K
+gini = 0.7
+apathy = 0.8

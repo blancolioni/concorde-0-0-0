@@ -1,0 +1,25 @@
+imperial-centre = yes
+
+metrics = {
+   gdp = ~100G
+   pop = ~10G
+   debt = ~10G
+   apathy = 0.9
+   poverty = 0.4
+   air-pollution = 0.8
+   water-pollution = 0.6
+   surface-pollution = 0.2
+   health = 0.5
+}
+
+policies = {
+   income-tax = 0
+   import-tariffs = 10%
+   export-tariffs = 10%
+   state-healthcare = 1
+   state-pensions = 1
+   basic-living-wage = 1
+   military-spending = 0.1
+}
+
+gini = 0.7

@@ -1,0 +1,4 @@
+politics = {
+}
+type = money
+update = "X * GDP"
