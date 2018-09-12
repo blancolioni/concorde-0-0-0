@@ -99,22 +99,24 @@ package body Concorde.Network.Nodes is
       return Map.Map.Element (Name);
    end Node;
 
-   -----------------
-   -- Scan_Inputs --
-   -----------------
+   ------------------
+   -- Scan_Effects --
+   ------------------
 
-   procedure Scan_Inputs
+   procedure Scan_Effects
      (Node    : Root_Node_Type'Class;
+      Env     : Network_State_Interface'Class;
       Process : not null access
-        procedure (Input_Node : Node_Type;
-                   Input_Inertia : Duration;
-                   Expression : Concorde.Network.Expressions.Expression_Type))
+        procedure (Target_Node  : Node_State_Access;
+                   Effect_Delay : Duration;
+                   Effect       : Expressions.Expression_Type))
    is
    begin
-      for Input of Node.Inputs loop
-         Process (Input.Source, Input.Inertia, Input.Expression);
+      for Effect of Node.Effects loop
+         Process (Env.Node (Effect.Target.all),
+                  Effect.Effect_Delay, Effect.Expression);
       end loop;
-   end Scan_Inputs;
+   end Scan_Effects;
 
    ------------
    -- Update --
@@ -123,10 +125,46 @@ package body Concorde.Network.Nodes is
    overriding procedure Update
      (State : in out Node_State_Map)
    is
+
    begin
+
       for St of State.Map loop
-         St.Calculate_New_Value (State);
+         declare
+            S : constant Node_State_Access :=
+                  State.Node (St.Identifier);
+
+            procedure Send_Effect
+              (Target_Node  : Node_State_Access;
+               Effect_Delay : Duration;
+               Effect       : Expressions.Expression_Type);
+
+            -----------------
+            -- Send_Effect --
+            -----------------
+
+            procedure Send_Effect
+              (Target_Node  : Node_State_Access;
+               Effect_Delay : Duration;
+               Effect       : Expressions.Expression_Type)
+            is
+            begin
+               Target_Node.Add_Effect
+                 (Concorde.Network.Expressions.Evaluate
+                    (Expression     => Effect,
+                     Env            => State,
+                     Argument_Name  => "x",
+                     Argument_Value =>
+                       S.Current_Inertial_Value (Effect_Delay)));
+            end Send_Effect;
+
+         begin
+
+            Node (St.Identifier).Scan_Effects (State, Send_Effect'Access);
+
+         end;
+
       end loop;
+
       for St of State.Map loop
          St.Set_New_Value;
       end loop;

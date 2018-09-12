@@ -53,9 +53,9 @@ package Concorde.Network is
 
    procedure Update (State : in out Network_State_Interface) is abstract;
 
-   procedure Calculate_New_Value
-     (Node_State    : in out Node_State_Interface;
-      Network_State : Network_State_Interface'Class)
+   procedure Add_Effect
+     (Node_State : in out Node_State_Interface;
+      Effect     : Signed_Unit_Real)
    is abstract;
 
    procedure Set_New_Value

@@ -1,16 +1,11 @@
-with Concorde.Expressions;
+with Concorde.Network.Expressions;
 
 package Concorde.Network.Nodes.Configure is
 
-   procedure Add_Output
+   procedure Add_Effect
      (From       : in out Root_Node_Type'Class;
-      To         : not null access Root_Node_Type'Class;
-      Expression : Concorde.Expressions.Expression_Type;
-      Inertia    : Duration);
-
-   procedure Initial_Values
-     (Network : Node_Map'Class;
-      Get_Value : not null access
-        function (Name : String) return Real);
+      To         : String;
+      Expression : Expressions.Expression_Type;
+      Wait       : Duration);
 
 end Concorde.Network.Nodes.Configure;

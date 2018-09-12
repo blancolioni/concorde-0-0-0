@@ -50,6 +50,10 @@ package body Concorde.Network.Expressions.Parser is
 
    procedure Parse_Configuration
      (Path      : String;
+      On_Enter  : not null access
+        procedure (Field_Name : String);
+      On_Leave  : not null access
+        procedure (Field_Name : String);
       On_Config : not null access
         procedure (Field_Name : String;
                    Field_Value : Expression_Type))
@@ -77,13 +81,15 @@ package body Concorde.Network.Expressions.Parser is
                      Expression_Type'
                        (Root => Parse_Expression_Line);
             begin
-               On_Config (Base & Field_Name, E);
+               On_Config (Field_Name, E);
             end;
          elsif Tok = Tok_Left_Brace then
             Scan;
+            On_Enter (Field_Name);
             while Tok /= Tok_Right_Brace loop
                Parse (Base & Field_Name & ".");
             end loop;
+            On_Leave (Field_Name);
             Scan;
          else
             Error ("syntax error");

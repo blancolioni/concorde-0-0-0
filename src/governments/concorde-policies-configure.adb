@@ -4,8 +4,15 @@ with Ada.Directories;
 with Concorde.Configure;
 
 with Concorde.Network.Expressions.Parser;
+with Concorde.Network.Nodes.Configure;
 
 package body Concorde.Policies.Configure is
+
+   type Policy_Node_Type is
+     new Concorde.Network.Nodes.Root_Node_Type with
+      record
+         null;
+      end record;
 
    procedure Configure_Policy (Path : String);
 
@@ -51,7 +58,16 @@ package body Concorde.Policies.Configure is
       ------------
 
       procedure Create (Policy : in out Root_Policy_Type'Class) is
-         pragma Unreferenced (Policy);
+
+         Node : Policy_Node_Type;
+
+         Effect : Boolean := False;
+
+         procedure On_Enter
+           (Field_Name  : String);
+
+         procedure On_Leave
+           (Field_Name  : String);
 
          procedure Configure_Field
            (Field_Name  : String;
@@ -65,15 +81,58 @@ package body Concorde.Policies.Configure is
            (Field_Name  : String;
             Field_Value : Concorde.Network.Expressions.Expression_Type)
          is
-            pragma Unreferenced (Field_Value);
          begin
-            Ada.Text_IO.Put_Line
-              ("field: " & Field_Name);
+            if Effect then
+               Concorde.Network.Nodes.Configure.Add_Effect
+                 (From       => Node,
+                  To         => Field_Name,
+                  Expression => Field_Value,
+                  Wait       => 0.0);
+               Ada.Text_IO.Put_Line
+                 ("effect: " & Field_Name);
+            end if;
          end Configure_Field;
 
+         --------------
+         -- On_Enter --
+         --------------
+
+         procedure On_Enter
+           (Field_Name  : String)
+         is
+         begin
+            if Field_Name = "effects" then
+               Effect := True;
+            end if;
+         end On_Enter;
+
+         --------------
+         -- On_Leave --
+         --------------
+
+         procedure On_Leave
+           (Field_Name  : String)
+         is
+         begin
+            if Field_Name = "effects" then
+               Effect := False;
+            end if;
+         end On_Leave;
+
+         Id : constant String := Ada.Directories.Simple_Name (Path);
+
       begin
+         Node.Initialise (Path);
+         Policy.Set_Local_Tag (Id);
+
          Concorde.Network.Expressions.Parser.Parse_Configuration
-           (Path, Configure_Field'Access);
+           (Path        => Path,
+            On_Enter    => On_Enter'Access,
+            On_Leave    => On_Leave'Access,
+            On_Config   => Configure_Field'Access);
+
+         Policy.Node := new Policy_Node_Type'(Node);
+         Concorde.Network.Nodes.Add_Node (Policy.Node);
       end Create;
 
    begin

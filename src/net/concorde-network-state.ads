@@ -40,9 +40,9 @@ package Concorde.Network.State is
      (Node_State    : in out Root_Node_State_Type;
       Value         : Real);
 
-   overriding procedure Calculate_New_Value
-     (Node_State    : in out Root_Node_State_Type;
-      Network_State : Network_State_Interface'Class);
+   overriding procedure Add_Effect
+     (Node_State : in out Root_Node_State_Type;
+      Effect     : Signed_Unit_Real);
 
    overriding procedure Set_New_Value
      (Node_State : in out Root_Node_State_Type);

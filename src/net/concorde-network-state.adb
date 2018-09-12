@@ -1,49 +1,20 @@
 with Ada.Strings.Fixed;
 
-with Concorde.Network.Expressions;
 with Concorde.Real_Images;
 
 package body Concorde.Network.State is
 
-   -------------------------
-   -- Calculate_New_Value --
-   -------------------------
+   ----------------
+   -- Add_Effect --
+   ----------------
 
-   overriding procedure Calculate_New_Value
-     (Node_State    : in out Root_Node_State_Type;
-      Network_State : Network_State_Interface'Class)
+   overriding procedure Add_Effect
+     (Node_State : in out Root_Node_State_Type;
+      Effect     : Signed_Unit_Real)
    is
-      New_Value : Real := 0.0;
-
-      procedure Eval
-        (Input_Node    : Concorde.Network.Nodes.Node_Type;
-         Input_Inertia : Duration;
-         Expression    : Concorde.Network.Expressions.Expression_Type);
-
-      ----------
-      -- Eval --
-      ----------
-
-      procedure Eval
-        (Input_Node    : Concorde.Network.Nodes.Node_Type;
-         Input_Inertia : Duration;
-         Expression    : Concorde.Network.Expressions.Expression_Type)
-      is
-         Identity : constant String := Input_Node.Identifier;
-         State_Node : constant Node_State_Access :=
-                        Network_State.Node (Identity);
-      begin
-         New_Value := New_Value
-           + Expression.Evaluate (Network_State, Identity,
-                                  State_Node.Current_Inertial_Value
-                                    (Input_Inertia));
-      end Eval;
-
    begin
-      Node_State.Node.Scan_Inputs
-        (Eval'Access);
-      Node_State.New_Value := Unit_Clamp (New_Value);
-   end Calculate_New_Value;
+      Node_State.New_Value := Node_State.New_Value + Effect;
+   end Add_Effect;
 
    --------------------------
    -- Current_Actual_Value --

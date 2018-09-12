@@ -22,12 +22,13 @@ package Concorde.Network.Nodes is
       Initial_Value : Real)
       return Node_State_Access;
 
-   procedure Scan_Inputs
+   procedure Scan_Effects
      (Node    : Root_Node_Type'Class;
+      Env     : Network_State_Interface'Class;
       Process : not null access
-        procedure (Input_Node : Node_Type;
-                   Input_Inertia : Duration;
-                   Expression : Concorde.Network.Expressions.Expression_Type));
+        procedure (Target_Node  : Node_State_Access;
+                   Effect_Delay : Duration;
+                   Effect       : Expressions.Expression_Type));
 
    procedure Add_Node
      (Node : Node_Type);
@@ -40,20 +41,20 @@ package Concorde.Network.Nodes is
 
 private
 
-   type Node_Input is
+   type Effect_Record is
       record
-         Source     : Node_Type;
-         Expression : Concorde.Network.Expressions.Expression_Type;
-         Inertia    : Duration;
+         Target       : access String;
+         Effect_Delay : Duration;
+         Expression   : Concorde.Network.Expressions.Expression_Type;
       end record;
 
-   package Node_Input_Lists is
-     new Ada.Containers.Doubly_Linked_Lists (Node_Input);
+   package Node_Effect_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Effect_Record);
 
    type Root_Node_Type is abstract tagged
       record
-         Id     : access String;
-         Inputs : Node_Input_Lists.List;
+         Id      : access String;
+         Effects : Node_Effect_Lists.List;
       end record;
 
    function Identifier (Node : Root_Node_Type) return String
