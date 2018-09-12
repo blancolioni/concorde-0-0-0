@@ -1,7 +1,10 @@
 tax-income: sum ((pops | group => poor).income) * current-actual * (1.0 - tax-evasion)
 effects {
   socialist: -X
-  equality: -X, 30
+  equality {
+     base: -X
+     delay: 30
+     }
   poor: -X
   poor-income: -0.4 * X
 }
