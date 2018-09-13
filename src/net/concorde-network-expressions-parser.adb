@@ -218,8 +218,7 @@ package body Concorde.Network.Expressions.Parser is
          elsif Tok = Tok_Sum then
             Scan;
             declare
-               Arg : constant Expression_Node :=
-                       Parse_Operator (Precedence_Range'First);
+               Arg : constant Expression_Node := Parse_Primary;
             begin
                Primary := Prim (Sum, Arg);
             end;
