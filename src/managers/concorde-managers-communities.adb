@@ -91,22 +91,31 @@ package body Concorde.Managers.Communities is
          begin
             if Policy.Tax_Income.Show /= "()" then
                declare
+                  Tax_Rate : constant Unit_Real :=
+                               Manager.Community.Node (Policy.Identifier)
+                               .Current_Value;
                   This_Tax : constant Real :=
                                Policy.Tax_Income.Evaluate
                                  (Env            => Manager.Community.all,
                                   Argument_Name  => "current-actual",
-                                  Argument_Value =>
-                                    Manager.Community.Node (Policy.Identifier)
-                                  .Current_Value);
+                                  Argument_Value => Tax_Rate);
                begin
-                  Concorde.Logging.Log
-                    (Actor    => Manager.Community.Identifier,
-                     Location => "tax income",
-                     Category => Policy.Identifier,
-                     Message  =>
-                       WL.Money.Show
-                         (WL.Money.To_Money
-                              (Float (This_Tax) / 365.0)));
+--                    Concorde.Logging.Log
+--                      (Actor    => Manager.Community.Identifier,
+--                       Location => "tax income",
+--                       Category => Policy.Identifier,
+--                       Message  => Policy.Tax_Income.Show);
+--
+--                    Concorde.Logging.Log
+--                      (Actor    => Manager.Community.Identifier,
+--                       Location => "tax income",
+--                       Category => Policy.Identifier,
+--                       Message  =>
+--                         "rate" & Natural'Image (Natural (Tax_Rate * 100.0))
+--                       & "% total "
+--                       & WL.Money.Show
+--                         (WL.Money.To_Money
+--                              (Float (This_Tax) / 365.0)));
                   Tax_Income := Tax_Income + This_Tax / 365.0;
                end;
             end if;
