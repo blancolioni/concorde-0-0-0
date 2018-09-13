@@ -1,5 +1,5 @@
-expense: gdp * current-actual
 effects {
+  military-budget: X * 0.2
   military-income: (X - 0.4) * 0.1
   military-frequency: X * 0.1
   patriot: -0.2 + X

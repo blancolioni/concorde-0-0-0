@@ -3,6 +3,7 @@ private with Memor.Database;
 
 with Concorde.Objects;
 
+with Concorde.Network.Expressions;
 with Concorde.Network.Nodes;
 
 package Concorde.Metrics is
@@ -25,8 +26,9 @@ private
    type Root_Metric_Type is
      new Concorde.Objects.Root_Localised_Object_Type with
       record
-         Active : Boolean := False;
-         Node   : Concorde.Network.Nodes.Node_Type;
+         Active       : Boolean := False;
+         Node         : Concorde.Network.Nodes.Node_Type;
+         Actual_Value : Concorde.Network.Expressions.Expression_Type;
       end record;
 
    overriding function Object_Database
