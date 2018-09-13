@@ -1,2 +1,7 @@
 type: money
-eval: sum(all(income-tax))
+calculation {
+   add: poor-income-tax.tax-income
+   add: middle-class-income-tax.tax-income
+   add: wealthy-income-tax.tax-income
+   add: megarich-income-tax.tax-income
+}

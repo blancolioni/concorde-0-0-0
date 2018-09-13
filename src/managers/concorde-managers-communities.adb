@@ -6,6 +6,7 @@ with Concorde.Signals.Standard;
 
 with Concorde.Commodities;
 with Concorde.Facilities;
+with Concorde.People.Pops;
 with Concorde.Policies;
 with Concorde.Trades;
 
@@ -76,10 +77,15 @@ package body Concorde.Managers.Communities is
       Manager.Community.Update.Run_Network_State;
 
       declare
-         Tax_Income : Non_Negative_Real := 0.0;
+         Tax_Income   : Non_Negative_Real := 0.0;
+         Total_Income : Non_Negative_Real := 0.0;
+         GDP          : Non_Negative_Real := 0.0;
 
          procedure Update_Tax_Income
            (Policy : Concorde.Policies.Policy_Type);
+
+         procedure Update_Total_Income
+           (Pop : Concorde.People.Pops.Pop_Type);
 
          -----------------------
          -- Update_Tax_Income --
@@ -121,8 +127,20 @@ package body Concorde.Managers.Communities is
             end if;
          end Update_Tax_Income;
 
+         -------------------------
+         -- Update_Total_Income --
+         -------------------------
+
+         procedure Update_Total_Income
+           (Pop : Concorde.People.Pops.Pop_Type)
+         is
+         begin
+            Total_Income := Total_Income + Pop.Current_Income_Total;
+         end Update_Total_Income;
+
       begin
          Concorde.Policies.Scan_Policies (Update_Tax_Income'Access);
+
          Concorde.Logging.Log
            (Actor    => Manager.Community.Identifier,
             Location => "tax income",
@@ -131,6 +149,27 @@ package body Concorde.Managers.Communities is
               WL.Money.Show
                 (WL.Money.To_Money
                      (Float (Tax_Income))));
+
+         Manager.Community.Scan_Pops (Update_Total_Income'Access);
+
+         GDP := GDP + Total_Income;
+
+         Concorde.Logging.Log
+           (Actor    => Manager.Community.Identifier,
+            Location => "income",
+            Category => "total",
+            Message  =>
+              WL.Money.Show
+                (WL.Money.To_Money
+                     (Float (Total_Income / 365.0))));
+         Concorde.Logging.Log
+           (Actor    => Manager.Community.Identifier,
+            Location => "economy",
+            Category => "gdp",
+            Message  =>
+              WL.Money.Show
+                (WL.Money.To_Money
+                     (Float (GDP))));
       end;
 
       Concorde.Objects.Queues.Next_Event

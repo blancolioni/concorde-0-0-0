@@ -1,4 +1,4 @@
-politics = {
+type: money
+calculation {
+   add: sum pops.income
 }
-type = money
-update = "X * GDP"
