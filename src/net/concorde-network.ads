@@ -51,7 +51,9 @@ package Concorde.Network is
       Node  : Node_State_Access)
    is abstract;
 
-   procedure Update (State : in out Network_State_Interface) is abstract;
+   procedure Run_Network_State
+     (State : in out Network_State_Interface)
+   is abstract;
 
    procedure Add_Effect
      (Node_State : in out Node_State_Interface;

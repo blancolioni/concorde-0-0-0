@@ -7,10 +7,14 @@ with WL.String_Sets;
 with Concorde.Elementary_Functions;
 with Concorde.Random;
 
+with Concorde.Objects.Queues;
+
 with Concorde.People.Groups;
 with Concorde.People.Pops.Create;
 
 with Concorde.Government.Create;
+
+with Concorde.Managers.Communities;
 
 package body Concorde.People.Communities.Create is
 
@@ -461,6 +465,17 @@ package body Concorde.People.Communities.Create is
            Owner          => Community,
            Manager        => Community.Government,
            Enable_Logging => False);
+
+      Concorde.Managers.Communities.Create_Manager (Community).Activate;
+
+      declare
+         use type Concorde.Calendar.Time;
+      begin
+         Concorde.Objects.Queues.Next_Event
+           (Community,
+            Concorde.Calendar.Clock
+            + Duration (Concorde.Random.Unit_Random * 86_400.0));
+      end;
 
       return Community;
    end New_Community;

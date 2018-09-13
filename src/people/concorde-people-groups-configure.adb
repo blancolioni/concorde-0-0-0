@@ -113,6 +113,9 @@ package body Concorde.People.Groups.Configure is
             Group.Happiness_Node :=
               Concorde.Network.Metrics.New_Rating_Metric
                 (Group.Identifier);
+            Concorde.Network.Nodes.Add_Node (Group.Income_Node);
+            Concorde.Network.Nodes.Add_Node (Group.Happiness_Node);
+
          end Create_Metrics;
 
       begin

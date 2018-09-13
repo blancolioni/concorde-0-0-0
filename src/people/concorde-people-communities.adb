@@ -94,6 +94,17 @@ package body Concorde.People.Communities is
       return Db.Get_Database;
    end Object_Database;
 
+   -----------------------
+   -- Run_Network_State --
+   -----------------------
+
+   overriding procedure Run_Network_State
+     (Community : in out Root_Community_Type)
+   is
+   begin
+      Community.Network.Run_Network_State;
+   end Run_Network_State;
+
    ----------
    -- Scan --
    ----------
@@ -172,17 +183,6 @@ package body Concorde.People.Communities is
       Base_Update : constant Db.Updateable_Reference := Db.Update (Item);
    begin
       return Updateable_Reference'(Base_Update.Element, Base_Update);
-   end Update;
-
-   ------------
-   -- Update --
-   ------------
-
-   overriding procedure Update
-     (Community : in out Root_Community_Type)
-   is
-   begin
-      Community.Network.Update;
    end Update;
 
 end Concorde.People.Communities;

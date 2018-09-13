@@ -1,5 +1,6 @@
 with Ada.Strings.Fixed;
 
+with Concorde.Logging;
 with Concorde.Real_Images;
 
 package body Concorde.Network.State is
@@ -153,7 +154,16 @@ package body Concorde.Network.State is
      (Node_State : in out Root_Node_State_Type)
    is
    begin
-      Node_State.Current_Value := Node_State.New_Value;
+      Node_State.Current_Value := 1.0 + Node_State.New_Value;
+      Concorde.Logging.Log
+        (Actor    => "network",
+         Location => "-",
+         Category => "update",
+         Message  =>
+           Node_State.Node.Identifier
+         & " <- "
+         & Root_Node_State_Type'Class
+           (Node_State).Show_Value);
    end Set_New_Value;
 
    ----------------

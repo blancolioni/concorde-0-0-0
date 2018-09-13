@@ -67,8 +67,8 @@ private
       record
          Node          : Concorde.Network.Nodes.Node_Type;
          History       : Historical_Value_List.List;
-         Current_Value : Unit_Real := 0.0;
-         New_Value     : Unit_Real := 0.0;
+         Current_Value : Non_Negative_Real := 0.0;
+         New_Value     : Real      := 0.0;
          Base_Value    : Real      := 1.0;
          Active        : Boolean   := True;
       end record;

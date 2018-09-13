@@ -84,6 +84,10 @@ package body Concorde.Network.Nodes is
       return Node_State_Access
    is
    begin
+      if not State.Map.Contains (Name) then
+         raise Constraint_Error with
+           "no such state node: " & Name;
+      end if;
       return State.Map.Element (Name);
    end Node;
 
@@ -96,33 +100,18 @@ package body Concorde.Network.Nodes is
       return Node_Type
    is
    begin
+      if not Map.Map.Contains (Name) then
+         raise Constraint_Error with
+           "no such node: " & Name;
+      end if;
       return Map.Map.Element (Name);
    end Node;
 
-   ------------------
-   -- Scan_Effects --
-   ------------------
+   -----------------------
+   -- Run_Network_State --
+   -----------------------
 
-   procedure Scan_Effects
-     (Node    : Root_Node_Type'Class;
-      Env     : Network_State_Interface'Class;
-      Process : not null access
-        procedure (Target_Node  : Node_State_Access;
-                   Effect_Delay : Duration;
-                   Effect       : Expressions.Expression_Type))
-   is
-   begin
-      for Effect of Node.Effects loop
-         Process (Env.Node (Effect.Target.all),
-                  Effect.Effect_Delay, Effect.Expression);
-      end loop;
-   end Scan_Effects;
-
-   ------------
-   -- Update --
-   ------------
-
-   overriding procedure Update
+   overriding procedure Run_Network_State
      (State : in out Node_State_Map)
    is
 
@@ -168,6 +157,25 @@ package body Concorde.Network.Nodes is
       for St of State.Map loop
          St.Set_New_Value;
       end loop;
-   end Update;
+   end Run_Network_State;
+
+   ------------------
+   -- Scan_Effects --
+   ------------------
+
+   procedure Scan_Effects
+     (Node    : Root_Node_Type'Class;
+      Env     : Network_State_Interface'Class;
+      Process : not null access
+        procedure (Target_Node  : Node_State_Access;
+                   Effect_Delay : Duration;
+                   Effect       : Expressions.Expression_Type))
+   is
+   begin
+      for Effect of Node.Effects loop
+         Process (Env.Node (Effect.Target.all),
+                  Effect.Effect_Delay, Effect.Expression);
+      end loop;
+   end Scan_Effects;
 
 end Concorde.Network.Nodes;
