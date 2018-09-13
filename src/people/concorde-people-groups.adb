@@ -25,6 +25,18 @@ package body Concorde.People.Groups is
       return Get ("everybody");
    end Everybody;
 
+   --------------------
+   -- Frequency_Node --
+   --------------------
+
+   function Frequency_Node
+     (Group : Root_Pop_Group'Class)
+      return Concorde.Network.Nodes.Node_Type
+   is
+   begin
+      return Group.Frequency_Node;
+   end Frequency_Node;
+
    ---------
    -- Get --
    ---------
@@ -38,6 +50,10 @@ package body Concorde.People.Groups is
            "no such pop group: " & Name;
       end if;
    end Get;
+
+   ----------------
+   -- Get_Groups --
+   ----------------
 
    function Get_Groups
      (Test : not null access

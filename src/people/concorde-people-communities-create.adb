@@ -417,15 +417,19 @@ package body Concorde.People.Communities.Create is
 
       for Group of Concorde.People.Groups.All_Groups loop
          declare
-            Income : constant Concorde.Network.Nodes.Node_Type :=
-                       Group.Income_Node;
             Happiness : constant Concorde.Network.Nodes.Node_Type :=
                           Group.Happiness_Node;
+            Frequency : constant Concorde.Network.Nodes.Node_Type :=
+                          Group.Frequency_Node;
+            Income    : constant Concorde.Network.Nodes.Node_Type :=
+                       Group.Income_Node;
          begin
             Community.Network.Add_Node
-              (Income.Create_State (Initial_Value (Income.Identifier)));
-            Community.Network.Add_Node
               (Happiness.Create_State (Initial_Value (Happiness.Identifier)));
+            Community.Network.Add_Node
+              (Frequency.Create_State (Initial_Value (Frequency.Identifier)));
+            Community.Network.Add_Node
+              (Income.Create_State (Initial_Value (Income.Identifier)));
          end;
       end loop;
 

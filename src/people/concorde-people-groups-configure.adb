@@ -96,6 +96,7 @@ package body Concorde.People.Groups.Configure is
       end Create;
 
       Group : constant Pop_Group := Db.Create (Create'Access);
+
    begin
 
       declare
@@ -110,11 +111,15 @@ package body Concorde.People.Groups.Configure is
             Group.Income_Node :=
               Concorde.Network.Metrics.New_Money_Metric
                 (Group.Identifier & "-income");
+            Group.Frequency_Node :=
+              Concorde.Network.Metrics.New_Money_Metric
+                (Group.Identifier & "-frequency");
             Group.Happiness_Node :=
               Concorde.Network.Metrics.New_Rating_Metric
                 (Group.Identifier);
-            Concorde.Network.Nodes.Add_Node (Group.Income_Node);
             Concorde.Network.Nodes.Add_Node (Group.Happiness_Node);
+            Concorde.Network.Nodes.Add_Node (Group.Frequency_Node);
+            Concorde.Network.Nodes.Add_Node (Group.Income_Node);
 
          end Create_Metrics;
 

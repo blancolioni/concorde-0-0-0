@@ -59,11 +59,15 @@ package Concorde.People.Groups is
       Other : Pop_Group)
       return Signed_Unit_Real;
 
-   function Income_Node
+   function Happiness_Node
      (Group : Root_Pop_Group'Class)
       return Concorde.Network.Nodes.Node_Type;
 
-   function Happiness_Node
+   function Frequency_Node
+     (Group : Root_Pop_Group'Class)
+      return Concorde.Network.Nodes.Node_Type;
+
+   function Income_Node
      (Group : Root_Pop_Group'Class)
       return Concorde.Network.Nodes.Node_Type;
 
@@ -89,6 +93,7 @@ private
          Expression_Proportion : Concorde.Network.Expressions.Expression_Type;
          Income_Node           : Concorde.Network.Nodes.Node_Type;
          Happiness_Node        : Concorde.Network.Nodes.Node_Type;
+         Frequency_Node        : Concorde.Network.Nodes.Node_Type;
          Political_Wing        : Boolean := False;
          Left_Bias             : Boolean := False;
          Wealth_Group          : Boolean := False;
