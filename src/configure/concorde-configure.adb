@@ -13,6 +13,7 @@ with Concorde.Ships.Designs.Configure;
 
 with Concorde.Commodities.Configure;
 --  with Concorde.Facilities.Configure;
+with Concorde.Metrics.Configure;
 with Concorde.Offices.Configure;
 with Concorde.Powers.Configure;
 with Concorde.Policies.Configure;
@@ -194,6 +195,7 @@ package body Concorde.Configure is
          Configure =>
            Concorde.People.Traits.Configure.Configure_Trait'Access);
 
+      Concorde.Metrics.Configure.Configure_Metrics;
       Concorde.Policies.Configure.Configure_Policies;
 
       Tropos.Reader.Read_Config

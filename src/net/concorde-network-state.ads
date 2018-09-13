@@ -22,7 +22,7 @@ package Concorde.Network.State is
      (Node_State : Root_Node_State_Type) return String;
 
    overriding function Current_Value
-     (Node_State : Root_Node_State_Type) return Unit_Real;
+     (Node_State : Root_Node_State_Type) return Signed_Unit_Real;
 
    overriding function Current_Actual_Value
      (Node_State : Root_Node_State_Type) return Real;
@@ -67,10 +67,11 @@ private
       record
          Node          : Concorde.Network.Nodes.Node_Type;
          History       : Historical_Value_List.List;
-         Current_Value : Non_Negative_Real := 0.0;
+         Current_Value : Signed_Unit_Real := 0.0;
          New_Value     : Real      := 0.0;
          Base_Value    : Real      := 1.0;
          Active        : Boolean   := True;
+         Changed       : Boolean   := False;
       end record;
 
    overriding function Identifier

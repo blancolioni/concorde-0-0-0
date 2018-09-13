@@ -262,8 +262,7 @@ package body Concorde.Factions.Create is
       Init_Config  : constant Tropos.Configuration :=
                        Template.Child ("init");
 
-      function Init_Value (Name : String) return Real
-      is (Real (Float'(Init_Config.Get (Name, 0.0))));
+      function Init_Value (Name : String) return Real;
 
       procedure Add_Taken_Systems
         (Faction : Root_Faction_Type'Class);
@@ -466,6 +465,19 @@ package body Concorde.Factions.Create is
          end if;
 
       end Create;
+
+      ----------------
+      -- Init_Value --
+      ----------------
+
+      function Init_Value (Name : String) return Real is
+         Value : constant Float := Init_Config.Get (Name, 0.0);
+      begin
+         Ada.Text_IO.Put_Line
+           ("init: " & Name & " = "
+            & Concorde.Real_Images.Approximate_Image (Real (Value)));
+         return Real (Value);
+      end Init_Value;
 
       ------------------------
       -- Set_Initial_Prices --

@@ -15,6 +15,7 @@ package body Concorde.Network.State is
    is
    begin
       Node_State.New_Value := Node_State.New_Value + Effect;
+      Node_State.Changed := True;
    end Add_Effect;
 
    --------------------------
@@ -85,8 +86,7 @@ package body Concorde.Network.State is
    -------------------
 
    overriding function Current_Value
-     (Node_State : Root_Node_State_Type)
-      return Unit_Real
+     (Node_State : Root_Node_State_Type) return Signed_Unit_Real
    is
    begin
       return Node_State.Current_Value;
@@ -143,7 +143,9 @@ package body Concorde.Network.State is
       Value         : Real)
    is
    begin
+      Node_State.Current_Value := Value;
       Node_State.Base_Value := Value;
+      Node_State.Changed := False;
    end Set_Initial_Value;
 
    -------------------
@@ -154,16 +156,21 @@ package body Concorde.Network.State is
      (Node_State : in out Root_Node_State_Type)
    is
    begin
-      Node_State.Current_Value := 1.0 + Node_State.New_Value;
-      Concorde.Logging.Log
-        (Actor    => "network",
-         Location => "-",
-         Category => "update",
-         Message  =>
-           Node_State.Node.Identifier
-         & " <- "
-         & Root_Node_State_Type'Class
-           (Node_State).Show_Value);
+      if Node_State.Changed then
+         Node_State.Current_Value :=
+           Signed_Unit_Clamp (Node_State.New_Value);
+         Node_State.New_Value := 0.0;
+         Concorde.Logging.Log
+           (Actor    => "network",
+            Location => "-",
+            Category => "update",
+            Message  =>
+              Node_State.Node.Identifier
+            & " <- "
+            & Root_Node_State_Type'Class
+              (Node_State).Show_Value);
+         Node_State.Changed := False;
+      end if;
    end Set_New_Value;
 
    ----------------

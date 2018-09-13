@@ -4,6 +4,10 @@ package Concorde.Network.Expressions is
 
    type Expression_Type is tagged private;
 
+   function Show
+     (Expression : Expression_Type'Class)
+      return String;
+
    function Evaluate
      (Expression     : Expression_Type'Class;
       Env            : Network_State_Interface'Class;

@@ -1,4 +1,5 @@
 with Concorde.Elementary_Functions;
+with Concorde.Real_Images;
 
 package body Concorde.Network.Expressions is
 
@@ -223,5 +224,56 @@ package body Concorde.Network.Expressions is
          end loop;
       end return;
    end Prim;
+
+   ----------
+   -- Show --
+   ----------
+
+   function Show
+     (Expression : Expression_Type'Class)
+      return String
+   is
+      function Show_Node (Node : Expression_Node) return String;
+
+      ---------------
+      -- Show_Node --
+      ---------------
+
+      function Show_Node (Node : Expression_Node) return String is
+      begin
+         if Node = null then
+            return "()";
+         end if;
+
+         case Node.Node_Type is
+            when Constant_Node =>
+               return Concorde.Real_Images.Approximate_Image
+                 (Node.Constant_Value);
+            when Variable_Node =>
+               return Node.Variable_Name.all;
+            when Constraint_Node =>
+               return "[constraint]";
+            when Field_Selector_Node =>
+               return Show_Node (Node.Field_Container)
+                 & "." & Node.Field_Name.all;
+            when Primitive_Node =>
+               if Node.Primitive = Negate then
+                  return "-" & Show_Node (Node.Prim_Args.First_Element);
+               elsif Node.Primitive = Multiply then
+                  return "(" & Show_Node (Node.Prim_Args.First_Element)
+                    & " * "
+                    & Show_Node
+                    (Expression_Node_Lists.Element
+                       (Expression_Node_Lists.Next (Node.Prim_Args.First)))
+                    & ")";
+               else
+                  return Node.Primitive'Image;
+               end if;
+         end case;
+      end Show_Node;
+
+   begin
+      return Show_Node (Expression.Root);
+   end Show;
 
 end Concorde.Network.Expressions;

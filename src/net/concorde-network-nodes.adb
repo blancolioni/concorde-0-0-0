@@ -137,6 +137,20 @@ package body Concorde.Network.Nodes is
                Effect       : Expressions.Expression_Type)
             is
             begin
+--                 Concorde.Logging.Log
+--                   (Actor    => "network",
+--                    Location => S.Identifier,
+--                    Category => "effect",
+--                    Message  =>
+--                      "target: " & Target_Node.Identifier
+--                    & "; delay = "
+--                    & Concorde.Real_Images.Approximate_Image
+--                      (Real (Effect_Delay) / 86_400.0)
+--                    & "; value: "
+--                    & Concorde.Real_Images.Approximate_Image
+--                      (S.Current_Inertial_Value (Effect_Delay))
+--                    & "; expression: "
+--                    & Effect.Show);
                Target_Node.Add_Effect
                  (Concorde.Network.Expressions.Evaluate
                     (Expression     => Effect,
@@ -147,6 +161,15 @@ package body Concorde.Network.Nodes is
             end Send_Effect;
 
          begin
+
+--              Concorde.Logging.Log
+--                (Actor    => "network",
+--                 Location => St.Identifier,
+--                 Category => "effect",
+--                 Message  =>
+--                   "Sending current value: "
+--                 & Concorde.Real_Images.Approximate_Image
+--                   (S.Current_Value));
 
             Node (St.Identifier).Scan_Effects (State, Send_Effect'Access);
 

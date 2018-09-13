@@ -8,7 +8,7 @@ package Concorde.Network is
       is abstract;
 
    function Current_Value
-     (Node_State : Node_State_Interface) return Unit_Real
+     (Node_State : Node_State_Interface) return Signed_Unit_Real
       is abstract;
 
    function Current_Actual_Value (Node : Node_State_Interface) return Real

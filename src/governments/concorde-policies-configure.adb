@@ -147,7 +147,7 @@ package body Concorde.Policies.Configure is
             end if;
          end On_Leave;
 
-         Id : constant String := Ada.Directories.Simple_Name (Path);
+         Id : constant String := Ada.Directories.Base_Name (Path);
 
       begin
          Node.Initialise (Id);

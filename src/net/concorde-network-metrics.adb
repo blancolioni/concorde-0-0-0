@@ -40,7 +40,8 @@ package body Concorde.Network.Metrics is
    is
       State : Root_Money_Metric_State_Type;
    begin
-      State.Initialize_State (Metric, Initial_Value);
+      State.Initialize_State (Metric, 0.0);
+      State.Base_Value := Initial_Value;
       return new Root_Money_Metric_State_Type'(State);
    end Create_State;
 

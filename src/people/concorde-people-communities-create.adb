@@ -12,6 +12,7 @@ with Concorde.Objects.Queues;
 with Concorde.People.Groups;
 with Concorde.People.Pops.Create;
 
+with Concorde.Metrics;
 with Concorde.Policies;
 with Concorde.Government.Create;
 
@@ -379,8 +380,24 @@ package body Concorde.People.Communities.Create is
       Initial_Value : not null access
         function (Parameter_Name : String) return Real)
    is
+      procedure Add_Metric_State
+        (Metric : Concorde.Metrics.Metric_Type);
+
       procedure Add_Policy_State
         (Policy : Concorde.Policies.Policy_Type);
+
+      ----------------------
+      -- Add_Metric_State --
+      ----------------------
+
+      procedure Add_Metric_State
+        (Metric : Concorde.Metrics.Metric_Type)
+      is
+      begin
+         Community.Network.Add_Node
+           (Metric.Metric_Node.Create_State
+              (Initial_Value (Metric.Metric_Node.Identifier)));
+      end Add_Metric_State;
 
       ----------------------
       -- Add_Policy_State --
@@ -411,6 +428,7 @@ package body Concorde.People.Communities.Create is
          end;
       end loop;
 
+      Concorde.Metrics.Scan_Metrics (Add_Metric_State'Access);
       Concorde.Policies.Scan_Policies (Add_Policy_State'Access);
 
    end Create_Network_State;
