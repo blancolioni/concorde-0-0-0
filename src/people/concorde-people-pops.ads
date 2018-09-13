@@ -4,12 +4,15 @@ private with Memor;
 private with Memor.Database;
 private with Concorde.Locations;
 
+with WL.Quantities;
+
+with Concorde.Network;
+
 with Concorde.Agents;
 with Concorde.Facilities;
 with Concorde.Trades;
 
 with Concorde.People.Groups;
-with WL.Quantities;
 
 package Concorde.People.Pops is
 
@@ -17,7 +20,10 @@ package Concorde.People.Pops is
 
    type Root_Pop_Type is
      new Concorde.Agents.Root_Agent_Type
+     and Concorde.Network.Expression_Object_Interface
    with private;
+
+   type Pop_Type is access constant Root_Pop_Type'Class;
 
    function Size (Pop : Root_Pop_Type'Class) return Pop_Size;
 
@@ -25,7 +31,10 @@ package Concorde.People.Pops is
      (Pop : Root_Pop_Type'Class)
       return WL.Quantities.Quantity_Type;
 
-   type Pop_Type is access constant Root_Pop_Type'Class;
+   function Is_Member_Of
+     (Pop   : Root_Pop_Type'Class;
+      Group : Concorde.People.Groups.Pop_Group)
+      return Boolean;
 
    type Updateable_Reference (Item : not null access Root_Pop_Type'Class)
    is private with Implicit_Dereference => Item;
@@ -39,6 +48,7 @@ private
    type Group_Membership_Record is
       record
          Group    : Concorde.People.Groups.Pop_Group;
+         Income   : Concorde.Network.Node_State_Access;
          Strength : Unit_Real := 1.0;
       end record;
 
@@ -46,11 +56,13 @@ private
      new Ada.Containers.Doubly_Linked_Lists (Group_Membership_Record);
 
    type Root_Pop_Type is
-     new Concorde.Agents.Root_Agent_Type with
+     new Concorde.Agents.Root_Agent_Type
+     and Concorde.Network.Expression_Object_Interface with
       record
-         Size   : Pop_Size;
-         Groups : Group_Membership_Lists.List;
-         Apathy : Unit_Real := 0.0;
+         Size         : Pop_Size;
+         Base_Income  : Concorde.Network.Node_State_Access;
+         Groups       : Group_Membership_Lists.List;
+         Apathy       : Unit_Real := 0.0;
       end record;
 
    overriding function Class_Name
@@ -77,6 +89,16 @@ private
      (Pop : not null access constant Root_Pop_Type)
       return access Concorde.Agents.Root_Agent_Type'Class
    is (Pop.Update.Item);
+
+   overriding function Get_Value
+     (Pop : Root_Pop_Type)
+      return Concorde.Network.Expression_Value
+   is (Concorde.Network.To_Expression_Value (Real (Pop.Size)));
+
+   overriding function Get_Field_Value
+     (Pop   : Root_Pop_Type;
+      Name  : String)
+      return Concorde.Network.Expression_Value;
 
    function Size (Pop : Root_Pop_Type'Class) return Pop_Size
    is (Pop.Size);

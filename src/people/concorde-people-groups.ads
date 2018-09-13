@@ -29,6 +29,10 @@ package Concorde.People.Groups is
    function Political_Groups return Array_Of_Pop_Groups;
    function Everybody return Pop_Group;
 
+   function Is_Wealth_Group
+     (Group : Root_Pop_Group'Class)
+      return Boolean;
+
    function Is_Political_Left
      (Group : Root_Pop_Group'Class)
       return Boolean;
@@ -108,11 +112,6 @@ private
       return Unit_Real
    is (Group.Default_Politics.Strength (Axis));
 
-   function Is_Wealth_Group
-     (Group : Root_Pop_Group'Class)
-      return Boolean
-   is (Group.Wealth_Group);
-
    function Default_Proportion
      (Group : Root_Pop_Group'Class)
       return Unit_Real
@@ -127,6 +126,11 @@ private
      (Group : Root_Pop_Group'Class)
       return Concorde.Network.Expressions.Expression_Type
    is (Group.Expression_Proportion);
+
+   function Is_Wealth_Group
+     (Group : Root_Pop_Group'Class)
+      return Boolean
+   is (Group.Wealth_Group);
 
    function Is_Political_Left
      (Group : Root_Pop_Group'Class)

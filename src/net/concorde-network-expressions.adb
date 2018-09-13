@@ -266,6 +266,12 @@ package body Concorde.Network.Expressions is
                     (Expression_Node_Lists.Element
                        (Expression_Node_Lists.Next (Node.Prim_Args.First)))
                     & ")";
+               elsif Node.Primitive = Sum then
+                  return Character'Val (16#CE#)
+                    & Character'Val (16#A3#)
+                    & "("
+                    & Show_Node (Node.Prim_Args.First_Element)
+                    & ")";
                else
                   return Node.Primitive'Image;
                end if;

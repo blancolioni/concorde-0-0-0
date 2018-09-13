@@ -1,0 +1,5 @@
+tax-income: sum ((pops | group => middle-class).income) * current-actual * (1.0 - tax-evasion)
+effects {
+  middle-class: -X
+  middle-class-income: -0.4 * X
+}

@@ -14,12 +14,13 @@ package body Concorde.People.Pops.Create is
    -------------
 
    function New_Pop
-     (Market   : access constant Concorde.Trades.Trade_Interface'Class;
+     (Market     : access constant Concorde.Trades.Trade_Interface'Class;
       Government : not null access constant
         Concorde.Government.Root_Government_Type'Class;
+      Network    : Concorde.Network.Network_State_Interface'Class;
       Groups     : Concorde.People.Groups.Array_Of_Pop_Groups;
-      Size     : Pop_Size;
-      Apathy   : Unit_Real)
+      Size       : Pop_Size;
+      Apathy     : Unit_Real)
       return Pop_Type
    is
       procedure Create (Pop : in out Root_Pop_Type'Class);
@@ -32,7 +33,14 @@ package body Concorde.People.Pops.Create is
          use WL.Quantities;
       begin
          for Group of Groups loop
-            Pop.Groups.Append ((Group, 1.0));
+            Pop.Groups.Append
+              (Group_Membership_Record'
+                 (Group    => Group,
+                  Income   => Network.Node (Group.Income_Node.Identifier),
+                  Strength => 1.0));
+            if Group.Is_Wealth_Group then
+               Pop.Base_Income := Network.Node (Group.Income_Node.Identifier);
+            end if;
          end loop;
 
          Pop.Apathy := Apathy;

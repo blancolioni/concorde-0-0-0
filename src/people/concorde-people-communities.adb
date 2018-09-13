@@ -1,3 +1,5 @@
+with Concorde.People.Groups;
+
 package body Concorde.People.Communities is
 
    --------------
@@ -49,9 +51,49 @@ package body Concorde.People.Communities is
       Constraint_Value : String)
       return Concorde.Network.Array_Of_Values
    is
+
+      type Constraint_Type is (Group_Constraint);
+
+      function Eval_Pop_Constraint return Concorde.Network.Array_Of_Values;
+
+      -------------------------
+      -- Eval_Pop_Constraint --
+      -------------------------
+
+      function Eval_Pop_Constraint return Concorde.Network.Array_Of_Values is
+         Result : Concorde.Network.Array_Of_Values
+           (1 .. Natural (From.Pops.Length));
+         Count  : Natural := 0;
+         Constraint : constant Constraint_Type :=
+                        (if Constraint_Name = "group"
+                         then Group_Constraint
+                         else raise Constraint_Error with
+                           "no such pop constraint: " & Constraint_Name);
+         Group      : constant Concorde.People.Groups.Pop_Group :=
+                        (case Constraint is
+                            when Group_Constraint =>
+                              Concorde.People.Groups.Get (Constraint_Value));
+      begin
+         for Pop of From.Pops loop
+            case Constraint is
+               when Group_Constraint =>
+                  if Pop.Is_Member_Of (Group) then
+                     Count := Count + 1;
+                     Result (Count) :=
+                       Concorde.Network.To_Expression_Value (Pop);
+                  end if;
+            end case;
+         end loop;
+         return Result (1 .. Count);
+      end Eval_Pop_Constraint;
+
    begin
-      return From.Network.Evaluate_Constraint
-        (Class_Name, Constraint_Name, Constraint_Value);
+      if Class_Name = "pops" then
+         return Eval_Pop_Constraint;
+      else
+         return From.Network.Evaluate_Constraint
+           (Class_Name, Constraint_Name, Constraint_Value);
+      end if;
    end Evaluate_Constraint;
 
    -----------------

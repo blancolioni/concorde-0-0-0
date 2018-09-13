@@ -69,7 +69,6 @@ private
          History       : Historical_Value_List.List;
          Current_Value : Signed_Unit_Real := 0.0;
          New_Value     : Real      := 0.0;
-         Base_Value    : Real      := 1.0;
          Active        : Boolean   := True;
          Changed       : Boolean   := False;
       end record;

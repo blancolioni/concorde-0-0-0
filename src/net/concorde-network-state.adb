@@ -27,8 +27,7 @@ package body Concorde.Network.State is
       return Real
    is
    begin
-      return Root_Node_State_Type'Class (Node_State).Current_Value
-        * Root_Node_State_Type'Class (Node_State).Base_Value;
+      return Root_Node_State_Type'Class (Node_State).Current_Value;
    end Current_Actual_Value;
 
    ------------------------
@@ -39,8 +38,9 @@ package body Concorde.Network.State is
      (Node_State : Root_Node_State_Type)
       return Real
    is
+      pragma Unreferenced (Node_State);
    begin
-      return Node_State.Base_Value;
+      return 0.0;
    end Current_Base_Value;
 
    ----------------------------
@@ -144,7 +144,6 @@ package body Concorde.Network.State is
    is
    begin
       Node_State.Current_Value := Value;
-      Node_State.Base_Value := Value;
       Node_State.Changed := False;
    end Set_Initial_Value;
 

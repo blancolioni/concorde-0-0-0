@@ -1,8 +1,12 @@
+with WL.Money;
+
+with Concorde.Logging;
 with Concorde.Objects.Queues;
 with Concorde.Signals.Standard;
 
 with Concorde.Commodities;
 with Concorde.Facilities;
+with Concorde.Policies;
 with Concorde.Trades;
 
 package body Concorde.Managers.Communities is
@@ -70,6 +74,55 @@ package body Concorde.Managers.Communities is
            (Manager.Time, True));
 
       Manager.Community.Update.Run_Network_State;
+
+      declare
+         Tax_Income : Non_Negative_Real := 0.0;
+
+         procedure Update_Tax_Income
+           (Policy : Concorde.Policies.Policy_Type);
+
+         -----------------------
+         -- Update_Tax_Income --
+         -----------------------
+
+         procedure Update_Tax_Income
+           (Policy : Concorde.Policies.Policy_Type)
+         is
+         begin
+            if Policy.Tax_Income.Show /= "()" then
+               declare
+                  This_Tax : constant Real :=
+                               Policy.Tax_Income.Evaluate
+                                 (Env            => Manager.Community.all,
+                                  Argument_Name  => "current-actual",
+                                  Argument_Value =>
+                                    Manager.Community.Node (Policy.Identifier)
+                                  .Current_Value);
+               begin
+                  Concorde.Logging.Log
+                    (Actor    => Manager.Community.Identifier,
+                     Location => "tax income",
+                     Category => Policy.Identifier,
+                     Message  =>
+                       WL.Money.Show
+                         (WL.Money.To_Money
+                              (Float (This_Tax) / 365.0)));
+                  Tax_Income := Tax_Income + This_Tax / 365.0;
+               end;
+            end if;
+         end Update_Tax_Income;
+
+      begin
+         Concorde.Policies.Scan_Policies (Update_Tax_Income'Access);
+         Concorde.Logging.Log
+           (Actor    => Manager.Community.Identifier,
+            Location => "tax income",
+            Category => "total",
+            Message  =>
+              WL.Money.Show
+                (WL.Money.To_Money
+                     (Float (Tax_Income))));
+      end;
 
       Concorde.Objects.Queues.Next_Event
         (Manager.Community, Manager.Time, Delay_Days => 1);

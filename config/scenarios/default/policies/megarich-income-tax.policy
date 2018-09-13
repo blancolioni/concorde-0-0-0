@@ -1,0 +1,11 @@
+tax-income: sum ((pops | group => megarich).income) * current-actual * (1.0 - tax-evasion)
+effects {
+  socialist: X
+  capitalist: -X
+  equality {
+     base: X
+     delay: 30
+     }
+  megarich: -X
+  megarich-income: -0.4 * X
+}

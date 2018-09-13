@@ -360,6 +360,7 @@ package body Concorde.People.Communities.Create is
                     (Concorde.People.Pops.Create.New_Pop
                        (Market     => Community.Market,
                         Government => Community.Government,
+                        Network    => Community,
                         Groups     => Groups (1 .. Group_Count),
                         Size       => Concorde.People.Pops.Pop_Size (Size),
                         Apathy     => Apathy));
@@ -422,7 +423,7 @@ package body Concorde.People.Communities.Create is
                           Group.Happiness_Node;
          begin
             Community.Network.Add_Node
-              (Income.Create_State (0.0));
+              (Income.Create_State (Initial_Value (Income.Identifier)));
             Community.Network.Add_Node
               (Happiness.Create_State (Initial_Value (Happiness.Identifier)));
          end;

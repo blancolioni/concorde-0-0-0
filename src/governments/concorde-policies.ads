@@ -3,6 +3,7 @@ private with Memor.Database;
 
 with Concorde.Objects;
 
+with Concorde.Network.Expressions;
 with Concorde.Network.Nodes;
 
 package Concorde.Policies is
@@ -11,6 +12,10 @@ package Concorde.Policies is
      new Concorde.Objects.Root_Localised_Object_Type with private;
 
    type Policy_Type is access constant Root_Policy_Type'Class;
+
+   function Tax_Income
+     (Policy : Root_Policy_Type'Class)
+      return Concorde.Network.Expressions.Expression_Type;
 
    procedure Scan_Policies
      (Process : not null access
@@ -25,13 +30,19 @@ private
    type Root_Policy_Type is
      new Concorde.Objects.Root_Localised_Object_Type with
       record
-         Active : Boolean := False;
-         Node   : Concorde.Network.Nodes.Node_Type;
+         Active     : Boolean := False;
+         Node       : Concorde.Network.Nodes.Node_Type;
+         Tax_Income : Concorde.Network.Expressions.Expression_Type;
       end record;
 
    overriding function Object_Database
      (Item : Root_Policy_Type)
       return Memor.Memor_Database;
+
+   function Tax_Income
+     (Policy : Root_Policy_Type'Class)
+      return Concorde.Network.Expressions.Expression_Type
+   is (Policy.Tax_Income);
 
    package Db is
      new Memor.Database

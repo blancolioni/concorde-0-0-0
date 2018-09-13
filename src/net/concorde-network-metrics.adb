@@ -19,9 +19,20 @@ package body Concorde.Network.Metrics is
    type Root_Metric_State_Type is
      abstract new Concorde.Network.State.Root_Node_State_Type with
       record
-         Actual_Value : Real := 0.0;
          Base_Value   : Real := 0.0;
       end record;
+
+   overriding function Current_Actual_Value
+     (Node_State : Root_Metric_State_Type)
+      return Real;
+
+   overriding function Current_Base_Value
+     (Node_State : Root_Metric_State_Type)
+      return Real;
+
+   overriding procedure Set_Initial_Value
+     (Node_State : in out Root_Metric_State_Type;
+      Value      : Real);
 
    type Root_Money_Metric_State_Type is
      new Root_Metric_State_Type with null record;
@@ -60,6 +71,27 @@ package body Concorde.Network.Metrics is
       return new Root_Rating_Metric_State_Type'(State);
    end Create_State;
 
+   --------------------------
+   -- Current_Actual_Value --
+   --------------------------
+
+   overriding function Current_Actual_Value
+     (Node_State : Root_Metric_State_Type)
+      return Real
+   is
+   begin
+      return (1.0 + Node_State.Current_Value) * Node_State.Base_Value;
+   end Current_Actual_Value;
+
+   ------------------------
+   -- Current_Base_Value --
+   ------------------------
+
+   overriding function Current_Base_Value
+     (Node_State : Root_Metric_State_Type)
+      return Real
+   is (Node_State.Base_Value);
+
    ----------------------
    -- New_Money_Metric --
    ----------------------
@@ -87,5 +119,19 @@ package body Concorde.Network.Metrics is
       Metric.Initialise (Id);
       return new Rating_Metric_Type'(Metric);
    end New_Rating_Metric;
+
+   -----------------------
+   -- Set_Initial_Value --
+   -----------------------
+
+   overriding procedure Set_Initial_Value
+     (Node_State    : in out Root_Metric_State_Type;
+      Value         : Real)
+   is
+   begin
+      Concorde.Network.State.Root_Node_State_Type (Node_State)
+        .Set_Initial_Value (0.0);
+      Node_State.Base_Value := Value;
+   end Set_Initial_Value;
 
 end Concorde.Network.Metrics;

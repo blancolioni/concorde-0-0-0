@@ -108,7 +108,7 @@ package body Concorde.People.Groups.Configure is
          procedure Create_Metrics (Group : in out Root_Pop_Group'Class) is
          begin
             Group.Income_Node :=
-              Concorde.Network.Metrics.New_Rating_Metric
+              Concorde.Network.Metrics.New_Money_Metric
                 (Group.Identifier & "-income");
             Group.Happiness_Node :=
               Concorde.Network.Metrics.New_Rating_Metric
