@@ -36,6 +36,10 @@ package Concorde.People.Pops is
       Group : Concorde.People.Groups.Pop_Group)
       return Boolean;
 
+   function Current_Income_Total
+     (Pop : Root_Pop_Type'Class)
+      return Non_Negative_Real;
+
    type Updateable_Reference (Item : not null access Root_Pop_Type'Class)
    is private with Implicit_Dereference => Item;
 
