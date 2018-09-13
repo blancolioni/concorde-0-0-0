@@ -2,6 +2,39 @@ with Concorde.Elementary_Functions;
 
 package body Concorde.Network.Expressions is
 
+   type Null_Network_State is new Network_State_Interface with null record;
+
+   overriding function Node
+     (State : Null_Network_State;
+      Name  : String)
+      return Node_State_Access;
+
+   overriding procedure Add_Node
+     (State : in out Null_Network_State;
+      Node  : Node_State_Access)
+   is null;
+
+   overriding procedure Run_Network_State
+     (State : in out Null_Network_State)
+   is null;
+
+   overriding function Evaluate_Constraint
+     (From             : Null_Network_State;
+      Class_Name       : String;
+      Constraint_Name  : String;
+      Constraint_Value : String)
+      return Array_Of_Values;
+
+   --------------
+   -- Evaluate --
+   --------------
+
+   function Evaluate (Expression : Expression_Type'Class) return Real is
+      State : Null_Network_State;
+   begin
+      return Evaluate (Expression, State, "", 0.0);
+   end Evaluate;
+
    --------------
    -- Evaluate --
    --------------
@@ -134,6 +167,37 @@ package body Concorde.Network.Expressions is
          return Xs (Xs'First).Real_Value;
       end if;
    end Evaluate;
+
+   -------------------------
+   -- Evaluate_Constraint --
+   -------------------------
+
+   overriding function Evaluate_Constraint
+     (From             : Null_Network_State;
+      Class_Name       : String;
+      Constraint_Name  : String;
+      Constraint_Value : String)
+      return Array_Of_Values
+   is
+      pragma Unreferenced (From, Class_Name,
+                           Constraint_Name, Constraint_Value);
+   begin
+      return X : Array_Of_Values (1 .. 0);
+   end Evaluate_Constraint;
+
+   ----------
+   -- Node --
+   ----------
+
+   overriding function Node
+     (State : Null_Network_State;
+      Name  : String)
+      return Node_State_Access
+   is
+      pragma Unreferenced (State, Name);
+   begin
+      return null;
+   end Node;
 
    ----------
    -- Prim --

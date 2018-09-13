@@ -12,4 +12,16 @@ package body Concorde.Policies is
       return Policy.Node;
    end Policy_Node;
 
+   -------------------
+   -- Scan_Policies --
+   -------------------
+
+   procedure Scan_Policies
+     (Process : not null access
+        procedure (Policy : Policy_Type))
+   is
+   begin
+      Db.Scan (Process);
+   end Scan_Policies;
+
 end Concorde.Policies;

@@ -12,6 +12,7 @@ with Concorde.Objects.Queues;
 with Concorde.People.Groups;
 with Concorde.People.Pops.Create;
 
+with Concorde.Policies;
 with Concorde.Government.Create;
 
 with Concorde.Managers.Communities;
@@ -378,7 +379,24 @@ package body Concorde.People.Communities.Create is
       Initial_Value : not null access
         function (Parameter_Name : String) return Real)
    is
+      procedure Add_Policy_State
+        (Policy : Concorde.Policies.Policy_Type);
+
+      ----------------------
+      -- Add_Policy_State --
+      ----------------------
+
+      procedure Add_Policy_State
+        (Policy : Concorde.Policies.Policy_Type)
+      is
+      begin
+         Community.Network.Add_Node
+           (Policy.Policy_Node.Create_State
+              (Initial_Value (Policy.Policy_Node.Identifier)));
+      end Add_Policy_State;
+
    begin
+
       for Group of Concorde.People.Groups.All_Groups loop
          declare
             Income : constant Concorde.Network.Nodes.Node_Type :=
@@ -392,6 +410,9 @@ package body Concorde.People.Communities.Create is
               (Happiness.Create_State (Initial_Value (Happiness.Identifier)));
          end;
       end loop;
+
+      Concorde.Policies.Scan_Policies (Add_Policy_State'Access);
+
    end Create_Network_State;
 
    -------------------

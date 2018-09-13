@@ -11,6 +11,8 @@ package Concorde.Network.Expressions is
       Argument_Value : Real)
       return Real;
 
+   function Evaluate (Expression : Expression_Type'Class) return Real;
+
 private
 
    type Expression_Node_Type is

@@ -109,6 +109,8 @@ package Concorde.Calendar is
    function Days (Count : Natural) return Duration;
    function Years (Count : Natural) return Duration;
 
+   function Days (Count : Non_Negative_Real) return Duration;
+
    Time_Error : exception;
 
 private
@@ -141,6 +143,9 @@ private
    is (Duration (Time'(Left - Right)));
 
    function Days (Count : Natural) return Duration
+   is (Duration (Count) * Day_Length);
+
+   function Days (Count : Non_Negative_Real) return Duration
    is (Duration (Count) * Day_Length);
 
    function Hours (Count : Natural) return Duration

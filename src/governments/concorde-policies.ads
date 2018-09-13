@@ -12,6 +12,10 @@ package Concorde.Policies is
 
    type Policy_Type is access constant Root_Policy_Type'Class;
 
+   procedure Scan_Policies
+     (Process : not null access
+        procedure (Policy : Policy_Type));
+
    function Policy_Node
      (Policy : Root_Policy_Type'Class)
       return Concorde.Network.Nodes.Node_Type;

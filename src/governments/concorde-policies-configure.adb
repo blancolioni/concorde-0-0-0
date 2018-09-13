@@ -1,6 +1,7 @@
-with Ada.Text_IO;
 with Ada.Directories;
+with Ada.Text_IO;
 
+with Concorde.Calendar;
 with Concorde.Configure;
 
 with Concorde.Network.Expressions.Parser;
@@ -61,7 +62,10 @@ package body Concorde.Policies.Configure is
 
          Node : Policy_Node_Type;
 
-         Effect : Boolean := False;
+         Effect        : Boolean := False;
+         Effect_Target : Boolean := False;
+         Effect_Base   : Concorde.Network.Expressions.Expression_Type;
+         Effect_Delay  : Non_Negative_Real;
 
          procedure On_Enter
            (Field_Name  : String);
@@ -83,13 +87,28 @@ package body Concorde.Policies.Configure is
          is
          begin
             if Effect then
-               Concorde.Network.Nodes.Configure.Add_Effect
-                 (From       => Node,
-                  To         => Field_Name,
-                  Expression => Field_Value,
-                  Wait       => 0.0);
-               Ada.Text_IO.Put_Line
-                 ("effect: " & Field_Name);
+               if Effect_Target then
+                  if Field_Name = "base" then
+                     Effect_Base := Field_Value;
+                  elsif Field_Name = "delay" then
+                     Effect_Delay :=
+                       Concorde.Network.Expressions.Evaluate (Field_Value);
+                  else
+                     Ada.Text_IO.Put_Line
+                       (Ada.Text_IO.Standard_Error,
+                        "warning: unknown field '" & Field_Name & "'"
+                        & " in policy configuration for "
+                        & Policy.Identifier);
+                  end if;
+               else
+                  Concorde.Network.Nodes.Configure.Add_Effect
+                    (From       => Node,
+                     To         => Field_Name,
+                     Expression => Field_Value,
+                     Wait       => 0.0);
+                  Ada.Text_IO.Put_Line
+                    ("effect: " & Field_Name);
+               end if;
             end if;
          end Configure_Field;
 
@@ -103,6 +122,8 @@ package body Concorde.Policies.Configure is
          begin
             if Field_Name = "effects" then
                Effect := True;
+            elsif Effect then
+               Effect_Target := True;
             end if;
          end On_Enter;
 
@@ -116,13 +137,20 @@ package body Concorde.Policies.Configure is
          begin
             if Field_Name = "effects" then
                Effect := False;
+            elsif Effect_Target then
+               Concorde.Network.Nodes.Configure.Add_Effect
+                 (From       => Node,
+                  To         => Field_Name,
+                  Expression => Effect_Base,
+                  Wait       => Concorde.Calendar.Days (Effect_Delay));
+               Effect_Target := False;
             end if;
          end On_Leave;
 
          Id : constant String := Ada.Directories.Simple_Name (Path);
 
       begin
-         Node.Initialise (Path);
+         Node.Initialise (Id);
          Policy.Set_Local_Tag (Id);
 
          Concorde.Network.Expressions.Parser.Parse_Configuration
