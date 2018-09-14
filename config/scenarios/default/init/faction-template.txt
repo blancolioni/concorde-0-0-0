@@ -1,5 +1,4 @@
 init = {
-   gdp = ~1G
    population = ~1M
    tax-evasion = 0.1
    poor-income-tax = 0.1
