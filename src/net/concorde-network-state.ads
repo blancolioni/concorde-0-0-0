@@ -1,4 +1,5 @@
 private with Ada.Containers.Doubly_Linked_Lists;
+private with WL.String_Maps;
 
 with Concorde.Calendar;
 with Concorde.Network.Nodes;
@@ -10,7 +11,10 @@ package Concorde.Network.State is
         Concorde.Network.Nodes.Root_Node_Type'Class)
       return Node_State_Access;
 
-   type Root_Node_State_Type is new Node_State_Interface with private;
+   type Root_Node_State_Type is
+     new Node_State_Interface
+     and Expression_Object_Interface
+   with private;
 
    procedure Initialize_State
      (State : in out Root_Node_State_Type'Class;
@@ -71,15 +75,30 @@ private
    package Historical_Value_List is
      new Ada.Containers.Doubly_Linked_Lists (Historical_Value);
 
-   type Root_Node_State_Type is new Node_State_Interface with
+   package Field_Maps is
+     new WL.String_Maps (Real);
+
+   type Root_Node_State_Type is
+     new Node_State_Interface
+     and Expression_Object_Interface with
       record
          Node          : Concorde.Network.Nodes.Node_Type;
          History       : Historical_Value_List.List;
          Current_Value : Signed_Unit_Real := 0.0;
+         Fields        : Field_Maps.Map;
          New_Value     : Real      := 0.0;
          Active        : Boolean   := True;
          Changed       : Boolean   := False;
       end record;
+
+   overriding function Get_Value
+     (Node_State : Root_Node_State_Type)
+      return Expression_Value;
+
+   overriding function Get_Field_Value
+     (Node_State : Root_Node_State_Type;
+      Name  : String)
+      return Expression_Value;
 
    overriding function Identifier
      (Node_State : Root_Node_State_Type) return String

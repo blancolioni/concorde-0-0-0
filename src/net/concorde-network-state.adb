@@ -94,6 +94,45 @@ package body Concorde.Network.State is
       return Node_State.Current_Value;
    end Current_Value;
 
+   ---------------------
+   -- Get_Field_Value --
+   ---------------------
+
+   overriding function Get_Field_Value
+     (Node_State : Root_Node_State_Type;
+      Name       : String)
+      return Expression_Value
+   is
+      Result : constant Real :=
+                 (if Name = "current-value"
+                  then Node_State.Current_Value
+                  elsif Name = "current-actual-value"
+                  then Node_State.Current_Actual_Value
+                  elsif Name = "current-base-value"
+                  then Node_State.Current_Base_Value
+                  elsif Node_State.Node.Has_Field (Name)
+                  then (if Node_State.Fields.Contains (Name)
+                    then Node_State.Fields.Element (Name)
+                      else 0.0)
+                  else raise Constraint_Error with
+                    "no such field '" & Name & "' for node "
+                  & Node_State.Identifier);
+   begin
+      return To_Expression_Value (Result);
+   end Get_Field_Value;
+
+   ---------------
+   -- Get_Value --
+   ---------------
+
+   overriding function Get_Value
+     (Node_State : Root_Node_State_Type)
+      return Expression_Value
+   is
+   begin
+      return To_Expression_Value (Node_State.Current_Value);
+   end Get_Value;
+
    ----------------------
    -- Initialize_State --
    ----------------------
@@ -194,12 +233,38 @@ package body Concorde.Network.State is
      (Node_State    : in out Root_Node_State_Type;
       Network_State : Network_State_Interface'Class)
    is
-      pragma Unreferenced (Network_State);
+      procedure Update_Field
+        (Field_Name : String;
+         Definition : Concorde.Network.Expressions.Expression_Type);
+
+      ------------------
+      -- Update_Field --
+      ------------------
+
+      procedure Update_Field
+        (Field_Name : String;
+         Definition : Concorde.Network.Expressions.Expression_Type)
+      is
+         X : constant Real :=
+               Definition.Evaluate
+                 (Network_State, "current-actual",
+                  Root_Node_State_Type'Class (Node_State)
+                  .Current_Actual_Value);
+      begin
+         if not Node_State.Fields.Contains (Field_Name) then
+            Node_State.Fields.Insert (Field_Name, X);
+         else
+            Node_State.Fields (Field_Name) := X;
+         end if;
+      end Update_Field;
+
    begin
+
       if Node_State.Changed then
          Node_State.Current_Value :=
            Signed_Unit_Clamp (Node_State.New_Value);
          Node_State.New_Value := 0.0;
+
          Concorde.Logging.Log
            (Actor    => "network",
             Location => "-",
@@ -211,6 +276,9 @@ package body Concorde.Network.State is
               (Node_State).Show_Value);
          Node_State.Changed := False;
       end if;
+
+      Node_State.Node.Scan_Fields (Update_Field'Access);
+
    end Set_New_Value;
 
    ----------------

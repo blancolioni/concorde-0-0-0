@@ -107,17 +107,8 @@ package body Concorde.Policies.Configure is
                      Expression => Field_Value,
                      Wait       => 0.0);
                end if;
-            elsif Field_Name = "tax-income" then
-               Policy.Tax_Income := Field_Value;
-               Ada.Text_IO.Put_Line
-                 (Policy.Identifier & ": tax income = "
-                  & Field_Value.Show);
             else
-               Ada.Text_IO.Put_Line
-                 (Ada.Text_IO.Standard_Error,
-                  "warning: unknown field '" & Field_Name & "'"
-                  & " in policy configuration for "
-                  & Policy.Identifier);
+               Node.Add_Field (Field_Name, Field_Value);
             end if;
          end Configure_Field;
 

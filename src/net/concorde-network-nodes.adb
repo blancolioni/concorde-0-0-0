@@ -4,6 +4,21 @@ package body Concorde.Network.Nodes is
 
    Map : Node_Network;
 
+   ---------------
+   -- Add_Field --
+   ---------------
+
+   procedure Add_Field
+     (Node       : in out Root_Node_Type'Class;
+      Name       : String;
+      Definition : Concorde.Network.Expressions.Expression_Type)
+   is
+   begin
+      pragma Assert (not Node.Fields.Contains (Name));
+      Node.Fields.Insert (Name, Definition);
+      pragma Assert (Node.Fields.Contains (Name));
+   end Add_Field;
+
    --------------
    -- Add_Node --
    --------------
@@ -61,6 +76,32 @@ package body Concorde.Network.Nodes is
    begin
       return Values;
    end Evaluate_Constraint;
+
+   -----------
+   -- Field --
+   -----------
+
+   function Field
+     (Node : Root_Node_Type'Class;
+      Name : String)
+      return Concorde.Network.Expressions.Expression_Type
+   is
+   begin
+      return Node.Fields.Element (Name);
+   end Field;
+
+   ---------------
+   -- Has_Field --
+   ---------------
+
+   function Has_Field
+     (Node : Root_Node_Type'Class;
+      Name : String)
+      return Boolean
+   is
+   begin
+      return Node.Fields.Contains (Name);
+   end Has_Field;
 
    ----------------
    -- Initialise --
@@ -125,6 +166,22 @@ package body Concorde.Network.Nodes is
                   Effect.Effect_Delay, Effect.Expression);
       end loop;
    end Scan_Effects;
+
+   -----------------
+   -- Scan_Fields --
+   -----------------
+
+   procedure Scan_Fields
+     (Node    : Root_Node_Type'Class;
+      Process : not null access
+        procedure (Field_Name : String;
+                   Definition : Concorde.Network.Expressions.Expression_Type))
+   is
+   begin
+      for Position in Node.Fields.Iterate loop
+         Process (Field_Maps.Key (Position), Field_Maps.Element (Position));
+      end loop;
+   end Scan_Fields;
 
    ----------------------
    -- Scan_State_Nodes --

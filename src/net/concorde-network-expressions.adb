@@ -68,6 +68,10 @@ package body Concorde.Network.Expressions is
       function V (X : Real) return Array_Of_Values
       is (1 => To_Expression_Value (X));
 
+      function O (X : not null access Expression_Object_Interface'Class)
+                  return Array_Of_Values
+      is (1 => To_Expression_Value (X));
+
       function Eval
         (Node  : Expression_Node)
          return Array_Of_Values;
@@ -92,7 +96,7 @@ package body Concorde.Network.Expressions is
                if Node.Variable_Name.all = Argument_Name then
                   return V (Argument_Value);
                else
-                  return V (Env.Node (Node.Variable_Name.all).Current_Value);
+                  return O (Env.Node (Node.Variable_Name.all));
                end if;
             when Constraint_Node =>
                return Env.Evaluate_Constraint

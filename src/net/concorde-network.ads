@@ -1,6 +1,32 @@
 package Concorde.Network is
 
-   type Node_State_Interface is limited interface;
+   type Expression_Object_Interface is limited interface;
+
+   type Expression_Value is private;
+
+   function To_Expression_Value (X : Real) return Expression_Value;
+   function To_Expression_Value
+     (X : not null access constant Expression_Object_Interface'Class)
+      return Expression_Value;
+
+   type Array_Of_Values is array (Positive range <>) of Expression_Value;
+
+   type Expression_Object is access constant Expression_Object_Interface'Class;
+
+   function Get_Value
+     (Value : Expression_Object_Interface)
+      return Expression_Value
+      is abstract;
+
+   function Get_Field_Value
+     (Value : Expression_Object_Interface;
+      Name  : String)
+      return Expression_Value
+      is abstract;
+
+   type Node_State_Interface is limited interface
+     and Expression_Object_Interface;
+
    type Node_State_Access is access all Node_State_Interface'Class;
 
    function Identifier
@@ -74,30 +100,6 @@ package Concorde.Network is
      (Node_State    : in out Node_State_Interface;
       Network_State : Network_State_Interface'Class)
    is abstract;
-
-   type Expression_Object_Interface is limited interface;
-
-   type Expression_Value is private;
-
-   function To_Expression_Value (X : Real) return Expression_Value;
-   function To_Expression_Value
-     (X : not null access constant Expression_Object_Interface'Class)
-      return Expression_Value;
-
-   type Array_Of_Values is array (Positive range <>) of Expression_Value;
-
-   type Expression_Object is access constant Expression_Object_Interface'Class;
-
-   function Get_Value
-     (Value : Expression_Object_Interface)
-      return Expression_Value
-   is abstract;
-
-   function Get_Field_Value
-     (Value : Expression_Object_Interface;
-      Name  : String)
-      return Expression_Value
-      is abstract;
 
    function Evaluate_Constraint
      (From             : Network_State_Interface;

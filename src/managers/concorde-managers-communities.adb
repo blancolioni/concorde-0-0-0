@@ -1,16 +1,11 @@
-with Ada.Text_IO;
-
 with WL.Money;
 
-with Concorde.Logging;
 with Concorde.Objects.Queues;
-with Concorde.Real_Images;
 with Concorde.Signals.Standard;
 
 with Concorde.Commodities;
 with Concorde.Facilities;
 with Concorde.People.Pops;
-with Concorde.Policies;
 with Concorde.Trades;
 
 package body Concorde.Managers.Communities is
@@ -77,102 +72,21 @@ package body Concorde.Managers.Communities is
          & Concorde.Calendar.Image
            (Manager.Time, True));
 
-      Ada.Text_IO.Put_Line
-        (Ada.Text_IO.Standard_Error,
-         "activating: " & Manager.Community.Identifier);
-
       Manager.Community.Update.Run_Network_State;
 
-      Ada.Text_IO.Put_Line
-        (Ada.Text_IO.Standard_Error,
-         "calculated tax income: "
-         & Concorde.Real_Images.Approximate_Image
-           (Manager.Community.Node ("tax-income").Current_Actual_Value));
-      Ada.Text_IO.Put_Line
-        (Ada.Text_IO.Standard_Error,
-         "calculated gdp: "
-         & Concorde.Real_Images.Approximate_Image
-           (Manager.Community.Node ("gdp").Current_Actual_Value));
-
-      declare
-         Tax_Income   : Non_Negative_Real := 0.0;
-         Total_Income : Non_Negative_Real := 0.0;
-         GDP          : Non_Negative_Real := 0.0;
-
-         procedure Update_Tax_Income
-           (Policy : Concorde.Policies.Policy_Type);
-
-         procedure Update_Total_Income
-           (Pop : Concorde.People.Pops.Pop_Type);
-
-         -----------------------
-         -- Update_Tax_Income --
-         -----------------------
-
-         procedure Update_Tax_Income
-           (Policy : Concorde.Policies.Policy_Type)
-         is
-         begin
-            if Policy.Tax_Income.Show /= "()" then
-               declare
-                  Tax_Rate : constant Unit_Real :=
-                               Manager.Community.Node (Policy.Identifier)
-                               .Current_Value;
-                  This_Tax : constant Real :=
-                               Policy.Tax_Income.Evaluate
-                                 (Env            => Manager.Community.all,
-                                  Argument_Name  => "current-actual",
-                                  Argument_Value => Tax_Rate);
-               begin
-                  Tax_Income := Tax_Income + This_Tax / 365.0;
-               end;
-            end if;
-         end Update_Tax_Income;
-
-         -------------------------
-         -- Update_Total_Income --
-         -------------------------
-
-         procedure Update_Total_Income
-           (Pop : Concorde.People.Pops.Pop_Type)
-         is
-         begin
-            Total_Income := Total_Income + Pop.Current_Income_Total;
-         end Update_Total_Income;
-
-      begin
-         Concorde.Policies.Scan_Policies (Update_Tax_Income'Access);
-
-         Concorde.Logging.Log
-           (Actor    => Manager.Community.Identifier,
-            Location => "tax income",
-            Category => "total",
-            Message  =>
-              WL.Money.Show
-                (WL.Money.To_Money
-                     (Float (Tax_Income))));
-
-         Manager.Community.Scan_Pops (Update_Total_Income'Access);
-
-         GDP := GDP + Total_Income;
-
-         Concorde.Logging.Log
-           (Actor    => Manager.Community.Identifier,
-            Location => "income",
-            Category => "total",
-            Message  =>
-              WL.Money.Show
-                (WL.Money.To_Money
-                     (Float (Total_Income / 365.0))));
-         Concorde.Logging.Log
-           (Actor    => Manager.Community.Identifier,
-            Location => "economy",
-            Category => "gdp",
-            Message  =>
-              WL.Money.Show
-                (WL.Money.To_Money
-                     (Float (GDP))));
-      end;
+      Manager.Community.Log
+        ("tax income: "
+         & WL.Money.Show
+           (WL.Money.To_Money
+                (Float
+                     (Manager.Community.Node
+                        ("tax-income").Current_Actual_Value)))
+         & "; gdp: "
+         & WL.Money.Show
+           (WL.Money.To_Money
+                (Float
+                     (Manager.Community.Node
+                        ("gdp").Current_Actual_Value))));
 
       Concorde.Objects.Queues.Next_Event
         (Manager.Community, Manager.Time, Delay_Days => 1);

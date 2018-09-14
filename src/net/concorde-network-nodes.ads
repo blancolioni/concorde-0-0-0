@@ -14,6 +14,28 @@ package Concorde.Network.Nodes is
      (Node : in out Root_Node_Type'Class;
       Id   : String);
 
+   procedure Add_Field
+     (Node       : in out Root_Node_Type'Class;
+      Name       : String;
+      Definition : Concorde.Network.Expressions.Expression_Type);
+
+   function Has_Field
+     (Node : Root_Node_Type'Class;
+      Name : String)
+      return Boolean;
+
+   function Field
+     (Node : Root_Node_Type'Class;
+      Name : String)
+      return Concorde.Network.Expressions.Expression_Type
+     with Pre => Node.Has_Field (Name);
+
+   procedure Scan_Fields
+     (Node : Root_Node_Type'Class;
+      Process : not null access
+        procedure (Field_Name : String;
+                   Definition : Concorde.Network.Expressions.Expression_Type));
+
    subtype Root_Node_Class is Root_Node_Type'Class;
    type Node_Type is access constant Root_Node_Type'Class;
 
@@ -51,10 +73,16 @@ private
    package Node_Effect_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Effect_Record);
 
+   package Field_Maps is
+     new WL.String_Maps
+       (Element_Type => Concorde.Network.Expressions.Expression_Type,
+        "="          => Concorde.Network.Expressions."=");
+
    type Root_Node_Type is abstract tagged
       record
          Id      : access String;
          Effects : Node_Effect_Lists.List;
+         Fields  : Field_Maps.Map;
       end record;
 
    function Identifier (Node : Root_Node_Type) return String

@@ -1,7 +1,3 @@
-with Ada.Text_IO;
-
-with Concorde.Real_Images;
-
 with Concorde.Network.State;
 
 package body Concorde.Network.Metrics is
@@ -182,11 +178,6 @@ package body Concorde.Network.Metrics is
                begin
                   case Item.Operator is
                      when Add =>
-                        Ada.Text_IO.Put_Line
-                          (Ada.Text_IO.Standard_Error,
-                           "adding: " & Item.Expression.Show
-                           & " -> "
-                             & Concorde.Real_Images.Approximate_Image (X));
                         New_Base := New_Base + X;
                      when Multiply =>
                         New_Base := New_Base * X;
@@ -194,11 +185,6 @@ package body Concorde.Network.Metrics is
                end;
             end loop;
 
-            Ada.Text_IO.Put_Line
-              (Ada.Text_IO.Standard_Error,
-               Node_State.Identifier
-               & ": new base: "
-               & Concorde.Real_Images.Approximate_Image (New_Base));
             Node_State.Base_Value := New_Base;
          end;
       end if;
