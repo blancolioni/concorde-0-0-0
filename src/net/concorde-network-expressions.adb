@@ -28,6 +28,23 @@ package body Concorde.Network.Expressions is
       Constraint_Value : String)
       return Array_Of_Values;
 
+   type Null_Expression_Object is
+     new Expression_Object_Interface with null record;
+
+   overriding function Get_Value
+     (Value : Null_Expression_Object)
+      return Expression_Value;
+
+   overriding function Has_Field
+     (Value : Null_Expression_Object;
+      Name  : String)
+      return Boolean;
+
+   overriding function Get_Field_Value
+     (Value : Null_Expression_Object;
+      Name  : String)
+      return Expression_Value;
+
    ---------
    -- Add --
    ---------
@@ -91,6 +108,37 @@ package body Concorde.Network.Expressions is
       Local_Env      : Local_Environment'Class)
       return Real
    is
+      Object : Null_Expression_Object;
+   begin
+      return Expression.Evaluate (State, Local_Env, Object);
+   end Evaluate;
+
+   --------------
+   -- Evaluate --
+   --------------
+
+   function Evaluate
+     (Expression : Expression_Type'Class;
+      State      : Network_State_Interface'Class;
+      Current    : Expression_Object_Interface'Class)
+      return Real
+   is
+      Local : Local_Environment;
+   begin
+      return Expression.Evaluate (State, Local, Current);
+   end Evaluate;
+
+   --------------
+   -- Evaluate --
+   --------------
+
+   function Evaluate
+     (Expression : Expression_Type'Class;
+      State      : Network_State_Interface'Class;
+      Local_Env  : Local_Environment'Class;
+      Current    : Expression_Object_Interface'Class)
+      return Real
+   is
       No_Values : Array_Of_Values (1 .. 0);
 
       function V (X : Real) return Array_Of_Values
@@ -124,7 +172,9 @@ package body Concorde.Network.Expressions is
                declare
                   Var : constant String := Node.Variable_Name.all;
                begin
-                  if Local_Env.Map.Contains (Var) then
+                  if Current.Has_Field (Var) then
+                     return (1 => Current.Get_Field_Value (Var));
+                  elsif Local_Env.Map.Contains (Var) then
                      return V (Local_Env.Map.Element (Var));
                   else
                      return O (State.Node (Var));
@@ -238,6 +288,47 @@ package body Concorde.Network.Expressions is
    begin
       return X : Array_Of_Values (1 .. 0);
    end Evaluate_Constraint;
+
+   ---------------------
+   -- Get_Field_Value --
+   ---------------------
+
+   overriding function Get_Field_Value
+     (Value : Null_Expression_Object;
+      Name  : String)
+      return Expression_Value
+   is
+      pragma Unreferenced (Value, Name);
+   begin
+      return To_Expression_Value (0.0);
+   end Get_Field_Value;
+
+   ---------------
+   -- Get_Value --
+   ---------------
+
+   overriding function Get_Value
+     (Value : Null_Expression_Object)
+      return Expression_Value
+   is
+      pragma Unreferenced (Value);
+   begin
+      return To_Expression_Value (0.0);
+   end Get_Value;
+
+   ---------------
+   -- Has_Field --
+   ---------------
+
+   overriding function Has_Field
+     (Value : Null_Expression_Object;
+      Name  : String)
+      return Boolean
+   is
+      pragma Unreferenced (Value, Name);
+   begin
+      return False;
+   end Has_Field;
 
    ----------
    -- Node --

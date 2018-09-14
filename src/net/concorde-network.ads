@@ -22,6 +22,12 @@ package Concorde.Network is
       return Expression_Value
       is abstract;
 
+   function Has_Field
+     (Value : Expression_Object_Interface;
+      Name  : String)
+      return Boolean
+      is abstract;
+
    function Get_Field_Value
      (Value : Expression_Object_Interface;
       Name  : String)

@@ -23,6 +23,19 @@ package Concorde.Network.Expressions is
       return Real;
 
    function Evaluate
+     (Expression : Expression_Type'Class;
+      State      : Network_State_Interface'Class;
+      Current    : Expression_Object_Interface'Class)
+      return Real;
+
+   function Evaluate
+     (Expression : Expression_Type'Class;
+      State      : Network_State_Interface'Class;
+      Local_Env  : Local_Environment'Class;
+      Current    : Expression_Object_Interface'Class)
+      return Real;
+
+   function Evaluate
      (Expression     : Expression_Type'Class;
       Env            : Network_State_Interface'Class;
       Argument_Name  : String;

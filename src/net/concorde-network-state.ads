@@ -95,6 +95,11 @@ private
      (Node_State : Root_Node_State_Type)
       return Expression_Value;
 
+   overriding function Has_Field
+     (Node_State : Root_Node_State_Type;
+      Name       : String)
+      return Boolean;
+
    overriding function Get_Field_Value
      (Node_State : Root_Node_State_Type;
       Name  : String)

@@ -82,7 +82,7 @@ package body Concorde.Managers.Communities is
            (WL.Money.To_Money
                 (Float
                      (Manager.Community.Node
-                        ("tax-income").Current_Actual_Value)))
+                        ("tax-income").Current_Actual_Value) / 365.0))
          & "; military budget: "
          & WL.Money.Show
            (WL.Money.To_Money
@@ -90,12 +90,22 @@ package body Concorde.Managers.Communities is
                      (Concorde.Network.To_Real_Value
                         (Manager.Community.Node
                            ("military-budget").Get_Field_Value ("budget")))))
+         & " (daily "
+         & WL.Money.Show
+           (WL.Money.To_Money
+                (Float
+                     (Concorde.Network.To_Real_Value
+                        (Manager.Community.Node
+                           ("military-budget")
+                         .Get_Field_Value ("daily-budget")))))
+         & ")"
          & "; gdp: "
          & WL.Money.Show
            (WL.Money.To_Money
                 (Float
                      (Manager.Community.Node
-                        ("gdp").Current_Actual_Value))));
+                        ("gdp").Current_Actual_Value)
+                 / 365.0)));
 
       Concorde.Objects.Queues.Next_Event
         (Manager.Community, Manager.Time, Delay_Days => 1);

@@ -59,11 +59,13 @@ package body Concorde.People.Pops.Create is
    begin
       return Pop : constant Pop_Type := Db.Create (Create'Access) do
          Pop.Save_Agent;
-         Concorde.Managers.Pops.Create_Manager (Pop).Activate;
-         Concorde.Objects.Queues.Next_Event
-           (Pop,
-            Concorde.Calendar.Clock
-            + Duration (Concorde.Random.Unit_Random * 86_400.0));
+         if False then
+            Concorde.Managers.Pops.Create_Manager (Pop).Activate;
+            Concorde.Objects.Queues.Next_Event
+              (Pop,
+               Concorde.Calendar.Clock
+               + Duration (Concorde.Random.Unit_Random * 86_400.0));
+         end if;
       end return;
    end New_Pop;
 

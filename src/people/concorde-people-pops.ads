@@ -99,6 +99,11 @@ private
       return Concorde.Network.Expression_Value
    is (Concorde.Network.To_Expression_Value (Real (Pop.Size)));
 
+   overriding function Has_Field
+     (Pop   : Root_Pop_Type;
+      Name  : String)
+      return Boolean;
+
    overriding function Get_Field_Value
      (Pop   : Root_Pop_Type;
       Name  : String)

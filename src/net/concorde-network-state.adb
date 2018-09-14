@@ -134,6 +134,22 @@ package body Concorde.Network.State is
       return To_Expression_Value (Node_State.Current_Value);
    end Get_Value;
 
+   ---------------
+   -- Has_Field --
+   ---------------
+
+   overriding function Has_Field
+     (Node_State : Root_Node_State_Type;
+      Name       : String)
+      return Boolean
+   is
+   begin
+      return Name = "current-value"
+        or else Name = "current-actual"
+        or else Name = "current-base"
+        or else Node_State.Node.Has_Field (Name);
+   end Has_Field;
+
    ----------------------
    -- Initialize_State --
    ----------------------
@@ -251,7 +267,7 @@ package body Concorde.Network.State is
       is
          X : constant Real :=
                Definition.Evaluate
-                 (Network_State, Update_Env);
+                 (Network_State, Node_State);
       begin
          if not Node_State.Fields.Contains (Field_Name) then
             Node_State.Fields.Insert (Field_Name, X);

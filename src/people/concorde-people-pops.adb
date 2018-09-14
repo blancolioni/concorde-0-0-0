@@ -35,6 +35,20 @@ package body Concorde.People.Pops is
       end if;
    end Get_Field_Value;
 
+   ---------------
+   -- Has_Field --
+   ---------------
+
+   overriding function Has_Field
+     (Pop   : Root_Pop_Type;
+      Name  : String)
+      return Boolean
+   is
+      pragma Unreferenced (Pop);
+   begin
+      return Name = "income";
+   end Has_Field;
+
    ------------------
    -- Is_Member_Of --
    ------------------
