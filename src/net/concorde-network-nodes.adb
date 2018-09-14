@@ -90,6 +90,44 @@ package body Concorde.Network.Nodes is
       return Node.Fields.Element (Name);
    end Field;
 
+   ---------------------
+   -- Get_Field_Value --
+   ---------------------
+
+   overriding function Get_Field_Value
+     (State : Node_State_Map;
+      Name  : String)
+      return Expression_Value
+   is
+   begin
+      return To_Expression_Value (State.Node (Name));
+   end Get_Field_Value;
+
+   ---------------
+   -- Get_Value --
+   ---------------
+
+   overriding function Get_Value
+     (State : Node_State_Map)
+      return Expression_Value
+   is
+   begin
+      return To_Expression_Value (Non_Negative_Real (State.Map.Length));
+   end Get_Value;
+
+   ---------------
+   -- Has_Field --
+   ---------------
+
+   overriding function Has_Field
+     (State : Node_State_Map;
+      Name  : String)
+      return Boolean
+   is
+   begin
+      return State.Map.Contains (Name);
+   end Has_Field;
+
    ---------------
    -- Has_Field --
    ---------------

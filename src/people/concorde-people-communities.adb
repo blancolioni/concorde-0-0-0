@@ -105,6 +105,52 @@ package body Concorde.People.Communities is
       end if;
    end Evaluate_Constraint;
 
+   ---------------------
+   -- Get_Field_Value --
+   ---------------------
+
+   overriding function Get_Field_Value
+     (Community : Root_Community_Type;
+      Name      : String)
+      return Concorde.Network.Expression_Value
+   is
+   begin
+      if Name = "world" then
+         return Concorde.Network.To_Expression_Value (Community.World);
+      else
+         return Concorde.Network.To_Expression_Value
+           (Community.Node (Name));
+      end if;
+   end Get_Field_Value;
+
+   ---------------
+   -- Get_Value --
+   ---------------
+
+   overriding function Get_Value
+     (Community : Root_Community_Type)
+      return Concorde.Network.Expression_Value
+   is
+      pragma Unreferenced (Community);
+   begin
+      return Concorde.Network.To_Expression_Value (0.0);
+   end Get_Value;
+
+   ---------------
+   -- Has_Field --
+   ---------------
+
+   overriding function Has_Field
+     (Community : Root_Community_Type;
+      Name      : String)
+      return Boolean
+   is
+      use type Concorde.Network.Node_State_Access;
+   begin
+      return Name = "world"
+        or else Community.Node (Name) /= null;
+   end Has_Field;
+
    -----------------
    -- Location_At --
    -----------------

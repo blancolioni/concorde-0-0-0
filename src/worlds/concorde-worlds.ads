@@ -11,6 +11,7 @@ with Concorde.Maps;
 with Concorde.Surfaces;
 
 with Concorde.Objects;
+with Concorde.Network;
 
 with Concorde.Atmosphere;
 with Concorde.Features;
@@ -54,6 +55,7 @@ package Concorde.Worlds is
      new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Systems.Star_System_Object_Interface
      and Concorde.Maps.Tile_Layout_Interface
+     and Concorde.Network.Expression_Object_Interface
    with private;
 
    function Day_Length
@@ -378,7 +380,8 @@ private
    type Root_World_Type is
      new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Systems.Star_System_Object_Interface
-     and Concorde.Maps.Tile_Layout_Interface with
+     and Concorde.Maps.Tile_Layout_Interface
+     and Concorde.Network.Expression_Object_Interface with
       record
          System                : Concorde.Systems.Star_System_Type;
          Owner                 : access constant
@@ -466,6 +469,20 @@ private
    overriding procedure Set_Location
      (World    : in out Root_World_Type;
       Location : Concorde.Locations.Object_Location);
+
+   overriding function Get_Field_Value
+     (World : Root_World_Type;
+      Name  : String)
+      return Concorde.Network.Expression_Value;
+
+   overriding function Get_Value
+     (World : Root_World_Type)
+      return Concorde.Network.Expression_Value;
+
+   overriding function Has_Field
+     (World : Root_World_Type;
+      Name  : String)
+      return Boolean;
 
    overriding function Age
      (World : Root_World_Type)

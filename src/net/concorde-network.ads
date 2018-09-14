@@ -78,7 +78,8 @@ package Concorde.Network is
       Value : Signed_Unit_Real)
    is abstract;
 
-   type Network_State_Interface is limited interface;
+   type Network_State_Interface is
+   limited interface and Expression_Object_Interface;
    type Network_State_Access is access Network_State_Interface'Class;
 
    function Node

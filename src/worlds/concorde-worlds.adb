@@ -1,9 +1,19 @@
+--  with WL.String_Maps;
+
 with Concorde.Factions;
 with Concorde.Facilities;
 
 with Concorde.Worlds.Create;
+with Concorde.Worlds.Fields;
 
 package body Concorde.Worlds is
+
+--     package World_Field_Maps is
+--       new WL.String_Maps (World_Field_Property);
+--
+--     Field_Map : World_Field_Maps.Map;
+
+--   procedure Check_Field_Map renames Concorde.Worlds.Fields.Check_Field_Map;
 
    --------------
    -- Add_Army --
@@ -163,6 +173,19 @@ package body Concorde.Worlds is
 --        return World.Port.Get_Quantity (Commodity);
 --     end Export_Market_Size;
 
+   ---------------------
+   -- Get_Field_Value --
+   ---------------------
+
+   overriding function Get_Field_Value
+     (World : Root_World_Type;
+      Name  : String)
+      return Concorde.Network.Expression_Value
+   is
+   begin
+      return Concorde.Worlds.Fields.Get_Field (World, Name);
+   end Get_Field_Value;
+
    -------------------------------
    -- Get_Sector_Infrastructure --
    -------------------------------
@@ -232,6 +255,32 @@ package body Concorde.Worlds is
          Ships.Append (Ship);
       end loop;
    end Get_Ships;
+
+   ---------------
+   -- Get_Value --
+   ---------------
+
+   overriding function Get_Value
+     (World : Root_World_Type)
+      return Concorde.Network.Expression_Value
+   is
+   begin
+      return Concorde.Network.To_Expression_Value (World.Radius);
+   end Get_Value;
+
+   ---------------
+   -- Has_Field --
+   ---------------
+
+   overriding function Has_Field
+     (World : Root_World_Type;
+      Name  : String)
+      return Boolean
+   is
+      pragma Unreferenced (World);
+   begin
+      return Concorde.Worlds.Fields.Have_Field (Name);
+   end Has_Field;
 
    --------------------
    -- Has_Government --

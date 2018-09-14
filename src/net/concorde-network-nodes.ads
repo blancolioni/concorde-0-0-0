@@ -126,4 +126,18 @@ private
       Constraint_Value : String)
       return Array_Of_Values;
 
+   overriding function Get_Field_Value
+     (State : Node_State_Map;
+      Name  : String)
+      return Expression_Value;
+
+   overriding function Get_Value
+     (State : Node_State_Map)
+      return Expression_Value;
+
+   overriding function Has_Field
+     (State : Node_State_Map;
+      Name  : String)
+      return Boolean;
+
 end Concorde.Network.Nodes;

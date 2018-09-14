@@ -1,0 +1,2 @@
+type: rating
+value: world.surface-area * (1.0 - world.hydrosphere) * world-occupation * world.habitability * (1.0 + current-value)

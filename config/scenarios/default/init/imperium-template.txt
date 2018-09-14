@@ -21,6 +21,7 @@ init = {
    middle-class-income = 5
    wealthy-income = 20
    megarich-income = 100
+   agriculture-industry = 0.2
 }
 
 pop-size = 10K

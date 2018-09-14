@@ -137,6 +137,20 @@ private
       Constraint_Value : String)
       return Concorde.Network.Array_Of_Values;
 
+   overriding function Get_Field_Value
+     (Community : Root_Community_Type;
+      Name  : String)
+      return Concorde.Network.Expression_Value;
+
+   overriding function Get_Value
+     (Community : Root_Community_Type)
+      return Concorde.Network.Expression_Value;
+
+   overriding function Has_Field
+     (Community : Root_Community_Type;
+      Name  : String)
+      return Boolean;
+
    function World
      (Community : Root_Community_Type'Class)
       return Concorde.Worlds.World_Type

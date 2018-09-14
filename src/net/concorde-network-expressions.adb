@@ -28,20 +28,17 @@ package body Concorde.Network.Expressions is
       Constraint_Value : String)
       return Array_Of_Values;
 
-   type Null_Expression_Object is
-     new Expression_Object_Interface with null record;
-
    overriding function Get_Value
-     (Value : Null_Expression_Object)
+     (Value : Null_Network_State)
       return Expression_Value;
 
    overriding function Has_Field
-     (Value : Null_Expression_Object;
+     (Value : Null_Network_State;
       Name  : String)
       return Boolean;
 
    overriding function Get_Field_Value
-     (Value : Null_Expression_Object;
+     (Value : Null_Network_State;
       Name  : String)
       return Expression_Value;
 
@@ -108,7 +105,7 @@ package body Concorde.Network.Expressions is
       Local_Env      : Local_Environment'Class)
       return Real
    is
-      Object : Null_Expression_Object;
+      Object : Null_Network_State;
    begin
       return Expression.Evaluate (State, Local_Env, Object);
    end Evaluate;
@@ -294,7 +291,7 @@ package body Concorde.Network.Expressions is
    ---------------------
 
    overriding function Get_Field_Value
-     (Value : Null_Expression_Object;
+     (Value : Null_Network_State;
       Name  : String)
       return Expression_Value
    is
@@ -308,7 +305,7 @@ package body Concorde.Network.Expressions is
    ---------------
 
    overriding function Get_Value
-     (Value : Null_Expression_Object)
+     (Value : Null_Network_State)
       return Expression_Value
    is
       pragma Unreferenced (Value);
@@ -321,7 +318,7 @@ package body Concorde.Network.Expressions is
    ---------------
 
    overriding function Has_Field
-     (Value : Null_Expression_Object;
+     (Value : Null_Network_State;
       Name  : String)
       return Boolean
    is
