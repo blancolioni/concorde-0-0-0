@@ -1,6 +1,5 @@
 with Ada.Strings.Fixed;
 
-with Concorde.Logging;
 with Concorde.Real_Images;
 
 with Concorde.Network.Expressions;
@@ -91,7 +90,7 @@ package body Concorde.Network.State is
      (Node_State : Root_Node_State_Type) return Signed_Unit_Real
    is
    begin
-      return Node_State.Current_Value;
+      return Node_State.Current_Bias;
    end Current_Value;
 
    ---------------------
@@ -103,13 +102,15 @@ package body Concorde.Network.State is
       Name       : String)
       return Expression_Value
    is
+      Node_Class : Root_Node_State_Type'Class renames
+                     Root_Node_State_Type'Class (Node_State);
       Result : constant Real :=
                  (if Name = "current-value"
-                  then Node_State.Current_Value
-                  elsif Name = "current-actual-value"
-                  then Node_State.Current_Actual_Value
-                  elsif Name = "current-base-value"
-                  then Node_State.Current_Base_Value
+                  then Node_Class.Current_Value
+                  elsif Name = "current-actual"
+                  then Node_Class.Current_Actual_Value
+                  elsif Name = "current-base"
+                  then Node_Class.Current_Base_Value
                   elsif Node_State.Node.Has_Field (Name)
                   then (if Node_State.Fields.Contains (Name)
                     then Node_State.Fields.Element (Name)
@@ -221,7 +222,7 @@ package body Concorde.Network.State is
       Value         : Real)
    is
    begin
-      Node_State.Current_Value := Value;
+      Node_State.Current_Bias := Value;
       Node_State.Changed := False;
    end Set_Initial_Value;
 
@@ -233,6 +234,9 @@ package body Concorde.Network.State is
      (Node_State    : in out Root_Node_State_Type;
       Network_State : Network_State_Interface'Class)
    is
+
+      Update_Env : Concorde.Network.Expressions.Local_Environment;
+
       procedure Update_Field
         (Field_Name : String;
          Definition : Concorde.Network.Expressions.Expression_Type);
@@ -247,9 +251,7 @@ package body Concorde.Network.State is
       is
          X : constant Real :=
                Definition.Evaluate
-                 (Network_State, "current-actual",
-                  Root_Node_State_Type'Class (Node_State)
-                  .Current_Actual_Value);
+                 (Network_State, Update_Env);
       begin
          if not Node_State.Fields.Contains (Field_Name) then
             Node_State.Fields.Insert (Field_Name, X);
@@ -261,23 +263,25 @@ package body Concorde.Network.State is
    begin
 
       if Node_State.Changed then
-         Node_State.Current_Value :=
+         Node_State.Current_Bias :=
            Signed_Unit_Clamp (Node_State.New_Value);
          Node_State.New_Value := 0.0;
-
-         Concorde.Logging.Log
-           (Actor    => "network",
-            Location => "-",
-            Category => "update",
-            Message  =>
-              Node_State.Node.Identifier
-            & " <- "
-            & Root_Node_State_Type'Class
-              (Node_State).Show_Value);
          Node_State.Changed := False;
       end if;
 
-      Node_State.Node.Scan_Fields (Update_Field'Access);
+      declare
+         State_Class : Root_Node_State_Type'Class renames
+                         Root_Node_State_Type'Class (Node_State);
+      begin
+         Update_Env.Add ("current-actual",
+                         State_Class.Current_Actual_Value);
+         Update_Env.Add ("current-value",
+                         State_Class.Current_Value);
+         Update_Env.Add ("current-base",
+                         State_Class.Current_Base_Value);
+
+         Node_State.Node.Scan_Fields (Update_Field'Access);
+      end;
 
    end Set_New_Value;
 

@@ -8,6 +8,8 @@ with Concorde.Facilities;
 with Concorde.People.Pops;
 with Concorde.Trades;
 
+with Concorde.Network;
+
 package body Concorde.Managers.Communities is
 
    ------------
@@ -81,6 +83,13 @@ package body Concorde.Managers.Communities is
                 (Float
                      (Manager.Community.Node
                         ("tax-income").Current_Actual_Value)))
+         & "; military budget: "
+         & WL.Money.Show
+           (WL.Money.To_Money
+                (Float
+                     (Concorde.Network.To_Real_Value
+                        (Manager.Community.Node
+                           ("military-budget").Get_Field_Value ("budget")))))
          & "; gdp: "
          & WL.Money.Show
            (WL.Money.To_Money

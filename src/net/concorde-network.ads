@@ -9,6 +9,10 @@ package Concorde.Network is
      (X : not null access constant Expression_Object_Interface'Class)
       return Expression_Value;
 
+   function To_Real_Value
+     (Value : Expression_Value)
+      return Real;
+
    type Array_Of_Values is array (Positive range <>) of Expression_Value;
 
    type Expression_Object is access constant Expression_Object_Interface'Class;

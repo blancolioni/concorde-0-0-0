@@ -1,12 +1,26 @@
 private with Ada.Containers.Doubly_Linked_Lists;
+private with WL.String_Maps;
 
 package Concorde.Network.Expressions is
+
+   type Local_Environment is tagged private;
+
+   procedure Add
+     (Env  : in out Local_Environment'Class;
+      Name : String;
+      Value : Real);
 
    type Expression_Type is tagged private;
 
    function Show
      (Expression : Expression_Type'Class)
       return String;
+
+   function Evaluate
+     (Expression     : Expression_Type'Class;
+      State          : Network_State_Interface'Class;
+      Local_Env      : Local_Environment'Class)
+      return Real;
 
    function Evaluate
      (Expression     : Expression_Type'Class;
@@ -67,6 +81,14 @@ private
    type Expression_Type is tagged
       record
          Root : Expression_Node;
+      end record;
+
+   package Local_Env_Maps is
+     new WL.String_Maps (Real);
+
+   type Local_Environment is tagged
+      record
+         Map : Local_Env_Maps.Map;
       end record;
 
 end Concorde.Network.Expressions;

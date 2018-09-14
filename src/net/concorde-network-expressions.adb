@@ -28,6 +28,19 @@ package body Concorde.Network.Expressions is
       Constraint_Value : String)
       return Array_Of_Values;
 
+   ---------
+   -- Add --
+   ---------
+
+   procedure Add
+     (Env   : in out Local_Environment'Class;
+      Name  : String;
+      Value : Real)
+   is
+   begin
+      Env.Map.Insert (Name, Value);
+   end Add;
+
    --------------
    -- Evaluate --
    --------------
@@ -62,7 +75,22 @@ package body Concorde.Network.Expressions is
       Argument_Value : Real)
       return Real
    is
+      Local : Local_Environment;
+   begin
+      Local.Add (Argument_Name, Argument_Value);
+      return Expression.Evaluate (Env, Local);
+   end Evaluate;
 
+   --------------
+   -- Evaluate --
+   --------------
+
+   function Evaluate
+     (Expression     : Expression_Type'Class;
+      State          : Network_State_Interface'Class;
+      Local_Env      : Local_Environment'Class)
+      return Real
+   is
       No_Values : Array_Of_Values (1 .. 0);
 
       function V (X : Real) return Array_Of_Values
@@ -93,13 +121,17 @@ package body Concorde.Network.Expressions is
             when Constant_Node =>
                return V (Node.Constant_Value);
             when Variable_Node =>
-               if Node.Variable_Name.all = Argument_Name then
-                  return V (Argument_Value);
-               else
-                  return O (Env.Node (Node.Variable_Name.all));
-               end if;
+               declare
+                  Var : constant String := Node.Variable_Name.all;
+               begin
+                  if Local_Env.Map.Contains (Var) then
+                     return V (Local_Env.Map.Element (Var));
+                  else
+                     return O (State.Node (Var));
+                  end if;
+               end;
             when Constraint_Node =>
-               return Env.Evaluate_Constraint
+               return State.Evaluate_Constraint
                  (Class_Name       => Node.Constraint_Class.all,
                   Constraint_Name  => Node.Constraint_Name.all,
                   Constraint_Value =>

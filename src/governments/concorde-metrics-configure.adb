@@ -94,12 +94,7 @@ package body Concorde.Metrics.Configure is
                      end if;
                   end if;
                else
-
-                  Ada.Text_IO.Put_Line
-                    (Ada.Text_IO.Standard_Error,
-                     "warning: unknown field '" & Field_Name & "'"
-                     & " in metric configuration for "
-                     & Metric.Identifier);
+                  Node.Add_Field (Field_Name, Field_Value);
                end if;
             end if;
          end Configure_Field;

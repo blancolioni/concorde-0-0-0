@@ -186,6 +186,7 @@ package body Concorde.Network.Metrics is
             end loop;
 
             Node_State.Base_Value := New_Base;
+
          end;
       end if;
    end Set_New_Value;

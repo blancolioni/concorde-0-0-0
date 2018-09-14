@@ -65,4 +65,16 @@ package body Concorde.Network is
          Object_Value => Expression_Object (X));
    end To_Expression_Value;
 
+   -------------------
+   -- To_Real_Value --
+   -------------------
+
+   function To_Real_Value
+     (Value : Expression_Value)
+      return Real
+   is
+   begin
+      return Value.Real_Value;
+   end To_Real_Value;
+
 end Concorde.Network;

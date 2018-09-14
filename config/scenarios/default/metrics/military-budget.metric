@@ -1,2 +1,2 @@
 type: money
-base-value: gdp
+budget: gdp.current-actual * current-value

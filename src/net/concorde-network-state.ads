@@ -82,13 +82,13 @@ private
      new Node_State_Interface
      and Expression_Object_Interface with
       record
-         Node          : Concorde.Network.Nodes.Node_Type;
-         History       : Historical_Value_List.List;
-         Current_Value : Signed_Unit_Real := 0.0;
-         Fields        : Field_Maps.Map;
-         New_Value     : Real      := 0.0;
-         Active        : Boolean   := True;
-         Changed       : Boolean   := False;
+         Node         : Concorde.Network.Nodes.Node_Type;
+         History      : Historical_Value_List.List;
+         Current_Bias : Signed_Unit_Real := 0.0;
+         Fields       : Field_Maps.Map;
+         New_Value    : Real      := 0.0;
+         Active       : Boolean   := True;
+         Changed      : Boolean   := False;
       end record;
 
    overriding function Get_Value
