@@ -1,3 +1,7 @@
+with Ada.Text_IO;
+
+with Concorde.Real_Images;
+
 with Concorde.Network.State;
 
 package body Concorde.Network.Metrics is
@@ -34,11 +38,31 @@ package body Concorde.Network.Metrics is
      (Node_State : in out Root_Metric_State_Type;
       Value      : Real);
 
+   overriding procedure Set_New_Value
+     (Node_State    : in out Root_Metric_State_Type;
+      Network_State : Network_State_Interface'Class);
+
    type Root_Money_Metric_State_Type is
      new Root_Metric_State_Type with null record;
 
    type Root_Rating_Metric_State_Type is
      new Root_Metric_State_Type with null record;
+
+   ---------------------
+   -- Add_Calculation --
+   ---------------------
+
+   procedure Add_Calculation
+     (To         : in out Root_Metric_Type'Class;
+      Operator   : Metric_Operator;
+      Expression : Concorde.Network.Expressions.Expression_Type)
+   is
+   begin
+      To.Calculation.Append
+        (Calculation_Record'
+           (Operator   => Operator,
+            Expression => Expression));
+   end Add_Calculation;
 
    ------------------
    -- Create_State --
@@ -98,7 +122,7 @@ package body Concorde.Network.Metrics is
 
    function New_Money_Metric
      (Id : String)
-      return Concorde.Network.Nodes.Node_Type
+      return Metric_Type
    is
       Metric : Money_Metric_Type;
    begin
@@ -112,7 +136,7 @@ package body Concorde.Network.Metrics is
 
    function New_Rating_Metric
      (Id : String)
-      return Concorde.Network.Nodes.Node_Type
+      return Metric_Type
    is
       Metric : Rating_Metric_Type;
    begin
@@ -133,5 +157,51 @@ package body Concorde.Network.Metrics is
         .Set_Initial_Value (0.0);
       Node_State.Base_Value := Value;
    end Set_Initial_Value;
+
+   -------------------
+   -- Set_New_Value --
+   -------------------
+
+   overriding procedure Set_New_Value
+     (Node_State    : in out Root_Metric_State_Type;
+      Network_State : Network_State_Interface'Class)
+   is
+      Calc : List_Of_Calculations.List renames
+               Root_Metric_Type (Node_State.Node.all).Calculation;
+   begin
+      Concorde.Network.State.Root_Node_State_Type (Node_State)
+        .Set_New_Value (Network_State);
+      if not Calc.Is_Empty then
+         declare
+            New_Base : Real := 0.0;
+         begin
+            for Item of Calc loop
+               declare
+                  X : constant Real :=
+                        Item.Expression.Evaluate (Network_State);
+               begin
+                  case Item.Operator is
+                     when Add =>
+                        Ada.Text_IO.Put_Line
+                          (Ada.Text_IO.Standard_Error,
+                           "adding: " & Item.Expression.Show
+                           & " -> "
+                             & Concorde.Real_Images.Approximate_Image (X));
+                        New_Base := New_Base + X;
+                     when Multiply =>
+                        New_Base := New_Base * X;
+                  end case;
+               end;
+            end loop;
+
+            Ada.Text_IO.Put_Line
+              (Ada.Text_IO.Standard_Error,
+               Node_State.Identifier
+               & ": new base: "
+               & Concorde.Real_Images.Approximate_Image (New_Base));
+            Node_State.Base_Value := New_Base;
+         end;
+      end if;
+   end Set_New_Value;
 
 end Concorde.Network.Metrics;

@@ -125,8 +125,10 @@ private
      (Community : in out Root_Community_Type;
       Node      : Concorde.Network.Node_State_Access);
 
-   overriding procedure Run_Network_State
-     (Community : in out Root_Community_Type);
+   overriding procedure Scan_State_Nodes
+     (Community : Root_Community_Type;
+      Process   : not null access
+        procedure (Node_State : Concorde.Network.Node_State_Access));
 
    overriding function Evaluate_Constraint
      (From             : Root_Community_Type;

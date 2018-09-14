@@ -37,6 +37,11 @@ package Concorde.Network is
       Value : Real)
    is abstract;
 
+   procedure Add_Effect
+     (Node : in out Node_State_Interface;
+      Value : Signed_Unit_Real)
+   is abstract;
+
    type Network_State_Interface is limited interface;
    type Network_State_Access is access Network_State_Interface'Class;
 
@@ -51,18 +56,24 @@ package Concorde.Network is
       Node  : Node_State_Access)
    is abstract;
 
-   procedure Run_Network_State
-     (State : in out Network_State_Interface)
+   procedure Scan_State_Nodes
+     (State : Network_State_Interface;
+      Process : not null access
+        procedure (Node_State : Node_State_Access))
    is abstract;
 
-   procedure Add_Effect
+   procedure Run_Network_State
+     (State : in out Network_State_Interface'Class);
+
+   procedure Send_Effects
      (Node_State : in out Node_State_Interface;
-      Effect     : Signed_Unit_Real)
+      Network_State : Network_State_Interface'Class)
    is abstract;
 
    procedure Set_New_Value
-     (Node_State : in out Node_State_Interface)
-     is abstract;
+     (Node_State    : in out Node_State_Interface;
+      Network_State : Network_State_Interface'Class)
+   is abstract;
 
    type Expression_Object_Interface is limited interface;
 

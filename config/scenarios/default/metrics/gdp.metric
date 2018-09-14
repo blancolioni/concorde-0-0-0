@@ -1,4 +1,4 @@
 type: money
 calculation {
-   add: sum pops.income
+   add: sum ((pops | all).income)
 }

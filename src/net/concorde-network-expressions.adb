@@ -15,8 +15,10 @@ package body Concorde.Network.Expressions is
       Node  : Node_State_Access)
    is null;
 
-   overriding procedure Run_Network_State
-     (State : in out Null_Network_State)
+   overriding procedure Scan_State_Nodes
+     (State : Null_Network_State;
+      Process : not null access
+        procedure (Node : Node_State_Access))
    is null;
 
    overriding function Evaluate_Constraint
@@ -34,6 +36,19 @@ package body Concorde.Network.Expressions is
       State : Null_Network_State;
    begin
       return Evaluate (Expression, State, "", 0.0);
+   end Evaluate;
+
+   --------------
+   -- Evaluate --
+   --------------
+
+   function Evaluate
+     (Expression     : Expression_Type'Class;
+      Env            : Network_State_Interface'Class)
+      return Real
+   is
+   begin
+      return Expression.Evaluate (Env, "", 0.0);
    end Evaluate;
 
    --------------
@@ -83,7 +98,9 @@ package body Concorde.Network.Expressions is
                return Env.Evaluate_Constraint
                  (Class_Name       => Node.Constraint_Class.all,
                   Constraint_Name  => Node.Constraint_Name.all,
-                  Constraint_Value => Node.Constraint_Value.all);
+                  Constraint_Value =>
+                    (if Node.Constraint_Value = null
+                     then "" else Node.Constraint_Value.all));
             when Field_Selector_Node =>
                declare
                   Xs : Array_Of_Values := Eval (Node.Field_Container);

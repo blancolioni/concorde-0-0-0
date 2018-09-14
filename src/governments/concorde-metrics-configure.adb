@@ -24,6 +24,12 @@ package body Concorde.Metrics.Configure is
 
       procedure Create (Metric : in out Root_Metric_Type'Class) is
 
+         use type Concorde.Network.Metrics.Metric_Type;
+
+         Calculation : Boolean := False;
+
+         Node        : Concorde.Network.Metrics.Metric_Type;
+
          procedure On_Enter
            (Field_Name  : String);
 
@@ -43,27 +49,58 @@ package body Concorde.Metrics.Configure is
             Field_Value : Concorde.Network.Expressions.Expression_Type)
          is
          begin
-            if Field_Name = "type" then
-               if Field_Value.Show = "money" then
-                  Metric.Node :=
-                    Concorde.Network.Metrics.New_Money_Metric
-                      (Metric.Identifier);
-               elsif Field_Name = "rating" then
-                  null;
+            if Calculation then
+               declare
+                  use Concorde.Network.Metrics;
+                  Operator : constant Metric_Operator :=
+                               (if Field_Name = "add"
+                                then Add
+                                elsif Field_Name = "multiply"
+                                then Multiply
+                                else raise Constraint_Error with
+                                  "unknown operator: " & Field_Name);
+               begin
+                  if Node = null then
+                     Node :=
+                       Concorde.Network.Metrics.New_Rating_Metric
+                         (Metric.Identifier);
+                  end if;
+                  Node.Add_Calculation (Operator, Field_Value);
+               end;
+
+            else
+
+               if Field_Name = "type" then
+                  if Node /= null then
+                     Ada.Text_IO.Put_Line
+                       (Ada.Text_IO.Standard_Error,
+                        "warning: ignoring type field: "
+                        & "must come before calculation"
+                        & " in metric configuration for "
+                        & Metric.Identifier);
+                  else
+                     if Field_Value.Show = "money" then
+                        Node :=
+                          Concorde.Network.Metrics.New_Money_Metric
+                            (Metric.Identifier);
+                     elsif Field_Name = "rating" then
+                        null;
+                     else
+                        Ada.Text_IO.Put_Line
+                          (Ada.Text_IO.Standard_Error,
+                           "warning: unknown metric type: "
+                           & " in metric configuration for "
+                           & Metric.Identifier);
+                     end if;
+                  end if;
                else
+
                   Ada.Text_IO.Put_Line
                     (Ada.Text_IO.Standard_Error,
-                     "warning: unknown metric type: "
+                     "warning: unknown field '" & Field_Name & "'"
                      & " in metric configuration for "
                      & Metric.Identifier);
                end if;
-            else
-
-               Ada.Text_IO.Put_Line
-                 (Ada.Text_IO.Standard_Error,
-                  "warning: unknown field '" & Field_Name & "'"
-                  & " in metric configuration for "
-                  & Metric.Identifier);
             end if;
          end Configure_Field;
 
@@ -73,7 +110,18 @@ package body Concorde.Metrics.Configure is
 
          procedure On_Enter
            (Field_Name  : String)
-         is null;
+         is
+         begin
+            if Field_Name = "calculation" then
+               Calculation := True;
+            else
+               Ada.Text_IO.Put_Line
+                 (Ada.Text_IO.Standard_Error,
+                  "warning: unknown configuration group '" & Field_Name & "'"
+                  & " in metric configuration for "
+                  & Metric.Identifier);
+            end if;
+         end On_Enter;
 
          --------------
          -- On_Leave --
@@ -81,7 +129,12 @@ package body Concorde.Metrics.Configure is
 
          procedure On_Leave
            (Field_Name  : String)
-         is null;
+         is
+         begin
+            if Field_Name = "calculation" then
+               Calculation := False;
+            end if;
+         end On_Leave;
 
          Id : constant String := Ada.Directories.Base_Name (Path);
 
@@ -99,13 +152,10 @@ package body Concorde.Metrics.Configure is
             On_Leave    => On_Leave'Access,
             On_Config   => Configure_Field'Access);
 
-         declare
-            use type Concorde.Network.Nodes.Node_Type;
-         begin
-            if Metric.Node = null then
-               Metric.Node := Concorde.Network.Metrics.New_Rating_Metric (Id);
+            if Node = null then
+               Node := Concorde.Network.Metrics.New_Rating_Metric (Id);
             end if;
-         end;
+            Metric.Node := Concorde.Network.Nodes.Node_Type (Node);
 
          Concorde.Network.Nodes.Add_Node (Metric.Node);
       end Create;

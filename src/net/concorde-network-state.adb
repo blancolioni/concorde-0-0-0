@@ -3,6 +3,8 @@ with Ada.Strings.Fixed;
 with Concorde.Logging;
 with Concorde.Real_Images;
 
+with Concorde.Network.Expressions;
+
 package body Concorde.Network.State is
 
    ----------------
@@ -134,6 +136,43 @@ package body Concorde.Network.State is
          others        => <>);
    end New_Internal_Node_State;
 
+   ------------------
+   -- Send_Effects --
+   ------------------
+
+   overriding procedure Send_Effects
+     (Node_State    : in out Root_Node_State_Type;
+      Network_State : Network_State_Interface'Class)
+   is
+
+      procedure Send_Effect
+        (Target_Node  : Node_State_Access;
+         Effect_Delay : Duration;
+         Effect       : Concorde.Network.Expressions.Expression_Type);
+
+      -----------------
+      -- Send_Effect --
+      -----------------
+
+      procedure Send_Effect
+        (Target_Node  : Node_State_Access;
+         Effect_Delay : Duration;
+         Effect       : Concorde.Network.Expressions.Expression_Type)
+      is
+      begin
+         Target_Node.Add_Effect
+           (Concorde.Network.Expressions.Evaluate
+              (Expression     => Effect,
+               Env            => Network_State,
+               Argument_Name  => "x",
+               Argument_Value =>
+                 Node_State.Current_Inertial_Value (Effect_Delay)));
+      end Send_Effect;
+
+   begin
+      Node_State.Node.Scan_Effects (Network_State, Send_Effect'Access);
+   end Send_Effects;
+
    -----------------------
    -- Set_Initial_Value --
    -----------------------
@@ -152,8 +191,10 @@ package body Concorde.Network.State is
    -------------------
 
    overriding procedure Set_New_Value
-     (Node_State : in out Root_Node_State_Type)
+     (Node_State    : in out Root_Node_State_Type;
+      Network_State : Network_State_Interface'Class)
    is
+      pragma Unreferenced (Network_State);
    begin
       if Node_State.Changed then
          Node_State.Current_Value :=

@@ -109,14 +109,17 @@ package body Concorde.People.Groups.Configure is
          procedure Create_Metrics (Group : in out Root_Pop_Group'Class) is
          begin
             Group.Income_Node :=
-              Concorde.Network.Metrics.New_Money_Metric
-                (Group.Identifier & "-income");
+              Concorde.Network.Nodes.Node_Type
+                (Concorde.Network.Metrics.New_Money_Metric
+                   (Group.Identifier & "-income"));
             Group.Frequency_Node :=
-              Concorde.Network.Metrics.New_Money_Metric
-                (Group.Identifier & "-frequency");
+              Concorde.Network.Nodes.Node_Type
+                (Concorde.Network.Metrics.New_Money_Metric
+                   (Group.Identifier & "-frequency"));
             Group.Happiness_Node :=
-              Concorde.Network.Metrics.New_Rating_Metric
-                (Group.Identifier);
+              Concorde.Network.Nodes.Node_Type
+                (Concorde.Network.Metrics.New_Rating_Metric
+                   (Group.Identifier));
             Concorde.Network.Nodes.Add_Node (Group.Happiness_Node);
             Concorde.Network.Nodes.Add_Node (Group.Frequency_Node);
             Concorde.Network.Nodes.Add_Node (Group.Income_Node);

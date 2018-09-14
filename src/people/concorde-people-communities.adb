@@ -52,7 +52,7 @@ package body Concorde.People.Communities is
       return Concorde.Network.Array_Of_Values
    is
 
-      type Constraint_Type is (Group_Constraint);
+      type Constraint_Type is (All_Constraint, Group_Constraint);
 
       function Eval_Pop_Constraint return Concorde.Network.Array_Of_Values;
 
@@ -67,22 +67,31 @@ package body Concorde.People.Communities is
          Constraint : constant Constraint_Type :=
                         (if Constraint_Name = "group"
                          then Group_Constraint
+                         elsif Constraint_Name = "all"
+                         then All_Constraint
                          else raise Constraint_Error with
                            "no such pop constraint: " & Constraint_Name);
          Group      : constant Concorde.People.Groups.Pop_Group :=
                         (case Constraint is
+                            when All_Constraint =>
+                              null,
                             when Group_Constraint =>
                               Concorde.People.Groups.Get (Constraint_Value));
       begin
          for Pop of From.Pops loop
-            case Constraint is
-               when Group_Constraint =>
-                  if Pop.Is_Member_Of (Group) then
-                     Count := Count + 1;
-                     Result (Count) :=
-                       Concorde.Network.To_Expression_Value (Pop);
-                  end if;
-            end case;
+            declare
+               Include : constant Boolean :=
+                           (case Constraint is
+                               when All_Constraint => True,
+                               when Group_Constraint =>
+                                 Pop.Is_Member_Of (Group));
+            begin
+               if Include then
+                  Count := Count + 1;
+                  Result (Count) :=
+                    Concorde.Network.To_Expression_Value (Pop);
+               end if;
+            end;
          end loop;
          return Result (1 .. Count);
       end Eval_Pop_Constraint;
@@ -136,17 +145,6 @@ package body Concorde.People.Communities is
       return Db.Get_Database;
    end Object_Database;
 
-   -----------------------
-   -- Run_Network_State --
-   -----------------------
-
-   overriding procedure Run_Network_State
-     (Community : in out Root_Community_Type)
-   is
-   begin
-      Community.Network.Run_Network_State;
-   end Run_Network_State;
-
    ----------
    -- Scan --
    ----------
@@ -187,6 +185,33 @@ package body Concorde.People.Communities is
          Process (Pop);
       end loop;
    end Scan_Pops;
+
+   ----------------------
+   -- Scan_State_Nodes --
+   ----------------------
+
+   overriding procedure Scan_State_Nodes
+     (Community : Root_Community_Type;
+      Process   : not null access
+        procedure (Node_State : Concorde.Network.Node_State_Access))
+   is
+      procedure Internal_Process
+        (Node_State : Concorde.Network.Node_State_Access);
+
+      ----------------------
+      -- Internal_Process --
+      ----------------------
+
+      procedure Internal_Process
+        (Node_State : Concorde.Network.Node_State_Access)
+      is
+      begin
+         Process (Node_State);
+      end Internal_Process;
+
+   begin
+      Community.Network.Scan_State_Nodes (Internal_Process'Access);
+   end Scan_State_Nodes;
 
    ------------------
    -- Set_Location --

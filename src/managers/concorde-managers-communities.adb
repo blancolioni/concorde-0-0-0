@@ -1,7 +1,10 @@
+with Ada.Text_IO;
+
 with WL.Money;
 
 with Concorde.Logging;
 with Concorde.Objects.Queues;
+with Concorde.Real_Images;
 with Concorde.Signals.Standard;
 
 with Concorde.Commodities;
@@ -74,7 +77,22 @@ package body Concorde.Managers.Communities is
          & Concorde.Calendar.Image
            (Manager.Time, True));
 
+      Ada.Text_IO.Put_Line
+        (Ada.Text_IO.Standard_Error,
+         "activating: " & Manager.Community.Identifier);
+
       Manager.Community.Update.Run_Network_State;
+
+      Ada.Text_IO.Put_Line
+        (Ada.Text_IO.Standard_Error,
+         "calculated tax income: "
+         & Concorde.Real_Images.Approximate_Image
+           (Manager.Community.Node ("tax-income").Current_Actual_Value));
+      Ada.Text_IO.Put_Line
+        (Ada.Text_IO.Standard_Error,
+         "calculated gdp: "
+         & Concorde.Real_Images.Approximate_Image
+           (Manager.Community.Node ("gdp").Current_Actual_Value));
 
       declare
          Tax_Income   : Non_Negative_Real := 0.0;
@@ -106,22 +124,6 @@ package body Concorde.Managers.Communities is
                                   Argument_Name  => "current-actual",
                                   Argument_Value => Tax_Rate);
                begin
---                    Concorde.Logging.Log
---                      (Actor    => Manager.Community.Identifier,
---                       Location => "tax income",
---                       Category => Policy.Identifier,
---                       Message  => Policy.Tax_Income.Show);
---
---                    Concorde.Logging.Log
---                      (Actor    => Manager.Community.Identifier,
---                       Location => "tax income",
---                       Category => Policy.Identifier,
---                       Message  =>
---                         "rate" & Natural'Image (Natural (Tax_Rate * 100.0))
---                       & "% total "
---                       & WL.Money.Show
---                         (WL.Money.To_Money
---                              (Float (This_Tax) / 365.0)));
                   Tax_Income := Tax_Income + This_Tax / 365.0;
                end;
             end if;

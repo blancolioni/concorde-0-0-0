@@ -86,8 +86,10 @@ private
       Name  : String)
       return Node_State_Access;
 
-   overriding procedure Run_Network_State
-     (State : in out Node_State_Map);
+   overriding procedure Scan_State_Nodes
+     (State : Node_State_Map;
+      Process : not null access
+        procedure (Node_State : Node_State_Access));
 
    overriding function Evaluate_Constraint
      (From             : Node_State_Map;
