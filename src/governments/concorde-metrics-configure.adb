@@ -83,12 +83,15 @@ package body Concorde.Metrics.Configure is
                         Node :=
                           Concorde.Network.Metrics.New_Money_Metric
                             (Metric.Identifier);
-                     elsif Field_Name = "rating" then
-                        null;
+                     elsif Field_Value.Show = "rating" then
+                        Node :=
+                          Concorde.Network.Metrics.New_Rating_Metric
+                            (Metric.Identifier);
                      else
                         Ada.Text_IO.Put_Line
                           (Ada.Text_IO.Standard_Error,
                            "warning: unknown metric type: "
+                           & Field_Value.Show
                            & " in metric configuration for "
                            & Metric.Identifier);
                      end if;

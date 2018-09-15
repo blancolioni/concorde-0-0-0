@@ -92,6 +92,7 @@ private
          Individuals : Concorde.People.Individuals.Lists.List;
          Market      : Concorde.Markets.Market_Type;
          Government  : Concorde.Government.Government_Type;
+         Occupation  : Unit_Real := 0.5;
       end record;
 
    overriding function Object_Database

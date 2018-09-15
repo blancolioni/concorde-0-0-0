@@ -268,6 +268,19 @@ package body Concorde.Worlds is
       return Concorde.Network.To_Expression_Value (World.Radius);
    end Get_Value;
 
+   ------------------
+   -- Habitability --
+   ------------------
+
+   function Habitability
+     (World : Root_World_Type'Class)
+      return Unit_Real
+   is
+   begin
+      return Unit_Clamp
+        (abs (10.0 - (World.Surface_Temp - 288.0)) / 10.0);
+   end Habitability;
+
    ---------------
    -- Has_Field --
    ---------------

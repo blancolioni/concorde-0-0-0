@@ -382,7 +382,7 @@ package body Concorde.Factions.Create is
 --                                   & Concorde.Real_Images.Approximate_Image
 --                                     (W.Minimum_Temperature - 273.0)
 --                                   & " degrees");
-                           elsif W.Maximum_Temperature > 3730.0 then
+                           elsif W.Maximum_Temperature > 373.0 then
                               null;
 --                                New_Faction.Log
 --                                  ("setup",

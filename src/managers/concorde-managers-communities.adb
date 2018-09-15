@@ -77,6 +77,16 @@ package body Concorde.Managers.Communities is
       Manager.Community.Update.Run_Network_State;
 
       Manager.Community.Log
+        ("agriculature industry value: "
+         & WL.Money.Show
+           (WL.Money.To_Money
+                (Float
+                     (Concorde.Network.To_Real_Value
+                        (Manager.Community.Node
+                           ("agriculture-industry")
+                         .Get_Field_Value ("value"))))));
+
+      Manager.Community.Log
         ("tax income: "
          & WL.Money.Show
            (WL.Money.To_Money

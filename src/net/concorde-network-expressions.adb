@@ -173,6 +173,8 @@ package body Concorde.Network.Expressions is
                      return (1 => Current.Get_Field_Value (Var));
                   elsif Local_Env.Map.Contains (Var) then
                      return V (Local_Env.Map.Element (Var));
+                  elsif State.Has_Field (Var) then
+                     return (1 => State.Get_Field_Value (Var));
                   else
                      return O (State.Node (Var));
                   end if;

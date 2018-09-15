@@ -1,4 +1,5 @@
 with Concorde.People.Groups;
+with Concorde.People.Communities.Fields;
 
 package body Concorde.People.Communities is
 
@@ -115,12 +116,13 @@ package body Concorde.People.Communities is
       return Concorde.Network.Expression_Value
    is
    begin
-      if Name = "world" then
-         return Concorde.Network.To_Expression_Value (Community.World);
-      else
-         return Concorde.Network.To_Expression_Value
-           (Community.Node (Name));
-      end if;
+      return Concorde.People.Communities.Fields.Get_Field (Community, Name);
+--        if Name = "world" then
+--           return Concorde.Network.To_Expression_Value (Community.World);
+--        else
+--           return Concorde.Network.To_Expression_Value
+--             (Community.Node (Name));
+--        end if;
    end Get_Field_Value;
 
    ---------------
@@ -145,10 +147,12 @@ package body Concorde.People.Communities is
       Name      : String)
       return Boolean
    is
-      use type Concorde.Network.Node_State_Access;
+      pragma Unreferenced (Community);
+--        use type Concorde.Network.Node_State_Access;
    begin
-      return Name = "world"
-        or else Community.Node (Name) /= null;
+      return Concorde.People.Communities.Fields.Have_Field (Name);
+--        return Name = "world"
+--          or else Community.Node (Name) /= null;
    end Has_Field;
 
    -----------------

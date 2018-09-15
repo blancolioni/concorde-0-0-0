@@ -104,6 +104,10 @@ package Concorde.Worlds is
      (World : Root_World_Type'Class)
       return Non_Negative_Real;
 
+   function Habitability
+     (World : Root_World_Type'Class)
+      return Unit_Real;
+
    function Hydrosphere
      (World : Root_World_Type'Class)
       return Unit_Real;
