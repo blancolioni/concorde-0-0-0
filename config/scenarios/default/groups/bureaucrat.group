@@ -6,3 +6,7 @@ politics = {
   spending = { position = 0.7 strength = 0.6 }
   state = { position = 0.5 strength = 0.5 }
 }
+
+proportion = {
+  base = 0.1
+}

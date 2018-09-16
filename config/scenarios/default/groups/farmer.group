@@ -1,0 +1,8 @@
+politics = {
+ order = { position = 0.8 strength = 0.7 }
+ society = { position = 0.6 strength = 0.5 }
+}
+
+proportion = {
+  base = 0.2
+}
