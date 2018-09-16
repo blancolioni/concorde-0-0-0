@@ -1,4 +1,5 @@
 with WL.Money;
+with WL.Quantities;
 
 with Concorde.Objects.Queues;
 with Concorde.Signals.Standard;
@@ -77,14 +78,23 @@ package body Concorde.Managers.Communities is
       Manager.Community.Update.Run_Network_State;
 
       Manager.Community.Log
-        ("agriculature industry value: "
+        ("agriculture industry max value: "
          & WL.Money.Show
            (WL.Money.To_Money
                 (Float
                      (Concorde.Network.To_Real_Value
                         (Manager.Community.Node
                            ("agriculture-industry")
-                         .Get_Field_Value ("value"))))));
+                         .Get_Field_Value ("max-value"))))));
+      Manager.Community.Log
+        ("agriculture industry farmers: "
+         & WL.Quantities.Show
+           (WL.Quantities.To_Quantity
+                (Float
+                     (Concorde.Network.To_Real_Value
+                        (Manager.Community.Node
+                           ("agriculture-industry")
+                         .Get_Field_Value ("farmers"))))));
 
       Manager.Community.Log
         ("tax income: "
