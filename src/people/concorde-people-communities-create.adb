@@ -370,6 +370,29 @@ package body Concorde.People.Communities.Create is
 
       end loop;
 
+      declare
+         use WL.Quantities;
+         All_Groups : constant Concorde.People.Groups.Array_Of_Pop_Groups :=
+                        Concorde.People.Groups.All_Groups;
+         Size       : array (All_Groups'Range) of Quantity_Type :=
+                        (others => Zero);
+      begin
+         for Pop of Community.Pops loop
+            for I in All_Groups'Range loop
+               if Pop.Is_Member_Of (All_Groups (I)) then
+                  Size (I) := Size (I) + Pop.Size_Quantity;
+               end if;
+            end loop;
+         end loop;
+
+         for I in All_Groups'Range loop
+            Ada.Text_IO.Put (All_Groups (I).Identifier);
+            Ada.Text_IO.Set_Col (30);
+            Ada.Text_IO.Put (Show (Size (I)));
+            Ada.Text_IO.New_Line;
+         end loop;
+      end;
+
    end Create_Initial_Pops;
 
    --------------------------
