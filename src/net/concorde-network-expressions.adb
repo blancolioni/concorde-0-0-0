@@ -395,7 +395,12 @@ package body Concorde.Network.Expressions is
             when Variable_Node =>
                return Node.Variable_Name.all;
             when Constraint_Node =>
-               return "[constraint]";
+               return "(" & Node.Constraint_Class.all
+                 & " | " & Node.Constraint_Name.all
+                 & (if Node.Constraint_Value /= null
+                    then " => " & Node.Constraint_Value.all
+                    else "")
+                 & ")";
             when Field_Selector_Node =>
                return Show_Node (Node.Field_Container)
                  & "." & Node.Field_Name.all;
@@ -405,6 +410,13 @@ package body Concorde.Network.Expressions is
                elsif Node.Primitive = Multiply then
                   return "(" & Show_Node (Node.Prim_Args.First_Element)
                     & " * "
+                    & Show_Node
+                    (Expression_Node_Lists.Element
+                       (Expression_Node_Lists.Next (Node.Prim_Args.First)))
+                    & ")";
+               elsif Node.Primitive in Add | Subtract then
+                  return "(" & Show_Node (Node.Prim_Args.First_Element)
+                    & (if Node.Primitive = Add then " + " else " - ")
                     & Show_Node
                     (Expression_Node_Lists.Element
                        (Expression_Node_Lists.Next (Node.Prim_Args.First)))
