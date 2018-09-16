@@ -29,6 +29,9 @@ package body Concorde.People.Pops is
       if Name = "income" then
          return Concorde.Network.To_Expression_Value
            (Pop.Current_Income_Total);
+      elsif Name = "size" then
+         return Concorde.Network.To_Expression_Value
+           (Non_Negative_Real (Pop.Size));
       else
          raise Constraint_Error with
            "unknown pop field: " & Name;
