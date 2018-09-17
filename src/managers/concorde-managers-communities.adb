@@ -78,23 +78,32 @@ package body Concorde.Managers.Communities is
       Manager.Community.Update.Run_Network_State;
 
       Manager.Community.Log
-        ("agriculture industry max value: "
-         & WL.Money.Show
-           (WL.Money.To_Money
+        ("total population: "
+         & WL.Quantities.Show
+           (WL.Quantities.To_Quantity
                 (Float
                      (Concorde.Network.To_Real_Value
                         (Manager.Community.Node
-                           ("agriculture-industry")
-                         .Get_Field_Value ("max-value"))))));
+                           ("population")
+                         .Get_Field_Value ("value"))))));
       Manager.Community.Log
-        ("agriculture industry farmers: "
+        ("agriculture industry max production: "
          & WL.Quantities.Show
            (WL.Quantities.To_Quantity
                 (Float
                      (Concorde.Network.To_Real_Value
                         (Manager.Community.Node
                            ("agriculture-industry")
-                         .Get_Field_Value ("farmers"))))));
+                         .Get_Field_Value ("max-production"))))));
+--        Manager.Community.Log
+--          ("agriculture industry farmers: "
+--           & WL.Quantities.Show
+--             (WL.Quantities.To_Quantity
+--                  (Float
+--                       (Concorde.Network.To_Real_Value
+--                          (Manager.Community.Node
+--                             ("agriculture-industry")
+--                           .Get_Field_Value ("farmers"))))));
 
       Manager.Community.Log
         ("tax income: "

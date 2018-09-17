@@ -25,7 +25,7 @@ init = {
    food-price = 0.5
 }
 
-agricultural-land-use = 30
+agricultural-land-use = 30%
 commercial-land-use = 5%
 industrial-land-use = 5%
 mining-land-use = 5%
