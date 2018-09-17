@@ -17,6 +17,9 @@ with Concorde.People.Pops.Lists;
 
 package Concorde.People.Communities is
 
+   type Land_Use is
+     (Agricultural, Commercial, Industrial, Mining, Undeveloped, Urban);
+
    type Root_Community_Type is
      new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Government.Governed_Interface
@@ -78,6 +81,14 @@ package Concorde.People.Communities is
 
 private
 
+   type Land_Use_Record is
+      record
+         Relative : Unit_Real;
+         Absolute : Non_Negative_Real;
+      end record;
+
+   type Land_Use_Array is array (Land_Use) of Land_Use_Record;
+
    type Root_Community_Type is
      new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Government.Governed_Interface
@@ -92,7 +103,8 @@ private
          Individuals : Concorde.People.Individuals.Lists.List;
          Market      : Concorde.Markets.Market_Type;
          Government  : Concorde.Government.Government_Type;
-         Occupation  : Unit_Real := 0.5;
+         Occupation  : Unit_Real := 0.0;
+         Land_Use    : Land_Use_Array := (others => (0.0, 0.0));
       end record;
 
    overriding function Object_Database

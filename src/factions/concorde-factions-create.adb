@@ -545,7 +545,7 @@ package body Concorde.Factions.Create is
                         Population =>
                           WL.Quantities.To_Quantity (Float (Base_Pop)),
                         Gini       => Gini,
-                        Initial_Value => Init_Value'Access);
+                        Template   => Template);
       begin
          Start_System.Update.Set_Owner (Faction);
          Start_System.Update.Set_Capital (True);

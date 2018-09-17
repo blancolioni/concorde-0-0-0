@@ -466,16 +466,23 @@ package body Concorde.People.Communities.Create is
    -------------------
 
    function New_Community
-     (World      : not null access constant
+     (World         : not null access constant
         Concorde.Worlds.Root_World_Type'Class;
-      Faction    : not null access constant
+      Faction       : not null access constant
         Concorde.Factions.Root_Faction_Type'Class;
-      Population : WL.Quantities.Quantity_Type;
+      Population    : WL.Quantities.Quantity_Type;
       Gini          : Unit_Real;
-      Initial_Value : not null access
-        function (Parameter_Name : String) return Real)
+      Template      : Tropos.Configuration)
       return Community_Type
    is
+
+      Init : constant Tropos.Configuration := Template.Child ("init");
+
+      function Initial_Value
+        (Name : String)
+         return Real
+      is (Real (Float'(Init.Get (Name, 0.0))));
+
       procedure Create (Community : in out Root_Community_Type'Class);
 
       ------------
@@ -483,11 +490,47 @@ package body Concorde.People.Communities.Create is
       ------------
 
       procedure Create (Community : in out Root_Community_Type'Class) is
+         function Get_Land_Use (Item : Land_Use) return Unit_Real
+         is (Real (Float'(Template.Get (Item'Image & "-land-use", 0.0))));
+
+         Total_Land_Use : Non_Negative_Real := 0.0;
+
       begin
          Community.Set_Name (World.Name);
          Community.World := Concorde.Worlds.World_Type (World);
          Community.Owner := Concorde.Factions.Faction_Type (Faction);
-         Create_Network_State (Community, Initial_Value);
+         Community.Occupation :=
+           Real (Float'(Template.Get ("occupation", 0.1)));
+
+         Create_Network_State (Community, Initial_Value'Access);
+         for Item in Land_Use loop
+            declare
+               Relative : constant Unit_Real := Get_Land_Use (Item);
+            begin
+               Community.Land_Use (Item).Relative := Relative;
+               Total_Land_Use := Total_Land_Use + Relative;
+            end;
+         end loop;
+
+         if Total_Land_Use < 1.0 then
+            Community.Land_Use (Undeveloped).Relative :=
+                 Community.Land_Use (Undeveloped).Relative
+                 + 1.0 - Total_Land_Use;
+         elsif Total_Land_Use > 1.0 then
+            for Item of Community.Land_Use loop
+               Item.Relative := Item.Relative / Total_Land_Use;
+            end loop;
+         end if;
+
+         for Item of Community.Land_Use loop
+            Item.Absolute :=
+              Community.World.Surface_Area
+              * (1.0 - Community.World.Hydrosphere)
+              * Community.Occupation
+              * Item.Relative;
+
+         end loop;
+
       end Create;
 
       Community : constant Community_Type :=
@@ -519,7 +562,7 @@ package body Concorde.People.Communities.Create is
                Gini          => Gini,
                Total_Pop     =>
                  Non_Negative_Real (WL.Quantities.To_Float (Population)),
-               Initial_Value => Initial_Value);
+               Initial_Value => Initial_Value'Access);
          end Update;
 
       begin

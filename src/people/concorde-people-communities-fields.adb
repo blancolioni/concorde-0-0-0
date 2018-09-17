@@ -5,13 +5,18 @@ package body Concorde.People.Communities.Fields is
    package Community_Fields is
      new Concorde.Fields (Root_Community_Type'Class);
 
-   function World
+   function Get_Agricultural_Land_Use
+     (Community : Root_Community_Type'Class)
+      return Real
+   is (Community.Land_Use (Agricultural).Absolute);
+
+   function Get_World
      (Community : Root_Community_Type'Class)
       return access constant
      Concorde.Network.Expression_Object_Interface'Class
    is (Community.World);
 
-   function World_Occupation
+   function Get_World_Occupation
      (Community : Root_Community_Type'Class)
       return Real
    is (Community.Occupation);
@@ -39,6 +44,10 @@ package body Concorde.People.Communities.Fields is
    end Have_Field;
 
 begin
-   Community_Fields.Add_Field ("world", World'Access);
-   Community_Fields.Add_Field ("world-occupation", World_Occupation'Access);
+   Community_Fields.Add_Field ("world",
+                               Get_World'Access);
+   Community_Fields.Add_Field ("world-occupation",
+                               Get_World_Occupation'Access);
+   Community_Fields.Add_Field ("agricultural-land",
+                               Get_Agricultural_Land_Use'Access);
 end Concorde.People.Communities.Fields;
