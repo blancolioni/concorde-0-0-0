@@ -1,25 +1,20 @@
-with WL.String_Maps;
+with Concorde.Fields;
 
 package body Concorde.People.Communities.Fields is
 
-   type Field_Get_Handler is access
-     function (W : Root_Community_Type'Class)
-               return Concorde.Network.Expression_Value;
-
-   package Field_Handler_Maps is
-     new WL.String_Maps (Field_Get_Handler);
-
-   Field_Handlers : Field_Handler_Maps.Map;
+   package Community_Fields is
+     new Concorde.Fields (Root_Community_Type'Class);
 
    function World
      (Community : Root_Community_Type'Class)
-      return Concorde.Network.Expression_Value
-   is (Concorde.Network.To_Expression_Value (Community.World));
+      return access constant
+     Concorde.Network.Expression_Object_Interface'Class
+   is (Community.World);
 
    function World_Occupation
      (Community : Root_Community_Type'Class)
-      return Concorde.Network.Expression_Value
-   is (Concorde.Network.To_Expression_Value (Community.Occupation));
+      return Real
+   is (Community.Occupation);
 
    ---------------
    -- Get_Field --
@@ -31,7 +26,7 @@ package body Concorde.People.Communities.Fields is
       return Concorde.Network.Expression_Value
    is
    begin
-      return Field_Handlers.Element (Name) (Community);
+      return Community_Fields.Get_Field (Community, Name);
    end Get_Field;
 
    ----------------
@@ -40,10 +35,10 @@ package body Concorde.People.Communities.Fields is
 
    function Have_Field (Name : String) return Boolean is
    begin
-      return Field_Handlers.Contains (Name);
+      return Community_Fields.Have_Field (Name);
    end Have_Field;
 
 begin
-   Field_Handlers.Insert ("world", World'Access);
-   Field_Handlers.Insert ("world-occupation", World_Occupation'Access);
+   Community_Fields.Add_Field ("world", World'Access);
+   Community_Fields.Add_Field ("world-occupation", World_Occupation'Access);
 end Concorde.People.Communities.Fields;
