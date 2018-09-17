@@ -3,7 +3,6 @@ with Ada.Text_IO;
 package body Concorde.Commodities is
 
    Local_Commodity_Array         : access Array_Of_Commodities;
-   Local_Skill_Commodity_Array   : access Array_Of_Commodities;
    Local_Trade_Commodity_Array   : access Array_Of_Commodities;
    Local_Virtual_Commodity_Array : access Array_Of_Commodities;
 
@@ -313,7 +312,7 @@ package body Concorde.Commodities is
       is
          use WL.Quantities;
       begin
-         if Commodity.Class not in Skill | Service
+         if not Commodity.Flags (Virtual)
            and then Info.Quantity > Zero
          then
             Process (Commodity_Type (Commodity));
@@ -337,25 +336,6 @@ package body Concorde.Commodities is
    begin
       Stock.Vector.Replace_Element (Item, (Quantity, Value));
    end Set_Quantity;
-
-   -----------------------
-   -- Skill_Commodities --
-   -----------------------
-
-   function Skill_Commodities return Array_Of_Commodities is
-   begin
-      if Local_Skill_Commodity_Array = null then
-         declare
-            function Test (Commodity : Commodity_Type) return Boolean
-            is (Commodity.Class = Skill);
-         begin
-            Local_Skill_Commodity_Array :=
-              new Array_Of_Commodities'(Commodity_Array (Test'Access));
-         end;
-      end if;
-
-      return Local_Skill_Commodity_Array.all;
-   end Skill_Commodities;
 
    ----------------
    -- Total_Mass --
@@ -403,9 +383,7 @@ package body Concorde.Commodities is
 
       procedure Update (Commodity : Commodity_Type) is
       begin
-         if not Commodity.Is_Set (Virtual)
-           and then Commodity.Class /= Skill
-         then
+         if not Commodity.Is_Set (Virtual) then
             Result := Result + Stock.Get_Quantity (Commodity);
          end if;
       end Update;
@@ -453,7 +431,7 @@ package body Concorde.Commodities is
       if Local_Trade_Commodity_Array = null then
          declare
             function Test (Commodity : Commodity_Type) return Boolean
-            is (Commodity.Class not in Skill | Service);
+            is (not Commodity.Flags (Virtual));
          begin
             Local_Trade_Commodity_Array :=
               new Array_Of_Commodities'(Commodity_Array (Test'Access));
@@ -484,7 +462,7 @@ package body Concorde.Commodities is
       if Local_Virtual_Commodity_Array = null then
          declare
             function Test (Commodity : Commodity_Type) return Boolean
-            is (Commodity.Class in Skill | Service);
+            is (Commodity.Flags (Virtual));
          begin
             Local_Virtual_Commodity_Array :=
               new Array_Of_Commodities'(Commodity_Array (Test'Access));

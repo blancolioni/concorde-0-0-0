@@ -7,8 +7,7 @@ with Concorde.Configure;
 package body Concorde.Commodities.Configure is
 
    procedure Configure_Commodity
-     (Class  : Commodity_Class;
-      Config : Tropos.Configuration);
+     (Config : Tropos.Configuration);
 
    function Create
      (Tag        : String;
@@ -132,21 +131,11 @@ package body Concorde.Commodities.Configure is
    ---------------------------
 
    procedure Configure_Commodities is
-      Commodities_Config : constant Tropos.Configuration :=
-                             Tropos.Reader.Read_Config
-                               (Concorde.Configure.File_Path
-                                  ("commodities", "commodities"));
    begin
-      for Class_Config of Commodities_Config loop
-         declare
-            Class : constant Commodity_Class :=
-                      Commodity_Class'Value (Class_Config.Config_Name);
-         begin
-            for Config of Class_Config loop
-               Configure_Commodity (Class, Config);
-            end loop;
-         end;
-      end loop;
+      Tropos.Reader.Read_Config
+        (Path      => Concorde.Configure.Directory_Path ("commodities"),
+         Extension => "commodity",
+         Configure => Configure_Commodity'Access);
    end Configure_Commodities;
 
    -------------------------
@@ -154,8 +143,7 @@ package body Concorde.Commodities.Configure is
    -------------------------
 
    procedure Configure_Commodity
-     (Class  : Commodity_Class;
-      Config : Tropos.Configuration)
+     (Config : Tropos.Configuration)
    is
       Flags : Array_Of_Flags;
 
@@ -174,13 +162,16 @@ package body Concorde.Commodities.Configure is
          New_Commodity : constant Commodity_Type :=
                            Create
                              (Tag        => Config.Config_Name,
-                              Class      => Class,
+                              Class      =>
+                                Commodity_Class'Value
+                                  (Config.Get ("class", "consumer")),
                               Mass       =>
-                                Non_Negative_Real
-                                  (Float'(Config.Get ("mass", 1000.0))),
+                                1000.0 *
+                                  Non_Negative_Real
+                                (Float'(Config.Get ("unit_mass", 1.0))),
                               Base_Price =>
                                 WL.Money.Value
-                                  (Config.Get ("cost", "0")),
+                                  (Config.Get ("base_price", "0")),
                               Flags      => Flags);
          pragma Unreferenced (New_Commodity);
       begin
@@ -256,42 +247,5 @@ package body Concorde.Commodities.Configure is
          Commodity_Vector.Append (Commodity);
       end return;
    end Create;
-
-   -----------------------
-   -- Create_From_Group --
-   -----------------------
-
-   function Create_From_Group
-     (Tag      : String;
-      Base_Pay : WL.Money.Price_Type)
-      return Commodity_Type
-   is
-   begin
-      return Create
-        (Tag        => Tag,
-         Class      => Concorde.Commodities.Skill,
-         Mass       => 0.0,
-         Base_Price => Base_Pay,
-         Flags      => (Virtual => True, others => False));
-   end Create_From_Group;
-
-   -------------------------
-   -- Create_From_Service --
-   -------------------------
-
-   procedure Create_From_Service
-     (Service_Facility : Concorde.Facilities.Facility_Type)
-   is
-      Service : constant Commodity_Type :=
-                  Create
-                    (Tag        => Service_Facility.Local_Tag,
-                     Class      => Concorde.Commodities.Service,
-                     Mass       => 0.0,
-                     Base_Price => Service_Facility.Base_Service_Charge,
-                     Flags      => (Virtual => True, others => False));
-      pragma Unreferenced (Service);
-   begin
-      null;
-   end Create_From_Service;
 
 end Concorde.Commodities.Configure;

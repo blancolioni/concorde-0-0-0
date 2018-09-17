@@ -13,45 +13,33 @@ package Concorde.Commodities is
 
    use type WL.Quantities.Quantity_Type;
 
-   type Commodity_Class is
-     (Resource, Consumer, Industrial, Construction, Military,
-      Skill, Service);
+   type Commodity_Class is (Consumer, Military, Resource);
 
-   type Commodity_Flag is
-     (Organic, Mineral, Metal, Fissile, Fuel, Gas, Liquid, Cryogenic,
-      Food, Drink, Intoxicant, Clothing,
-      Alloy, Ceramic, Electronic, Plastic,
-      Virtual, Power, Generator,
-      Available);
+   type Commodity_Flag is (Available, Cryogenic, Mineral, Virtual);
 
    type Array_Of_Flags is array (Commodity_Flag) of Boolean;
 
    type Root_Commodity_Type is
      new Concorde.Objects.Root_Localised_Object_Type with private;
 
+   type Commodity_Type is access constant Root_Commodity_Type'Class;
+
    function Class
      (Commodity : Root_Commodity_Type'Class)
       return Commodity_Class;
-
-   function Unit_Mass
-     (Commodity : Root_Commodity_Type'Class)
-      return Non_Negative_Real;
 
    function Base_Price
      (Commodity : Root_Commodity_Type'Class)
       return WL.Money.Price_Type;
 
+   function Unit_Mass
+     (Commodity : Root_Commodity_Type'Class)
+      return Non_Negative_Real;
+
    function Is_Set
      (Commodity : Root_Commodity_Type'Class;
       Flag      : Commodity_Flag)
       return Boolean;
-
-   function Available
-     (Commodity : Root_Commodity_Type'Class)
-      return Boolean
-   is (Commodity.Is_Set (Available));
-
-   type Commodity_Type is access constant Root_Commodity_Type'Class;
 
    function Exists (Name : String) return Boolean;
    function Get (Name : String) return Commodity_Type;
@@ -61,14 +49,13 @@ package Concorde.Commodities is
 
    type Array_Of_Commodities is array (Positive range <>) of Commodity_Type;
 
+   function All_Commodities return Array_Of_Commodities;
+   function Trade_Commodities return Array_Of_Commodities;
+   function Virtual_Commodities return Array_Of_Commodities;
+
    function Get (Class : Commodity_Class) return Array_Of_Commodities;
 
    function Get (Flag : Commodity_Flag) return Array_Of_Commodities;
-
-   function All_Commodities return Array_Of_Commodities;
-   function Trade_Commodities return Array_Of_Commodities;
-   function Skill_Commodities return Array_Of_Commodities;
-   function Virtual_Commodities return Array_Of_Commodities;
 
    type Stock_Interface is limited interface;
 
@@ -174,7 +161,7 @@ private
      new Concorde.Objects.Root_Localised_Object_Type with
       record
          Class      : Commodity_Class;
-         Flags      : Array_Of_Flags;
+         Flags      : Array_Of_Flags       := (others => False);
          Base_Price : WL.Money.Price_Type;
          Mass       : Non_Negative_Real;
       end record;

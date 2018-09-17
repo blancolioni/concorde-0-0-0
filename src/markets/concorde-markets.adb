@@ -662,10 +662,10 @@ package body Concorde.Markets is
                            Info.Recent_Trade_Volume)));
       end;
 
-      if Commodity.Class = Skill then
-         Buyer.Execute_Hire
-           (Seller, Commodity, Quantity, Price);
-      end if;
+--        if Commodity.Class = Skill then
+--           Buyer.Execute_Hire
+--             (Seller, Commodity, Quantity, Price);
+--        end if;
 
    end Execute_Trade;
 

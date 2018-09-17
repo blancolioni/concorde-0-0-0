@@ -27,13 +27,4 @@ start = {
    time = 5
 }
 
-propellant = {
-   liquid_hydrogen = {
-     ratio = 1.7
-   }
-   liquid_oxygen = {
-     ratio = 1
-   }
-}
-
-fuel = propellant
+fuel = basic_ship_fuel
