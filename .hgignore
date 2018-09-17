@@ -31,3 +31,11 @@ config/scenarios/agrippa/common/countries/Zulu.txt
 config/textures/tiles/eofs
 agama.log
 ./config/images/characters/*
+config/html/Ares 1.0 by pixelcave
+config/catalogue-stars.txt
+Courier New-38.png
+*.orig
+src/ships/components-old
+config/scenarios/default/policies - Copy
+config/v2/
+trace.txt
