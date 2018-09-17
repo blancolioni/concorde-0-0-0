@@ -2,6 +2,8 @@ with Xi;
 
 package Concorde is
 
+   pragma Pure;
+
    use type Xi.Xi_Float;
 
    subtype Real is Xi.Xi_Float;

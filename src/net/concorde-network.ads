@@ -1,5 +1,7 @@
 package Concorde.Network is
 
+   pragma Preelaborate;
+
    type Expression_Object_Interface is limited interface;
 
    type Expression_Value is private;
