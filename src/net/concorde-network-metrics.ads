@@ -20,6 +20,10 @@ package Concorde.Network.Metrics is
      (Id : String)
       return Metric_Type;
 
+   function New_Quantity_Metric
+     (Id : String)
+      return Metric_Type;
+
    function New_Rating_Metric
      (Id : String)
       return Metric_Type;

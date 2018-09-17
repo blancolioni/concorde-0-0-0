@@ -9,6 +9,13 @@ package body Concorde.Network.Metrics is
       Initial_Value : Real)
       return Concorde.Network.Node_State_Access;
 
+   type Quantity_Metric_Type is new Root_Metric_Type with null record;
+
+   overriding function Create_State
+     (Metric        : not null access constant Quantity_Metric_Type;
+      Initial_Value : Real)
+      return Concorde.Network.Node_State_Access;
+
    type Rating_Metric_Type is new Root_Metric_Type with null record;
 
    overriding function Create_State
@@ -39,6 +46,9 @@ package body Concorde.Network.Metrics is
       Network_State : Network_State_Interface'Class);
 
    type Root_Money_Metric_State_Type is
+     new Root_Metric_State_Type with null record;
+
+   type Root_Quantity_Metric_State_Type is
      new Root_Metric_State_Type with null record;
 
    type Root_Rating_Metric_State_Type is
@@ -74,6 +84,22 @@ package body Concorde.Network.Metrics is
       State.Initialize_State (Metric, 0.0);
       State.Base_Value := Initial_Value;
       return new Root_Money_Metric_State_Type'(State);
+   end Create_State;
+
+   ------------------
+   -- Create_State --
+   ------------------
+
+   overriding function Create_State
+     (Metric        : not null access constant Quantity_Metric_Type;
+      Initial_Value : Real)
+      return Concorde.Network.Node_State_Access
+   is
+      State : Root_Quantity_Metric_State_Type;
+   begin
+      State.Initialize_State (Metric, 0.0);
+      State.Base_Value := Initial_Value;
+      return new Root_Quantity_Metric_State_Type'(State);
    end Create_State;
 
    ------------------
@@ -125,6 +151,20 @@ package body Concorde.Network.Metrics is
       Metric.Initialise (Id);
       return new Money_Metric_Type'(Metric);
    end New_Money_Metric;
+
+   -------------------------
+   -- New_Quantity_Metric --
+   -------------------------
+
+   function New_Quantity_Metric
+     (Id : String)
+      return Metric_Type
+   is
+      Metric : Quantity_Metric_Type;
+   begin
+      Metric.Initialise (Id);
+      return new Quantity_Metric_Type'(Metric);
+   end New_Quantity_Metric;
 
    -----------------------
    -- New_Rating_Metric --
