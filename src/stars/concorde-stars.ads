@@ -93,6 +93,10 @@ private
      (Star : Root_Star_Type)
       return Non_Negative_Real;
 
+   overriding function Surface_Area
+     (Star : Root_Star_Type)
+      return Non_Negative_Real;
+
    overriding function Primary
      (Star : Root_Star_Type)
       return access Concorde.Systems.Star_System_Object_Interface'Class

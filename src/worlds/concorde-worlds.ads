@@ -407,6 +407,7 @@ private
          Mass                  : Non_Negative_Real;
          Radius                : Non_Negative_Real;
          Density               : Non_Negative_Real;
+         Surface_Area          : Non_Negative_Real;
          Tilt                  : Non_Negative_Real;
          Solid_Mass            : Non_Negative_Real;
          Gas_Mass              : Non_Negative_Real;
@@ -453,6 +454,11 @@ private
      (World : Root_World_Type)
       return Non_Negative_Real
    is (World.Radius);
+
+   overriding function Surface_Area
+     (World : Root_World_Type)
+      return Non_Negative_Real
+   is (World.Surface_Area);
 
    overriding function Primary
      (World : Root_World_Type)

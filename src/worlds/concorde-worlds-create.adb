@@ -1387,6 +1387,7 @@ package body Concorde.Worlds.Create is
 
          World.Density :=
            Ada.Numerics.Pi * World.Radius ** 3 / World.Mass;
+         World.Surface_Area := 4.0 / 3.0 * World.Radius ** 2;
 
          World.Solid_Mass := Solid_Mass * Earth_Mass;
          World.Gas_Mass := Gas_Mass * Earth_Mass;

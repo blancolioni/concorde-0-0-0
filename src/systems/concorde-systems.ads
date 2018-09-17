@@ -41,6 +41,11 @@ package Concorde.Systems is
                     return Non_Negative_Real
                     is abstract;
 
+   function Surface_Area
+     (Object : Star_System_Object_Interface)
+      return Non_Negative_Real
+      is abstract;
+
    function Primary (Object : Star_System_Object_Interface)
                      return access Star_System_Object_Interface'Class
                      is abstract;

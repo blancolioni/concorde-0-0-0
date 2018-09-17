@@ -136,4 +136,16 @@ package body Concorde.Stars is
       return Star.Class;
    end Stellar_Class;
 
+   ------------------
+   -- Surface_Area --
+   ------------------
+
+   overriding function Surface_Area
+     (Star : Root_Star_Type)
+      return Non_Negative_Real
+   is
+   begin
+      return 4.0 / 3.0 * Star.Radius ** 2;
+   end Surface_Area;
+
 end Concorde.Stars;
