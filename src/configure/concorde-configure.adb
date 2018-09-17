@@ -26,7 +26,7 @@ with Concorde.People.Traits.Configure;
 with Concorde.People.Individuals.Portraits;
 with Concorde.People.Genetics;
 
-with Concorde.Units.Configure;
+--  with Concorde.Units.Configure;
 
 with Concorde.Atmosphere.Configure;
 with Concorde.Features.Configure;
@@ -204,11 +204,11 @@ package body Concorde.Configure is
          Configure =>
            Concorde.Powers.Configure.Configure_Power_Execution'Access);
 
-      Tropos.Reader.Read_Config
-        (Path      => Directory_Path ("units"),
-         Extension => "txt",
-         Configure =>
-           Concorde.Units.Configure.Configure_Unit'Access);
+--        Tropos.Reader.Read_Config
+--          (Path      => Directory_Path ("units"),
+--           Extension => "txt",
+--           Configure =>
+--             Concorde.Units.Configure.Configure_Unit'Access);
 
       Concorde.Ships.Components.Configure.Configure_Components;
 --        Concorde.Facilities.Configure.Configure_Facilities;
