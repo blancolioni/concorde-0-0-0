@@ -200,64 +200,90 @@ package body Concorde.Network.Expressions is
                   return Xs;
                end;
             when Primitive_Node =>
-               declare
-                  use type Ada.Containers.Count_Type;
-                  use Concorde.Elementary_Functions;
-                  Left  : constant Array_Of_Values :=
-                            Eval (Node.Prim_Args.First_Element);
-                  Right : constant Array_Of_Values :=
-                            (if Node.Prim_Args.Length > 1
-                             then Eval
-                               (Expression_Node_Lists.Element
-                                  (Expression_Node_Lists.Next
-                                     (Node.Prim_Args.First)))
-                             else No_Values);
-                  Xs    : Array_Of_Values (Left'Range);
-                  S     : Real := 0.0;
-               begin
-                  for I in Xs'Range loop
-                     declare
-                        L : constant Real := Left (I).Real_Value;
-                        R : constant Real :=
-                              (if I in Right'Range
-                               then Right (I).Real_Value
-                               elsif Node.Primitive = Divide
-                               or else Node.Primitive = Multiply
-                               then 1.0
-                               else 0.0);
-                        X : Real;
-                     begin
-                        case Node.Primitive is
-                           when Negate =>
-                              X := -L;
-                           when Add =>
-                              X := L + R;
-                           when Subtract =>
-                              X := L - R;
-                           when Multiply =>
-                              X := L * R;
-                           when Divide =>
-                              X := L / R;
-                           when Power =>
-                              X := L ** R;
-                           when Square_Root =>
-                              X := Sqrt (L);
-                           when Sum =>
-                              X := L;
-                        end case;
-                        if Node.Primitive = Sum then
-                           S := S + X;
-                        else
-                           Xs (I) := To_Expression_Value (X);
-                        end if;
-                     end;
-                  end loop;
-                  if Node.Primitive = Sum then
-                     return V (S);
-                  else
-                     return Xs;
-                  end if;
-               end;
+               if Node.Primitive = Min then
+                  declare
+                     X : Real := Real'Last;
+                  begin
+                     for Item of Node.Prim_Args loop
+                        for Inner of Eval (Item) loop
+                           X := Real'Min (X, Inner.Real_Value);
+                        end loop;
+                     end loop;
+                     return (1 => To_Expression_Value (X));
+                  end;
+               elsif Node.Primitive = Max then
+                  declare
+                     X : Real := Real'First;
+                  begin
+                     for Item of Node.Prim_Args loop
+                        for Inner of Eval (Item) loop
+                           X := Real'Max (X, Inner.Real_Value);
+                        end loop;
+                     end loop;
+                     return (1 => To_Expression_Value (X));
+                  end;
+               else
+                  declare
+                     use type Ada.Containers.Count_Type;
+                     use Concorde.Elementary_Functions;
+                     Left  : constant Array_Of_Values :=
+                               Eval (Node.Prim_Args.First_Element);
+                     Right : constant Array_Of_Values :=
+                               (if Node.Prim_Args.Length > 1
+                                then Eval
+                                  (Expression_Node_Lists.Element
+                                     (Expression_Node_Lists.Next
+                                        (Node.Prim_Args.First)))
+                                else No_Values);
+                     Xs    : Array_Of_Values (Left'Range);
+                     S     : Real := 0.0;
+                  begin
+                     for I in Xs'Range loop
+                        declare
+                           L : constant Real := Left (I).Real_Value;
+                           R : constant Real :=
+                                 (if I in Right'Range
+                                  then Right (I).Real_Value
+                                  elsif Node.Primitive = Divide
+                                  or else Node.Primitive = Multiply
+                                  then 1.0
+                                  else 0.0);
+                           X : Real;
+                        begin
+                           case Node.Primitive is
+                              when Negate =>
+                                 X := -L;
+                              when Add =>
+                                 X := L + R;
+                              when Subtract =>
+                                 X := L - R;
+                              when Multiply =>
+                                 X := L * R;
+                              when Divide =>
+                                 X := L / R;
+                              when Power =>
+                                 X := L ** R;
+                              when Square_Root =>
+                                 X := Sqrt (L);
+                              when Sum =>
+                                 X := L;
+                              when Min | Max =>
+                                 raise Program_Error;
+                           end case;
+                           if Node.Primitive = Sum then
+                              S := S + X;
+                           else
+                              Xs (I) := To_Expression_Value (X);
+                           end if;
+                        end;
+                     end loop;
+                     if Node.Primitive = Sum then
+                        return V (S);
+                     else
+                        return Xs;
+                     end if;
+                  end;
+               end if;
          end case;
       end Eval;
 

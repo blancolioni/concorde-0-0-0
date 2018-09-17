@@ -115,6 +115,11 @@ package body Concorde.Network.Expressions.Parser is
 
       Indent : constant Positive := Tok_Indent;
 
+      function At_Primary return Boolean
+      is (Tok in Tok_Left_Paren | Tok_Identifier | Operator_Token
+            | Tok_Sum | Tok_Max | Tok_Min
+              | Tok_Integer_Constant | Tok_Float_Constant);
+
       function Parse_Operator (Prec : Precedence_Range) return Expression_Node;
       function Parse_Primary return Expression_Node;
 
@@ -221,6 +226,19 @@ package body Concorde.Network.Expressions.Parser is
                Arg : constant Expression_Node := Parse_Primary;
             begin
                Primary := Prim (Sum, Arg);
+            end;
+         elsif Tok = Tok_Min or else Tok = Tok_Max then
+            declare
+               Prim : constant Primitive_Type :=
+                        (if Tok = Tok_Min then Min else Max);
+               Exprs : Expression_Node_Lists.List;
+            begin
+               Scan;
+               while At_Primary loop
+                  Exprs.Append (Parse_Primary);
+               end loop;
+               Primary := new Expression_Node_Record'
+                 (Primitive_Node, Prim, Exprs);
             end;
          elsif Tok = Tok_Integer_Constant
            or else Tok = Tok_Float_Constant

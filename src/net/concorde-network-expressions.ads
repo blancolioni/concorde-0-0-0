@@ -56,7 +56,8 @@ private
       Constraint_Node, Field_Selector_Node);
 
    type Primitive_Type is
-     (Negate, Add, Subtract, Multiply, Divide, Power, Square_Root, Sum);
+     (Negate, Add, Subtract, Multiply, Divide, Power, Square_Root,
+      Sum, Max, Min);
 
    type Expression_Node_Record (Node_Type : Expression_Node_Type);
 
