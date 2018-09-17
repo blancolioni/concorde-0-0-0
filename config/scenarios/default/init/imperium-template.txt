@@ -26,6 +26,12 @@ init = {
 
 }
 
+agricultural-land-use = 5%
+commercial-land-use = 12%
+industrial-land-use = 15%
+mining-land-use = 5%
+urban-land-use = 10%
+
 pop-size = 10K
 gini = 0.7
 apathy = 0.8
