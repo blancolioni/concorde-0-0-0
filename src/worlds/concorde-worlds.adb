@@ -183,6 +183,10 @@ package body Concorde.Worlds is
       return Concorde.Network.Expression_Value
    is
    begin
+      if not Concorde.Worlds.Fields.Have_Field (Name) then
+         raise Constraint_Error with
+           "worlds: no such field: " & Name;
+      end if;
       return Concorde.Worlds.Fields.Get_Field (World, Name);
    end Get_Field_Value;
 
