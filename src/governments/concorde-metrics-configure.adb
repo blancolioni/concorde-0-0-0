@@ -83,6 +83,10 @@ package body Concorde.Metrics.Configure is
                         Node :=
                           Concorde.Network.Metrics.New_Money_Metric
                             (Metric.Identifier);
+                     elsif Field_Value.Show = "quantity" then
+                        Node :=
+                          Concorde.Network.Metrics.New_Quantity_Metric
+                            (Metric.Identifier);
                      elsif Field_Value.Show = "rating" then
                         Node :=
                           Concorde.Network.Metrics.New_Rating_Metric
@@ -94,6 +98,9 @@ package body Concorde.Metrics.Configure is
                            & Field_Value.Show
                            & " in metric configuration for "
                            & Metric.Identifier);
+                        Node :=
+                          Concorde.Network.Metrics.New_Rating_Metric
+                            (Metric.Identifier);
                      end if;
                   end if;
                else
