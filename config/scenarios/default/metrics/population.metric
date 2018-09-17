@@ -1,0 +1,2 @@
+type: quantity
+value: sum ((pops | all).size)
