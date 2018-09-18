@@ -10,3 +10,9 @@ politics = {
 proportion = {
   base = 0.1
 }
+
+influence = {
+   farmer = -1
+   military = -1
+   retired = -1
+}

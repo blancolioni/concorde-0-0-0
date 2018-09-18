@@ -4,5 +4,11 @@ politics = {
 }
 
 proportion = {
-  base = 0.2
+  base = 0.1
+}
+
+influence = {
+   bureaucrat = -1
+   military = -1
+   retired = -1
 }
