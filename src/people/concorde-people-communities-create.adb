@@ -79,6 +79,10 @@ package body Concorde.People.Communities.Create is
 
       function Current_Gini return Unit_Real;
 
+      function Default_Group_Proportion
+        (Group : Concorde.People.Groups.Pop_Group)
+         return Unit_Real;
+
       ----------------------------
       -- Calculate_Distribution --
       ----------------------------
@@ -130,6 +134,23 @@ package body Concorde.People.Communities.Create is
 
          return 1.0 - 2.0 * Unit_Real'Min (B, 0.5);
       end Current_Gini;
+
+      ------------------------------
+      -- Default_Group_Proportion --
+      ------------------------------
+
+      function Default_Group_Proportion
+        (Group : Concorde.People.Groups.Pop_Group)
+         return Unit_Real
+      is
+         P : constant Unit_Real := Initial_Value (Group.Identifier);
+      begin
+         if P = 0.0 then
+            return Group.Default_Proportion;
+         else
+            return P;
+         end if;
+      end Default_Group_Proportion;
 
       ----------------------
       -- Recalculate_Gini --
@@ -345,7 +366,7 @@ package body Concorde.People.Communities.Create is
                         Considered_Groups.Insert (Group.Identifier);
                         declare
                            Chance : Unit_Real :=
-                                      Group.Default_Proportion;
+                                      Default_Group_Proportion (Group);
                         begin
                            for I in 1 .. Group_Count loop
                               Chance := Chance *
