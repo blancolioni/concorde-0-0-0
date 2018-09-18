@@ -1,5 +1,5 @@
 init = {
-   population = ~10M
+   population = ~100M
    tax-evasion = 0.5
    poor-income-tax = 5%
    middle-class-income-tax = 5%
@@ -22,7 +22,7 @@ init = {
    wealthy-income = 20
    megarich-income = 100
    agriculture-industry = 0.2
-   food-price = 0.5
+   food-price = 1.5
    bureaucrat = 0.5
 }
 

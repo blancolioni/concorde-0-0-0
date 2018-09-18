@@ -39,3 +39,5 @@ src/ships/components-old
 config/scenarios/default/policies - Copy
 config/v2/
 trace.txt
+config/images/*
+config/portraits/*

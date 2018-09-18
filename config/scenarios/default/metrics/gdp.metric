@@ -1,4 +1,5 @@
 type: money
 calculation {
    add: sum ((pops | all).income)
+   --  add: agriculture-industry.production * food.price
 }

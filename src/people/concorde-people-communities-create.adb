@@ -10,6 +10,8 @@ with Concorde.Random;
 
 with Concorde.Objects.Queues;
 
+with Concorde.Commodities;
+
 with Concorde.People.Groups;
 with Concorde.People.Pops.Create;
 
@@ -19,7 +21,11 @@ with Concorde.Government.Create;
 
 with Concorde.Managers.Communities;
 
+with Concorde.People.Communities.Fields;
+
 package body Concorde.People.Communities.Create is
+
+   Created_Dynamic_Fields : Boolean := False;
 
    procedure Create_Initial_Pops
      (Community : in out Root_Community_Type'Class;
@@ -639,11 +645,49 @@ package body Concorde.People.Communities.Create is
 
          end loop;
 
+         declare
+            procedure Add_Local_Commodity
+              (Commodity : Concorde.Commodities.Commodity_Type);
+
+            -------------------------
+            -- Add_Local_Commodity --
+            -------------------------
+
+            procedure Add_Local_Commodity
+              (Commodity : Concorde.Commodities.Commodity_Type)
+            is
+               Local_Price : constant Non_Negative_Real :=
+                               Initial_Value (Commodity.Identifier & "-price");
+               Local : constant Local_Commodity_Record :=
+                         Local_Commodity_Record'
+                                 (Price     =>
+                                    (if Local_Price = 0.0
+                                     then Commodity.Base_Price
+                                     else WL.Money.Adjust_Price
+                                       (Commodity.Base_Price,
+                                        Float (Local_Price))),
+                                  Available => WL.Quantities.Zero,
+                                  Supply    => WL.Quantities.Zero,
+                                  Demand    => WL.Quantities.Zero);
+            begin
+               Community.Local_Commodities.Insert
+                 (Commodity.Identifier, new Local_Commodity_Record'(Local));
+            end Add_Local_Commodity;
+
+         begin
+            Concorde.Commodities.Scan (Add_Local_Commodity'Access);
+         end;
+
       end Create;
 
       Community : constant Community_Type :=
                     Db.Create (Create'Access);
    begin
+
+      if not Created_Dynamic_Fields then
+         Concorde.People.Communities.Fields.Create_Commodity_Fields;
+         Created_Dynamic_Fields := True;
+      end if;
 
       Community.Update.Government :=
         Concorde.Government.Create.Create_Government

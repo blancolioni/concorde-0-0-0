@@ -1,3 +1,3 @@
 type: rating
-max-production: min (world.habitability * agricultural-land / 100_000) 
-                    (sum ((pops | group => farmer).size) * 10)
+production: min (world.habitability * agricultural-land / 100_000) 
+                (sum ((pops | group => farmer).size) * 10)

@@ -1,5 +1,10 @@
 private with Memor.Database;
 
+private with WL.String_Maps;
+
+with WL.Money;
+with WL.Quantities;
+
 with Concorde.Network.Nodes;
 
 with Concorde.Calendar;
@@ -66,6 +71,9 @@ package Concorde.People.Communities is
       Process : not null access
         procedure (Individual : Concorde.People.Individuals.Individual_Type));
 
+   procedure Update_Local_Market
+     (Community : in out Root_Community_Type'Class);
+
    function Exists (Name : String) return Boolean;
    function Get (Name : String) return Community_Type;
 
@@ -89,6 +97,34 @@ private
 
    type Land_Use_Array is array (Land_Use) of Land_Use_Record;
 
+   type Local_Commodity_Record is
+     new Concorde.Network.Expression_Object_Interface with
+      record
+         Price     : WL.Money.Price_Type;
+         Available : WL.Quantities.Quantity_Type;
+         Supply    : WL.Quantities.Quantity_Type;
+         Demand    : WL.Quantities.Quantity_Type;
+      end record;
+
+   type Local_Commodity is access all Local_Commodity_Record'Class;
+
+   overriding function Get_Field_Value
+     (Local : Local_Commodity_Record;
+      Name  : String)
+      return Concorde.Network.Expression_Value;
+
+   overriding function Get_Value
+     (Local : Local_Commodity_Record)
+      return Concorde.Network.Expression_Value;
+
+   overriding function Has_Field
+     (Local : Local_Commodity_Record;
+      Name  : String)
+      return Boolean;
+
+   package Local_Commodity_Maps is
+     new WL.String_Maps (Local_Commodity);
+
    type Root_Community_Type is
      new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Government.Governed_Interface
@@ -96,15 +132,16 @@ private
      and Concorde.Network.Network_State_Interface
      and Concorde.Locations.Located_Interface with
       record
-         World       : Concorde.Worlds.World_Type;
-         Owner       : Concorde.Factions.Faction_Type;
-         Network     : Concorde.Network.Nodes.Node_State_Map;
-         Pops        : Concorde.People.Pops.Lists.List;
-         Individuals : Concorde.People.Individuals.Lists.List;
-         Market      : Concorde.Markets.Market_Type;
-         Government  : Concorde.Government.Government_Type;
-         Occupation  : Unit_Real := 0.0;
-         Land_Use    : Land_Use_Array := (others => (0.0, 0.0));
+         World             : Concorde.Worlds.World_Type;
+         Owner             : Concorde.Factions.Faction_Type;
+         Network           : Concorde.Network.Nodes.Node_State_Map;
+         Pops              : Concorde.People.Pops.Lists.List;
+         Individuals       : Concorde.People.Individuals.Lists.List;
+         Market            : Concorde.Markets.Market_Type;
+         Government        : Concorde.Government.Government_Type;
+         Occupation        : Unit_Real := 0.0;
+         Land_Use          : Land_Use_Array := (others => (0.0, 0.0));
+         Local_Commodities : Local_Commodity_Maps.Map;
       end record;
 
    overriding function Object_Database

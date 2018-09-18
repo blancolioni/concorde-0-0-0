@@ -21,6 +21,21 @@ package body Concorde.People.Communities.Fields is
       return Real
    is (Community.Occupation);
 
+   function Get_Food
+     (Community : Root_Community_Type'Class)
+      return access constant
+     Concorde.Network.Expression_Object_Interface'Class
+   is (Community.Local_Commodities.Element ("food"));
+
+   -----------------------------
+   -- Create_Commodity_Fields --
+   -----------------------------
+
+   procedure Create_Commodity_Fields is
+   begin
+      Community_Fields.Add_Field ("food", Get_Food'Access);
+   end Create_Commodity_Fields;
+
    ---------------
    -- Get_Field --
    ---------------
