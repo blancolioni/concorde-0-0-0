@@ -9,22 +9,39 @@ with Concorde.Network.Metrics;
 
 package body Concorde.People.Groups.Configure is
 
-   procedure Configure_Pop_Group
-     (Config : Tropos.Configuration);
-
    procedure Create_Pop_Group
-     (Config : Tropos.Configuration);
+     (Config    : Tropos.Configuration);
+
+   procedure Configure_Influences
+     (Config    : Tropos.Configuration);
 
    -------------------------
    -- Configure_Pop_Group --
    -------------------------
 
-   procedure Configure_Pop_Group
-     (Config : Tropos.Configuration)
+   procedure Configure_Influences
+     (Config    : Tropos.Configuration)
    is
+      procedure Configure (Group : in out Root_Pop_Group'Class);
+
+      ---------------
+      -- Configure --
+      ---------------
+
+      procedure Configure (Group : in out Root_Pop_Group'Class) is
+      begin
+         for Item of Config.Child ("influence") loop
+            Group.Influences.Append
+              (Group_Influence'
+                 (Group     => Db.Get (Item.Config_Name),
+                  Influence => Signed_Unit_Real (Float'(Item.Value))));
+         end loop;
+      end Configure;
+
    begin
-      null;
-   end Configure_Pop_Group;
+      Db.Update (Db.Get (Config.Config_Name).Reference, Configure'Access);
+
+   end Configure_Influences;
 
    --------------------------
    -- Configure_Pop_Groups --
@@ -43,7 +60,7 @@ package body Concorde.People.Groups.Configure is
          Create_Pop_Group (Group_Config);
       end loop;
       for Group_Config of Config loop
-         Configure_Pop_Group (Group_Config);
+         Configure_Influences (Group_Config);
       end loop;
    end Configure_Pop_Groups;
 
@@ -52,7 +69,7 @@ package body Concorde.People.Groups.Configure is
    ----------------------
 
    procedure Create_Pop_Group
-     (Config : Tropos.Configuration)
+     (Config    : Tropos.Configuration)
    is
       Name  : constant String := Config.Config_Name;
 
