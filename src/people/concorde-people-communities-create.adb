@@ -324,14 +324,17 @@ package body Concorde.People.Communities.Create is
                                       (Community.Network,
                                        "relative-wealth", IG.Relative_Income);
                            R    : constant Real := Left * Bias;
+                           P    : constant Unit_Real :=
+                                    Default_Group_Proportion (G);
                         begin
                            if (G.Is_Political_Left
-                               and then R < G.Default_Proportion)
+                               and then R < P)
                              or else
                                (G.Is_Political_Right
-                                and then R > 1.0 - G.Default_Proportion)
+                                and then R > 1.0 - P)
                            then
                               Add_Group (G);
+                              exit;
                            end if;
                         end;
                      end if;
