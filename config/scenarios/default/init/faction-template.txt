@@ -23,6 +23,7 @@ init = {
    megarich-income = 100
    agriculture-industry = 0.5
    food-price = 0.5
+   farmer = 0.5
 }
 
 agricultural-land-use = 30%
