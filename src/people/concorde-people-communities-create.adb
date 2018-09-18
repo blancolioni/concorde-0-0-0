@@ -299,10 +299,12 @@ package body Concorde.People.Communities.Create is
                            Natural
                              (Real'Ceiling
                                 (IG.Proportion * Total_Pop));
-            Pop_Count : constant Positive := 10;
---                            Positive
---                              (Real'Ceiling
---                                 (IG.Proportion * Total_Pop / Pop_Size));
+            Pop_Count  : constant Positive :=
+                           Positive'Max
+                             (20,
+                              Positive
+                                (Real'Ceiling
+                                   (IG.Proportion * Total_Pop / Pop_Size)));
             Size       : constant Natural := Group_Size / Pop_Count;
          begin
             for I in 1 .. Pop_Count loop
