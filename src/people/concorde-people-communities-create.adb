@@ -4,6 +4,7 @@ with Ada.Text_IO;
 with WL.Money;
 with WL.String_Sets;
 
+--  with Concorde.Real_Images;
 with Concorde.Elementary_Functions;
 with Concorde.Random;
 
@@ -363,24 +364,105 @@ package body Concorde.People.Communities.Create is
                      end if;
                   end loop;
 
-                  for Group of All_Groups loop
-                     if not Considered_Groups.Contains (Group.Identifier) then
-                        Considered_Groups.Insert (Group.Identifier);
-                        declare
-                           Chance : Unit_Real :=
-                                      Default_Group_Proportion (Group);
-                        begin
-                           for I in 1 .. Group_Count loop
-                              Chance := Chance *
-                                (1.0 + Groups (I).Influence (Group));
-                           end loop;
-
-                           if Concorde.Random.Unit_Random <= Chance then
-                              Add_Group (Group);
-                           end if;
-                        end;
+                  for G of Political loop
+                     if G.Has_Wealth_Proportion
+                       and then not Considered_Groups.Contains (G.Identifier)
+                     then
+                        Considered_Groups.Insert (G.Identifier);
                      end if;
                   end loop;
+
+                  declare
+                     Chances : array (All_Groups'Range) of Non_Negative_Real;
+                     Gs      : array (All_Groups'Range) of Pop_Group;
+                     Count   : Natural;
+                     Total   : Non_Negative_Real;
+                  begin
+                     loop
+
+                        Total := 0.0;
+                        Count := 0;
+
+--                          Ada.Text_IO.Put_Line
+--                            ("checking groups ...");
+                        for Group of All_Groups loop
+                           if not Considered_Groups.Contains
+                             (Group.Identifier)
+                           then
+                              declare
+                                 Chance : Unit_Real :=
+                                            Default_Group_Proportion (Group);
+                              begin
+                                 for I in 1 .. Group_Count loop
+                                    Chance := Chance *
+                                      (1.0 + Groups (I).Influence (Group));
+                                 end loop;
+                                 if Chance > 0.0 then
+                                    Count := Count + 1;
+                                    Chances (Count) := Chance;
+                                    Gs (Count) := Group;
+                                    Total := Total + Chance;
+--                                      Ada.Text_IO.Put_Line
+--                                        ("   " & Group.Identifier
+--                                         & " "
+--                                         & Concorde.Real_Images
+--                                         .Approximate_Image (Chance));
+                                 end if;
+                              end;
+                           end if;
+                        end loop;
+
+                        exit when Count < 2;
+
+                        declare
+                           R : Non_Negative_Real :=
+                                 Concorde.Random.Unit_Random
+                                   * (Real'Max (Total * 1.2, 1.0));
+                           Assigned : Boolean := False;
+                        begin
+--                             Ada.Text_IO.Put_Line
+--                               ("roll: "
+--                                & Concorde.Real_Images.
+--                                  Approximate_Image (R));
+                           for I in 1 .. Count loop
+                              if R <= Chances (I) then
+--                                   Ada.Text_IO.Put_Line
+--                                     ("adding group: "
+--                                      & Gs (I).Identifier);
+                                 Add_Group (Gs (I));
+                                 Assigned := True;
+                                 exit;
+                              end if;
+                              R := R - Chances (I);
+                           end loop;
+                           exit when not Assigned;
+                        end;
+                     end loop;
+                  end;
+
+--                    Ada.Text_IO.Put_Line ("done");
+--                    for Group of All_Groups loop
+--                       if not Considered_Groups.Contains
+--                         (Group.Identifier)
+--                       then
+--                          Considered_Groups.Insert (Group.Identifier);
+--                          declare
+--                             Chance : Unit_Real :=
+--                                        Default_Group_Proportion (Group);
+--                          begin
+--                             for I in 1 .. Group_Count loop
+--                                Chance := Chance *
+--                                  (1.0 + Groups (I).Influence (Group));
+--                             end loop;
+--
+--                             if Concorde.Random.Unit_Random
+--                               <= Chance
+--                             then
+--                                Add_Group (Group);
+--                             end if;
+--                          end;
+--                       end if;
+--                    end loop;
 
                   Community.Add_Pop
                     (Concorde.People.Pops.Create.New_Pop

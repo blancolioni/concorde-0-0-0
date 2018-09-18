@@ -7,3 +7,7 @@ politics = {
 }
 
 wealth-group = yes
+
+influence = {
+   military = 0.3
+}
