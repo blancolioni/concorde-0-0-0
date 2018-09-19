@@ -226,6 +226,15 @@ package body Concorde.Commodities is
       return Commodity.Flags (Flag);
    end Is_Set;
 
+   --------------------
+   -- No_Commodities --
+   --------------------
+
+   function No_Commodities return Array_Of_Commodities is
+   begin
+      return Result : Array_Of_Commodities (1 .. 0);
+   end No_Commodities;
+
    ---------------------
    -- Object_Database --
    ---------------------

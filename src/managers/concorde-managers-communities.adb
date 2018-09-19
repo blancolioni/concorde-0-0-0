@@ -92,11 +92,11 @@ package body Concorde.Managers.Communities is
          & WL.Quantities.Show
            (WL.Quantities.To_Quantity
                 (Float
-                     (Concorde.Network.To_Real_Value
-                        (Manager.Community.Node
-                           ("agriculture-industry")
-                         .Get_Field_Value ("production"))))));
---        Manager.Community.Log
+                     (Manager.Community.Node
+                        ("agriculture-industry")
+                      .Current_Actual_Value))));
+
+      --        Manager.Community.Log
 --          ("agriculture industry farmers: "
 --           & WL.Quantities.Show
 --             (WL.Quantities.To_Quantity

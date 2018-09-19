@@ -15,12 +15,16 @@ with Concorde.Locations;
 with Concorde.Commodities;
 with Concorde.Factions;
 with Concorde.Government;
+with Concorde.Industries;
 with Concorde.Laws;
 with Concorde.Markets;
+with Concorde.People.Individuals;
+with Concorde.People.Pops;
 with Concorde.Worlds;
 
-with Concorde.People.Individuals.Lists;
-with Concorde.People.Pops.Lists;
+private with Concorde.Industries.Lists;
+private with Concorde.People.Individuals.Lists;
+private with Concorde.People.Pops.Lists;
 
 package Concorde.People.Communities is
 
@@ -144,6 +148,7 @@ private
          Network           : Concorde.Network.Nodes.Node_State_Map;
          Pops              : Concorde.People.Pops.Lists.List;
          Individuals       : Concorde.People.Individuals.Lists.List;
+         Industries        : Concorde.Industries.Lists.List;
          Market            : Concorde.Markets.Market_Type;
          Government        : Concorde.Government.Government_Type;
          Occupation        : Unit_Real := 0.0;

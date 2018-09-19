@@ -52,6 +52,7 @@ package Concorde.Commodities is
    function All_Commodities return Array_Of_Commodities;
    function Trade_Commodities return Array_Of_Commodities;
    function Virtual_Commodities return Array_Of_Commodities;
+   function No_Commodities return Array_Of_Commodities;
 
    function Get (Class : Commodity_Class) return Array_Of_Commodities;
 

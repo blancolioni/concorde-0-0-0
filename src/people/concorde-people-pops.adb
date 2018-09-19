@@ -1,5 +1,17 @@
 package body Concorde.People.Pops is
 
+   ----------
+   -- Cash --
+   ----------
+
+   overriding function Cash
+     (Pop : Root_Pop_Type)
+      return WL.Money.Money_Type
+   is
+   begin
+      return WL.Money.To_Money (Float (Pop.Current_Income_Total));
+   end Cash;
+
    --------------------------
    -- Current_Income_Total --
    --------------------------
@@ -39,9 +51,9 @@ package body Concorde.People.Pops is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Non_Negative_Real
    is
-      pragma Unreferenced (Pop);
    begin
-      return Concorde.Commodities.Pop_Daily_Needs (Commodity);
+      return Concorde.Commodities.Pop_Daily_Needs (Commodity)
+        * Non_Negative_Real (Pop.Size);
    end Daily_Needs;
 
    ------------------

@@ -1,4 +1,3 @@
-with Ada.Text_IO;
 with Concorde.Real_Images;
 
 with WL.String_Maps;
@@ -1148,6 +1147,10 @@ package body Concorde.Markets is
       procedure Update_Commodity
         (Commodity : Concorde.Commodities.Commodity_Type);
 
+      ----------------------
+      -- Update_Commodity --
+      ----------------------
+
       procedure Update_Commodity
         (Commodity : Concorde.Commodities.Commodity_Type)
       is
@@ -1161,13 +1164,18 @@ package body Concorde.Markets is
          package Needs_Record_Maps is
            new WL.String_Maps (Needs_Record);
 
-         Needs : Needs_Record_Maps.Map;
-         Total_Demand : Non_Negative_Real := 0.0;
-         Total_Supply : Non_Negative_Real := 0.0;
+         Needs           : Needs_Record_Maps.Map;
+         Total_Demand    : Non_Negative_Real := 0.0;
+         Total_Supply    : Non_Negative_Real := 0.0;
+         Total_Desire    : Non_Negative_Real := 0.0;
+         Total_Available : Non_Negative_Real := 0.0;
+         Need_Factor     : Non_Negative_Real := 1.0;
+         Offer_Factor    : Non_Negative_Real := 1.0;
 
-         Need_Factor : Non_Negative_Real  := 1.0;
-         Offer_Factor : Non_Negative_Real := 1.0;
-
+         Price         : constant Non_Negative_Real :=
+                           Real
+                             (WL.Money.To_Float
+                                (Market.Current_Price (Commodity)));
          procedure Add_Agent_Needs
            (Agent : not null access constant
               Concorde.Agents.Root_Agent_Type'Class);
@@ -1192,22 +1200,25 @@ package body Concorde.Markets is
             Demand        : constant Non_Negative_Real :=
                               (if Supply > Wanted
                                then 0.0 else Wanted - Supply);
-            Price         : constant Non_Negative_Real :=
-                              Real
-                                (To_Float (Market.Current_Price (Commodity)));
             Wanted_Budget : constant Real :=
                               Price * Demand;
             Budget        : constant Non_Negative_Real :=
-                              Real'Min (Agent.Daily_Budget (Commodity),
+                              Real'Min (Agent.Daily_Budget (Commodity)
+                                        * Real (To_Float (Agent.Cash)),
                                         Wanted_Budget);
          begin
-            if Wanted_Budget > 0.0 then
+            if Wanted_Budget > 0.0
+              or else Supply > Wanted
+            then
                Needs.Insert
                  (Agent.Identifier,
                   (Needed => Budget / Price,
                    Offered => Real'Max (Supply - Wanted, 0.0)));
-               Total_Demand := Total_Demand + Demand;
+               Total_Demand := Total_Demand + Budget / Price;
                Total_Supply := Total_Supply + Real'Max (Supply - Wanted, 0.0);
+               Total_Desire := Total_Desire + Real'Max (Wanted - Supply, 0.0);
+               Total_Available := Total_Available
+                 + Real'Max (Supply - Wanted, 0.0);
             end if;
          end Add_Agent_Needs;
 
@@ -1249,20 +1260,72 @@ package body Concorde.Markets is
          end Process_Agent_Needs;
 
       begin
+
          Market.Scan_Agents (Add_Agent_Needs'Access);
 
          if Total_Demand > 0.0 and then Total_Supply > 0.0 then
-            Ada.Text_IO.Put_Line
-              (Commodity.Identifier
-               & ": supply="
+            Concorde.Logging.Log
+              (Actor    => "market",
+               Location => "",
+               Category => Commodity.Identifier,
+               Message  =>
+                 "price="
+               & Concorde.Real_Images.Approximate_Image (Price)
+               & "; supply="
                & Concorde.Real_Images.Approximate_Image (Total_Supply)
                & "; demand="
-               & Concorde.Real_Images.Approximate_Image (Total_Demand));
+               & Concorde.Real_Images.Approximate_Image (Total_Demand)
+               & "; available="
+               & Concorde.Real_Images.Approximate_Image (Total_Available)
+               & "; desire="
+               & Concorde.Real_Images.Approximate_Image (Total_Desire));
 
             Need_Factor := Real'Min (Total_Supply / Total_Demand, 1.0);
             Offer_Factor := Real'Min (Total_Demand / Total_Supply, 1.0);
+
             Market.Scan_Agents (Process_Agent_Needs'Access);
          end if;
+
+         declare
+            New_Price : Non_Negative_Real := Price;
+         begin
+            if Total_Desire > Total_Demand
+              and then Total_Supply > Total_Demand
+            then
+               New_Price := Price -
+                 (Price
+                  - Real (WL.Money.To_Float (Commodity.Base_Price)) / 10.0)
+                 / 20.0;
+               Concorde.Logging.Log
+                 (Actor    => "market",
+                  Location => "",
+                  Category => Commodity.Identifier,
+                  Message  => "new price: "
+                  & Concorde.Real_Images.Approximate_Image (New_Price));
+            end if;
+
+            if Total_Demand > Total_Supply then
+               New_Price := Price +
+                 (Real (WL.Money.To_Float (Commodity.Base_Price)) * 10.0
+                  - Price)
+                 / 20.0;
+               Concorde.Logging.Log
+                 (Actor    => "market",
+                  Location => "",
+                  Category => Commodity.Identifier,
+                  Message  => "new price: "
+                  & Concorde.Real_Images.Approximate_Image (New_Price));
+            end if;
+
+            Market.Update_Commodity
+              (Item      => Commodity,
+               Demand    => WL.Quantities.To_Quantity (Float (Total_Demand)),
+               Supply    => WL.Quantities.To_Quantity (Float (Total_Supply)),
+               Available => WL.Quantities.To_Quantity
+                 (Float (Total_Available)),
+               Price     => WL.Money.To_Price (Float (New_Price)));
+         end;
+
       end Update_Commodity;
 
    begin

@@ -106,7 +106,7 @@ package body Concorde.Agents is
    ----------
 
    function Cash
-     (Agent : Root_Agent_Type'Class)
+     (Agent : Root_Agent_Type)
       return WL.Money.Money_Type
    is
    begin

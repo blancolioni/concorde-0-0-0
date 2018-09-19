@@ -12,6 +12,8 @@ with Concorde.Objects.Queues;
 
 with Concorde.Commodities;
 
+with Concorde.Industries.Create;
+
 with Concorde.People.Groups;
 with Concorde.People.Pops.Create;
 
@@ -727,6 +729,21 @@ package body Concorde.People.Communities.Create is
            Owner          => Community,
            Manager        => Community.Government,
            Enable_Logging => False);
+
+      declare
+         Agriculture : constant Concorde.Industries.Industry_Type :=
+                         Concorde.Industries.Create.New_Industry
+                           (Market          => Community.Market,
+                            Government      => Community.Government,
+                            Production_Node =>
+                              Community.Node ("agriculture-industry"),
+                            Inputs          =>
+                              Concorde.Commodities.No_Commodities,
+                            Outputs         =>
+                              (1 => Concorde.Commodities.Get ("food")));
+      begin
+         Community.Update.Industries.Append (Agriculture);
+      end;
 
       Concorde.Managers.Communities.Create_Manager (Community).Activate;
 

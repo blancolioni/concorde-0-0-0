@@ -312,6 +312,9 @@ package body Concorde.People.Communities is
       for Pop of Community.Pops loop
          Process (Pop);
       end loop;
+      for Industry of Community.Industries loop
+         Process (Industry);
+      end loop;
    end Scan_Agents;
 
    ----------------------

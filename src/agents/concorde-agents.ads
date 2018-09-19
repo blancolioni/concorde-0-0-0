@@ -230,7 +230,7 @@ package Concorde.Agents is
    is (False);
 
    function Cash
-     (Agent : Root_Agent_Type'Class)
+     (Agent : Root_Agent_Type)
       return WL.Money.Money_Type;
 
    function Limit_Cash
