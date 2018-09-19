@@ -18,6 +18,51 @@ with Concorde.Commodities;
 
 package Concorde.Markets is
 
+   type Market_Interface is limited interface;
+
+   function Current_Price
+     (Market : Market_Interface;
+      Item   : Concorde.Commodities.Commodity_Type)
+      return WL.Money.Price_Type
+      is abstract;
+
+   function Current_Demand
+     (Market : Market_Interface;
+      Item   : Concorde.Commodities.Commodity_Type)
+      return WL.Quantities.Quantity_Type
+      is abstract;
+
+   function Current_Supply
+     (Market : Market_Interface;
+      Item   : Concorde.Commodities.Commodity_Type)
+      return WL.Quantities.Quantity_Type
+      is abstract;
+
+   function Current_Quantity
+     (Market : Market_Interface;
+      Item   : Concorde.Commodities.Commodity_Type)
+      return WL.Quantities.Quantity_Type
+      is abstract;
+
+   procedure Update_Commodity
+     (Market    : in out Market_Interface;
+      Item      : Concorde.Commodities.Commodity_Type;
+      Demand    : WL.Quantities.Quantity_Type;
+      Supply    : WL.Quantities.Quantity_Type;
+      Available : WL.Quantities.Quantity_Type;
+      Price     : WL.Money.Price_Type)
+   is abstract;
+
+   procedure Scan_Agents
+     (Market : Market_Interface;
+      Process : not null access
+        procedure (Agent : not null access constant
+                     Concorde.Agents.Root_Agent_Type'Class))
+   is abstract;
+
+   procedure Update_Market
+     (Market : in out Market_Interface'Class);
+
    type Root_Market_Type is
      new Concorde.Objects.Root_Object_Type
      and Trades.Trade_Interface with private;
