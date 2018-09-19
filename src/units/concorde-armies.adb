@@ -98,6 +98,19 @@ package body Concorde.Armies is
       return Updateable_Reference'(Base_Update.Element, Base_Update);
    end Update;
 
+   ------------------
+   -- Update_Agent --
+   ------------------
+
+   overriding procedure Update_Agent
+     (Army           : not null access constant Root_Army_Type;
+      Perform_Update : not null access
+        procedure (Agent : in out Concorde.Agents.Root_Agent_Type'Class))
+   is
+   begin
+      Perform_Update (Army.Update);
+   end Update_Agent;
+
    ---------------------
    -- Update_Location --
    ---------------------

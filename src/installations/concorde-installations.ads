@@ -137,6 +137,11 @@ private
          Efficiency        : Concorde.Facilities.Process_Efficiency;
       end record;
 
+   overriding procedure Update_Agent
+     (Installation   : not null access constant Root_Installation_Type;
+      Perform_Update : not null access
+        procedure (Agent : in out Concorde.Agents.Root_Agent_Type'Class));
+
    overriding function Class_Name
      (Installation : Root_Installation_Type) return String
    is ("installation");

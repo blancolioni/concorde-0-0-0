@@ -63,6 +63,19 @@ package body Concorde.Ships.Vessels is
       end return;
    end Maximum_Thrust;
 
+   ------------------
+   -- Update_Agent --
+   ------------------
+
+   overriding procedure Update_Agent
+     (Vessel     : not null access constant Root_Vessel_Type;
+      Perform_Update : not null access
+        procedure (Agent : in out Concorde.Agents.Root_Agent_Type'Class))
+   is
+   begin
+      Perform_Update (Vessel.Update_Vessel);
+   end Update_Agent;
+
    -------------------
    -- Update_Vessel --
    -------------------

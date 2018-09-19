@@ -16,6 +16,48 @@ package body Concorde.People.Pops is
       return Result * Real (Pop.Size);
    end Current_Income_Total;
 
+   ------------------
+   -- Daily_Budget --
+   ------------------
+
+   overriding function Daily_Budget
+     (Pop       : Root_Pop_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Unit_Real
+   is
+      pragma Unreferenced (Pop);
+   begin
+      return Concorde.Commodities.Pop_Max_Budget (Commodity);
+   end Daily_Budget;
+
+   -----------------
+   -- Daily_Needs --
+   -----------------
+
+   overriding function Daily_Needs
+     (Pop       : Root_Pop_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Non_Negative_Real
+   is
+      pragma Unreferenced (Pop);
+   begin
+      return Concorde.Commodities.Pop_Daily_Needs (Commodity);
+   end Daily_Needs;
+
+   ------------------
+   -- Daily_Supply --
+   ------------------
+
+   overriding function Daily_Supply
+     (Pop       : Root_Pop_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Non_Negative_Real
+   is
+      pragma Unreferenced (Pop, Commodity);
+   begin
+      return 0.0;
+   end Daily_Supply;
+
    ---------------------
    -- Get_Field_Value --
    ---------------------
@@ -91,5 +133,18 @@ package body Concorde.People.Pops is
    begin
       return Updateable_Reference'(Base_Update.Element, Base_Update);
    end Update;
+
+   ------------------
+   -- Update_Agent --
+   ------------------
+
+   overriding procedure Update_Agent
+     (Pop            : not null access constant Root_Pop_Type;
+      Perform_Update : not null access
+        procedure (Agent : in out Concorde.Agents.Root_Agent_Type'Class))
+   is
+   begin
+      Perform_Update (Pop.Update);
+   end Update_Agent;
 
 end Concorde.People.Pops;

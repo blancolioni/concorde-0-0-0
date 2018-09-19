@@ -44,6 +44,11 @@ private
          Is_Alive : Boolean;
       end record;
 
+   overriding procedure Update_Agent
+     (Vessel         : not null access constant Root_Vessel_Type;
+      Perform_Update : not null access
+        procedure (Agent : in out Concorde.Agents.Root_Agent_Type'Class));
+
    overriding function Class_Name
      (Ship : Root_Vessel_Type)
       return String

@@ -27,6 +27,12 @@ package Concorde.Agents is
      and Concorde.Contracts.Contractor_Interface
      and Concorde.Trades.Trader_Interface with private;
 
+   procedure Update_Agent
+     (Agent : not null access constant Root_Agent_Type;
+      Perform_Update : not null access
+        procedure (Agent : in out Root_Agent_Type'Class))
+   is abstract;
+
    overriding function Contracted_To_Buy
      (Agent      : Root_Agent_Type;
       Commodity  : not null access constant

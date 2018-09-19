@@ -251,4 +251,17 @@ package body Concorde.Government is
       return Updateable_Reference'(Base_Update.Element, Base_Update);
    end Update;
 
+   ------------------
+   -- Update_Agent --
+   ------------------
+
+   overriding procedure Update_Agent
+     (Government     : not null access constant Root_Government_Type;
+      Perform_Update : not null access
+        procedure (Agent : in out Concorde.Agents.Root_Agent_Type'Class))
+   is
+   begin
+      Perform_Update (Government.Update);
+   end Update_Agent;
+
 end Concorde.Government;

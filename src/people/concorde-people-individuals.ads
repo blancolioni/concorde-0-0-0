@@ -233,6 +233,11 @@ private
                                  (others => Natural'Last);
       end record;
 
+   overriding procedure Update_Agent
+     (Individual     : not null access constant Root_Individual_Type;
+      Perform_Update : not null access
+        procedure (Agent : in out Concorde.Agents.Root_Agent_Type'Class));
+
    overriding function Object_Database
      (Item : Root_Individual_Type)
       return Memor.Memor_Database;

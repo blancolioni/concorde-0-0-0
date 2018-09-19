@@ -175,6 +175,11 @@ private
          Slavery_Allowed   : Boolean := False;
       end record;
 
+   overriding procedure Update_Agent
+     (Government     : not null access constant Root_Government_Type;
+      Perform_Update : not null access
+        procedure (Agent : in out Concorde.Agents.Root_Agent_Type'Class));
+
    overriding function Class_Name
      (Government : Root_Government_Type)
       return String

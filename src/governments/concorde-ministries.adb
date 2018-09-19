@@ -145,4 +145,17 @@ package body Concorde.Ministries is
       return Updateable_Reference'(Base_Update.Element, Base_Update);
    end Update;
 
+   ------------------
+   -- Update_Agent --
+   ------------------
+
+   overriding procedure Update_Agent
+     (Ministry       : not null access constant Root_Ministry_Type;
+      Perform_Update : not null access
+        procedure (Agent : in out Concorde.Agents.Root_Agent_Type'Class))
+   is
+   begin
+      Perform_Update (Ministry.Update);
+   end Update_Agent;
+
 end Concorde.Ministries;

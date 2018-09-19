@@ -145,6 +145,11 @@ private
          Daily_Budget      : WL.Money.Money_Type;
       end record;
 
+   overriding procedure Update_Agent
+     (Ministry     : not null access constant Root_Ministry_Type;
+      Perform_Update : not null access
+        procedure (Agent : in out Concorde.Agents.Root_Agent_Type'Class));
+
    overriding function Class_Name
      (Ministry : Root_Ministry_Type)
       return String

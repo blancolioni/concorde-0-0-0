@@ -489,6 +489,11 @@ private
          Default_Ship       : access String;
       end record;
 
+   overriding procedure Update_Agent
+     (Faction        : not null access constant Root_Faction_Type;
+      Perform_Update : not null access
+        procedure (Agent : in out Concorde.Agents.Root_Agent_Type'Class));
+
    overriding function Class_Name (Faction : Root_Faction_Type) return String
    is ("Faction");
 

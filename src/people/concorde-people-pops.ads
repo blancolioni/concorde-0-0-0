@@ -9,6 +9,7 @@ with WL.Quantities;
 with Concorde.Network;
 
 with Concorde.Agents;
+with Concorde.Commodities;
 with Concorde.Facilities;
 with Concorde.Trades;
 
@@ -68,6 +69,26 @@ private
          Groups       : Group_Membership_Lists.List;
          Apathy       : Unit_Real := 0.0;
       end record;
+
+   overriding procedure Update_Agent
+     (Pop            : not null access constant Root_Pop_Type;
+      Perform_Update : not null access
+        procedure (Agent : in out Concorde.Agents.Root_Agent_Type'Class));
+
+   overriding function Daily_Budget
+     (Pop       : Root_Pop_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Unit_Real;
+
+   overriding function Daily_Needs
+     (Pop       : Root_Pop_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Non_Negative_Real;
+
+   overriding function Daily_Supply
+     (Pop       : Root_Pop_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Non_Negative_Real;
 
    overriding function Class_Name
      (Pop : Root_Pop_Type) return String
