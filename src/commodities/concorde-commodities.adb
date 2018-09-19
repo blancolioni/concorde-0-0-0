@@ -240,6 +240,30 @@ package body Concorde.Commodities is
    end Object_Database;
 
    ---------------------
+   -- Pop_Daily_Needs --
+   ---------------------
+
+   function Pop_Daily_Needs
+     (Commodity : Commodity_Type)
+      return Non_Negative_Real
+   is
+   begin
+      return Daily_Pop.Element (Commodity).Needs;
+   end Pop_Daily_Needs;
+
+   --------------------
+   -- Pop_Max_Budget --
+   --------------------
+
+   function Pop_Max_Budget
+     (Commodity : Commodity_Type)
+      return Unit_Real
+   is
+   begin
+      return Daily_Pop.Element (Commodity).Budget;
+   end Pop_Max_Budget;
+
+   ---------------------
    -- Remove_Quantity --
    ---------------------
 

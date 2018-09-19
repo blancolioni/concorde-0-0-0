@@ -155,6 +155,14 @@ package Concorde.Commodities is
       Maximum : WL.Quantities.Quantity_Type;
       Virtual : Boolean);
 
+   function Pop_Daily_Needs
+     (Commodity : Commodity_Type)
+      return Non_Negative_Real;
+
+   function Pop_Max_Budget
+     (Commodity : Commodity_Type)
+      return Unit_Real;
+
 private
 
    type Root_Commodity_Type is
@@ -232,5 +240,17 @@ private
 
    function Exists (Name : String) return Boolean
    is (Db.Exists (Name));
+
+   type Daily_Record is
+      record
+         Needs  : Non_Negative_Real;
+         Budget : Unit_Real;
+      end record;
+
+   package Commodity_Daily_Vectors is
+     new Memor.Element_Vectors (Root_Commodity_Type, Daily_Record,
+                                (0.0, 0.0));
+
+   Daily_Pop : Commodity_Daily_Vectors.Vector;
 
 end Concorde.Commodities;

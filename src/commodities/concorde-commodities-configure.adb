@@ -17,6 +17,10 @@ package body Concorde.Commodities.Configure is
       Flags      : Array_Of_Flags)
       return Commodity_Type;
 
+   procedure Configure_Daily
+     (Vector : in out Commodity_Daily_Vectors.Vector;
+      Config : Tropos.Configuration);
+
    ---------------------------
    -- Calculate_Base_Prices --
    ---------------------------
@@ -136,6 +140,14 @@ package body Concorde.Commodities.Configure is
         (Path      => Concorde.Configure.Directory_Path ("commodities"),
          Extension => "commodity",
          Configure => Configure_Commodity'Access);
+      Configure_Daily
+        (Vector => Daily_Pop,
+         Config =>
+           Tropos.Reader.Read_Config
+             (Concorde.Configure.File_Path
+                  (Directory => "init",
+                   File_Name => "pop-needs",
+                   Extension => "txt")));
    end Configure_Commodities;
 
    -------------------------
@@ -179,6 +191,28 @@ package body Concorde.Commodities.Configure is
       end;
 
    end Configure_Commodity;
+
+   ---------------------
+   -- Configure_Daily --
+   ---------------------
+
+   procedure Configure_Daily
+     (Vector : in out Commodity_Daily_Vectors.Vector;
+      Config : Tropos.Configuration)
+   is
+   begin
+      for Item_Config of Config loop
+         declare
+            Commodity : constant Commodity_Type :=
+                          Get (Item_Config.Config_Name);
+         begin
+            Vector.Replace_Element
+              (Commodity,
+               (Real (Float'(Item_Config.Get ("need"))),
+                Real (Float'(Item_Config.Get ("budget")))));
+         end;
+      end loop;
+   end Configure_Daily;
 
    ---------------------
    -- Configure_Stock --
