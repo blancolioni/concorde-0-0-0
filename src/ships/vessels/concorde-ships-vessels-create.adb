@@ -4,8 +4,6 @@ with Concorde.Money;
 
 with Concorde.Roman_Images;
 
-with Concorde.People.Communities;
-
 package body Concorde.Ships.Vessels.Create is
 
    -------------------------
@@ -14,8 +12,9 @@ package body Concorde.Ships.Vessels.Create is
 
    function Create_Start_Vessel
      (Owner       : Concorde.Factions.Faction_Type;
+      Community   : not null access constant
+        Concorde.People.Communities.Root_Community_Type'Class;
       Name        : String;
-      World       : Concorde.Worlds.World_Type;
       Design_Name : String;
       Suffix      : Natural := 0)
       return Ship_Type
@@ -40,9 +39,10 @@ package body Concorde.Ships.Vessels.Create is
       begin
          Vessel.New_Agent
            (Location       =>
-              Concorde.Locations.Geosynchronous_Orbit (World),
-            Government     => Owner.Capital_Community.Government,
-            Market         => Owner.Capital_Community.Market,
+              Concorde.Locations.Geosynchronous_Orbit
+                (Community.World),
+            Government     => Community.Government,
+            Market         => Community.Market,
             Cash           => Concorde.Money.To_Money (100_000.0),
             Stock_Capacity => Design.Cargo_Capacity);
 
@@ -85,7 +85,7 @@ package body Concorde.Ships.Vessels.Create is
          end;
 
          Vessel.Log
-           (World.Name & ": new ship: " & Vessel.Name);
+           (Community.World.Name & ": new ship: " & Vessel.Name);
 
          declare
             Fuel : Concorde.Commodities.Root_Stock_Type;
@@ -148,7 +148,7 @@ package body Concorde.Ships.Vessels.Create is
 
       Vessel : constant Vessel_Type := Db.Create (Create'Access);
    begin
-      World.System.Update.Add_Ship (Vessel);
+      Community.World.System.Update.Add_Ship (Vessel);
       return Ship_Type (Vessel);
    end Create_Start_Vessel;
 

@@ -41,8 +41,7 @@ package body Concorde.Factions.Create is
    Imperial_Centre : Boolean := True;
 
    procedure Create_Initial_Ships
-     (World : Concorde.Worlds.World_Type)
-     with Unreferenced;
+     (Community : Concorde.People.Communities.Community_Type);
 
    function Find_System
      (Start  : Concorde.Systems.Star_System_Type;
@@ -56,15 +55,17 @@ package body Concorde.Factions.Create is
    --------------------------
 
    procedure Create_Initial_Ships
-     (World : Concorde.Worlds.World_Type)
+     (Community : Concorde.People.Communities.Community_Type)
    is
+      World : constant Concorde.Worlds.World_Type :=
+                Community.World;
       Defender : constant Concorde.Ships.Ship_Type :=
                    Concorde.Ships.Vessels.Create.Create_Start_Vessel
-                     (Owner       => World.Owner,
+                     (Owner       => Community.Owner,
+                      Community   => Community,
                       Name        =>
-                        World.Owner.Name
+                        Community.Owner.Name
                       & " Defender",
-                      World       => World,
                       Design_Name => "defender");
 
    begin
@@ -74,14 +75,15 @@ package body Concorde.Factions.Create is
       for I in 1 .. Concorde.Options.Initial_Trade_Ships loop
          declare
             Capital : constant Concorde.Worlds.World_Type :=
-                         Concorde.Galaxy.Capital_World;
+                        Concorde.Galaxy.Capital_World;
+            Faction : constant Concorde.Factions.Faction_Type :=
+                        Community.Owner;
             Trader   : constant Concorde.Ships.Ship_Type :=
                          Concorde.Ships.Vessels.Create.Create_Start_Vessel
-                           (Owner       => World.Owner,
+                           (Owner       => Faction,
                             Name        =>
-                              World.Owner.Name & " Trader" & I'Img,
-                            World       =>
-                              (if I mod 2 = 1 then World else Capital),
+                              Faction.Name & " Trader" & I'Img,
+                            Community   => Faction.Capital_Community,
                             Design_Name => "trader");
          begin
 
@@ -583,6 +585,10 @@ package body Concorde.Factions.Create is
 
          Set_Initial_Prices
            (Faction.Capital_Community.Market.Update);
+
+         Create_Initial_Ships
+           (Concorde.People.Communities.Community_Type
+              (Faction.Capital_Community));
 
 --           if Start_World.Has_Market then
 --              Set_Initial_Prices (Start_World.Market.Update);
