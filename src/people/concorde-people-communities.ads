@@ -1,6 +1,7 @@
 private with Memor.Database;
+private with Memor.Element_Vectors;
 
-private with WL.String_Maps;
+private with Concorde.Agents;
 
 with WL.Money;
 with WL.Quantities;
@@ -11,6 +12,7 @@ with Concorde.Calendar;
 with Concorde.Objects;
 with Concorde.Locations;
 
+with Concorde.Commodities;
 with Concorde.Factions;
 with Concorde.Government;
 with Concorde.Laws;
@@ -30,6 +32,7 @@ package Concorde.People.Communities is
      and Concorde.Government.Governed_Interface
      and Concorde.Laws.Law_Target_Interface
      and Concorde.Network.Network_State_Interface
+     and Concorde.Markets.Market_Interface
      and Concorde.Locations.Located_Interface with private;
 
    type Community_Type is access constant Root_Community_Type'Class;
@@ -71,8 +74,8 @@ package Concorde.People.Communities is
       Process : not null access
         procedure (Individual : Concorde.People.Individuals.Individual_Type));
 
-   procedure Update_Local_Market
-     (Community : in out Root_Community_Type'Class);
+--     procedure Update_Local_Market
+--       (Community : in out Root_Community_Type'Class);
 
    function Exists (Name : String) return Boolean;
    function Get (Name : String) return Community_Type;
@@ -101,12 +104,13 @@ private
      new Concorde.Network.Expression_Object_Interface with
       record
          Price     : WL.Money.Price_Type;
-         Available : WL.Quantities.Quantity_Type;
+         Quantity  : WL.Quantities.Quantity_Type;
          Supply    : WL.Quantities.Quantity_Type;
          Demand    : WL.Quantities.Quantity_Type;
       end record;
 
    type Local_Commodity is access all Local_Commodity_Record'Class;
+   type Local_Commodity_Access is access all Local_Commodity_Record;
 
    overriding function Get_Field_Value
      (Local : Local_Commodity_Record;
@@ -122,14 +126,17 @@ private
       Name  : String)
       return Boolean;
 
-   package Local_Commodity_Maps is
-     new WL.String_Maps (Local_Commodity);
+   package Local_Commodity_Vectors is
+     new Memor.Element_Vectors
+       (Concorde.Commodities.Root_Commodity_Type,
+        Local_Commodity_Access, null);
 
    type Root_Community_Type is
      new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Government.Governed_Interface
      and Concorde.Laws.Law_Target_Interface
      and Concorde.Network.Network_State_Interface
+     and Concorde.Markets.Market_Interface
      and Concorde.Locations.Located_Interface with
       record
          World             : Concorde.Worlds.World_Type;
@@ -141,7 +148,7 @@ private
          Government        : Concorde.Government.Government_Type;
          Occupation        : Unit_Real := 0.0;
          Land_Use          : Land_Use_Array := (others => (0.0, 0.0));
-         Local_Commodities : Local_Commodity_Maps.Map;
+         Local_Commodities : Local_Commodity_Vectors.Vector;
       end record;
 
    overriding function Object_Database
@@ -200,6 +207,40 @@ private
      (Community : Root_Community_Type;
       Name  : String)
       return Boolean;
+
+   overriding function Current_Quantity
+     (Community : Root_Community_Type;
+      Item      : Concorde.Commodities.Commodity_Type)
+      return WL.Quantities.Quantity_Type;
+
+   overriding function Current_Demand
+     (Community : Root_Community_Type;
+      Item      : Concorde.Commodities.Commodity_Type)
+      return WL.Quantities.Quantity_Type;
+
+   overriding function Current_Price
+     (Community : Root_Community_Type;
+      Item      : Concorde.Commodities.Commodity_Type)
+      return WL.Money.Price_Type;
+
+   overriding function Current_Supply
+     (Community : Root_Community_Type;
+      Item      : Concorde.Commodities.Commodity_Type)
+      return WL.Quantities.Quantity_Type;
+
+   overriding procedure Update_Commodity
+     (Community : in out Root_Community_Type;
+      Item      : Concorde.Commodities.Commodity_Type;
+      Demand    : WL.Quantities.Quantity_Type;
+      Supply    : WL.Quantities.Quantity_Type;
+      Quantity  : WL.Quantities.Quantity_Type;
+      Price     : WL.Money.Price_Type);
+
+   overriding procedure Scan_Agents
+     (Community : Root_Community_Type;
+      Process : not null access
+        procedure (Agent : not null access constant
+                     Concorde.Agents.Root_Agent_Type'Class));
 
    function World
      (Community : Root_Community_Type'Class)

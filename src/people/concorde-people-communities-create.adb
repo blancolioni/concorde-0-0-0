@@ -666,12 +666,12 @@ package body Concorde.People.Communities.Create is
                                      else WL.Money.Adjust_Price
                                        (Commodity.Base_Price,
                                         Float (Local_Price))),
-                                  Available => WL.Quantities.Zero,
+                                  Quantity => WL.Quantities.Zero,
                                   Supply    => WL.Quantities.Zero,
                                   Demand    => WL.Quantities.Zero);
             begin
-               Community.Local_Commodities.Insert
-                 (Commodity.Identifier, new Local_Commodity_Record'(Local));
+               Community.Local_Commodities.Replace_Element
+                 (Commodity, new Local_Commodity_Record'(Local));
             end Add_Local_Commodity;
 
          begin

@@ -76,8 +76,7 @@ package body Concorde.Managers.Communities is
            (Manager.Time, True));
 
       Manager.Community.Update.Run_Network_State;
-
-      Manager.Community.Update.Update_Local_Market;
+      Manager.Community.Update.Update_Market;
 
       Manager.Community.Log
         ("total population: "

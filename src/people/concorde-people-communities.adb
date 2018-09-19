@@ -28,6 +28,19 @@ package body Concorde.People.Communities is
       Community.Pops.Append (Concorde.People.Pops.Pop_Type (Pop));
    end Add_Pop;
 
+   --------------------
+   -- Current_Demand --
+   --------------------
+
+   overriding function Current_Demand
+     (Community : Root_Community_Type;
+      Item      : Concorde.Commodities.Commodity_Type)
+      return WL.Quantities.Quantity_Type
+   is
+   begin
+      return Community.Local_Commodities.Element (Item).Demand;
+   end Current_Demand;
+
    ----------------------
    -- Current_Location --
    ----------------------
@@ -40,6 +53,45 @@ package body Concorde.People.Communities is
       return Concorde.Locations.World_Surface
         (Community.World, 1);
    end Current_Location;
+
+   -------------------
+   -- Current_Price --
+   -------------------
+
+   overriding function Current_Price
+     (Community : Root_Community_Type;
+      Item      : Concorde.Commodities.Commodity_Type)
+      return WL.Money.Price_Type
+   is
+   begin
+      return Community.Local_Commodities.Element (Item).Price;
+   end Current_Price;
+
+   ----------------------
+   -- Current_Quantity --
+   ----------------------
+
+   overriding function Current_Quantity
+     (Community : Root_Community_Type;
+      Item      : Concorde.Commodities.Commodity_Type)
+      return WL.Quantities.Quantity_Type
+   is
+   begin
+      return Community.Local_Commodities.Element (Item).Quantity;
+   end Current_Quantity;
+
+   --------------------
+   -- Current_Supply --
+   --------------------
+
+   overriding function Current_Supply
+     (Community : Root_Community_Type;
+      Item      : Concorde.Commodities.Commodity_Type)
+      return WL.Quantities.Quantity_Type
+   is
+   begin
+      return Community.Local_Commodities.Element (Item).Supply;
+   end Current_Supply;
 
    -------------------------
    -- Evaluate_Constraint --
@@ -161,7 +213,7 @@ package body Concorde.People.Communities is
    begin
       return Concorde.Network.To_Expression_Value
         (Non_Negative_Real
-           (WL.Quantities.To_Float (Local.Available)));
+           (WL.Quantities.To_Float (Local.Quantity)));
    end Get_Value;
 
    ---------------
@@ -242,6 +294,25 @@ package body Concorde.People.Communities is
    begin
       Db.Scan (Process);
    end Scan;
+
+   -----------------
+   -- Scan_Agents --
+   -----------------
+
+   overriding procedure Scan_Agents
+     (Community : Root_Community_Type;
+      Process   : not null access
+        procedure (Agent : not null access constant
+                     Concorde.Agents.Root_Agent_Type'Class))
+   is
+   begin
+      for Individual of Community.Individuals loop
+         Process (Individual);
+      end loop;
+      for Pop of Community.Pops loop
+         Process (Pop);
+      end loop;
+   end Scan_Agents;
 
    ----------------------
    -- Scan_Individuals --
@@ -339,60 +410,84 @@ package body Concorde.People.Communities is
       return Updateable_Reference'(Base_Update.Element, Base_Update);
    end Update;
 
+   ----------------------
+   -- Update_Commodity --
+   ----------------------
+
+   overriding procedure Update_Commodity
+     (Community : in out Root_Community_Type;
+      Item      : Concorde.Commodities.Commodity_Type;
+      Demand    : WL.Quantities.Quantity_Type;
+      Supply    : WL.Quantities.Quantity_Type;
+      Quantity  : WL.Quantities.Quantity_Type;
+      Price     : WL.Money.Price_Type)
+   is
+      Rec : Local_Commodity_Record renames
+              Community.Local_Commodities.Element (Item).all;
+   begin
+      Rec :=
+        Local_Commodity_Record'
+          (Price    => Price,
+           Quantity => Quantity,
+           Supply   => Supply,
+           Demand   => Demand);
+   end Update_Commodity;
+
    -------------------------
    -- Update_Local_Market --
    -------------------------
 
-   procedure Update_Local_Market
-     (Community : in out Root_Community_Type'Class)
-   is
-      use WL.Money;
-      use WL.Quantities;
-      Food_Production : constant Non_Negative_Real :=
-                          Concorde.Network.To_Real_Value
-                            (Community.Node
-                               ("agriculture-industry")
-                             .Get_Field_Value ("production"));
-      Food_Demand     : Non_Negative_Real := 0.0;
-      Food_Supply     : constant Non_Negative_Real := Food_Production;
-      Local_Food      : constant Local_Commodity :=
-                          Community.Local_Commodities.Element ("food");
-      Food_Available  : Non_Negative_Real :=
-                          Non_Negative_Real (To_Float (Local_Food.Available));
-      Food_Price      : constant Real := Real (To_Float (Local_Food.Price));
-   begin
-      for Pop of Community.Pops loop
-         declare
-            Wanted        : constant Real := Real (Pop.Size);
-            Wanted_Budget : constant Real := Food_Price * Wanted;
-            Food_Budget   : constant Non_Negative_Real :=
-                              Real'Min (Pop.Current_Income_Total / 5.0,
-                                        Wanted_Budget);
-         begin
-            Food_Demand := Food_Demand + Wanted * Food_Budget / Wanted_Budget;
-         end;
-      end loop;
-
-      Food_Available := Food_Available + Food_Supply;
-      Local_Food.Available := To_Quantity (Float (Food_Available));
-      Local_Food.Demand := To_Quantity (Float (Food_Demand));
-      Local_Food.Supply := To_Quantity (Float (Food_Supply));
-
-      Community.Log
-        ("food: supply " & Show (Local_Food.Supply)
-         & "; demand " & Show (Local_Food.Demand)
-         & "; available " & Show (Local_Food.Available)
-         & "; price " & Show (Local_Food.Price));
-
-      declare
-         Factor : constant Real :=
-                    (if Food_Demand <= Food_Available
-                     then 1.0 else Food_Available / Food_Demand);
-      begin
-         Local_Food.Available :=
-           Scale (Local_Food.Available, Float (Factor));
-      end;
-
-   end Update_Local_Market;
+--     procedure Update_Local_Market
+--       (Community : in out Root_Community_Type'Class)
+--     is
+--        use WL.Money;
+--        use WL.Quantities;
+--        Food_Production : constant Non_Negative_Real :=
+--                            Concorde.Network.To_Real_Value
+--                              (Community.Node
+--                                 ("agriculture-industry")
+--                               .Get_Field_Value ("production"));
+--        Food_Demand     : Non_Negative_Real := 0.0;
+--        Food_Supply     : constant Non_Negative_Real := Food_Production;
+--        Local_Food      : constant Local_Commodity :=
+--                            Community.Local_Commodities.Element
+--                              (Concorde.Commodities.Get ("food");
+--        Food_Available  : Non_Negative_Real :=
+--                        Non_Negative_Real (To_Float (Local_Food.Available));
+--    Food_Price      : constant Real := Real (To_Float (Local_Food.Price));
+--     begin
+--        for Pop of Community.Pops loop
+--           declare
+--              Wanted        : constant Real := Real (Pop.Size);
+--              Wanted_Budget : constant Real := Food_Price * Wanted;
+--              Food_Budget   : constant Non_Negative_Real :=
+--                                Real'Min (Pop.Current_Income_Total / 5.0,
+--                                          Wanted_Budget);
+--           begin
+--          Food_Demand := Food_Demand + Wanted * Food_Budget / Wanted_Budget;
+--           end;
+--        end loop;
+--
+--        Food_Available := Food_Available + Food_Supply;
+--        Local_Food.Available := To_Quantity (Float (Food_Available));
+--        Local_Food.Demand := To_Quantity (Float (Food_Demand));
+--        Local_Food.Supply := To_Quantity (Float (Food_Supply));
+--
+--        Community.Log
+--          ("food: supply " & Show (Local_Food.Supply)
+--           & "; demand " & Show (Local_Food.Demand)
+--           & "; available " & Show (Local_Food.Available)
+--           & "; price " & Show (Local_Food.Price));
+--
+--        declare
+--           Factor : constant Real :=
+--                      (if Food_Demand <= Food_Available
+--                       then 1.0 else Food_Available / Food_Demand);
+--        begin
+--           Local_Food.Available :=
+--             Scale (Local_Food.Available, Float (Factor));
+--        end;
+--
+--     end Update_Local_Market;
 
 end Concorde.People.Communities;
