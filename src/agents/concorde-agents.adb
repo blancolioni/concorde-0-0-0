@@ -468,7 +468,6 @@ package body Concorde.Agents is
                            Commodity => Commodity);
                         declare
                            use Concorde.Commodities;
-                           use Concorde.Contracts;
                            Cancel : Current_Contract_Lists.List;
                         begin
                            for Contract of
@@ -1098,6 +1097,48 @@ package body Concorde.Agents is
    begin
       return Agent.Location;
    end Current_Location;
+
+   ------------------
+   -- Daily_Budget --
+   ------------------
+
+   function Daily_Budget
+     (Agent     : Root_Agent_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Unit_Real
+   is
+      pragma Unreferenced (Agent, Commodity);
+   begin
+      return 0.0;
+   end Daily_Budget;
+
+   -----------------
+   -- Daily_Needs --
+   -----------------
+
+   function Daily_Needs
+     (Agent     : Root_Agent_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Non_Negative_Real
+   is
+      pragma Unreferenced (Agent, Commodity);
+   begin
+      return 0.0;
+   end Daily_Needs;
+
+   ------------------
+   -- Daily_Supply --
+   ------------------
+
+   function Daily_Supply
+     (Agent     : Root_Agent_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Non_Negative_Real
+   is
+      pragma Unreferenced (Agent, Commodity);
+   begin
+      return 0.0;
+   end Daily_Supply;
 
    ---------------------------
    -- Delete_Pending_Offers --

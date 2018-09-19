@@ -76,6 +76,33 @@ package Concorde.Agents is
    function Class_Name (Agent : Root_Agent_Type) return String
                         is abstract;
 
+   function Daily_Needs
+     (Agent     : Root_Agent_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Non_Negative_Real;
+
+   function Daily_Supply
+     (Agent     : Root_Agent_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Non_Negative_Real;
+
+   function Daily_Budget
+     (Agent     : Root_Agent_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Unit_Real;
+
+   procedure On_Commodity_Buy
+     (Agent     : in out Root_Agent_Type;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Non_Negative_Real)
+   is null;
+
+   procedure On_Commodity_Sell
+     (Agent     : in out Root_Agent_Type;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Non_Negative_Real)
+   is null;
+
    function Reference (Agent : Root_Agent_Type'Class) return Agent_Reference;
 
    procedure New_Agent
