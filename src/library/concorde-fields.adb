@@ -2,7 +2,8 @@ with WL.String_Maps;
 
 package body Concorde.Fields is
 
-   type Handler_Record_Type is (Real_Handler, Object_Handler);
+   type Handler_Record_Type is
+     (Real_Handler, Object_Handler, Named_Handler);
 
    type Handler_Record (Handler_Type : Handler_Record_Type) is
       record
@@ -11,6 +12,8 @@ package body Concorde.Fields is
                Real_Fn : Real_Field_Handler;
             when Object_Handler =>
                Object_Fn : Object_Field_Handler;
+            when Named_Handler =>
+               Named_Fn  : Named_Object_Handler;
          end case;
       end record;
 
@@ -44,6 +47,18 @@ package body Concorde.Fields is
    end Add_Field;
 
    ---------------
+   -- Add_Field --
+   ---------------
+
+   procedure Add_Field
+     (Name : String;
+      Fn   : Named_Object_Handler)
+   is
+   begin
+      Map.Insert (Name, (Named_Handler, Fn));
+   end Add_Field;
+
+   ---------------
    -- Get_Field --
    ---------------
 
@@ -61,6 +76,9 @@ package body Concorde.Fields is
          when Object_Handler =>
             return Concorde.Network.To_Expression_Value
               (Map.Element (Name).Object_Fn (Rec));
+         when Named_Handler =>
+            return Concorde.Network.To_Expression_Value
+              (Map.Element (Name).Named_Fn (Rec, Name));
       end case;
    end Get_Field;
 
