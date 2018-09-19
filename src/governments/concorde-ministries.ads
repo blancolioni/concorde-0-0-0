@@ -4,7 +4,7 @@ private with Ada.Strings.Unbounded;
 private with Ada.Characters.Handling;
 private with Memor.Database;
 
-with WL.Money;
+with Concorde.Money;
 
 with Concorde.Agents;
 with Concorde.Bureaucracy;
@@ -49,7 +49,7 @@ package Concorde.Ministries is
 
    function Daily_Budget
      (Ministry : Root_Ministry_Type'Class)
-      return WL.Money.Money_Type;
+      return Concorde.Money.Money_Type;
 
    overriding function Short_Name
      (Ministry : Root_Ministry_Type)
@@ -142,7 +142,7 @@ private
            Concorde.People.Communities.Root_Community_Type'Class;
          Powers            : Concorde.Powers.Power_Set;
          Delegated_Powers  : Delegated_Power_Lists.List;
-         Daily_Budget      : WL.Money.Money_Type;
+         Daily_Budget      : Concorde.Money.Money_Type;
       end record;
 
    overriding procedure Update_Agent
@@ -220,7 +220,7 @@ private
 
    function Daily_Budget
      (Ministry : Root_Ministry_Type'Class)
-      return WL.Money.Money_Type
+      return Concorde.Money.Money_Type
    is (Ministry.Daily_Budget);
 
    package Db is

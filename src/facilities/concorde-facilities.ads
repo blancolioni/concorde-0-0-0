@@ -1,8 +1,8 @@
 private with Memor;
 private with Memor.Database;
 
-with WL.Money;
-with WL.Quantities;
+with Concorde.Money;
+with Concorde.Quantities;
 
 with Concorde.Commodities;
 with Concorde.Objects;
@@ -48,11 +48,11 @@ package Concorde.Facilities is
 
    function Workforce
      (Facility : Root_Facility_Type'Class)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    function Base_Service_Charge
      (Facility : Root_Facility_Type'Class)
-      return WL.Money.Price_Type;
+      return Concorde.Money.Price_Type;
 
    function Input_Count
      (Facility : Root_Facility_Type'Class)
@@ -77,9 +77,9 @@ package Concorde.Facilities is
 
    function Input_Quantity
      (Facility        : Root_Facility_Type'Class;
-      Production_Size : WL.Quantities.Quantity_Type;
+      Production_Size : Concorde.Quantities.Quantity_Type;
       Index           : Positive)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
      with Pre => Index <= Facility.Input_Count
      and then Facility.Simple_Input (Index);
 
@@ -102,10 +102,10 @@ package Concorde.Facilities is
 
    function Input_Choice_Quantity
      (Facility        : Root_Facility_Type'Class;
-      Production_Size : WL.Quantities.Quantity_Type;
+      Production_Size : Concorde.Quantities.Quantity_Type;
       Index           : Positive;
       Choice_Index    : Positive)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
      with Pre => Index <= Facility.Input_Count
      and then (Facility.Choice_Input (Index) or else Choice_Index = 1)
      and then Choice_Index <= Facility.Input_Choice_Count (Index);
@@ -144,9 +144,9 @@ package Concorde.Facilities is
 
    function Pop_Group_Quantity
      (Facility        : Root_Facility_Type'Class;
-      Production_Size : WL.Quantities.Quantity_Type;
+      Production_Size : Concorde.Quantities.Quantity_Type;
       Index           : Positive)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
      with Pre => Index <= Facility.Pop_Group_Count;
 
    function Pop_Group_Effect
@@ -181,9 +181,9 @@ package Concorde.Facilities is
 
    function Base_Output_Quantity
      (Facility : Root_Facility_Type'Class;
-      Size     : WL.Quantities.Quantity_Type;
+      Size     : Concorde.Quantities.Quantity_Type;
       Factor   : Non_Negative_Real)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    function Can_Produce
      (Facility  : Root_Facility_Type'Class;
@@ -243,7 +243,7 @@ private
          case Class is
             when Simple =>
                Commodity : Concorde.Commodities.Commodity_Type;
-               Quantity  : Float;
+               Quantity  : Non_Negative_Real;
             when Choice =>
                Choices   : access Array_Of_Inputs;
          end case;
@@ -267,8 +267,8 @@ private
          Resource_Name       : access String;
          Class               : Facility_Class;
          Flags               : Array_Of_Flags;
-         Power               : WL.Quantities.Quantity_Type;
-         Workforce           : WL.Quantities.Quantity_Type;
+         Power               : Concorde.Quantities.Quantity_Type;
+         Workforce           : Concorde.Quantities.Quantity_Type;
          Turnaround          : Duration;
          Commodity_Flags     : Concorde.Commodities.Array_Of_Flags;
          Owner_Group         : Concorde.People.Groups.Pop_Group;
@@ -279,7 +279,7 @@ private
          Workers             : access Array_Of_Workers;
          Output              : Concorde.Commodities.Commodity_Type;
          Output_Value        : Non_Negative_Real := 0.0;
-         Base_Service_Charge : WL.Money.Price_Type;
+         Base_Service_Charge : Concorde.Money.Price_Type;
       end record;
 
    overriding function Object_Database
@@ -304,7 +304,7 @@ private
 
    function Workforce
      (Facility : Root_Facility_Type'Class)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
    is (Facility.Workforce);
 
    function Simple_Input
@@ -321,10 +321,10 @@ private
 
    function Input_Quantity
      (Facility : Root_Facility_Type'Class;
-      Production_Size : WL.Quantities.Quantity_Type;
+      Production_Size : Concorde.Quantities.Quantity_Type;
       Index    : Positive)
-      return WL.Quantities.Quantity_Type
-   is (WL.Quantities.Scale
+      return Concorde.Quantities.Quantity_Type
+   is (Concorde.Quantities.Scale
        (Production_Size, Facility.Inputs (Index).Quantity));
 
    function Input_Choice_Count
@@ -345,24 +345,24 @@ private
 
    function Input_Choice_Quantity
      (Facility        : Root_Facility_Type'Class;
-      Production_Size : WL.Quantities.Quantity_Type;
+      Production_Size : Concorde.Quantities.Quantity_Type;
       Index           : Positive;
       Choice_Index    : Positive)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
    is (if Simple_Input (Facility, Index)
        then Input_Quantity (Facility, Production_Size, Index)
-       else WL.Quantities.Scale
+       else Concorde.Quantities.Scale
        (Production_Size,
         Facility.Inputs (Index).Choices (Choice_Index).Quantity));
 
    function Base_Output_Quantity
      (Facility : Root_Facility_Type'Class;
-      Size     : WL.Quantities.Quantity_Type;
+      Size     : Concorde.Quantities.Quantity_Type;
       Factor   : Non_Negative_Real)
-      return WL.Quantities.Quantity_Type
-   is (WL.Quantities.Scale
+      return Concorde.Quantities.Quantity_Type
+   is (Concorde.Quantities.Scale
        (Size,
-        Float (Facility.Output_Value * Factor)));
+        Facility.Output_Value * Factor));
 
    function Owner_Pop
      (Facility : Root_Facility_Type'Class)
@@ -403,12 +403,12 @@ private
 
    function Pop_Group_Quantity
      (Facility        : Root_Facility_Type'Class;
-      Production_Size : WL.Quantities.Quantity_Type;
+      Production_Size : Concorde.Quantities.Quantity_Type;
       Index           : Positive)
-      return WL.Quantities.Quantity_Type
-   is (WL.Quantities.Scale
+      return Concorde.Quantities.Quantity_Type
+   is (Concorde.Quantities.Scale
        (Production_Size,
-        Float (Facility.Workers (Index).Proportion)));
+        Facility.Workers (Index).Proportion));
 
    function Pop_Group_Effect
      (Facility : Root_Facility_Type'Class;

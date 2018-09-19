@@ -1,8 +1,8 @@
 private with Ada.Containers.Doubly_Linked_Lists;
 private with Ada.Strings.Unbounded;
 
-private with WL.Money;
-private with WL.Quantities;
+private with Concorde.Money;
+private with Concorde.Quantities;
 
 --  private with Concorde.Protected_Lists;
 private with Memor.Database;
@@ -474,7 +474,7 @@ private
          Manager            : Concorde.Managers.Manager_Type;
          Laws               : Law_Lists.List;
          Ministries         : Ministry_Lists.List;
-         Current_Population : WL.Quantities.Quantity_Type;
+         Current_Population : Concorde.Quantities.Quantity_Type;
          Current_Ships      : Natural := 0;
          Current_Units      : Natural := 0;
          Current_Relations  : Natural := 0;
@@ -533,7 +533,7 @@ private
 
    overriding procedure Require_Cash
      (Faction : in out Root_Faction_Type;
-      Amount  : WL.Money.Money_Type);
+      Amount  : Concorde.Money.Money_Type);
 
    overriding function Director
      (Faction : Root_Faction_Type)

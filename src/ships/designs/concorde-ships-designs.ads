@@ -32,7 +32,7 @@ package Concorde.Ships.Designs is
 
    function Cargo_Capacity
      (Design : Root_Design_Type'Class)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    procedure Get_Fuel_Requirements
      (Design       : Root_Design_Type'Class;

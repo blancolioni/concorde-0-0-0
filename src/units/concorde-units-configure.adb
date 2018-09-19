@@ -1,4 +1,4 @@
-with WL.Quantities;
+with Concorde.Quantities;
 
 with Concorde.Commodities.Configure;
 
@@ -33,9 +33,9 @@ package body Concorde.Units.Configure is
            Ada.Strings.Unbounded.To_Unbounded_String (Config.Get ("icon", ""));
 
          Construct.Create_Stock
-           (WL.Quantities.To_Quantity (100_000.0), False);
+           (Concorde.Quantities.To_Quantity (100_000.0), False);
          Maintain.Create_Stock
-           (WL.Quantities.To_Quantity (1_000.0), False);
+           (Concorde.Quantities.To_Quantity (1_000.0), False);
 
          Concorde.Commodities.Configure.Configure_Stock
            (Config.Child ("build_cost"), Construct, 1000.0);

@@ -1,4 +1,4 @@
-with WL.Money;
+with Concorde.Money;
 
 with Concorde.Objects.Queues;
 
@@ -30,7 +30,7 @@ package body Concorde.People.Pops.Create is
       ------------
 
       procedure Create (Pop : in out Root_Pop_Type'Class) is
-         use WL.Quantities;
+         use Concorde.Quantities;
       begin
          for Group of Groups loop
             Pop.Groups.Append
@@ -49,7 +49,7 @@ package body Concorde.People.Pops.Create is
            (Location       => Concorde.Locations.Nowhere,
             Government     => Government,
             Market         => Market,
-            Cash           => WL.Money.Zero,
+            Cash           => Concorde.Money.Zero,
             Stock_Capacity => Pop.Size_Quantity * To_Quantity (70.0));
 
       end Create;

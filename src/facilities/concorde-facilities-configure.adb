@@ -74,11 +74,11 @@ package body Concorde.Facilities.Configure is
 
          Facility.Set_Local_Tag (Config.Config_Name);
          Facility.Base_Service_Charge :=
-           WL.Money.Value (Value ("service_charge", "0"));
+           Concorde.Money.Value (Value ("service_charge", "0"));
          Facility.Power :=
-           WL.Quantities.Value (Value ("power", "0"));
+           Concorde.Quantities.Value (Value ("power", "0"));
          Facility.Workforce :=
-           WL.Quantities.Value (Value ("workforce", "0"));
+           Concorde.Quantities.Value (Value ("workforce", "0"));
 
          declare
             Turnaround_Seconds : Float := 3600.0;

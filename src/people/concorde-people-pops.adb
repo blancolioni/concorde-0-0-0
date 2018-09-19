@@ -6,10 +6,10 @@ package body Concorde.People.Pops is
 
    overriding function Cash
      (Pop : Root_Pop_Type)
-      return WL.Money.Money_Type
+      return Concorde.Money.Money_Type
    is
    begin
-      return WL.Money.To_Money (Float (Pop.Current_Income_Total));
+      return Concorde.Money.To_Money (Pop.Current_Income_Total);
    end Cash;
 
    --------------------------

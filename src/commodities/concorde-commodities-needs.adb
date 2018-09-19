@@ -7,10 +7,10 @@ package body Concorde.Commodities.Needs is
    procedure Add_Need
      (Need      : in out Commodity_Needs;
       Commodity : Commodity_Type;
-      Quantity  : WL.Quantities.Quantity_Type;
-      Price     : WL.Money.Price_Type)
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type)
    is
-      use WL.Money;
+      use Concorde.Money;
    begin
       Need.Vector.Append
         (Need_Record'
@@ -18,7 +18,7 @@ package body Concorde.Commodities.Needs is
             Quantity  => Quantity,
             Price     => Price));
       Need.Total_Cost := Need.Total_Cost + Total (Price, Quantity);
-      Need.Scale := To_Float (Need.Budget) / To_Float (Need.Total_Cost);
+      Need.Scale := To_Real (Need.Budget) / To_Real (Need.Total_Cost);
       Need.Scale := Float'Min (Need.Scale, 1.0);
    end Add_Need;
 
@@ -30,13 +30,13 @@ package body Concorde.Commodities.Needs is
      (Need    : Commodity_Needs;
       Process : not null access
         procedure (Commodity : Commodity_Type;
-                   Quantity  : WL.Quantities.Quantity_Type;
-                   Price     : WL.Money.Price_Type))
+                   Quantity  : Concorde.Quantities.Quantity_Type;
+                   Price     : Concorde.Money.Price_Type))
    is
    begin
       for Item of Need.Vector loop
          Process (Item.Commodity,
-                  WL.Quantities.Scale (Item.Quantity, Need.Scale),
+                  Concorde.Quantities.Scale (Item.Quantity, Need.Scale),
                   Item.Price);
       end loop;
    end Scan_Needs;
@@ -47,13 +47,13 @@ package body Concorde.Commodities.Needs is
 
    procedure Set_Budget
      (Need   : in out Commodity_Needs;
-      Budget : WL.Money.Money_Type)
+      Budget : Concorde.Money.Money_Type)
    is
-      use WL.Money;
+      use Concorde.Money;
    begin
       Need.Budget := Budget;
       if Need.Total_Cost > Zero then
-         Need.Scale := To_Float (Need.Budget) / To_Float (Need.Total_Cost);
+         Need.Scale := To_Real (Need.Budget) / To_Real (Need.Total_Cost);
          Need.Scale := Float'Min (Need.Scale, 1.0);
       end if;
    end Set_Budget;

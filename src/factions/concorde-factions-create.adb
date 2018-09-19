@@ -1,7 +1,7 @@
 with Ada.Text_IO;
 
-with WL.Money;
-with WL.Quantities;
+with Concorde.Money;
+with Concorde.Quantities;
 
 with Concorde.Options;
 with Concorde.Random;
@@ -439,8 +439,8 @@ package body Concorde.Factions.Create is
               Concorde.Locations.World_Surface (Start_World, 1),
             Government     => null,
             Market         => null,
-            Cash           => WL.Money.To_Money (1_000_000.0),
-            Stock_Capacity => WL.Quantities.Zero);
+            Cash           => Concorde.Money.To_Money (1_000_000.0),
+            Stock_Capacity => Concorde.Quantities.Zero);
 
          New_Faction.Identifier :=
            Ada.Strings.Unbounded.To_Unbounded_String (Name);
@@ -496,12 +496,12 @@ package body Concorde.Factions.Create is
             if Imperial_Centre then
                Market.Initial_Price
                  (Unavailable,
-                  WL.Money.Adjust_Price
+                  Concorde.Money.Adjust_Price
                     (Unavailable.Base_Price, Factor => 2.0));
                --           elsif Unavailable /= System.Resource then
                --              System.Market.Initial_Price
                --                (Unavailable,
-               --                 WL.Money.Adjust_Price
+               --                 Concorde.Money.Adjust_Price
                --             (Unavailable.Base_Price, Factor => 2.0));
             end if;
          end loop;
@@ -514,12 +514,12 @@ package body Concorde.Factions.Create is
                if Imperial_Centre then
                   Market.Initial_Price
                     (Item,
-                     WL.Money.Adjust_Price
+                     Concorde.Money.Adjust_Price
                        (Item.Base_Price, Factor => 2.0));
                else
                   Market.Initial_Price
                     (Item,
-                     WL.Money.Adjust_Price
+                     Concorde.Money.Adjust_Price
                        (Item.Base_Price, Factor => 4.0));
                end if;
             end loop;
@@ -543,7 +543,7 @@ package body Concorde.Factions.Create is
                        (World      => Start_World,
                         Faction    => Faction,
                         Population =>
-                          WL.Quantities.To_Quantity (Float (Base_Pop)),
+                          Concorde.Quantities.To_Quantity (Base_Pop),
                         Gini       => Gini,
                         Template   => Template);
       begin

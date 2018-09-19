@@ -1,4 +1,4 @@
-with WL.Money;
+with Concorde.Money;
 
 with Concorde.Objects.Queues;
 with Concorde.Signals.Standard;
@@ -63,7 +63,7 @@ package body Concorde.Managers.Installations is
    is
       use type Concorde.Calendar.Time;
       use type Concorde.Facilities.Facility_Type;
-      use WL.Money;
+      use Concorde.Money;
    begin
       if Manager.Installation.Facility /= null then
          Manager.Installation.Log_Trade

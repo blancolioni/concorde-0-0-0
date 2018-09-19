@@ -78,9 +78,9 @@ package body Concorde.Worlds is
 --     procedure Buy
 --       (World     : in out Root_World_Type'Class;
 --        Commodity : Concorde.Commodities.Commodity_Type;
---        Quantity  : in out WL.Quantities.Quantity_Type)
+--        Quantity  : in out Concorde.Quantities.Quantity_Type)
 --     is
---        use WL.Money, WL.Quantities;
+--        use Concorde.Money, Concorde.Quantities;
 --        New_Quantity : constant Quantity_Type :=
 --                    Min (Quantity, World.Import_Market_Size (Commodity));
 --        Cash : constant Money_Type :=
@@ -107,11 +107,11 @@ package body Concorde.Worlds is
 --     function Buy_Price
 --       (World     : Root_World_Type'Class;
 --        Commodity : Concorde.Commodities.Commodity_Type)
---        return WL.Money.Price_Type
+--        return Concorde.Money.Price_Type
 --     is
 --     begin
---        return WL.Money.Adjust_Price
---          (WL.Money.Without_Tax
+--        return Concorde.Money.Adjust_Price
+--          (Concorde.Money.Without_Tax
 --             (World.Market.Current_Price (Commodity),
 --              Float
 --                (World.Government.Tax_Rate
@@ -167,7 +167,7 @@ package body Concorde.Worlds is
 --     function Export_Market_Size
 --       (World     : Root_World_Type'Class;
 --        Commodity : Concorde.Commodities.Commodity_Type)
---        return WL.Quantities.Quantity_Type
+--        return Concorde.Quantities.Quantity_Type
 --     is
 --     begin
 --        return World.Port.Get_Quantity (Commodity);
@@ -344,9 +344,9 @@ package body Concorde.Worlds is
 --     function Import_Market_Size
 --       (World     : Root_World_Type'Class;
 --        Commodity : Concorde.Commodities.Commodity_Type)
---        return WL.Quantities.Quantity_Type
+--        return Concorde.Quantities.Quantity_Type
 --     is
---        use WL.Quantities;
+--        use Concorde.Quantities;
 --        Supply : constant Quantity_Type :=
 --                   World.Market.Current_Supply (Commodity);
 --        Demand : constant Quantity_Type :=
@@ -730,10 +730,10 @@ package body Concorde.Worlds is
 --     procedure Sell
 --       (World     : in out Root_World_Type'Class;
 --        Commodity : Concorde.Commodities.Commodity_Type;
---        Quantity  : in out WL.Quantities.Quantity_Type)
+--        Quantity  : in out Concorde.Quantities.Quantity_Type)
 --     is
---        use WL.Money, WL.Quantities;
---        New_Quantity : constant WL.Quantities.Quantity_Type :=
+--        use Concorde.Money, Concorde.Quantities;
+--        New_Quantity : constant Concorde.Quantities.Quantity_Type :=
 --                     Min (Quantity, World.Export_Market_Size (Commodity));
 --        Cash         : constant Money_Type :=
 --                         Total (World.Sell_Price (Commodity), New_Quantity);
@@ -758,11 +758,11 @@ package body Concorde.Worlds is
 --     function Sell_Price
 --       (World     : Root_World_Type'Class;
 --        Commodity : Concorde.Commodities.Commodity_Type)
---        return WL.Money.Price_Type
+--        return Concorde.Money.Price_Type
 --     is
---  --        use WL.Money;
---        use WL.Quantities;
---        Base_Price : constant WL.Money.Price_Type :=
+--  --        use Concorde.Money;
+--        use Concorde.Quantities;
+--        Base_Price : constant Concorde.Money.Price_Type :=
 --                       (if World.Port.Get_Quantity (Commodity) > Zero
 --                        then World.Port.Get_Average_Price (Commodity)
 --                        else World.Market.Current_Price (Commodity));
@@ -775,13 +775,13 @@ package body Concorde.Worlds is
 --           & "; local average "
 --           & Image (World.Market.Last_Average_Bid (Commodity))
 --           & "; with export tax "
---           & Image (WL.Money.Add_Tax
+--           & Image (Concorde.Money.Add_Tax
 --             (Base_Price,
 --                  World.Government.Tax_Rate
 --                    (Concorde.Trades.Export, Commodity))));
 
---        return WL.Money.Adjust_Price
---          (WL.Money.Add_Tax
+--        return Concorde.Money.Adjust_Price
+--          (Concorde.Money.Add_Tax
 --             (Base_Price,
 --              Float
 --                (World.Government.Tax_Rate
@@ -813,7 +813,7 @@ package body Concorde.Worlds is
 --           for Resource of World.Resources loop
 --              Market.Initial_Price
 --                (Resource,
---                 WL.Money.Adjust_Price
+--                 Concorde.Money.Adjust_Price
 --                   (Resource.Base_Price, Float (Factor)));
 --              Factor := Factor + (0.8 - Factor) / 2.0;
 --           end loop;
@@ -895,9 +895,9 @@ package body Concorde.Worlds is
 
    function Total_Population
      (World : Root_World_Type'Class)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
    is
-      use WL.Quantities;
+      use Concorde.Quantities;
    begin
       return Result : Quantity_Type := Zero do
          for Pop of World.Pops loop

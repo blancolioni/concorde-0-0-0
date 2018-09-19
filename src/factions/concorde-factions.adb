@@ -706,9 +706,9 @@ package body Concorde.Factions is
 
    overriding procedure Require_Cash
      (Faction : in out Root_Faction_Type;
-      Amount  : WL.Money.Money_Type)
+      Amount  : Concorde.Money.Money_Type)
    is
-      use WL.Money;
+      use Concorde.Money;
    begin
       if Amount > Faction.Cash and then Faction.Central_Bank then
          declare

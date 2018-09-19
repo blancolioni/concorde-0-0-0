@@ -1,7 +1,7 @@
 with WL.Random;
 
-with WL.Money;
-with WL.Quantities;
+with Concorde.Money;
+with Concorde.Quantities;
 
 with Concorde.Names;
 with Concorde.Random;
@@ -234,8 +234,8 @@ package body Concorde.People.Individuals.Create is
 
          Item.New_Agent
            (Location, Concorde.Government.Get_Government (Location),
-            Market, WL.Money.Zero,
-            WL.Quantities.To_Quantity (1000.0));
+            Market, Concorde.Money.Zero,
+            Concorde.Quantities.To_Quantity (1000.0));
 
          Create_Career (Item);
 
@@ -284,8 +284,8 @@ package body Concorde.People.Individuals.Create is
          Item.Alive := True;
          Item.New_Agent
            (Location, Concorde.Government.Get_Government (Location),
-            Market, WL.Money.To_Money (1_000.0),
-            WL.Quantities.To_Quantity (1000.0));
+            Market, Concorde.Money.To_Money (1_000.0),
+            Concorde.Quantities.To_Quantity (1000.0));
 
          Create_Career (Item);
 
@@ -485,8 +485,8 @@ package body Concorde.People.Individuals.Create is
             else Concorde.Names.Random_Male_First_Name);
          Item.New_Agent
            (Location, Concorde.Government.Get_Government (Location),
-            Market, WL.Money.To_Money (1_000.0),
-            WL.Quantities.To_Quantity (1000.0));
+            Market, Concorde.Money.To_Money (1_000.0),
+            Concorde.Quantities.To_Quantity (1000.0));
 
          Create_Career (Item);
 
@@ -533,8 +533,8 @@ package body Concorde.People.Individuals.Create is
          Item.Birth := Date_Of_Birth;
          Item.New_Agent
            (Location, Concorde.Government.Get_Government (Location),
-            Market, WL.Money.To_Money (100.0),
-            WL.Quantities.To_Quantity (1000.0));
+            Market, Concorde.Money.To_Money (100.0),
+            Concorde.Quantities.To_Quantity (1000.0));
 
          Create_Career (Item);
 

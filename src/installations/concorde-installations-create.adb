@@ -1,4 +1,4 @@
-with WL.Quantities;
+with Concorde.Quantities;
 
 with Concorde.Calendar;
 with Concorde.Random;
@@ -19,10 +19,10 @@ package body Concorde.Installations.Create is
      (Location      : Concorde.Locations.Object_Location;
       Market        : access constant Concorde.Trades.Trade_Interface'Class;
       Facility      : Concorde.Facilities.Facility_Type;
-      Cash          : WL.Money.Money_Type;
+      Cash          : Concorde.Money.Money_Type;
       Owner         : not null access constant
         Concorde.Agents.Root_Agent_Type'Class;
-      Size          : WL.Quantities.Quantity_Type)
+      Size          : Concorde.Quantities.Quantity_Type)
       return Installation_Type
    is
 
@@ -38,7 +38,7 @@ package body Concorde.Installations.Create is
       procedure Initialise
         (Installation : in out Root_Installation_Type'Class)
       is
-         use WL.Quantities;
+         use Concorde.Quantities;
          use type Concorde.Facilities.Facility_Type;
          use all type Concorde.Facilities.Facility_Class;
          Storage : Quantity_Type := Zero;

@@ -1,4 +1,4 @@
-with WL.Quantities;
+with Concorde.Quantities;
 
 package body Concorde.Construction is
 
@@ -12,9 +12,11 @@ package body Concorde.Construction is
       Maintain  : Concorde.Commodities.Stock_Interface'Class)
    is
    begin
-      Rec.Construct.Create_Stock (WL.Quantities.To_Quantity (100_000.0), True);
+      Rec.Construct.Create_Stock
+        (Concorde.Quantities.To_Quantity (100_000.0), True);
       Rec.Construct.Add (Construct);
-      Rec.Maintain.Create_Stock (WL.Quantities.To_Quantity (1_000.0), True);
+      Rec.Maintain.Create_Stock
+        (Concorde.Quantities.To_Quantity (1_000.0), True);
       Rec.Maintain.Add (Maintain);
    end Create;
 

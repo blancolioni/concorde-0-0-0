@@ -5,7 +5,7 @@ private with Memor.Database;
 
 with Concorde.Geometry;
 
-with WL.Quantities;
+with Concorde.Quantities;
 
 with Concorde.Maps;
 with Concorde.Surfaces;
@@ -227,7 +227,7 @@ package Concorde.Worlds is
 --
 --     function Resource_Size
 --       (System : Root_Star_System_Type'Class)
---        return WL.Quantities.Quantity;
+--        return Concorde.Quantities.Quantity;
 
    procedure Add_Pop
      (World  : in out Root_World_Type'Class;
@@ -255,7 +255,7 @@ package Concorde.Worlds is
 
    function Total_Population
      (World : Root_World_Type'Class)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    procedure Scan_Armies
      (World   : Root_World_Type'Class;
@@ -280,32 +280,32 @@ package Concorde.Worlds is
 --     function Buy_Price
 --       (World     : Root_World_Type'Class;
 --        Commodity : Concorde.Commodities.Commodity_Type)
---        return WL.Money.Price_Type;
+--        return Concorde.Money.Price_Type;
 --
 --     function Sell_Price
 --       (World     : Root_World_Type'Class;
 --        Commodity : Concorde.Commodities.Commodity_Type)
---        return WL.Money.Price_Type;
+--        return Concorde.Money.Price_Type;
 --
 --     function Import_Market_Size
 --       (World     : Root_World_Type'Class;
 --        Commodity : Concorde.Commodities.Commodity_Type)
---        return WL.Quantities.Quantity_Type;
+--        return Concorde.Quantities.Quantity_Type;
 --
 --     function Export_Market_Size
 --       (World     : Root_World_Type'Class;
 --        Commodity : Concorde.Commodities.Commodity_Type)
---        return WL.Quantities.Quantity_Type;
+--        return Concorde.Quantities.Quantity_Type;
 --
 --     procedure Buy
 --       (World     : in out Root_World_Type'Class;
 --        Commodity : Concorde.Commodities.Commodity_Type;
---        Quantity  : in out WL.Quantities.Quantity_Type);
+--        Quantity  : in out Concorde.Quantities.Quantity_Type);
 --
 --     procedure Sell
 --       (World     : in out Root_World_Type'Class;
 --        Commodity : Concorde.Commodities.Commodity_Type;
---        Quantity  : in out WL.Quantities.Quantity_Type);
+--        Quantity  : in out Concorde.Quantities.Quantity_Type);
 
    type World_Type is access constant Root_World_Type'Class;
 

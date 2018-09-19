@@ -10,7 +10,7 @@ package body Concorde.Ships.Vessels is
      (Ship      : Root_Vessel_Type;
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
    is
       Volume : Non_Negative_Real := 0.0;
    begin
@@ -19,7 +19,7 @@ package body Concorde.Ships.Vessels is
            + Ship.Design.Get_Module (I).Component.Commodity_Payload_Volume
            (Commodity);
       end loop;
-      return WL.Quantities.To_Quantity (Float (Volume));
+      return Concorde.Quantities.To_Quantity (Volume);
    end Available_Capacity;
 
    ------------------

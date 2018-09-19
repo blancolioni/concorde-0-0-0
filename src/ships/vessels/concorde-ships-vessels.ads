@@ -78,13 +78,13 @@ private
 
    overriding function Cargo_Capacity
      (Ship      : Root_Vessel_Type)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Available_Capacity
      (Ship      : Root_Vessel_Type;
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Update
      (Vessel : not null access constant Root_Vessel_Type)
@@ -105,7 +105,7 @@ private
 
    overriding function Cargo_Capacity
      (Ship      : Root_Vessel_Type)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
    is (Ship.Design.Cargo_Capacity);
 
    overriding function Object_Database

@@ -6,8 +6,8 @@ with Concorde.Objects;
 
 with Concorde.Calendar;
 
-with WL.Money;
-with WL.Quantities;
+with Concorde.Money;
+with Concorde.Quantities;
 
 package Concorde.Contracts is
 
@@ -34,15 +34,15 @@ package Concorde.Contracts is
 
    function Quantity
      (Contract : Root_Contract_Type'Class)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    function Total_Cost
      (Contract : Root_Contract_Type'Class)
-      return WL.Money.Money_Type;
+      return Concorde.Money.Money_Type;
 
    function Price
      (Contract : Root_Contract_Type'Class)
-      return WL.Money.Price_Type;
+      return Concorde.Money.Price_Type;
 
    function Show
      (Contract : Root_Contract_Type'Class)
@@ -74,12 +74,12 @@ package Concorde.Contracts is
      (Contractor : Contractor_Interface;
       Commodity  : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
       is abstract;
 
    function Contracted_Quantity
      (Contractor : Contractor_Interface)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
       is abstract;
 
    procedure Add_Contract
@@ -135,8 +135,8 @@ package Concorde.Contracts is
      (Location  : Concorde.Locations.Object_Location;
       Buyer     : not null access constant Contractor_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : WL.Quantities.Quantity_Type;
-      Price     : WL.Money.Price_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type;
       Expires   : Concorde.Calendar.Time)
       return Contract_Type;
 
@@ -152,8 +152,8 @@ private
          Offered_By     : Contractor_Type;
          Accepted_By    : Contractor_Type;
          Commodity      : Concorde.Commodities.Commodity_Type;
-         Quantity       : WL.Quantities.Quantity_Type;
-         Price          : WL.Money.Price_Type;
+         Quantity       : Concorde.Quantities.Quantity_Type;
+         Price          : Concorde.Money.Price_Type;
          Accepted       : Boolean;
          Active         : Boolean;
          Canceled       : Boolean;
@@ -194,18 +194,18 @@ private
 
    function Quantity
      (Contract : Root_Contract_Type'Class)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
    is (Contract.Quantity);
 
    function Price
      (Contract : Root_Contract_Type'Class)
-      return WL.Money.Price_Type
+      return Concorde.Money.Price_Type
    is (Contract.Price);
 
    function Total_Cost
      (Contract : Root_Contract_Type'Class)
-      return WL.Money.Money_Type
-   is (WL.Money.Total (Contract.Price, Contract.Quantity));
+      return Concorde.Money.Money_Type
+   is (Concorde.Money.Total (Contract.Price, Contract.Quantity));
 
    package Db is
      new Memor.Database

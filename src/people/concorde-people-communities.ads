@@ -3,8 +3,8 @@ private with Memor.Element_Vectors;
 
 private with Concorde.Agents;
 
-with WL.Money;
-with WL.Quantities;
+with Concorde.Money;
+with Concorde.Quantities;
 
 with Concorde.Network.Nodes;
 
@@ -107,10 +107,10 @@ private
    type Local_Commodity_Record is
      new Concorde.Network.Expression_Object_Interface with
       record
-         Price     : WL.Money.Price_Type;
-         Quantity  : WL.Quantities.Quantity_Type;
-         Supply    : WL.Quantities.Quantity_Type;
-         Demand    : WL.Quantities.Quantity_Type;
+         Price     : Concorde.Money.Price_Type;
+         Quantity  : Concorde.Quantities.Quantity_Type;
+         Supply    : Concorde.Quantities.Quantity_Type;
+         Demand    : Concorde.Quantities.Quantity_Type;
       end record;
 
    type Local_Commodity is access all Local_Commodity_Record'Class;
@@ -216,30 +216,30 @@ private
    overriding function Current_Quantity
      (Community : Root_Community_Type;
       Item      : Concorde.Commodities.Commodity_Type)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Current_Demand
      (Community : Root_Community_Type;
       Item      : Concorde.Commodities.Commodity_Type)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Current_Price
      (Community : Root_Community_Type;
       Item      : Concorde.Commodities.Commodity_Type)
-      return WL.Money.Price_Type;
+      return Concorde.Money.Price_Type;
 
    overriding function Current_Supply
      (Community : Root_Community_Type;
       Item      : Concorde.Commodities.Commodity_Type)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding procedure Update_Commodity
      (Community : in out Root_Community_Type;
       Item      : Concorde.Commodities.Commodity_Type;
-      Demand    : WL.Quantities.Quantity_Type;
-      Supply    : WL.Quantities.Quantity_Type;
-      Quantity  : WL.Quantities.Quantity_Type;
-      Price     : WL.Money.Price_Type);
+      Demand    : Concorde.Quantities.Quantity_Type;
+      Supply    : Concorde.Quantities.Quantity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type);
 
    overriding procedure Scan_Agents
      (Community : Root_Community_Type;

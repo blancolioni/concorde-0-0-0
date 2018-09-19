@@ -5,8 +5,8 @@ private with WL.String_Maps;
 private with Memor.Element_Vectors;
 
 with Concorde.Calendar;
-with WL.Money;
-with WL.Quantities;
+with Concorde.Money;
+with Concorde.Quantities;
 
 with Concorde.Objects;
 with Concorde.Locations;
@@ -37,11 +37,11 @@ package Concorde.Agents is
      (Agent      : Root_Agent_Type;
       Commodity  : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Contracted_Quantity
      (Agent      : Root_Agent_Type)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding procedure Add_Contract
      (Agent    : in out Root_Agent_Type;
@@ -73,7 +73,7 @@ package Concorde.Agents is
 
    function Contract_Capacity
      (Agent : Root_Agent_Type'Class)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    procedure Delete_Pending_Offers
      (Agent     : in out Root_Agent_Type'Class;
@@ -118,14 +118,14 @@ package Concorde.Agents is
         Root_Agent_Type'Class;
       Market         : access constant
         Concorde.Trades.Trade_Interface'Class;
-      Cash           : WL.Money.Money_Type;
-      Stock_Capacity : WL.Quantities.Quantity_Type);
+      Cash           : Concorde.Money.Money_Type;
+      Stock_Capacity : Concorde.Quantities.Quantity_Type);
 
    function Mean_Price_Belief
      (Agent : Root_Agent_Type'Class;
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
-      return WL.Money.Price_Type;
+      return Concorde.Money.Price_Type;
 
    overriding function Offer_Strategy
      (Agent     : Root_Agent_Type;
@@ -136,35 +136,35 @@ package Concorde.Agents is
 
    overriding function Maximum_Quantity
      (Agent : Root_Agent_Type)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Available_Capacity
      (Agent : Root_Agent_Type)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Get_Quantity
      (Agent      : Root_Agent_Type;
       Commodity  : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Get_Value
      (Agent : Root_Agent_Type;
       Item  : Concorde.Commodities.Commodity_Type)
-      return WL.Money.Money_Type;
+      return Concorde.Money.Money_Type;
 
    overriding procedure Set_Quantity
      (Agent    : in out Root_Agent_Type;
       Item     : Concorde.Commodities.Commodity_Type;
-      Quantity : WL.Quantities.Quantity_Type;
-      Value    : WL.Money.Money_Type);
+      Quantity : Concorde.Quantities.Quantity_Type;
+      Value    : Concorde.Money.Money_Type);
 
    overriding procedure Execute_Trade
      (Agent     : not null access constant Root_Agent_Type;
       Offer     : Concorde.Trades.Offer_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : WL.Quantities.Quantity_Type;
-      Cost      : WL.Money.Money_Type);
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Cost      : Concorde.Money.Money_Type);
 
    overriding procedure Update_Trader
      (Agent  : Root_Agent_Type;
@@ -231,35 +231,35 @@ package Concorde.Agents is
 
    function Cash
      (Agent : Root_Agent_Type)
-      return WL.Money.Money_Type;
+      return Concorde.Money.Money_Type;
 
    function Limit_Cash
      (Agent : Root_Agent_Type'Class)
-      return WL.Money.Money_Type;
+      return Concorde.Money.Money_Type;
 
    procedure Set_Cash
      (Agent  : in out Root_Agent_Type'Class;
-      Amount : WL.Money.Money_Type);
+      Amount : Concorde.Money.Money_Type);
 
    procedure Require_Cash
      (Agent  : in out Root_Agent_Type;
-      Amount : WL.Money.Money_Type);
+      Amount : Concorde.Money.Money_Type);
 
    procedure Add_Cash
      (Agent : in out Root_Agent_Type'Class;
-      Amount : WL.Money.Money_Type);
+      Amount : Concorde.Money.Money_Type);
 
    procedure Remove_Cash
      (Agent  : in out Root_Agent_Type'Class;
-      Amount : WL.Money.Money_Type);
+      Amount : Concorde.Money.Money_Type);
 
    function Last_Earnings
      (Agent : Root_Agent_Type'Class)
-      return WL.Money.Money_Type;
+      return Concorde.Money.Money_Type;
 
    function Last_Expenses
      (Agent : Root_Agent_Type'Class)
-      return WL.Money.Money_Type;
+      return Concorde.Money.Money_Type;
 
    procedure Clear_Current_Account
      (Agent : in out Root_Agent_Type'Class);
@@ -275,40 +275,44 @@ package Concorde.Agents is
    function Create_Ask_Price
      (Agent        : not null access constant Root_Agent_Type'Class;
       Commodity    : Concorde.Commodities.Commodity_Type)
-      return WL.Money.Price_Type
-     with Post => WL.Money.">" (Create_Ask_Price'Result, WL.Money.Zero);
+      return Concorde.Money.Price_Type
+     with Post => Concorde.Money.">"
+       (Create_Ask_Price'Result, Concorde.Money.Zero);
 
    function Create_Bid_Price
      (Agent        : not null access constant Root_Agent_Type'Class;
       Commodity    : Concorde.Commodities.Commodity_Type)
-      return WL.Money.Price_Type
-     with Post => WL.Money.">" (Create_Bid_Price'Result, WL.Money.Zero);
+      return Concorde.Money.Price_Type
+     with Post => Concorde.Money.">"
+       (Create_Bid_Price'Result, Concorde.Money.Zero);
 
    procedure Create_Ask
      (Agent        : not null access constant Root_Agent_Type'Class;
       Commodity    : Concorde.Commodities.Commodity_Type;
-      Ask_Quantity : WL.Quantities.Quantity_Type;
-      Ask_Price    : WL.Money.Price_Type)
-     with Pre => WL.Quantities.">" (Ask_Quantity, WL.Quantities.Zero)
-     and then WL.Money.">" (Ask_Price, WL.Money.Zero);
+      Ask_Quantity : Concorde.Quantities.Quantity_Type;
+      Ask_Price    : Concorde.Money.Price_Type)
+     with Pre => Concorde.Quantities.">"
+       (Ask_Quantity, Concorde.Quantities.Zero)
+     and then Concorde.Money.">" (Ask_Price, Concorde.Money.Zero);
 
    procedure Create_Bid
      (Agent        : not null access constant Root_Agent_Type'Class;
       Commodity    : Concorde.Commodities.Commodity_Type;
-      Bid_Quantity : WL.Quantities.Quantity_Type;
-      Bid_Price    : WL.Money.Price_Type)
-     with Pre => WL.Quantities.">" (Bid_Quantity, WL.Quantities.Zero)
-     and then WL.Money.">" (Bid_Price, WL.Money.Zero);
+      Bid_Quantity : Concorde.Quantities.Quantity_Type;
+      Bid_Price    : Concorde.Money.Price_Type)
+     with Pre => Concorde.Quantities.">"
+       (Bid_Quantity, Concorde.Quantities.Zero)
+     and then Concorde.Money.">" (Bid_Price, Concorde.Money.Zero);
 
    procedure Create_Ask
      (Agent        : not null access constant Root_Agent_Type'Class;
       Commodity    : Concorde.Commodities.Commodity_Type;
-      Ask_Quantity : WL.Quantities.Quantity_Type);
+      Ask_Quantity : Concorde.Quantities.Quantity_Type);
 
    procedure Create_Bid
      (Agent        : not null access constant Root_Agent_Type'Class;
       Commodity    : Concorde.Commodities.Commodity_Type;
-      Bid_Quantity : WL.Quantities.Quantity_Type);
+      Bid_Quantity : Concorde.Quantities.Quantity_Type);
 
    procedure Check_Offers
      (Agent : in out Root_Agent_Type'Class);
@@ -321,12 +325,12 @@ package Concorde.Agents is
    function Current_Bid_Quantity
      (Agent     : Root_Agent_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    function Current_Bid_Price
      (Agent     : Root_Agent_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return WL.Money.Price_Type
+      return Concorde.Money.Price_Type
      with Pre => Agent.Has_Bid (Commodity);
 
    procedure Clear_Filled_Bids
@@ -340,12 +344,12 @@ package Concorde.Agents is
    function Current_Ask_Quantity
      (Agent     : Root_Agent_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    function Current_Ask_Price
      (Agent     : Root_Agent_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return WL.Money.Price_Type
+      return Concorde.Money.Price_Type
      with Pre => Agent.Has_Ask (Commodity);
 
    procedure Clear_Filled_Asks
@@ -388,14 +392,14 @@ package Concorde.Agents is
      (Buyer    : Root_Agent_Type'Class;
       Seller   : not null access constant Root_Agent_Type'Class;
       Item     : Concorde.Commodities.Commodity_Type;
-      Quantity : WL.Quantities.Quantity_Type;
-      Price    : WL.Money.Price_Type);
+      Quantity : Concorde.Quantities.Quantity_Type;
+      Price    : Concorde.Money.Price_Type);
 
    procedure Log_Wages
      (Employer : Root_Agent_Type'Class;
       Worker   : not null access constant Root_Agent_Type'Class;
-      Quantity : WL.Quantities.Quantity_Type;
-      Price    : WL.Money.Price_Type);
+      Quantity : Concorde.Quantities.Quantity_Type;
+      Price    : Concorde.Money.Price_Type);
 
    procedure Log_Movement
      (Agent   : Root_Agent_Type'Class;
@@ -427,19 +431,19 @@ package Concorde.Agents is
 
 private
 
-   use WL.Quantities;
+   use Concorde.Quantities;
 
    type Agent_Reference is new Natural;
 
    type Agent_Price_Belief_Record is
       record
-         Low, High : WL.Money.Price_Type;
+         Low, High : Concorde.Money.Price_Type;
          Strength  : Unit_Real;
       end record;
 
    procedure Translate
      (Belief : in out Agent_Price_Belief_Record;
-      Toward : WL.Money.Price_Type;
+      Toward : Concorde.Money.Price_Type;
       Factor : Unit_Real);
 
    procedure Contract
@@ -462,9 +466,9 @@ private
          Date       : Concorde.Calendar.Time;
          Item       : Concorde.Commodities.Commodity_Type;
          Entry_Type : Concorde.Trades.Offer_Type;
-         Quantity   : WL.Quantities.Quantity_Type;
-         Cost       : WL.Money.Money_Type;
-         Balance    : WL.Money.Money_Type;
+         Quantity   : Concorde.Quantities.Quantity_Type;
+         Cost       : Concorde.Money.Money_Type;
+         Balance    : Concorde.Money.Money_Type;
       end record;
 
    package Account_Entry_Vectors is
@@ -473,11 +477,11 @@ private
    type Agent_Offer is
       record
          Valid     : Boolean := False;
-         Price     : WL.Money.Price_Type := WL.Money.Zero;
-         Quantity  : WL.Quantities.Quantity_Type :=
-                       WL.Quantities.Zero;
-         Filled    : WL.Quantities.Quantity_Type :=
-                       WL.Quantities.Zero;
+         Price     : Concorde.Money.Price_Type := Concorde.Money.Zero;
+         Quantity  : Concorde.Quantities.Quantity_Type :=
+                       Concorde.Quantities.Zero;
+         Filled    : Concorde.Quantities.Quantity_Type :=
+                       Concorde.Quantities.Zero;
       end record;
 
    procedure Check (Offer : Agent_Offer);
@@ -501,7 +505,8 @@ private
          Agent_Ref             : Agent_Reference;
          Market                : access Concorde.Trades.Trade_Interface'Class;
          Stock                 : Concorde.Commodities.Root_Stock_Type;
-         Cash                  : WL.Money.Money_Type := WL.Money.Zero;
+         Cash                  : Concorde.Money.Money_Type :=
+                                   Concorde.Money.Zero;
          Belief                : access Price_Belief_Vectors.Vector;
          Location              : Concorde.Locations.Object_Location;
          Age                   : Natural := 0;
@@ -510,34 +515,37 @@ private
          Account               : Account_Entry_Vectors.Vector;
          Bids                  : Agent_Offer_Vectors.Vector;
          Asks                  : Agent_Offer_Vectors.Vector;
-         Last_Earnings         : WL.Money.Money_Type := WL.Money.Zero;
-         Last_Expenses         : WL.Money.Money_Type := WL.Money.Zero;
+         Last_Earnings         : Concorde.Money.Money_Type :=
+                                   Concorde.Money.Zero;
+         Last_Expenses         : Concorde.Money.Money_Type :=
+                                   Concorde.Money.Zero;
          Offered_Contracts     : Current_Contract_Lists.List;
          Accepted_Contracts    : Current_Contract_Lists.List;
          Contracted_Quantities : Concorde.Commodities.Root_Stock_Type;
-         Reserved_Cash         : WL.Money.Money_Type := WL.Money.Zero;
+         Reserved_Cash         : Concorde.Money.Money_Type :=
+                                   Concorde.Money.Zero;
       end record;
 
    overriding function Contracted_Quantity
      (Agent      : Root_Agent_Type)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
    is (Agent.Contracted_Quantities.Total_Quantity);
 
    overriding function Contracted_To_Buy
      (Agent      : Root_Agent_Type;
       Commodity  : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
    is (Agent.Contracted_Quantities.Get_Quantity (Commodity));
 
    overriding function Available_Capacity
      (Agent : Root_Agent_Type)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
    is (Root_Agent_Type'Class (Agent).Available_Quantity);
 
    function Contract_Capacity
      (Agent : Root_Agent_Type'Class)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
    is (Agent.Contracted_Quantities.Maximum_Quantity);
 
    function Reference (Agent : Root_Agent_Type'Class) return Agent_Reference
@@ -567,7 +575,7 @@ private
    function Current_Bid_Price
      (Agent     : Root_Agent_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return WL.Money.Price_Type
+      return Concorde.Money.Price_Type
    is (Agent.Bids.Element (Commodity).Price);
 
    function Has_Ask
@@ -579,13 +587,13 @@ private
    function Current_Ask_Price
      (Agent     : Root_Agent_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return WL.Money.Price_Type
+      return Concorde.Money.Price_Type
    is (Agent.Asks.Element (Commodity).Price);
 
    function Minimum_Ask_Price
      (Agent     : Root_Agent_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return WL.Money.Price_Type;
+      return Concorde.Money.Price_Type;
 
    function Guarantor
      (Agent : Root_Agent_Type'Class)
@@ -599,12 +607,12 @@ private
 
    function Last_Earnings
      (Agent : Root_Agent_Type'Class)
-      return WL.Money.Money_Type
+      return Concorde.Money.Money_Type
    is (Agent.Last_Earnings);
 
    function Last_Expenses
      (Agent : Root_Agent_Type'Class)
-      return WL.Money.Money_Type
+      return Concorde.Money.Money_Type
    is (Agent.Last_Expenses);
 
    package Agent_Lists is new Ada.Containers.Doubly_Linked_Lists (Agent_Type);

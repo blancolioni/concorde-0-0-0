@@ -35,7 +35,7 @@ package body Concorde.People.Communities is
    overriding function Current_Demand
      (Community : Root_Community_Type;
       Item      : Concorde.Commodities.Commodity_Type)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return Community.Local_Commodities.Element (Item).Demand;
@@ -61,7 +61,7 @@ package body Concorde.People.Communities is
    overriding function Current_Price
      (Community : Root_Community_Type;
       Item      : Concorde.Commodities.Commodity_Type)
-      return WL.Money.Price_Type
+      return Concorde.Money.Price_Type
    is
    begin
       return Community.Local_Commodities.Element (Item).Price;
@@ -74,7 +74,7 @@ package body Concorde.People.Communities is
    overriding function Current_Quantity
      (Community : Root_Community_Type;
       Item      : Concorde.Commodities.Commodity_Type)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return Community.Local_Commodities.Element (Item).Quantity;
@@ -87,7 +87,7 @@ package body Concorde.People.Communities is
    overriding function Current_Supply
      (Community : Root_Community_Type;
       Item      : Concorde.Commodities.Commodity_Type)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       return Community.Local_Commodities.Element (Item).Supply;
@@ -183,7 +183,7 @@ package body Concorde.People.Communities is
    begin
       if Name = "price" then
          return Concorde.Network.To_Expression_Value
-           (Real (WL.Money.To_Float (Local.Price)));
+           (Real (Concorde.Money.To_Real (Local.Price)));
       else
          raise Program_Error;
       end if;
@@ -213,7 +213,7 @@ package body Concorde.People.Communities is
    begin
       return Concorde.Network.To_Expression_Value
         (Non_Negative_Real
-           (WL.Quantities.To_Float (Local.Quantity)));
+           (Concorde.Quantities.To_Real (Local.Quantity)));
    end Get_Value;
 
    ---------------
@@ -420,10 +420,10 @@ package body Concorde.People.Communities is
    overriding procedure Update_Commodity
      (Community : in out Root_Community_Type;
       Item      : Concorde.Commodities.Commodity_Type;
-      Demand    : WL.Quantities.Quantity_Type;
-      Supply    : WL.Quantities.Quantity_Type;
-      Quantity  : WL.Quantities.Quantity_Type;
-      Price     : WL.Money.Price_Type)
+      Demand    : Concorde.Quantities.Quantity_Type;
+      Supply    : Concorde.Quantities.Quantity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type)
    is
       Rec : Local_Commodity_Record renames
               Community.Local_Commodities.Element (Item).all;
@@ -443,8 +443,8 @@ package body Concorde.People.Communities is
 --     procedure Update_Local_Market
 --       (Community : in out Root_Community_Type'Class)
 --     is
---        use WL.Money;
---        use WL.Quantities;
+--        use Concorde.Money;
+--        use Concorde.Quantities;
 --        Food_Production : constant Non_Negative_Real :=
 --                            Concorde.Network.To_Real_Value
 --                              (Community.Node
@@ -456,8 +456,8 @@ package body Concorde.People.Communities is
 --                            Community.Local_Commodities.Element
 --                              (Concorde.Commodities.Get ("food");
 --        Food_Available  : Non_Negative_Real :=
---                        Non_Negative_Real (To_Float (Local_Food.Available));
---    Food_Price      : constant Real := Real (To_Float (Local_Food.Price));
+--                        Non_Negative_Real (To_Real (Local_Food.Available));
+--    Food_Price      : constant Real := Real (To_Real (Local_Food.Price));
 --     begin
 --        for Pop of Community.Pops loop
 --           declare

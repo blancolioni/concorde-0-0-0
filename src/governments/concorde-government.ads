@@ -12,8 +12,8 @@ with Concorde.Trades;
 
 limited with Concorde.People.Individuals;
 
-with WL.Money;
-with WL.Quantities;
+with Concorde.Money;
+with Concorde.Quantities;
 
 package Concorde.Government is
 
@@ -71,10 +71,10 @@ package Concorde.Government is
    overriding procedure Tax_Receipt
      (Government : Root_Government_Type;
       Commodity  : Concorde.Commodities.Commodity_Type;
-      Quantity   : WL.Quantities.Quantity_Type;
-      Price      : WL.Money.Price_Type;
+      Quantity   : Concorde.Quantities.Quantity_Type;
+      Price      : Concorde.Money.Price_Type;
       Category   : Concorde.Trades.Market_Tax_Category;
-      Receipt    : WL.Money.Money_Type);
+      Receipt    : Concorde.Money.Money_Type);
 
    procedure Set_Tax_Rate
      (Government : in out Root_Government_Type'Class;
@@ -96,15 +96,15 @@ package Concorde.Government is
    function Tax_Receipts
      (Government : Root_Government_Type'Class;
       Category   : Concorde.Trades.Market_Tax_Category)
-      return WL.Money.Money_Type;
+      return Concorde.Money.Money_Type;
 
    function Basic_Living_Wage
      (Government : Root_Government_Type'Class)
-      return WL.Money.Price_Type;
+      return Concorde.Money.Price_Type;
 
    procedure Set_Basic_Living_Wage
      (Government : in out Root_Government_Type'Class;
-      Wage       : WL.Money.Price_Type);
+      Wage       : Concorde.Money.Price_Type);
 
    function Slavery_Allowed
      (Government : Root_Government_Type'Class)
@@ -147,7 +147,7 @@ private
                           Concorde.Trades.Export => 0.0);
 
    type Array_Of_Tax_Receipts is
-     array (Concorde.Trades.Market_Tax_Category) of WL.Money.Money_Type;
+     array (Concorde.Trades.Market_Tax_Category) of Concorde.Money.Money_Type;
 
    package Commodity_Tax_Rates is
      new Memor.Element_Vectors
@@ -169,9 +169,9 @@ private
          Base_Tax_Rate     : Array_Of_Tax_Rates := Default_Tax_Rates;
          Tax_Rates         : Commodity_Tax_Rates.Vector;
          Tax_Receipts      : Array_Of_Tax_Receipts :=
-                               (others => WL.Money.Zero);
+                               (others => Concorde.Money.Zero);
          Owner_Tithe       : Unit_Real := 0.1;
-         Basic_Living_Wage : WL.Money.Price_Type := WL.Money.Zero;
+         Basic_Living_Wage : Concorde.Money.Price_Type := Concorde.Money.Zero;
          Slavery_Allowed   : Boolean := False;
       end record;
 
@@ -216,7 +216,7 @@ private
 
    function Basic_Living_Wage
      (Government : Root_Government_Type'Class)
-      return WL.Money.Price_Type
+      return Concorde.Money.Price_Type
    is (Government.Basic_Living_Wage);
 
    function Slavery_Allowed

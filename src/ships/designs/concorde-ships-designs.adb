@@ -1,4 +1,4 @@
-with WL.Money;
+with Concorde.Money;
 with WL.String_Maps;
 
 with Concorde.Ships.Components;
@@ -11,14 +11,14 @@ package body Concorde.Ships.Designs is
 
    function Cargo_Capacity
      (Design : Root_Design_Type'Class)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
    is
       Volume : Non_Negative_Real := 0.0;
    begin
       for Installed of Design.Installed_Modules loop
          Volume := Volume + Installed.Module.Component.Cargo_Payload_Volume;
       end loop;
-      return WL.Quantities.To_Quantity (Float (Volume));
+      return Concorde.Quantities.To_Quantity (Volume);
    end Cargo_Capacity;
 
    ---------------------------
@@ -111,8 +111,8 @@ package body Concorde.Ships.Designs is
               (Item     =>
                  Concorde.Commodities.Get
                    (Fuel_Info_Maps.Key (Position)),
-               Quantity => WL.Quantities.To_Quantity (Float (Volume)),
-               Value    => WL.Money.To_Money (Float (Volume)));
+               Quantity => Concorde.Quantities.To_Quantity (Volume),
+               Value    => Concorde.Money.To_Money (Volume));
          end;
       end loop;
    end Get_Fuel_Requirements;

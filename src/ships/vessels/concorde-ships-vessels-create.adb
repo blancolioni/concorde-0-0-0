@@ -1,6 +1,6 @@
 with Xi.Float_Images;
 
-with WL.Money;
+with Concorde.Money;
 
 with Concorde.Roman_Images;
 
@@ -43,7 +43,7 @@ package body Concorde.Ships.Vessels.Create is
               Concorde.Locations.Geosynchronous_Orbit (World),
             Government     => Owner.Capital_Community.Government,
             Market         => Owner.Capital_Community.Market,
-            Cash           => WL.Money.To_Money (100_000.0),
+            Cash           => Concorde.Money.To_Money (100_000.0),
             Stock_Capacity => Design.Cargo_Capacity);
 
          Vessel.Design := Design;
@@ -102,13 +102,15 @@ package body Concorde.Ships.Vessels.Create is
                  ("loading "
                   & Xi.Float_Images.Image
                     (Non_Negative_Real
-                         (WL.Quantities.To_Float (Fuel.Get_Quantity (Item)))
+                         (Concorde.Quantities.To_Real
+                              (Fuel.Get_Quantity (Item)))
                      * Item.Unit_Mass / 1000.0)
                   & "t " & Item.Name);
             end Log_Fuel;
 
          begin
-            Fuel.Create_Stock (WL.Quantities.To_Quantity (999_999.0), True);
+            Fuel.Create_Stock
+              (Concorde.Quantities.To_Quantity (999_999.0), True);
             Design.Get_Fuel_Requirements (Fuel);
             Fuel.Scan_Stock (Log_Fuel'Access);
             Vessel.Add (Fuel);
@@ -119,7 +121,7 @@ package body Concorde.Ships.Vessels.Create is
          declare
             Full_Cargo_Mass : constant Non_Negative_Real :=
                                 Non_Negative_Real
-                                  (WL.Quantities.To_Float
+                                  (Concorde.Quantities.To_Real
                                      (Vessel.Cargo_Capacity))
                                 * 1000.0;
          begin
@@ -131,7 +133,7 @@ package body Concorde.Ships.Vessels.Create is
                & Xi.Float_Images.Image (Vessel.Maximum_Thrust / 1_000.0)
                & "kN"
                & "; hold: "
-               & WL.Quantities.Image (Vessel.Cargo_Capacity)
+               & Concorde.Quantities.Image (Vessel.Cargo_Capacity)
                & "m" & Character'Val (16#C2#) & Character'Val (16#B3#)
                & "; acceleration (empty): "
                & Xi.Float_Images.Image

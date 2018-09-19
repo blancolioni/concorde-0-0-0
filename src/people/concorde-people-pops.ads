@@ -4,8 +4,8 @@ private with Memor;
 private with Memor.Database;
 private with Concorde.Locations;
 
-with WL.Money;
-with WL.Quantities;
+with Concorde.Money;
+with Concorde.Quantities;
 
 with Concorde.Network;
 
@@ -31,7 +31,7 @@ package Concorde.People.Pops is
 
    function Size_Quantity
      (Pop : Root_Pop_Type'Class)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    function Is_Member_Of
      (Pop   : Root_Pop_Type'Class;
@@ -93,7 +93,7 @@ private
 
    overriding function Cash
      (Pop : Root_Pop_Type)
-      return WL.Money.Money_Type;
+      return Concorde.Money.Money_Type;
 
    overriding function Class_Name
      (Pop : Root_Pop_Type) return String
@@ -104,7 +104,7 @@ private
    is (Concorde.Agents.Root_Agent_Type (Pop).Identifier
        & "--" & Concorde.Locations.Short_Name (Pop.Current_Location)
        & "--"
-       & WL.Quantities.Show (Pop.Size_Quantity));
+       & Concorde.Quantities.Show (Pop.Size_Quantity));
 
    overriding function Object_Database
      (Item : Root_Pop_Type)
@@ -140,8 +140,8 @@ private
 
    function Size_Quantity
      (Pop : Root_Pop_Type'Class)
-      return WL.Quantities.Quantity_Type
-   is (WL.Quantities.To_Quantity (Float (Pop.Size)));
+      return Concorde.Quantities.Quantity_Type
+   is (Concorde.Quantities.To_Quantity (Non_Negative_Real (Pop.Size)));
 
    package Db is
      new Memor.Database

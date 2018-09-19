@@ -13,7 +13,7 @@ package body Concorde.Commodities.Configure is
      (Tag        : String;
       Class      : Commodity_Class;
       Mass       : Non_Negative_Real;
-      Base_Price : WL.Money.Price_Type;
+      Base_Price : Concorde.Money.Price_Type;
       Flags      : Array_Of_Flags)
       return Commodity_Type;
 
@@ -26,7 +26,7 @@ package body Concorde.Commodities.Configure is
    ---------------------------
 
    procedure Calculate_Base_Prices is
-      use WL.Money;
+      use Concorde.Money;
       Finished : Boolean := False;
 
       function Not_Priced
@@ -51,8 +51,8 @@ package body Concorde.Commodities.Configure is
                         Commodity.Name
                         & " has no base price and cannot be produced");
          Facility  : constant Facility_Type := Fs (Fs'First);
-         Size      : constant WL.Quantities.Quantity_Type :=
-                       WL.Quantities.To_Quantity (1000.0);
+         Size      : constant Concorde.Quantities.Quantity_Type :=
+                       Concorde.Quantities.To_Quantity (1000.0);
          Has_Price : Boolean := True;
          Cost      : Real := 0.0;
       begin
@@ -61,7 +61,7 @@ package body Concorde.Commodities.Configure is
                declare
                   Input : constant Commodity_Type :=
                             Facility.Input_Commodity (I);
-                  Quant : constant WL.Quantities.Quantity_Type :=
+                  Quant : constant Concorde.Quantities.Quantity_Type :=
                             Facility.Input_Quantity (Size, I);
                begin
                   if Not_Priced (Input.all) then
@@ -70,8 +70,8 @@ package body Concorde.Commodities.Configure is
                   else
                      Cost := Cost
                        + Real
-                       (To_Float (Input.Base_Price)
-                        * WL.Quantities.To_Float (Quant));
+                       (To_Real (Input.Base_Price)
+                        * Concorde.Quantities.To_Real (Quant));
                   end if;
                end;
             else
@@ -83,7 +83,7 @@ package body Concorde.Commodities.Configure is
                      declare
                         Input : constant Commodity_Type :=
                                   Facility.Input_Choice_Commodity (I, J);
-                        Quant : constant WL.Quantities.Quantity_Type :=
+                        Quant : constant Concorde.Quantities.Quantity_Type :=
                                   Facility.Input_Choice_Quantity (Size, I, J);
                         This  : Money_Type;
                      begin
@@ -103,7 +103,7 @@ package body Concorde.Commodities.Configure is
 
                   if Found then
                      Cost := Cost
-                       + Real (To_Float (Lowest));
+                       + Real (To_Real (Lowest));
                   else
                      Has_Price := False;
                      exit;
@@ -114,7 +114,7 @@ package body Concorde.Commodities.Configure is
 
          if Has_Price then
             Commodity.Base_Price :=
-              To_Price (Float (Cost) * 2.0 / WL.Quantities.To_Float (Size));
+              To_Price (Cost * 2.0 / Concorde.Quantities.To_Real (Size));
          else
             Finished := False;
          end if;
@@ -182,7 +182,7 @@ package body Concorde.Commodities.Configure is
                                   Non_Negative_Real
                                 (Float'(Config.Get ("unit_mass", 1.0))),
                               Base_Price =>
-                                WL.Money.Value
+                                Concorde.Money.Value
                                   (Config.Get ("base_price", "0")),
                               Flags      => Flags);
          pragma Unreferenced (New_Commodity);
@@ -226,22 +226,24 @@ package body Concorde.Commodities.Configure is
    begin
       for Config of From_Config loop
          declare
-            use WL.Quantities, WL.Money;
+            use Concorde.Quantities, Concorde.Money;
             Item : constant Commodity_Type := Get (Config.Config_Name);
             Quantity : constant Float :=
                          (if Config.Contains ("quantity")
                           then Config.Get ("quantity")
                           else Config.Value);
-            Value    : constant Float :=
+            Value    : constant Non_Negative_Real :=
                          (if Config.Contains ("value")
-                          then Config.Get ("value")
-                          else To_Float
-                            (Adjust_Price (Item.Base_Price, Quantity)));
+                          then Real (Float'(Config.Get ("value")))
+                          else To_Real
+                            (Adjust_Price
+                               (Item.Base_Price,
+                                Real (Quantity))));
          begin
             Stock.Add_Quantity
               (Item     => Item,
-               Quantity => To_Quantity (Quantity * Float (Factor)),
-               Value    => To_Money (Value * Float (Factor)));
+               Quantity => To_Quantity (Real (Quantity) * Factor),
+               Value    => To_Money (Value * Factor));
          end;
       end loop;
    end Configure_Stock;
@@ -254,7 +256,7 @@ package body Concorde.Commodities.Configure is
      (Tag        : String;
       Class      : Commodity_Class;
       Mass       : Non_Negative_Real;
-      Base_Price : WL.Money.Price_Type;
+      Base_Price : Concorde.Money.Price_Type;
       Flags      : Array_Of_Flags)
      return Commodity_Type
    is

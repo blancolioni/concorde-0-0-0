@@ -44,7 +44,7 @@ package body Concorde.Facilities is
 
    function Base_Service_Charge
      (Facility : Root_Facility_Type'Class)
-      return WL.Money.Price_Type
+      return Concorde.Money.Price_Type
    is
    begin
       return Facility.Base_Service_Charge;

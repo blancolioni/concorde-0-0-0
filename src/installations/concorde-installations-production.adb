@@ -1,6 +1,6 @@
 with Concorde.Real_Images;
-with WL.Money;
-with WL.Quantities;
+with Concorde.Money;
+with Concorde.Quantities;
 
 with Concorde.Commodities;
 
@@ -28,7 +28,7 @@ package body Concorde.Installations.Production is
       use Concorde.Commodities;
       Facility : constant Concorde.Facilities.Facility_Type :=
                    Installation.Facility;
-      Production_Cost : WL.Money.Money_Type :=
+      Production_Cost : Concorde.Money.Money_Type :=
                           Money.Zero;
    begin
 
@@ -40,8 +40,8 @@ package body Concorde.Installations.Production is
       end if;
 
       declare
-         use WL.Money;
-         use WL.Quantities;
+         use Concorde.Money;
+         use Concorde.Quantities;
          Raw_Capacity       : constant Quantity_Type :=
                                 Facility.Capacity_Quantity;
          Throughput         : Unit_Real := 1.0;

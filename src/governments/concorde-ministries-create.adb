@@ -1,5 +1,5 @@
-with WL.Money;
-with WL.Quantities;
+with Concorde.Money;
+with Concorde.Quantities;
 
 with Concorde.Calendar;
 with Concorde.Random;
@@ -21,7 +21,7 @@ package body Concorde.Ministries.Create is
       Location : Concorde.People.Communities.Community_Type;
       Market   : Concorde.Markets.Market_Type;
       Name     : String;
-      Budget   : WL.Money.Money_Type;
+      Budget   : Concorde.Money.Money_Type;
       Powers   : Concorde.Powers.Power_Set)
       return Ministry_Type;
 
@@ -39,7 +39,7 @@ package body Concorde.Ministries.Create is
         Location => Faction.Capital_Community,
         Market   => Faction.Capital_Community.Market,
         Name     => "House " & Faction.Name,
-        Budget   => WL.Money.Zero,
+        Budget   => Concorde.Money.Zero,
         Powers   => Concorde.Powers.No_Powers));
 
    ---------------------
@@ -53,7 +53,7 @@ package body Concorde.Ministries.Create is
       Location : Concorde.People.Communities.Community_Type;
       Market   : Concorde.Markets.Market_Type;
       Name     : String;
-      Budget   : WL.Money.Money_Type;
+      Budget   : Concorde.Money.Money_Type;
       Powers   : Concorde.Powers.Power_Set)
    is
       Ministry : constant Ministry_Type :=
@@ -76,7 +76,7 @@ package body Concorde.Ministries.Create is
       Location : Concorde.People.Communities.Community_Type;
       Market   : Concorde.Markets.Market_Type;
       Name     : String;
-      Budget   : WL.Money.Money_Type;
+      Budget   : Concorde.Money.Money_Type;
       Powers   : Concorde.Powers.Power_Set)
       return Ministry_Type
    is
@@ -97,8 +97,8 @@ package body Concorde.Ministries.Create is
            (Location       => Concorde.Locations.In_Community (Location),
             Government     => null,
             Market         => Market,
-            Cash           => WL.Money.Zero,
-            Stock_Capacity => WL.Quantities.Zero);
+            Cash           => Concorde.Money.Zero,
+            Stock_Capacity => Concorde.Quantities.Zero);
 
          Ministry.Name := Ada.Strings.Unbounded.To_Unbounded_String (Name);
          Ministry.Minister := Minister;

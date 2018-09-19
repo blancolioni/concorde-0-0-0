@@ -3,8 +3,8 @@ private with Ada.Containers.Doubly_Linked_Lists;
 private with Memor;
 private with Memor.Database;
 
-with WL.Money;
-with WL.Quantities;
+with Concorde.Money;
+with Concorde.Quantities;
 
 with Concorde.Agents;
 with Concorde.Commodities;
@@ -77,7 +77,7 @@ package Concorde.Installations is
 
    function Size
      (Installation : Root_Installation_Type'Class)
-      return WL.Quantities.Quantity_Type;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding procedure Execute_Production
      (Installation : in out Root_Installation_Type);
@@ -102,7 +102,7 @@ private
    type Queued_Production_Element is
       record
          Done   : Concorde.Calendar.Time;
-         Size   : WL.Quantities.Quantity_Type;
+         Size   : Concorde.Quantities.Quantity_Type;
          Output : Concorde.Commodities.Commodity_Type;
       end record;
 
@@ -112,8 +112,8 @@ private
    type Employee_Record is
       record
          Pop            : Concorde.People.Pops.Pop_Type;
-         Size           : WL.Quantities.Quantity_Type;
-         Wage           : WL.Money.Price_Type;
+         Size           : Concorde.Quantities.Quantity_Type;
+         Wage           : Concorde.Money.Price_Type;
          Contract_Days  : Positive;
          Days_Remaining : Natural;
       end record;
@@ -127,7 +127,7 @@ private
      and Concorde.Locations.Located_Interface with
       record
          Facility          : Concorde.Facilities.Facility_Type;
-         Size              : WL.Quantities.Quantity_Type;
+         Size              : Concorde.Quantities.Quantity_Type;
          Owner             : access constant
            Concorde.Agents.Root_Agent_Type'Class;
          Manager           : access constant
@@ -180,8 +180,8 @@ private
       Employee  : not null access constant
         Concorde.Trades.Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : WL.Quantities.Quantity_Type;
-      Wage      : WL.Money.Price_Type);
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Wage      : Concorde.Money.Price_Type);
 
    function Has_Manager
      (Installation : Root_Installation_Type'Class)
@@ -196,7 +196,7 @@ private
 
    function Size
      (Installation : Root_Installation_Type'Class)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
    is (Installation.Size);
 
    package Db is

@@ -5,7 +5,7 @@ with Concorde.Random;
 with Concorde.Options;
 with Concorde.Paths;
 
-with WL.Money;
+with Concorde.Money;
 
 with Concorde.People.Pops.Db;
 
@@ -62,8 +62,8 @@ package body Concorde.People.Pops.Configure is
                Group : constant Groups.Pop_Group :=
                          Groups.Get (Config.Config_Name);
                Size  : constant Positive := Config.Value;
-               Cash  : constant WL.Money.Money_Type :=
-                         WL.Money.To_Money
+               Cash  : constant Concorde.Money.Money_Type :=
+                         Concorde.Money.To_Money
                            (Real (Size * Group.Initial_Cash_Factor)
                             * (0.5 + Concorde.Random.Unit_Random));
             begin

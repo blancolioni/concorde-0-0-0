@@ -1,4 +1,4 @@
-with WL.Money;
+with Concorde.Money;
 with WL.String_Maps;
 
 with Concorde.Commodities;
@@ -95,8 +95,9 @@ package body Concorde.Laws.Configure is
       return Concorde.Laws.Bureaucracy.Create_Ministry
         (Context  => Context,
          Name     => Config.Get ("name", "Ministry"),
-         Budget   => WL.Money.To_Money
-           (Config.Get ("budget", 0.0)),
+         Budget   =>
+           Concorde.Money.To_Money
+             (Real (Float'(Config.Get ("budget", 0.0)))),
          Powers   => Powers);
    end Configure_Create_Ministry;
 

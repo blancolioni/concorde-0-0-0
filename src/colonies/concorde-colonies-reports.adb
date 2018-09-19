@@ -20,8 +20,8 @@ package body Concorde.Colonies.Reports is
    is null;
 --        use Ada.Text_IO;
 --
---        Total_Population : WL.Quantities.Quantity_Type :=
---                             WL.Quantities.Zero;
+--        Total_Population : Concorde.Quantities.Quantity_Type :=
+--                             Concorde.Quantities.Zero;
 --
 --        procedure Add_Population
 --          (Pop : Concorde.People.Pops.Pop_Type);
@@ -33,7 +33,7 @@ package body Concorde.Colonies.Reports is
 --        procedure Add_Population
 --          (Pop : Concorde.People.Pops.Pop_Type)
 --        is
---           use type WL.Quantities.Quantity_Type;
+--           use type Concorde.Quantities.Quantity_Type;
 --        begin
 --           Total_Population := Total_Population + Pop.Size_Quantity;
 --        end Add_Population;
@@ -42,7 +42,7 @@ package body Concorde.Colonies.Reports is
 --        World.Scan_Pops (Add_Population'Access);
 --        Put (World.Name);
 --        Set_Col (32);
---        Put (WL.Quantities.Show (Total_Population));
+--        Put (Concorde.Quantities.Show (Total_Population));
 --        New_Line;
 --     end Report_World_Colony;
 

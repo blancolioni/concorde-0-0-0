@@ -10,8 +10,8 @@ with Concorde.Configure;
 with Concorde.Locations;
 with Concorde.Maps;
 
-with WL.Money;
-with WL.Quantities;
+with Concorde.Money;
+with Concorde.Quantities;
 
 with Concorde.Commodities;
 with Concorde.Factions;
@@ -74,7 +74,7 @@ package body Concorde.Colonies.Configure is
       Template : Tropos.Configuration)
    is
 
-      use WL.Quantities;
+      use Concorde.Quantities;
 
       function Get (Name : String;
                     Default : Float)
@@ -120,7 +120,7 @@ package body Concorde.Colonies.Configure is
       procedure Create_Installation
         (Facility : Concorde.Facilities.Facility_Type;
          Sector   : Concorde.Surfaces.Surface_Tile_Index;
-         Size     : WL.Quantities.Quantity_Type);
+         Size     : Concorde.Quantities.Quantity_Type);
 
       procedure Add_Inputs
         (Installation : Concorde.Installations.Installation_Type);
@@ -139,7 +139,7 @@ package body Concorde.Colonies.Configure is
       is
          Facility : constant Concorde.Facilities.Facility_Type :=
                       Installation.Facility;
-         Size     : constant WL.Quantities.Quantity_Type :=
+         Size     : constant Concorde.Quantities.Quantity_Type :=
                       Installation.Size;
       begin
          for I in 1 .. Facility.Input_Count loop
@@ -150,8 +150,8 @@ package body Concorde.Colonies.Configure is
                          Scale
                            (Facility.Input_Choice_Quantity (Size, I, 1),
                             2.0);
-               Value    : constant WL.Money.Money_Type :=
-                            WL.Money.Total
+               Value    : constant Concorde.Money.Money_Type :=
+                            Concorde.Money.Total
                               (Need.Base_Price, Quant);
 
             begin
@@ -220,7 +220,7 @@ package body Concorde.Colonies.Configure is
       procedure Create_Installation
         (Facility : Concorde.Facilities.Facility_Type;
          Sector   : Concorde.Surfaces.Surface_Tile_Index;
-         Size     : WL.Quantities.Quantity_Type)
+         Size     : Concorde.Quantities.Quantity_Type)
       is
          Location     : constant Concorde.Locations.Object_Location :=
                           Concorde.Locations.World_Surface
@@ -230,7 +230,7 @@ package body Concorde.Colonies.Configure is
                             (Location => Location,
                              Market   => World.Market,
                              Facility => Facility,
-                             Cash     => WL.Money.To_Money (1.0E7),
+                             Cash     => Concorde.Money.To_Money (1.0E7),
                              Owner    => World.Owner,
                              Size     => Size);
       begin
@@ -258,7 +258,7 @@ package body Concorde.Colonies.Configure is
                          Market    => World.Market,
                          Group     => Group,
                          Size      => Size,
-                         Cash      => WL.Money.To_Money (Float (Cash)));
+                         Cash      => Concorde.Money.To_Money (Float (Cash)));
       begin
          if Group.Is_Artisan then
             Next_Artisan := Next_Artisan + 1;
@@ -488,7 +488,7 @@ package body Concorde.Colonies.Configure is
          return True;
       end Start_Sector_OK;
 
-      Basic_Living_Wage : WL.Money.Price_Type := WL.Money.Zero;
+      Basic_Living_Wage : Concorde.Money.Price_Type := Concorde.Money.Zero;
 
    begin
 
@@ -524,16 +524,16 @@ package body Concorde.Colonies.Configure is
            Market => null,
            Facility => Concorde.Facilities.Colony_Hub,
            Cash     =>
-             WL.Money.To_Money
+             Concorde.Money.To_Money
                (Get ("cash", 10_000.0)),
            Owner    => World.Owner,
-           Size     => WL.Quantities.To_Quantity (10_000.0));
+           Size     => Concorde.Quantities.To_Quantity (10_000.0));
 
       Government :=
         Concorde.Government.Create.Create_Government
           (Governed          => World,
            Cash              =>
-             WL.Money.To_Money
+             Concorde.Money.To_Money
                (Get ("cash", 10_000.0)),
            Owner             => World.Owner,
            Headquarters      => Hub,
@@ -582,7 +582,7 @@ package body Concorde.Colonies.Configure is
 
       if Template.Contains ("basic_living_wage") then
          declare
-            use WL.Money;
+            use Concorde.Money;
          begin
             for Commodity_Config of Template.Child ("basic_living_wage") loop
                Basic_Living_Wage := Basic_Living_Wage
@@ -614,9 +614,9 @@ package body Concorde.Colonies.Configure is
            Market   => World.Market,
            Facility => Concorde.Facilities.Get ("port"),
            Cash     =>
-             WL.Money.To_Money (5_000_000.0),
+             Concorde.Money.To_Money (5_000_000.0),
            Owner    => World.Owner,
-           Size     => WL.Quantities.To_Quantity (1000.0));
+           Size     => Concorde.Quantities.To_Quantity (1000.0));
 
       World.Update.Add_Installation (Current_Tile, Port);
 

@@ -1,6 +1,6 @@
 private with Ada.Strings.Unbounded;
 
-with WL.Quantities;
+with Concorde.Quantities;
 
 with Memor;
 
@@ -61,14 +61,14 @@ package Concorde.Ships is
 
    function Cargo_Capacity
      (Ship      : Root_Ship_Type)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
       is abstract;
 
    function Available_Capacity
      (Ship      : Root_Ship_Type;
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
-      return WL.Quantities.Quantity_Type
+      return Concorde.Quantities.Quantity_Type
       is abstract;
 
    function Update

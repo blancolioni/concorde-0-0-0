@@ -1,5 +1,5 @@
 with Concorde.Commodities;
-with WL.Money;
+with Concorde.Money;
 
 package body Concorde.People.Pops.Consumption is
 
@@ -22,14 +22,14 @@ package body Concorde.People.Pops.Consumption is
    procedure Execute_Consumption
      (Pop : in out Root_Pop_Type'Class)
    is
-      use Concorde.Commodities, WL.Quantities;
+      use Concorde.Commodities, Concorde.Quantities;
       Group : constant Concorde.People.Groups.Pop_Group :=
                 Pop.Wealth_Group;
       Quality : constant Commodity_Quality := Group.Preferred_Quality;
       Needs : constant Array_Of_Commodities :=
                 Concorde.Commodities.Get
                   (Consumer, Quality);
-      Minimum : constant WL.Quantities.Quantity_Type :=
+      Minimum : constant Concorde.Quantities.Quantity_Type :=
                   Pop.Size_Quantity;
    begin
       for Need of Needs loop
@@ -40,7 +40,7 @@ package body Concorde.People.Pops.Consumption is
             if Available >= Minimum then
                Pop.Remove_Quantity (Need, Minimum);
             else
-               Pop.Set_Quantity (Need, Zero, WL.Money.Zero);
+               Pop.Set_Quantity (Need, Zero, Concorde.Money.Zero);
             end if;
          end;
       end loop;

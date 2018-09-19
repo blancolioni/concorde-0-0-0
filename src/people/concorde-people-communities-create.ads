@@ -1,6 +1,6 @@
 with Tropos;
 
-with WL.Quantities;
+with Concorde.Quantities;
 
 package Concorde.People.Communities.Create is
 
@@ -9,7 +9,7 @@ package Concorde.People.Communities.Create is
         Concorde.Worlds.Root_World_Type'Class;
       Faction       : not null access constant
         Concorde.Factions.Root_Faction_Type'Class;
-      Population    : WL.Quantities.Quantity_Type;
+      Population    : Concorde.Quantities.Quantity_Type;
       Gini          : Unit_Real;
       Template      : Tropos.Configuration)
       return Community_Type;

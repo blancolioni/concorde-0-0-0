@@ -1,5 +1,5 @@
-with WL.Money;
-with WL.Quantities;
+with Concorde.Money;
+with Concorde.Quantities;
 
 package body Concorde.Industries.Create is
 
@@ -25,13 +25,13 @@ package body Concorde.Industries.Create is
       ------------
 
       procedure Create (Industry : in out Root_Industry_Type'Class) is
-         use WL.Quantities;
+         use Concorde.Quantities;
       begin
          Industry.New_Agent
            (Location       => Concorde.Locations.Nowhere,
             Government     => Government,
             Market         => Market,
-            Cash           => WL.Money.Zero,
+            Cash           => Concorde.Money.Zero,
             Stock_Capacity => To_Quantity (1.0E6));
          Industry.Node := Production_Node;
          for Item of Inputs loop

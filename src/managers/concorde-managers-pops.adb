@@ -1,4 +1,4 @@
-with WL.Money;
+with Concorde.Money;
 
 with Concorde.Objects.Queues;
 with Concorde.Signals.Standard;
@@ -71,7 +71,7 @@ package body Concorde.Managers.Pops is
          & Concorde.Calendar.Image
            (Manager.Time, True));
       declare
-         use WL.Money;
+         use Concorde.Money;
          Earnings : constant Money_Type := Manager.Pop.Last_Earnings;
          Cash     : constant Money_Type := Manager.Pop.Cash;
          Minimum  : constant Money_Type :=

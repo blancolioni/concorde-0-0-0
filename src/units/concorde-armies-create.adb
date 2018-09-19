@@ -1,5 +1,5 @@
-with WL.Money;
-with WL.Quantities;
+with Concorde.Money;
+with Concorde.Quantities;
 
 with Concorde.Factions;
 with Concorde.Powers;
@@ -29,8 +29,8 @@ package body Concorde.Armies.Create is
            (Location       => Location,
             Government     => Faction.Capital_World.Government,
             Market         => Faction.Capital_World.Market,
-            Cash           => WL.Money.Zero,
-            Stock_Capacity => WL.Quantities.Zero);
+            Cash           => Concorde.Money.Zero,
+            Stock_Capacity => Concorde.Quantities.Zero);
          Army.Set_Name ("1st " & Faction.Name & " regulars");
          Army.Faction := Faction;
          Army.Loyalty := 1.0;

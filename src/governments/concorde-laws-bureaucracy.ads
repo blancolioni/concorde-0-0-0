@@ -1,4 +1,4 @@
-with WL.Money;
+with Concorde.Money;
 
 with Concorde.Powers;
 
@@ -17,7 +17,7 @@ package Concorde.Laws.Bureaucracy is
    function Create_Ministry
      (Context  : Law_Context;
       Name     : String;
-      Budget   : WL.Money.Money_Type;
+      Budget   : Concorde.Money.Money_Type;
       Powers   : Concorde.Powers.Power_Set)
       return Law_Type;
 

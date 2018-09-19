@@ -129,12 +129,12 @@ package body Concorde.Government is
 
    procedure Set_Basic_Living_Wage
      (Government : in out Root_Government_Type'Class;
-      Wage       : WL.Money.Price_Type)
+      Wage       : Concorde.Money.Price_Type)
    is
    begin
       Government.Log
         ("basic living wage is "
-         & WL.Money.Show (Wage) & "/day");
+         & Concorde.Money.Show (Wage) & "/day");
       Government.Basic_Living_Wage := Wage;
    end Set_Basic_Living_Wage;
 
@@ -196,14 +196,14 @@ package body Concorde.Government is
    overriding procedure Tax_Receipt
      (Government : Root_Government_Type;
       Commodity  : Concorde.Commodities.Commodity_Type;
-      Quantity   : WL.Quantities.Quantity_Type;
-      Price      : WL.Money.Price_Type;
+      Quantity   : Concorde.Quantities.Quantity_Type;
+      Price      : Concorde.Money.Price_Type;
       Category   : Concorde.Trades.Market_Tax_Category;
-      Receipt    : WL.Money.Money_Type)
+      Receipt    : Concorde.Money.Money_Type)
    is
-      use WL.Money;
+      use Concorde.Money;
       Tithe      : constant Money_Type :=
-                     Tax (Receipt, Float (Government.Owner_Tithe));
+                     Tax (Receipt, Government.Owner_Tithe);
    begin
 
       Government.Update.Add_Cash (Receipt - Tithe);
@@ -213,13 +213,13 @@ package body Concorde.Government is
 
       Government.Log_Trade
         ("from sale of "
-         & WL.Quantities.Image (Quantity)
+         & Concorde.Quantities.Image (Quantity)
          & " "
          & Commodity.Name
          & " @ "
-         & WL.Money.Image (Price)
+         & Concorde.Money.Image (Price)
          & ", tax receipt is "
-         & WL.Money.Image (Receipt)
+         & Concorde.Money.Image (Receipt)
          & ", tithe " & Image (Tithe)
          & ", total " & Image (Receipt - Tithe)
          & "; cash: " & Image (Government.Cash));
@@ -232,7 +232,7 @@ package body Concorde.Government is
    function Tax_Receipts
      (Government : Root_Government_Type'Class;
       Category   : Concorde.Trades.Market_Tax_Category)
-      return WL.Money.Money_Type
+      return Concorde.Money.Money_Type
    is
    begin
       return Government.Tax_Receipts (Category);

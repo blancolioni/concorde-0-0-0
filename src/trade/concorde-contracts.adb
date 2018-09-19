@@ -53,8 +53,8 @@ package body Concorde.Contracts is
      (Location  : Concorde.Locations.Object_Location;
       Buyer     : not null access constant Contractor_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : WL.Quantities.Quantity_Type;
-      Price     : WL.Money.Price_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type;
       Expires   : Concorde.Calendar.Time)
       return Contract_Type
    is
@@ -80,8 +80,8 @@ package body Concorde.Contracts is
          Contract.Accepted := False;
          Contract.Canceled := False;
 --           Buyer.Log
---             ("offers to buy " & WL.Quantities.Show (Quantity)
---              & " " & Commodity.Name & " @ " & WL.Money.Show (Price));
+--             ("offers to buy " & Concorde.Quantities.Show (Quantity)
+--              & " " & Commodity.Name & " @ " & Concorde.Money.Show (Price));
       end Create;
 
    begin
@@ -115,14 +115,14 @@ package body Concorde.Contracts is
       case Contract.Class is
          when Buy_Goods =>
             return "ship "
-              & WL.Quantities.Show (Contract.Quantity)
+              & Concorde.Quantities.Show (Contract.Quantity)
               & " "
               & Contract.Commodity.Name
               & " to "
               & Concorde.Locations.Primary (Contract.Location).Identifier
               & " for "
-              & WL.Money.Show
-              (WL.Money.Total (Contract.Price, Contract.Quantity));
+              & Concorde.Money.Show
+              (Concorde.Money.Total (Contract.Price, Contract.Quantity));
       end case;
    end Show;
 

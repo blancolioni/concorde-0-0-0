@@ -1,7 +1,7 @@
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Text_IO;
 
-with WL.Money;
+with Concorde.Money;
 with WL.String_Sets;
 
 --  with Concorde.Real_Images;
@@ -487,7 +487,7 @@ package body Concorde.People.Communities.Create is
       end loop;
 
       declare
-         use WL.Quantities;
+         use Concorde.Quantities;
          All_Groups : constant Concorde.People.Groups.Array_Of_Pop_Groups :=
                         Concorde.People.Groups.All_Groups;
          Size       : array (All_Groups'Range) of Quantity_Type :=
@@ -586,7 +586,7 @@ package body Concorde.People.Communities.Create is
         Concorde.Worlds.Root_World_Type'Class;
       Faction       : not null access constant
         Concorde.Factions.Root_Faction_Type'Class;
-      Population    : WL.Quantities.Quantity_Type;
+      Population    : Concorde.Quantities.Quantity_Type;
       Gini          : Unit_Real;
       Template      : Tropos.Configuration)
       return Community_Type
@@ -665,12 +665,11 @@ package body Concorde.People.Communities.Create is
                                  (Price     =>
                                     (if Local_Price = 0.0
                                      then Commodity.Base_Price
-                                     else WL.Money.Adjust_Price
-                                       (Commodity.Base_Price,
-                                        Float (Local_Price))),
-                                  Quantity => WL.Quantities.Zero,
-                                  Supply    => WL.Quantities.Zero,
-                                  Demand    => WL.Quantities.Zero);
+                                     else Concorde.Money.Adjust_Price
+                                       (Commodity.Base_Price, Local_Price)),
+                                  Quantity => Concorde.Quantities.Zero,
+                                  Supply    => Concorde.Quantities.Zero,
+                                  Demand    => Concorde.Quantities.Zero);
             begin
                Community.Local_Commodities.Replace_Element
                  (Commodity, new Local_Commodity_Record'(Local));
@@ -696,8 +695,8 @@ package body Concorde.People.Communities.Create is
           (Governed          => Community,
            Location => Concorde.Locations.In_Community (Community),
            Cash              =>
-             WL.Money.To_Money
-               (WL.Quantities.To_Float (Population)),
+             Concorde.Money.To_Money
+               (Concorde.Quantities.To_Real (Population)),
            Owner             => Faction);
 
       declare
@@ -715,7 +714,7 @@ package body Concorde.People.Communities.Create is
                Apathy        => 0.2,
                Gini          => Gini,
                Total_Pop     =>
-                 Non_Negative_Real (WL.Quantities.To_Float (Population)),
+                 Non_Negative_Real (Concorde.Quantities.To_Real (Population)),
                Initial_Value => Initial_Value'Access);
          end Update;
 

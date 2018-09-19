@@ -1,7 +1,7 @@
 with Ada.Strings.Fixed;
 
 with WL.Localisation;
-with WL.Quantities;
+with Concorde.Quantities;
 
 with Xi.Float_Images;
 
@@ -110,7 +110,7 @@ package body Concorde.Xi_UI.Worlds is
                Ada.Strings.Left)
             & "h");
          Overlay.Population.Set_Label
-           (WL.Quantities.Show
+           (Concorde.Quantities.Show
               (World.Total_Population));
          Overlay.Hydrosphere.Set_Label
            (Ada.Strings.Fixed.Trim

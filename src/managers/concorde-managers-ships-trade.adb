@@ -1,6 +1,6 @@
 with WL.Heaps;
-with WL.Money;
-with WL.Quantities;
+with Concorde.Money;
+with Concorde.Quantities;
 
 with Xi.Float_Images;
 
@@ -27,7 +27,7 @@ package body Concorde.Managers.Ships.Trade is
    procedure Create_Asks
      (Manager : in out Root_Ship_Trade_Manager'Class)
    is
-      use WL.Quantities;
+      use Concorde.Quantities;
    begin
       for Commodity of Concorde.Commodities.Trade_Commodities loop
 
@@ -48,7 +48,7 @@ package body Concorde.Managers.Ships.Trade is
      (Manager : in out Root_Ship_Trade_Manager'Class)
    is
       use Concorde.Commodities;
-      use WL.Money, WL.Quantities;
+      use Concorde.Money, Concorde.Quantities;
       Local_Market   : constant Concorde.Markets.Market_Type :=
                          Concorde.Markets.Market_Type (Manager.Ship.Market);
       Contract_Queue : Contract_Queues.Heap;
@@ -118,8 +118,8 @@ package body Concorde.Managers.Ships.Trade is
                   then
                      declare
                         Score : constant Non_Negative_Real :=
-                                  Real (To_Float (Contract.Price)
-                                        / To_Float (Local_Price))
+                                  Real (To_Real (Contract.Price)
+                                        / To_Real (Local_Price))
                                   / Jumps;
                      begin
                         if Detailed_Logging then
@@ -246,7 +246,7 @@ package body Concorde.Managers.Ships.Trade is
    overriding procedure On_Idle
      (Manager : in out Root_Ship_Trade_Manager)
    is
-      use WL.Quantities;
+      use Concorde.Quantities;
       use Concorde.Worlds;
 
       procedure Deliver_Goods

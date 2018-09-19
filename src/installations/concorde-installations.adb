@@ -11,21 +11,21 @@ package body Concorde.Installations is
    type Consumption_Record is
       record
          Commodity : Concorde.Commodities.Commodity_Type;
-         Cost_Per  : WL.Money.Money_Type;
-         Input_Per : WL.Quantities.Quantity_Type;
-         Have      : WL.Quantities.Quantity_Type;
+         Cost_Per  : Concorde.Money.Money_Type;
+         Input_Per : Concorde.Quantities.Quantity_Type;
+         Have      : Concorde.Quantities.Quantity_Type;
       end record;
 
    package Consumption_Queues is
-     new WL.Heaps (WL.Money.Money_Type, Consumption_Record,
-                   WL.Money.">")
+     new WL.Heaps (Concorde.Money.Money_Type, Consumption_Record,
+                   Concorde.Money.">")
    with Unreferenced;
 
    procedure New_Port_Contracts
      (Port      : not null access constant Root_Installation_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : WL.Quantities.Quantity_Type;
-      Price     : WL.Money.Price_Type)
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type)
      with Pre => Port.Is_Port, Unreferenced;
 
    ---------------
@@ -51,8 +51,8 @@ package body Concorde.Installations is
       Employee  : not null access constant
         Concorde.Trades.Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : WL.Quantities.Quantity_Type;
-      Wage      : WL.Money.Price_Type)
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Wage      : Concorde.Money.Price_Type)
    is
       pragma Unreferenced (Commodity);
       New_Employee : constant Employee_Record :=
@@ -129,11 +129,11 @@ package body Concorde.Installations is
    procedure New_Port_Contracts
      (Port      : not null access constant Root_Installation_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : WL.Quantities.Quantity_Type;
-      Price     : WL.Money.Price_Type)
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type)
    is
       use type Concorde.Calendar.Time;
-      use WL.Quantities;
+      use Concorde.Quantities;
       Individual_Contract_Size : constant Quantity_Type :=
                                    To_Quantity (10_000.0);
       Remaining                : Quantity_Type := Quantity;
@@ -147,7 +147,7 @@ package body Concorde.Installations is
 
       while Remaining > Zero loop
          declare
-            use WL.Money;
+            use Concorde.Money;
             Quantity : constant Quantity_Type :=
                          Min (Remaining, Individual_Contract_Size);
             Value    : constant Money_Type :=

@@ -2,8 +2,8 @@ with Ada.Containers.Indefinite_Holders;
 with Ada.Containers.Indefinite_Vectors;
 with Ada.Containers.Vectors;
 
-with WL.Money;
-with WL.Quantities;
+with Concorde.Money;
+with Concorde.Quantities;
 with WL.String_Maps;
 
 with Concorde.Calendar;
@@ -161,10 +161,10 @@ package body Concorde.Powers.Execution is
                   when By_Metric =>
                      W :=
                        Duration
-                         (WL.Quantities.To_Float
+                         (Concorde.Quantities.To_Real
                             (Market.Current_Quantity
                                (Item.Metric, Commodity))
-                          * Float (Item.Factor));
+                          * Item.Factor);
                   when By_Transaction_Count =>
                      W :=
                        Duration
@@ -204,8 +204,8 @@ package body Concorde.Powers.Execution is
                   when By_Pop_Count =>
                      W := W + Duration (Item.Factor);
                   when By_Wealth =>
-                     W := W + Duration (WL.Money.To_Float (Pop.Cash)
-                                        * Float (Item.Factor));
+                     W := W + Duration (Concorde.Money.To_Real (Pop.Cash)
+                                        * Item.Factor);
                end case;
 
                Result := Result + W;
