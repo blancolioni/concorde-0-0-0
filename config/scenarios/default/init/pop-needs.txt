@@ -1,0 +1,4 @@
+food = {
+  need = 0.1
+  budget = 20%
+}
