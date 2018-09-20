@@ -90,9 +90,7 @@ package body Concorde.Factions.Create is
             declare
                use Concorde.Managers.Ships.Trade;
                Manager  : constant Ship_Trade_Manager :=
-                            (if I mod 2 = 1
-                             then Create_Manager (Trader, World)
-                             else Create_Manager (Trader, Capital));
+                            Create_Manager (Trader, Community);
             begin
                Manager.Activate;
             end;
