@@ -13,4 +13,9 @@ package Concorde.Commodities.Configure is
 
    procedure Calculate_Base_Prices;
 
+   function New_Pop_Group
+     (Identifier : String;
+      Base_Price : Concorde.Money.Price_Type)
+      return Commodity_Type;
+
 end Concorde.Commodities.Configure;

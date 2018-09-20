@@ -1,3 +1,5 @@
+with Concorde.Money;
+
 with Concorde.Locations;
 with Concorde.Trades;
 
@@ -10,9 +12,11 @@ package Concorde.Industries.Create is
         Concorde.Trades.Trade_Interface'Class;
       Government      : not null access constant
         Concorde.Government.Root_Government_Type'Class;
-      Production_Node : Concorde.Network.Node_State_Access;
-      Inputs          : Concorde.Commodities.Array_Of_Commodities;
-      Outputs         : Concorde.Commodities.Array_Of_Commodities)
+      Owner           : not null access constant
+        Concorde.Agents.Root_Agent_Type'Class;
+      Production      : String;
+      Size            : Non_Negative_Real;
+      Cash            : Concorde.Money.Money_Type)
       return Industry_Type;
 
 end Concorde.Industries.Create;

@@ -213,6 +213,18 @@ package body Concorde.Commodities is
       return Result (1 .. Count);
    end Get;
 
+   ------------------
+   -- Is_Pop_Group --
+   ------------------
+
+   function Is_Pop_Group
+     (Commodity : Root_Commodity_Type'Class)
+      return Boolean
+   is
+   begin
+      return Commodity.Class = Pop_Group;
+   end Is_Pop_Group;
+
    ------------
    -- Is_Set --
    ------------

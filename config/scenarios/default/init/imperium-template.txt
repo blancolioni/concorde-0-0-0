@@ -26,11 +26,10 @@ init = {
    bureaucrat = 0.5
 }
 
-agricultural-land-use = 5%
-commercial-land-use = 12%
-industrial-land-use = 15%
-mining-land-use = 5%
-urban-land-use = 10%
+industries = {
+   agriculture = 10%
+   luxury-goods = 10K
+}
 
 pop-size = 10K
 gini = 0.7

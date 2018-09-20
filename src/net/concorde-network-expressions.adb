@@ -1,3 +1,6 @@
+with Ada.Exceptions;
+with Ada.Text_IO;
+
 with Concorde.Elementary_Functions;
 with Concorde.Real_Images;
 
@@ -108,6 +111,14 @@ package body Concorde.Network.Expressions is
       Object : Null_Network_State;
    begin
       return Expression.Evaluate (State, Local_Env, Object);
+   exception
+      when E : others =>
+         Ada.Text_IO.Put_Line
+           (Ada.Text_IO.Standard_Error,
+            "error: " & Ada.Exceptions.Exception_Message (E));
+         Ada.Text_IO.Put_Line
+           ("   while evaluating: " & Expression.Show);
+         raise;
    end Evaluate;
 
    --------------

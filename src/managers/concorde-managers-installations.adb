@@ -91,10 +91,8 @@ package body Concorde.Managers.Installations is
             end;
          end if;
 
-         Manager.Installation.Update.Check_Offers;
-         Manager.Installation.Add_Trade_Offers;
          Manager.Installation.Update.Execute_Production;
-         Manager.Installation.Update.Pay_Workers;
+
       end if;
 
       Concorde.Objects.Queues.Next_Event

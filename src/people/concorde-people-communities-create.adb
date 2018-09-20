@@ -599,6 +599,8 @@ package body Concorde.People.Communities.Create is
          return Real
       is (Real (Float'(Init.Get (Name, 0.0))));
 
+      Total_Land : Non_Negative_Real := 0.0;
+
       procedure Create (Community : in out Root_Community_Type'Class);
 
       ------------
@@ -606,11 +608,6 @@ package body Concorde.People.Communities.Create is
       ------------
 
       procedure Create (Community : in out Root_Community_Type'Class) is
-         function Get_Land_Use (Item : Land_Use) return Unit_Real
-         is (Real (Float'(Template.Get (Item'Image & "-land-use", 0.0))));
-
-         Total_Land_Use : Non_Negative_Real := 0.0;
-
       begin
          Community.Set_Name (World.Name);
          Community.World := Concorde.Worlds.World_Type (World);
@@ -618,34 +615,13 @@ package body Concorde.People.Communities.Create is
          Community.Occupation :=
            Real (Float'(Template.Get ("occupation", 0.1)));
 
+         Total_Land :=
+           Community.World.Surface_Area
+             * (1.0 - Community.World.Hydrosphere)
+           * Community.Occupation
+           / 1.0e6;
+
          Create_Network_State (Community, Initial_Value'Access);
-         for Item in Land_Use loop
-            declare
-               Relative : constant Unit_Real := Get_Land_Use (Item);
-            begin
-               Community.Land_Use (Item).Relative := Relative;
-               Total_Land_Use := Total_Land_Use + Relative;
-            end;
-         end loop;
-
-         if Total_Land_Use < 1.0 then
-            Community.Land_Use (Undeveloped).Relative :=
-                 Community.Land_Use (Undeveloped).Relative
-                 + 1.0 - Total_Land_Use;
-         elsif Total_Land_Use > 1.0 then
-            for Item of Community.Land_Use loop
-               Item.Relative := Item.Relative / Total_Land_Use;
-            end loop;
-         end if;
-
-         for Item of Community.Land_Use loop
-            Item.Absolute :=
-              Community.World.Surface_Area
-              * (1.0 - Community.World.Hydrosphere)
-              * Community.Occupation
-              * Item.Relative;
-
-         end loop;
 
          declare
             procedure Add_Local_Commodity
@@ -729,20 +705,29 @@ package body Concorde.People.Communities.Create is
            Manager        => Community.Government,
            Enable_Logging => False);
 
-      declare
-         Agriculture : constant Concorde.Industries.Industry_Type :=
-                         Concorde.Industries.Create.New_Industry
-                           (Market          => Community.Market,
-                            Government      => Community.Government,
-                            Production_Node =>
-                              Community.Node ("agriculture-industry"),
-                            Inputs          =>
-                              Concorde.Commodities.No_Commodities,
-                            Outputs         =>
-                              (1 => Concorde.Commodities.Get ("food")));
-      begin
-         Community.Update.Industries.Append (Agriculture);
-      end;
+      for Industry_Config of Template.Child ("industries") loop
+         declare
+            Config_Size : constant Non_Negative_Real :=
+                            Non_Negative_Real
+                              (Float'(Industry_Config.Value));
+            Industry_Size : constant Non_Negative_Real :=
+                              (if Config_Size < 1.0
+                               then Total_Land * Config_Size
+                               else Config_Size);
+            Start_Cash    : constant Concorde.Money.Money_Type :=
+                              Concorde.Money.To_Money
+                                (10.0 * Industry_Size);
+         begin
+            Community.Update.Industries.Append
+              (Concorde.Industries.Create.New_Industry
+                 (Market     => Community.Market,
+                  Government => Community.Government,
+                  Owner      => Faction,
+                  Production => Industry_Config.Config_Name,
+                  Size       => Industry_Size,
+                  Cash       => Start_Cash));
+         end;
+      end loop;
 
       Concorde.Managers.Communities.Create_Manager (Community).Activate;
 

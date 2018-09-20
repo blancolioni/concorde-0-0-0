@@ -1737,6 +1737,37 @@ package body Concorde.Agents is
          Value    => Contract.Total_Cost);
    end On_Accepted_Contract;
 
+   ----------------------
+   -- On_Commodity_Buy --
+   ----------------------
+
+   procedure On_Commodity_Buy
+     (Agent     : in out Root_Agent_Type;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type)
+   is
+   begin
+      Agent.Add_Quantity (Commodity, Quantity,
+                          Concorde.Money.Total (Price, Quantity));
+   end On_Commodity_Buy;
+
+   -----------------------
+   -- On_Commodity_Sell --
+   -----------------------
+
+   procedure On_Commodity_Sell
+     (Agent     : in out Root_Agent_Type;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type)
+   is
+   begin
+      Agent.Remove_Quantity
+        (Commodity, Quantity,
+         Concorde.Money.Total (Price, Quantity));
+   end On_Commodity_Sell;
+
    --------------------------
    -- On_Contract_Accepted --
    --------------------------

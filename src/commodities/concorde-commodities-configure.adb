@@ -284,4 +284,37 @@ package body Concorde.Commodities.Configure is
       end return;
    end Create;
 
+   -------------------
+   -- New_Pop_Group --
+   -------------------
+
+   function New_Pop_Group
+     (Identifier : String;
+      Base_Price : Concorde.Money.Price_Type)
+      return Commodity_Type
+   is
+
+      procedure Create (Commodity : in out Root_Commodity_Type'Class);
+
+      ------------
+      -- Create --
+      ------------
+
+      procedure Create (Commodity : in out Root_Commodity_Type'Class) is
+      begin
+         Commodity.Set_Local_Tag (Identifier);
+         Commodity.Class := Pop_Group;
+         Commodity.Flags := (others => False);
+         Commodity.Mass := 60.0;
+         Commodity.Base_Price := Base_Price;
+      end Create;
+
+   begin
+      return Commodity : constant Commodity_Type :=
+        Concorde.Commodities.Db.Create (Create'Access)
+      do
+         Commodity_Vector.Append (Commodity);
+      end return;
+   end New_Pop_Group;
+
 end Concorde.Commodities.Configure;

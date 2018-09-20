@@ -26,11 +26,9 @@ init = {
    farmer = 0.5
 }
 
-agricultural-land-use = 30%
-commercial-land-use = 5%
-industrial-land-use = 5%
-mining-land-use = 5%
-urban-land-use = 5%
+industries = {
+   agriculture = 30%
+}
 
 pop-size = 10K
 gini = 0.3

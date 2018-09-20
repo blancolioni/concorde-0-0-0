@@ -17,6 +17,18 @@ package body Concorde.People.Groups is
    end All_Groups;
 
    ---------------
+   -- Commodity --
+   ---------------
+
+   function Commodity
+     (Group : Root_Pop_Group'Class)
+      return Concorde.Commodities.Commodity_Type
+   is
+   begin
+      return Group.Pop_Group_Commodity;
+   end Commodity;
+
+   ---------------
    -- Everybody --
    ---------------
 
@@ -83,6 +95,19 @@ package body Concorde.People.Groups is
    begin
       return Group.Happiness_Node;
    end Happiness_Node;
+
+   -------------------
+   -- Has_Commodity --
+   -------------------
+
+   function Has_Commodity
+     (Group : Root_Pop_Group'Class)
+      return Boolean
+   is
+   begin
+      return Concorde.Commodities."/="
+        (Group.Pop_Group_Commodity, null);
+   end Has_Commodity;
 
    -----------------
    -- Income_Node --

@@ -1211,6 +1211,14 @@ package body Concorde.Markets is
             if Wanted_Budget > 0.0
               or else Supply > Wanted
             then
+               Agent.Log
+                 (Commodity.Name
+                  & ": need "
+                  & Concorde.Real_Images.Approximate_Image (Budget / Price)
+                  & "; offer "
+                  & Concorde.Real_Images.Approximate_Image
+                    (Real'Max (Supply - Wanted, 0.0)));
+
                Needs.Insert
                  (Agent.Identifier,
                   (Needed => Budget / Price,

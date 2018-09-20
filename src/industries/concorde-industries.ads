@@ -5,11 +5,13 @@ with Concorde.Agents;
 with Concorde.Commodities;
 with Concorde.Locations;
 with Concorde.Managers;
+with Concorde.Ownership;
+with Concorde.Production;
 with Concorde.Trades;
 
 with Concorde.Network;
 
-private with Concorde.Commodities.Lists;
+with Concorde.Money;
 
 package Concorde.Industries is
 
@@ -19,6 +21,13 @@ package Concorde.Industries is
    with private;
 
    type Industry_Type is access constant Root_Industry_Type'Class;
+
+   function Owner
+     (Industry : Root_Industry_Type'Class)
+      return access constant Concorde.Agents.Root_Agent_Type'Class;
+
+   procedure Execute_Production
+     (Industry : in out Root_Industry_Type'Class);
 
    type Updateable_Reference
      (Item : not null access Root_Industry_Type'Class)
@@ -34,10 +43,13 @@ private
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Managers.Managed_Interface with
       record
-         Manager : Concorde.Managers.Manager_Type;
-         Node    : Concorde.Network.Node_State_Access;
-         Inputs  : Concorde.Commodities.Lists.List;
-         Outputs : Concorde.Commodities.Lists.List;
+         Manager    : Concorde.Managers.Manager_Type;
+         Owner      : access constant
+           Concorde.Agents.Root_Agent_Type'Class;
+         Node       : Concorde.Network.Node_State_Access;
+         Size       : Non_Negative_Real;
+         Production : Concorde.Production.Production_Type;
+         Cost       : Concorde.Money.Money_Type;
       end record;
 
    overriding procedure Update_Agent
@@ -86,6 +98,11 @@ private
    overriding procedure Set_Manager
      (Industry    : in out Root_Industry_Type;
       Manager     : Concorde.Managers.Manager_Type);
+
+   function Owner
+     (Industry : Root_Industry_Type'Class)
+      return access constant Concorde.Agents.Root_Agent_Type'Class
+   is (Industry.Owner);
 
    package Db is
      new Memor.Database

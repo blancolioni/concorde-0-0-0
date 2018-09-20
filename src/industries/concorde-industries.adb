@@ -1,3 +1,5 @@
+with Concorde.Quantities;
+
 package body Concorde.Industries is
 
    ------------------
@@ -10,11 +12,7 @@ package body Concorde.Industries is
       return Unit_Real
    is
    begin
-      if Industry.Inputs.Contains (Commodity) then
-         return 1.0 / Non_Negative_Real (Industry.Inputs.Length);
-      else
-         return 0.0;
-      end if;
+      return Industry.Production.Relative_Input_Cost (Commodity);
    end Daily_Budget;
 
    -----------------
@@ -27,11 +25,10 @@ package body Concorde.Industries is
       return Non_Negative_Real
    is
    begin
-      if Industry.Inputs.Contains (Commodity) then
-         return Industry.Node.Current_Actual_Value;
-      else
-         return 0.0;
-      end if;
+      return Concorde.Quantities.To_Real
+        (Industry.Production.Input_Quantity
+           (Commodity => Commodity,
+            Size      => Industry.Size));
    end Daily_Needs;
 
    ------------------
@@ -44,13 +41,27 @@ package body Concorde.Industries is
       return Non_Negative_Real
    is
    begin
-      if Industry.Outputs.Contains (Commodity) then
-         return Industry.Node.Current_Actual_Value
-           / Non_Negative_Real (Industry.Outputs.Length);
+      if Industry.Production.Is_Output (Commodity) then
+         return Concorde.Quantities.To_Real
+           (Industry.Get_Quantity (Commodity));
       else
          return 0.0;
       end if;
    end Daily_Supply;
+
+   ------------------------
+   -- Execute_Production --
+   ------------------------
+
+   procedure Execute_Production
+     (Industry : in out Root_Industry_Type'Class)
+   is
+   begin
+      Industry.Production.Execute
+        (Stock => Industry,
+         Size  => Industry.Size,
+         Cost  => Industry.Cost);
+   end Execute_Production;
 
    -----------------
    -- Set_Manager --

@@ -14,6 +14,7 @@ with Concorde.Locations;
 with Concorde.Contracts;
 with Concorde.Commodities;
 
+with Concorde.Ownership;
 with Concorde.Trades;
 
 package Concorde.Agents is
@@ -24,6 +25,7 @@ package Concorde.Agents is
      abstract new Concorde.Objects.Root_Object_Type
      and Concorde.Commodities.Stock_Interface
      and Concorde.Locations.Located_Interface
+     and Concorde.Ownership.Owner_Interface
      and Concorde.Contracts.Contractor_Interface
      and Concorde.Trades.Trader_Interface with private;
 
@@ -101,15 +103,13 @@ package Concorde.Agents is
      (Agent     : in out Root_Agent_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity_Type;
-      Price     : Concorde.Money.Price_Type)
-   is null;
+      Price     : Concorde.Money.Price_Type);
 
    procedure On_Commodity_Sell
      (Agent     : in out Root_Agent_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity_Type;
-      Price     : Concorde.Money.Price_Type)
-   is null;
+      Price     : Concorde.Money.Price_Type);
 
    function Reference (Agent : Root_Agent_Type'Class) return Agent_Reference;
 
@@ -505,6 +505,7 @@ private
      abstract new Concorde.Objects.Root_Object_Type
      and Concorde.Commodities.Stock_Interface
      and Concorde.Locations.Located_Interface
+     and Concorde.Ownership.Owner_Interface
      and Concorde.Contracts.Contractor_Interface
      and Concorde.Trades.Trader_Interface with
       record

@@ -54,6 +54,15 @@ package Concorde.People.Groups is
      (Group : Root_Pop_Group'Class)
       return Unit_Real;
 
+   function Has_Commodity
+     (Group : Root_Pop_Group'Class)
+      return Boolean;
+
+   function Commodity
+     (Group : Root_Pop_Group'Class)
+      return Concorde.Commodities.Commodity_Type
+     with Pre => Group.Has_Commodity;
+
    function Influence
      (Group : Root_Pop_Group'Class;
       Other : Pop_Group)
@@ -99,6 +108,7 @@ private
          Wealth_Group          : Boolean := False;
          Wealth_Proportion     : Boolean := False;
          Influences            : Group_Influence_Lists.List;
+         Pop_Group_Commodity   : Concorde.Commodities.Commodity_Type;
       end record;
 
    overriding function Object_Database

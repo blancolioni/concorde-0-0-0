@@ -10,4 +10,5 @@ influence = {
    bureaucrat = -1
    farmer = -1
    retired = -1
+   worker = -1
 }

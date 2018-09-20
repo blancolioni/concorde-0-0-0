@@ -1,5 +1,5 @@
 type: rating
-calculation {
-   add: min (world.habitability * agricultural-land / 100_000) 
-            (sum ((pops | group => farmer).size) * 10)
-   }
+--  calculation {
+--     add: min (world.habitability * agricultural-land / 100_000) 
+--              (sum ((employees | group => farmer).size) * 10)
+--     }

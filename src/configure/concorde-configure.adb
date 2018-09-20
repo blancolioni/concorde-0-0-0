@@ -26,6 +26,8 @@ with Concorde.People.Traits.Configure;
 with Concorde.People.Individuals.Portraits;
 with Concorde.People.Genetics;
 
+with Concorde.Production.Configure;
+
 --  with Concorde.Units.Configure;
 
 with Concorde.Atmosphere.Configure;
@@ -194,6 +196,8 @@ package body Concorde.Configure is
          Extension => "txt",
          Configure =>
            Concorde.People.Traits.Configure.Configure_Trait'Access);
+
+      Concorde.Production.Configure.Configure_Production;
 
       Concorde.Metrics.Configure.Configure_Metrics;
       Concorde.Policies.Configure.Configure_Policies;

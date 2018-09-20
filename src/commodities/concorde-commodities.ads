@@ -13,7 +13,7 @@ package Concorde.Commodities is
 
    use type Concorde.Quantities.Quantity_Type;
 
-   type Commodity_Class is (Consumer, Military, Resource);
+   type Commodity_Class is (Consumer, Military, Resource, Pop_Group);
 
    type Commodity_Flag is (Available, Cryogenic, Mineral, Virtual);
 
@@ -39,6 +39,10 @@ package Concorde.Commodities is
    function Is_Set
      (Commodity : Root_Commodity_Type'Class;
       Flag      : Commodity_Flag)
+      return Boolean;
+
+   function Is_Pop_Group
+     (Commodity : Root_Commodity_Type'Class)
       return Boolean;
 
    function Exists (Name : String) return Boolean;

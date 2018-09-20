@@ -65,8 +65,15 @@ package body Concorde.People.Pops is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Non_Negative_Real
    is
-      pragma Unreferenced (Pop, Commodity);
+      use type Concorde.Commodities.Commodity_Type;
    begin
+      for Group of Pop.Groups loop
+         if Group.Group.Has_Commodity
+           and then Group.Group.Commodity = Commodity
+         then
+            return Non_Negative_Real (Pop.Size);
+         end if;
+      end loop;
       return 0.0;
    end Daily_Supply;
 

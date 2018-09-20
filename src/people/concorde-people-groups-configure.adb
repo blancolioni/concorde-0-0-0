@@ -1,7 +1,10 @@
 with Tropos.Reader;
 
+with Concorde.Money;
+
 with Concorde.Configure;
 with Concorde.Politics.Configure;
+with Concorde.Commodities.Configure;
 
 with Concorde.Network.Expressions;
 with Concorde.Network.Expressions.Parser;
@@ -110,6 +113,13 @@ package body Concorde.People.Groups.Configure is
            (Group.Default_Politics, Config.Child ("politics"));
          Group.Wealth_Group := Config.Get ("wealth-group");
          Configure_Proportion (Config.Child ("proportion"));
+         if Config.Get ("has-commodity") then
+            Group.Pop_Group_Commodity :=
+              Concorde.Commodities.Configure.New_Pop_Group
+                (Group.Identifier,
+                 Base_Price => Concorde.Money.To_Price (1.0));
+         end if;
+
       end Create;
 
       Group : constant Pop_Group := Db.Create (Create'Access);
