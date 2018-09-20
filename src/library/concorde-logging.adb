@@ -1,4 +1,5 @@
 with Ada.Characters.Latin_1;
+with Ada.Directories;
 with Ada.Text_IO;
 
 with Concorde.Calendar;
@@ -56,10 +57,14 @@ package body Concorde.Logging is
    -------------------
 
    procedure Start_Logging is
+      Log_Directory : constant String :=
+                        Concorde.Options.Log_Folder;
    begin
+      if not Ada.Directories.Exists (Log_Directory) then
+         Ada.Directories.Create_Directory (Log_Directory);
+      end if;
       Ada.Text_IO.Create (Log_File, Ada.Text_IO.Out_File,
-                          Concorde.Options.Log_Folder
-                            & "/concorde.log");
+                          Log_Directory & "/concorde.log");
       Logging_Enabled := True;
    end Start_Logging;
 
