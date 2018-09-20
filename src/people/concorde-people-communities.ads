@@ -20,11 +20,13 @@ with Concorde.Laws;
 with Concorde.Markets;
 with Concorde.People.Individuals;
 with Concorde.People.Pops;
+with Concorde.Ships;
 with Concorde.Worlds;
 
 private with Concorde.Industries.Lists;
 private with Concorde.People.Individuals.Lists;
 private with Concorde.People.Pops.Lists;
+private with Concorde.Ships.Lists;
 
 package Concorde.People.Communities is
 
@@ -80,6 +82,16 @@ package Concorde.People.Communities is
 
 --     procedure Update_Local_Market
 --       (Community : in out Root_Community_Type'Class);
+
+   procedure Add_Ship
+     (Community : in out Root_Community_Type'Class;
+      Ship      : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class);
+
+   procedure Scan_Ships
+     (Community : Root_Community_Type'Class;
+      Process   : not null access
+        procedure (Ship : Concorde.Ships.Ship_Type));
 
    function Exists (Name : String) return Boolean;
    function Get (Name : String) return Community_Type;
@@ -149,6 +161,7 @@ private
          Pops              : Concorde.People.Pops.Lists.List;
          Individuals       : Concorde.People.Individuals.Lists.List;
          Industries        : Concorde.Industries.Lists.List;
+         Ships             : Concorde.Ships.Lists.List;
          Market            : Concorde.Markets.Market_Type;
          Government        : Concorde.Government.Government_Type;
          Occupation        : Unit_Real := 0.0;

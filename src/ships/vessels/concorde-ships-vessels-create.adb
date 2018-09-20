@@ -148,6 +148,7 @@ package body Concorde.Ships.Vessels.Create is
 
       Vessel : constant Vessel_Type := Db.Create (Create'Access);
    begin
+      Community.Update.Add_Ship (Vessel);
       Community.World.System.Update.Add_Ship (Vessel);
       return Ship_Type (Vessel);
    end Create_Start_Vessel;

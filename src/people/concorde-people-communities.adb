@@ -28,6 +28,19 @@ package body Concorde.People.Communities is
       Community.Pops.Append (Concorde.People.Pops.Pop_Type (Pop));
    end Add_Pop;
 
+   --------------
+   -- Add_Ship --
+   --------------
+
+   procedure Add_Ship
+     (Community : in out Root_Community_Type'Class;
+      Ship      : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
+   is
+   begin
+      Community.Ships.Append (Concorde.Ships.Ship_Type (Ship));
+   end Add_Ship;
+
    --------------------
    -- Current_Demand --
    --------------------
@@ -315,6 +328,9 @@ package body Concorde.People.Communities is
       for Industry of Community.Industries loop
          Process (Industry);
       end loop;
+      for Ship of Community.Ships loop
+         Process (Ship);
+      end loop;
    end Scan_Agents;
 
    ----------------------
@@ -346,6 +362,21 @@ package body Concorde.People.Communities is
          Process (Pop);
       end loop;
    end Scan_Pops;
+
+   ----------------
+   -- Scan_Ships --
+   ----------------
+
+   procedure Scan_Ships
+     (Community : Root_Community_Type'Class;
+      Process   : not null access
+        procedure (Ship : Concorde.Ships.Ship_Type))
+   is
+   begin
+      for Ship of Community.Ships loop
+         Process (Ship);
+      end loop;
+   end Scan_Ships;
 
    ----------------------
    -- Scan_State_Nodes --
