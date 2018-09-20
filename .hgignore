@@ -41,3 +41,5 @@ config/v2/
 trace.txt
 config/images/*
 config/portraits/*
+config/scenarios/agrippa
+config/commodities
