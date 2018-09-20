@@ -46,6 +46,9 @@ package body Concorde.Ships.Vessels.Create is
             Cash           => Concorde.Money.To_Money (100_000.0),
             Stock_Capacity => Design.Cargo_Capacity);
 
+         Vessel.Buying.Create_Stock (Concorde.Quantities.Zero, True);
+         Vessel.Selling.Create_Stock (Concorde.Quantities.Zero, True);
+
          Vessel.Design := Design;
 
          if Name = "" then

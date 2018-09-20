@@ -1425,6 +1425,19 @@ package body Concorde.Agents is
       return Agent.Market /= null;
    end Has_Market;
 
+   ----------------
+   -- Is_Virtual --
+   ----------------
+
+   overriding function Is_Virtual
+     (Agent : Root_Agent_Type)
+      return Boolean
+   is
+      pragma Unreferenced (Agent);
+   begin
+      return False;
+   end Is_Virtual;
+
    ------------------
    -- Leave_Market --
    ------------------

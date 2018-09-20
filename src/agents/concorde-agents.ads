@@ -100,13 +100,15 @@ package Concorde.Agents is
    procedure On_Commodity_Buy
      (Agent     : in out Root_Agent_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Non_Negative_Real)
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type)
    is null;
 
    procedure On_Commodity_Sell
      (Agent     : in out Root_Agent_Type;
       Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Non_Negative_Real)
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type)
    is null;
 
    function Reference (Agent : Root_Agent_Type'Class) return Agent_Reference;
@@ -147,6 +149,10 @@ package Concorde.Agents is
       Commodity  : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
       return Concorde.Quantities.Quantity_Type;
+
+   overriding function Is_Virtual
+     (Agent : Root_Agent_Type)
+      return Boolean;
 
    overriding function Get_Value
      (Agent : Root_Agent_Type;

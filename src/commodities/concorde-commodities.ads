@@ -60,6 +60,11 @@ package Concorde.Commodities is
 
    type Stock_Interface is limited interface;
 
+   function Is_Virtual
+     (Stock : Stock_Interface)
+      return Boolean
+      is abstract;
+
    function Total_Quantity
      (Stock    : Stock_Interface'Class)
       return Concorde.Quantities.Quantity_Type;
@@ -125,6 +130,7 @@ package Concorde.Commodities is
       Quantity : Concorde.Quantities.Quantity_Type;
       Value    : Concorde.Money.Money_Type)
      with Pre => Item.Is_Set (Virtual)
+     or else Stock.Is_Virtual
      or else Stock.Total_Quantity + Quantity
        <= Stock.Maximum_Quantity;
 
@@ -198,6 +204,11 @@ private
          Vector  : Stock_Vectors.Vector;
          Virtual : Boolean;
       end record;
+
+   overriding function Is_Virtual
+     (Stock : Root_Stock_Type)
+      return Boolean
+   is (Stock.Virtual);
 
    overriding function Maximum_Quantity
      (Stock : Root_Stock_Type)
