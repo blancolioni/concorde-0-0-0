@@ -1,5 +1,6 @@
 private with Ada.Strings.Unbounded;
 
+with Concorde.Money;
 with Concorde.Quantities;
 
 with Memor;
@@ -103,6 +104,16 @@ package Concorde.Ships is
    procedure Clear_Destination
      (Ship   : in out Root_Ship_Type'Class);
 
+   procedure Add_Wanted
+     (Ship       : in out Root_Ship_Type'Class;
+      Commodity  : not null access constant
+        Concorde.Commodities.Root_Commodity_Type'Class;
+      Quantity   : Concorde.Quantities.Quantity_Type;
+      Sale_Price : Concorde.Money.Price_Type);
+
+   procedure Clear_Wanted
+     (Ship      : in out Root_Ship_Type'Class);
+
    type Ship_Type is access constant Root_Ship_Type'Class;
 
 private
@@ -131,7 +142,23 @@ private
            Concorde.Systems.Root_Star_System_Type'Class;
          Start_Time       : Concorde.Calendar.Time;
          Arrival_Time     : Concorde.Calendar.Time;
+         Wanted           : Concorde.Commodities.Root_Stock_Type;
       end record;
+
+   overriding function Daily_Budget
+     (Ship      : Root_Ship_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Unit_Real;
+
+   overriding function Daily_Needs
+     (Ship      : Root_Ship_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Non_Negative_Real;
+
+   overriding function Daily_Supply
+     (Ship      : Root_Ship_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Non_Negative_Real;
 
    overriding function Offer_Strategy
      (Ship      : Root_Ship_Type;
