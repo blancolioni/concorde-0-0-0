@@ -43,3 +43,6 @@ config/images/*
 config/portraits/*
 config/scenarios/agrippa
 config/commodities
+individuals.txt
+options.txt
+test.txt
