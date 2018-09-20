@@ -1,3 +1,4 @@
+--  with Concorde.Elementary_Functions;
 with Concorde.Real_Images;
 
 with WL.String_Maps;
@@ -1157,8 +1158,8 @@ package body Concorde.Markets is
 
          type Needs_Record is
             record
-               Needed  : Non_Negative_Real;
-               Offered : Non_Negative_Real;
+               Needed  : Non_Negative_Real := 0.0;
+               Offered : Non_Negative_Real := 0.0;
             end record;
 
          package Needs_Record_Maps is
@@ -1231,7 +1232,9 @@ package body Concorde.Markets is
               Concorde.Agents.Root_Agent_Type'Class)
          is
             Rec : constant Needs_Record :=
-                    Needs.Element (Agent.Identifier);
+                    (if Needs.Contains (Agent.Identifier)
+                     then Needs.Element (Agent.Identifier)
+                     else (others => <>));
 
             procedure Update
               (Agent : in out Concorde.Agents.Root_Agent_Type'Class);
@@ -1247,12 +1250,18 @@ package body Concorde.Markets is
                if Rec.Needed > 0.0 then
                   Agent.On_Commodity_Buy
                     (Commodity => Commodity,
-                     Quantity  => Rec.Needed * Need_Factor);
+                     Quantity  =>
+                       Concorde.Quantities.To_Quantity
+                         (Rec.Needed * Need_Factor),
+                     Price     => Concorde.Money.To_Price (Price));
                end if;
                if Rec.Offered > 0.0 then
                   Agent.On_Commodity_Sell
                     (Commodity => Commodity,
-                     Quantity  => Rec.Offered * Offer_Factor);
+                     Quantity  =>
+                       Concorde.Quantities.To_Quantity
+                         (Rec.Offered * Offer_Factor),
+                     Price     => Concorde.Money.To_Price (Price));
                end if;
             end Update;
          begin
@@ -1305,10 +1314,17 @@ package body Concorde.Markets is
             end if;
 
             if Total_Demand > Total_Supply then
+--                 New_Price :=
+--                   Concorde.Money.To_Real (Commodity.Base_Price)
+--                     + Concorde.Elementary_Functions.Tanh
+--                   (Total_Demand / Total_Supply)
+--                   * 10.0 * Concorde.Money.To_Real (Commodity.Base_Price);
+
                New_Price := Price +
                  (Real (Concorde.Money.To_Real (Commodity.Base_Price)) * 10.0
                   - Price)
                  / 20.0;
+
                Concorde.Logging.Log
                  (Actor    => "market",
                   Location => "",

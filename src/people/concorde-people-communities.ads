@@ -88,6 +88,11 @@ package Concorde.People.Communities is
       Ship      : not null access constant
         Concorde.Ships.Root_Ship_Type'Class);
 
+   procedure Remove_Ship
+     (Community : in out Root_Community_Type'Class;
+      Ship      : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class);
+
    procedure Scan_Ships
      (Community : Root_Community_Type'Class;
       Process   : not null access

@@ -93,6 +93,9 @@ package body Concorde.Managers.Ships is
       Arrive : constant Ship_Arrival_Event'Class :=
                  Ship_Arrival_Event'Class (Event);
    begin
+      Ship.Log ("arrived at: "
+                & Concorde.Locations.Long_Name (Arrive.Arrived_At));
+
       Manager.Time := Event.Time_Stamp;
       Ship.Update.Set_Location (Arrive.Arrived_At);
       if Arrive.Jump then
@@ -227,12 +230,12 @@ package body Concorde.Managers.Ships is
 
    procedure Set_Destination
      (Manager : not null access Root_Ship_Manager'Class;
-      World   : not null access constant
-        Concorde.Worlds.Root_World_Type'Class)
+      Community : not null access constant
+        Concorde.People.Communities.Root_Community_Type'Class)
    is
       use type Concorde.Systems.Star_System_Type;
       Target_System : constant Concorde.Systems.Star_System_Type :=
-                        World.System;
+                        Community.World.System;
       Current_System : constant Concorde.Systems.Star_System_Type :=
                          Manager.Ship.Current_System;
       Journey : Journey_Element_Lists.List;
@@ -270,7 +273,7 @@ package body Concorde.Managers.Ships is
       Journey.Append
         (Journey_Element_Type'
            (Class  => World_Element,
-            World  => Concorde.Worlds.World_Type (World)));
+            World  => Community.World));
       Manager.Journey := Journey;
 
       Manager.Next_Waypoint;

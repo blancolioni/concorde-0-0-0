@@ -42,6 +42,18 @@ package Concorde.Ships is
      (Ship : in out Root_Ship_Type;
       Name : String);
 
+   overriding procedure On_Commodity_Buy
+     (Ship      : in out Root_Ship_Type;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type);
+
+   overriding procedure On_Commodity_Sell
+     (Ship      : in out Root_Ship_Type;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type);
+
    function Alive (Ship : Root_Ship_Type) return Boolean
                    is abstract;
 
@@ -114,6 +126,14 @@ package Concorde.Ships is
    procedure Clear_Wanted
      (Ship      : in out Root_Ship_Type'Class);
 
+   function Has_Wanted
+     (Ship : Root_Ship_Type'Class)
+      return Boolean;
+
+   function Has_Offers
+     (Ship : Root_Ship_Type'Class)
+      return Boolean;
+
    type Ship_Type is access constant Root_Ship_Type'Class;
 
 private
@@ -142,7 +162,8 @@ private
            Concorde.Systems.Root_Star_System_Type'Class;
          Start_Time       : Concorde.Calendar.Time;
          Arrival_Time     : Concorde.Calendar.Time;
-         Wanted           : Concorde.Commodities.Root_Stock_Type;
+         Buying           : Concorde.Commodities.Root_Stock_Type;
+         Selling          : Concorde.Commodities.Root_Stock_Type;
       end record;
 
    overriding function Daily_Budget

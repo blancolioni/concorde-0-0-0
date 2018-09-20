@@ -15,7 +15,7 @@ package body Concorde.Ships is
    is
       use Concorde.Money;
    begin
-      Ship.Wanted.Add_Quantity
+      Ship.Buying.Add_Quantity
         (Item     => Concorde.Commodities.Commodity_Type (Commodity),
          Quantity => Quantity,
          Value    => Total (Sale_Price, Quantity));
@@ -40,7 +40,8 @@ package body Concorde.Ships is
      (Ship      : in out Root_Ship_Type'Class)
    is
    begin
-      Ship.Wanted.Clear_Stock;
+      Ship.Selling := Ship.Buying;
+      Ship.Buying.Clear_Stock;
    end Clear_Wanted;
 
    ------------------
@@ -66,9 +67,13 @@ package body Concorde.Ships is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Non_Negative_Real
    is
+      use Concorde.Quantities;
+      Available : constant Quantity_Type :=
+                    Ship.Available_Capacity;
+      Wanted    : constant Quantity_Type :=
+                    Ship.Buying.Get_Quantity (Commodity);
    begin
-      return Concorde.Quantities.To_Real
-        (Ship.Wanted.Get_Quantity (Commodity));
+      return To_Real (Min (Available, Wanted));
    end Daily_Needs;
 
    ------------------
@@ -81,15 +86,86 @@ package body Concorde.Ships is
       return Non_Negative_Real
    is
       use Concorde.Quantities;
-      Have : constant Quantity_Type := Ship.Get_Quantity (Commodity);
-      Want : constant Quantity_Type := Ship.Wanted.Get_Quantity (Commodity);
+      Have : constant Quantity_Type := Ship.Selling.Get_Quantity (Commodity);
+      Want : constant Quantity_Type := Ship.Buying.Get_Quantity (Commodity);
    begin
       if Have > Want then
-         return To_Real (Want - Have);
+         return To_Real (Have - Want);
       else
          return 0.0;
       end if;
    end Daily_Supply;
+
+   ----------------
+   -- Has_Offers --
+   ----------------
+
+   function Has_Offers
+     (Ship : Root_Ship_Type'Class)
+      return Boolean
+   is
+      use Concorde.Quantities;
+   begin
+      return Ship.Selling.Total_Quantity > Zero;
+   end Has_Offers;
+
+   ----------------
+   -- Has_Wanted --
+   ----------------
+
+   function Has_Wanted
+     (Ship : Root_Ship_Type'Class)
+      return Boolean
+   is
+      use Concorde.Quantities;
+   begin
+      return Ship.Buying.Total_Quantity > Zero;
+   end Has_Wanted;
+
+   ----------------------
+   -- On_Commodity_Buy --
+   ----------------------
+
+   overriding procedure On_Commodity_Buy
+     (Ship      : in out Root_Ship_Type;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type)
+   is
+      use Concorde.Money;
+   begin
+      Ship.Log
+        ("buy " & Concorde.Quantities.Show (Quantity)
+         & " " & Commodity.Name & " @ "
+         & Concorde.Money.Show (Price) & " ea");
+      Ship.Add_Quantity (Commodity, Quantity, Total (Price, Quantity));
+   end On_Commodity_Buy;
+
+   -----------------------
+   -- On_Commodity_Sell --
+   -----------------------
+
+   overriding procedure On_Commodity_Sell
+     (Ship      : in out Root_Ship_Type;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type)
+   is
+      use Concorde.Money;
+   begin
+      Ship.Log
+        ("sell " & Concorde.Quantities.Show (Quantity)
+         & " " & Commodity.Name & " @ "
+         & Concorde.Money.Show (Price) & " ea");
+      Ship.Remove_Quantity
+        (Item     => Commodity,
+         Quantity => Quantity,
+         Earn     => Total (Price, Quantity));
+      Ship.Selling.Remove_Quantity
+        (Item     => Commodity,
+         Quantity => Quantity,
+         Earn     => Total (Price, Quantity));
+   end On_Commodity_Sell;
 
    ---------------------
    -- Set_Destination --

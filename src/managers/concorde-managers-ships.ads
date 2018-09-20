@@ -2,6 +2,7 @@ private with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 private with Concorde.Events;
 
 with Concorde.Locations;
+with Concorde.People.Communities;
 with Concorde.Ships;
 with Concorde.Systems;
 with Concorde.Worlds;
@@ -21,8 +22,8 @@ package Concorde.Managers.Ships is
 
    procedure Set_Destination
      (Manager : not null access Root_Ship_Manager'Class;
-      World   : not null access constant
-        Concorde.Worlds.Root_World_Type'Class);
+      Community : not null access constant
+        Concorde.People.Communities.Root_Community_Type'Class);
 
    type Ship_Manager is access all Root_Ship_Manager'Class;
 
@@ -49,8 +50,9 @@ private
    type Root_Ship_Manager is
      abstract new Root_Manager_Type with
       record
-         Ship    : Concorde.Ships.Ship_Type;
-         Journey : Journey_Element_Lists.List;
+         Ship      : Concorde.Ships.Ship_Type;
+         Community : Concorde.People.Communities.Community_Type;
+         Journey   : Journey_Element_Lists.List;
       end record;
 
    procedure Next_Waypoint

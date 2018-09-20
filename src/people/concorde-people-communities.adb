@@ -297,6 +297,23 @@ package body Concorde.People.Communities is
       return Db.Get_Database;
    end Object_Database;
 
+   -----------------
+   -- Remove_Ship --
+   -----------------
+
+   procedure Remove_Ship
+     (Community : in out Root_Community_Type'Class;
+      Ship      : not null access constant
+        Concorde.Ships.Root_Ship_Type'Class)
+   is
+      Position : Concorde.Ships.Lists.Cursor :=
+                   Community.Ships.Find
+                     (Concorde.Ships.Ship_Type (Ship));
+   begin
+      pragma Assert (Concorde.Ships.Lists.Has_Element (Position));
+      Community.Ships.Delete (Position);
+   end Remove_Ship;
+
    ----------
    -- Scan --
    ----------

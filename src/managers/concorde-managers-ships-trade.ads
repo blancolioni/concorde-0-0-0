@@ -2,7 +2,8 @@ private with Ada.Containers.Doubly_Linked_Lists;
 
 with Concorde.Commodities;
 with Concorde.Trades;
-with Concorde.Worlds;
+
+with Concorde.People.Communities;
 
 package Concorde.Managers.Ships.Trade is
 
@@ -13,7 +14,7 @@ package Concorde.Managers.Ships.Trade is
 
    function Create_Manager
      (Ship    : Concorde.Ships.Ship_Type;
-      Start   : Concorde.Worlds.World_Type)
+      Start   : Concorde.People.Communities.Community_Type)
       return Ship_Trade_Manager;
 
 private
@@ -29,8 +30,7 @@ private
      new Root_Ship_Manager with
       record
          State             : Trade_State := Bidding;
-         Next_Destination  : Concorde.Worlds.World_Type;
-         Contract_Accepted : Boolean;
+         Next_Destination  : Concorde.People.Communities.Community_Type;
       end record;
 
    overriding function Description
@@ -40,14 +40,5 @@ private
 
    overriding procedure On_Idle
      (Manager : in out Root_Ship_Trade_Manager);
-
-   function Has_Asks (Manager : Root_Ship_Trade_Manager'Class) return Boolean;
-   function Has_Bids (Manager : Root_Ship_Trade_Manager'Class) return Boolean;
-
-   procedure Create_Asks
-     (Manager : in out Root_Ship_Trade_Manager'Class);
-
-   procedure Create_Bids
-     (Manager : in out Root_Ship_Trade_Manager'Class);
 
 end Concorde.Managers.Ships.Trade;
