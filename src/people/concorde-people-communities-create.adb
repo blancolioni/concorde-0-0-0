@@ -689,7 +689,7 @@ package body Concorde.People.Communities.Create is
          begin
             Create_Initial_Pops
               (Community     => Community,
-               Pop_Size      => 1.0E6,
+               Pop_Size      => 1.0e5,
                Apathy        => 0.2,
                Gini          => Gini,
                Total_Pop     =>
@@ -719,7 +719,7 @@ package body Concorde.People.Communities.Create is
                                else Config_Size);
             Start_Cash    : constant Concorde.Money.Money_Type :=
                               Concorde.Money.To_Money
-                                (10.0 * Industry_Size);
+                                (2.0 * Industry_Size);
          begin
             Community.Update.Industries.Append
               (Concorde.Industries.Create.New_Industry
