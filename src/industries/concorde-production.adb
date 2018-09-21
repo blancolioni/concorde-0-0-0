@@ -45,6 +45,8 @@ package body Concorde.Production is
 
    begin
 
+      Cost := Zero;
+
       for Input of Production.Inputs loop
          declare
             Required  : constant Non_Negative_Real :=
