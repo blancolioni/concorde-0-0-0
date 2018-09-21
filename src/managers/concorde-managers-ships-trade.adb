@@ -65,14 +65,37 @@ package body Concorde.Managers.Ships.Trade is
       procedure Add_Wanted
         (Commodity : Concorde.Commodities.Commodity_Type)
       is
+         use Concorde.Quantities;
          use Concorde.Money;
+         Local_Price : constant Price_Type :=
+                         Manager.Community.Current_Price (Commodity);
+         Remote_Price : constant Price_Type :=
+                          Manager.Next_Destination.Current_Price (Commodity);
       begin
-         if Manager.Next_Destination.Current_Price (Commodity)
-           > Adjust_Price (Manager.Community.Current_Price (Commodity), 1.2)
+         if Remote_Price > Adjust_Price (Local_Price, 1.2)
+           and then Manager.Community.Current_Supply (Commodity) > Zero
          then
-            Manager.Ship.Update.Add_Wanted
-              (Commodity, Manager.Ship.Available_Capacity,
-               Manager.Next_Destination.Current_Price (Commodity));
+            declare
+               Q : constant Quantity_Type :=
+                     Min (Manager.Ship.Available_Capacity,
+                          Get_Quantity (Manager.Ship.Cash, Local_Price));
+            begin
+               Manager.Ship.Log
+                 (Commodity.Identifier
+                  & ": "
+                  & Manager.Community.World.Name
+                  & " price "
+                  & Show (Local_Price)
+                  & "; "
+                  & Manager.Next_Destination.World.Name
+                  & " price "
+                  & Show (Remote_Price)
+                  & "; ordering "
+                  & Show (Q));
+
+               Manager.Ship.Update.Add_Wanted
+                 (Commodity, Q, Local_Price);
+            end;
          end if;
       end Add_Wanted;
 
@@ -115,8 +138,10 @@ package body Concorde.Managers.Ships.Trade is
 
       Choose_Community;
 
-      Concorde.Commodities.Scan
-        (Add_Wanted'Access);
+      for Commodity of Concorde.Commodities.Trade_Commodities loop
+         Add_Wanted (Commodity);
+      end loop;
+
    end Create_Wanted_Commodities;
 
    -------------
@@ -151,7 +176,10 @@ package body Concorde.Managers.Ships.Trade is
                              Manager.Ship.Has_Wanted;
             begin
                if Available = Zero or else not Wanted then
+                  Manager.Ship.Log
+                    ("leaving " & Manager.Community.Name);
                   Manager.Community.Update.Remove_Ship (Manager.Ship);
+                  Manager.Community := null;
                   Manager.Ship.Update.Clear_Wanted;
                   Manager.Set_Destination (Manager.Next_Destination);
                   Manager.State := Moving;
@@ -159,7 +187,10 @@ package body Concorde.Managers.Ships.Trade is
             end;
          when Moving =>
             Manager.State := Asking;
+            Manager.Ship.Log
+              ("arriving " & Manager.Next_Destination.Name);
             Manager.Next_Destination.Update.Add_Ship (Manager.Ship);
+            Manager.Community := Manager.Next_Destination;
             Manager.Next_Destination := null;
 
          when Asking =>

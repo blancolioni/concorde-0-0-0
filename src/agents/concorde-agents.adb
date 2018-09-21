@@ -1776,6 +1776,16 @@ package body Concorde.Agents is
    is
    begin
       if not Commodity.Is_Pop_Group then
+         if Quantity > Agent.Get_Quantity (Commodity) then
+            raise Constraint_Error with
+              "attempted to remove "
+              & Show (Quantity)
+              & " " & Commodity.Name
+              & " from " & Agent.Identifier
+              & " who has only "
+              & Show (Agent.Get_Quantity (Commodity));
+         end if;
+
          Agent.Remove_Quantity
            (Commodity, Quantity,
             Concorde.Money.Total (Price, Quantity));
@@ -1788,6 +1798,8 @@ package body Concorde.Agents is
          & Commodity.Name
          & " @ "
          & Concorde.Money.Show (Price)
+         & "; remaining = "
+         & Show (Agent.Get_Quantity (Commodity))
          & "; cash = "
          & Concorde.Money.Show (Agent.Cash)
          & "; limit = "

@@ -40,8 +40,28 @@ package body Concorde.Ships is
      (Ship      : in out Root_Ship_Type'Class)
    is
    begin
-      Ship.Selling := Ship.Buying;
+      Ship.Selling.Clear_Stock;
+      declare
+         procedure Update (Commodity : Concorde.Commodities.Commodity_Type);
+
+         ------------
+         -- Update --
+         ------------
+
+         procedure Update (Commodity : Concorde.Commodities.Commodity_Type) is
+         begin
+            Ship.Selling.Add_Quantity
+              (Commodity,
+               Ship.Get_Quantity (Commodity),
+               Ship.Get_Value (Commodity));
+         end Update;
+
+      begin
+         Ship.Buying.Scan_Stock (Update'Access);
+      end;
+
       Ship.Buying.Clear_Stock;
+
    end Clear_Wanted;
 
    ------------------
@@ -73,6 +93,9 @@ package body Concorde.Ships is
       Wanted    : constant Quantity_Type :=
                     Ship.Buying.Get_Quantity (Commodity);
    begin
+      if Wanted > Zero then
+         Ship.Log ("want " & Show (Wanted) & " " & Commodity.Identifier);
+      end if;
       return To_Real (Min (Available, Wanted));
    end Daily_Needs;
 
@@ -90,6 +113,8 @@ package body Concorde.Ships is
       Want : constant Quantity_Type := Ship.Buying.Get_Quantity (Commodity);
    begin
       if Have > Want then
+         Ship.Log ("supplying " & Show (Have - Want)
+                   & " " & Commodity.Identifier);
          return To_Real (Have - Want);
       else
          return 0.0;

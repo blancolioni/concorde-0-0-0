@@ -1256,17 +1256,6 @@ package body Concorde.Markets is
                      Price     => Concorde.Money.To_Price (Price));
                end if;
                if Rec.Offered > 0.0 then
-                  Agent.Log
-                    ("sell "
-                     & Concorde.Quantities.Show
-                       (Concorde.Quantities.To_Quantity
-                            (Rec.Offered * Offer_Factor))
-                     & " "
-                     & Commodity.Name
-                     & " @ "
-                     & Concorde.Money.Show
-                       (Concorde.Money.To_Price (Price))
-                     & " ea");
                   Agent.On_Commodity_Sell
                     (Commodity => Commodity,
                      Quantity  =>
@@ -1283,14 +1272,15 @@ package body Concorde.Markets is
 
          Market.Scan_Agents (Add_Agent_Needs'Access);
 
-         if Total_Demand > 0.0 and then Total_Supply > 0.0 then
+         if True then
             Concorde.Logging.Log
               (Actor    => "market",
                Location => "",
                Category => Commodity.Identifier,
                Message  =>
                  "price="
-               & Concorde.Real_Images.Approximate_Image (Price)
+               & Concorde.Money.Show
+                 (Concorde.Money.To_Price (Price))
                & "; supply="
                & Concorde.Real_Images.Approximate_Image (Total_Supply)
                & "; demand="
@@ -1299,10 +1289,11 @@ package body Concorde.Markets is
                & Concorde.Real_Images.Approximate_Image (Total_Available)
                & "; desire="
                & Concorde.Real_Images.Approximate_Image (Total_Desire));
+         end if;
 
+         if Total_Demand > 0.0 and then Total_Supply > 0.0 then
             Need_Factor := Real'Min (Total_Supply / Total_Demand, 1.0);
             Offer_Factor := Real'Min (Total_Demand / Total_Supply, 1.0);
-
             Market.Scan_Agents (Process_Agent_Needs'Access);
          end if;
 
