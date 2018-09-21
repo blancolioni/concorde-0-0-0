@@ -50,7 +50,10 @@ package body Concorde.People.Pops.Create is
            (Location       => Location,
             Government     => Government,
             Market         => Market,
-            Cash           => Concorde.Money.Zero,
+            Cash           =>
+              Concorde.Money.To_Money
+                (Non_Negative_Real (Size)
+                 * Pop.Base_Income.Current_Actual_Value),
             Stock_Capacity => Pop.Size_Quantity * To_Quantity (70.0));
 
       end Create;

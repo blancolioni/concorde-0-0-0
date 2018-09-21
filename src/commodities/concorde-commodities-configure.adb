@@ -304,7 +304,7 @@ package body Concorde.Commodities.Configure is
       begin
          Commodity.Set_Local_Tag (Identifier);
          Commodity.Class := Pop_Group;
-         Commodity.Flags := (others => False);
+         Commodity.Flags := (Virtual => True, others => False);
          Commodity.Mass := 60.0;
          Commodity.Base_Price := Base_Price;
       end Create;

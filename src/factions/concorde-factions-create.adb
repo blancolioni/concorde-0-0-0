@@ -59,7 +59,12 @@ package body Concorde.Factions.Create is
    is
       World : constant Concorde.Worlds.World_Type :=
                 Community.World;
-      Defender : constant Concorde.Ships.Ship_Type :=
+      Initial_Trade_Ships : constant Natural :=
+                              Concorde.Options.Initial_Trade_Ships;
+      Activation_Range    : constant Duration :=
+                              Concorde.Calendar.Days
+                                (Initial_Trade_Ships);
+      Defender            : constant Concorde.Ships.Ship_Type :=
                    Concorde.Ships.Vessels.Create.Create_Start_Vessel
                      (Owner       => Community.Owner,
                       Community   => Community,
@@ -72,7 +77,7 @@ package body Concorde.Factions.Create is
 
       World.Update.Add_Ship (Defender);
 
-      for I in 1 .. Concorde.Options.Initial_Trade_Ships loop
+      for I in 1 .. Initial_Trade_Ships loop
          declare
             Capital : constant Concorde.Worlds.World_Type :=
                         Concorde.Galaxy.Capital_World;
@@ -107,8 +112,9 @@ package body Concorde.Factions.Create is
                Concorde.Objects.Queues.Next_Event
                  (Trader,
                   Concorde.Calendar.Clock
-                  + Duration (Concorde.Random.Unit_Random
-                    * Real (Concorde.Calendar.Day_Duration'Last)));
+                  + Duration
+                    (Concorde.Random.Unit_Random
+                     * Real (Activation_Range)));
             end;
 
             Trader.Log_Trade ("new trade ship");

@@ -23,11 +23,11 @@ init = {
    megarich-income = 100
    agriculture-industry = 0.5
    food-price = 1.5
-   farmer = 8%
+   farmer = 15%
 }
 
 industries = {
-   agriculture = 6%
+   agriculture = 17%
 }
 
 pop-size = 10K

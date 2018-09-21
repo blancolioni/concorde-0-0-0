@@ -132,13 +132,9 @@ package body Concorde.Ships is
       Quantity  : Concorde.Quantities.Quantity_Type;
       Price     : Concorde.Money.Price_Type)
    is
-      use Concorde.Money;
    begin
-      Ship.Log
-        ("buy " & Concorde.Quantities.Show (Quantity)
-         & " " & Commodity.Name & " @ "
-         & Concorde.Money.Show (Price) & " ea");
-      Ship.Add_Quantity (Commodity, Quantity, Total (Price, Quantity));
+      Concorde.Agents.Root_Agent_Type (Ship)
+        .On_Commodity_Buy (Commodity, Quantity, Price);
    end On_Commodity_Buy;
 
    -----------------------
@@ -153,14 +149,8 @@ package body Concorde.Ships is
    is
       use Concorde.Money;
    begin
-      Ship.Log
-        ("sell " & Concorde.Quantities.Show (Quantity)
-         & " " & Commodity.Name & " @ "
-         & Concorde.Money.Show (Price) & " ea");
-      Ship.Remove_Quantity
-        (Item     => Commodity,
-         Quantity => Quantity,
-         Earn     => Total (Price, Quantity));
+      Concorde.Agents.Root_Agent_Type (Ship)
+        .On_Commodity_Sell (Commodity, Quantity, Price);
       Ship.Selling.Remove_Quantity
         (Item     => Commodity,
          Quantity => Quantity,

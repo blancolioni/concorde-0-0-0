@@ -93,6 +93,10 @@ package body Concorde.Logs is
 
    end Flush_Logs;
 
+   ----------------
+   -- Log_Fields --
+   ----------------
+
    procedure Log_Fields
      (Log_Path  : String;
       Field_1   : String;

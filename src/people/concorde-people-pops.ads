@@ -4,7 +4,6 @@ private with Memor;
 private with Memor.Database;
 private with Concorde.Locations;
 
-with Concorde.Money;
 with Concorde.Quantities;
 
 with Concorde.Network;
@@ -90,10 +89,6 @@ private
      (Pop       : Root_Pop_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
       return Non_Negative_Real;
-
-   overriding function Cash
-     (Pop : Root_Pop_Type)
-      return Concorde.Money.Money_Type;
 
    overriding function Class_Name
      (Pop : Root_Pop_Type) return String

@@ -1748,6 +1748,18 @@ package body Concorde.Agents is
       Price     : Concorde.Money.Price_Type)
    is
    begin
+      Agent.Log
+        ("buy "
+         & Concorde.Quantities.Show (Quantity)
+         & " "
+         & Commodity.Name
+         & " @ "
+         & Concorde.Money.Show (Price)
+         & "; cash = "
+         & Concorde.Money.Show (Agent.Cash)
+         & "; limit = "
+         & Concorde.Money.Show (Root_Agent_Type'Class (Agent).Limit_Cash));
+      Agent.Remove_Cash (Concorde.Money.Total (Price, Quantity));
       Agent.Add_Quantity (Commodity, Quantity,
                           Concorde.Money.Total (Price, Quantity));
    end On_Commodity_Buy;
@@ -1768,6 +1780,18 @@ package body Concorde.Agents is
            (Commodity, Quantity,
             Concorde.Money.Total (Price, Quantity));
       end if;
+      Agent.Add_Cash (Concorde.Money.Total (Price, Quantity));
+      Agent.Log
+        ("sell "
+         & Concorde.Quantities.Show (Quantity)
+         & " "
+         & Commodity.Name
+         & " @ "
+         & Concorde.Money.Show (Price)
+         & "; cash = "
+         & Concorde.Money.Show (Agent.Cash)
+         & "; limit = "
+         & Concorde.Money.Show (Root_Agent_Type'Class (Agent).Limit_Cash));
    end On_Commodity_Sell;
 
    --------------------------

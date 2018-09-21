@@ -43,7 +43,7 @@ package body Concorde.Ships.Vessels.Create is
                 (Community.World),
             Government     => Community.Government,
             Market         => Community.Market,
-            Cash           => Concorde.Money.To_Money (100_000.0),
+            Cash           => Concorde.Money.To_Money (5_000.0),
             Stock_Capacity => Design.Cargo_Capacity);
 
          Vessel.Buying.Create_Stock (Concorde.Quantities.Zero, True);

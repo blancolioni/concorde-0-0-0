@@ -1,4 +1,4 @@
---  with Concorde.Elementary_Functions;
+with Concorde.Elementary_Functions;
 with Concorde.Real_Images;
 
 with WL.String_Maps;
@@ -1248,17 +1248,6 @@ package body Concorde.Markets is
             is
             begin
                if Rec.Needed > 0.0 then
-                  Agent.Log
-                    ("buy "
-                     & Concorde.Quantities.Show
-                       (Concorde.Quantities.To_Quantity
-                            (Rec.Needed * Need_Factor))
-                     & " "
-                     & Commodity.Name
-                     & " @ "
-                     & Concorde.Money.Show
-                       (Concorde.Money.To_Price (Price))
-                     & " ea");
                   Agent.On_Commodity_Buy
                     (Commodity => Commodity,
                      Quantity  =>
@@ -1323,38 +1312,63 @@ package body Concorde.Markets is
             if Total_Supply > Total_Demand
               and then Total_Desire > 0.0
             then
-               New_Price := Price -
-                 (Price
-                  - Concorde.Money.To_Real (Commodity.Base_Price) / 10.0)
-                 / 20.0;
+               declare
+                  Demand_Factor : constant Unit_Real :=
+                                    Total_Demand / Total_Supply;
+                  Scale_Factor  : constant Unit_Real :=
+                                    (if Total_Demand = 0.0
+                                     then 1.0
+                                     else Concorde.Elementary_Functions.Tanh
+                                       (10.0 / Demand_Factor));
+                  Price_Factor  : constant Non_Negative_Real :=
+                                    Concorde.Money.To_Real
+                                      (Commodity.Base_Price);
+                  Price_Change  : constant Non_Negative_Real :=
+                                    Scale_Factor
+                                      * Price_Factor / 10.0;
+               begin
+                  New_Price :=
+                    Real'Max (0.01, Price - Price_Change);
+               end;
+
                Concorde.Logging.Log
                  (Actor    => "market",
                   Location => "",
                   Category => Commodity.Identifier,
                   Message  => "new price: "
-                  & Concorde.Real_Images.Approximate_Image (New_Price));
+                  & Concorde.Money.Show
+                    (Concorde.Money.To_Price (New_Price)));
+
             end if;
 
             if Total_Demand > Total_Supply
               and then Total_Available > 0.0
             then
---                 New_Price :=
---                   Concorde.Money.To_Real (Commodity.Base_Price)
---                     + Concorde.Elementary_Functions.Tanh
---                   (Total_Demand / Total_Supply)
---                   * 10.0 * Concorde.Money.To_Real (Commodity.Base_Price);
-
-               New_Price := Price +
-                 (Real (Concorde.Money.To_Real (Commodity.Base_Price)) * 10.0
-                  - Price)
-                 / 20.0;
+               declare
+                  Supply_Factor : constant Unit_Real :=
+                                    Total_Supply / Total_Demand;
+                  Scale_Factor  : constant Unit_Real :=
+                                    (if Total_Supply = 0.0
+                                     then 1.0
+                                     else Concorde.Elementary_Functions.Tanh
+                                       (10.0 / Supply_Factor));
+                  Price_Factor  : constant Non_Negative_Real :=
+                                    Concorde.Money.To_Real
+                                      (Commodity.Base_Price);
+                  Price_Change  : constant Non_Negative_Real :=
+                                    Scale_Factor
+                                      * Price_Factor / 10.0;
+               begin
+                  New_Price := Price + Price_Change;
+               end;
 
                Concorde.Logging.Log
                  (Actor    => "market",
                   Location => "",
                   Category => Commodity.Identifier,
                   Message  => "new price: "
-                  & Concorde.Real_Images.Approximate_Image (New_Price));
+                  & Concorde.Money.Show
+                    (Concorde.Money.To_Price (New_Price)));
             end if;
 
             Market.Update_Commodity

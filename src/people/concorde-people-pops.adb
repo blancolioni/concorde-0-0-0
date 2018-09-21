@@ -1,17 +1,5 @@
 package body Concorde.People.Pops is
 
-   ----------
-   -- Cash --
-   ----------
-
-   overriding function Cash
-     (Pop : Root_Pop_Type)
-      return Concorde.Money.Money_Type
-   is
-   begin
-      return Concorde.Money.To_Money (Pop.Current_Income_Total);
-   end Cash;
-
    --------------------------
    -- Current_Income_Total --
    --------------------------
