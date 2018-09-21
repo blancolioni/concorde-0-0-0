@@ -4,5 +4,5 @@ food = {
 }
 luxury-goods = {
   need = 0.1
-  budget = 10%
+  budget = 1%
 }
