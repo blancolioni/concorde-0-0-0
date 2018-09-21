@@ -37,11 +37,20 @@ package Concorde.Production is
       Commodity  : Concorde.Commodities.Commodity_Type)
       return Boolean;
 
+   function Outputs
+     (Production : Root_Production_Type'Class)
+      return Concorde.Commodities.Array_Of_Commodities;
+
    procedure Execute
      (Production : Root_Production_Type'Class;
       Stock      : in out Concorde.Commodities.Stock_Interface'Class;
       Size       : Non_Negative_Real;
       Cost       : out Concorde.Money.Money_Type);
+
+   function Minimum_Size
+     (Production : Root_Production_Type'Class;
+      To_Produce : Concorde.Commodities.Stock_Interface'Class)
+      return Non_Negative_Real;
 
    function Exists (Name : String) return Boolean;
    function Get (Name : String) return Production_Type

@@ -185,6 +185,52 @@ package body Concorde.Production is
       return False;
    end Is_Output;
 
+   ------------------
+   -- Minimum_Size --
+   ------------------
+
+   function Minimum_Size
+     (Production : Root_Production_Type'Class;
+      To_Produce : Concorde.Commodities.Stock_Interface'Class)
+      return Non_Negative_Real
+   is
+   begin
+      return Size : Non_Negative_Real := 0.0 do
+         for Output of Production.Outputs loop
+            declare
+               This_Quantity : constant Non_Negative_Real :=
+                                 Concorde.Quantities.To_Real
+                                   (To_Produce.Get_Quantity
+                                      (Output.Commodity));
+               This_Size     : constant Non_Negative_Real :=
+                                 This_Quantity / Output.Relative_Quantity;
+            begin
+               Size := Real'Max (Size, This_Size);
+            end;
+         end loop;
+      end return;
+   end Minimum_Size;
+
+   -------------
+   -- Outputs --
+   -------------
+
+   function Outputs
+     (Production : Root_Production_Type'Class)
+      return Concorde.Commodities.Array_Of_Commodities
+   is
+      Count : Natural := 0;
+   begin
+      return Arr : Concorde.Commodities.Array_Of_Commodities
+        (1 .. Natural (Production.Outputs.Length))
+      do
+         for Output of Production.Outputs loop
+            Count := Count + 1;
+            Arr (Count) := Output.Commodity;
+         end loop;
+      end return;
+   end Outputs;
+
    -------------------------
    -- Relative_Input_Cost --
    -------------------------
