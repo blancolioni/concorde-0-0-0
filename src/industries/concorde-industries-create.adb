@@ -49,7 +49,7 @@ package body Concorde.Industries.Create is
             Government     => Government,
             Market         => Market,
             Cash           => Cash,
-            Stock_Capacity => To_Quantity (Size));
+            Stock_Capacity => To_Quantity (Size * 10.0));
          Industry.Owner := Owner;
          Industry.Production :=
            Concorde.Production.Get (Production);

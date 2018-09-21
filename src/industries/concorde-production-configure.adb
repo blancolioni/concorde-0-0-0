@@ -57,8 +57,9 @@ package body Concorde.Production.Configure is
                       Concorde.Commodities.Get (Employee_Config.Config_Name),
                   Relative_Quantity =>
                     Real (Float'(Employee_Config.Value)),
-                  Consumption       => 0.0));
+                  Consumption       => 1.0));
          end loop;
+
          for Input_Config of Config.Child ("inputs") loop
             Production.Inputs.Append
               (Production_Commodity'
@@ -69,6 +70,15 @@ package body Concorde.Production.Configure is
                   Consumption       => 1.0));
          end loop;
 
+         for Output_Config of Config.Child ("outputs") loop
+            Production.Outputs.Append
+              (Production_Commodity'
+                 (Commodity         =>
+                      Concorde.Commodities.Get (Output_Config.Config_Name),
+                  Relative_Quantity =>
+                    Real (Float'(Output_Config.Value)),
+                  Consumption       => 0.0));
+         end loop;
       end Create;
 
       Production : constant Production_Type := Db.Create (Create'Access);

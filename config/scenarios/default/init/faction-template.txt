@@ -22,12 +22,12 @@ init = {
    wealthy-income = 20
    megarich-income = 100
    agriculture-industry = 0.5
-   food-price = 0.5
-   farmer = 0.5
+   food-price = 1.5
+   farmer = 8%
 }
 
 industries = {
-   agriculture = 30%
+   agriculture = 6%
 }
 
 pop-size = 10K

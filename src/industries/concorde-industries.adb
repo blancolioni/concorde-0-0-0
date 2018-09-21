@@ -57,6 +57,7 @@ package body Concorde.Industries is
      (Industry : in out Root_Industry_Type'Class)
    is
    begin
+      Industry.Log ("executing production");
       Industry.Production.Execute
         (Stock => Industry,
          Size  => Industry.Size,

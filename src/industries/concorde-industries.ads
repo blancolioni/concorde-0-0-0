@@ -83,7 +83,9 @@ private
    overriding function Short_Name
      (Industry : Root_Industry_Type)
       return String
-   is ("[" & Memor.To_String (Industry.Reference) & "]");
+   is ("[" & Memor.To_String (Industry.Reference)
+       & "-" & Industry.Production.Identifier
+       & "]");
 
    overriding function Variable_Reference
      (Industry : not null access constant Root_Industry_Type)
@@ -106,7 +108,7 @@ private
 
    package Db is
      new Memor.Database
-       ("Industry", Root_Industry_Type, Industry_Type);
+       ("industry", Root_Industry_Type, Industry_Type);
 
    overriding function Object_Database
      (Item : Root_Industry_Type)

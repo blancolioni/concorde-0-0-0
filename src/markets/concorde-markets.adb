@@ -1211,14 +1211,6 @@ package body Concorde.Markets is
             if Wanted_Budget > 0.0
               or else Supply > Wanted
             then
-               Agent.Log
-                 (Commodity.Name
-                  & ": need "
-                  & Concorde.Real_Images.Approximate_Image (Budget / Price)
-                  & "; offer "
-                  & Concorde.Real_Images.Approximate_Image
-                    (Real'Max (Supply - Wanted, 0.0)));
-
                Needs.Insert
                  (Agent.Identifier,
                   (Needed => Budget / Price,
@@ -1256,6 +1248,17 @@ package body Concorde.Markets is
             is
             begin
                if Rec.Needed > 0.0 then
+                  Agent.Log
+                    ("buy "
+                     & Concorde.Quantities.Show
+                       (Concorde.Quantities.To_Quantity
+                            (Rec.Needed * Need_Factor))
+                     & " "
+                     & Commodity.Name
+                     & " @ "
+                     & Concorde.Money.Show
+                       (Concorde.Money.To_Price (Price))
+                     & " ea");
                   Agent.On_Commodity_Buy
                     (Commodity => Commodity,
                      Quantity  =>
@@ -1264,6 +1267,17 @@ package body Concorde.Markets is
                      Price     => Concorde.Money.To_Price (Price));
                end if;
                if Rec.Offered > 0.0 then
+                  Agent.Log
+                    ("sell "
+                     & Concorde.Quantities.Show
+                       (Concorde.Quantities.To_Quantity
+                            (Rec.Offered * Offer_Factor))
+                     & " "
+                     & Commodity.Name
+                     & " @ "
+                     & Concorde.Money.Show
+                       (Concorde.Money.To_Price (Price))
+                     & " ea");
                   Agent.On_Commodity_Sell
                     (Commodity => Commodity,
                      Quantity  =>
@@ -1306,8 +1320,8 @@ package body Concorde.Markets is
          declare
             New_Price : Non_Negative_Real := Price;
          begin
-            if Total_Desire > Total_Demand
-              and then Total_Supply > Total_Demand
+            if Total_Supply > Total_Demand
+              and then Total_Desire > 0.0
             then
                New_Price := Price -
                  (Price
@@ -1321,7 +1335,9 @@ package body Concorde.Markets is
                   & Concorde.Real_Images.Approximate_Image (New_Price));
             end if;
 
-            if Total_Demand > Total_Supply then
+            if Total_Demand > Total_Supply
+              and then Total_Available > 0.0
+            then
 --                 New_Price :=
 --                   Concorde.Money.To_Real (Commodity.Base_Price)
 --                     + Concorde.Elementary_Functions.Tanh

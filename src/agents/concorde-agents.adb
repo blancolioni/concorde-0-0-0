@@ -1763,9 +1763,11 @@ package body Concorde.Agents is
       Price     : Concorde.Money.Price_Type)
    is
    begin
-      Agent.Remove_Quantity
-        (Commodity, Quantity,
-         Concorde.Money.Total (Price, Quantity));
+      if not Commodity.Is_Pop_Group then
+         Agent.Remove_Quantity
+           (Commodity, Quantity,
+            Concorde.Money.Total (Price, Quantity));
+      end if;
    end On_Commodity_Sell;
 
    --------------------------

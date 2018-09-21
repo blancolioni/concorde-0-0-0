@@ -1,4 +1,5 @@
-with Ada.Text_IO;
+with Concorde.Logging;
+with Concorde.Real_Images;
 
 package body Concorde.Production is
 
@@ -15,7 +16,35 @@ package body Concorde.Production is
       use Concorde.Money;
       use Concorde.Quantities;
       Capacity : Non_Negative_Real := Size;
+
+      procedure Log_Capacity
+        (Quantity : Quantity_Type;
+         Message  : String);
+
+      ------------------
+      -- Log_Capacity --
+      ------------------
+
+      procedure Log_Capacity
+        (Quantity : Quantity_Type;
+         Message  : String)
+      is
+      begin
+         Concorde.Logging.Log
+           (Production.Identifier, "", "production",
+            Message
+            & " " & Show (Quantity)
+            & ": capacity "
+            & Concorde.Real_Images.Approximate_Image (Capacity)
+            & " of "
+            & Concorde.Real_Images.Approximate_Image (Size)
+            & " ("
+            & Concorde.Real_Images.Approximate_Image (Capacity / Size * 100.0)
+            & "%)");
+      end Log_Capacity;
+
    begin
+
       for Input of Production.Inputs loop
          declare
             Required  : constant Non_Negative_Real :=
@@ -28,6 +57,8 @@ package body Concorde.Production is
                Max := Max * Available / Required;
             end if;
             Capacity := Real'Min (Capacity, Max);
+            Log_Capacity (Stock.Get_Quantity (Input.Commodity),
+                          Input.Commodity.Identifier);
          end;
       end loop;
 
@@ -48,6 +79,11 @@ package body Concorde.Production is
             end;
          end loop;
 
+         Concorde.Logging.Log
+           (Production.Identifier, "", "production",
+            "total production cost: "
+            & Concorde.Money.Show (Cost));
+
          declare
             Total_Output : Non_Negative_Real := 0.0;
          begin
@@ -56,12 +92,31 @@ package body Concorde.Production is
             end loop;
 
             for Output of Production.Outputs loop
-               Stock.Add_Quantity
-                 (Item     => Output.Commodity,
-                  Quantity =>
-                    To_Quantity (Capacity * Output.Relative_Quantity),
-                  Value    =>
-                    Adjust (Cost, Output.Relative_Quantity / Total_Output));
+               declare
+                  Quantity  : constant Quantity_Type :=
+                                To_Quantity
+                                  (Capacity * Output.Relative_Quantity);
+                  This_Cost : constant Money_Type :=
+                                Adjust
+                                  (Cost,
+                                   Output.Relative_Quantity / Total_Output);
+               begin
+                  Concorde.Logging.Log
+                    (Production.Identifier, "", "production",
+                     "produce " & Show (Quantity)
+                     & " " & Output.Commodity.Identifier
+                     & " for " & Show (This_Cost)
+                     & " (minimum sell price "
+                     & Show (Price (This_Cost, Quantity))
+                     & ")");
+
+                  Stock.Add_Quantity
+                    (Item     => Output.Commodity,
+                     Quantity =>
+                       Min (Quantity, Stock.Available_Quantity),
+                     Value    => This_Cost);
+               end;
+
             end loop;
          end;
       end if;
@@ -104,11 +159,6 @@ package body Concorde.Production is
                      Concorde.Quantities.To_Quantity
                        (Input.Relative_Quantity * Size);
             begin
-               Ada.Text_IO.Put_Line
-                 (Production.Name & " requires "
-                  & Concorde.Quantities.Show (Q)
-                  & " "
-                  & Commodity.Name);
                return Q;
             end;
          end if;

@@ -476,6 +476,9 @@ package body Concorde.People.Communities.Create is
                     (Concorde.People.Pops.Create.New_Pop
                        (Market     => Community.Market,
                         Government => Community.Government,
+                        Location   =>
+                          Concorde.Locations.In_Community
+                            (Db.Reference (Community)),
                         Network    => Community,
                         Groups     => Groups (1 .. Group_Count),
                         Size       => Concorde.People.Pops.Pop_Size (Size),
