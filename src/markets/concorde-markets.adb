@@ -1304,22 +1304,22 @@ package body Concorde.Markets is
               and then Total_Desire > 0.0
             then
                declare
-                  Demand_Factor : constant Unit_Real :=
-                                    Total_Demand / Total_Supply;
-                  Scale_Factor  : constant Unit_Real :=
+                  Scale_Factor  : constant Non_Negative_Real :=
                                     (if Total_Demand = 0.0
                                      then 1.0
-                                     else Concorde.Elementary_Functions.Tanh
-                                       (10.0 / Demand_Factor));
+                                     else Total_Supply / Total_Demand / 10.0);
                   Price_Factor  : constant Non_Negative_Real :=
                                     Concorde.Money.To_Real
                                       (Commodity.Base_Price);
                   Price_Change  : constant Non_Negative_Real :=
-                                    Scale_Factor
-                                      * Price_Factor / 10.0;
+                                    Real'Min
+                                      (Real'Max
+                                         (Scale_Factor * Price_Factor * 0.01,
+                                          0.01),
+                                       Price / 5.0);
                begin
                   New_Price :=
-                    Real'Max (0.01, Price - Price_Change);
+                    Real'Max (Price_Factor / 10.0, Price - Price_Change);
                end;
 
                Concorde.Logging.Log
