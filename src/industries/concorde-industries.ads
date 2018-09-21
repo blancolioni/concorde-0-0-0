@@ -12,6 +12,7 @@ with Concorde.Trades;
 with Concorde.Network;
 
 with Concorde.Money;
+with Concorde.Quantities;
 
 package Concorde.Industries is
 
@@ -43,13 +44,16 @@ private
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Managers.Managed_Interface with
       record
-         Manager    : Concorde.Managers.Manager_Type;
-         Owner      : access constant
+         Manager          : Concorde.Managers.Manager_Type;
+         Owner            : access constant
            Concorde.Agents.Root_Agent_Type'Class;
-         Node       : Concorde.Network.Node_State_Access;
-         Size       : Non_Negative_Real;
-         Production : Concorde.Production.Production_Type;
-         Cost       : Concorde.Money.Money_Type;
+         Node             : Concorde.Network.Node_State_Access;
+         Size             : Non_Negative_Real;
+         Production_Size  : Non_Negative_Real;
+         Production       : Concorde.Production.Production_Type;
+         Cost             : Concorde.Money.Money_Type;
+         Sold             : Concorde.Commodities.Root_Stock_Type;
+         Production_Count : Natural := 0;
       end record;
 
    overriding procedure Update_Agent
@@ -75,6 +79,12 @@ private
      (Industry  : Root_Industry_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
       return Non_Negative_Real;
+
+   overriding procedure On_Commodity_Sell
+     (Industry  : in out Root_Industry_Type;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type);
 
    overriding function Class_Name
      (Industry : Root_Industry_Type) return String

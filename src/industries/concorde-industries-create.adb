@@ -54,6 +54,8 @@ package body Concorde.Industries.Create is
          Industry.Production :=
            Concorde.Production.Get (Production);
          Industry.Size := Size;
+         Industry.Production_Size := Size;
+         Industry.Sold.Create_Stock (Concorde.Quantities.Zero, True);
 
       end Create;
 
