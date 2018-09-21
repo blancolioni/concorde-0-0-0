@@ -29,7 +29,7 @@ init = {
 
 industries = {
    agriculture = 60%
-   luxury-goods = 200K
+   luxury-goods = 2M
 }
 
 pop-size = 10K

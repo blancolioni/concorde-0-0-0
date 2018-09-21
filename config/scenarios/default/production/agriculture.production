@@ -1,4 +1,4 @@
-employees = { farmer = 0.05 }
+employees = { farmer = 0.1 }
 inputs = { }
 tools = { }
-outputs = { food = 0.2 }
+outputs = { food = 1 }

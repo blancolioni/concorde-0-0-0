@@ -24,13 +24,13 @@ init = {
    agriculture-industry = 0.5
    food-price = 1.5
    luxury-goods-price = 2.5
-   farmer = 15%
+   farmer = 3%
 }
 
 industries = {
-   agriculture = 17%
+   agriculture = 7%
 }
 
-pop-size = 10K
+pop-size = 1K
 gini = 0.3
 apathy = 0.1
