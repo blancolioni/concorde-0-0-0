@@ -20,8 +20,10 @@ with Concorde.Worlds;
 with Concorde.Systems;
 
 with Concorde.People.Communities.Create;
+with Concorde.People.Groups;
 with Concorde.People.Individuals.Create;
 with Concorde.People.Individuals.Work;
+with Concorde.People.Pops.Work;
 
 with Concorde.Scenarios;
 
@@ -265,11 +267,6 @@ package body Concorde.Factions.Create is
       Start_World  : Concorde.Worlds.World_Type;
       Start_System : Concorde.Systems.Star_System_Type;
 
-      Init_Config  : constant Tropos.Configuration :=
-                       Template.Child ("init");
-
-      function Init_Value (Name : String) return Real;
-
       procedure Add_Taken_Systems
         (Faction : Root_Faction_Type'Class);
 
@@ -472,19 +469,6 @@ package body Concorde.Factions.Create is
 
       end Create;
 
-      ----------------
-      -- Init_Value --
-      ----------------
-
-      function Init_Value (Name : String) return Real is
-         Value : constant Float := Init_Config.Get (Name, 0.0);
-      begin
-         Ada.Text_IO.Put_Line
-           ("init: " & Name & " = "
-            & Concorde.Real_Images.Approximate_Image (Real (Value)));
-         return Real (Value);
-      end Init_Value;
-
       ------------------------
       -- Set_Initial_Prices --
       ------------------------
@@ -541,16 +525,10 @@ package body Concorde.Factions.Create is
       declare
          Faction : constant Faction_Type :=
                      Db.Create (Create'Access);
-         Base_Pop : constant Non_Negative_Real := Init_Value ("population");
-         Gini     : constant Unit_Real :=
-                      Unit_Real (Float'(Template.Get ("gini", 0.5)));
          Capital : constant Concorde.People.Communities.Community_Type :=
                      Concorde.People.Communities.Create.New_Community
                        (World      => Start_World,
                         Faction    => Faction,
-                        Population =>
-                          Concorde.Quantities.To_Quantity (Base_Pop),
-                        Gini       => Gini,
                         Template   => Template);
       begin
          Start_System.Update.Set_Owner (Faction);
@@ -604,6 +582,36 @@ package body Concorde.Factions.Create is
 
          Faction.Save_Agent;
          Concorde.Managers.Factions.Create_Manager (Faction).Activate;
+
+         declare
+            procedure Add_Work (Pop : Concorde.People.Pops.Pop_Type);
+
+            --------------
+            -- Add_Work --
+            --------------
+
+            procedure Add_Work (Pop : Concorde.People.Pops.Pop_Type) is
+               use Concorde.People.Groups;
+            begin
+               if Pop.Group.Is_State_Employee then
+                  declare
+                     Base_Wage    : constant Non_Negative_Real :=
+                                      (case Pop.Group.Wealth is
+                                          when Poor         => 1.0,
+                                          when Middle_Class => 5.0,
+                                          when Rich         => 25.0);
+                  begin
+                     Faction.Manager.Add_Work_Item
+                       (Concorde.People.Pops.Work.Pay_State_Employee
+                          (Pop,
+                           Concorde.Money.To_Price (Base_Wage)));
+                  end;
+               end if;
+            end Add_Work;
+
+         begin
+            Capital.Scan_Pops (Add_Work'Access);
+         end;
 
          declare
             procedure Add_Work (Army : Concorde.Armies.Army_Type);

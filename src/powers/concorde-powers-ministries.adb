@@ -1,5 +1,7 @@
 with WL.Localisation;
 
+with Concorde.People.Groups;
+
 package body Concorde.Powers.Ministries is
 
    type Appoint_Minister_Power is
@@ -39,6 +41,17 @@ package body Concorde.Powers.Ministries is
      (Power : Law_Enforcement_Power)
       return String
    is ("law_enforcement");
+
+   type Pay_Pop_Group_Power is
+     new Root_Power_Type with
+      record
+         Group   : Concorde.People.Groups.Pop_Group;
+      end record;
+
+   overriding function Class_Identifier
+     (Power : Pay_Pop_Group_Power)
+      return String
+   is ("pay-" & Power.Group.Identifier);
 
    ----------------------
    -- Appoint_Minister --
@@ -93,5 +106,19 @@ package body Concorde.Powers.Ministries is
    begin
       return Direct_Minister_Power'Class (Power).Ministry;
    end Ministry;
+
+   ---------
+   -- Pay --
+   ---------
+
+   function Pay
+     (Group : Concorde.People.Groups.Pop_Group)
+      return Power_Type
+   is
+   begin
+      return Power : Pay_Pop_Group_Power do
+         Power.Group := Group;
+      end return;
+   end Pay;
 
 end Concorde.Powers.Ministries;

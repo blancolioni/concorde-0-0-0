@@ -19,6 +19,10 @@ package Concorde.Powers is
 
    function Show (Power : Root_Power_Type) return String;
 
+   function Daily_Execution
+     (Power     : Root_Power_Type)
+      return Boolean;
+
    function Daily_Work
      (Power     : Root_Power_Type'Class;
       Community : not null access constant

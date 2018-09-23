@@ -9,17 +9,14 @@ with Concorde.Powers.Taxation;
 
 with Concorde.Powers.Execution;
 
+with Concorde.People.Groups;
+
 package body Concorde.Powers.Configure is
 
-   type Simple_Configure_Function is access
-     function (Name : String) return Power_Type;
+   type Configure_Function is access
+     function (Config : Tropos.Configuration) return Power_Type;
 
-   type Configuration_Record is
-      record
-         Simple : Simple_Configure_Function;
-      end record;
-
-   package Configure_Maps is new WL.String_Maps (Configuration_Record);
+   package Configure_Maps is new WL.String_Maps (Configure_Function);
 
    Configure_Map : Configure_Maps.Map;
 
@@ -28,6 +25,28 @@ package body Concorde.Powers.Configure is
    Simple_Map : Simple_Maps.Map;
 
    procedure Create_Map;
+
+   function Configure_Pay_Power
+     (Config : Tropos.Configuration)
+      return Power_Type;
+
+   -------------------------
+   -- Configure_Pay_Power --
+   -------------------------
+
+   function Configure_Pay_Power
+     (Config : Tropos.Configuration)
+      return Power_Type
+   is
+   begin
+      return Concorde.Powers.Ministries.Pay
+        (Concorde.People.Groups.Get (Config.Value));
+   exception
+      when others =>
+         raise Constraint_Error with
+           "no such group " & Config.Value
+           & " in configuration for pay power";
+   end Configure_Pay_Power;
 
    ---------------------
    -- Configure_Power --
@@ -46,10 +65,10 @@ package body Concorde.Powers.Configure is
          return Simple_Map.Element (Config.Config_Name);
       elsif Configure_Map.Contains (Config.Config_Name) then
          declare
-            Rec : constant Configuration_Record :=
+            Fn : constant Configure_Function :=
                     Configure_Map.Element (Config.Config_Name);
          begin
-            return Rec.Simple (Config.Config_Name);
+            return Fn (Config);
          end;
       else
          raise Constraint_Error with
@@ -116,6 +135,9 @@ package body Concorde.Powers.Configure is
          Concorde.Powers.Ships.Appoint_Trader_Captain);
       Simple_Map.Insert
         ("law_enforcement", Concorde.Powers.Ministries.Law_Enforcement);
+      Configure_Map.Insert
+        ("pay", Configure_Pay_Power'Access);
+
    end Create_Map;
 
    ---------------

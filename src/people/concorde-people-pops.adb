@@ -1,21 +1,5 @@
 package body Concorde.People.Pops is
 
-   --------------------------
-   -- Current_Income_Total --
-   --------------------------
-
-   function Current_Income_Total
-     (Pop : Root_Pop_Type'Class)
-      return Non_Negative_Real
-   is
-      Result : Non_Negative_Real := Pop.Base_Income.Current_Base_Value;
-   begin
-      for Item of Pop.Groups loop
-         Result := Result * (1.0 + Item.Income.Current_Value);
-      end loop;
-      return Result * Real (Pop.Size);
-   end Current_Income_Total;
-
    ------------------
    -- Daily_Budget --
    ------------------
@@ -55,13 +39,11 @@ package body Concorde.People.Pops is
    is
       use type Concorde.Commodities.Commodity_Type;
    begin
-      for Group of Pop.Groups loop
-         if Group.Group.Has_Commodity
-           and then Group.Group.Commodity = Commodity
-         then
-            return Non_Negative_Real (Pop.Size);
-         end if;
-      end loop;
+      if Pop.Group.Has_Commodity
+        and then Pop.Group.Commodity = Commodity
+      then
+         return Non_Negative_Real (Pop.Size);
+      end if;
       return 0.0;
    end Daily_Supply;
 
@@ -75,10 +57,7 @@ package body Concorde.People.Pops is
       return Concorde.Network.Expression_Value
    is
    begin
-      if Name = "income" then
-         return Concorde.Network.To_Expression_Value
-           (Pop.Current_Income_Total);
-      elsif Name = "size" then
+      if Name = "size" then
          return Concorde.Network.To_Expression_Value
            (Non_Negative_Real (Pop.Size));
       else
@@ -100,20 +79,6 @@ package body Concorde.People.Pops is
    begin
       return Name = "income";
    end Has_Field;
-
-   ------------------
-   -- Is_Member_Of --
-   ------------------
-
-   function Is_Member_Of
-     (Pop   : Root_Pop_Type'Class;
-      Group : Concorde.People.Groups.Pop_Group)
-      return Boolean
-   is
-      use type Concorde.People.Groups.Pop_Group;
-   begin
-      return (for some X of Pop.Groups => X.Group = Group);
-   end Is_Member_Of;
 
    ---------------------
    -- Object_Database --

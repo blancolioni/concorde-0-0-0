@@ -4,6 +4,48 @@ with Concorde.Calendar;
 
 package body Concorde.Agents.Reports is
 
+   ----------------
+   -- Log_Status --
+   ----------------
+
+   procedure Log_Status
+     (Market : Concorde.Markets.Market_Interface'Class)
+   is
+      use Concorde.Money;
+
+      function Higher_Wealth (Left, Right : Agent_Type) return Boolean
+      is (Left.Cash > Right.Cash);
+
+      package Agent_Lists is
+        new Ada.Containers.Doubly_Linked_Lists (Agent_Type);
+
+      package Agent_Sorting is
+        new Agent_Lists.Generic_Sorting (Higher_Wealth);
+
+      List : Agent_Lists.List;
+
+      procedure Add_Agent (Agent : not null access constant
+                             Concorde.Agents.Root_Agent_Type'Class);
+
+      ---------------
+      -- Add_Agent --
+      ---------------
+
+      procedure Add_Agent (Agent : not null access constant
+                             Concorde.Agents.Root_Agent_Type'Class)
+      is
+      begin
+         List.Append (Agent_Type (Agent));
+      end Add_Agent;
+
+   begin
+      Market.Scan_Agents (Add_Agent'Access);
+      Agent_Sorting.Sort (List);
+      for Agent of List loop
+         Agent.Log ("cash: " & Show (Agent.Cash));
+      end loop;
+   end Log_Status;
+
    --------------------
    -- Write_Accounts --
    --------------------

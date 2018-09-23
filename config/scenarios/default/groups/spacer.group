@@ -1,3 +1,4 @@
+wealth = middle-class
 politics = {
   military = { position = 0.9 strength = 0.9 }
 }
@@ -6,9 +7,4 @@ proportion = {
   base = 0.05
 }
 
-influence = {
-   bureaucrat = -1
-   farmer = -1
-   retired = -1
-   worker = -1
-}
+state-employee = yes

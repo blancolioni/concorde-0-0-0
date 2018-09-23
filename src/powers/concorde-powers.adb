@@ -55,6 +55,19 @@ package body Concorde.Powers is
       return (for all Power of Container.Set => Test (Power));
    end Check_Powers;
 
+   ---------------------
+   -- Daily_Execution --
+   ---------------------
+
+   function Daily_Execution
+     (Power     : Root_Power_Type)
+      return Boolean
+   is
+      pragma Unreferenced (Power);
+   begin
+      return False;
+   end Daily_Execution;
+
    ----------------
    -- Daily_Work --
    ----------------

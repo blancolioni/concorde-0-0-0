@@ -1,3 +1,4 @@
+with Concorde.Calendar;
 with Concorde.Objects.Queues;
 with Concorde.Signals.Standard;
 
@@ -68,8 +69,9 @@ package body Concorde.Managers.Individuals is
    overriding procedure On_Activated
      (Manager : in out Root_Individual_Manager)
    is
-      --  use type Concorde.Calendar.Time;
+      use type Concorde.Calendar.Time;
       use type Concorde.Work.Work_Item;
+      Delayed_Work : Work_Item_Queue.Heap;
    begin
       if Manager.Current_Work /= null then
          Manager.Individual.Log
@@ -105,18 +107,23 @@ package body Concorde.Managers.Individuals is
                         Director : constant Individual_Type :=
                                      Individual_Type (B.Director);
                      begin
-                        Manager.Individual.Log
-                          ("work",
-                           "delegated to "
-                           & B.Identifier
-                           & " headed by "
-                           & (if Director = null then "nobody"
-                             else Director.Full_Name));
-
                         if Director /= null then
-                           Director.Manager.Add_Work_Item (Work);
+                           Manager.Individual.Log
+                             ("work",
+                              Work.Show
+                              & " delegated to "
+                              & B.Identifier
+                              & " headed by "
+                              & Director.Full_Name);
+                           B.Variable_Reference.Add_Work_Item (Work);
                         else
-                           Remaining_Work.Insert (Priority, Work);
+                           Manager.Individual.Log
+                             ("work",
+                              Work.Show
+                              & " for "
+                              & B.Identifier
+                              & " put on hold until minister appointed");
+                           Delayed_Work.Insert (Priority, Work);
                         end if;
                      end;
                   else
@@ -130,19 +137,29 @@ package body Concorde.Managers.Individuals is
       end if;
 
       if not Manager.Work_Queue.Is_Empty then
+         Manager.Individual.Log
+           ("current work: "
+            & Manager.Work_Queue.First_Element.Show);
          Manager.Current_Work :=
            Manager.Work_Queue.First_Element;
          Manager.Work_Queue.Delete_First;
---           Concorde.Objects.Queues.Next_Event
---             (Object => Manager.Individual,
---              Date   =>
---                Concorde.Calendar.Clock
---              + Manager.Current_Work.Power.Execution_Work
---                (Manager.Current_Work.Target));
+         Concorde.Objects.Queues.Next_Event
+           (Object => Manager.Individual,
+            Date   =>
+              Concorde.Calendar.Clock
+            + Manager.Current_Work.Power.Execution_Work
+              (Manager.Current_Work.Target));
       else
          Concorde.Objects.Queues.Next_Event
            (Manager.Individual, Manager.Time, Delay_Days => 1);
       end if;
+
+      while not Delayed_Work.Is_Empty loop
+         Manager.Work_Queue.Insert
+           (Delayed_Work.First_Key, Delayed_Work.First_Element);
+         Delayed_Work.Delete_First;
+      end loop;
+
    end On_Activated;
 
 end Concorde.Managers.Individuals;

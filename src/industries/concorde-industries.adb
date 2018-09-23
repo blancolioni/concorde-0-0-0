@@ -56,11 +56,11 @@ package body Concorde.Industries is
    procedure Execute_Production
      (Industry : in out Root_Industry_Type'Class)
    is
-      Max_Size : Non_Negative_Real := Industry.Size;
+      Max_Size  : Non_Negative_Real := Industry.Size;
    begin
       Industry.Log ("executing production");
 
-      if Industry.Production_Count > 2 then
+      if Industry.Production_Count > 1 then
          Max_Size :=
            Real'Max
              (Real'Min

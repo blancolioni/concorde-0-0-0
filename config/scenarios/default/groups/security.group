@@ -1,0 +1,11 @@
+wealth = poor
+
+politics = {
+  military = { position = 0.9 strength = 0.9 }
+}
+
+proportion = {
+  base = 0.05
+}
+
+state-employee = yes

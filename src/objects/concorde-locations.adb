@@ -108,6 +108,21 @@ package body Concorde.Locations is
          raise;
    end Current_System;
 
+   -----------------------
+   -- Current_Community --
+   -----------------------
+
+   function Current_Community
+     (Location : Object_Location)
+      return access constant
+     Concorde.People.Communities.Root_Community_Type'Class
+   is (if Location.Reference.all in
+         Concorde.People.Communities.Root_Community_Type'Class
+       then Concorde.People.Communities.Root_Community_Type
+         (Location.Reference.all)'Access
+         else Located_Interface'Class (Location.Reference.all)
+       .Current_Community);
+
    -------------------
    -- Current_World --
    -------------------
@@ -254,6 +269,24 @@ package body Concorde.Locations is
               Concorde.Objects.Object_Type (System_2),
               Progress);
    end Interstellar_Location;
+
+   ---------------------------
+   -- Is_Community_Location --
+   ---------------------------
+
+   function Is_Community_Location
+     (Location : Object_Location)
+      return Boolean
+   is
+   begin
+      return Location.Loc_Type /= Nowhere
+        and then (Location.Reference.all in
+                    Concorde.People.Communities.Root_Community_Type'Class
+                  or else (Location.Reference.all in
+                               Located_Interface'Class
+                           and then Located_Interface'Class
+                             (Location.Reference.all).Is_Community_Location));
+   end Is_Community_Location;
 
    -----------------------
    -- Is_World_Location --

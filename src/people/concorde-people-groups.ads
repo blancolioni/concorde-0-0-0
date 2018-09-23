@@ -14,12 +14,18 @@ with Concorde.Politics;
 
 package Concorde.People.Groups is
 
+   type Group_Wealth_Type is (Poor, Middle_Class, Rich);
+
    type Root_Pop_Group is
      new Concorde.Objects.Root_Localised_Object_Type
      and Concorde.Politics.Political_Interface
    with private;
 
    type Pop_Group is access constant Root_Pop_Group'Class;
+
+   function Wealth
+     (Group : Root_Pop_Group'Class)
+      return Group_Wealth_Type;
 
    type Array_Of_Pop_Groups is
      array (Positive range <>) of Pop_Group;
@@ -28,6 +34,10 @@ package Concorde.People.Groups is
    function Wealth_Groups return Array_Of_Pop_Groups;
    function Political_Groups return Array_Of_Pop_Groups;
    function Everybody return Pop_Group;
+
+   function Is_State_Employee
+     (Group : Root_Pop_Group'Class)
+      return Boolean;
 
    function Is_Wealth_Group
      (Group : Root_Pop_Group'Class)
@@ -80,7 +90,9 @@ package Concorde.People.Groups is
      (Group : Root_Pop_Group'Class)
       return Concorde.Network.Nodes.Node_Type;
 
-   function Get (Name : String) return Pop_Group;
+   function Exists (Name : String) return Boolean;
+   function Get (Name : String) return Pop_Group
+     with Pre => Exists (Name);
 
 private
 
@@ -97,6 +109,7 @@ private
      new Concorde.Objects.Root_Localised_Object_Type
      and Concorde.Politics.Political_Interface with
       record
+         Wealth                : Group_Wealth_Type;
          Default_Politics      : Concorde.Politics.Political_Record;
          Default_Proportion    : Unit_Real := 0.0;
          Expression_Proportion : Concorde.Network.Expressions.Expression_Type;
@@ -107,6 +120,7 @@ private
          Left_Bias             : Boolean := False;
          Wealth_Group          : Boolean := False;
          Wealth_Proportion     : Boolean := False;
+         State_Employee        : Boolean := False;
          Influences            : Group_Influence_Lists.List;
          Pop_Group_Commodity   : Concorde.Commodities.Commodity_Type;
       end record;
@@ -156,6 +170,16 @@ private
      (Group : Root_Pop_Group'Class)
       return Boolean
    is (Group.Political_Wing and then not Group.Left_Bias);
+
+   function Wealth
+     (Group : Root_Pop_Group'Class)
+      return Group_Wealth_Type
+   is (Group.Wealth);
+
+   function Is_State_Employee
+     (Group : Root_Pop_Group'Class)
+      return Boolean
+   is (Group.State_Employee);
 
    package Db is
      new Memor.Database

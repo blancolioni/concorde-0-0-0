@@ -4,6 +4,8 @@ with Concorde.Signals.Standard;
 with Concorde.Facilities;
 with Concorde.People.Individuals;
 
+with Concorde.Powers;
+
 package body Concorde.Managers.Ministries is
 
    ------------
@@ -64,7 +66,9 @@ package body Concorde.Managers.Ministries is
       use type Concorde.Calendar.Time;
       Changed        : Boolean := False;
       Remaining_Work : Work_Item_Queue.Heap;
+      Daily_Work     : Work_Item_Queue.Heap;
    begin
+      Manager.Ministry.Log ("activating");
       Manager.Ministry.Update.Require_Cash (Manager.Ministry.Daily_Budget);
 
       while not Manager.Work_Queue.Is_Empty loop
@@ -74,6 +78,7 @@ package body Concorde.Managers.Ministries is
             Work     : constant Concorde.Work.Work_Item :=
                          Manager.Work_Queue.First_Element;
          begin
+            Manager.Ministry.Log ("work: " & Work.Show);
             Manager.Work_Queue.Delete_First;
             if Manager.Ministry.Has_Delegated_Power (Work.Power) then
                Manager.Ministry.Find_With_Power (Work.Power)
@@ -81,6 +86,9 @@ package body Concorde.Managers.Ministries is
                Changed := True;
             elsif Manager.Ministry.Has_Power (Work.Power) then
                Manager.Ministry.Minister.Manager.Add_Work_Item (Work);
+               if Work.Power.Daily_Execution then
+                  Daily_Work.Insert (Priority, Work);
+               end if;
                Changed := True;
             else
                Remaining_Work.Insert (Priority, Work);
@@ -91,6 +99,12 @@ package body Concorde.Managers.Ministries is
       if Changed then
          Manager.Work_Queue := Remaining_Work;
       end if;
+
+      while not Daily_Work.Is_Empty loop
+         Manager.Work_Queue.Insert
+           (Daily_Work.First_Key, Daily_Work.First_Element);
+         Daily_Work.Delete_First;
+      end loop;
 
       Concorde.Objects.Queues.Next_Event
         (Manager.Ministry, Manager.Time + 86_400.0);

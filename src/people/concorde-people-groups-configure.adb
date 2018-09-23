@@ -15,37 +15,6 @@ package body Concorde.People.Groups.Configure is
    procedure Create_Pop_Group
      (Config    : Tropos.Configuration);
 
-   procedure Configure_Influences
-     (Config    : Tropos.Configuration);
-
-   -------------------------
-   -- Configure_Pop_Group --
-   -------------------------
-
-   procedure Configure_Influences
-     (Config    : Tropos.Configuration)
-   is
-      procedure Configure (Group : in out Root_Pop_Group'Class);
-
-      ---------------
-      -- Configure --
-      ---------------
-
-      procedure Configure (Group : in out Root_Pop_Group'Class) is
-      begin
-         for Item of Config.Child ("influence") loop
-            Group.Influences.Append
-              (Group_Influence'
-                 (Group     => Db.Get (Item.Config_Name),
-                  Influence => Signed_Unit_Real (Float'(Item.Value))));
-         end loop;
-      end Configure;
-
-   begin
-      Db.Update (Db.Get (Config.Config_Name).Reference, Configure'Access);
-
-   end Configure_Influences;
-
    --------------------------
    -- Configure_Pop_Groups --
    --------------------------
@@ -61,9 +30,6 @@ package body Concorde.People.Groups.Configure is
    begin
       for Group_Config of Config loop
          Create_Pop_Group (Group_Config);
-      end loop;
-      for Group_Config of Config loop
-         Configure_Influences (Group_Config);
       end loop;
    end Configure_Pop_Groups;
 
@@ -107,10 +73,23 @@ package body Concorde.People.Groups.Configure is
             end if;
          end Configure_Proportion;
 
+         Wealth : constant String := Config.Get ("wealth", "missing");
+
       begin
+
          Group.Set_Local_Tag (Name);
          Concorde.Politics.Configure.Configure
            (Group.Default_Politics, Config.Child ("politics"));
+
+         Group.Wealth :=
+           (if Wealth = "rich" then Rich
+            elsif Wealth = "middle-class" then Middle_Class
+            elsif Wealth = "poor" then Poor
+            else raise Constraint_Error
+              with "bad wealth: " & Wealth & " in configuration for pop group "
+            & Name);
+
+         Group.State_Employee := Config.Get ("state-employee");
          Group.Wealth_Group := Config.Get ("wealth-group");
          Configure_Proportion (Config.Child ("proportion"));
          if Config.Get ("has-commodity") then

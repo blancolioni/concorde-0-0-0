@@ -11,6 +11,7 @@ package body Concorde.Ministries is
       Power      : Concorde.Powers.Power_Type)
    is
    begin
+      Ministry.Log ("new power: " & Power.Show);
       Ministry.Powers.Add_Power (Power);
    end Add_Power;
 

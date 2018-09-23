@@ -1,4 +1,4 @@
-employees = { worker = 0.01 }
+employees = { laborer = 0.01 skilled-worker = 0.1 }
 inputs = { }
 tools = { }
 outputs = { luxury-goods = 1 }

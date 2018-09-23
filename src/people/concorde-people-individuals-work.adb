@@ -2,7 +2,7 @@ with Concorde.Powers.Armies;
 with Concorde.Powers.Ministries;
 with Concorde.Powers.Ships;
 
-with Concorde.Worlds;
+with Concorde.People.Communities;
 
 package body Concorde.People.Individuals.Work is
 
@@ -63,8 +63,8 @@ package body Concorde.People.Individuals.Work is
       Individual : Individual_Type);
 
    function Best_Candidate
-     (World  : Concorde.Worlds.World_Type;
-      Powers : Concorde.Powers.Powered_Interface'Class)
+     (Community : Concorde.People.Communities.Community_Type;
+      Powers    : Concorde.Powers.Powered_Interface'Class)
       return Concorde.People.Individuals.Individual_Type;
 
    ---------------------
@@ -117,8 +117,8 @@ package body Concorde.People.Individuals.Work is
    --------------------
 
    function Best_Candidate
-     (World  : Concorde.Worlds.World_Type;
-      Powers : Concorde.Powers.Powered_Interface'Class)
+     (Community : Concorde.People.Communities.Community_Type;
+      Powers    : Concorde.Powers.Powered_Interface'Class)
       return Concorde.People.Individuals.Individual_Type
    is
       Best_Score      : Natural := 0;
@@ -136,7 +136,7 @@ package body Concorde.People.Individuals.Work is
       is
          use type Concorde.Factions.Faction_Type;
       begin
-         if Candidate.Faction /= World.Owner then
+         if Candidate.Faction /= Community.Owner then
             return;
          end if;
 
@@ -180,7 +180,7 @@ package body Concorde.People.Individuals.Work is
       end Score_Individual;
 
    begin
-      World.Scan_Individuals (Score_Individual'Access);
+      Community.Scan_Individuals (Score_Individual'Access);
 
       return Best_Individual;
    end Best_Candidate;
@@ -195,14 +195,19 @@ package body Concorde.People.Individuals.Work is
    is
       New_Minister : constant Concorde.People.Individuals.Individual_Type :=
                        Best_Candidate
-                         (World  => Individual.Faction.Capital_World,
-                          Powers => Work.Ministry.all);
+                         (Community  => Individual.Faction.Capital_Community,
+                          Powers     => Work.Ministry.all);
    begin
-      if New_Minister /= null then
+      if New_Minister = null then
+         Individual.Log_Government
+           ("no suitable candidates");
+      else
          Individual.Log_Government
            ("appointing "
             & New_Minister.Full_Name
             & " to run "
+            & Work.Ministry.Identifier
+            & " "
             & Work.Ministry.Name);
          Individual.Faction.Update.Set_Minister
            (Work.Ministry, New_Minister);
@@ -227,8 +232,8 @@ package body Concorde.People.Individuals.Work is
       Set.Add_Power (Power);
       General :=
         Best_Candidate
-          (World  => Individual.Faction.Capital_World,
-           Powers => Set);
+          (Community => Individual.Faction.Capital_Community,
+           Powers    => Set);
 
       if General /= null then
          Individual.Log_Government
@@ -256,8 +261,8 @@ package body Concorde.People.Individuals.Work is
       Set.Add_Power (Power);
       Captain :=
         Best_Candidate
-          (World  => Individual.Faction.Capital_World,
-           Powers => Set);
+          (Community => Individual.Faction.Capital_Community,
+           Powers    => Set);
 
       if Captain /= null then
          Individual.Log_Government

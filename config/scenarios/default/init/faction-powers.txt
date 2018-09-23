@@ -5,3 +5,8 @@ collect_import_tariff
 law_enforcement 
 appoint_general
 appoint_trader_captain
+pay = soldier
+pay = security
+pay = spacer
+pay = officer
+pay = bureaucrat

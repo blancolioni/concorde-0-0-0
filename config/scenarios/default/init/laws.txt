@@ -3,17 +3,25 @@ import_tariff = 20%
 
 create_ministry = {
    name = Finance
-   powers = { collect_sales_tax collect_import_tariff }
+   powers = { collect_sales_tax collect_import_tariff pay = bureaucrat }
 }
+
 create_ministry = {
    name = Justice
-   powers = { law_enforcement }
-}  
+   powers = {
+      pay = security
+      }
+}
 
 create_ministry = {
    name = Defence
    budget = 80000
-   powers = { appoint_general }
+   powers = { 
+      appoint_general
+      pay = soldier
+      pay = spacer
+      pay = officer
+      }
 }
 
 create_ministry = {

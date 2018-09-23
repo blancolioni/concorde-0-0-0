@@ -27,9 +27,26 @@ init = {
    worker = 10%
 }
 
+commodities = {
+   food = { price = 2.5 }
+}
+
+pops = {
+   aristocrat     = 1000
+   bureaucrat     = 100000
+   capitalist     = 10000
+   executive      = 10000
+   farmer         = 20000
+   officer        = 1000
+   soldier        = 10000
+   spacer         = 1000
+   laborer        = 2000000
+   skilled-worker = 2000000
+}
+
 industries = {
    agriculture = 60%
-   luxury-goods = 200K
+   luxury-goods = 200
 }
 
 pop-size = 10K

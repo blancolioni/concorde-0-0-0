@@ -1,5 +1,3 @@
-private with Ada.Containers.Doubly_Linked_Lists;
-
 private with Memor;
 private with Memor.Database;
 private with Concorde.Locations;
@@ -26,20 +24,15 @@ package Concorde.People.Pops is
 
    type Pop_Type is access constant Root_Pop_Type'Class;
 
+   function Group
+     (Pop : Root_Pop_Type'Class)
+      return Concorde.People.Groups.Pop_Group;
+
    function Size (Pop : Root_Pop_Type'Class) return Pop_Size;
 
    function Size_Quantity
      (Pop : Root_Pop_Type'Class)
       return Concorde.Quantities.Quantity_Type;
-
-   function Is_Member_Of
-     (Pop   : Root_Pop_Type'Class;
-      Group : Concorde.People.Groups.Pop_Group)
-      return Boolean;
-
-   function Current_Income_Total
-     (Pop : Root_Pop_Type'Class)
-      return Non_Negative_Real;
 
    type Updateable_Reference (Item : not null access Root_Pop_Type'Class)
    is private with Implicit_Dereference => Item;
@@ -50,23 +43,13 @@ package Concorde.People.Pops is
 
 private
 
-   type Group_Membership_Record is
-      record
-         Group    : Concorde.People.Groups.Pop_Group;
-         Income   : Concorde.Network.Node_State_Access;
-         Strength : Unit_Real := 1.0;
-      end record;
-
-   package Group_Membership_Lists is
-     new Ada.Containers.Doubly_Linked_Lists (Group_Membership_Record);
-
    type Root_Pop_Type is
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Network.Expression_Object_Interface with
       record
          Size         : Pop_Size;
+         Group        : Concorde.People.Groups.Pop_Group;
          Base_Income  : Concorde.Network.Node_State_Access;
-         Groups       : Group_Membership_Lists.List;
          Apathy       : Unit_Real := 0.0;
       end record;
 
@@ -97,6 +80,7 @@ private
    overriding function Identifier
      (Pop : Root_Pop_Type) return String
    is (Concorde.Agents.Root_Agent_Type (Pop).Identifier
+       & "--" & Pop.Group.Identifier
        & "--" & Concorde.Locations.Short_Name (Pop.Current_Location)
        & "--"
        & Concorde.Quantities.Show (Pop.Size_Quantity));
@@ -129,6 +113,11 @@ private
      (Pop   : Root_Pop_Type;
       Name  : String)
       return Concorde.Network.Expression_Value;
+
+   function Group
+     (Pop : Root_Pop_Type'Class)
+      return Concorde.People.Groups.Pop_Group
+   is (Pop.Group);
 
    function Size (Pop : Root_Pop_Type'Class) return Pop_Size
    is (Pop.Size);

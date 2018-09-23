@@ -11,6 +11,10 @@ package Concorde.Powers.Ministries is
 
    function Law_Enforcement return Power_Type;
 
+   function Pay
+     (Group : Concorde.People.Groups.Pop_Group)
+      return Power_Type;
+
    function Is_Direct_Minister (Power : Power_Type) return Boolean;
    function Ministry (Power : Power_Type)
                       return not null access constant

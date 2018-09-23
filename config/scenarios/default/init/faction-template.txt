@@ -1,5 +1,4 @@
 init = {
-   population = ~1M
    tax-evasion = 0.1
    poor-income-tax = 0.1
    middle-class-income-tax = 0.3
@@ -24,11 +23,28 @@ init = {
    agriculture-industry = 0.5
    food-price = 1.5
    luxury-goods-price = 2.5
-   farmer = 3%
+}
+
+pops = {
+   aristocrat     = 10
+   bureaucrat     = 100
+   capitalist     = 100
+   executive      = 100
+   farmer         = 1000
+   officer        = 10
+   soldier        = 1000
+   spacer         = 100
+   laborer        = 1000
+   miner          = 1000
+   skilled-worker = 100000
+}
+
+commodities = {
+   food = { price = 0.5 }
 }
 
 industries = {
-   agriculture = 7%
+   agriculture = 2%
 }
 
 pop-size = 1K

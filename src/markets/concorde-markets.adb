@@ -7,6 +7,8 @@ with Concorde.Agents;
 with Concorde.Logging;
 with Concorde.Logs;
 
+with Concorde.Agents.Reports;
+
 package body Concorde.Markets is
 
    Recent_Trade_Limit : constant Duration :=
@@ -1274,7 +1276,7 @@ package body Concorde.Markets is
 
          if True then
             Concorde.Logging.Log
-              (Actor    => "market",
+              (Actor    => Market.Identifier,
                Location => "",
                Category => Commodity.Identifier,
                Message  =>
@@ -1376,6 +1378,7 @@ package body Concorde.Markets is
 
    begin
       Concorde.Commodities.Scan (Update_Commodity'Access);
+      Concorde.Agents.Reports.Log_Status (Market);
    end Update_Market;
 
    ------------------

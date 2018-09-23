@@ -37,6 +37,15 @@ package body Concorde.People.Groups is
       return Get ("everybody");
    end Everybody;
 
+   ------------
+   -- Exists --
+   ------------
+
+   function Exists (Name : String) return Boolean is
+   begin
+      return Db.Exists (Name);
+   end Exists;
+
    --------------------
    -- Frequency_Node --
    --------------------

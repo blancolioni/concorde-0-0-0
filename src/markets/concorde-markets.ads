@@ -18,7 +18,8 @@ with Concorde.Commodities;
 
 package Concorde.Markets is
 
-   type Market_Interface is limited interface;
+   type Market_Interface is limited interface
+     and Concorde.Objects.Identifier_Object_Interface;
 
    function Current_Price
      (Market : Market_Interface;

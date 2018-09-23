@@ -10,9 +10,17 @@ with Concorde.Watchers;
 
 package Concorde.Objects is
 
+   type Identifier_Object_Interface is limited interface;
+
+   function Identifier
+     (Object : Identifier_Object_Interface)
+      return String
+      is abstract;
+
    type Root_Object_Type is
      abstract new Memor.Root_Record_Type
      and Memor.Identifier_Record_Type
+     and Identifier_Object_Interface
      and Concorde.Watchers.Watched_Object_Interface
    with private;
 
@@ -136,6 +144,7 @@ private
    type Root_Object_Type is
      abstract new Memor.Root_Record_Type
      and Memor.Identifier_Record_Type
+     and Identifier_Object_Interface
      and Concorde.Watchers.Watched_Object_Interface with
       record
          Watchers : Concorde.Watchers.Watcher_List;

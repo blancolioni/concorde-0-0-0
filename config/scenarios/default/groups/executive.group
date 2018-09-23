@@ -1,4 +1,4 @@
-wealth = middle-class
+wealth = rich
 
 politics = {
   corporate = { position = 0.3 strength = 0.5 }
@@ -19,6 +19,4 @@ influence = {
    retired = -1
    worker = -1
 }
-
 has-commodity = yes
-state-employee = yes

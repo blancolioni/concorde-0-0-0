@@ -1,6 +1,3 @@
-with Concorde.Money;
-with Concorde.Quantities;
-
 with Concorde.Objects.Queues;
 with Concorde.Signals.Standard;
 
@@ -8,8 +5,6 @@ with Concorde.Commodities;
 with Concorde.Facilities;
 with Concorde.People.Pops;
 with Concorde.Trades;
-
-with Concorde.Network;
 
 package body Concorde.Managers.Communities is
 
@@ -75,52 +70,8 @@ package body Concorde.Managers.Communities is
          & Concorde.Calendar.Image
            (Manager.Time, True));
 
-      Manager.Community.Update.Run_Network_State;
+--        Manager.Community.Update.Run_Network_State;
       Manager.Community.Update.Update_Market;
-
-      Manager.Community.Log
-        ("total population: "
-         & Concorde.Quantities.Show
-           (Concorde.Quantities.To_Quantity
-                (Concorde.Network.To_Real_Value
-                     (Manager.Community.Node
-                        ("population")
-                      .Get_Field_Value ("value")))));
-      Manager.Community.Log
-        ("agriculture industry production: "
-         & Concorde.Quantities.Show
-           (Concorde.Quantities.To_Quantity
-                (Manager.Community.Node
-                     ("agriculture-industry")
-                 .Current_Actual_Value)));
-
-      --        Manager.Community.Log
---          ("agriculture industry farmers: "
---           & Concorde.Quantities.Show
---             (Concorde.Quantities.To_Quantity
---                  (Float
---                       (Concorde.Network.To_Real_Value
---                          (Manager.Community.Node
---                             ("agriculture-industry")
---                           .Get_Field_Value ("farmers"))))));
-
-      Manager.Community.Log
-        ("tax income: "
-         & Concorde.Money.Show
-           (Concorde.Money.To_Money
-                (Manager.Community.Node
-                     ("tax-income").Current_Actual_Value))
-         & "; military budget: "
-         & Concorde.Money.Show
-           (Concorde.Money.To_Money
-                (Concorde.Network.To_Real_Value
-                     (Manager.Community.Node
-                        ("military-budget").Get_Field_Value ("budget"))))
-         & "; gdp: "
-         & Concorde.Money.Show
-           (Concorde.Money.To_Money
-                (Manager.Community.Node
-                     ("gdp").Current_Actual_Value)));
 
       Concorde.Objects.Queues.Next_Event
         (Manager.Community, Manager.Time, Delay_Days => 1);

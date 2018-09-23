@@ -4,6 +4,8 @@ with Concorde.Locations;
 with Concorde.Surfaces;
 with Concorde.Worlds;
 
+with Concorde.People.Communities;
+
 package body Concorde.People.Individuals is
 
    -------------------
@@ -293,13 +295,16 @@ package body Concorde.People.Individuals is
      (Individual : Individual_Type)
    is
    begin
-      if Individual.Is_World_Location then
+      if Individual.Is_Community_Location then
+         Individual.Current_Community.Update.Add_Individual
+           (Individual);
+      elsif Individual.Is_World_Location then
          Individual.Current_World.Update.Add_Individual
-             (Sector     =>
-                Concorde.Surfaces.Surface_Tile_Index
-                  (Concorde.Locations.World_Sector
-                       (Individual.Current_Location)),
-              Individual => Individual);
+           (Sector     =>
+              Concorde.Surfaces.Surface_Tile_Index
+                (Concorde.Locations.World_Sector
+                     (Individual.Current_Location)),
+            Individual => Individual);
       end if;
    end Update_Location;
 

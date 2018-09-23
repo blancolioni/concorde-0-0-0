@@ -18,8 +18,7 @@ package body Concorde.People.Pops.Create is
       Government : not null access constant
         Concorde.Government.Root_Government_Type'Class;
       Location   : Concorde.Locations.Object_Location;
-      Network    : Concorde.Network.Network_State_Interface'Class;
-      Groups     : Concorde.People.Groups.Array_Of_Pop_Groups;
+      Group      : Concorde.People.Groups.Pop_Group;
       Size       : Pop_Size;
       Apathy     : Unit_Real)
       return Pop_Type
@@ -33,17 +32,7 @@ package body Concorde.People.Pops.Create is
       procedure Create (Pop : in out Root_Pop_Type'Class) is
          use Concorde.Quantities;
       begin
-         for Group of Groups loop
-            Pop.Groups.Append
-              (Group_Membership_Record'
-                 (Group    => Group,
-                  Income   => Network.Node (Group.Income_Node.Identifier),
-                  Strength => 1.0));
-            if Group.Is_Wealth_Group then
-               Pop.Base_Income := Network.Node (Group.Income_Node.Identifier);
-            end if;
-         end loop;
-
+         Pop.Group := Group;
          Pop.Apathy := Apathy;
          Pop.Size := Size;
          Pop.New_Agent
@@ -53,7 +42,7 @@ package body Concorde.People.Pops.Create is
             Cash           =>
               Concorde.Money.To_Money
                 (Non_Negative_Real (Size)
-                 * Pop.Base_Income.Current_Actual_Value),
+                       * 10.0 ** Groups.Group_Wealth_Type'Pos (Group.Wealth)),
             Stock_Capacity => Pop.Size_Quantity * To_Quantity (70.0));
 
       end Create;

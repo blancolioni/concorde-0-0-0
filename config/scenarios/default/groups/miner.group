@@ -13,6 +13,7 @@ influence = {
    bureaucrat = -1
    military = -1
    retired = -1
-   worker = -1
+   farmer = -1
 }
+
 has-commodity = yes

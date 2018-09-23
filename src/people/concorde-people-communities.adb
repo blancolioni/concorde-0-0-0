@@ -1,7 +1,25 @@
 with Concorde.People.Groups;
 with Concorde.People.Communities.Fields;
 
+with Concorde.Ministries;
+
 package body Concorde.People.Communities is
+
+   --------------------
+   -- Add_Individual --
+   --------------------
+
+   procedure Add_Individual
+     (Community  : in out Root_Community_Type'Class;
+      Individual : not null access constant
+        Concorde.People.Individuals.Root_Individual_Type'Class)
+   is
+   begin
+      Community.Log
+        ("adding individual: " & Individual.Full_Name);
+      Community.Individuals.Append
+        (Concorde.People.Individuals.Individual_Type (Individual));
+   end Add_Individual;
 
    --------------
    -- Add_Node --
@@ -146,11 +164,12 @@ package body Concorde.People.Communities is
       begin
          for Pop of From.Pops loop
             declare
+               use type Concorde.People.Groups.Pop_Group;
                Include : constant Boolean :=
                            (case Constraint is
                                when All_Constraint => True,
                                when Group_Constraint =>
-                                 Pop.Is_Member_Of (Group));
+                                 Pop.Group = Group);
             begin
                if Include then
                   Count := Count + 1;
@@ -297,6 +316,24 @@ package body Concorde.People.Communities is
       return Db.Get_Database;
    end Object_Database;
 
+   -----------------------
+   -- Remove_Individual --
+   -----------------------
+
+   procedure Remove_Individual
+     (Community  : in out Root_Community_Type'Class;
+      Individual : not null access constant
+        Concorde.People.Individuals.Root_Individual_Type'Class)
+   is
+      Position : Concorde.People.Individuals.Lists.Cursor :=
+                   Community.Individuals.Find
+                     (Concorde.People.Individuals.Individual_Type
+                        (Individual));
+   begin
+      pragma Assert (Concorde.People.Individuals.Lists.Has_Element (Position));
+      Community.Individuals.Delete (Position);
+   end Remove_Individual;
+
    -----------------
    -- Remove_Ship --
    -----------------
@@ -335,7 +372,24 @@ package body Concorde.People.Communities is
         procedure (Agent : not null access constant
                      Concorde.Agents.Root_Agent_Type'Class))
    is
+      procedure Process_Ministry
+        (Ministry : Concorde.Ministries.Ministry_Type);
+
+      ----------------------
+      -- Process_Ministry --
+      ----------------------
+
+      procedure Process_Ministry
+        (Ministry : Concorde.Ministries.Ministry_Type)
+      is
+      begin
+         Process (Ministry);
+      end Process_Ministry;
+
    begin
+      Process (Community.Owner);
+      Community.Owner.Scan_Ministries (Process_Ministry'Access);
+      Process (Community.Government);
       for Individual of Community.Individuals loop
          Process (Individual);
       end loop;

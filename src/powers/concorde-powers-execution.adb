@@ -68,6 +68,7 @@ package body Concorde.Powers.Execution is
 
    type Power_Execution_Record is
       record
+         Group       : Concorde.People.Groups.Pop_Group;
          Attributes  : Attribute_Vectors.Vector;
          Pop_Groups  : Power_Pop_Group_Vectors.Vector;
          Action_Cost : Work_Record;
@@ -94,7 +95,7 @@ package body Concorde.Powers.Execution is
    function Calculate_Work
      (Power     : Power_Type;
       Work      : Work_Record;
-      Community : not null access constant
+      Community : access constant
         Concorde.People.Communities.Root_Community_Type'Class)
       return Duration;
 
@@ -132,13 +133,15 @@ package body Concorde.Powers.Execution is
    function Calculate_Work
      (Power     : Power_Type;
       Work      : Work_Record;
-      Community : not null access constant
+      Community : access constant
         Concorde.People.Communities.Root_Community_Type'Class)
       return Duration
    is
       Result : Duration := Work.Base;
       Market : constant Concorde.Markets.Market_Type :=
-                 Community.Market;
+                 (if Community = null
+                  then null
+                  else Community.Market);
    begin
       if not Work.Commodity.Is_Empty then
          declare
@@ -309,8 +312,15 @@ package body Concorde.Powers.Execution is
       Configure_Work (Config.Child ("action_cost"), Rec.Action_Cost);
       Configure_Work (Config.Child ("daily_work"), Rec.Daily_Work);
 
-      Power_Execution_Map.Insert (Config.Config_Name, Rec);
-
+      if Config.Get ("arg", "") = "pop_group" then
+         for Group of Concorde.People.Groups.All_Groups loop
+            Rec.Group := Group;
+            Power_Execution_Map.Insert
+              (Config.Config_Name & "-" & Group.Identifier, Rec);
+         end loop;
+      else
+         Power_Execution_Map.Insert (Config.Config_Name, Rec);
+      end if;
    end Configure_Power_Execution;
 
    --------------------

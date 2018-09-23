@@ -27,6 +27,8 @@ package body Concorde.Managers is
         Concorde.Work.Root_Work_Item'Class)
    is
    begin
+      Manager.Object.Log
+        ("new work item: " & Item.Show);
       Manager.Work_Queue.Insert
         (Item.Priority, Concorde.Work.Work_Item (Item));
    end Add_Work_Item;

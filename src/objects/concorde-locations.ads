@@ -6,6 +6,7 @@ with Concorde.Vectors;
 
 limited with Concorde.Systems;
 limited with Concorde.Worlds;
+limited with Concorde.People.Communities;
 
 package Concorde.Locations is
 
@@ -46,10 +47,20 @@ package Concorde.Locations is
      (Location : Object_Location)
       return Boolean;
 
+   function Is_Community_Location
+     (Location : Object_Location)
+      return Boolean;
+
    function Current_World
      (Location : Object_Location)
       return access constant Concorde.Worlds.Root_World_Type'Class
      with Pre => Is_World_Location (Location);
+
+   function Current_Community
+     (Location : Object_Location)
+      return access constant
+     Concorde.People.Communities.Root_Community_Type'Class
+     with Pre => Is_Community_Location (Location);
 
    subtype Orbital_Location is Object_Location (Orbit);
    subtype System_Point_Location is Object_Location (System_Point);
@@ -185,6 +196,18 @@ package Concorde.Locations is
       return access constant Concorde.Worlds.Root_World_Type'Class
    is (Current_World (Located.Current_Location))
      with Pre => Located.Is_World_Location;
+
+   function Is_Community_Location
+     (Located : Located_Interface'Class)
+      return Boolean
+   is (Is_Community_Location (Located.Current_Location));
+
+   function Current_Community
+     (Located : Located_Interface'Class)
+      return access constant
+     Concorde.People.Communities.Root_Community_Type'Class
+   is (Current_Community (Located.Current_Location))
+     with Pre => Located.Is_Community_Location;
 
    function System_Relative_Position
      (Located  : Located_Interface'Class;

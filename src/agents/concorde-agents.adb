@@ -1747,6 +1747,8 @@ package body Concorde.Agents is
       Quantity  : Concorde.Quantities.Quantity_Type;
       Price     : Concorde.Money.Price_Type)
    is
+      Total : constant Concorde.Money.Money_Type :=
+                Concorde.Money.Total (Price, Quantity);
    begin
       Agent.Log
         ("buy "
@@ -1755,13 +1757,14 @@ package body Concorde.Agents is
          & Commodity.Name
          & " @ "
          & Concorde.Money.Show (Price)
+         & " total "
+         & Concorde.Money.Show (Total)
          & "; cash = "
          & Concorde.Money.Show (Agent.Cash)
          & "; limit = "
          & Concorde.Money.Show (Root_Agent_Type'Class (Agent).Limit_Cash));
-      Agent.Remove_Cash (Concorde.Money.Total (Price, Quantity));
-      Agent.Add_Quantity (Commodity, Quantity,
-                          Concorde.Money.Total (Price, Quantity));
+      Agent.Remove_Cash (Total);
+      Agent.Add_Quantity (Commodity, Quantity, Total);
    end On_Commodity_Buy;
 
    -----------------------
@@ -1774,6 +1777,8 @@ package body Concorde.Agents is
       Quantity  : Concorde.Quantities.Quantity_Type;
       Price     : Concorde.Money.Price_Type)
    is
+      Total : constant Concorde.Money.Money_Type :=
+                Concorde.Money.Total (Price, Quantity);
    begin
       if not Commodity.Is_Pop_Group then
          if Quantity > Agent.Get_Quantity (Commodity) then
@@ -1787,10 +1792,9 @@ package body Concorde.Agents is
          end if;
 
          Agent.Remove_Quantity
-           (Commodity, Quantity,
-            Concorde.Money.Total (Price, Quantity));
+           (Commodity, Quantity, Total);
       end if;
-      Agent.Add_Cash (Concorde.Money.Total (Price, Quantity));
+      Agent.Add_Cash (Total);
       Agent.Log
         ("sell "
          & Concorde.Quantities.Show (Quantity)
@@ -1798,6 +1802,8 @@ package body Concorde.Agents is
          & Commodity.Name
          & " @ "
          & Concorde.Money.Show (Price)
+         & " total "
+         & Concorde.Money.Show (Total)
          & "; remaining = "
          & Show (Agent.Get_Quantity (Commodity))
          & "; cash = "

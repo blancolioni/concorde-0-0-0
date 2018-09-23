@@ -75,6 +75,16 @@ package Concorde.People.Communities is
       Process : not null access
         procedure (Pop : Concorde.People.Pops.Pop_Type));
 
+   procedure Add_Individual
+     (Community  : in out Root_Community_Type'Class;
+      Individual : not null access constant
+        Concorde.People.Individuals.Root_Individual_Type'Class);
+
+   procedure Remove_Individual
+     (Community  : in out Root_Community_Type'Class;
+      Individual : not null access constant
+        Concorde.People.Individuals.Root_Individual_Type'Class);
+
    procedure Scan_Individuals
      (Community : Root_Community_Type'Class;
       Process : not null access
