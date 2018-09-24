@@ -1,4 +1,3 @@
-with Concorde.People.Groups;
 with Concorde.People.Communities.Fields;
 
 with Concorde.Ministries;
@@ -247,6 +246,27 @@ package body Concorde.People.Communities is
         (Non_Negative_Real
            (Concorde.Quantities.To_Real (Local.Quantity)));
    end Get_Value;
+
+   ----------------------
+   -- Group_Population --
+   ----------------------
+
+   function Group_Population
+     (Community : Root_Community_Type'Class;
+      Group     : Concorde.People.Groups.Pop_Group)
+      return Concorde.Quantities.Quantity_Type
+   is
+      use Concorde.Quantities;
+      use type Concorde.People.Groups.Pop_Group;
+   begin
+      return Total : Quantity_Type := Zero do
+         for Pop of Community.Pops loop
+            if Pop.Group = Group then
+               Total := Total + Pop.Size_Quantity;
+            end if;
+         end loop;
+      end return;
+   end Group_Population;
 
    ---------------
    -- Has_Field --
@@ -501,6 +521,23 @@ package body Concorde.People.Communities is
    begin
       Community.Owner := Concorde.Factions.Faction_Type (Faction);
    end Set_Owner;
+
+   ----------------------
+   -- Total_Population --
+   ----------------------
+
+   function Total_Population
+     (Community : Root_Community_Type'Class)
+      return Concorde.Quantities.Quantity_Type
+   is
+      use Concorde.Quantities;
+   begin
+      return Total : Quantity_Type := Zero do
+         for Pop of Community.Pops loop
+            Total := Total + Pop.Size_Quantity;
+         end loop;
+      end return;
+   end Total_Population;
 
    ------------
    -- Update --

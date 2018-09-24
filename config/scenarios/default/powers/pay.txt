@@ -1,6 +1,6 @@
 arg = pop_group
 daily_work = {
-   base = 0.1
+   base = 4
    population = {
       value = pop_count
       factor = 1

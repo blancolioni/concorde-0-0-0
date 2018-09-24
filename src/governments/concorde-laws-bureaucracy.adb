@@ -29,7 +29,7 @@ package body Concorde.Laws.Bureaucracy is
      new Root_Law_Type with
       record
          Name     : Ada.Strings.Unbounded.Unbounded_String;
-         Budget   : Concorde.Money.Money_Type;
+         Budget   : Concorde.Ministries.Ministry_Budget;
          Powers   : Concorde.Powers.Power_Set;
       end record;
 
@@ -71,7 +71,7 @@ package body Concorde.Laws.Bureaucracy is
    function Create_Ministry
      (Context  : Law_Context;
       Name     : String;
-      Budget   : Concorde.Money.Money_Type;
+      Budget   : Concorde.Ministries.Ministry_Budget;
       Powers   : Concorde.Powers.Power_Set)
       return Law_Type
    is

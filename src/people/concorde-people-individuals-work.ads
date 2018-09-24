@@ -1,7 +1,10 @@
 with Concorde.Armies;
 with Concorde.Ministries;
+with Concorde.People.Pops;
 with Concorde.Ships;
 with Concorde.Work;
+
+with Concorde.Money;
 
 package Concorde.People.Individuals.Work is
 
@@ -18,6 +21,11 @@ package Concorde.People.Individuals.Work is
    function Appoint_Trader_Captain
      (Ship : not null access constant
         Concorde.Ships.Root_Ship_Type'Class)
+      return Concorde.Work.Work_Item;
+
+   function Pay_State_Employee
+     (Pop  : Concorde.People.Pops.Pop_Type;
+      Wage : Concorde.Money.Price_Type)
       return Concorde.Work.Work_Item;
 
    procedure Perform_Work

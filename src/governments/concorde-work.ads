@@ -15,6 +15,7 @@ package Concorde.Work is
                    is abstract;
 
    function Priority (Item : Root_Work_Item) return Work_Priority;
+   function Start (Item : Root_Work_Item) return Concorde.Calendar.Time;
    function Deadline (Item : Root_Work_Item) return Concorde.Calendar.Time;
    function Target (Item : Root_Work_Item) return Concorde.Objects.Object_Type;
 
@@ -30,12 +31,16 @@ private
    type Root_Work_Item is abstract tagged
       record
          Priority : Work_Priority           := 1;
+         Start    : Concorde.Calendar.Time  := Concorde.Calendar.Start;
          Deadline : Concorde.Calendar.Time  := Concorde.Calendar.Start;
          Target   : Concorde.Objects.Object_Type := null;
       end record;
 
    function Priority (Item : Root_Work_Item) return Work_Priority
    is (Item.Priority);
+
+   function Start (Item : Root_Work_Item) return Concorde.Calendar.Time
+   is (Item.Start);
 
    function Deadline (Item : Root_Work_Item) return Concorde.Calendar.Time
    is (Item.Deadline);

@@ -370,7 +370,7 @@ package body Concorde.Locations is
             return "on "
               & Concorde.Worlds.World_Type (Location.Reference).Name;
          when In_Community =>
-            return "in community on "
+            return "community on "
               & Concorde.People.Communities.Community_Type (Location.Reference)
               .World.Name;
          when On_Ship =>

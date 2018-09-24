@@ -23,7 +23,7 @@ with Concorde.People.Communities.Create;
 with Concorde.People.Groups;
 with Concorde.People.Individuals.Create;
 with Concorde.People.Individuals.Work;
-with Concorde.People.Pops.Work;
+with Concorde.People.Pops;
 
 with Concorde.Scenarios;
 
@@ -602,7 +602,7 @@ package body Concorde.Factions.Create is
                                           when Rich         => 25.0);
                   begin
                      Faction.Manager.Add_Work_Item
-                       (Concorde.People.Pops.Work.Pay_State_Employee
+                       (Concorde.People.Individuals.Work.Pay_State_Employee
                           (Pop,
                            Concorde.Money.To_Price (Base_Wage)));
                   end;

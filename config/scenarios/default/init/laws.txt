@@ -3,6 +3,12 @@ import_tariff = 20%
 
 create_ministry = {
    name = Finance
+   budget = {
+      item = {
+         pop_group = bureaucrat
+         scale = 6
+         }
+   }
    powers = { collect_sales_tax collect_import_tariff pay = bureaucrat }
 }
 
@@ -15,7 +21,20 @@ create_ministry = {
 
 create_ministry = {
    name = Defence
-   budget = 80000
+   budget = {
+      item = {
+         pop_group = soldier
+         scale = 1.1
+         }
+      item = {
+         pop_group = spacer
+         scale = 5.5
+         }
+      item = {
+         pop_group = officer
+         scale = 30
+         }
+   }
    powers = { 
       appoint_general
       pay = soldier

@@ -18,6 +18,7 @@ with Concorde.Government;
 with Concorde.Industries;
 with Concorde.Laws;
 with Concorde.Markets;
+with Concorde.People.Groups;
 with Concorde.People.Individuals;
 with Concorde.People.Pops;
 with Concorde.Ships;
@@ -74,6 +75,15 @@ package Concorde.People.Communities is
      (Community : Root_Community_Type'Class;
       Process : not null access
         procedure (Pop : Concorde.People.Pops.Pop_Type));
+
+   function Total_Population
+     (Community : Root_Community_Type'Class)
+      return Concorde.Quantities.Quantity_Type;
+
+   function Group_Population
+     (Community : Root_Community_Type'Class;
+      Group     : Concorde.People.Groups.Pop_Group)
+      return Concorde.Quantities.Quantity_Type;
 
    procedure Add_Individual
      (Community  : in out Root_Community_Type'Class;

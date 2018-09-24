@@ -12,10 +12,23 @@ with Concorde.Installations;
 with Concorde.Objects;
 with Concorde.Powers;
 
+with Concorde.People.Groups;
+
 limited with Concorde.People.Communities;
 limited with Concorde.People.Individuals;
 
 package Concorde.Ministries is
+
+   type Ministry_Budget is private;
+
+   procedure Add_Budget_Item
+     (Budget : in out Ministry_Budget;
+      Value  : Concorde.Money.Money_Type);
+
+   procedure Add_Budget_Item
+     (Budget : in out Ministry_Budget;
+      Pop_Group : Concorde.People.Groups.Pop_Group;
+      Per_Capita : Concorde.Money.Price_Type);
 
    type Root_Ministry_Type is
      new Concorde.Agents.Root_Agent_Type
@@ -129,6 +142,28 @@ private
    package Delegated_Power_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Delegated_Power_Record);
 
+   type Budget_Item_Class is
+     (Explicit_Value, Pop_Group_Based);
+
+   type Budget_Item (Class : Budget_Item_Class := Explicit_Value) is
+      record
+         case Class is
+            when Explicit_Value =>
+               Value      : Concorde.Money.Money_Type;
+            when Pop_Group_Based =>
+               Pop_Group  : Concorde.People.Groups.Pop_Group;
+               Per_Capita : Concorde.Money.Price_Type;
+         end case;
+      end record;
+
+   package Budget_Item_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Budget_Item);
+
+   type Ministry_Budget is
+      record
+         List : Budget_Item_Lists.List;
+      end record;
+
    type Root_Ministry_Type is
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Objects.User_Named_Object_Interface
@@ -142,7 +177,7 @@ private
            Concorde.People.Communities.Root_Community_Type'Class;
          Powers            : Concorde.Powers.Power_Set;
          Delegated_Powers  : Delegated_Power_Lists.List;
-         Daily_Budget      : Concorde.Money.Money_Type;
+         Daily_Budget      : Budget_Item_Lists.List;
       end record;
 
    overriding procedure Update_Agent
@@ -217,11 +252,6 @@ private
       return access constant
      Concorde.People.Individuals.Root_Individual_Type'Class
    is (Ministry.Director);
-
-   function Daily_Budget
-     (Ministry : Root_Ministry_Type'Class)
-      return Concorde.Money.Money_Type
-   is (Ministry.Daily_Budget);
 
    package Db is
      new Memor.Database

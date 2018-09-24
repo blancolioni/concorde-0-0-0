@@ -1,3 +1,5 @@
+with Concorde.Quantities;
+
 with Concorde.Powers.Armies;
 with Concorde.Powers.Ministries;
 with Concorde.Powers.Ships;
@@ -60,6 +62,29 @@ package body Concorde.People.Individuals.Work is
 
    overriding procedure Execute
      (Work       : Appoint_Trader_Captain_Work_Item;
+      Individual : Individual_Type);
+
+   type Pay_Work_Item is
+     new Root_Individual_Work_Item with
+      record
+         Pop  : Concorde.People.Pops.Pop_Type;
+         Wage : Concorde.Money.Price_Type;
+      end record;
+
+   overriding function Show (Item : Pay_Work_Item) return String
+   is ("pay wage " & Concorde.Money.Show (Item.Wage) & " to "
+       & Concorde.Quantities.Show (Item.Pop.Size_Quantity)
+       & " " & Item.Pop.Group.Name & "; total "
+       & Concorde.Money.Show
+         (Concorde.Money.Total (Item.Wage, Item.Pop.Size_Quantity)));
+
+   overriding function Power
+     (Item : Pay_Work_Item)
+      return Concorde.Powers.Power_Type
+   is (Concorde.Powers.Ministries.Pay (Item.Pop.Group));
+
+   overriding procedure Execute
+     (Work       : Pay_Work_Item;
       Individual : Individual_Type);
 
    function Best_Candidate
@@ -273,6 +298,45 @@ package body Concorde.People.Individuals.Work is
       end if;
 
    end Execute;
+
+   -------------
+   -- Execute --
+   -------------
+
+   overriding procedure Execute
+     (Work       : Pay_Work_Item;
+      Individual : Individual_Type)
+   is
+      use Concorde.Money;
+      Ministry : constant Concorde.Ministries.Ministry_Type :=
+                   Concorde.Ministries.Ministry_Type
+                     (Individual.Office);
+      Wages    : constant Money_Type :=
+                   Total (Work.Wage, Work.Pop.Size_Quantity);
+   begin
+      Ministry.Log
+        ("pay " & Concorde.Quantities.Show (Work.Pop.Size_Quantity)
+         & " " & Work.Pop.Group.Identifier
+         & " " & Show (Wages));
+      Ministry.Update.Remove_Cash (Wages);
+      Work.Pop.Update.Add_Cash (Wages);
+   end Execute;
+
+   ------------------------
+   -- Pay_State_Employee --
+   ------------------------
+
+   function Pay_State_Employee
+     (Pop  : Concorde.People.Pops.Pop_Type;
+      Wage : Concorde.Money.Price_Type)
+      return Concorde.Work.Work_Item
+   is
+   begin
+      return new Pay_Work_Item'
+        (Concorde.Work.Root_Work_Item with
+           Pop  => Pop,
+           Wage => Wage);
+   end Pay_State_Employee;
 
    ------------------
    -- Perform_Work --

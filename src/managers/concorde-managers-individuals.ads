@@ -23,8 +23,10 @@ private
    type Root_Individual_Manager is
      new Root_Manager_Type with
       record
-         Individual        : Concorde.People.Individuals.Individual_Type;
+         Individual : Concorde.People.Individuals.Individual_Type;
          Government : Concorde.Government.Government_Type;
+         Started    : Boolean := False;
+         Day_Start  : Concorde.Calendar.Time;
       end record;
 
    overriding function Description

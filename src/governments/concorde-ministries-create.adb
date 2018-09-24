@@ -21,7 +21,7 @@ package body Concorde.Ministries.Create is
       Location : Concorde.People.Communities.Community_Type;
       Market   : Concorde.Markets.Market_Type;
       Name     : String;
-      Budget   : Concorde.Money.Money_Type;
+      Budget   : Ministry_Budget;
       Powers   : Concorde.Powers.Power_Set)
       return Ministry_Type;
 
@@ -39,7 +39,7 @@ package body Concorde.Ministries.Create is
         Location => Faction.Capital_Community,
         Market   => Faction.Capital_Community.Market,
         Name     => "House " & Faction.Name,
-        Budget   => Concorde.Money.Zero,
+        Budget   => (List => Budget_Item_Lists.Empty_List),
         Powers   => Concorde.Powers.No_Powers));
 
    ---------------------
@@ -53,7 +53,7 @@ package body Concorde.Ministries.Create is
       Location : Concorde.People.Communities.Community_Type;
       Market   : Concorde.Markets.Market_Type;
       Name     : String;
-      Budget   : Concorde.Money.Money_Type;
+      Budget   : Ministry_Budget;
       Powers   : Concorde.Powers.Power_Set)
    is
       Ministry : constant Ministry_Type :=
@@ -76,7 +76,7 @@ package body Concorde.Ministries.Create is
       Location : Concorde.People.Communities.Community_Type;
       Market   : Concorde.Markets.Market_Type;
       Name     : String;
-      Budget   : Concorde.Money.Money_Type;
+      Budget   : Ministry_Budget;
       Powers   : Concorde.Powers.Power_Set)
       return Ministry_Type
    is
@@ -91,7 +91,6 @@ package body Concorde.Ministries.Create is
 
       procedure Create (Ministry : in out Root_Ministry_Type'Class) is
          use type Concorde.Objects.Object_Type;
-
       begin
          Ministry.New_Agent
            (Location       => Concorde.Locations.In_Community (Location),
@@ -102,7 +101,8 @@ package body Concorde.Ministries.Create is
 
          Ministry.Name := Ada.Strings.Unbounded.To_Unbounded_String (Name);
          Ministry.Minister := Minister;
-         Ministry.Daily_Budget := Budget;
+         Ministry.Community := Location;
+         Ministry.Daily_Budget := Budget.List;
          Ministry.Area :=
            (if Area = null
             then Concorde.Objects.Object_Type (Faction)

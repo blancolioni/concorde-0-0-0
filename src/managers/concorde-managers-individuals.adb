@@ -13,6 +13,9 @@ with Concorde.People.Individuals.Work;
 
 package body Concorde.Managers.Individuals is
 
+   procedure Schedule_Work
+     (Manager    : in out Root_Individual_Manager'Class);
+
    ------------
    -- Create --
    ------------
@@ -69,10 +72,16 @@ package body Concorde.Managers.Individuals is
    overriding procedure On_Activated
      (Manager : in out Root_Individual_Manager)
    is
-      use type Concorde.Calendar.Time;
       use type Concorde.Work.Work_Item;
+      use type Concorde.Calendar.Time;
       Delayed_Work : Work_Item_Queue.Heap;
    begin
+
+      if not Manager.Started then
+         Manager.Started := True;
+         Manager.Day_Start := Concorde.Calendar.Clock;
+      end if;
+
       if Manager.Current_Work /= null then
          Manager.Individual.Log
            ("executing: " & Manager.Current_Work.Show);
@@ -80,6 +89,14 @@ package body Concorde.Managers.Individuals is
            (Manager.Individual, Manager.Current_Work);
          Manager.Current_Work := null;
       end if;
+
+      if not Manager.Daily_Queue.Is_Empty then
+         Manager.Individual.Log ("have more daily work");
+         Manager.Schedule_Work;
+         return;
+      end if;
+
+      Manager.Individual.Log ("no daily work");
 
       if Manager.Individual.Has_Office then
          declare
@@ -137,22 +154,55 @@ package body Concorde.Managers.Individuals is
       end if;
 
       if not Manager.Work_Queue.Is_Empty then
-         Manager.Individual.Log
-           ("current work: "
-            & Manager.Work_Queue.First_Element.Show);
-         Manager.Current_Work :=
-           Manager.Work_Queue.First_Element;
-         Manager.Work_Queue.Delete_First;
-         Concorde.Objects.Queues.Next_Event
-           (Object => Manager.Individual,
-            Date   =>
-              Concorde.Calendar.Clock
-            + Manager.Current_Work.Power.Execution_Work
-              (Manager.Current_Work.Target));
-      else
-         Concorde.Objects.Queues.Next_Event
-           (Manager.Individual, Manager.Time, Delay_Days => 1);
+         declare
+            Remaining_Time : Duration :=
+                               Concorde.Calendar.Hours (16);
+         begin
+            Manager.Individual.Log ("creating daily work queue");
+
+            while not Manager.Work_Queue.Is_Empty loop
+               declare
+                  Work : constant Concorde.Work.Work_Item :=
+                           Manager.Work_Queue.First_Element;
+                  Priority : constant Concorde.Work.Work_Priority :=
+                               Manager.Work_Queue.First_Key;
+                  Time     : constant Duration :=
+                               (if Work.Power.Daily_Execution
+                                then Work.Power.Daily_Work
+                                  (Manager.Individual.Current_Community)
+                                else Work.Power.Execution_Work
+                                  (Work.Target));
+               begin
+                  Manager.Work_Queue.Delete_First;
+                  Manager.Daily_Queue.Insert (Priority, Work);
+                  Manager.Individual.Log ("queuing: " & Work.Show);
+                  exit when Time > Remaining_Time;
+                  Remaining_Time := Remaining_Time - Time;
+               end;
+            end loop;
+
+            while not Delayed_Work.Is_Empty loop
+               Manager.Work_Queue.Insert
+                 (Delayed_Work.First_Key, Delayed_Work.First_Element);
+               Delayed_Work.Delete_First;
+            end loop;
+
+            Manager.Day_Start :=
+              Manager.Day_Start + Concorde.Calendar.Days (1);
+            Concorde.Objects.Queues.Next_Event
+              (Manager.Individual, Manager.Day_Start);
+
+            Manager.Individual.Log
+              ("starting again at "
+               & Concorde.Calendar.Image
+                 (Manager.Day_Start,
+                  Include_Time_Fraction => True));
+            return;
+         end;
+
       end if;
+
+      pragma Assert (Manager.Work_Queue.Is_Empty);
 
       while not Delayed_Work.Is_Empty loop
          Manager.Work_Queue.Insert
@@ -160,6 +210,50 @@ package body Concorde.Managers.Individuals is
          Delayed_Work.Delete_First;
       end loop;
 
+      pragma Assert (Manager.Daily_Queue.Is_Empty);
+
+      Manager.Day_Start :=
+        Manager.Day_Start + Concorde.Calendar.Days (1);
+      Concorde.Objects.Queues.Next_Event
+        (Manager.Individual, Manager.Day_Start);
+
    end On_Activated;
+
+   -------------------
+   -- Schedule_Work --
+   -------------------
+
+   procedure Schedule_Work
+     (Manager    : in out Root_Individual_Manager'Class)
+   is
+      use type Concorde.Calendar.Time;
+
+      Work     : constant Concorde.Work.Work_Item :=
+                   Manager.Daily_Queue.First_Element;
+      Priority : constant Concorde.Work.Work_Priority :=
+                   Manager.Daily_Queue.First_Key;
+      Time     : constant Duration :=
+                   (if Work.Power.Daily_Execution
+                    then Work.Power.Daily_Work
+                      (Manager.Individual.Current_Community)
+                    else Work.Power.Execution_Work
+                      (Work.Target));
+   begin
+      Manager.Individual.Log
+        ("current work: " & Work.Show
+         & " will take "
+         & Natural'Image (Natural (Time / 3600.0))
+         & " hours");
+      Manager.Current_Work := Work;
+      Manager.Daily_Queue.Delete_First;
+
+      if Work.Power.Daily_Execution then
+         Manager.Work_Queue.Insert (Priority, Work);
+      end if;
+
+      Concorde.Objects.Queues.Next_Event
+        (Object => Manager.Individual,
+         Date   => Concorde.Calendar.Clock + Time);
+   end Schedule_Work;
 
 end Concorde.Managers.Individuals;

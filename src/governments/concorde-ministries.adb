@@ -1,6 +1,34 @@
+with Concorde.People.Communities;
 with Concorde.People.Individuals;
 
 package body Concorde.Ministries is
+
+   ---------------------
+   -- Add_Budget_Item --
+   ---------------------
+
+   procedure Add_Budget_Item
+     (Budget : in out Ministry_Budget;
+      Value  : Concorde.Money.Money_Type)
+   is
+   begin
+      Budget.List.Append
+        ((Explicit_Value, Value));
+   end Add_Budget_Item;
+
+   ---------------------
+   -- Add_Budget_Item --
+   ---------------------
+
+   procedure Add_Budget_Item
+     (Budget     : in out Ministry_Budget;
+      Pop_Group  : Concorde.People.Groups.Pop_Group;
+      Per_Capita : Concorde.Money.Price_Type)
+   is
+   begin
+      Budget.List.Append
+        ((Pop_Group_Based, Pop_Group, Per_Capita));
+   end Add_Budget_Item;
 
    ---------------
    -- Add_Power --
@@ -14,6 +42,27 @@ package body Concorde.Ministries is
       Ministry.Log ("new power: " & Power.Show);
       Ministry.Powers.Add_Power (Power);
    end Add_Power;
+
+   function Daily_Budget
+     (Ministry : Root_Ministry_Type'Class)
+      return Concorde.Money.Money_Type
+   is
+      use Concorde.Money;
+   begin
+      return Budget : Money_Type := Zero do
+         for Item of Ministry.Daily_Budget loop
+            case Item.Class is
+               when Explicit_Value =>
+                  Budget := Budget + Item.Value;
+               when Pop_Group_Based =>
+                  Budget := Budget
+                    + Total (Item.Per_Capita,
+                             Ministry.Community.Group_Population
+                               (Item.Pop_Group));
+            end case;
+         end loop;
+      end return;
+   end Daily_Budget;
 
    ----------------
    -- Daily_Work --

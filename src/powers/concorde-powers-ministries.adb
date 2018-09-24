@@ -53,6 +53,10 @@ package body Concorde.Powers.Ministries is
       return String
    is ("pay-" & Power.Group.Identifier);
 
+   overriding function Daily_Execution
+     (Power     : Pay_Pop_Group_Power)
+      return Boolean;
+
    ----------------------
    -- Appoint_Minister --
    ----------------------
@@ -61,6 +65,19 @@ package body Concorde.Powers.Ministries is
    begin
       return Power : Appoint_Minister_Power;
    end Appoint_Minister;
+
+   ---------------------
+   -- Daily_Execution --
+   ---------------------
+
+   overriding function Daily_Execution
+     (Power     : Pay_Pop_Group_Power)
+      return Boolean
+   is
+      pragma Unreferenced (Power);
+   begin
+      return True;
+   end Daily_Execution;
 
    ---------------------
    -- Direct_Minister --

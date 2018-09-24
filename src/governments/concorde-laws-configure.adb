@@ -1,10 +1,14 @@
-with Concorde.Money;
+with Ada.Exceptions;
+
 with WL.String_Maps;
 
 with Concorde.Commodities;
+with Concorde.Money;
 
 with Concorde.Factions;
+with Concorde.Ministries;
 with Concorde.People.Communities;
+with Concorde.People.Groups;
 with Concorde.People.Individuals;
 with Concorde.Worlds;
 
@@ -88,17 +92,56 @@ package body Concorde.Laws.Configure is
       return Law_Type
    is
       Powers : Concorde.Powers.Power_Set;
+      Budget : Concorde.Ministries.Ministry_Budget;
+      Budget_Config : constant Tropos.Configuration :=
+                        Config.Child ("budget");
    begin
+      if Budget_Config.Child_Count = 1
+        and then Budget_Config.Child (1).Child_Count = 0
+      then
+         Concorde.Ministries.Add_Budget_Item
+           (Budget,
+            Concorde.Money.To_Money
+              (Real (Float'(Budget_Config.Value))));
+      else
+         for Item_Config of Budget_Config loop
+            if Item_Config.Child_Count = 1
+              and then Item_Config.Child (1).Child_Count = 0
+            then
+               Concorde.Ministries.Add_Budget_Item
+                 (Budget,
+                  Concorde.Money.To_Money
+                    (Real (Float'(Item_Config.Value))));
+            elsif Item_Config.Contains ("pop_group") then
+               Concorde.Ministries.Add_Budget_Item
+                 (Budget,
+                  Concorde.People.Groups.Get
+                    (Item_Config.Get ("pop_group")),
+                  Concorde.Money.To_Price
+                    (Real (Float'(Item_Config.Get ("scale")))));
+            else
+               raise Constraint_Error with
+                 "bad budget item";
+            end if;
+         end loop;
+      end if;
+
       Concorde.Powers.Configure.Configure_Power_Set
         (Config.Child ("powers"), Powers);
 
       return Concorde.Laws.Bureaucracy.Create_Ministry
         (Context  => Context,
          Name     => Config.Get ("name", "Ministry"),
-         Budget   =>
-           Concorde.Money.To_Money
-             (Real (Float'(Config.Get ("budget", 0.0)))),
+         Budget   => Budget,
          Powers   => Powers);
+
+   exception
+      when E : others =>
+         raise Constraint_Error with
+           "error while configuring ministry law "
+           & Config.Config_Name
+           & ": " & Ada.Exceptions.Exception_Message (E);
+
    end Configure_Create_Ministry;
 
    -----------------------------

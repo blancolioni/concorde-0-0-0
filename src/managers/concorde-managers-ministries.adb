@@ -1,3 +1,5 @@
+with Concorde.Money;
+
 with Concorde.Objects.Queues;
 with Concorde.Signals.Standard;
 
@@ -68,7 +70,11 @@ package body Concorde.Managers.Ministries is
       Remaining_Work : Work_Item_Queue.Heap;
       Daily_Work     : Work_Item_Queue.Heap;
    begin
-      Manager.Ministry.Log ("activating");
+      Manager.Ministry.Log
+        ("activating; cash = "
+         & Concorde.Money.Show (Manager.Ministry.Cash)
+         & "; budget = "
+         & Concorde.Money.Show (Manager.Ministry.Daily_Budget));
       Manager.Ministry.Update.Require_Cash (Manager.Ministry.Daily_Budget);
 
       while not Manager.Work_Queue.Is_Empty loop

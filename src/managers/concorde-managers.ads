@@ -55,6 +55,7 @@ private
          Time         : Concorde.Calendar.Time;
          Current_Work : Concorde.Work.Work_Item;
          Work_Queue   : Work_Item_Queue.Heap;
+         Daily_Queue  : Work_Item_Queue.Heap;
       end record;
 
    type Object_Activated_Handler is
