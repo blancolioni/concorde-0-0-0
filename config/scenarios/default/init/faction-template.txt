@@ -45,6 +45,7 @@ commodities = {
 
 industries = {
    agriculture = 2%
+   luxury-goods = 5
 }
 
 pop-size = 1K
