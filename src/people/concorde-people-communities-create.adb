@@ -179,6 +179,7 @@ package body Concorde.People.Communities.Create is
                  (Market     => Community.Market,
                   Government => Community.Government,
                   Owner      => Faction,
+                  Community  => Community,
                   Production => Industry_Config.Config_Name,
                   Size       => Industry_Size,
                   Cash       => Start_Cash));

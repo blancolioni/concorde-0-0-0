@@ -6,6 +6,8 @@ with Concorde.Real_Images;
 
 with Concorde.Managers.Industries;
 
+with Concorde.People.Communities;
+
 package body Concorde.Industries.Create is
 
    ------------------
@@ -19,6 +21,8 @@ package body Concorde.Industries.Create is
         Concorde.Government.Root_Government_Type'Class;
       Owner           : not null access constant
         Concorde.Agents.Root_Agent_Type'Class;
+      Community       : not null access constant
+        Concorde.People.Communities.Root_Community_Type'Class;
       Production      : String;
       Size            : Non_Negative_Real;
       Cash            : Concorde.Money.Money_Type)
@@ -45,12 +49,14 @@ package body Concorde.Industries.Create is
          end if;
 
          Industry.New_Agent
-           (Location       => Concorde.Locations.Nowhere,
+           (Location       =>
+              Concorde.Locations.In_Community (Community),
             Government     => Government,
             Market         => Market,
             Cash           => Cash,
             Stock_Capacity => To_Quantity (Size * 10.0));
          Industry.Owner := Owner;
+         Industry.Community := Community;
          Industry.Production :=
            Concorde.Production.Get (Production);
          Industry.Size := Size;

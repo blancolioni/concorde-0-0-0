@@ -36,7 +36,7 @@ pops = {
    bureaucrat     = 100000
    capitalist     = 10000
    executive      = 10000
-   farmer         = 20000
+   farmer         = 10000
    officer        = 1000
    soldier        = 10000
    spacer         = 1000
@@ -45,7 +45,7 @@ pops = {
 }
 
 industries = {
-   agriculture = 60%
+   agriculture = 30%
    luxury-goods = 200
 }
 

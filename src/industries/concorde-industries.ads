@@ -14,6 +14,8 @@ with Concorde.Network;
 with Concorde.Money;
 with Concorde.Quantities;
 
+limited with Concorde.People.Communities;
+
 package Concorde.Industries is
 
    type Root_Industry_Type is
@@ -47,6 +49,8 @@ private
          Manager          : Concorde.Managers.Manager_Type;
          Owner            : access constant
            Concorde.Agents.Root_Agent_Type'Class;
+         Community        : access constant
+           Concorde.People.Communities.Root_Community_Type'Class;
          Node             : Concorde.Network.Node_State_Access;
          Size             : Non_Negative_Real;
          Production_Size  : Non_Negative_Real;

@@ -14,6 +14,8 @@ package Concorde.Industries.Create is
         Concorde.Government.Root_Government_Type'Class;
       Owner           : not null access constant
         Concorde.Agents.Root_Agent_Type'Class;
+      Community       : not null access constant
+        Concorde.People.Communities.Root_Community_Type'Class;
       Production      : String;
       Size            : Non_Negative_Real;
       Cash            : Concorde.Money.Money_Type)
