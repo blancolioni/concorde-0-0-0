@@ -52,6 +52,7 @@ private
          Production_Size  : Non_Negative_Real;
          Production       : Concorde.Production.Production_Type;
          Cost             : Concorde.Money.Money_Type;
+         Produced         : Concorde.Commodities.Root_Stock_Type;
          Sold             : Concorde.Commodities.Root_Stock_Type;
          Production_Count : Natural := 0;
       end record;

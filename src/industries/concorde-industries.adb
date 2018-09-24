@@ -69,17 +69,24 @@ package body Concorde.Industries is
               Industry.Size / 4.0);
 
          declare
-            use Concorde.Money;
-            Earn : Money_Type := Zero;
+            use Concorde.Money, Concorde.Quantities;
+            Earn  : Money_Type := Zero;
+            Sold  : Quantity_Type := Zero;
+            Stock : Quantity_Type := Zero;
          begin
             for Commodity of Industry.Production.Outputs loop
                Earn := Earn + Industry.Sold.Get_Value (Commodity);
+               Sold := Sold + Industry.Sold.Get_Quantity (Commodity);
+               Stock := Stock + Industry.Get_Quantity (Commodity);
             end loop;
 
             Industry.Log ("last time earned "
                           & Show (Earn)
-                          & " after spending "
-                          & Show (Industry.Cost));
+                          & " selling " & Show (Sold)
+                          & " units after spending "
+                          & Show (Industry.Cost)
+                          & "; there are "
+                          & Show (Stock) & " units remaining");
 
             if Earn < Adjust (Industry.Cost, 1.01) then
                if Max_Size > Industry.Production_Size then
@@ -87,6 +94,11 @@ package body Concorde.Industries is
                end if;
                Max_Size := Max_Size * 0.9;
             end if;
+
+            if Stock > Scale (Sold, 0.2) then
+               Max_Size := Max_Size / 2.0;
+            end if;
+
          end;
 
       end if;

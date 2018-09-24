@@ -14,8 +14,6 @@ package body Concorde.People.Communities is
         Concorde.People.Individuals.Root_Individual_Type'Class)
    is
    begin
-      Community.Log
-        ("adding individual: " & Individual.Full_Name);
       Community.Individuals.Append
         (Concorde.People.Individuals.Individual_Type (Individual));
    end Add_Individual;

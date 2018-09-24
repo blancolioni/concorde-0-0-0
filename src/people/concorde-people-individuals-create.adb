@@ -613,9 +613,7 @@ package body Concorde.People.Individuals.Create is
    is
    begin
       Update_Location (Individual);
-      Individual.Log ("created; location = "
-                      & Concorde.Locations.Short_Name
-                        (Individual.Current_Location));
+
       declare
          use type Concorde.Calendar.Time;
          Manager : constant Concorde.Managers.Manager_Type :=
