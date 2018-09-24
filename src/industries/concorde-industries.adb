@@ -1,5 +1,7 @@
 with Concorde.Real_Images;
 
+with Concorde.People.Communities;
+
 package body Concorde.Industries is
 
    ------------------
@@ -42,8 +44,32 @@ package body Concorde.Industries is
    is
    begin
       if Industry.Production.Is_Output (Commodity) then
-         return Concorde.Quantities.To_Real
-           (Industry.Get_Quantity (Commodity));
+         declare
+            use Concorde.Money, Concorde.Quantities;
+            Quantity      : constant Quantity_Type :=
+                              Industry.Get_Quantity (Commodity);
+            Value         : constant Money_Type :=
+                              Industry.Get_Value (Commodity);
+            This_Price    : constant Price_Type :=
+                              Price (Value, Quantity);
+            Current_Price : constant Price_Type :=
+                              Industry.Community.Current_Price (Commodity);
+            Current_Demand : constant Quantity_Type :=
+                               Industry.Community.Current_Demand
+                                 (Commodity);
+            Minimum_Price : constant Price_Type :=
+                              Adjust_Price (This_Price, 1.1);
+            Factor        : Unit_Real := 1.0;
+         begin
+            if Minimum_Price > Zero
+              and then Current_Price < Minimum_Price
+            then
+               Factor := To_Real (Current_Price) / To_Real (Minimum_Price);
+            end if;
+
+            return Concorde.Quantities.To_Real
+              (Min (Current_Demand, Scale (Quantity, Factor)));
+         end;
       else
          return 0.0;
       end if;
@@ -70,7 +96,7 @@ package body Concorde.Industries is
 
          declare
             use Concorde.Money, Concorde.Quantities;
-            Earn  : Money_Type := Zero;
+            Earn  : Money_Type    := Zero;
             Sold  : Quantity_Type := Zero;
             Stock : Quantity_Type := Zero;
          begin
