@@ -27,4 +27,4 @@ start = {
    time = 5
 }
 
-fuel = basic_ship_fuel
+fuel = basic-ship-fuel

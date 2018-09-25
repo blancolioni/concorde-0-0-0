@@ -13,7 +13,8 @@ package Concorde.Commodities is
 
    use type Concorde.Quantities.Quantity_Type;
 
-   type Commodity_Class is (Consumer, Military, Resource, Power, Pop_Group);
+   type Commodity_Class is (Consumer, Industrial,  Military,
+                            Resource, Power, Pop_Group);
 
    type Commodity_Flag is
      (Available, Cryogenic, Mineral, Transient, Virtual);

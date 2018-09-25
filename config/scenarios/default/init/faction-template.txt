@@ -48,6 +48,9 @@ industries = {
    mining = 1%
    luxury-goods = 5
    fission-power = 100
+   chemicals = 10
+   electronics = 10
+   basic-ship-fuel = 5
 }
 
 pop-size = 1K

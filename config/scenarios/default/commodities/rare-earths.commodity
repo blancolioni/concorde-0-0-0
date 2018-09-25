@@ -1,0 +1,8 @@
+class = resource
+mineral
+base_price = 10
+deposit = {
+   worlds = terrestrial
+   abundance = { 0.0001 0.001 }
+   concentration = { 0.01 0.001 }
+}
