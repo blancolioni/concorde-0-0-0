@@ -145,6 +145,18 @@ package body Concorde.Industries is
                       (Industry.Production_Size));
    end Execute_Production;
 
+   ----------------
+   -- Identifier --
+   ----------------
+
+   overriding function Identifier
+     (Industry : Root_Industry_Type) return String
+   is
+   begin
+      return Memor.To_String (Industry.Reference)
+        & "-" & Industry.Production.Identifier;
+   end Identifier;
+
    -----------------------
    -- On_Commodity_Sell --
    -----------------------

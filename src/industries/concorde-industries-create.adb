@@ -62,6 +62,7 @@ package body Concorde.Industries.Create is
          Industry.Size := Size;
          Industry.Production_Size := Size;
          Industry.Sold.Create_Stock (Concorde.Quantities.Zero, True);
+         Industry.Set_Guarantor (Owner);
 
          for Commodity of Concorde.Commodities.All_Commodities loop
             declare

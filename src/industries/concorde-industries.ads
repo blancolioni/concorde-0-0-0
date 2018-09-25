@@ -91,6 +91,9 @@ private
       Quantity  : Concorde.Quantities.Quantity_Type;
       Price     : Concorde.Money.Price_Type);
 
+   overriding function Identifier
+     (Industry : Root_Industry_Type) return String;
+
    overriding function Class_Name
      (Industry : Root_Industry_Type) return String
    is ("industry");

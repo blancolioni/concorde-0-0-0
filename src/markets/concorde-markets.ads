@@ -135,6 +135,7 @@ package Concorde.Markets is
 private
 
    use type Concorde.Money.Price_Type;
+   use type Concorde.Quantities.Quantity_Type;
 
    type Price_Quantity_Function is
      (No_Change,
@@ -167,6 +168,12 @@ private
        (Key_Type     => Concorde.Money.Price_Type,
         Element_Type => Offer_Info,
         "<"          => ">");
+
+   package Offer_Queues is
+     new WL.Heaps
+       (Key_Type     => Concorde.Quantities.Quantity_Type,
+        Element_Type => Offer_Info,
+        "<"          => "<");
 
    function Make_Offer
      (Agent    : not null access constant
