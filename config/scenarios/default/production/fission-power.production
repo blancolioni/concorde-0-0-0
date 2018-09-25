@@ -1,0 +1,9 @@
+employees = { laborer = 1 skilled-worker = 1 }
+inputs = {
+  uranium = {
+     quantity = 10
+     consumption = 0.01
+     }
+}
+tools = { }
+outputs = { power = 100 }

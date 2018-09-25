@@ -47,6 +47,7 @@ industries = {
    agriculture = 2%
    mining = 1%
    luxury-goods = 5
+   fission-power = 100
 }
 
 pop-size = 1K

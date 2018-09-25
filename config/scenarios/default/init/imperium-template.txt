@@ -47,6 +47,7 @@ pops = {
 industries = {
    agriculture = 30%
    luxury-goods = 200
+   fission-power = 1000
 }
 
 pop-size = 10K

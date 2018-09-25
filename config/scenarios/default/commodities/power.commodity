@@ -1,0 +1,3 @@
+class = power
+virtual transient
+base_price = 1

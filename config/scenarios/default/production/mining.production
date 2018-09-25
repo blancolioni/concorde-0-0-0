@@ -1,4 +1,4 @@
 employees = { miner = 0.1 }
-inputs = { }
+inputs = { power = 1 }
 tools = { }
 outputs = { resources = 1 }

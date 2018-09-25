@@ -63,6 +63,18 @@ package body Concorde.Industries.Create is
          Industry.Production_Size := Size;
          Industry.Sold.Create_Stock (Concorde.Quantities.Zero, True);
 
+         for Commodity of Concorde.Commodities.All_Commodities loop
+            declare
+               Quantity : constant Concorde.Quantities.Quantity_Type :=
+                            Industry.Production.Input_Quantity
+                              (Commodity, Industry.Size);
+            begin
+               Industry.Add_Quantity
+                 (Commodity, Quantity,
+                  Concorde.Money.Total (Commodity.Base_Price, Quantity));
+            end;
+         end loop;
+
       end Create;
 
       use type Concorde.Calendar.Time;

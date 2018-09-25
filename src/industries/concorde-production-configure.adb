@@ -33,7 +33,35 @@ package body Concorde.Production.Configure is
    is
       Name  : constant String := Config.Config_Name;
 
+      function Configure_Input
+        (Config              : Tropos.Configuration;
+         Default_Consumption : Unit_Real := 1.0)
+         return Production_Commodity;
+
       procedure Create (Production : in out Root_Production_Type'Class);
+
+      ---------------------
+      -- Configure_Input --
+      ---------------------
+
+      function Configure_Input
+        (Config              : Tropos.Configuration;
+         Default_Consumption : Unit_Real := 1.0)
+         return Production_Commodity
+      is
+         Quantity : constant Float :=
+                      (if Config.Contains ("quantity")
+                       then Config.Get ("quantity")
+                       else Config.Value);
+         Consumption : constant Float :=
+                         Config.Get ("consumption",
+                                     Float (Default_Consumption));
+      begin
+         return Production_Commodity'
+           (Commodity         => Concorde.Commodities.Get (Config.Config_Name),
+            Relative_Quantity => Non_Negative_Real (Quantity),
+            Consumption       => Unit_Real (Consumption));
+      end Configure_Input;
 
       ------------
       -- Create --
@@ -61,13 +89,7 @@ package body Concorde.Production.Configure is
          end loop;
 
          for Input_Config of Config.Child ("inputs") loop
-            Production.Inputs.Append
-              (Production_Commodity'
-                 (Commodity         =>
-                      Concorde.Commodities.Get (Input_Config.Config_Name),
-                  Relative_Quantity =>
-                    Real (Float'(Input_Config.Value)),
-                  Consumption       => 1.0));
+            Production.Inputs.Append (Configure_Input (Input_Config));
          end loop;
 
          for Output_Config of Config.Child ("outputs") loop

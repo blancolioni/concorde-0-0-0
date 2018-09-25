@@ -1,4 +1,4 @@
 employees = { farmer = 0.05 }
-inputs = { }
+inputs = { power = 1 }
 tools = { }
 outputs = { food = 1 }

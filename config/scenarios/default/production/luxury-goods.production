@@ -1,4 +1,4 @@
 employees = { laborer = 1 skilled-worker = 1 }
-inputs = { }
+inputs = { power = 1 }
 tools = { }
 outputs = { luxury-goods = 1 }

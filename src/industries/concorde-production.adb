@@ -1,4 +1,5 @@
 with Concorde.Logging;
+with Concorde.Random;
 with Concorde.Real_Images;
 
 package body Concorde.Production is
@@ -68,16 +69,26 @@ package body Concorde.Production is
       if Capacity > 0.0 then
          for Input of Production.Inputs loop
             declare
-               Used : constant Quantity_Type :=
+               Used : constant Non_Negative_Real :=
                         (if Input.Commodity.Is_Pop_Group
-                         then Stock.Get_Quantity (Input.Commodity)
-                         else To_Quantity
-                           (Capacity * Input.Relative_Quantity
-                            * Input.Consumption));
-               This_Cost : constant Concorde.Money.Money_Type :=
-                             Stock.Get_Value (Input.Commodity);
+                         or else Input.Commodity.Is_Set
+                           (Concorde.Commodities.Transient)
+                         then To_Real
+                           (Stock.Get_Quantity (Input.Commodity))
+                         else Capacity * Input.Relative_Quantity
+                         * Input.Consumption);
+               Quantity  : constant Quantity_Type :=
+                             To_Quantity (Real'Floor (Used))
+                             + (if Concorde.Random.Unit_Random
+                                < Used - Real'Floor (Used)
+                                then Unit else Zero);
+               This_Price : constant Concorde.Money.Price_Type :=
+                              Stock.Get_Average_Price (Input.Commodity);
+               This_Cost  : constant Concorde.Money.Money_Type :=
+                              Total (This_Price, Quantity);
             begin
-               Stock.Remove_Quantity (Input.Commodity, Used, This_Cost);
+               Stock.Remove_Quantity
+                 (Input.Commodity, Quantity, This_Cost);
                Cost := Cost + This_Cost;
             end;
          end loop;
@@ -127,6 +138,11 @@ package body Concorde.Production is
                         & " (minimum sell price "
                         & Show (Price (This_Cost, Quantity))
                         & ")");
+
+                     if Output.Commodity.Is_Set (Transient) then
+                        Stock.Set_Quantity
+                          (Output.Commodity, Zero, Zero);
+                     end if;
 
                      Stock.Add_Quantity
                        (Item     => Output.Commodity,

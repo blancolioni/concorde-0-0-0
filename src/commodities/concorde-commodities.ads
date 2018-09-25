@@ -13,9 +13,10 @@ package Concorde.Commodities is
 
    use type Concorde.Quantities.Quantity_Type;
 
-   type Commodity_Class is (Consumer, Military, Resource, Pop_Group);
+   type Commodity_Class is (Consumer, Military, Resource, Power, Pop_Group);
 
-   type Commodity_Flag is (Available, Cryogenic, Mineral, Virtual);
+   type Commodity_Flag is
+     (Available, Cryogenic, Mineral, Transient, Virtual);
 
    type Array_Of_Flags is array (Commodity_Flag) of Boolean;
 
