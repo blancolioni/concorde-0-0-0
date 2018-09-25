@@ -8,10 +8,11 @@ package body Concorde.Production is
    -------------
 
    procedure Execute
-     (Production : Root_Production_Type'Class;
-      Stock      : in out Concorde.Commodities.Stock_Interface'Class;
-      Size       : Non_Negative_Real;
-      Cost       : out Concorde.Money.Money_Type)
+     (Production  : Root_Production_Type'Class;
+      Environment : in out Production_Environment_Interface'Class;
+      Stock       : in out Concorde.Commodities.Stock_Interface'Class;
+      Size        : Non_Negative_Real;
+      Cost        : out Concorde.Money.Money_Type)
    is
       use Concorde.Money;
       use Concorde.Quantities;
@@ -95,28 +96,44 @@ package body Concorde.Production is
 
             for Output of Production.Outputs loop
                declare
-                  Quantity  : constant Quantity_Type :=
-                                To_Quantity
-                                  (Capacity * Output.Relative_Quantity);
-                  This_Cost : constant Money_Type :=
-                                Adjust
-                                  (Cost,
-                                   Output.Relative_Quantity / Total_Output);
+                  use Concorde.Commodities;
+                  Production_Size   : constant Non_Negative_Real :=
+                                        Capacity * Output.Relative_Quantity;
+                  Produced_Quantity : Non_Negative_Real :=
+                                        Production_Size;
+                  Quantity          : Quantity_Type :=
+                                        To_Quantity (Produced_Quantity);
+                  This_Cost         : constant Money_Type :=
+                                        Adjust
+                                          (Cost,
+                                           Output.Relative_Quantity
+                                           / Total_Output);
                begin
-                  Concorde.Logging.Log
-                    (Production.Identifier, "", "production",
-                     "produce " & Show (Quantity)
-                     & " " & Output.Commodity.Identifier
-                     & " for " & Show (This_Cost)
-                     & " (minimum sell price "
-                     & Show (Price (This_Cost, Quantity))
-                     & ")");
 
-                  Stock.Add_Quantity
-                    (Item     => Output.Commodity,
-                     Quantity =>
-                       Min (Quantity, Stock.Available_Quantity),
-                     Value    => This_Cost);
+                  if Output.Commodity.Class = Resource then
+                     Environment.Mine_Resource
+                       (Resource        => Output.Commodity,
+                        Mine_Production => Production_Size,
+                        Mined           => Produced_Quantity);
+                     Quantity := To_Quantity (Produced_Quantity);
+                  end if;
+
+                  if Quantity > Zero then
+                     Concorde.Logging.Log
+                       (Production.Identifier, "", "production",
+                        "produce " & Show (Quantity)
+                        & " " & Output.Commodity.Identifier
+                        & " for " & Show (This_Cost)
+                        & " (minimum sell price "
+                        & Show (Price (This_Cost, Quantity))
+                        & ")");
+
+                     Stock.Add_Quantity
+                       (Item     => Output.Commodity,
+                        Quantity =>
+                          Min (Quantity, Stock.Available_Quantity),
+                        Value    => This_Cost);
+                  end if;
                end;
 
             end loop;

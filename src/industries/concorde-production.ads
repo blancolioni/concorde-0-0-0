@@ -15,6 +15,21 @@ with Concorde.Network.Nodes;
 
 package Concorde.Production is
 
+   type Production_Environment_Interface is limited interface;
+
+   procedure Grow_Food
+     (Environment     : in out Production_Environment_Interface;
+      Food_Production : Non_Negative_Real;
+      Grown           : out Non_Negative_Real)
+   is abstract;
+
+   procedure Mine_Resource
+     (Environment     : in out Production_Environment_Interface;
+      Resource        : Concorde.Commodities.Commodity_Type;
+      Mine_Production : Non_Negative_Real;
+      Mined           : out Non_Negative_Real)
+   is abstract;
+
    type Root_Production_Type is
      new Concorde.Objects.Root_Localised_Object_Type
    with private;
@@ -42,10 +57,11 @@ package Concorde.Production is
       return Concorde.Commodities.Array_Of_Commodities;
 
    procedure Execute
-     (Production : Root_Production_Type'Class;
-      Stock      : in out Concorde.Commodities.Stock_Interface'Class;
-      Size       : Non_Negative_Real;
-      Cost       : out Concorde.Money.Money_Type);
+     (Production  : Root_Production_Type'Class;
+      Environment : in out Production_Environment_Interface'Class;
+      Stock       : in out Concorde.Commodities.Stock_Interface'Class;
+      Size        : Non_Negative_Real;
+      Cost        : out Concorde.Money.Money_Type);
 
    function Minimum_Size
      (Production : Root_Production_Type'Class;

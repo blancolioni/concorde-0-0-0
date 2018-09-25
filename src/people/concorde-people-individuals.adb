@@ -298,13 +298,11 @@ package body Concorde.People.Individuals is
       if Individual.Is_Community_Location then
          Individual.Current_Community.Update.Add_Individual
            (Individual);
-      elsif Individual.Is_World_Location then
-         Individual.Current_World.Update.Add_Individual
-           (Sector     =>
-              Concorde.Surfaces.Surface_Tile_Index
-                (Concorde.Locations.World_Sector
-                     (Individual.Current_Location)),
-            Individual => Individual);
+      else
+         raise Constraint_Error with
+           "invalid location for " & Individual.Full_Name
+           & ": " & Concorde.Locations.Long_Name
+           (Individual.Current_Location);
       end if;
    end Update_Location;
 

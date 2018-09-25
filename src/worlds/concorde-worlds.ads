@@ -2,6 +2,7 @@ private with Ada.Containers.Doubly_Linked_Lists;
 
 private with Memor;
 private with Memor.Database;
+private with Memor.Element_Vectors;
 
 with Concorde.Geometry;
 
@@ -19,14 +20,12 @@ with Concorde.Terrain;
 
 with Concorde.Systems;
 
-with Concorde.Armies;
 with Concorde.Commodities;
 with Concorde.Government;
 with Concorde.Markets;
-with Concorde.People.Individuals;
-with Concorde.People.Pops;
-with Concorde.Installations;
 with Concorde.Trades;
+
+with Concorde.Production;
 
 limited with Concorde.Factions;
 
@@ -35,8 +34,8 @@ with Concorde.Ships.Lists;
 with Concorde.Locations;
 
 private with Concorde.Armies.Lists;
-private with Concorde.Commodities.Lists;
 private with Concorde.Installations.Lists;
+private with Concorde.People.Communities.Lists;
 private with Concorde.People.Individuals.Lists;
 private with Concorde.People.Pops.Lists;
 
@@ -56,6 +55,7 @@ package Concorde.Worlds is
      and Concorde.Systems.Star_System_Object_Interface
      and Concorde.Maps.Tile_Layout_Interface
      and Concorde.Network.Expression_Object_Interface
+     and Concorde.Production.Production_Environment_Interface
    with private;
 
    function Day_Length
@@ -117,22 +117,6 @@ package Concorde.Worlds is
       return Boolean
    is (World.Category in Jovian_World);
 
---     procedure Set_Capital
---       (World      : in out Root_World_Type'Class;
---        Is_Capital : Boolean);
-
---     function Is_Capital
---       (World : Root_World_Type'Class)
---        return Boolean;
-
---     procedure Set_Government
---       (World      : in out Root_World_Type'Class;
---        Government : Concorde.Government.Government_Type);
---
---     function Has_Government
---       (World : Root_World_Type'Class)
---        return Boolean;
---
    function Has_Market
      (World : Root_World_Type'Class)
       return Boolean;
@@ -145,9 +129,12 @@ package Concorde.Worlds is
      (World  : in out Root_World_Type'Class;
       Market : Concorde.Markets.Market_Type);
 
-   function Resources
-     (World : Root_World_Type'Class)
-      return Concorde.Commodities.Array_Of_Commodities;
+   procedure Scan_Resources
+     (World   : Root_World_Type'Class;
+      Process : not null access
+        procedure (Resource : Concorde.Commodities.Commodity_Type;
+                   Concentration : Unit_Real;
+                   Abundance     : Non_Negative_Real));
 
    function Sector_Ground_Level
      (World  : Root_World_Type'Class;
@@ -213,37 +200,6 @@ package Concorde.Worlds is
      (Location : Concorde.Locations.Sector_Location)
       return Unit_Real;
 
-   --     function Resource
---       (System : Root_Star_System_Type'Class)
---        return Concorde.Commodities.Commodity_Type;
---
---     function Resource_Accessibility
---       (System : Root_Star_System_Type'Class)
---        return Unit_Real;
---
---     function Resource_Concentration
---       (System : Root_Star_System_Type'Class)
---        return Unit_Real;
---
---     function Resource_Size
---       (System : Root_Star_System_Type'Class)
---        return Concorde.Quantities.Quantity;
-
-   procedure Add_Pop
-     (World  : in out Root_World_Type'Class;
-      Sector : Concorde.Surfaces.Surface_Tile_Index;
-      Pop    : Concorde.People.Pops.Pop_Type);
-
-   procedure Add_Individual
-     (World      : in out Root_World_Type'Class;
-      Sector     : Concorde.Surfaces.Surface_Tile_Index;
-      Individual : Concorde.People.Individuals.Individual_Type);
-
-   procedure Add_Army
-     (World   : in out Root_World_Type'Class;
-      Sector  : Concorde.Surfaces.Surface_Tile_Index;
-      Army    : Concorde.Armies.Army_Type);
-
    procedure Add_Ship
      (World : in out Root_World_Type'Class;
       Ship  : not null access constant
@@ -257,55 +213,10 @@ package Concorde.Worlds is
      (World : Root_World_Type'Class)
       return Concorde.Quantities.Quantity_Type;
 
-   procedure Scan_Armies
-     (World   : Root_World_Type'Class;
-      Process : not null access
-        procedure (Army : Concorde.Armies.Army_Type));
-
    procedure Scan_Ships
      (World   : Root_World_Type'Class;
       Process : not null access
         procedure (Ship  : Concorde.Ships.Ship_Type));
-
-   procedure Scan_Pops
-     (World : Root_World_Type'Class;
-      Process : not null access
-        procedure (Pop : Concorde.People.Pops.Pop_Type));
-
-   procedure Scan_Individuals
-     (World : Root_World_Type'Class;
-      Process : not null access
-        procedure (Individual : Concorde.People.Individuals.Individual_Type));
-
---     function Buy_Price
---       (World     : Root_World_Type'Class;
---        Commodity : Concorde.Commodities.Commodity_Type)
---        return Concorde.Money.Price_Type;
---
---     function Sell_Price
---       (World     : Root_World_Type'Class;
---        Commodity : Concorde.Commodities.Commodity_Type)
---        return Concorde.Money.Price_Type;
---
---     function Import_Market_Size
---       (World     : Root_World_Type'Class;
---        Commodity : Concorde.Commodities.Commodity_Type)
---        return Concorde.Quantities.Quantity_Type;
---
---     function Export_Market_Size
---       (World     : Root_World_Type'Class;
---        Commodity : Concorde.Commodities.Commodity_Type)
---        return Concorde.Quantities.Quantity_Type;
---
---     procedure Buy
---       (World     : in out Root_World_Type'Class;
---        Commodity : Concorde.Commodities.Commodity_Type;
---        Quantity  : in out Concorde.Quantities.Quantity_Type);
---
---     procedure Sell
---       (World     : in out Root_World_Type'Class;
---        Commodity : Concorde.Commodities.Commodity_Type;
---        Quantity  : in out Concorde.Quantities.Quantity_Type);
 
    type World_Type is access constant Root_World_Type'Class;
 
@@ -338,9 +249,15 @@ private
    type Deposit_Record is
       record
          Resource      : Concorde.Commodities.Commodity_Type;
-         Accessibility : Unit_Real;
-         Concentration : Unit_Real;
+         Abundance     : Non_Negative_Real := 0.0;
+         Accessibility : Unit_Real         := 0.0;
+         Concentration : Unit_Real         := 0.0;
       end record;
+
+   package Deposit_Record_Vectors is
+     new Memor.Element_Vectors
+       (Concorde.Commodities.Root_Commodity_Type, Deposit_Record,
+        (others => <>));
 
    type Temperature_Record is
       record
@@ -385,6 +302,7 @@ private
      new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Systems.Star_System_Object_Interface
      and Concorde.Maps.Tile_Layout_Interface
+     and Concorde.Production.Production_Environment_Interface
      and Concorde.Network.Expression_Object_Interface with
       record
          System                : Concorde.Systems.Star_System_Type;
@@ -433,17 +351,26 @@ private
          Cloud_Cover           : Unit_Real;
          Ice_Cover             : Unit_Real;
          Sector_Count          : Natural;
-         Resources             : Concorde.Commodities.Lists.List;
+         Resources             : Deposit_Record_Vectors.Vector;
+         Communities           : Concorde.People.Communities.Lists.List;
          Ships                 : Concorde.Ships.Lists.List;
-         Pops                  : Concorde.People.Pops.Lists.List;
-         Individuals           : Concorde.People.Individuals.Lists.List;
-         Armies                : Concorde.Armies.Lists.List;
          Market                : Concorde.Markets.Market_Type;
       end record;
 
    overriding function Object_Database
      (World : Root_World_Type)
       return Memor.Memor_Database;
+
+   overriding procedure Grow_Food
+     (World           : in out Root_World_Type;
+      Food_Production : Non_Negative_Real;
+      Grown           : out Non_Negative_Real);
+
+   overriding procedure Mine_Resource
+     (World           : in out Root_World_Type;
+      Resource        : Concorde.Commodities.Commodity_Type;
+      Mine_Production : Non_Negative_Real;
+      Mined           : out Non_Negative_Real);
 
    overriding function Mass
      (World : Root_World_Type)

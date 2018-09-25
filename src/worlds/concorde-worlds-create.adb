@@ -1,7 +1,5 @@
---  with Ada.Characters.Handling;
 with Ada.Numerics;
 with Ada.Text_IO;
---  with Ada.Long_Float_Text_IO;
 
 with WL.Random;
 
@@ -9,13 +7,12 @@ with Tropos.Reader;
 
 with Memor.Element_Vectors;
 
---  with Concorde.Real_Images;
-
 with Concorde.Options;
 with Concorde.Paths;
 
 with Concorde.Elementary_Functions;
 with Concorde.Random;
+with Concorde.Real_Images;
 with Concorde.Roman_Images;
 
 with Concorde.Constants;
@@ -24,7 +21,7 @@ with Concorde.Solar_System;
 with Concorde.Atmosphere;
 with Concorde.Terrain;
 
---  with Concorde.Terrain.Surface_Maps;
+with Concorde.Commodities.Deposits;
 
 with Concorde.Worlds.Maps;
 
@@ -1229,47 +1226,58 @@ package body Concorde.Worlds.Create is
    is
       Resources : constant Concorde.Commodities.Array_Of_Commodities :=
                     Concorde.Commodities.Get
-                      (Concorde.Commodities.Mineral);
-      Local_Res : Concorde.Commodities.Array_Of_Commodities (1 .. 3);
-      Probability : array (Local_Res'Range) of Positive;
-      Max_Prob    : Natural := 0;
+                      (Concorde.Commodities.Resource);
+      Deposits  : array (Resources'Range) of Deposit_Record;
    begin
-      for I in Local_Res'Range loop
-         Local_Res (I) :=
-           Resources (WL.Random.Random_Number (1, Resources'Last));
-         Probability (I) := Local_Res'Last - I + 1;
-         Max_Prob := Max_Prob + Probability (I);
-         World.Resources.Append (Local_Res (I));
+      for I in Resources'Range loop
+         declare
+            use Concorde.Commodities.Deposits;
+            Abundance     : constant Normal_Curve_Constraints :=
+                              Abundance_Constraints (Resources (I));
+            Concentration : constant Normal_Curve_Constraints :=
+                              Concentration_Constraints (Resources (I));
+            Base_A        : constant Real :=
+                              Concorde.Random.Normal_Random
+                                (Abundance.Standard_Deviation)
+                                + Abundance.Mean;
+            A             : constant Real :=
+                              Clamp (Base_A, 0.0, Real'Last)
+                              * World.Surface_Area
+                              / 1.0E4;
+            Base_C        : constant Real :=
+                              Concorde.Random.Normal_Random
+                                (Concentration.Standard_Deviation)
+                                + Concentration.Mean;
+            C             : constant Real :=
+                              Unit_Clamp (Base_C);
+            Rec           : constant Deposit_Record :=
+                              Deposit_Record'
+                                (Resource      => Resources (I),
+                                 Abundance     => A,
+                                 Accessibility => 1.0,
+                                 Concentration => C);
+         begin
+            Deposits (I) := Rec;
+         end;
       end loop;
 
-      for Sector of World.Sectors.all loop
-         declare
-            function Index return Positive;
-
-            -----------
-            -- Index --
-            -----------
-
-            function Index return Positive is
-               Roll : Natural :=
-                        WL.Random.Random_Number (1, Max_Prob);
-               Result : Positive := 1;
-            begin
-               while Roll > Probability (Result) loop
-                  Roll := Roll - Probability (Result);
-                  Result := Result + 1;
-               end loop;
-               return Result;
-            end Index;
-
-            Resource : constant Concorde.Commodities.Commodity_Type :=
-                         Resources (Index);
-            Concentration : constant Unit_Real := Concorde.Random.Unit_Random;
-            Accessibility : constant Unit_Real := Concorde.Random.Unit_Random;
-         begin
-            Sector.Deposit :=
-              (Resource, Accessibility, Concentration);
-         end;
+      for Deposit of Deposits loop
+         if Deposit.Abundance > 0.0 then
+            Ada.Text_IO.Put (World.Name);
+            Ada.Text_IO.Set_Col (20);
+            Ada.Text_IO.Put (Deposit.Resource.Identifier);
+            Ada.Text_IO.Set_Col (30);
+            Ada.Text_IO.Put
+              (Concorde.Real_Images.Approximate_Image
+                 (Deposit.Concentration));
+            Ada.Text_IO.Set_Col (40);
+            Ada.Text_IO.Put
+              (Concorde.Real_Images.Approximate_Image
+                 (Deposit.Abundance));
+            Ada.Text_IO.New_Line;
+            World.Resources.Replace_Element
+              (Deposit.Resource, Deposit);
+         end if;
       end loop;
    end Create_Resources;
 

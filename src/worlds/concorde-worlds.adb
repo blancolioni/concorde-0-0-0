@@ -8,55 +8,6 @@ with Concorde.Worlds.Fields;
 
 package body Concorde.Worlds is
 
---     package World_Field_Maps is
---       new WL.String_Maps (World_Field_Property);
---
---     Field_Map : World_Field_Maps.Map;
-
---   procedure Check_Field_Map renames Concorde.Worlds.Fields.Check_Field_Map;
-
-   --------------
-   -- Add_Army --
-   --------------
-
-   procedure Add_Army
-     (World   : in out Root_World_Type'Class;
-      Sector  : Concorde.Surfaces.Surface_Tile_Index;
-      Army    : Concorde.Armies.Army_Type)
-   is
-   begin
-      World.Sectors (Sector).Armies.Append (Army);
-      World.Armies.Append (Army);
-   end Add_Army;
-
-   --------------------
-   -- Add_Individual --
-   --------------------
-
-   procedure Add_Individual
-     (World      : in out Root_World_Type'Class;
-      Sector     : Concorde.Surfaces.Surface_Tile_Index;
-      Individual : Concorde.People.Individuals.Individual_Type)
-   is
-   begin
-      World.Sectors (Sector).Individuals.Append (Individual);
-      World.Individuals.Append (Individual);
-   end Add_Individual;
-
-   -------------
-   -- Add_Pop --
-   -------------
-
-   procedure Add_Pop
-     (World  : in out Root_World_Type'Class;
-      Sector : Concorde.Surfaces.Surface_Tile_Index;
-      Pop    : Concorde.People.Pops.Pop_Type)
-   is
-   begin
-      World.Sectors (Sector).Pops.Append (Pop);
-      World.Pops.Append (Pop);
-   end Add_Pop;
-
    --------------
    -- Add_Ship --
    --------------
@@ -272,6 +223,19 @@ package body Concorde.Worlds is
       return Concorde.Network.To_Expression_Value (World.Radius);
    end Get_Value;
 
+   ---------------
+   -- Grow_Food --
+   ---------------
+
+   overriding procedure Grow_Food
+     (World           : in out Root_World_Type;
+      Food_Production : Non_Negative_Real;
+      Grown           : out Non_Negative_Real)
+   is
+   begin
+      Grown := Food_Production * World.Habitability;
+   end Grow_Food;
+
    ------------------
    -- Habitability --
    ------------------
@@ -409,6 +373,48 @@ package body Concorde.Worlds is
       return World.Max_Temperature;
    end Maximum_Temperature;
 
+   -------------------
+   -- Mine_Resource --
+   -------------------
+
+   overriding procedure Mine_Resource
+     (World           : in out Root_World_Type;
+      Resource        : Concorde.Commodities.Commodity_Type;
+      Mine_Production : Non_Negative_Real;
+      Mined           : out Non_Negative_Real)
+   is
+      Current : Deposit_Record :=
+                  World.Resources.Element (Resource);
+      Potential : constant Non_Negative_Real :=
+                    Mine_Production * Current.Concentration
+                      * Current.Accessibility;
+   begin
+      if Current.Abundance <= Potential then
+         Mined := Current.Abundance * 0.9;
+         Current.Abundance := Current.Abundance * 0.1;
+         Current.Concentration := Current.Concentration * 0.1;
+         Current.Accessibility := Current.Accessibility * 0.1;
+      else
+         Mined := Potential;
+         declare
+            Factor : constant Unit_Real :=
+                       Unit_Real'Min
+                         ((Current.Abundance - Mined) / Current.Abundance,
+                          1.0 - 1.0E-6);
+         begin
+            Current.Concentration :=
+              Current.Concentration * Factor;
+            Current.Accessibility :=
+              Current.Accessibility * Factor;
+            Current.Abundance := Current.Abundance - Mined;
+         end;
+      end if;
+
+      if Mined > 0.0 then
+         World.Resources.Replace_Element (Resource, Current);
+      end if;
+   end Mine_Resource;
+
    -------------------------
    -- Minimum_Temperature --
    -------------------------
@@ -512,70 +518,43 @@ package body Concorde.Worlds is
       return World.Owner;
    end Owner;
 
-   ---------------
-   -- Resources --
-   ---------------
+   --------------------
+   -- Scan_Resources --
+   --------------------
 
-   function Resources
-     (World : Root_World_Type'Class)
-      return Concorde.Commodities.Array_Of_Commodities
-   is
-      use Concorde.Commodities;
-      Count : constant Natural := Natural (World.Resources.Length);
-      Index : Positive := 1;
-   begin
-      return Result : Array_Of_Commodities (1 .. Count) do
-         for Resource of World.Resources loop
-            Result (Index) := Resource;
-            Index := Index + 1;
-         end loop;
-      end return;
-   end Resources;
-
-   -----------------
-   -- Scan_Armies --
-   -----------------
-
-   procedure Scan_Armies
+   procedure Scan_Resources
      (World   : Root_World_Type'Class;
       Process : not null access
-        procedure (Army : Concorde.Armies.Army_Type))
+        procedure (Resource : Concorde.Commodities.Commodity_Type;
+                   Concentration : Unit_Real;
+                   Abundance     : Non_Negative_Real))
    is
+      procedure Internal_Process
+        (Commodity : not null access constant
+           Concorde.Commodities.Root_Commodity_Type'Class;
+         Deposit   : Deposit_Record);
+
+      ----------------------
+      -- Internal_Process --
+      ----------------------
+
+      procedure Internal_Process
+        (Commodity : not null access constant
+           Concorde.Commodities.Root_Commodity_Type'Class;
+         Deposit   : Deposit_Record)
+      is
+      begin
+         Process
+           (Resource      => Concorde.Commodities.Commodity_Type (Commodity),
+            Concentration => Deposit.Concentration,
+            Abundance     => Deposit.Abundance);
+      end Internal_Process;
+
    begin
-      for Army of World.Armies loop
-         Process (Army);
-      end loop;
-   end Scan_Armies;
-
-   ----------------------
-   -- Scan_Individuals --
-   ----------------------
-
-   procedure Scan_Individuals
-     (World   : Root_World_Type'Class;
-      Process : not null access
-        procedure (Individual : Concorde.People.Individuals.Individual_Type))
-   is
-   begin
-      for Individual of World.Individuals loop
-         Process (Individual);
-      end loop;
-   end Scan_Individuals;
-
-   ---------------
-   -- Scan_Pops --
-   ---------------
-
-   procedure Scan_Pops
-     (World   : Root_World_Type'Class;
-      Process : not null access
-        procedure (Pop : Concorde.People.Pops.Pop_Type))
-   is
-   begin
-      for Pop of World.Pops loop
-         Process (Pop);
-      end loop;
-   end Scan_Pops;
+      World.Resources.Scan
+        (Skip_Default => True,
+         Process      => Internal_Process'Access);
+   end Scan_Resources;
 
    ----------------
    -- Scan_Ships --
@@ -900,8 +879,8 @@ package body Concorde.Worlds is
       use Concorde.Quantities;
    begin
       return Result : Quantity_Type := Zero do
-         for Pop of World.Pops loop
-            Result := Result + Pop.Size_Quantity;
+         for Community of World.Communities loop
+            Result := Result + Community.Total_Population;
          end loop;
       end return;
    end Total_Population;

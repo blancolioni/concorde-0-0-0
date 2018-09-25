@@ -4,6 +4,8 @@ with Concorde.Money;
 
 with Concorde.Roman_Images;
 
+with Concorde.Worlds;
+
 package body Concorde.Ships.Vessels.Create is
 
    -------------------------

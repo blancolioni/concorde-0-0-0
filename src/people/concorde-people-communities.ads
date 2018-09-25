@@ -22,7 +22,8 @@ with Concorde.People.Groups;
 with Concorde.People.Individuals;
 with Concorde.People.Pops;
 with Concorde.Ships;
-with Concorde.Worlds;
+
+limited with Concorde.Worlds;
 
 private with Concorde.Industries.Lists;
 private with Concorde.People.Individuals.Lists;
@@ -46,7 +47,7 @@ package Concorde.People.Communities is
 
    function World
      (Community : Root_Community_Type'Class)
-      return Concorde.Worlds.World_Type;
+      return not null access constant Concorde.Worlds.Root_World_Type'Class;
 
    function Owner
      (Community : Root_Community_Type'Class)
@@ -180,7 +181,8 @@ private
      and Concorde.Markets.Market_Interface
      and Concorde.Locations.Located_Interface with
       record
-         World             : Concorde.Worlds.World_Type;
+         World             : access constant
+           Concorde.Worlds.Root_World_Type'Class;
          Owner             : Concorde.Factions.Faction_Type;
          Network           : Concorde.Network.Nodes.Node_State_Map;
          Pops              : Concorde.People.Pops.Lists.List;
@@ -287,7 +289,7 @@ private
 
    function World
      (Community : Root_Community_Type'Class)
-      return Concorde.Worlds.World_Type
+      return access constant Concorde.Worlds.Root_World_Type'Class
    is (Community.World);
 
    function Owner
@@ -306,6 +308,11 @@ private
      (Community : Root_Community_Type'Class)
       return Concorde.Markets.Market_Type
    is (Community.Market);
+
+   function World
+     (Community : Root_Community_Type'Class)
+      return not null access constant Concorde.Worlds.Root_World_Type'Class
+   is (Community.World);
 
    package Db is
      new Memor.Database

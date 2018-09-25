@@ -614,24 +614,6 @@ package body Concorde.Factions.Create is
          end;
 
          declare
-            procedure Add_Work (Army : Concorde.Armies.Army_Type);
-
-            --------------
-            -- Add_Work --
-            --------------
-
-            procedure Add_Work (Army : Concorde.Armies.Army_Type) is
-            begin
-               Faction.Manager.Add_Work_Item
-                 (Concorde.People.Individuals.Work.Appoint_General
-                    (Army));
-            end Add_Work;
-
-         begin
-            Faction.Capital_World.Scan_Armies (Add_Work'Access);
-         end;
-
-         declare
             procedure Add_Work (Ship : Concorde.Ships.Ship_Type);
 
             --------------

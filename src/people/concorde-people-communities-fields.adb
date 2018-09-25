@@ -1,4 +1,5 @@
 with Concorde.Fields;
+with Concorde.Worlds;
 
 package body Concorde.People.Communities.Fields is
 

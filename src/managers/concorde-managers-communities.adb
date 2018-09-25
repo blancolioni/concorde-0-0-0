@@ -6,6 +6,8 @@ with Concorde.Facilities;
 with Concorde.People.Pops;
 with Concorde.Trades;
 
+with Concorde.Worlds;
+
 package body Concorde.Managers.Communities is
 
    ------------

@@ -45,6 +45,7 @@ commodities = {
 
 industries = {
    agriculture = 2%
+   mining = 1%
    luxury-goods = 5
 }
 

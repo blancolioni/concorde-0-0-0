@@ -4,6 +4,8 @@ with Tropos.Reader;
 
 with Concorde.Configure;
 
+with Concorde.Commodities.Deposits;
+
 package body Concorde.Commodities.Configure is
 
    procedure Configure_Commodity
@@ -185,9 +187,43 @@ package body Concorde.Commodities.Configure is
                                 Concorde.Money.Value
                                   (Config.Get ("base_price", "0")),
                               Flags      => Flags);
-         pragma Unreferenced (New_Commodity);
+
       begin
-         null;
+         if Config.Contains ("deposit") then
+
+            declare
+               use Concorde.Commodities.Deposits;
+
+               Deposit_Config : constant Tropos.Configuration :=
+                                  Config.Child ("deposit");
+               Abundance_Config : constant Tropos.Configuration :=
+                                    Deposit_Config.Child ("abundance");
+               Concentration_Config : constant Tropos.Configuration :=
+                                        Deposit_Config.Child ("concentration");
+
+               function Get (Config : Tropos.Configuration;
+                             Index  : Positive)
+                             return Unit_Real
+               is (Unit_Real (Float'(Config.Get (Index))));
+
+               Abundance            : Normal_Curve_Constraints;
+               Concentration        : Normal_Curve_Constraints;
+
+            begin
+               Abundance :=
+                 Normal_Curve_Constraints'
+                   (Mean               => Get (Abundance_Config, 1),
+                    Standard_Deviation => Get (Abundance_Config, 2));
+               Concentration :=
+                 Normal_Curve_Constraints'
+                   (Mean               => Get (Concentration_Config, 1),
+                    Standard_Deviation => Get (Concentration_Config, 2));
+               Concorde.Commodities.Deposits.Configure_Resource
+                 (Commodity     => New_Commodity,
+                  Abundance     => Abundance,
+                  Concentration => Concentration);
+            end;
+         end if;
       end;
 
    end Configure_Commodity;

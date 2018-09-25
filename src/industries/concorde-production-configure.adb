@@ -71,13 +71,26 @@ package body Concorde.Production.Configure is
          end loop;
 
          for Output_Config of Config.Child ("outputs") loop
-            Production.Outputs.Append
-              (Production_Commodity'
-                 (Commodity         =>
-                      Concorde.Commodities.Get (Output_Config.Config_Name),
-                  Relative_Quantity =>
-                    Real (Float'(Output_Config.Value)),
-                  Consumption       => 0.0));
+            if Output_Config.Config_Name = "resources" then
+               for Item of Concorde.Commodities.Get
+                 (Concorde.Commodities.Resource)
+               loop
+                  Production.Outputs.Append
+                    (Production_Commodity'
+                       (Commodity         => Item,
+                        Relative_Quantity =>
+                          Real (Float'(Output_Config.Value)),
+                        Consumption       => 0.0));
+               end loop;
+            else
+               Production.Outputs.Append
+                 (Production_Commodity'
+                    (Commodity         =>
+                         Concorde.Commodities.Get (Output_Config.Config_Name),
+                     Relative_Quantity =>
+                       Real (Float'(Output_Config.Value)),
+                     Consumption       => 0.0));
+            end if;
          end loop;
       end Create;
 

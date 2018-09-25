@@ -117,16 +117,6 @@ package body Concorde.Armies is
 
    procedure Update_Location
      (Army : Army_Type)
-   is
-   begin
-      if Army.Is_World_Location then
-         Army.Current_World.Update.Add_Army
-           (Sector     =>
-              Concorde.Surfaces.Surface_Tile_Index
-                (Concorde.Locations.World_Sector
-                     (Army.Current_Location)),
-            Army => Army);
-      end if;
-   end Update_Location;
+   is null;
 
 end Concorde.Armies;

@@ -1,6 +1,7 @@
 with Concorde.Real_Images;
 
 with Concorde.People.Communities;
+with Concorde.Worlds;
 
 package body Concorde.Industries is
 
@@ -130,9 +131,10 @@ package body Concorde.Industries is
       end if;
 
       Industry.Production.Execute
-        (Stock => Industry,
-         Size  => Industry.Production_Size,
-         Cost  => Industry.Cost);
+        (Environment => Industry.Community.World.Update,
+         Stock       => Industry,
+         Size        => Industry.Production_Size,
+         Cost        => Industry.Cost);
 
       Industry.Production_Size := Max_Size;
       Industry.Sold.Clear_Stock;
