@@ -2,6 +2,8 @@ with Concorde.Money;
 
 with Concorde.Objects.Queues;
 with Concorde.Signals.Standard;
+
+with Concorde.Commodities;
 with Concorde.Facilities;
 
 package body Concorde.Managers.Industries is

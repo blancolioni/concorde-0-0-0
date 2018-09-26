@@ -173,7 +173,7 @@ private
      new WL.Heaps
        (Key_Type     => Concorde.Quantities.Quantity_Type,
         Element_Type => Offer_Info,
-        "<"          => "<");
+        "<"          => ">");
 
    function Make_Offer
      (Agent    : not null access constant

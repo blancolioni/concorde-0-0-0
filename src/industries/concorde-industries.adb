@@ -12,10 +12,24 @@ package body Concorde.Industries is
    overriding function Daily_Budget
      (Industry  : Root_Industry_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Unit_Real
+      return Concorde.Money.Money_Type
    is
+      Proportion : constant Unit_Real :=
+                     Industry.Production.Relative_Input_Cost (Commodity);
    begin
-      return Industry.Production.Relative_Input_Cost (Commodity);
+      if Proportion > 0.0 then
+         Industry.Log ("cash: " & Concorde.Money.Show (Industry.Cash)
+                       & "; input: " & Commodity.Identifier
+                       & "; proportion: "
+                       & Concorde.Real_Images.Approximate_Image (Proportion)
+                       & "; budget: "
+                       & Concorde.Money.Show
+                         (Concorde.Money.Adjust (Industry.Cash, Proportion)));
+         return Concorde.Money.Adjust
+           (Industry.Cash, Proportion);
+      else
+         return Concorde.Money.Zero;
+      end if;
    end Daily_Budget;
 
    -----------------
@@ -25,13 +39,12 @@ package body Concorde.Industries is
    overriding function Daily_Needs
      (Industry  : Root_Industry_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Non_Negative_Real
+      return Concorde.Quantities.Quantity_Type
    is
    begin
-      return Concorde.Quantities.To_Real
-        (Industry.Production.Input_Quantity
-           (Commodity => Commodity,
-            Size      => Industry.Production_Size));
+      return Industry.Production.Input_Quantity
+        (Commodity => Commodity,
+         Size      => Industry.Production_Size);
    end Daily_Needs;
 
    ------------------
@@ -41,7 +54,7 @@ package body Concorde.Industries is
    overriding function Daily_Supply
      (Industry  : Root_Industry_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Non_Negative_Real
+      return Concorde.Quantities.Quantity_Type
    is
    begin
       if Industry.Production.Is_Output (Commodity) then
@@ -68,11 +81,21 @@ package body Concorde.Industries is
                Factor := To_Real (Current_Price) / To_Real (Minimum_Price);
             end if;
 
-            return Concorde.Quantities.To_Real
-              (Min (Current_Demand, Scale (Quantity, Factor)));
+            Industry.Log
+              (Commodity.Identifier
+               & ": value " & Show (Value)
+               & "; minimum price " & Show (Minimum_Price)
+               & "; current price " & Show (Current_Price)
+               & "; demand " & Show (Current_Demand)
+               & "; factor " & Concorde.Real_Images.Approximate_Image (Factor)
+               & "; available " & Show (Quantity)
+               & "; supply "
+               & Show (Min (Current_Demand, Scale (Quantity, Factor))));
+
+            return Min (Current_Demand, Scale (Quantity, Factor));
          end;
       else
-         return 0.0;
+         return Concorde.Quantities.Zero;
       end if;
    end Daily_Supply;
 

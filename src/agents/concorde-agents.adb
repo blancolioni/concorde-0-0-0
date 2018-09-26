@@ -1104,11 +1104,11 @@ package body Concorde.Agents is
    function Daily_Budget
      (Agent     : Root_Agent_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Unit_Real
+      return Concorde.Money.Money_Type
    is
       pragma Unreferenced (Agent, Commodity);
    begin
-      return 0.0;
+      return Concorde.Money.Zero;
    end Daily_Budget;
 
    -----------------
@@ -1118,11 +1118,11 @@ package body Concorde.Agents is
    function Daily_Needs
      (Agent     : Root_Agent_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Non_Negative_Real
+      return Concorde.Quantities.Quantity_Type
    is
       pragma Unreferenced (Agent, Commodity);
    begin
-      return 0.0;
+      return Concorde.Quantities.Zero;
    end Daily_Needs;
 
    ------------------
@@ -1132,11 +1132,11 @@ package body Concorde.Agents is
    function Daily_Supply
      (Agent     : Root_Agent_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Non_Negative_Real
+      return Concorde.Quantities.Quantity_Type
    is
       pragma Unreferenced (Agent, Commodity);
    begin
-      return 0.0;
+      return Concorde.Quantities.Zero;
    end Daily_Supply;
 
    ---------------------------
@@ -1511,7 +1511,7 @@ package body Concorde.Agents is
    is
    begin
       Concorde.Logging.Log
-        (Agent.Short_Name, Concorde.Locations.Short_Name (Agent.Location),
+        (Agent.Identifier, Concorde.Locations.Short_Name (Agent.Location),
          Category, Message);
    end Log;
 

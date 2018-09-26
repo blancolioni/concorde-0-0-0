@@ -71,11 +71,11 @@ package body Concorde.Ships is
    overriding function Daily_Budget
      (Ship      : Root_Ship_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Unit_Real
+      return Concorde.Money.Money_Type
    is
-      pragma Unreferenced (Ship, Commodity);
+      pragma Unreferenced (Commodity);
    begin
-      return 1.0;
+      return Ship.Cash;
    end Daily_Budget;
 
    -----------------
@@ -85,7 +85,7 @@ package body Concorde.Ships is
    overriding function Daily_Needs
      (Ship      : Root_Ship_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Non_Negative_Real
+      return Concorde.Quantities.Quantity_Type
    is
       use Concorde.Quantities;
       Available : constant Quantity_Type :=
@@ -96,7 +96,7 @@ package body Concorde.Ships is
       if Wanted > Zero then
          Ship.Log ("want " & Show (Wanted) & " " & Commodity.Identifier);
       end if;
-      return To_Real (Min (Available, Wanted));
+      return Min (Available, Wanted);
    end Daily_Needs;
 
    ------------------
@@ -106,7 +106,7 @@ package body Concorde.Ships is
    overriding function Daily_Supply
      (Ship      : Root_Ship_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Non_Negative_Real
+      return Concorde.Quantities.Quantity_Type
    is
       use Concorde.Quantities;
       Have : constant Quantity_Type := Ship.Selling.Get_Quantity (Commodity);
@@ -115,9 +115,9 @@ package body Concorde.Ships is
       if Have > Want then
          Ship.Log ("supplying " & Show (Have - Want)
                    & " " & Commodity.Identifier);
-         return To_Real (Have - Want);
+         return Have - Want;
       else
-         return 0.0;
+         return Zero;
       end if;
    end Daily_Supply;
 

@@ -8,6 +8,8 @@ with Concorde.Agents.Reports;
 
 package body Concorde.Markets is
 
+   Log_Market_Queue : constant Boolean := False;
+
    Recent_Trade_Limit : constant Duration :=
                           86_400.0;
    Recent_Offer_Limit : constant Duration :=
@@ -1183,26 +1185,35 @@ package body Concorde.Markets is
            (Agent : not null access constant
               Concorde.Agents.Root_Agent_Type'Class)
          is
-            Wanted        : constant Non_Negative_Real :=
+            Required      : constant Quantity_Type :=
                               Agent.Daily_Needs (Commodity);
-            Supply        : constant Non_Negative_Real :=
+            Supply        : constant Quantity_Type :=
                               Agent.Daily_Supply (Commodity);
-            Demand        : constant Non_Negative_Real :=
-                              (if Supply > Wanted
-                               then 0.0 else Wanted - Supply);
-            Wanted_Budget : constant Real :=
-                              To_Real (Price) * Demand;
-            Budget        : constant Non_Negative_Real :=
-                              Real'Min (Agent.Daily_Budget (Commodity)
-                                        * Real (To_Real (Agent.Cash)),
-                                        Wanted_Budget);
-            Bid : constant Quantity_Type :=
-                    To_Quantity (Budget / To_Real (Price));
-            Ask           : constant Quantity_Type :=
-                              (if Supply > Wanted
-                               then To_Quantity (Supply - Wanted)
-                               else Zero);
+            Have          : constant Quantity_Type :=
+                              Agent.Get_Quantity (Commodity);
+            Demand        : constant Quantity_Type :=
+                              (if Have >= Required
+                               then Zero else Required - Have);
+            Budget        : constant Money_Type :=
+                              Agent.Daily_Budget (Commodity);
+            Bid           : constant Quantity_Type :=
+                              Min (Demand, Get_Quantity (Budget, Price));
+            Ask           : constant Quantity_Type := Supply;
          begin
+            if Supply > Zero or else Bid > Zero or else Ask > Zero then
+               Agent.Log (Commodity.Identifier
+                          & ": want "
+                          & Show (Required)
+                          & "; have "
+                          & Show (Have)
+                          & "; budget "
+                          & Show (Budget)
+                          & "; bid "
+                          & Show (Bid)
+                          & "; ask "
+                          & Show (Ask));
+            end if;
+
             if Bid > Zero then
                Bids.Insert (Bid,
                             Offer_Info'
@@ -1217,14 +1228,14 @@ package body Concorde.Markets is
                   Element =>
                     Offer_Info'
                       (Agent              => Agent,
-                       Offered_Quantity   => Bid,
-                       Remaining_Quantity => Bid,
+                       Offered_Quantity   => Ask,
+                       Remaining_Quantity => Ask,
                        Offer_Price        => Price));
                Total_Supply := Total_Supply + Ask;
             end if;
 
-            if Wanted > 0.0 then
-               Total_Desire := Total_Desire + To_Quantity (Wanted);
+            if Required > Have then
+               Total_Desire := Total_Desire + Demand;
             end if;
 
             Total_Available := Total_Available + Ask;
@@ -1242,8 +1253,30 @@ package body Concorde.Markets is
             New_Queue : Offer_Queues.Heap;
             Traded    : Quantity_Type := Zero;
          begin
+
+            if Log_Market_Queue then
+               Concorde.Logging.Log
+                 (Actor    => "market",
+                  Location => "",
+                  Category => "resize",
+                  Message  =>
+                    "large queue length:"
+                  & Natural'Image (Large_Queue.Length)
+                  & "; large quantity: "
+                  & Show (Large_Quantity)
+                  & "; small quantity: "
+                  & Show (Small_Quantity));
+            end if;
+
             if Large_Queue.Length >= To_Natural (Small_Quantity) then
                for I in 1 .. To_Natural (Small_Quantity) loop
+                  if Log_Market_Queue then
+                     Large_Queue.First_Element.Agent.Log
+                       ("changes from "
+                        & Show (Large_Queue.First_Element.Offered_Quantity)
+                        & " to 1");
+                  end if;
+
                   New_Queue.Insert
                     (Unit,
                      (Large_Queue.First_Element with delta
@@ -1258,6 +1291,13 @@ package body Concorde.Markets is
                      if Traded + Top.Offered_Quantity
                        < Scale (Small_Quantity, 0.5)
                      then
+                        if Log_Market_Queue then
+                           Large_Queue.First_Element.Agent.Log
+                             ("gets "
+                              & Show
+                                (Large_Queue.First_Element.Offered_Quantity));
+                        end if;
+
                         New_Queue.Insert (Top.Offered_Quantity, Top);
                         Large_Queue.Delete_First;
                         Traded := Traded + Top.Offered_Quantity;
@@ -1269,17 +1309,27 @@ package body Concorde.Markets is
 
                declare
                   Factor : constant Unit_Real :=
-                             To_Real (Large_Quantity - Traded)
-                             / To_Real (Small_Quantity - Traded);
+                             To_Real (Small_Quantity - Traded)
+                             / To_Real (Large_Quantity - Traded);
                begin
                   while not Large_Queue.Is_Empty loop
                      declare
                         Top : Offer_Info := Large_Queue.First_Element;
+                        Q   : constant Quantity_Type :=
+                                Top.Offered_Quantity;
                      begin
                         Large_Queue.Delete_First;
                         Top.Offered_Quantity :=
                           Min (Scale (Top.Offered_Quantity, Factor),
                                Small_Quantity - Traded);
+                        if Log_Market_Queue then
+                           Top.Agent.Log
+                             ("changes from "
+                              & Show (Q)
+                              & " to "
+                              & Show (Top.Offered_Quantity));
+                        end if;
+
                         New_Queue.Insert (Top.Offered_Quantity, Top);
                         Traded := Traded + Top.Offered_Quantity;
                      end;
@@ -1289,51 +1339,6 @@ package body Concorde.Markets is
 
             Large_Queue := New_Queue;
          end Resize_Offers;
-
---           -------------------------
---           -- Process_Agent_Needs --
---           -------------------------
---
---           procedure Process_Agent_Needs
---             (Agent : not null access constant
---                Concorde.Agents.Root_Agent_Type'Class)
---           is
---              Rec : constant Needs_Record :=
---                      (if Needs.Contains (Agent.Identifier)
---                       then Needs.Element (Agent.Identifier)
---                       else (others => <>));
---
---              procedure Update
---                (Agent : in out Concorde.Agents.Root_Agent_Type'Class);
---
---              ------------
---              -- Update --
---              ------------
---
---              procedure Update
---                (Agent : in out Concorde.Agents.Root_Agent_Type'Class)
---              is
---              begin
---                 if Rec.Needed > 0.0 then
---                    Agent.On_Commodity_Buy
---                      (Commodity => Commodity,
---                       Quantity  =>
---                         Concorde.Quantities.To_Quantity
---                           (Rec.Needed * Need_Factor),
---                       Price     => Concorde.Money.To_Price (Price));
---                 end if;
---                 if Rec.Offered > 0.0 then
---                    Agent.On_Commodity_Sell
---                      (Commodity => Commodity,
---                       Quantity  =>
---                         Concorde.Quantities.To_Quantity
---                           (Rec.Offered * Offer_Factor),
---                       Price     => Concorde.Money.To_Price (Price));
---                 end if;
---              end Update;
---           begin
---              Agent.Update_Agent (Update'Access);
---           end Process_Agent_Needs;
 
       begin
 

@@ -65,15 +65,25 @@ package body Concorde.Industries.Create is
          Industry.Set_Guarantor (Owner);
 
          for Commodity of Concorde.Commodities.All_Commodities loop
-            declare
-               Quantity : constant Concorde.Quantities.Quantity_Type :=
-                            Industry.Production.Input_Quantity
-                              (Commodity, Industry.Size);
-            begin
-               Industry.Add_Quantity
-                 (Commodity, Quantity,
-                  Concorde.Money.Total (Commodity.Base_Price, Quantity));
-            end;
+            if not Commodity.Is_Set (Concorde.Commodities.Transient)
+              and then not Commodity.Is_Set (Concorde.Commodities.Virtual)
+            then
+               declare
+                  Quantity : constant Concorde.Quantities.Quantity_Type :=
+                               Industry.Production.Input_Quantity
+                                 (Commodity, Industry.Size);
+               begin
+                  if Quantity > Zero then
+                     Industry.Log ("adding: "
+                                   & Show (Quantity)
+                                   & " "
+                                   & Commodity.Identifier);
+                     Industry.Add_Quantity
+                       (Commodity, Quantity,
+                        Concorde.Money.Total (Commodity.Base_Price, Quantity));
+                  end if;
+               end;
+            end if;
          end loop;
 
       end Create;

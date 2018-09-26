@@ -130,6 +130,14 @@ package Concorde.Commodities is
      (Stock : in out Stock_Interface)
    is abstract;
 
+   procedure Clear_Flagged_Stock
+     (Stock : in out Stock_Interface'Class;
+      Flag  : Commodity_Flag);
+
+   procedure Clear_Stock
+     (Stock : in out Stock_Interface'Class;
+      Class : Commodity_Class);
+
    procedure Add_Quantity
      (Stock    : in out Stock_Interface'Class;
       Item     : Commodity_Type;

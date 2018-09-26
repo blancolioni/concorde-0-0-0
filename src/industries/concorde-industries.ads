@@ -73,17 +73,17 @@ private
    overriding function Daily_Budget
      (Industry  : Root_Industry_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Unit_Real;
+      return Concorde.Money.Money_Type;
 
    overriding function Daily_Needs
      (Industry  : Root_Industry_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Non_Negative_Real;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Daily_Supply
      (Industry  : Root_Industry_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Non_Negative_Real;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding procedure On_Commodity_Sell
      (Industry  : in out Root_Industry_Type;

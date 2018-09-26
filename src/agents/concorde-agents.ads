@@ -87,17 +87,17 @@ package Concorde.Agents is
    function Daily_Needs
      (Agent     : Root_Agent_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Non_Negative_Real;
+      return Concorde.Quantities.Quantity_Type;
 
    function Daily_Supply
      (Agent     : Root_Agent_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Non_Negative_Real;
+      return Concorde.Quantities.Quantity_Type;
 
    function Daily_Budget
      (Agent     : Root_Agent_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Unit_Real;
+      return Concorde.Money.Money_Type;
 
    procedure On_Commodity_Buy
      (Agent     : in out Root_Agent_Type;

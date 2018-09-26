@@ -37,17 +37,22 @@ pops = {
    capitalist     = 10000
    executive      = 10000
    farmer         = 10000
+   miner          = 10000
    officer        = 1000
    soldier        = 10000
    spacer         = 1000
-   laborer        = 2000000
-   skilled-worker = 2000000
+   laborer        = 2000
+   skilled-worker = 1000
 }
 
 industries = {
    agriculture = 30%
+   mining = 1%
    luxury-goods = 200
-   fission-power = 1000
+   fission-power = 10000
+   chemicals = 100
+   electronics = 100
+   basic-ship-fuel = 50
 }
 
 pop-size = 10K

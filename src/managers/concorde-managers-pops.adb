@@ -67,7 +67,7 @@ package body Concorde.Managers.Pops is
    is
    begin
       Manager.Pop.Log_Trade
-        ("activated at "
+        ("pop activated at "
          & Concorde.Calendar.Image
            (Manager.Time, True));
       declare
@@ -106,6 +106,8 @@ package body Concorde.Managers.Pops is
             end if;
          end if;
          Manager.Pop.Update.Clear_Current_Account;
+         Manager.Pop.Update.Clear_Flagged_Stock
+           (Concorde.Commodities.Transient);
       end;
 
       Concorde.Objects.Queues.Next_Event

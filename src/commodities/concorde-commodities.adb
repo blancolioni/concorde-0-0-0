@@ -91,6 +91,21 @@ package body Concorde.Commodities is
       return Commodity.Class;
    end Class;
 
+   -------------------------
+   -- Clear_Flagged_Stock --
+   -------------------------
+
+   procedure Clear_Flagged_Stock
+     (Stock : in out Stock_Interface'Class;
+      Flag  : Commodity_Flag)
+   is
+   begin
+      for Commodity of Get (Flag) loop
+         Stock.Set_Quantity (Commodity, Concorde.Quantities.Zero,
+                             Concorde.Money.Zero);
+      end loop;
+   end Clear_Flagged_Stock;
+
    -----------------
    -- Clear_Stock --
    -----------------
@@ -100,6 +115,21 @@ package body Concorde.Commodities is
    is
    begin
       Stock.Vector.Clear;
+   end Clear_Stock;
+
+   -----------------
+   -- Clear_Stock --
+   -----------------
+
+   procedure Clear_Stock
+     (Stock : in out Stock_Interface'Class;
+      Class : Commodity_Class)
+   is
+   begin
+      for Commodity of Get (Class) loop
+         Stock.Set_Quantity (Commodity, Concorde.Quantities.Zero,
+                             Concorde.Money.Zero);
+      end loop;
    end Clear_Stock;
 
    ---------------------

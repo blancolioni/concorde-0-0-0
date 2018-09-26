@@ -169,17 +169,17 @@ private
    overriding function Daily_Budget
      (Ship      : Root_Ship_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Unit_Real;
+      return Concorde.Money.Money_Type;
 
    overriding function Daily_Needs
      (Ship      : Root_Ship_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Non_Negative_Real;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Daily_Supply
      (Ship      : Root_Ship_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Non_Negative_Real;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Offer_Strategy
      (Ship      : Root_Ship_Type;

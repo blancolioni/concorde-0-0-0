@@ -6,3 +6,8 @@ luxury-goods = {
   need = 0.1
   budget = 1%
 }
+
+power = {
+  need = 0.05
+  budget = 10%
+}

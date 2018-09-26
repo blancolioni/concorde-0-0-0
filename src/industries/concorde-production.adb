@@ -87,6 +87,10 @@ package body Concorde.Production is
                This_Cost  : constant Concorde.Money.Money_Type :=
                               Total (This_Price, Quantity);
             begin
+               Concorde.Logging.Log
+                 (Production.Identifier, "", "production",
+                  Show (Quantity) & " " & Input.Commodity.Identifier
+                  & " cost " & Show (This_Cost));
                Stock.Remove_Quantity
                  (Input.Commodity, Quantity, This_Cost);
                Cost := Cost + This_Cost;
@@ -104,6 +108,9 @@ package body Concorde.Production is
             for Output of Production.Outputs loop
                Total_Output := Total_Output + Output.Relative_Quantity;
             end loop;
+
+            Stock.Clear_Flagged_Stock (Concorde.Commodities.Transient);
+            Stock.Clear_Stock (Concorde.Commodities.Pop_Group);
 
             for Output of Production.Outputs loop
                declare
@@ -147,7 +154,10 @@ package body Concorde.Production is
                      Stock.Add_Quantity
                        (Item     => Output.Commodity,
                         Quantity =>
-                          Min (Quantity, Stock.Available_Quantity),
+                          (if Output.Commodity.Is_Set
+                               (Concorde.Commodities.Virtual)
+                           then Quantity
+                           else Min (Quantity, Stock.Available_Quantity)),
                         Value    => This_Cost);
                   end if;
                end;

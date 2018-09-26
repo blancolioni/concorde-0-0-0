@@ -7,11 +7,12 @@ package body Concorde.People.Pops is
    overriding function Daily_Budget
      (Pop       : Root_Pop_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Unit_Real
+      return Concorde.Money.Money_Type
    is
-      pragma Unreferenced (Pop);
+      use Concorde.Money;
    begin
-      return Concorde.Commodities.Pop_Max_Budget (Commodity);
+      return Adjust
+        (Pop.Cash, Concorde.Commodities.Pop_Max_Budget (Commodity));
    end Daily_Budget;
 
    -----------------
@@ -21,11 +22,12 @@ package body Concorde.People.Pops is
    overriding function Daily_Needs
      (Pop       : Root_Pop_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Non_Negative_Real
+      return Concorde.Quantities.Quantity_Type
    is
    begin
-      return Concorde.Commodities.Pop_Daily_Needs (Commodity)
-        * Non_Negative_Real (Pop.Size);
+      return Concorde.Quantities.Scale
+        (Pop.Size_Quantity,
+         Concorde.Commodities.Pop_Daily_Needs (Commodity));
    end Daily_Needs;
 
    ------------------
@@ -35,16 +37,16 @@ package body Concorde.People.Pops is
    overriding function Daily_Supply
      (Pop       : Root_Pop_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Non_Negative_Real
+      return Concorde.Quantities.Quantity_Type
    is
       use type Concorde.Commodities.Commodity_Type;
    begin
       if Pop.Group.Has_Commodity
         and then Pop.Group.Commodity = Commodity
       then
-         return Non_Negative_Real (Pop.Size);
+         return Pop.Size_Quantity;
       end if;
-      return 0.0;
+      return Concorde.Quantities.Zero;
    end Daily_Supply;
 
    ---------------------

@@ -33,6 +33,7 @@ with Concorde.Xi_UI.Model_Manager;
 with Concorde.Xi_UI.Key_Bindings;
 
 with Concorde.Factions.Logging;
+with Concorde.People.Communities.Reports;
 
 with Concorde.Options;
 
@@ -119,17 +120,57 @@ begin
          Update_Count : constant Natural :=
                           Concorde.Options.Update_Count * 24 * 60;
       begin
-         Process.Start_Percentage
-           ("Updating",
-            Finish => Update_Count);
+
+         if Concorde.Options.Update_Count >= 100 then
+            Process.Start_Bar
+              ("Updating",
+               Finish => Update_Count);
+         else
+            Process.Start_Percentage
+              ("Updating",
+               Finish => Update_Count);
+         end if;
 
          Concorde.Galaxy.Locking.Init_Locking;
 
          for I in 1 .. Update_Count loop
+            if I mod (24 * 60) = 0 then
+               declare
+                  First : Boolean := True;
+
+                  procedure Report
+                    (Community : Concorde.People.Communities.Community_Type);
+
+                  ------------
+                  -- Report --
+                  ------------
+
+                  procedure Report
+                    (Community : Concorde.People.Communities.Community_Type)
+                  is
+                  begin
+                     if First then
+                        Concorde.People.Communities.Reports.Report_Community
+                          (Community);
+                        First := False;
+                     end if;
+                  end Report;
+
+               begin
+                  if False then
+                     Concorde.People.Communities.Scan
+                       (Report'Access);
+                  end if;
+               end;
+            end if;
             Concorde.Updates.Advance (60.0);
             Process.Tick;
          end loop;
          Process.Finish;
+
+         Concorde.People.Communities.Scan
+           (Concorde.People.Communities.Reports.Report_Community'Access);
+
       end;
 
    else

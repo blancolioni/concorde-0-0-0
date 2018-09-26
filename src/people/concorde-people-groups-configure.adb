@@ -92,12 +92,14 @@ package body Concorde.People.Groups.Configure is
          Group.State_Employee := Config.Get ("state-employee");
          Group.Wealth_Group := Config.Get ("wealth-group");
          Configure_Proportion (Config.Child ("proportion"));
-         if Config.Get ("has-commodity") then
-            Group.Pop_Group_Commodity :=
-              Concorde.Commodities.Configure.New_Pop_Group
-                (Group.Identifier,
-                 Base_Price => Concorde.Money.To_Price (1.0));
-         end if;
+         Group.Pop_Group_Commodity :=
+           Concorde.Commodities.Configure.New_Pop_Group
+             (Group.Identifier,
+              Base_Price =>
+                (case Group.Wealth is
+                    when Poor         => Concorde.Money.To_Price (1.0),
+                    when Middle_Class => Concorde.Money.To_Price (5.0),
+                    when Rich         => Concorde.Money.To_Price (25.0)));
 
       end Create;
 

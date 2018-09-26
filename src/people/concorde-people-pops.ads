@@ -2,6 +2,7 @@ private with Memor;
 private with Memor.Database;
 private with Concorde.Locations;
 
+with Concorde.Money;
 with Concorde.Quantities;
 
 with Concorde.Network;
@@ -61,17 +62,17 @@ private
    overriding function Daily_Budget
      (Pop       : Root_Pop_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Unit_Real;
+      return Concorde.Money.Money_Type;
 
    overriding function Daily_Needs
      (Pop       : Root_Pop_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Non_Negative_Real;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Daily_Supply
      (Pop       : Root_Pop_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
-      return Non_Negative_Real;
+      return Concorde.Quantities.Quantity_Type;
 
    overriding function Class_Name
      (Pop : Root_Pop_Type) return String
@@ -80,10 +81,7 @@ private
    overriding function Identifier
      (Pop : Root_Pop_Type) return String
    is (Concorde.Agents.Root_Agent_Type (Pop).Identifier
-       & "--" & Pop.Group.Identifier
-       & "--" & Concorde.Locations.Short_Name (Pop.Current_Location)
-       & "--"
-       & Concorde.Quantities.Show (Pop.Size_Quantity));
+       & "--" & Pop.Group.Identifier);
 
    overriding function Object_Database
      (Item : Root_Pop_Type)

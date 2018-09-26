@@ -173,7 +173,7 @@ package body Concorde.People.Communities.Create is
                                else Config_Size);
             Start_Cash    : constant Concorde.Money.Money_Type :=
                               Concorde.Money.To_Money
-                                (5.0 * Industry_Size);
+                                (10_000.0);
          begin
             Community.Update.Industries.Append
               (Concorde.Industries.Create.New_Industry
