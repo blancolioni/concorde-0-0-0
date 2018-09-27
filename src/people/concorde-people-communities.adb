@@ -564,15 +564,24 @@ package body Concorde.People.Communities is
       Quantity  : Concorde.Quantities.Quantity_Type;
       Price     : Concorde.Money.Price_Type)
    is
+      use Concorde.Quantities;
       Rec : Local_Commodity_Record renames
               Community.Local_Commodities.Element (Item).all;
+      New_Supply : constant Quantity_Type :=
+                     (if Rec.Supply = Zero
+                      then Scale (Supply, 4.0)
+                      else Scale (Rec.Supply, 3.0) + Supply);
+      New_Demand : constant Quantity_Type :=
+                     (if Rec.Demand = Zero
+                      then Scale (Demand, 4.0)
+                      else Scale (Rec.Demand, 3.0) + Demand);
    begin
       Rec :=
         Local_Commodity_Record'
           (Price    => Price,
            Quantity => Quantity,
-           Supply   => Supply,
-           Demand   => Demand);
+           Supply   => Scale (New_Supply, 0.25),
+           Demand   => Scale (New_Demand, 0.25));
    end Update_Commodity;
 
    -------------------------
