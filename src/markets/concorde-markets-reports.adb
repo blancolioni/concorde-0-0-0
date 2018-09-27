@@ -24,9 +24,9 @@ package body Concorde.Markets.Reports is
          begin
             Concorde.Logs.Log_Fields
               (Log_Path,
-               Show (Market.Current_Supply (Commodity)),
-               Show (Market.Current_Demand (Commodity)),
-               Show (Market.Current_Price (Commodity)));
+               Image (Market.Current_Supply (Commodity)),
+               Image (Market.Current_Demand (Commodity)),
+               Image (Market.Current_Price (Commodity)));
          end;
       end loop;
    end Log_Market_State;
