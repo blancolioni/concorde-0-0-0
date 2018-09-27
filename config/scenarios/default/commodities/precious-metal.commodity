@@ -1,6 +1,6 @@
 class = resource
 mineral
-base_price = 10
+base_price = 50
 deposit = {
    worlds = rocky
    abundance = { 0.01 0.01 }
