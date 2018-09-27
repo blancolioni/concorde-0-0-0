@@ -110,7 +110,7 @@ package body Concorde.Industries is
    begin
       Industry.Log ("executing production");
 
-      if Industry.Production_Count > 1 then
+      if Industry.Production_Count > 2 then
          Max_Size :=
            Real'Max
              (Real'Min
@@ -138,15 +138,17 @@ package body Concorde.Industries is
                           & "; there are "
                           & Show (Stock) & " units remaining");
 
-            if Earn < Adjust (Industry.Cost, 1.01) then
-               if Max_Size > Industry.Production_Size then
-                  Max_Size := Industry.Production_Size;
+            if Industry.Cost > Zero then
+               if Earn < Adjust (Industry.Cost, 1.01) then
+                  if Max_Size > Industry.Production_Size then
+                     Max_Size := Industry.Production_Size;
+                  end if;
+                  Max_Size := Max_Size * 0.9;
                end if;
-               Max_Size := Max_Size * 0.9;
-            end if;
 
-            if Stock > Scale (Sold, 0.2) then
-               Max_Size := Max_Size / 2.0;
+               if Stock > Scale (Sold, 0.8) then
+                  Max_Size := Max_Size / 2.0;
+               end if;
             end if;
 
          end;
