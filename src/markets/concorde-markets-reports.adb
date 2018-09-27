@@ -1,6 +1,35 @@
 with Ada.Text_IO;
 
+with Concorde.Money;
+with Concorde.Quantities;
+with Concorde.Logs;
+
 package body Concorde.Markets.Reports is
+
+   ----------------------
+   -- Log_Market_State --
+   ----------------------
+
+   procedure Log_Market_State
+     (Market : Market_Interface'Class)
+   is
+   begin
+      for Commodity of Concorde.Commodities.All_Commodities loop
+         declare
+            use Concorde.Money, Concorde.Quantities;
+            Log_Path : constant String :=
+                         "markets/"
+                         & Market.Identifier
+                         & "/" & Commodity.Identifier;
+         begin
+            Concorde.Logs.Log_Fields
+              (Log_Path,
+               Show (Market.Current_Supply (Commodity)),
+               Show (Market.Current_Demand (Commodity)),
+               Show (Market.Current_Price (Commodity)));
+         end;
+      end loop;
+   end Log_Market_State;
 
    -------------------
    -- Report_Market --
