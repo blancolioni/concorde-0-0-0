@@ -1,4 +1,5 @@
 with Concorde.Money;
+with Concorde.Quantities;
 
 with Concorde.Objects.Queues;
 with Concorde.Signals.Standard;
@@ -65,6 +66,7 @@ package body Concorde.Managers.Pops is
    overriding procedure On_Activated
      (Manager : in out Root_Pop_Manager)
    is
+      Happiness : Non_Negative_Real := 1.0;
    begin
       Manager.Pop.Log_Trade
         ("pop activated at "
@@ -105,10 +107,42 @@ package body Concorde.Managers.Pops is
                   & Manager.Pop.Identifier);
             end if;
          end if;
-         Manager.Pop.Update.Clear_Current_Account;
-         Manager.Pop.Update.Clear_Flagged_Stock
-           (Concorde.Commodities.Transient);
+
+         for Commodity of Concorde.Commodities.All_Commodities loop
+            declare
+               use Concorde.Quantities;
+               Required : constant Quantity_Type :=
+                            Scale (Manager.Pop.Size_Quantity,
+                                   Concorde.Commodities.Pop_Daily_Needs
+                                     (Commodity));
+               Available : constant Quantity_Type :=
+                             Manager.Pop.Get_Quantity (Commodity);
+            begin
+               if Required > Zero then
+                  declare
+                     Factor : constant Real :=
+                                To_Real (Available) / To_Real (Required);
+                  begin
+                     if Required <= Available then
+                        Happiness := Happiness * 1.01;
+                        Manager.Pop.Update.Remove_Quantity
+                          (Commodity, Required);
+                     else
+                        Happiness := (Happiness + Factor) / 2.0;
+                        Manager.Pop.Update.Set_Quantity
+                          (Commodity, Zero, Zero);
+                     end if;
+                  end;
+               end if;
+            end;
+         end loop;
+
+         Manager.Happiness := Unit_Clamp (Happiness);
       end;
+
+      Manager.Pop.Update.Clear_Current_Account;
+      Manager.Pop.Update.Clear_Flagged_Stock
+        (Concorde.Commodities.Transient);
 
       Concorde.Objects.Queues.Next_Event
         (Manager.Pop, Manager.Time, Delay_Days => 1);

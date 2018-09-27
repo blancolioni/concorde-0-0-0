@@ -25,6 +25,7 @@ private
       record
          Pop        : Concorde.People.Pops.Pop_Type;
          Government : Concorde.Government.Government_Type;
+         Happiness  : Unit_Real := 1.0;
       end record;
 
    overriding function Description

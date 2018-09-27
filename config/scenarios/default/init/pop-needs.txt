@@ -1,13 +1,22 @@
 food = {
   need = 0.1
   budget = 20%
+  effect = { productivity happiness }
 }
 luxury-goods = {
   need = 0.1
   budget = 1%
+  effect = { happiness }
 }
 
 power = {
   need = 0.05
   budget = 10%
+  effect = { productivity happiness }
+}
+
+precious-metal = {
+  need = 0.05
+  budget = 1%
+  effect = { happiness }
 }
