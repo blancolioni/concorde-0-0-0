@@ -3,7 +3,6 @@ lieutenant,Lieutenant
 commander,Commander
 captain,Captain
 admiral,Admiral
-captain,Captain
 major,Major
 colonel,Colonel
 general,General
