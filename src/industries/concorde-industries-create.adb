@@ -23,7 +23,8 @@ package body Concorde.Industries.Create is
         Concorde.Agents.Root_Agent_Type'Class;
       Community       : not null access constant
         Concorde.People.Communities.Root_Community_Type'Class;
-      Production      : String;
+      Production      : not null access constant
+        Concorde.Production.Root_Production_Type'Class;
       Size            : Non_Negative_Real;
       Cash            : Concorde.Money.Money_Type)
       return Industry_Type
@@ -38,16 +39,6 @@ package body Concorde.Industries.Create is
       procedure Create (Industry : in out Root_Industry_Type'Class) is
          use Concorde.Quantities;
       begin
-         if Production = "" then
-            raise Constraint_Error with
-              "empty production name";
-         end if;
-
-         if not Concorde.Production.Exists (Production) then
-            raise Constraint_Error with
-              "no such production: " & Production;
-         end if;
-
          Industry.New_Agent
            (Location       =>
               Concorde.Locations.In_Community (Community),
@@ -58,7 +49,7 @@ package body Concorde.Industries.Create is
          Industry.Owner := Owner;
          Industry.Community := Community;
          Industry.Production :=
-           Concorde.Production.Get (Production);
+           Concorde.Production.Production_Type (Production);
          Industry.Size := Size;
          Industry.Production_Size := Size;
          Industry.Sold.Create_Stock (Concorde.Quantities.Zero, True);

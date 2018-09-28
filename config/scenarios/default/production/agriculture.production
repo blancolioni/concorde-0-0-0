@@ -2,3 +2,4 @@ employees = { farmer = 0.05 }
 inputs = { power = 0.01 }
 tools = { }
 outputs = { food = 1 }
+owner = aristocrat

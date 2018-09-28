@@ -10,6 +10,7 @@ with Concorde.Quantities;
 with Concorde.Objects;
 
 with Concorde.Commodities;
+with Concorde.People.Groups;
 
 with Concorde.Network.Nodes;
 
@@ -35,6 +36,10 @@ package Concorde.Production is
    with private;
 
    type Production_Type is access constant Root_Production_Type'Class;
+
+   function Owner_Pop_Group
+     (Production : Root_Production_Type'Class)
+      return Concorde.People.Groups.Pop_Group;
 
    function Input_Quantity
      (Production : Root_Production_Type'Class;
@@ -89,11 +94,17 @@ private
       record
          Inputs  : Production_Commodity_Lists.List;
          Outputs : Production_Commodity_Lists.List;
+         Owner   : Concorde.People.Groups.Pop_Group;
       end record;
 
    overriding function Object_Database
      (Item : Root_Production_Type)
       return Memor.Memor_Database;
+
+   function Owner_Pop_Group
+     (Production : Root_Production_Type'Class)
+      return Concorde.People.Groups.Pop_Group
+   is (Production.Owner);
 
    package Db is
      new Memor.Database

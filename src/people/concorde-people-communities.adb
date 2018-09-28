@@ -233,6 +233,26 @@ package body Concorde.People.Communities is
       end if;
    end Get_Field_Value;
 
+   ----------------------
+   -- Get_Pop_By_Group --
+   ----------------------
+
+   function Get_Pop_By_Group
+     (Community : Root_Community_Type'Class;
+      Group     : not null access constant
+        Concorde.People.Groups.Root_Pop_Group'Class)
+      return Concorde.People.Pops.Pop_Type
+   is
+      use Concorde.People.Groups;
+   begin
+      for Pop of Community.Pops loop
+         if Pop.Group = Pop_Group (Group) then
+            return Pop;
+         end if;
+      end loop;
+      return null;
+   end Get_Pop_By_Group;
+
    ---------------
    -- Get_Value --
    ---------------

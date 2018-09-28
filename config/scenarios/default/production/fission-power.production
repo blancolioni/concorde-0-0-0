@@ -7,3 +7,4 @@ inputs = {
 }
 tools = { }
 outputs = { power = 1 }
+owner = capitalist

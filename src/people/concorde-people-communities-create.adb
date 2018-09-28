@@ -1,4 +1,5 @@
 with Concorde.People.Groups;
+with Concorde.Production;
 
 with Concorde.Government.Create;
 with Concorde.Industries.Create;
@@ -175,14 +176,27 @@ package body Concorde.People.Communities.Create is
             Start_Cash    : constant Concorde.Money.Money_Type :=
                               Concorde.Money.To_Money
                                 (10_000.0);
+            Production_Name : constant String :=
+                                Industry_Config.Config_Name;
+            Production      : constant Concorde.Production.Production_Type :=
+                                (if Concorde.Production.Exists
+                                   (Production_Name)
+                                 then Concorde.Production.Get
+                                   (Production_Name)
+                                 else raise Constraint_Error
+                                   with "no such production "
+                                 & Production_Name
+                                 & " in industry config");
          begin
+
             Community.Update.Industries.Append
               (Concorde.Industries.Create.New_Industry
                  (Market     => Community.Market,
                   Government => Community.Government,
-                  Owner      => Faction,
+                  Owner      =>
+                    Community.Get_Pop_By_Group (Production.Owner_Pop_Group),
                   Community  => Community,
-                  Production => Industry_Config.Config_Name,
+                  Production => Production,
                   Size       => Industry_Size,
                   Cash       => Start_Cash));
          end;

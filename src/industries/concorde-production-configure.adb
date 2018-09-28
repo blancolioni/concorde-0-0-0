@@ -72,6 +72,24 @@ package body Concorde.Production.Configure is
       begin
          Ada.Text_IO.Put_Line ("production: " & Name);
          Production.Set_Local_Tag (Name);
+
+         declare
+            Owner_Tag : constant String :=
+                          Config.Get ("owner", "");
+         begin
+            if Owner_Tag = "" then
+               raise Constraint_Error with
+                 "in production: " & Name & ": owner tag not set";
+            elsif not Concorde.People.Groups.Exists (Owner_Tag) then
+               raise Constraint_Error with
+                 "in production: " & Name & ": no such pop group: "
+                 & Owner_Tag;
+            end if;
+
+            Production.Owner :=
+              Concorde.People.Groups.Get (Owner_Tag);
+         end;
+
          for Employee_Config of Config.Child ("employees") loop
             Ada.Text_IO.Put_Line
               ("   "

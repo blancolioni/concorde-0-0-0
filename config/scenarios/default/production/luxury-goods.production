@@ -2,3 +2,4 @@ employees = { laborer = 1 skilled-worker = 1 }
 inputs = { power = 1 electronics = 1 precious-metal = 0.5 }
 tools = { }
 outputs = { luxury-goods = 1 }
+owner = capitalist

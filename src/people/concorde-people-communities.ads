@@ -77,6 +77,12 @@ package Concorde.People.Communities is
       Process : not null access
         procedure (Pop : Concorde.People.Pops.Pop_Type));
 
+   function Get_Pop_By_Group
+     (Community : Root_Community_Type'Class;
+      Group     : not null access constant
+        Concorde.People.Groups.Root_Pop_Group'Class)
+      return Concorde.People.Pops.Pop_Type;
+
    function Total_Population
      (Community : Root_Community_Type'Class)
       return Concorde.Quantities.Quantity_Type;
