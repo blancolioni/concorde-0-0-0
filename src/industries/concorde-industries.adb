@@ -174,6 +174,13 @@ package body Concorde.Industries is
          Size        => Industry.Production_Size,
          Cost        => Industry.Cost);
 
+      for Commodity of Concorde.Commodities.Get
+        (Concorde.Commodities.Pop_Group)
+      loop
+         Industry.Set_Quantity (Commodity, Concorde.Quantities.Zero,
+                                Concorde.Money.Zero);
+      end loop;
+
       Industry.Production_Size := Max_Size;
       Industry.Sold.Clear_Stock;
       Industry.Production_Count := Industry.Production_Count + 1;
