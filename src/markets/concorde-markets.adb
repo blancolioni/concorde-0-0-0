@@ -1427,10 +1427,12 @@ package body Concorde.Markets is
                                     (1.0 - Scale_Factor)
                                     * Price_Factor;
                begin
+
                   New_Price :=
                     To_Price
-                      (Real'Min (Price_Factor * 5.0,
-                       To_Real (Price) + Price_Change));
+                      (Real'Max
+                         (To_Real (Price) - Price_Change,
+                          Price_Factor / 5.0));
 
                   Concorde.Logging.Log
                     (Actor    => "market",
