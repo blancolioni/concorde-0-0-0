@@ -21,6 +21,12 @@ package Concorde.Markets is
    type Market_Interface is limited interface
      and Concorde.Objects.Identifier_Object_Interface;
 
+   function Base_Price
+     (Market : Market_Interface;
+      Item   : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Price_Type
+      is abstract;
+
    function Current_Price
      (Market : Market_Interface;
       Item   : Concorde.Commodities.Commodity_Type)

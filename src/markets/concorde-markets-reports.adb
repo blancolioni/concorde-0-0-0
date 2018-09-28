@@ -6,14 +6,91 @@ with Concorde.Logs;
 
 package body Concorde.Markets.Reports is
 
+   Supply_Heading : aliased constant String := "Supply";
+   Demand_Heading : aliased constant String := "Demand";
+   Price_Heading  : aliased constant String := "Price";
+
+   Commodity_Heading_Count : constant := 3;
+
+   Commodity_Headings : constant array (1 .. Commodity_Heading_Count)
+     of access constant String :=
+       (1 => Supply_Heading'Access,
+        2 => Demand_Heading'Access,
+        3 => Price_Heading'Access);
+
+   package Market_Commodity_Vectors is
+     new Ada.Containers.Vectors
+       (Positive, Concorde.Commodities.Commodity_Type,
+        Concorde.Commodities."=");
+
+   Market_Commodities : Market_Commodity_Vectors.Vector;
+
+   type Market_Logger is
+     new Concorde.Logs.Log_Interface with
+      record
+         Market : access constant Market_Interface'Class;
+      end record;
+
+   overriding function Path (Log : Market_Logger) return String;
+
+   overriding function Field_Count (Log : Market_Logger) return Natural;
+
+   overriding function Heading
+     (Log   : Market_Logger;
+      Index : Positive)
+      return String;
+
+   overriding function Value
+     (Log   : Market_Logger;
+      Index : Positive)
+      return String;
+
+   -----------------
+   -- Field_Count --
+   -----------------
+
+   overriding function Field_Count (Log : Market_Logger) return Natural is
+      pragma Unreferenced (Log);
+   begin
+      return Market_Commodities.Last_Index * 3;
+   end Field_Count;
+
+   -------------
+   -- Heading --
+   -------------
+
+   overriding function Heading
+     (Log   : Market_Logger;
+      Index : Positive)
+      return String
+   is
+      pragma Unreferenced (Log);
+      Commodity_Index : constant Positive :=
+                          (Index - 1) / Commodity_Heading_Count + 1;
+      Heading_Index   : constant Positive :=
+                          (Index - 1) mod Commodity_Heading_Count + 1;
+   begin
+      return Market_Commodities.Element (Commodity_Index).Identifier
+        & " " & Commodity_Headings (Heading_Index).all;
+   end Heading;
+
    ----------------------
    -- Log_Market_State --
    ----------------------
 
    procedure Log_Market_State
-     (Market : Market_Interface'Class)
+     (Market : not null access constant Market_Interface'Class)
    is
+      Logger : constant Market_Logger := (Market => Market);
    begin
+
+      if Market_Commodities.Is_Empty then
+         for Item of Concorde.Commodities.All_Commodities loop
+            Market_Commodities.Append (Item);
+         end loop;
+      end if;
+
+      Concorde.Logs.Log (Logger);
       for Commodity of Concorde.Commodities.All_Commodities loop
          declare
             use Concorde.Money, Concorde.Quantities;
@@ -30,6 +107,15 @@ package body Concorde.Markets.Reports is
          end;
       end loop;
    end Log_Market_State;
+
+   ----------
+   -- Path --
+   ----------
+
+   overriding function Path (Log : Market_Logger) return String is
+   begin
+      return "markets/" & Log.Market.Identifier;
+   end Path;
 
    -------------------
    -- Report_Market --
@@ -97,5 +183,31 @@ package body Concorde.Markets.Reports is
       Concorde.Commodities.Scan
         (Show_Line'Access);
    end Report_Market;
+
+   overriding function Value
+     (Log   : Market_Logger;
+      Index : Positive)
+      return String
+   is
+      use Concorde.Money, Concorde.Quantities;
+      Commodity_Index : constant Positive :=
+                          (Index - 1) / Commodity_Heading_Count + 1;
+      Heading_Index   : constant Positive :=
+                          (Index - 1) mod Commodity_Heading_Count + 1;
+      Commodity       : constant Concorde.Commodities.Commodity_Type :=
+                          Market_Commodities.Element (Commodity_Index);
+   begin
+      case Heading_Index is
+         when 1 =>
+            return Image (Log.Market.Current_Supply (Commodity));
+         when 2 =>
+            return Image (Log.Market.Current_Demand (Commodity));
+         when 3 =>
+            return Image (Log.Market.Current_Price (Commodity));
+         when others =>
+            raise Constraint_Error with
+              "bad index:" & Index'Image;
+      end case;
+   end Value;
 
 end Concorde.Markets.Reports;

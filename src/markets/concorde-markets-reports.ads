@@ -4,6 +4,6 @@ package Concorde.Markets.Reports is
      (Market : Market_Interface'Class);
 
    procedure Log_Market_State
-     (Market : Market_Interface'Class);
+     (Market : not null access constant Market_Interface'Class);
 
 end Concorde.Markets.Reports;

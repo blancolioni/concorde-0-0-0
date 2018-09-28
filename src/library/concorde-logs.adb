@@ -1,6 +1,7 @@
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Directories;
 with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;
 
 with Ada.Text_IO;
 
@@ -26,6 +27,33 @@ package body Concorde.Logs is
    procedure Ensure_Path
      (Base_Path  : String;
       Local_Path : String);
+
+   procedure Append_Line
+     (Log_Path    : String;
+      Field_Count : Natural;
+      Field       : not null access
+        function (Index : Positive) return String);
+
+   -----------------
+   -- Append_Line --
+   -----------------
+
+   procedure Append_Line
+     (Log_Path    : String;
+      Field_Count : Natural;
+      Field       : not null access
+        function (Index : Positive) return String)
+   is
+      use Ada.Strings.Unbounded;
+      Line : Unbounded_String := Null_Unbounded_String;
+   begin
+      for I in 1 .. Field_Count loop
+         Line := Line & Sep & Field (I);
+      end loop;
+      Log_Files (Log_Path).Append
+        (Concorde.Calendar.Image (Concorde.Calendar.Clock, True)
+         & To_String (Line));
+   end Append_Line;
 
    -----------------
    -- Ensure_Path --
@@ -92,6 +120,31 @@ package body Concorde.Logs is
       Log_Files.Clear;
 
    end Flush_Logs;
+
+   procedure Log
+     (Item : Log_Interface'Class)
+   is
+      Log_Path : constant String := Item.Path;
+   begin
+      if not Log_Files.Contains (Log_Path) then
+         Log_Files.Insert (Log_Path, String_Lists.Empty_List);
+
+         declare
+            function Heading (Index : Positive) return String
+            is (Item.Heading (Index));
+         begin
+            Append_Line (Log_Path, Item.Field_Count, Heading'Access);
+         end;
+      end if;
+
+      declare
+         function Field (Index : Positive) return String
+         is (Item.Value (Index));
+      begin
+         Append_Line (Log_Path, Item.Field_Count, Field'Access);
+      end;
+
+   end Log;
 
    ----------------
    -- Log_Fields --

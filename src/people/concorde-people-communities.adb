@@ -58,6 +58,19 @@ package body Concorde.People.Communities is
       Community.Ships.Append (Concorde.Ships.Ship_Type (Ship));
    end Add_Ship;
 
+   ----------------
+   -- Base_Price --
+   ----------------
+
+   overriding function Base_Price
+     (Community : Root_Community_Type;
+      Item      : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Price_Type
+   is
+   begin
+      return Community.Local_Commodities.Element (Item).Base_Price;
+   end Base_Price;
+
    --------------------
    -- Current_Demand --
    --------------------
@@ -578,10 +591,11 @@ package body Concorde.People.Communities is
    begin
       Rec :=
         Local_Commodity_Record'
-          (Price    => Price,
-           Quantity => Quantity,
-           Supply   => Scale (New_Supply, 0.25),
-           Demand   => Scale (New_Demand, 0.25));
+          (Price      => Price,
+           Base_Price => Rec.Base_Price,
+           Quantity   => Quantity,
+           Supply     => Scale (New_Supply, 0.25),
+           Demand     => Scale (New_Demand, 0.25));
    end Update_Commodity;
 
    -------------------------

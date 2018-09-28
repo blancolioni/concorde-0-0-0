@@ -1,4 +1,5 @@
 with Concorde.Elementary_Functions;
+with Concorde.Real_Images;
 
 with Concorde.Agents;
 with Concorde.Logging;
@@ -1177,6 +1178,10 @@ package body Concorde.Markets is
             Large_Quantity  : Quantity_Type;
             Small_Quantity  : Quantity_Type);
 
+         function Calculate_Scale_Factor
+           (High, Low : Quantity_Type)
+            return Unit_Real;
+
          ---------------------
          -- Add_Agent_Needs --
          ---------------------
@@ -1240,6 +1245,24 @@ package body Concorde.Markets is
 
             Total_Available := Total_Available + Ask;
          end Add_Agent_Needs;
+
+         ----------------------------
+         -- Calculate_Scale_Factor --
+         ----------------------------
+
+         function Calculate_Scale_Factor
+           (High, Low : Quantity_Type)
+            return Unit_Real
+         is
+            Raw_Factor : constant Unit_Real :=
+                           To_Real (Low) / To_Real (High);
+         begin
+            if Low = Zero then
+               return 1.0;
+            else
+               return Concorde.Elementary_Functions.Sqrt (Raw_Factor);
+            end if;
+         end Calculate_Scale_Factor;
 
          -------------------
          -- Resize_Offers --
@@ -1394,34 +1417,39 @@ package body Concorde.Markets is
               and then Total_Desire > Zero
             then
                declare
-                  Scale_Factor  : constant Non_Negative_Real :=
-                                    (if Total_Demand = Zero
-                                     then 1.0
-                                     else To_Real (Total_Supply)
-                                     / To_Real (Total_Demand)
-                                     / 10.0);
+                  Scale_Factor  : constant Unit_Real :=
+                                    Calculate_Scale_Factor
+                                      (Total_Supply, Total_Demand);
                   Price_Factor  : constant Non_Negative_Real :=
                                     Concorde.Money.To_Real
-                                      (Commodity.Base_Price);
+                                      (Market.Base_Price (Commodity));
                   Price_Change  : constant Non_Negative_Real :=
-                                    Real'Min
-                                      (Real'Max
-                                         (Scale_Factor * Price_Factor * 0.01,
-                                          0.01),
-                                       To_Real (Price) * 0.2);
+                                    (1.0 - Scale_Factor)
+                                    * Price_Factor;
                begin
                   New_Price :=
                     To_Price
-                      (Real'Max (Price_Factor / 10.0,
-                       To_Real (Price) - Price_Change));
-               end;
+                      (Real'Min (Price_Factor * 5.0,
+                       To_Real (Price) + Price_Change));
 
-               Concorde.Logging.Log
-                 (Actor    => "market",
-                  Location => "",
-                  Category => Commodity.Identifier,
-                  Message  => "new price: "
-                  & Concorde.Money.Show (New_Price));
+                  Concorde.Logging.Log
+                    (Actor    => "market",
+                     Location => "",
+                     Category => Commodity.Identifier,
+                     Message  =>
+                       "supply=" & Concorde.Quantities.Show (Total_Supply)
+                     & "; demand=" & Concorde.Quantities.Show (Total_Demand)
+                     & "; scale factor: "
+                     & Concorde.Real_Images.Approximate_Image (Scale_Factor)
+                     & "; price factor: "
+                     & Concorde.Real_Images.Approximate_Image (Price_Factor)
+                     & "; price change: "
+                     & Concorde.Real_Images.Approximate_Image (Price_Change)
+                     & "; old price: "
+                     & Concorde.Money.Show (Price)
+                     & "; new price: "
+                     & Concorde.Money.Show (New_Price));
+               end;
 
             end if;
 
@@ -1429,30 +1457,36 @@ package body Concorde.Markets is
               and then Total_Available > Zero
             then
                declare
-                  Supply_Factor : constant Unit_Real :=
-                                    To_Real (Total_Supply)
-                                    / To_Real (Total_Demand);
                   Scale_Factor  : constant Unit_Real :=
-                                    (if Total_Supply = Zero
-                                     then 1.0
-                                     else Concorde.Elementary_Functions.Tanh
-                                       (10.0 / Supply_Factor));
+                                    Calculate_Scale_Factor
+                                      (Total_Demand, Total_Supply);
                   Price_Factor  : constant Non_Negative_Real :=
                                     Concorde.Money.To_Real
-                                      (Commodity.Base_Price);
+                                      (Market.Base_Price (Commodity));
                   Price_Change  : constant Non_Negative_Real :=
-                                    Scale_Factor
-                                      * Price_Factor / 10.0;
+                                    (1.0 - Scale_Factor)
+                                    * Price_Factor;
                begin
                   New_Price := To_Price (To_Real (Price) + Price_Change);
-               end;
 
-               Concorde.Logging.Log
-                 (Actor    => "market",
-                  Location => "",
-                  Category => Commodity.Identifier,
-                  Message  => "new price: "
-                  & Concorde.Money.Show (New_Price));
+                  Concorde.Logging.Log
+                    (Actor    => "market",
+                     Location => "",
+                     Category => Commodity.Identifier,
+                     Message  =>
+                       "supply=" & Concorde.Quantities.Show (Total_Supply)
+                     & "; demand=" & Concorde.Quantities.Show (Total_Demand)
+                     & "; scale factor: "
+                     & Concorde.Real_Images.Approximate_Image (Scale_Factor)
+                     & "; price factor: "
+                     & Concorde.Real_Images.Approximate_Image (Price_Factor)
+                     & "; price change: "
+                     & Concorde.Real_Images.Approximate_Image (Price_Change)
+                     & "; old price: "
+                     & Concorde.Money.Show (Price)
+                     & "; new price: "
+                     & Concorde.Money.Show (New_Price));
+               end;
             end if;
 
             Market.Update_Commodity

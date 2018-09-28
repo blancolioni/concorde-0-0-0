@@ -1,5 +1,27 @@
 package Concorde.Logs is
 
+   type Log_Interface is limited interface;
+
+   function Path (Log : Log_Interface) return String is abstract;
+
+   function Field_Count (Log : Log_Interface) return Natural is abstract;
+   function Heading
+     (Log   : Log_Interface;
+      Index : Positive)
+      return String
+      is abstract
+     with Pre'Class => Index <= Log_Interface'Class (Log).Field_Count;
+
+   function Value
+     (Log   : Log_Interface;
+      Index : Positive)
+      return String
+      is abstract
+     with Pre'Class => Index <= Log_Interface'Class (Log).Field_Count;
+
+   procedure Log
+     (Item : Log_Interface'Class);
+
    procedure Log_Fields
      (Log_Path  : String;
       Field_1   : String;

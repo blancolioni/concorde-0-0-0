@@ -75,12 +75,13 @@ package body Concorde.People.Communities.Create is
                                       Adjust_Price
                                         (Commodity.Base_Price,
                                          Real (Local_Price_Factor));
-               Local       : constant Local_Commodity_Record :=
-                               Local_Commodity_Record'
-                                 (Price     => Local_Price,
-                                  Quantity  => Concorde.Quantities.Zero,
-                                  Supply    => Concorde.Quantities.Zero,
-                                  Demand    => Concorde.Quantities.Zero);
+               Local              : constant Local_Commodity_Record :=
+                                      Local_Commodity_Record'
+                                        (Price      => Local_Price,
+                                         Base_Price => Local_Price,
+                                         Quantity   => Zero,
+                                         Supply     => Zero,
+                                         Demand     => Zero);
             begin
                Community.Local_Commodities.Replace_Element
                  (Commodity, new Local_Commodity_Record'(Local));
