@@ -1,3 +1,5 @@
+with Ada.Containers.Vectors;
+
 with Concorde.Money;
 with Concorde.Quantities;
 
@@ -8,7 +10,41 @@ with Concorde.Commodities;
 with Concorde.Facilities;
 with Concorde.Trades;
 
+with Concorde.People.Communities;
+with Concorde.Worlds;
+
+with Concorde.Logs;
+
 package body Concorde.Managers.Pops is
+
+   package Market_Commodity_Vectors is
+     new Ada.Containers.Vectors
+       (Positive, Concorde.Commodities.Commodity_Type,
+        Concorde.Commodities."=");
+
+   Market_Commodities : Market_Commodity_Vectors.Vector;
+
+   type Pop_Logger is
+     new Concorde.Logs.Log_Interface with
+      record
+         Pop : Concorde.People.Pops.Pop_Type;
+      end record;
+
+   overriding function Path (Log : Pop_Logger) return String
+   is ("pops/" & Log.Pop.Current_Community.World.Identifier
+       & "/" & Log.Pop.Identifier);
+
+   overriding function Field_Count (Log : Pop_Logger) return Natural;
+
+   overriding function Heading
+     (Log   : Pop_Logger;
+      Index : Positive)
+      return String;
+
+   overriding function Value
+     (Log   : Pop_Logger;
+      Index : Positive)
+      return String;
 
    ------------
    -- Create --
@@ -43,6 +79,19 @@ package body Concorde.Managers.Pops is
       end return;
    end Create_Manager;
 
+   -----------------
+   -- Field_Count --
+   -----------------
+
+   overriding function Field_Count
+     (Log : Pop_Logger)
+      return Natural
+   is
+      pragma Unreferenced (Log);
+   begin
+      return 2;
+   end Field_Count;
+
    ------------
    -- Handle --
    ------------
@@ -59,6 +108,26 @@ package body Concorde.Managers.Pops is
       Handler.Manager.On_Activated;
    end Handle;
 
+   -------------
+   -- Heading --
+   -------------
+
+   overriding function Heading
+     (Log   : Pop_Logger;
+      Index : Positive)
+      return String
+   is
+      pragma Unreferenced (Log);
+   begin
+      if Index = 1 then
+         return "Cash";
+      elsif Index = 2 then
+         return "Per Person";
+      else
+         return Market_Commodities.Element (Index - 2).Identifier;
+      end if;
+   end Heading;
+
    ------------------
    -- On_Activated --
    ------------------
@@ -72,6 +141,13 @@ package body Concorde.Managers.Pops is
         ("pop activated at "
          & Concorde.Calendar.Image
            (Manager.Time, True));
+
+      if Market_Commodities.Is_Empty then
+         for Item of Concorde.Commodities.All_Commodities loop
+            Market_Commodities.Append (Item);
+         end loop;
+      end if;
+
       declare
          use Concorde.Money;
          Earnings : constant Money_Type := Manager.Pop.Last_Earnings;
@@ -140,6 +216,12 @@ package body Concorde.Managers.Pops is
          Manager.Happiness := Unit_Clamp (Happiness);
       end;
 
+      declare
+         Logger : constant Pop_Logger := (Pop => Manager.Pop);
+      begin
+         Concorde.Logs.Log (Logger);
+      end;
+
       Manager.Pop.Update.Clear_Current_Account;
       Manager.Pop.Update.Clear_Flagged_Stock
         (Concorde.Commodities.Transient);
@@ -147,5 +229,26 @@ package body Concorde.Managers.Pops is
       Concorde.Objects.Queues.Next_Event
         (Manager.Pop, Manager.Time, Delay_Days => 1);
    end On_Activated;
+
+   -----------
+   -- Value --
+   -----------
+
+   overriding function Value
+     (Log   : Pop_Logger;
+      Index : Positive)
+      return String
+   is
+   begin
+      case Index is
+         when 1 =>
+            return Concorde.Money.Image (Log.Pop.Cash);
+         when 2 =>
+            return Concorde.Money.Image
+              (Concorde.Money.Price (Log.Pop.Cash, Log.Pop.Size_Quantity));
+         when others =>
+            raise Program_Error;
+      end case;
+   end Value;
 
 end Concorde.Managers.Pops;
