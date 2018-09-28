@@ -184,6 +184,10 @@ package body Concorde.Markets.Reports is
         (Show_Line'Access);
    end Report_Market;
 
+   -----------
+   -- Value --
+   -----------
+
    overriding function Value
      (Log   : Market_Logger;
       Index : Positive)

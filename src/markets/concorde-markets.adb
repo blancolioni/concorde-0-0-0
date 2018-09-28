@@ -1205,7 +1205,9 @@ package body Concorde.Markets is
                               Min (Demand, Get_Quantity (Budget, Price));
             Ask           : constant Quantity_Type := Supply;
          begin
-            if Supply > Zero or else Bid > Zero or else Ask > Zero then
+            if Supply > Zero or else Demand > Zero or else Have > Zero
+              or else Bid > Zero or else Ask > Zero
+            then
                Agent.Log (Commodity.Identifier
                           & ": want "
                           & Show (Required)
