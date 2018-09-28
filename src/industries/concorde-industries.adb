@@ -111,12 +111,25 @@ package body Concorde.Industries is
       Industry.Log ("executing production");
 
       if Industry.Production_Count > 2 then
-         Max_Size :=
-           Real'Max
-             (Real'Min
-                (Industry.Production.Minimum_Size (Industry.Sold),
-                 Industry.Size),
-              Industry.Size / 4.0);
+         declare
+            Demand : Concorde.Commodities.Root_Stock_Type;
+         begin
+            Demand.Create_Stock (Concorde.Quantities.Zero, Virtual => True);
+            for Commodity of Industry.Production.Outputs loop
+               Demand.Add_Quantity
+                 (Commodity, Industry.Community.Current_Demand (Commodity),
+                  Concorde.Money.Total
+                    (Industry.Community.Current_Price (Commodity),
+                     Industry.Community.Current_Demand (Commodity)));
+            end loop;
+
+            Max_Size :=
+              Real'Max
+                (Real'Min
+                   (Industry.Production.Minimum_Size (Demand),
+                    Industry.Size),
+                 Industry.Size / 4.0);
+         end;
 
          declare
             use Concorde.Money, Concorde.Quantities;
