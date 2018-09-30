@@ -1,3 +1,4 @@
+private with Ada.Containers.Doubly_Linked_Lists;
 private with Memor;
 private with Memor.Database;
 private with Memor.Element_Vectors;
@@ -93,6 +94,17 @@ package Concorde.Government is
       Category   : Concorde.Trades.Market_Tax_Category;
       Rate       : Unit_Real);
 
+   procedure Add_Income_Tax_Rate
+     (Government  : in out Root_Government_Type'Class;
+      Lower_Bound : Concorde.Money.Price_Type;
+      Rate        : Unit_Real);
+
+   function Income_Tax
+     (Government  : Root_Government_Type'Class;
+      Income      : Concorde.Money.Money_Type;
+      Quantity    : Concorde.Quantities.Quantity_Type)
+      return Concorde.Money.Money_Type;
+
    function Tax_Receipts
      (Government : Root_Government_Type'Class;
       Category   : Concorde.Trades.Market_Tax_Category)
@@ -154,6 +166,15 @@ private
        (Concorde.Commodities.Root_Commodity_Type,
         Array_Of_Tax_Rates, Default_Tax_Rates);
 
+   type Income_Tax_Record is
+      record
+         Threshold : Concorde.Money.Price_Type;
+         Rate      : Unit_Real;
+      end record;
+
+   package Income_Tax_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Income_Tax_Record);
+
    type Root_Government_Type is
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Trades.Trade_Manager_Interface
@@ -170,6 +191,7 @@ private
          Tax_Rates         : Commodity_Tax_Rates.Vector;
          Tax_Receipts      : Array_Of_Tax_Receipts :=
                                (others => Concorde.Money.Zero);
+         Income_Tax_Rates  : Income_Tax_Lists.List;
          Owner_Tithe       : Unit_Real := 0.1;
          Basic_Living_Wage : Concorde.Money.Price_Type := Concorde.Money.Zero;
          Slavery_Allowed   : Boolean := False;

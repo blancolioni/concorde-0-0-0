@@ -184,6 +184,22 @@ package body Concorde.Managers.Pops is
             end if;
          end if;
 
+         declare
+            Income_Tax : constant Money_Type :=
+                           Manager.Government.Income_Tax
+                             (Income   => Earnings,
+                              Quantity => Manager.Pop.Size_Quantity);
+            Paid_Tax   : constant Money_Type :=
+                           Min (Income_Tax, Manager.Pop.Cash);
+         begin
+            Manager.Pop.Log ("income tax: " & Show (Income_Tax)
+                             & "; paid: " & Show (Paid_Tax)
+                             & "; remaining: " & Show (Income_Tax - Paid_Tax));
+
+            Manager.Government.Update.Add_Cash (Paid_Tax);
+            Manager.Pop.Update.Remove_Cash (Paid_Tax);
+         end;
+
          for Commodity of Concorde.Commodities.All_Commodities loop
             declare
                use Concorde.Quantities;

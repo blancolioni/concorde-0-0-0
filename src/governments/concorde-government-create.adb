@@ -29,6 +29,18 @@ package body Concorde.Government.Create is
          Government.Governed := Governed;
          Government.Owner := Owner;
          Government.Set_Guarantor (Owner);
+         Government.Add_Income_Tax_Rate
+           (Lower_Bound => Concorde.Money.To_Price (1.5),
+            Rate        => 0.2);
+         Government.Add_Income_Tax_Rate
+           (Lower_Bound => Concorde.Money.To_Price (4.5),
+            Rate        => 0.2);
+         Government.Add_Income_Tax_Rate
+           (Lower_Bound => Concorde.Money.To_Price (9.5),
+            Rate        => 0.2);
+         Government.Add_Income_Tax_Rate
+           (Lower_Bound => Concorde.Money.To_Price (19.5),
+            Rate        => 0.2);
       end Create;
 
    begin

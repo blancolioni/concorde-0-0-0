@@ -2,6 +2,35 @@ with Concorde.Factions;
 
 package body Concorde.Government is
 
+   -------------------------
+   -- Add_Income_Tax_Rate --
+   -------------------------
+
+   procedure Add_Income_Tax_Rate
+     (Government  : in out Root_Government_Type'Class;
+      Lower_Bound : Concorde.Money.Price_Type;
+      Rate        : Unit_Real)
+   is
+      use Concorde.Money;
+      use Income_Tax_Lists;
+      Position : Cursor := Government.Income_Tax_Rates.First;
+   begin
+      while Has_Element (Position)
+        and then Element (Position).Threshold <= Lower_Bound
+      loop
+         Next (Position);
+      end loop;
+      if not Has_Element (Position) then
+         Government.Income_Tax_Rates.Append ((Lower_Bound, Rate));
+      elsif Element (Position).Threshold = Lower_Bound then
+         Government.Income_Tax_Rates.Replace_Element
+           (Position, ((Lower_Bound, Rate)));
+      else
+         Government.Income_Tax_Rates.Insert
+           (Position, ((Lower_Bound, Rate)));
+      end if;
+   end Add_Income_Tax_Rate;
+
    ---------------
    -- Add_Power --
    ---------------
@@ -71,6 +100,29 @@ package body Concorde.Government is
    begin
       return Government.Headquarters;
    end Headquarters;
+
+   ----------------
+   -- Income_Tax --
+   ----------------
+
+   function Income_Tax
+     (Government  : Root_Government_Type'Class;
+      Income      : Concorde.Money.Money_Type;
+      Quantity    : Concorde.Quantities.Quantity_Type)
+      return Concorde.Money.Money_Type
+   is
+      use Concorde.Money;
+      Per_Capita : constant Price_Type := Price (Income, Quantity);
+      Total_Tax  : Money_Type := Zero;
+   begin
+      for Tax of Government.Income_Tax_Rates loop
+         exit when Tax.Threshold > Per_Capita;
+         Total_Tax := Total_Tax
+           + Total
+           (Adjust_Price (Per_Capita - Tax.Threshold, Tax.Rate), Quantity);
+      end loop;
+      return Total_Tax;
+   end Income_Tax;
 
    ---------------------
    -- Object_Database --
