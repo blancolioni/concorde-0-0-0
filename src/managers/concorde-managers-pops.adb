@@ -163,9 +163,16 @@ package body Concorde.Managers.Pops is
          Manager.Pop.Log
            ("budget",
             "earnings: " & Show (Earnings)
+            & " (" & Show (Price  (Earnings, Manager.Pop.Size_Quantity)) & ")"
             & "; cash " & Show (Cash)
+            & " (" & Show (Price  (Cash, Manager.Pop.Size_Quantity)) & ")"
             & "; expenses: "
             & Show (Manager.Pop.Last_Expenses)
+            & " ("
+            & Show
+              (Price
+                   (Manager.Pop.Last_Expenses,
+                    Manager.Pop.Size_Quantity)) & ")"
             & "; minimum: " & Show (Minimum)
             & "; expected subsidy: " & Show (Subsidy));
 
@@ -193,6 +200,11 @@ package body Concorde.Managers.Pops is
                            Min (Income_Tax, Manager.Pop.Cash);
          begin
             Manager.Pop.Log ("income tax: " & Show (Income_Tax)
+                             & " ("
+                             & Show
+                               (Price
+                                  (Income_Tax, Manager.Pop.Size_Quantity))
+                             & ")"
                              & "; paid: " & Show (Paid_Tax)
                              & "; remaining: " & Show (Income_Tax - Paid_Tax));
 
