@@ -332,7 +332,9 @@ package body Concorde.Powers.Execution is
       Target : in out Work_Record)
    is
    begin
-      if Config.Child_Count = 1 then
+      if Config.Child_Count = 1
+        and then not Config.Contains ("base")
+      then
          Target.Base := Concorde.Calendar.Hours (Config.Value);
       else
          Target.Base := Concorde.Calendar.Hours (Config.Get ("base", 0));
