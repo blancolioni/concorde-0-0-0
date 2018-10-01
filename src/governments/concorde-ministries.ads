@@ -8,6 +8,7 @@ with Concorde.Money;
 
 with Concorde.Agents;
 with Concorde.Bureaucracy;
+with Concorde.Government;
 with Concorde.Installations;
 with Concorde.Objects;
 with Concorde.Powers;
@@ -175,6 +176,7 @@ private
          Area              : Concorde.Objects.Object_Type;
          Community         : access constant
            Concorde.People.Communities.Root_Community_Type'Class;
+         Government        : Concorde.Government.Government_Type;
          Powers            : Concorde.Powers.Power_Set;
          Delegated_Powers  : Delegated_Power_Lists.List;
          Daily_Budget      : Budget_Item_Lists.List;

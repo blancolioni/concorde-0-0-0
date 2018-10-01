@@ -101,13 +101,14 @@ package body Concorde.Ministries.Create is
 
          Ministry.Name := Ada.Strings.Unbounded.To_Unbounded_String (Name);
          Ministry.Minister := Minister;
+         Ministry.Government := Location.Government;
          Ministry.Community := Location;
          Ministry.Daily_Budget := Budget.List;
          Ministry.Area :=
            (if Area = null
             then Concorde.Objects.Object_Type (Faction)
             else Area);
-         Ministry.Set_Guarantor (Faction);
+         Ministry.Set_Guarantor (Ministry.Government);
 
       end Create;
 
