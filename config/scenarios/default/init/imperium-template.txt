@@ -33,7 +33,7 @@ commodities = {
 
 pops = {
    aristocrat     = 1000
-   bureaucrat     = 100000
+   bureaucrat     = 10000
    capitalist     = 10000
    executive      = 10000
    farmer         = 2500
@@ -43,6 +43,7 @@ pops = {
    spacer         = 1000
    laborer        = 2000
    skilled-worker = 1000
+   service-worker = 10000
 }
 
 industries = {

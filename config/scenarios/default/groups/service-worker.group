@@ -1,0 +1,19 @@
+wealth = middle-class
+
+politics = {
+ order = { position = 0.8 strength = 0.7 }
+ society = { position = 0.6 strength = 0.5 }
+}
+
+proportion = {
+  base = 0.1
+}
+
+influence = {
+   bureaucrat = -1
+   military = -1
+   retired = -1
+   farmer = -1
+}
+
+has-commodity = yes

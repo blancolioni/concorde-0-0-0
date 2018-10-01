@@ -15,8 +15,15 @@ power = {
   effect = { productivity happiness }
 }
 
+service-worker = {
+  need = 0.1
+  budget = 10%
+  effect = { productivity happiness }
+}
+
 precious-metal = {
   need = 0.05
+  consumption = 5%
   budget = 1%
   effect = { happiness }
 }
