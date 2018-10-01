@@ -18,4 +18,6 @@ package Concorde.Commodities.Configure is
       Base_Price : Concorde.Money.Price_Type)
       return Commodity_Type;
 
+   procedure Configure_Pop_Needs;
+
 end Concorde.Commodities.Configure;

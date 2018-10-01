@@ -142,14 +142,6 @@ package body Concorde.Commodities.Configure is
         (Path      => Concorde.Configure.Directory_Path ("commodities"),
          Extension => "commodity",
          Configure => Configure_Commodity'Access);
-      Configure_Daily
-        (Vector => Daily_Pop,
-         Config =>
-           Tropos.Reader.Read_Config
-             (Concorde.Configure.File_Path
-                  (Directory => "init",
-                   File_Name => "pop-needs",
-                   Extension => "txt")));
    end Configure_Commodities;
 
    -------------------------
@@ -249,6 +241,22 @@ package body Concorde.Commodities.Configure is
          end;
       end loop;
    end Configure_Daily;
+
+   -------------------------
+   -- Configure_Pop_Needs --
+   -------------------------
+
+   procedure Configure_Pop_Needs is
+   begin
+      Configure_Daily
+        (Vector => Daily_Pop,
+         Config =>
+           Tropos.Reader.Read_Config
+             (Concorde.Configure.File_Path
+                  (Directory => "init",
+                   File_Name => "pop-needs",
+                   Extension => "txt")));
+   end Configure_Pop_Needs;
 
    ---------------------
    -- Configure_Stock --

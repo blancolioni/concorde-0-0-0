@@ -176,6 +176,8 @@ package body Concorde.Configure is
 
       Concorde.People.Groups.Configure.Configure_Pop_Groups;
 
+      Concorde.Commodities.Configure.Configure_Pop_Needs;
+
       Concorde.People.Skills.Configure.Configure_Skills
         (Tropos.Reader.Read_Config
            (Path      => Directory_Path ("skills"),
