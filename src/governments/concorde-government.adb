@@ -245,6 +245,21 @@ package body Concorde.Government is
    -- Tax_Receipt --
    -----------------
 
+   not overriding procedure Tax_Receipt
+     (Government : in out Root_Government_Type'Class;
+      Revenue    : Revenue_Source;
+      Receipt    : Concorde.Money.Money_Type)
+   is
+      use type Concorde.Money.Money_Type;
+   begin
+      Government.Tax_Receipts (Revenue) :=
+        Government.Tax_Receipts (Revenue) + Receipt;
+   end Tax_Receipt;
+
+   -----------------
+   -- Tax_Receipt --
+   -----------------
+
    overriding procedure Tax_Receipt
      (Government : Root_Government_Type;
       Commodity  : Concorde.Commodities.Commodity_Type;
@@ -252,30 +267,31 @@ package body Concorde.Government is
       Price      : Concorde.Money.Price_Type;
       Category   : Concorde.Trades.Market_Tax_Category;
       Receipt    : Concorde.Money.Money_Type)
-   is
-      use Concorde.Money;
-      Tithe      : constant Money_Type :=
-                     Tax (Receipt, Government.Owner_Tithe);
-   begin
+   is null;
 
-      Government.Update.Add_Cash (Receipt - Tithe);
-      Government.Update.Tax_Receipts (Category) :=
-        Government.Tax_Receipts (Category) + Receipt;
-      Government.Owner.Variable_Reference.Add_Cash (Tithe);
-
-      Government.Log_Trade
-        ("from sale of "
-         & Concorde.Quantities.Image (Quantity)
-         & " "
-         & Commodity.Name
-         & " @ "
-         & Concorde.Money.Image (Price)
-         & ", tax receipt is "
-         & Concorde.Money.Image (Receipt)
-         & ", tithe " & Image (Tithe)
-         & ", total " & Image (Receipt - Tithe)
-         & "; cash: " & Image (Government.Cash));
-   end Tax_Receipt;
+--        use Concorde.Money;
+--        Tithe      : constant Money_Type :=
+--                       Tax (Receipt, Government.Owner_Tithe);
+--     begin
+--
+--        Government.Update.Add_Cash (Receipt - Tithe);
+--        Government.Update.Tax_Receipts (Category) :=
+--          Government.Tax_Receipts (Category) + Receipt;
+--        Government.Owner.Variable_Reference.Add_Cash (Tithe);
+--
+--        Government.Log_Trade
+--          ("from sale of "
+--           & Concorde.Quantities.Image (Quantity)
+--           & " "
+--           & Commodity.Name
+--           & " @ "
+--           & Concorde.Money.Image (Price)
+--           & ", tax receipt is "
+--           & Concorde.Money.Image (Receipt)
+--           & ", tithe " & Image (Tithe)
+--           & ", total " & Image (Receipt - Tithe)
+--           & "; cash: " & Image (Government.Cash));
+--     end Tax_Receipt;
 
    ------------------
    -- Tax_Receipts --
@@ -287,7 +303,9 @@ package body Concorde.Government is
       return Concorde.Money.Money_Type
    is
    begin
-      return Government.Tax_Receipts (Category);
+      return (raise Constraint_Error with
+                "attempted to get " & Category'Image
+              & " from " & Government.Identifier);
    end Tax_Receipts;
 
    ------------

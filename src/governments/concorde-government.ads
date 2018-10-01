@@ -18,6 +18,13 @@ with Concorde.Quantities;
 
 package Concorde.Government is
 
+   type Revenue_Source is
+     (Income_Tax,
+      Sales_Tax,
+      Import_Tariff,
+      Export_Tariff,
+      Corporate_Tax);
+
    type Root_Government_Type is
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Trades.Trade_Manager_Interface
@@ -75,6 +82,11 @@ package Concorde.Government is
       Quantity   : Concorde.Quantities.Quantity_Type;
       Price      : Concorde.Money.Price_Type;
       Category   : Concorde.Trades.Market_Tax_Category;
+      Receipt    : Concorde.Money.Money_Type);
+
+   not overriding procedure Tax_Receipt
+     (Government : in out Root_Government_Type'Class;
+      Revenue    : Revenue_Source;
       Receipt    : Concorde.Money.Money_Type);
 
    procedure Set_Tax_Rate
@@ -159,7 +171,7 @@ private
                           Concorde.Trades.Export => 0.0);
 
    type Array_Of_Tax_Receipts is
-     array (Concorde.Trades.Market_Tax_Category) of Concorde.Money.Money_Type;
+     array (Revenue_Source) of Concorde.Money.Money_Type;
 
    package Commodity_Tax_Rates is
      new Memor.Element_Vectors

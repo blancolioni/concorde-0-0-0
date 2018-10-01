@@ -1,3 +1,5 @@
+with Concorde.Real_Images;
+
 with Concorde.Worlds;
 
 with Concorde.People.Communities.Fields;
@@ -555,6 +557,59 @@ package body Concorde.People.Communities is
       Community.Owner := Concorde.Factions.Faction_Type (Faction);
    end Set_Owner;
 
+   --------------
+   -- Tax_Rate --
+   --------------
+
+   overriding function Tax_Rate
+     (Community : Root_Community_Type;
+      Category  : Concorde.Trades.Market_Tax_Category;
+      Item      : Concorde.Commodities.Commodity_Type)
+      return Unit_Real
+   is
+   begin
+      return Community.Government.Tax_Rate (Category, Item);
+   end Tax_Rate;
+
+   -----------------
+   -- Tax_Receipt --
+   -----------------
+
+   overriding procedure Tax_Receipt
+     (Community     : in out Root_Community_Type;
+      Category      : Concorde.Trades.Market_Tax_Category;
+      Commodity     : Concorde.Commodities.Commodity_Type;
+      Tax           : Concorde.Money.Money_Type)
+   is
+      use Concorde.Trades;
+      use all type Concorde.Government.Revenue_Source;
+      Name : constant String :=
+               (case Category is
+                   when Import => "import tariff",
+                   when Export => "export tariff",
+                   when Sales  => "sales tax");
+      Revenue : constant Concorde.Government.Revenue_Source :=
+                  (case Category is
+                      when Import => Import_Tariff,
+                      when Export => Export_Tariff,
+                      when Sales  => Sales_Tax);
+   begin
+
+      Community.Log
+        (Name & " "
+         & Concorde.Real_Images.Approximate_Image
+           (100.0 * Community.Tax_Rate (Category, Commodity))
+         & "%"
+         & " on " & Commodity.Identifier
+         & " earns "
+         & Concorde.Money.Show (Tax));
+
+      Community.Government.Update.Tax_Receipt
+        (Revenue => Revenue,
+         Receipt => Tax);
+
+   end Tax_Receipt;
+
    ----------------------
    -- Total_Population --
    ----------------------
@@ -590,12 +645,13 @@ package body Concorde.People.Communities is
    ----------------------
 
    overriding procedure Update_Commodity
-     (Community : in out Root_Community_Type;
-      Item      : Concorde.Commodities.Commodity_Type;
-      Demand    : Concorde.Quantities.Quantity_Type;
-      Supply    : Concorde.Quantities.Quantity_Type;
-      Quantity  : Concorde.Quantities.Quantity_Type;
-      Price     : Concorde.Money.Price_Type)
+     (Community     : in out Root_Community_Type;
+      Item          : Concorde.Commodities.Commodity_Type;
+      Demand        : Concorde.Quantities.Quantity_Type;
+      Supply        : Concorde.Quantities.Quantity_Type;
+      Quantity      : Concorde.Quantities.Quantity_Type;
+      Base_Price    : Concorde.Money.Price_Type;
+      Current_Price : Concorde.Money.Price_Type)
    is
       use Concorde.Quantities;
       Rec : Local_Commodity_Record renames
@@ -611,8 +667,8 @@ package body Concorde.People.Communities is
    begin
       Rec :=
         Local_Commodity_Record'
-          (Price      => Price,
-           Base_Price => Rec.Base_Price,
+          (Price      => Current_Price,
+           Base_Price => Base_Price,
            Quantity   => Quantity,
            Supply     => Scale (New_Supply, 0.25),
            Demand     => Scale (New_Demand, 0.25));

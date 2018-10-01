@@ -208,7 +208,8 @@ package body Concorde.Managers.Pops is
                              & "; paid: " & Show (Paid_Tax)
                              & "; remaining: " & Show (Income_Tax - Paid_Tax));
 
-            Manager.Government.Update.Add_Cash (Paid_Tax);
+            Manager.Government.Update.Tax_Receipt
+              (Concorde.Government.Income_Tax, Paid_Tax);
             Manager.Pop.Update.Remove_Cash (Paid_Tax);
          end;
 

@@ -18,6 +18,7 @@ with Concorde.Government;
 with Concorde.Industries;
 with Concorde.Laws;
 with Concorde.Markets;
+with Concorde.Trades;
 with Concorde.People.Groups;
 with Concorde.People.Individuals;
 with Concorde.People.Pops;
@@ -285,13 +286,26 @@ private
       Item      : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity_Type;
 
+   overriding function Tax_Rate
+     (Community : Root_Community_Type;
+      Category : Concorde.Trades.Market_Tax_Category;
+      Item     : Concorde.Commodities.Commodity_Type)
+      return Unit_Real;
+
+   overriding procedure Tax_Receipt
+     (Community     : in out Root_Community_Type;
+      Category      : Concorde.Trades.Market_Tax_Category;
+      Commodity     : Concorde.Commodities.Commodity_Type;
+      Tax           : Concorde.Money.Money_Type);
+
    overriding procedure Update_Commodity
-     (Community : in out Root_Community_Type;
-      Item      : Concorde.Commodities.Commodity_Type;
-      Demand    : Concorde.Quantities.Quantity_Type;
-      Supply    : Concorde.Quantities.Quantity_Type;
-      Quantity  : Concorde.Quantities.Quantity_Type;
-      Price     : Concorde.Money.Price_Type);
+     (Community     : in out Root_Community_Type;
+      Item          : Concorde.Commodities.Commodity_Type;
+      Demand        : Concorde.Quantities.Quantity_Type;
+      Supply        : Concorde.Quantities.Quantity_Type;
+      Quantity      : Concorde.Quantities.Quantity_Type;
+      Base_Price    : Concorde.Money.Price_Type;
+      Current_Price : Concorde.Money.Price_Type);
 
    overriding procedure Scan_Agents
      (Community : Root_Community_Type;

@@ -9,6 +9,7 @@ with Concorde.Trades;
 with Concorde.Worlds;
 
 with Concorde.Markets.Reports;
+with Concorde.Government.Updates;
 
 package body Concorde.Managers.Communities is
 
@@ -79,6 +80,9 @@ package body Concorde.Managers.Communities is
 
       Concorde.Markets.Reports.Log_Market_State
         (Manager.Community);
+
+      Concorde.Government.Updates.Process_Tax_Receipts
+        (Manager.Community.Government.Update);
 
       Concorde.Objects.Queues.Next_Event
         (Manager.Community, Manager.Time, Delay_Days => 1);

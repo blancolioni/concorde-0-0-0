@@ -39,6 +39,20 @@ package Concorde.Markets is
       return Concorde.Quantities.Quantity_Type
       is abstract;
 
+   function Tax_Rate
+     (Market   : Market_Interface;
+      Category : Concorde.Trades.Market_Tax_Category;
+      Item     : Concorde.Commodities.Commodity_Type)
+      return Unit_Real
+      is abstract;
+
+   procedure Tax_Receipt
+     (Market    : in out Market_Interface;
+      Category  : Concorde.Trades.Market_Tax_Category;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Tax       : Concorde.Money.Money_Type)
+   is abstract;
+
    function Current_Supply
      (Market : Market_Interface;
       Item   : Concorde.Commodities.Commodity_Type)
@@ -52,12 +66,13 @@ package Concorde.Markets is
       is abstract;
 
    procedure Update_Commodity
-     (Market    : in out Market_Interface;
-      Item      : Concorde.Commodities.Commodity_Type;
-      Demand    : Concorde.Quantities.Quantity_Type;
-      Supply    : Concorde.Quantities.Quantity_Type;
-      Available : Concorde.Quantities.Quantity_Type;
-      Price     : Concorde.Money.Price_Type)
+     (Market        : in out Market_Interface;
+      Item          : Concorde.Commodities.Commodity_Type;
+      Demand        : Concorde.Quantities.Quantity_Type;
+      Supply        : Concorde.Quantities.Quantity_Type;
+      Available     : Concorde.Quantities.Quantity_Type;
+      Base_Price    : Concorde.Money.Price_Type;
+      Current_Price : Concorde.Money.Price_Type)
    is abstract;
 
    procedure Scan_Agents

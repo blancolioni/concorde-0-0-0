@@ -1166,6 +1166,15 @@ package body Concorde.Markets is
          Total_Desire    : Quantity_Type := Zero;
          Total_Available : Quantity_Type := Zero;
 
+         Import_Tax      : constant Unit_Real :=
+                             Market.Tax_Rate
+                               (Concorde.Trades.Import, Commodity);
+         Export_Tax      : constant Unit_Real :=
+                             Market.Tax_Rate
+                               (Concorde.Trades.Export, Commodity);
+         Sales_Tax       : constant Unit_Real :=
+                             Market.Tax_Rate
+                               (Concorde.Trades.Sales, Commodity);
          Price         : constant Price_Type :=
                            Market.Current_Price (Commodity);
 
@@ -1201,8 +1210,20 @@ package body Concorde.Markets is
                                then Zero else Required - Have);
             Budget        : constant Money_Type :=
                               Agent.Daily_Budget (Commodity);
+            Buy_Tax       : constant Unit_Real :=
+                              (if Agent.Market_Resident
+                               then 0.0
+                               else Export_Tax);
+            Sell_Tax      : constant Unit_Real :=
+                              (if Agent.Market_Resident
+                               then Sales_Tax
+                               else Import_Tax);
+            Buyer_Price   : constant Price_Type :=
+                              Add_Tax (Price, Buy_Tax);
+            Seller_Price  : constant Price_Type :=
+                              Without_Tax (Price, Sell_Tax);
             Bid           : constant Quantity_Type :=
-                              Min (Demand, Get_Quantity (Budget, Price));
+                              Min (Demand, Get_Quantity (Budget, Buyer_Price));
             Ask           : constant Quantity_Type := Supply;
          begin
             if Supply > Zero or else Demand > Zero or else Have > Zero
@@ -1215,6 +1236,10 @@ package body Concorde.Markets is
                           & Show (Have)
                           & "; budget "
                           & Show (Budget)
+                          & "; bid price "
+                          & Show (Buyer_Price)
+                          & "; ask price "
+                          & Show (Seller_Price)
                           & "; bid "
                           & Show (Bid)
                           & "; ask "
@@ -1227,7 +1252,7 @@ package body Concorde.Markets is
                               (Agent              => Agent,
                                Offered_Quantity   => Bid,
                                Remaining_Quantity => Bid,
-                               Offer_Price        => Price));
+                               Offer_Price        => Buyer_Price));
                Total_Demand := Total_Demand + Bid;
             elsif Ask > Zero then
                Asks.Insert
@@ -1237,7 +1262,7 @@ package body Concorde.Markets is
                       (Agent              => Agent,
                        Offered_Quantity   => Ask,
                        Remaining_Quantity => Ask,
-                       Offer_Price        => Price));
+                       Offer_Price        => Seller_Price));
                Total_Supply := Total_Supply + Ask;
             end if;
 
@@ -1396,7 +1421,19 @@ package body Concorde.Markets is
                begin
                   Bids.Delete_First;
                   Offer.Agent.Variable_Reference.On_Commodity_Buy
-                    (Commodity, Offer.Offered_Quantity, Price);
+                    (Commodity, Offer.Offered_Quantity, Offer.Offer_Price);
+                  if Offer.Offer_Price > Price then
+                     Market.Tax_Receipt
+                       (Category  =>
+                          (if Offer.Agent.Market_Resident
+                           then Concorde.Trades.Sales
+                           else Concorde.Trades.Export),
+                        Commodity => Commodity,
+                        Tax       =>
+                          Total
+                            (Offer.Offer_Price - Price,
+                             Offer.Offered_Quantity));
+                  end if;
                end;
             end loop;
 
@@ -1406,7 +1443,20 @@ package body Concorde.Markets is
                begin
                   Asks.Delete_First;
                   Offer.Agent.Variable_Reference.On_Commodity_Sell
-                    (Commodity, Offer.Offered_Quantity, Price);
+                    (Commodity, Offer.Offered_Quantity,
+                     Offer.Offer_Price);
+                  if Offer.Offer_Price < Price then
+                     Market.Tax_Receipt
+                       (Category  =>
+                          (if Offer.Agent.Market_Resident
+                           then Concorde.Trades.Sales
+                           else Concorde.Trades.Import),
+                        Commodity => Commodity,
+                        Tax       =>
+                          Total
+                            (Price - Offer.Offer_Price,
+                             Offer.Offered_Quantity));
+                  end if;
                end;
             end loop;
 
@@ -1414,6 +1464,7 @@ package body Concorde.Markets is
 
          declare
             New_Price : Price_Type := Price;
+            New_Base_Price : Price_Type := Market.Base_Price (Commodity);
          begin
             if Total_Supply > Total_Demand
               and then Total_Desire > Zero
@@ -1429,9 +1480,13 @@ package body Concorde.Markets is
                                     Base_Price * Scale_Factor;
                   Price_Change  : constant Real :=
                                     (To_Real (Price) - Target_Price) / 10.0;
+                  Base_Price_Change : constant Real :=
+                                        Price_Change / 10.0;
                begin
                   New_Price :=
                     To_Price (To_Real (Price) - Price_Change);
+                  New_Base_Price :=
+                    To_Price (Base_Price - Base_Price_Change);
 
                   Concorde.Logging.Log
                     (Actor    => "market",
@@ -1458,19 +1513,24 @@ package body Concorde.Markets is
               and then Total_Available > Zero
             then
                declare
-                  Scale_Factor  : constant Unit_Real :=
-                                    Calculate_Scale_Factor
-                                      (Total_Demand, Total_Supply);
-                  Base_Price    : constant Non_Negative_Real :=
-                                    Concorde.Money.To_Real
-                                      (Market.Base_Price (Commodity));
-                  Target_Price  : constant Non_Negative_Real :=
-                                    Base_Price / Scale_Factor;
-                  Price_Change  : constant Real :=
-                                    (Target_Price - To_Real (Price)) / 10.0;
+                  Scale_Factor      : constant Unit_Real :=
+                                        Calculate_Scale_Factor
+                                          (Total_Demand, Total_Supply);
+                  Base_Price        : constant Non_Negative_Real :=
+                                        Concorde.Money.To_Real
+                                          (Market.Base_Price (Commodity));
+                  Target_Price      : constant Non_Negative_Real :=
+                                        Base_Price / Scale_Factor;
+                  Price_Change      : constant Real :=
+                                        (Target_Price
+                                         - To_Real (Price)) / 10.0;
+                  Base_Price_Change : constant Real :=
+                                        Price_Change / 10.0;
                begin
                   New_Price :=
                     To_Price (To_Real (Price) + Price_Change);
+                  New_Base_Price :=
+                    To_Price (Base_Price + Base_Price_Change);
 
                   Concorde.Logging.Log
                     (Actor    => "market",
@@ -1493,11 +1553,12 @@ package body Concorde.Markets is
             end if;
 
             Market.Update_Commodity
-              (Item      => Commodity,
-               Demand    => Total_Demand,
-               Supply    => Total_Supply,
-               Available => Total_Available,
-               Price     => New_Price);
+              (Item          => Commodity,
+               Demand        => Total_Demand,
+               Supply        => Total_Supply,
+               Available     => Total_Available,
+               Base_Price    => New_Base_Price,
+               Current_Price => New_Price);
          end;
 
       end Update_Commodity;
