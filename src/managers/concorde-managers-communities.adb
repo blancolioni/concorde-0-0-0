@@ -9,6 +9,8 @@ with Concorde.Trades;
 with Concorde.Worlds;
 
 with Concorde.Markets.Reports;
+
+with Concorde.Government.Logging;
 with Concorde.Government.Updates;
 
 package body Concorde.Managers.Communities is
@@ -80,6 +82,8 @@ package body Concorde.Managers.Communities is
 
       Concorde.Markets.Reports.Log_Market_State
         (Manager.Community);
+
+      Concorde.Government.Logging.Log (Manager.Community.Government);
 
       Concorde.Government.Updates.Process_Tax_Receipts
         (Manager.Community.Government.Update);
