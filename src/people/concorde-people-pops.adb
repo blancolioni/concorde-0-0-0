@@ -24,10 +24,17 @@ package body Concorde.People.Pops is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity_Type
    is
+      use type Concorde.Commodities.Commodity_Type;
    begin
-      return Concorde.Quantities.Scale
-        (Pop.Size_Quantity,
-         Concorde.Commodities.Pop_Daily_Needs (Commodity));
+      if Pop.Group.Has_Commodity
+        and then Pop.Group.Commodity = Commodity
+      then
+         return Concorde.Quantities.Zero;
+      else
+         return Concorde.Quantities.Scale
+           (Pop.Size_Quantity,
+            Concorde.Commodities.Pop_Daily_Needs (Commodity));
+      end if;
    end Daily_Needs;
 
    ------------------
