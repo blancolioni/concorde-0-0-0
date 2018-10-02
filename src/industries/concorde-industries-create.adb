@@ -61,8 +61,10 @@ package body Concorde.Industries.Create is
             then
                declare
                   Quantity : constant Concorde.Quantities.Quantity_Type :=
-                               Industry.Production.Input_Quantity
-                                 (Commodity, Industry.Size);
+                               Scale
+                                 (Industry.Production.Input_Quantity
+                                    (Commodity, Industry.Size),
+                                  0.5);
                begin
                   if Quantity > Zero then
                      Industry.Log ("adding: "
