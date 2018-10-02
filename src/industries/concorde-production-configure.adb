@@ -8,7 +8,12 @@ with Concorde.Real_Images;
 package body Concorde.Production.Configure is
 
    procedure Create_Production
-     (Config    : Tropos.Configuration);
+     (Config    : Tropos.Configuration;
+      Resource  : Concorde.Commodities.Commodity_Type := null);
+
+   --------------------------
+   -- Configure_Production --
+   --------------------------
 
    procedure Configure_Production is
       Config : constant Tropos.Configuration :=
@@ -20,7 +25,15 @@ package body Concorde.Production.Configure is
 
    begin
       for Production_Config of Config loop
-         Create_Production (Production_Config);
+         if Production_Config.Contains ("across") then
+            for Across_Config of Production_Config.Child ("across") loop
+               Create_Production
+                 (Production_Config,
+                  Concorde.Commodities.Get (Across_Config.Config_Name));
+            end loop;
+         else
+            Create_Production (Production_Config);
+         end if;
       end loop;
    end Configure_Production;
 
@@ -29,9 +42,15 @@ package body Concorde.Production.Configure is
    -----------------------
 
    procedure Create_Production
-     (Config    : Tropos.Configuration)
+     (Config    : Tropos.Configuration;
+      Resource  : Concorde.Commodities.Commodity_Type := null)
    is
-      Name  : constant String := Config.Config_Name;
+      use type Concorde.Commodities.Commodity_Type;
+
+      Name  : constant String :=
+                (if Resource = null
+                 then Config.Config_Name
+                 else Resource.Identifier & "-" & Config.Config_Name);
 
       function Configure_Input
         (Config              : Tropos.Configuration;
@@ -111,17 +130,13 @@ package body Concorde.Production.Configure is
          end loop;
 
          for Output_Config of Config.Child ("outputs") loop
-            if Output_Config.Config_Name = "resources" then
-               for Item of Concorde.Commodities.Get
-                 (Concorde.Commodities.Resource)
-               loop
-                  Production.Outputs.Append
-                    (Production_Commodity'
-                       (Commodity         => Item,
-                        Relative_Quantity =>
-                          Real (Float'(Output_Config.Value)),
-                        Consumption       => 0.0));
-               end loop;
+            if Output_Config.Config_Name = "current" then
+               Production.Outputs.Append
+                 (Production_Commodity'
+                    (Commodity         => Resource,
+                     Relative_Quantity =>
+                       Real (Float'(Output_Config.Value)),
+                     Consumption       => 0.0));
             else
                Production.Outputs.Append
                  (Production_Commodity'

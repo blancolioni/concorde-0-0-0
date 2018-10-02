@@ -1,5 +1,6 @@
+across = { precious-metal rare-earths uranium }
 employees = { miner = 0.1 }
 inputs = { power = 0.02 }
 tools = { }
-outputs = { resources = 1 }
+outputs = { current = 1 }
 owner = aristocrat
