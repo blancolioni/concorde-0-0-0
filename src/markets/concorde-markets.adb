@@ -1,3 +1,6 @@
+with Ada.Exceptions;
+with Ada.Text_IO;
+
 with Concorde.Elementary_Functions;
 with Concorde.Real_Images;
 
@@ -1481,12 +1484,17 @@ package body Concorde.Markets is
                   Price_Change  : constant Real :=
                                     (To_Real (Price) - Target_Price) / 10.0;
                   Base_Price_Change : constant Real :=
-                                        Price_Change / 10.0;
+                                        (Base_Price - Target_Price) / 100.0;
                begin
                   New_Price :=
-                    To_Price (To_Real (Price) - Price_Change);
+                    Max
+                      (To_Price (To_Real (Price) - Price_Change),
+                       To_Price (0.01));
+
                   New_Base_Price :=
-                    To_Price (Base_Price - Base_Price_Change);
+                    Max
+                      (To_Price (Base_Price - Base_Price_Change),
+                       To_Price (0.01));
 
                   Concorde.Logging.Log
                     (Actor    => "market",
@@ -1525,7 +1533,7 @@ package body Concorde.Markets is
                                         (Target_Price
                                          - To_Real (Price)) / 10.0;
                   Base_Price_Change : constant Real :=
-                                        Price_Change / 10.0;
+                                        (Target_Price - Base_Price) / 100.0;
                begin
                   New_Price :=
                     To_Price (To_Real (Price) + Price_Change);
@@ -1560,6 +1568,20 @@ package body Concorde.Markets is
                Base_Price    => New_Base_Price,
                Current_Price => New_Price);
          end;
+
+      exception
+         when E : others =>
+            Ada.Text_IO.New_Line
+              (Ada.Text_IO.Standard_Error);
+            Ada.Text_IO.Put_Line
+              (Ada.Text_IO.Standard_Error,
+               "exception while updating " & Commodity.Identifier
+               & " in market " & Market.Identifier
+               & " with price "
+               & Concorde.Money.Show (Market.Current_Price (Commodity))
+               & ": " & Ada.Exceptions.Exception_Name (E)
+               & " " & Ada.Exceptions.Exception_Message (E));
+            raise;
 
       end Update_Commodity;
 
