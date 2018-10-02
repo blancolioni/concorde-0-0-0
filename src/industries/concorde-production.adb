@@ -101,16 +101,18 @@ package body Concorde.Production is
            (Production.Identifier, "", "production",
             "total production cost: "
             & Concorde.Money.Show (Cost));
+      end if;
 
+      Stock.Clear_Flagged_Stock (Concorde.Commodities.Transient);
+      Stock.Clear_Stock (Concorde.Commodities.Pop_Group);
+
+      if Capacity > 0.0 then
          declare
             Total_Output : Non_Negative_Real := 0.0;
          begin
             for Output of Production.Outputs loop
                Total_Output := Total_Output + Output.Relative_Quantity;
             end loop;
-
-            Stock.Clear_Flagged_Stock (Concorde.Commodities.Transient);
-            Stock.Clear_Stock (Concorde.Commodities.Pop_Group);
 
             for Output of Production.Outputs loop
                declare
