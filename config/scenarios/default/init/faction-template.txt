@@ -36,19 +36,19 @@ pops = {
    soldier        = 100
    spacer         = 10
    laborer        = 200
-   skilled-worker = 10
+   skilled-worker = 60
    service-worker = 10
 }
 
 commodities = {
-   food = { price = 0.5 }
+   food = { price = 100% }
 }
 
 industries = {
    agriculture = 2%
    mining = 2%
    luxury-goods = 5
-   fission-power = 500
+   fission-power = 2500
    chemicals = 10
    electronics = 10
    basic-ship-fuel = 5
