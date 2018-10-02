@@ -1208,6 +1208,8 @@ package body Concorde.Markets is
                               Agent.Daily_Supply (Commodity);
             Have          : constant Quantity_Type :=
                               Agent.Get_Quantity (Commodity);
+            Space          : constant Quantity_Type :=
+                               Agent.Available_Capacity;
             Demand        : constant Quantity_Type :=
                               (if Have >= Required
                                then Zero else Required - Have);
@@ -1225,8 +1227,16 @@ package body Concorde.Markets is
                               Add_Tax (Price, Buy_Tax);
             Seller_Price  : constant Price_Type :=
                               Without_Tax (Price, Sell_Tax);
-            Bid           : constant Quantity_Type :=
-                              Min (Demand, Get_Quantity (Budget, Buyer_Price));
+            Preferred_Bid : constant Quantity_Type :=
+                               Min
+                                 (Demand,
+                                  Get_Quantity (Budget, Buyer_Price));
+            Bid            : constant Quantity_Type :=
+                               (if Commodity.Is_Set
+                                  (Concorde.Commodities.Virtual)
+                                or else Commodity.Is_Pop_Group
+                                then Preferred_Bid
+                                else Min (Preferred_Bid, Space));
             Ask           : constant Quantity_Type := Supply;
          begin
             if Supply > Zero or else Demand > Zero or else Have > Zero
@@ -1237,12 +1247,16 @@ package body Concorde.Markets is
                           & Show (Required)
                           & "; have "
                           & Show (Have)
+                          & "; space "
+                          & Show (Space)
                           & "; budget "
                           & Show (Budget)
                           & "; bid price "
                           & Show (Buyer_Price)
                           & "; ask price "
                           & Show (Seller_Price)
+                          & "; preferred bid "
+                          & Show (Preferred_Bid)
                           & "; bid "
                           & Show (Bid)
                           & "; ask "
