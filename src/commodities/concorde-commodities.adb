@@ -460,7 +460,9 @@ package body Concorde.Commodities is
 
       procedure Update (Commodity : Commodity_Type) is
       begin
-         if not Commodity.Is_Set (Virtual) then
+         if not Commodity.Is_Set (Virtual)
+           and then not Commodity.Is_Pop_Group
+         then
             Result := Result + Stock.Get_Quantity (Commodity);
          end if;
       end Update;
