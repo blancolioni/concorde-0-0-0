@@ -89,12 +89,17 @@ package body Concorde.Ships is
    is
       use Concorde.Quantities;
       Available : constant Quantity_Type :=
-                    Ship.Available_Capacity;
+                    Ship.Available_Capacity
+                      + Ship.Get_Quantity (Commodity);
       Wanted    : constant Quantity_Type :=
                     Ship.Buying.Get_Quantity (Commodity);
    begin
       if Wanted > Zero then
-         Ship.Log ("want " & Show (Wanted) & " " & Commodity.Identifier);
+         Ship.Log
+           (Commodity.Identifier
+            & ": want " & Image (Wanted)
+            & "; have " & Image (Ship.Get_Quantity (Commodity))
+            & "; available " & Image (Available));
       end if;
       return Min (Available, Wanted);
    end Daily_Needs;
