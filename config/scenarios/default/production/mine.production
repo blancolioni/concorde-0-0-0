@@ -1,4 +1,4 @@
-across = { precious-metal rare-earths uranium }
+across = { precious-metal rare-earths uranium metal }
 employees = { miner = 0.1 }
 inputs = { power = 0.02 }
 tools = { }

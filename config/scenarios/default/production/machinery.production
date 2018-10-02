@@ -1,0 +1,5 @@
+employees = { laborer = 1 skilled-worker = 0.2 }
+inputs = { power = 0.2 electronics = 0.2 metal = 1 }
+tools = { }
+outputs = { machinery = 1 }
+owner = capitalist

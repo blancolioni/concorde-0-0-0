@@ -52,6 +52,7 @@ industries = {
    rare-earths-mine = 1%
    uranium-mine = 1%
    luxury-goods = 200
+   machinery = 50
    fission-power = 10000
    chemicals = 100
    electronics = 200
