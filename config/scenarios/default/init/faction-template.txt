@@ -50,6 +50,7 @@ industries = {
    precious-metal-mine = 5%
    rare-earths-mine = 5%
    uranium-mine = 5%
+   metal-mine = 5%
    fission-power = 2500
    chemicals = 10
    electronics = 10
@@ -63,7 +64,7 @@ corporations = {
    }
    import = {
       size = 1000
-      commodities = { luxury-goods electronics basic-ship-fuel }
+      commodities = { luxury-goods electronics basic-ship-fuel machinery chemicals }
    }
    banking = {
       size = 10K

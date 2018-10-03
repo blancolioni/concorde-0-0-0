@@ -62,7 +62,7 @@ industries = {
 corporations = {
    export = {
       size = 10000
-      commodities = { luxury-goods electronics basic-ship-fuel }
+      commodities = { luxury-goods electronics basic-ship-fuel machinery chemicals }
    }
    import = {
       size = 10000
