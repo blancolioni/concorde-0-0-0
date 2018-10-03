@@ -11,8 +11,214 @@ package body Concorde.Managers.Ships.Trade is
 
    Detailed_Logging       : constant Boolean := True;
 
-   procedure Create_Wanted_Commodities
-     (Manager : in out Root_Ship_Trade_Manager'Class);
+   function Buy_Exported_Commodities
+     (Manager : in out Root_Ship_Trade_Manager'Class)
+      return Boolean;
+
+   function Buy_Exported_Commodities
+     (Manager : in out Root_Ship_Trade_Manager'Class)
+      return Boolean
+   is
+
+      use Concorde.Quantities;
+
+      type Destination_Record is
+         record
+            Community   : Concorde.People.Communities.Community_Type;
+            Commodities : Concorde.Commodities.Root_Stock_Type;
+            Distance    : Non_Negative_Real;
+            Profit      : Concorde.Money.Money_Type;
+         end record;
+
+      package Destination_Queues is
+        new WL.Heaps (Real, Destination_Record);
+
+      Queue : Destination_Queues.Heap;
+
+      Current_System : constant Concorde.Systems.Star_System_Type :=
+                         Manager.Community.World.System;
+
+      Local_Exports  : Concorde.Commodities.Root_Stock_Type;
+
+      Success        : Boolean := False;
+
+      procedure Add_Local_Export
+        (Commodity : Concorde.Commodities.Commodity_Type;
+         Quantity  : Concorde.Quantities.Quantity_Type;
+         Price     : Concorde.Money.Price_Type);
+
+      procedure Check_Community
+        (Community : Concorde.People.Communities.Community_Type);
+
+      procedure Choose_Community;
+
+      ----------------------
+      -- Add_Local_Export --
+      ----------------------
+
+      procedure Add_Local_Export
+        (Commodity : Concorde.Commodities.Commodity_Type;
+         Quantity  : Concorde.Quantities.Quantity_Type;
+         Price     : Concorde.Money.Price_Type)
+      is
+      begin
+         Local_Exports.Add_Quantity
+           (Commodity, Quantity,
+            Concorde.Money.Total (Price, Quantity));
+      end Add_Local_Export;
+
+      ---------------------
+      -- Check_Community --
+      ---------------------
+
+      procedure Check_Community
+        (Community : Concorde.People.Communities.Community_Type)
+      is
+         use type Concorde.People.Communities.Community_Type;
+      begin
+         if Community /= Manager.Community then
+
+            Manager.Ship.Log
+              ("checking community: "
+               & Community.Identifier);
+
+            declare
+               Rec : Destination_Record :=
+                       (Community => Community,
+                        Commodities => <>,
+                        Distance    =>
+                          Concorde.Galaxy.Shortest_Path_Distance
+                            (Current_System,
+                             Community.World.System),
+                        Profit      => Concorde.Money.Zero);
+               Score : Non_Negative_Real := 10.0 / Rec.Distance;
+
+               procedure Add_Import
+                 (Commodity : Concorde.Commodities.Commodity_Type;
+                  Quantity  : Concorde.Quantities.Quantity_Type;
+                  Price     : Concorde.Money.Price_Type);
+
+               ----------------
+               -- Add_Import --
+               ----------------
+
+               procedure Add_Import
+                 (Commodity : Concorde.Commodities.Commodity_Type;
+                  Quantity  : Concorde.Quantities.Quantity_Type;
+                  Price     : Concorde.Money.Price_Type)
+               is
+                  use Concorde.Money;
+                  Local_Quantity : constant Quantity_Type :=
+                                     Local_Exports.Get_Quantity (Commodity);
+                  Local_Price    : constant Price_Type :=
+                                     Local_Exports.Get_Average_Price
+                                       (Commodity);
+                  Max_Quantity   : constant Quantity_Type :=
+                                     Min
+                                       (Manager.Ship.Available_Capacity,
+                                        Min
+                                          (Local_Quantity,
+                                           Quantity));
+               begin
+                  Manager.Ship.Log
+                    (Commodity.Identifier
+                     & " "
+                     & Show (Local_Quantity)
+                     & "/"
+                     & Show (Quantity)
+                     & " for "
+                     & Show (Local_Price)
+                     & "/"
+                     & Show (Price));
+
+                  if Local_Quantity > Zero
+                    and then Local_Price < Price
+                  then
+                     Rec.Commodities.Add_Quantity
+                       (Commodity, Max_Quantity,
+                        Concorde.Money.Total (Price, Max_Quantity));
+                     Rec.Profit := Rec.Profit
+                       + Total
+                       (Price - Local_Price, Max_Quantity);
+                  end if;
+               end Add_Import;
+
+            begin
+               Rec.Commodities.Create_Virtual_Stock;
+               Community.Scan_Imports (Add_Import'Access);
+               Score := Score * Concorde.Money.To_Real (Rec.Profit);
+               Queue.Insert (Score, Rec);
+            end;
+         end if;
+      end Check_Community;
+
+      ----------------------
+      -- Choose_Community --
+      ----------------------
+
+      procedure Choose_Community is
+         Destination : constant Destination_Record :=
+                         Queue.First_Element;
+
+         procedure Buy_Export
+           (Commodity : Concorde.Commodities.Commodity_Type);
+
+         ----------------
+         -- Buy_Export --
+         ----------------
+
+         procedure Buy_Export
+           (Commodity : Concorde.Commodities.Commodity_Type)
+         is
+            Bought : constant Concorde.Quantities.Quantity_Type :=
+                       Concorde.Quantities.Min
+                         (Destination.Commodities.Get_Quantity
+                            (Commodity),
+                          Manager.Ship.Available_Capacity);
+
+            procedure Update
+              (Ship : in out Concorde.Ships.Root_Ship_Type'Class);
+
+            ------------
+            -- Update --
+            ------------
+
+            procedure Update
+              (Ship : in out Concorde.Ships.Root_Ship_Type'Class)
+            is
+            begin
+               Manager.Community.Update.Buy_Export
+                 (Buyer     => Ship,
+                  Commodity => Commodity,
+                  Quantity  => Bought);
+            end Update;
+
+         begin
+            if Bought > Zero then
+               Update (Manager.Ship.Update.all);
+               Success := True;
+            end if;
+         end Buy_Export;
+
+      begin
+         Manager.Next_Destination := Destination.Community;
+         Destination.Commodities.Scan_Stock
+           (Buy_Export'Access);
+      end Choose_Community;
+
+   begin
+
+      Local_Exports.Create_Virtual_Stock;
+      Manager.Community.Scan_Exports (Add_Local_Export'Access);
+
+      Concorde.People.Communities.Scan
+        (Check_Community'Access);
+
+      Choose_Community;
+
+      return Success;
+
+   end Buy_Exported_Commodities;
 
    --------------------
    -- Create_Manager --
@@ -32,117 +238,6 @@ package body Concorde.Managers.Ships.Trade is
          Manager.Next_Destination := Start;
       end return;
    end Create_Manager;
-
-   -------------------------------
-   -- Create_Wanted_Commodities --
-   -------------------------------
-
-   procedure Create_Wanted_Commodities
-     (Manager : in out Root_Ship_Trade_Manager'Class)
-   is
-
-      package Community_Queues is
-        new WL.Heaps (Real, Concorde.People.Communities.Community_Type,
-                      "=" => Concorde.People.Communities."=");
-
-      Queue : Community_Queues.Heap;
-
-      Current_System : constant Concorde.Systems.Star_System_Type :=
-                         Manager.Community.World.System;
-
-      procedure Add_Wanted
-        (Commodity : Concorde.Commodities.Commodity_Type);
-
-      procedure Check_Community
-        (Community : Concorde.People.Communities.Community_Type);
-
-      procedure Choose_Community;
-
-      ----------------
-      -- Add_Wanted --
-      ----------------
-
-      procedure Add_Wanted
-        (Commodity : Concorde.Commodities.Commodity_Type)
-      is
-         use Concorde.Quantities;
-         use Concorde.Money;
-         Local_Price : constant Price_Type :=
-                         Manager.Community.Current_Price (Commodity);
-         Remote_Price : constant Price_Type :=
-                          Manager.Next_Destination.Current_Price (Commodity);
-      begin
-         if Remote_Price > Adjust_Price (Local_Price, 1.2)
-           and then Manager.Community.Current_Supply (Commodity) > Zero
-         then
-            declare
-               Q : constant Quantity_Type :=
-                     Min (Manager.Ship.Available_Capacity,
-                          Get_Quantity (Manager.Ship.Cash, Local_Price));
-            begin
-               Manager.Ship.Log
-                 (Commodity.Identifier
-                  & ": "
-                  & Manager.Community.World.Name
-                  & " price "
-                  & Show (Local_Price)
-                  & "; "
-                  & Manager.Next_Destination.World.Name
-                  & " price "
-                  & Show (Remote_Price)
-                  & "; ordering "
-                  & Show (Q));
-
-               Manager.Ship.Update.Add_Wanted
-                 (Commodity, Q, Local_Price);
-            end;
-         end if;
-      end Add_Wanted;
-
-      ---------------------
-      -- Check_Community --
-      ---------------------
-
-      procedure Check_Community
-        (Community : Concorde.People.Communities.Community_Type)
-      is
-         use type Concorde.People.Communities.Community_Type;
-      begin
-         if Community /= Manager.Community then
-            declare
-               Score : constant Non_Negative_Real :=
-                         10.0 / Concorde.Galaxy.Shortest_Path_Distance
-                           (Current_System,
-                            Community.World.System);
-            begin
-               Queue.Insert (Score, Community);
-            end;
-         end if;
-      end Check_Community;
-
-      ----------------------
-      -- Choose_Community --
-      ----------------------
-
-      procedure Choose_Community is
-      begin
-         Manager.Next_Destination := Queue.First_Element;
-         Manager.Ship.Log
-           ("setting destination: "
-            & Manager.Next_Destination.World.Name);
-      end Choose_Community;
-
-   begin
-      Concorde.People.Communities.Scan
-        (Check_Community'Access);
-
-      Choose_Community;
-
-      for Commodity of Concorde.Commodities.Trade_Commodities loop
-         Add_Wanted (Commodity);
-      end loop;
-
-   end Create_Wanted_Commodities;
 
    -------------
    -- On_Idle --
@@ -164,9 +259,14 @@ package body Concorde.Managers.Ships.Trade is
 
       case Manager.State is
          when Bidding =>
-            Manager.Create_Wanted_Commodities;
-            if Manager.Ship.Has_Wanted then
-               Manager.State := Buying;
+            if Buy_Exported_Commodities (Manager) then
+               Manager.Ship.Log
+                 ("leaving " & Manager.Community.Name);
+               Manager.Community.Update.Remove_Ship (Manager.Ship);
+               Manager.Community := null;
+               Manager.Ship.Update.Clear_Wanted;
+               Manager.Set_Destination (Manager.Next_Destination);
+               Manager.State := Moving;
             end if;
          when Buying =>
             declare
@@ -197,9 +297,31 @@ package body Concorde.Managers.Ships.Trade is
             Manager.State := Selling;
 
          when Selling =>
-            if not Manager.Ship.Has_Offers then
-               Manager.State := Bidding;
-            end if;
+
+            declare
+               procedure Process_Commodity
+                 (Commodity : Concorde.Commodities.Commodity_Type);
+
+               -----------------------
+               -- Process_Commodity --
+               -----------------------
+
+               procedure Process_Commodity
+                 (Commodity : Concorde.Commodities.Commodity_Type)
+               is
+               begin
+                  Manager.Community.Update.Sell_Import
+                    (Seller    => Manager.Ship.Update.all,
+                     Commodity => Commodity,
+                     Quantity  => Manager.Ship.Get_Quantity (Commodity));
+               end Process_Commodity;
+
+            begin
+               Manager.Ship.Scan_Stock (Process_Commodity'Access);
+               if Manager.Ship.Total_Quantity = Zero then
+                  Manager.State := Bidding;
+               end if;
+            end;
       end case;
 
       if Manager.State /= Moving then

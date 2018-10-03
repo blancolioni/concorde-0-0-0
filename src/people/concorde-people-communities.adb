@@ -8,6 +8,22 @@ with Concorde.Ministries;
 
 package body Concorde.People.Communities is
 
+   procedure Scan_Import_Export_Vector
+     (Vector    : Import_Export_Vectors.Vector;
+      Process   : not null access
+        procedure (Commodity : Concorde.Commodities.Commodity_Type;
+                   Quantity  : Concorde.Quantities.Quantity_Type;
+                   Price     : Concorde.Money.Price_Type));
+
+   procedure Import_Export
+     (Vector    : in out Import_Export_Vectors.Vector;
+      Map       : in out Import_Export_Maps.Map;
+      Agent     : not null access constant
+        Concorde.Agents.Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type);
+
    --------------------
    -- Add_Individual --
    --------------------
@@ -72,6 +88,57 @@ package body Concorde.People.Communities is
    begin
       return Community.Local_Commodities.Element (Item).Base_Price;
    end Base_Price;
+
+   ----------------
+   -- Buy_Export --
+   ----------------
+
+   procedure Buy_Export
+     (Community : in out Root_Community_Type'Class;
+      Buyer     : in out Concorde.Agents.Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type)
+   is
+      use Concorde.Quantities;
+      Remaining : Quantity_Type := Quantity;
+      Total     : Quantity_Type := Zero;
+   begin
+      Buyer.Log ("buying " & Show (Quantity) & " " & Commodity.Identifier);
+      for Exporter of Community.Exporters loop
+         declare
+            Rec : Import_Export_Record :=
+                    Exporter.Items.Element (Commodity);
+            Bought : constant Quantity_Type :=
+                       Min (Remaining, Rec.Quantity);
+         begin
+            if Bought > Zero then
+               Rec.Quantity := Rec.Quantity - Bought;
+               Total := Total + Bought;
+               Remaining := Remaining - Bought;
+               Buyer.Require_Cash
+                 (Concorde.Money.Total (Rec.Price, Bought));
+               Buyer.On_Commodity_Buy (Commodity, Bought, Rec.Price);
+               Exporter.Agent.Log
+                 ("exporting " & Show (Bought)
+                  & " " & Commodity.Identifier
+                  & " @ " & Concorde.Money.Show (Rec.Price));
+               Exporter.Agent.Variable_Reference.On_Commodity_Sell
+                 (Commodity, Bought, Rec.Price);
+               Exporter.Items.Replace_Element (Commodity, Rec);
+            end if;
+         end;
+      end loop;
+
+      declare
+         Export : Import_Export_Record :=
+                    Community.Exports.Element (Commodity);
+      begin
+         Export.Quantity := Export.Quantity - Total;
+         Community.Exports.Replace_Element
+           (Commodity, Export);
+      end;
+
+   end Buy_Export;
 
    --------------------
    -- Current_Demand --
@@ -204,6 +271,35 @@ package body Concorde.People.Communities is
       end if;
    end Evaluate_Constraint;
 
+   ------------
+   -- Export --
+   ------------
+
+   procedure Export
+     (Community : in out Root_Community_Type'Class;
+      Exporter  : not null access constant
+        Concorde.Agents.Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type)
+   is
+   begin
+      Exporter.Log
+        ("exporting "
+         & Concorde.Quantities.Show (Quantity)
+         & " "
+         & Commodity.Identifier
+         & " @ "
+         & Concorde.Money.Show (Price));
+      Import_Export
+        (Vector    => Community.Exports,
+         Map       => Community.Exporters,
+         Agent     => Exporter,
+         Commodity => Commodity,
+         Quantity  => Quantity,
+         Price     => Price);
+   end Export;
+
    ---------------------
    -- Get_Field_Value --
    ---------------------
@@ -331,6 +427,78 @@ package body Concorde.People.Communities is
       return Name = "price";
    end Has_Field;
 
+   ------------
+   -- Import --
+   ------------
+
+   procedure Import
+     (Community : in out Root_Community_Type'Class;
+      Importer  : not null access constant
+        Concorde.Agents.Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type)
+   is
+   begin
+      Community.Log
+        (Importer.Identifier
+         & " importing "
+         & Concorde.Quantities.Show (Quantity)
+         & " "
+         & Commodity.Identifier
+         & " @ "
+         & Concorde.Money.Show (Price));
+
+      Import_Export
+        (Vector    => Community.Imports,
+         Map       => Community.Importers,
+         Agent     => Importer,
+         Commodity => Commodity,
+         Quantity  => Quantity,
+         Price     => Price);
+   end Import;
+
+   -------------------
+   -- Import_Export --
+   -------------------
+
+   procedure Import_Export
+     (Vector    : in out Import_Export_Vectors.Vector;
+      Map       : in out Import_Export_Maps.Map;
+      Agent     : not null access constant
+        Concorde.Agents.Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type)
+   is
+      All_Items_Rec : Import_Export_Record :=
+                        Vector.Element (Commodity);
+   begin
+
+      if not Map.Contains (Agent.Identifier) then
+         Map.Insert (Agent.Identifier,
+                     Import_Export_Agent'
+                       (Agent => Agent,
+                        Items => <>));
+      end if;
+
+      declare
+         use Concorde.Quantities;
+         Item_Rec : Import_Export_Record :=
+                      Map.Element (Agent.Identifier).Items.Element (Commodity);
+      begin
+         Item_Rec.Price := Price;
+         All_Items_Rec.Price := Price;
+         All_Items_Rec.Quantity :=
+           All_Items_Rec.Quantity + Quantity - Item_Rec.Quantity;
+         Item_Rec.Quantity := Quantity;
+         Map (Agent.Identifier).Items.Replace_Element
+           (Commodity, Item_Rec);
+         Vector.Replace_Element (Commodity, All_Items_Rec);
+      end;
+
+   end Import_Export;
+
    -----------------
    -- Location_At --
    -----------------
@@ -454,10 +622,80 @@ package body Concorde.People.Communities is
       for Industry of Community.Industries loop
          Process (Industry);
       end loop;
-      for Ship of Community.Ships loop
-         Process (Ship);
+      for Corporation of Community.Corporations loop
+         Process (Corporation);
       end loop;
+      if False then
+         for Ship of Community.Ships loop
+            Process (Ship);
+         end loop;
+      end if;
    end Scan_Agents;
+
+   ------------------
+   -- Scan_Exports --
+   ------------------
+
+   procedure Scan_Exports
+     (Community : Root_Community_Type'Class;
+      Process   : not null access
+        procedure (Commodity : Concorde.Commodities.Commodity_Type;
+                   Quantity  : Concorde.Quantities.Quantity_Type;
+                   Price     : Concorde.Money.Price_Type))
+   is
+   begin
+      Scan_Import_Export_Vector (Community.Exports, Process);
+   end Scan_Exports;
+
+   -------------------------------
+   -- Scan_Import_Export_Vector --
+   -------------------------------
+
+   procedure Scan_Import_Export_Vector
+     (Vector    : Import_Export_Vectors.Vector;
+      Process   : not null access
+        procedure (Commodity : Concorde.Commodities.Commodity_Type;
+                   Quantity  : Concorde.Quantities.Quantity_Type;
+                   Price     : Concorde.Money.Price_Type))
+   is
+
+      procedure Local_Process
+        (Commodity : not null access constant
+           Concorde.Commodities.Root_Commodity_Type'Class;
+         Rec       : Import_Export_Record);
+
+      -------------------
+      -- Local_Process --
+      -------------------
+
+      procedure Local_Process
+        (Commodity : not null access constant
+           Concorde.Commodities.Root_Commodity_Type'Class;
+         Rec       : Import_Export_Record)
+      is
+      begin
+         Process (Concorde.Commodities.Commodity_Type (Commodity),
+                  Rec.Quantity, Rec.Price);
+      end Local_Process;
+
+   begin
+      Vector.Scan (Local_Process'Access);
+   end Scan_Import_Export_Vector;
+
+   ------------------
+   -- Scan_Imports --
+   ------------------
+
+   procedure Scan_Imports
+     (Community : Root_Community_Type'Class;
+      Process   : not null access
+        procedure (Commodity : Concorde.Commodities.Commodity_Type;
+                   Quantity  : Concorde.Quantities.Quantity_Type;
+                   Price     : Concorde.Money.Price_Type))
+   is
+   begin
+      Scan_Import_Export_Vector (Community.Imports, Process);
+   end Scan_Imports;
 
    ----------------------
    -- Scan_Individuals --
@@ -530,6 +768,52 @@ package body Concorde.People.Communities is
    begin
       Community.Network.Scan_State_Nodes (Internal_Process'Access);
    end Scan_State_Nodes;
+
+   -----------------
+   -- Sell_Import --
+   -----------------
+
+   procedure Sell_Import
+     (Community : in out Root_Community_Type'Class;
+      Seller    : in out Concorde.Agents.Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type)
+   is
+      use Concorde.Quantities;
+      Remaining : Quantity_Type := Quantity;
+      Total     : Quantity_Type := Zero;
+   begin
+      for Importer of Community.Importers loop
+         declare
+            Rec  : Import_Export_Record :=
+                     Importer.Items.Element (Commodity);
+            Sold : constant Quantity_Type :=
+                     Min (Remaining, Rec.Quantity);
+         begin
+            if Sold > Zero then
+               Rec.Quantity := Rec.Quantity - Sold;
+               Total := Total + Sold;
+               Remaining := Remaining - Sold;
+               Importer.Agent.Variable_Reference.Require_Cash
+                 (Concorde.Money.Total (Rec.Price, Sold));
+               Importer.Agent.Variable_Reference.On_Commodity_Buy
+                 (Commodity, Sold, Rec.Price);
+               Seller.On_Commodity_Sell
+                 (Commodity, Sold, Rec.Price);
+            end if;
+         end;
+      end loop;
+
+      declare
+         Import : Import_Export_Record :=
+                    Community.Imports.Element (Commodity);
+      begin
+         Import.Quantity := Import.Quantity - Total;
+         Community.Imports.Replace_Element
+           (Commodity, Import);
+      end;
+
+   end Sell_Import;
 
    ------------------
    -- Set_Location --

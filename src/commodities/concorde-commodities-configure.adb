@@ -220,6 +220,33 @@ package body Concorde.Commodities.Configure is
 
    end Configure_Commodity;
 
+   -------------------------------
+   -- Configure_Commodity_Array --
+   -------------------------------
+
+   function Configure_Commodity_Array
+     (From_Config : Tropos.Configuration)
+      return Array_Of_Commodities
+   is
+      Count : Natural := 0;
+   begin
+      return Arr : Array_Of_Commodities (1 .. From_Config.Child_Count) do
+         for Config of From_Config loop
+            declare
+               Id : constant String := Config.Config_Name;
+            begin
+               if Exists (Id) then
+                  Count := Count + 1;
+                  Arr (Count) := Get (Id);
+               else
+                  raise Constraint_Error with
+                    "no such commodity: " & Id;
+               end if;
+            end;
+         end loop;
+      end return;
+   end Configure_Commodity_Array;
+
    ---------------------
    -- Configure_Daily --
    ---------------------

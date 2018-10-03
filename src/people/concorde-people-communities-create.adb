@@ -1,6 +1,9 @@
+with Concorde.Commodities.Configure;
+
 with Concorde.People.Groups;
 with Concorde.Production;
 
+with Concorde.Corporations.Create;
 with Concorde.Government.Create;
 with Concorde.Industries.Create;
 with Concorde.People.Pops.Create;
@@ -199,6 +202,41 @@ package body Concorde.People.Communities.Create is
                   Production => Production,
                   Size       => Industry_Size,
                   Cash       => Start_Cash));
+         end;
+      end loop;
+
+      for Corporation_Config of Template.Child ("corporations") loop
+         declare
+            use Concorde.Commodities, Concorde.Commodities.Configure;
+            use Concorde.Corporations;
+            use Concorde.Money;
+
+            Config_Size      : constant Non_Negative_Real :=
+                                 Non_Negative_Real
+                                   (Float'(Corporation_Config.Get ("size")));
+            Corporation_Size : constant Quantity_Type :=
+                                 To_Quantity (Config_Size);
+            Start_Cash       : constant Money_Type :=
+                                 To_Money (Config_Size);
+            Commodities      : constant Array_Of_Commodities :=
+                                 Configure_Commodity_Array
+                                   (Corporation_Config.Child
+                                      ("commodities"));
+            Business : constant Corporation_Business_Type :=
+                         Corporation_Business_Type'Value
+                           (Corporation_Config.Config_Name);
+         begin
+
+            Community.Update.Corporations.Append
+              (Concorde.Corporations.Create.New_Corporation
+                 (Market      => Community.Market,
+                  Government  => Community.Government,
+                  Owner       => Faction,
+                  Community   => Community,
+                  Business    => Business,
+                  Commodities => Commodities,
+                  Size        => Corporation_Size,
+                  Cash        => Start_Cash));
          end;
       end loop;
 

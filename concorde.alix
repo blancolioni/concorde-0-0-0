@@ -7,6 +7,7 @@ source_dir = src/codes
 source_dir = src/colonies
 source_dir = src/commodities
 source_dir = src/configure
+source_dir = src/corporations
 source_dir = src/driver
 source_dir = src/economy
 source_dir = src/facilities

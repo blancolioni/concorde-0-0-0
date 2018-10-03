@@ -172,6 +172,17 @@ package body Concorde.Commodities is
       Stock.Virtual := Virtual;
    end Create_Stock;
 
+   --------------------------
+   -- Create_Virtual_Stock --
+   --------------------------
+
+   procedure Create_Virtual_Stock
+     (Stock   : in out Root_Stock_Type'Class)
+   is
+   begin
+      Stock.Create_Stock (Concorde.Quantities.Zero, True);
+   end Create_Virtual_Stock;
+
    ---------
    -- Get --
    ---------

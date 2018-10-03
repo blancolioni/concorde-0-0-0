@@ -1,7 +1,7 @@
+private with WL.String_Maps;
+
 private with Memor.Database;
 private with Memor.Element_Vectors;
-
-private with Concorde.Agents;
 
 with Concorde.Money;
 with Concorde.Quantities;
@@ -12,6 +12,7 @@ with Concorde.Calendar;
 with Concorde.Objects;
 with Concorde.Locations;
 
+with Concorde.Agents;
 with Concorde.Commodities;
 with Concorde.Factions;
 with Concorde.Government;
@@ -26,6 +27,7 @@ with Concorde.Ships;
 
 limited with Concorde.Worlds;
 
+private with Concorde.Corporations.Lists;
 private with Concorde.Industries.Lists;
 private with Concorde.People.Individuals.Lists;
 private with Concorde.People.Pops.Lists;
@@ -67,6 +69,48 @@ package Concorde.People.Communities is
    function Market
      (Community : Root_Community_Type'Class)
       return Concorde.Markets.Market_Type;
+
+   procedure Scan_Exports
+     (Community : Root_Community_Type'Class;
+      Process   : not null access
+        procedure (Commodity : Concorde.Commodities.Commodity_Type;
+                   Quantity  : Concorde.Quantities.Quantity_Type;
+                   Price     : Concorde.Money.Price_Type));
+
+   procedure Scan_Imports
+     (Community : Root_Community_Type'Class;
+      Process   : not null access
+        procedure (Commodity : Concorde.Commodities.Commodity_Type;
+                   Quantity  : Concorde.Quantities.Quantity_Type;
+                   Price     : Concorde.Money.Price_Type));
+
+   procedure Export
+     (Community : in out Root_Community_Type'Class;
+      Exporter  : not null access constant
+        Concorde.Agents.Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type);
+
+   procedure Import
+     (Community : in out Root_Community_Type'Class;
+      Importer  : not null access constant
+        Concorde.Agents.Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type);
+
+   procedure Buy_Export
+     (Community : in out Root_Community_Type'Class;
+      Buyer     : in out Concorde.Agents.Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type);
+
+   procedure Sell_Import
+     (Community : in out Root_Community_Type'Class;
+      Seller    : in out Concorde.Agents.Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type);
 
    procedure Add_Pop
      (Community : in out Root_Community_Type'Class;
@@ -181,6 +225,28 @@ private
        (Concorde.Commodities.Root_Commodity_Type,
         Local_Commodity_Access, null);
 
+   type Import_Export_Record is
+      record
+         Quantity  : Concorde.Quantities.Quantity_Type;
+         Price     : Concorde.Money.Price_Type;
+      end record;
+
+   package Import_Export_Vectors is
+     new Memor.Element_Vectors
+       (Concorde.Commodities.Root_Commodity_Type,
+        Import_Export_Record,
+        (Concorde.Quantities.Zero, Concorde.Money.Zero));
+
+   type Import_Export_Agent is
+      record
+         Agent : access constant
+           Concorde.Agents.Root_Agent_Type'Class;
+         Items : Import_Export_Vectors.Vector;
+      end record;
+
+   package Import_Export_Maps is
+     new WL.String_Maps (Import_Export_Agent);
+
    type Root_Community_Type is
      new Concorde.Objects.Root_User_Named_Object_Type
      and Concorde.Government.Governed_Interface
@@ -193,8 +259,13 @@ private
            Concorde.Worlds.Root_World_Type'Class;
          Owner             : Concorde.Factions.Faction_Type;
          Network           : Concorde.Network.Nodes.Node_State_Map;
+         Importers         : Import_Export_Maps.Map;
+         Exporters         : Import_Export_Maps.Map;
+         Imports           : Import_Export_Vectors.Vector;
+         Exports           : Import_Export_Vectors.Vector;
          Pops              : Concorde.People.Pops.Lists.List;
          Individuals       : Concorde.People.Individuals.Lists.List;
+         Corporations      : Concorde.Corporations.Lists.List;
          Industries        : Concorde.Industries.Lists.List;
          Ships             : Concorde.Ships.Lists.List;
          Market            : Concorde.Markets.Market_Type;

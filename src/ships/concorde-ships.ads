@@ -42,18 +42,6 @@ package Concorde.Ships is
      (Ship : in out Root_Ship_Type;
       Name : String);
 
-   overriding procedure On_Commodity_Buy
-     (Ship      : in out Root_Ship_Type;
-      Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity_Type;
-      Price     : Concorde.Money.Price_Type);
-
-   overriding procedure On_Commodity_Sell
-     (Ship      : in out Root_Ship_Type;
-      Commodity : Concorde.Commodities.Commodity_Type;
-      Quantity  : Concorde.Quantities.Quantity_Type;
-      Price     : Concorde.Money.Price_Type);
-
    function Alive (Ship : Root_Ship_Type) return Boolean
                    is abstract;
 
@@ -165,21 +153,6 @@ private
          Buying           : Concorde.Commodities.Root_Stock_Type;
          Selling          : Concorde.Commodities.Root_Stock_Type;
       end record;
-
-   overriding function Daily_Budget
-     (Ship      : Root_Ship_Type;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Money.Money_Type;
-
-   overriding function Daily_Needs
-     (Ship      : Root_Ship_Type;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type;
-
-   overriding function Daily_Supply
-     (Ship      : Root_Ship_Type;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type;
 
    overriding function Offer_Strategy
      (Ship      : Root_Ship_Type;

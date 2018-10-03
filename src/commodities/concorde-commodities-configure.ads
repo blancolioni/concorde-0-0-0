@@ -11,6 +11,10 @@ package Concorde.Commodities.Configure is
       Stock       : in out Stock_Interface'Class;
       Factor      : Non_Negative_Real := 1.0);
 
+   function Configure_Commodity_Array
+     (From_Config : Tropos.Configuration)
+      return Array_Of_Commodities;
+
    procedure Calculate_Base_Prices;
 
    function New_Pop_Group

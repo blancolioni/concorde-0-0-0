@@ -176,6 +176,9 @@ package Concorde.Commodities is
       Maximum : Concorde.Quantities.Quantity_Type;
       Virtual : Boolean);
 
+   procedure Create_Virtual_Stock
+     (Stock   : in out Root_Stock_Type'Class);
+
    function Pop_Daily_Needs
      (Commodity : Commodity_Type)
       return Non_Negative_Real;

@@ -59,6 +59,20 @@ industries = {
    basic-ship-fuel = 50
 }
 
+corporations = {
+   export = {
+      size = 10000
+      commodities = { luxury-goods electronics basic-ship-fuel }
+   }
+   import = {
+      size = 10000
+      commodities = { food uranium rare-earths metal }
+   }
+   banking = {
+      size = 100K
+   }
+}
+
 pop-size = 10K
 gini = 0.7
 apathy = 0.8
