@@ -1,5 +1,4 @@
 with Concorde.Logging;
-with Concorde.Random;
 with Concorde.Real_Images;
 
 package body Concorde.Production is
@@ -77,11 +76,7 @@ package body Concorde.Production is
                            (Stock.Get_Quantity (Input.Commodity))
                          else Capacity * Input.Relative_Quantity
                          * Input.Consumption);
-               Quantity  : constant Quantity_Type :=
-                             To_Quantity (Real'Floor (Used))
-                             + (if Concorde.Random.Unit_Random
-                                < Used - Real'Floor (Used)
-                                then Unit else Zero);
+               Quantity  : constant Quantity_Type := To_Quantity (Used);
                This_Price : constant Concorde.Money.Price_Type :=
                               Stock.Get_Average_Price (Input.Commodity);
                This_Cost  : constant Concorde.Money.Money_Type :=
@@ -89,7 +84,10 @@ package body Concorde.Production is
             begin
                Concorde.Logging.Log
                  (Production.Identifier, "", "production",
-                  Show (Quantity) & " " & Input.Commodity.Identifier
+                  Show (Quantity)
+                  & " of "
+                  & Show (Stock.Get_Quantity (Input.Commodity))
+                  & " " & Input.Commodity.Identifier
                   & " cost " & Show (This_Cost));
                Stock.Remove_Quantity
                  (Input.Commodity, Quantity, This_Cost);
