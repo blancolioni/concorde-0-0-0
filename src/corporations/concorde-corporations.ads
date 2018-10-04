@@ -57,6 +57,8 @@ private
          Business     : Corporation_Business_Type;
          Commodities  : Concorde.Commodities.Lists.List;
          Requirements : Concorde.Commodities.Virtual_Stock_Type;
+         Offered      : Concorde.Commodities.Virtual_Stock_Type;
+         Sold         : Concorde.Commodities.Virtual_Stock_Type;
       end record;
 
    overriding procedure Update_Agent

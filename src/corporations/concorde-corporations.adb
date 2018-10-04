@@ -74,8 +74,23 @@ package body Concorde.Corporations is
    begin
       case Corporation.Business is
          when Import =>
-            return Concorde.Quantities.Scale
-              (Corporation.Get_Quantity (Commodity), 0.5);
+            declare
+               use Concorde.Money, Concorde.Quantities;
+               Sold    : constant Quantity_Type :=
+                           Corporation.Sold.Get_Quantity (Commodity);
+               Have    : constant Quantity_Type :=
+                           Corporation.Get_Quantity (Commodity);
+            begin
+               if Corporation.Community.Current_Price (Commodity)
+                 <= Corporation.Get_Average_Price (Commodity)
+               then
+                  return Scale (Have, 0.1);
+               elsif Sold > Zero then
+                  return Min (Have, Scale (Sold, 1.1));
+               else
+                  return Scale (Have, 0.2);
+               end if;
+            end;
          when Export =>
             return Concorde.Quantities.Zero;
          when Banking =>
