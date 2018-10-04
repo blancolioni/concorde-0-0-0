@@ -216,7 +216,7 @@ package body Concorde.People.Communities.Create is
             Corporation_Size : constant Quantity_Type :=
                                  To_Quantity (Config_Size);
             Start_Cash       : constant Money_Type :=
-                                 To_Money (Config_Size);
+                                 To_Money (Config_Size * 10.0);
             Requirements     : Concorde.Commodities.Virtual_Stock_Type;
             Business : constant Corporation_Business_Type :=
                          Corporation_Business_Type'Value
