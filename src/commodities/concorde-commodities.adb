@@ -254,6 +254,24 @@ package body Concorde.Commodities is
       return Result (1 .. Count);
    end Get;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   overriding procedure Initialize (Stock : in out Root_Stock_Type) is
+   begin
+      Stock.Virtual := False;
+   end Initialize;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   overriding procedure Initialize (Stock : in out Virtual_Stock_Type) is
+   begin
+      Stock.Virtual := True;
+   end Initialize;
+
    ------------------
    -- Is_Pop_Group --
    ------------------

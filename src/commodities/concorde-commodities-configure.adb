@@ -299,21 +299,25 @@ package body Concorde.Commodities.Configure is
          declare
             use Concorde.Quantities, Concorde.Money;
             Item : constant Commodity_Type := Get (Config.Config_Name);
-            Quantity : constant Float :=
-                         (if Config.Contains ("quantity")
-                          then Config.Get ("quantity")
-                          else Config.Value);
+            Quantity : constant Non_Negative_Real :=
+                         Non_Negative_Real
+                           (Float'
+                              (if Config.Contains ("quantity")
+                               then Config.Get ("quantity")
+                               elsif Config.Child_Count = 0
+                               then 1.0
+                               else Config.Value));
             Value    : constant Non_Negative_Real :=
                          (if Config.Contains ("value")
                           then Real (Float'(Config.Get ("value")))
                           else To_Real
                             (Adjust_Price
                                (Item.Base_Price,
-                                Real (Quantity))));
+                                Quantity)));
          begin
             Stock.Add_Quantity
               (Item     => Item,
-               Quantity => To_Quantity (Real (Quantity) * Factor),
+               Quantity => To_Quantity (Quantity * Factor),
                Value    => To_Money (Value * Factor));
          end;
       end loop;

@@ -207,7 +207,6 @@ package body Concorde.People.Communities.Create is
 
       for Corporation_Config of Template.Child ("corporations") loop
          declare
-            use Concorde.Commodities, Concorde.Commodities.Configure;
             use Concorde.Corporations;
             use Concorde.Money;
 
@@ -218,25 +217,26 @@ package body Concorde.People.Communities.Create is
                                  To_Quantity (Config_Size);
             Start_Cash       : constant Money_Type :=
                                  To_Money (Config_Size);
-            Commodities      : constant Array_Of_Commodities :=
-                                 Configure_Commodity_Array
-                                   (Corporation_Config.Child
-                                      ("commodities"));
+            Requirements     : Concorde.Commodities.Virtual_Stock_Type;
             Business : constant Corporation_Business_Type :=
                          Corporation_Business_Type'Value
                            (Corporation_Config.Config_Name);
          begin
 
+            Concorde.Commodities.Configure.Configure_Stock
+              (Corporation_Config.Child ("commodities"),
+               Requirements);
+
             Community.Update.Corporations.Append
               (Concorde.Corporations.Create.New_Corporation
-                 (Market      => Community.Market,
-                  Government  => Community.Government,
-                  Owner       => Faction,
-                  Community   => Community,
-                  Business    => Business,
-                  Commodities => Commodities,
-                  Size        => Corporation_Size,
-                  Cash        => Start_Cash));
+                 (Market       => Community.Market,
+                  Government   => Community.Government,
+                  Owner        => Faction,
+                  Community    => Community,
+                  Business     => Business,
+                  Requirements => Requirements,
+                  Size         => Corporation_Size,
+                  Cash         => Start_Cash));
          end;
       end loop;
 

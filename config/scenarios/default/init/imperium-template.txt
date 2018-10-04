@@ -51,18 +51,19 @@ industries = {
    precious-metal-mine = 1%
    rare-earths-mine = 1%
    uranium-mine = 1%
-   luxury-goods = 200
+   luxury-goods = 300
    machinery = 50
    fission-power = 10000
    chemicals = 100
-   electronics = 200
+   electronics = 500
    basic-ship-fuel = 50
 }
 
 corporations = {
    export = {
       size = 10000
-      commodities = { luxury-goods electronics basic-ship-fuel machinery chemicals }
+      commodities = { luxury-goods = 10 }
+      # commodities = { luxury-goods = 10 electronics = 20 basic-ship-fuel = 10 machinery = 5 chemicals = 5 }
    }
    import = {
       size = 10000

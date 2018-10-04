@@ -22,7 +22,7 @@ package body Concorde.Corporations.Create is
       Community       : not null access constant
         Concorde.People.Communities.Root_Community_Type'Class;
       Business        : Corporation_Business_Type;
-      Commodities     : Concorde.Commodities.Array_Of_Commodities;
+      Requirements    : Concorde.Commodities.Stock_Interface'Class;
       Size            : Concorde.Quantities.Quantity_Type;
       Cash            : Concorde.Money.Money_Type)
       return Corporation_Type
@@ -50,9 +50,27 @@ package body Concorde.Corporations.Create is
          Corporation.Size := Size;
          Corporation.Set_Guarantor (Owner);
 
-         for Commodity of Commodities loop
-            Corporation.Commodities.Append (Commodity);
-         end loop;
+         declare
+            procedure Process
+              (Commodity : Concorde.Commodities.Commodity_Type);
+
+            -------------
+            -- Process --
+            -------------
+
+            procedure Process
+              (Commodity : Concorde.Commodities.Commodity_Type)
+            is
+            begin
+               Corporation.Requirements.Add_Quantity
+                 (Commodity, Requirements.Get_Quantity (Commodity),
+                  Requirements.Get_Value (Commodity));
+               Corporation.Commodities.Append (Commodity);
+            end Process;
+
+         begin
+            Requirements.Scan_Stock (Process'Access);
+         end;
 
       end Create;
 

@@ -37,9 +37,23 @@ package body Concorde.Corporations is
             when Import =>
                return Concorde.Quantities.Zero;
             when Export =>
-               return Concorde.Quantities.Scale
-                 (Corporation.Size,
-                  1.0 / Real (Corporation.Commodities.Length));
+               declare
+                  use Concorde.Quantities;
+                  Proportion : constant Unit_Real :=
+                                 1.0 / Real (Corporation.Commodities.Length);
+                  Current    : constant Quantity_Type :=
+                              Corporation.Get_Quantity (Commodity);
+                  Remaining : constant Quantity_Type :=
+                                 Corporation.Available_Capacity;
+                  Requirement : constant Quantity_Type :=
+                                  Concorde.Commodities.Get_Quantity
+                                    (Corporation.Requirements,
+                                     Commodity);
+               begin
+                  return Current
+                    + Min (Requirement,
+                           Scale (Remaining, Proportion));
+               end;
             when Banking =>
                return Concorde.Quantities.Zero;
          end case;
@@ -60,7 +74,8 @@ package body Concorde.Corporations is
    begin
       case Corporation.Business is
          when Import =>
-            return Corporation.Get_Quantity (Commodity);
+            return Concorde.Quantities.Scale
+              (Corporation.Get_Quantity (Commodity), 0.5);
          when Export =>
             return Concorde.Quantities.Zero;
          when Banking =>

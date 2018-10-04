@@ -1,4 +1,5 @@
 private with Ada.Containers.Vectors;
+private with Ada.Finalization;
 
 private with Memor;
 private with Memor.Database;
@@ -187,6 +188,8 @@ package Concorde.Commodities is
      (Commodity : Commodity_Type)
       return Unit_Real;
 
+   type Virtual_Stock_Type is new Root_Stock_Type with private;
+
 private
 
    type Root_Commodity_Type is
@@ -214,13 +217,17 @@ private
         Stock_Entry,
         (Concorde.Quantities.Zero, Concorde.Money.Zero));
 
-   type Root_Stock_Type is new Stock_Interface with
+   type Root_Stock_Type is
+     new Ada.Finalization.Controlled
+     and Stock_Interface with
       record
          Maximum : Concorde.Quantities.Quantity_Type :=
                      Concorde.Quantities.Zero;
          Vector  : Stock_Vectors.Vector;
-         Virtual : Boolean;
+         Virtual : Boolean := False;
       end record;
+
+   overriding procedure Initialize (Stock : in out Root_Stock_Type);
 
    overriding function Is_Virtual
      (Stock : Root_Stock_Type)
@@ -258,6 +265,10 @@ private
      (Stock   : Root_Stock_Type;
       Process : not null access
         procedure (Commodity : Commodity_Type));
+
+   type Virtual_Stock_Type is new Root_Stock_Type with null record;
+
+   overriding procedure Initialize (Stock : in out Virtual_Stock_Type);
 
    package Db is
      new Memor.Database

@@ -17,7 +17,7 @@ package Concorde.Corporations.Create is
       Community       : not null access constant
         Concorde.People.Communities.Root_Community_Type'Class;
       Business        : Corporation_Business_Type;
-      Commodities     : Concorde.Commodities.Array_Of_Commodities;
+      Requirements    : Concorde.Commodities.Stock_Interface'Class;
       Size            : Concorde.Quantities.Quantity_Type;
       Cash            : Concorde.Money.Money_Type)
       return Corporation_Type;

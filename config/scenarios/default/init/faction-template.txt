@@ -60,7 +60,7 @@ industries = {
 corporations = {
    export = {
       size = 1000
-      commodities = { food uranium rare-earths metal }
+      commodities = { food = 500 uranium = 10 rare-earths = 20 metal = 20 }
    }
    import = {
       size = 1000

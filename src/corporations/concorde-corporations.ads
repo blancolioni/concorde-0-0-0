@@ -48,14 +48,15 @@ private
      new Concorde.Agents.Root_Agent_Type
      and Concorde.Managers.Managed_Interface with
       record
-         Manager     : Concorde.Managers.Manager_Type;
-         Owner       : access constant
+         Manager      : Concorde.Managers.Manager_Type;
+         Owner        : access constant
            Concorde.Agents.Root_Agent_Type'Class;
-         Community   : access constant
+         Community    : access constant
            Concorde.People.Communities.Root_Community_Type'Class;
-         Size        : Concorde.Quantities.Quantity_Type;
-         Business    : Corporation_Business_Type;
-         Commodities : Concorde.Commodities.Lists.List;
+         Size         : Concorde.Quantities.Quantity_Type;
+         Business     : Corporation_Business_Type;
+         Commodities  : Concorde.Commodities.Lists.List;
+         Requirements : Concorde.Commodities.Virtual_Stock_Type;
       end record;
 
    overriding procedure Update_Agent
