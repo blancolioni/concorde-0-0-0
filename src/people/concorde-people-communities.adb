@@ -800,6 +800,7 @@ package body Concorde.People.Communities is
                  (Commodity, Sold, Rec.Price);
                Seller.On_Commodity_Sell
                  (Commodity, Sold, Rec.Price);
+               Importer.Items.Replace_Element (Commodity, Rec);
             end if;
          end;
       end loop;
