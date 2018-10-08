@@ -53,4 +53,6 @@ package Concorde.Options is
    
    Write_Character_Portraits : Boolean;
    
+   Show_Console_Progress     : Boolean := True;
+   
 end Concorde.Options;

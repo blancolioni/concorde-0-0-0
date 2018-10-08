@@ -119,16 +119,20 @@ begin
          Process      : WL.Processes.Process_Type;
          Update_Count : constant Natural :=
                           Concorde.Options.Update_Count * 24 * 60;
+         Show_Console_Progress : constant Boolean :=
+                                   Concorde.Options.Show_Console_Progress;
       begin
 
-         if Concorde.Options.Update_Count >= 100 then
-            Process.Start_Bar
-              ("Updating",
-               Finish => Update_Count);
-         else
-            Process.Start_Percentage
-              ("Updating",
-               Finish => Update_Count);
+         if Show_Console_Progress then
+            if Concorde.Options.Update_Count >= 100 then
+               Process.Start_Bar
+                 ("Updating",
+                  Finish => Update_Count);
+            else
+               Process.Start_Percentage
+                 ("Updating",
+                  Finish => Update_Count);
+            end if;
          end if;
 
          Concorde.Galaxy.Locking.Init_Locking;
@@ -164,9 +168,14 @@ begin
                end;
             end if;
             Concorde.Updates.Advance (60.0);
-            Process.Tick;
+            if Show_Console_Progress then
+               Process.Tick;
+            end if;
          end loop;
-         Process.Finish;
+
+         if Show_Console_Progress then
+            Process.Finish;
+         end if;
 
          Concorde.People.Communities.Scan
            (Concorde.People.Communities.Reports.Report_Community'Access);
@@ -249,7 +258,8 @@ begin
    end if;
 
    if Concorde.Options.Detailed_Logging then
-      Concorde.Logs.Flush_Logs;
+      Concorde.Logs.Flush_Logs
+        (Concorde.Options.Show_Console_Progress);
    end if;
 
 exception
@@ -261,7 +271,7 @@ exception
          Concorde.Factions.Logging.Stop_Logging;
       end if;
       Concorde.Logging.Stop_Logging;
-      Concorde.Logs.Flush_Logs;
+      Concorde.Logs.Flush_Logs (Concorde.Options.Show_Console_Progress);
       raise;
 
 end Concorde.Driver;

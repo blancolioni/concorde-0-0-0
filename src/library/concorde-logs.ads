@@ -41,6 +41,6 @@ package Concorde.Logs is
       Field_15  : String := "";
       Field_16  : String := "");
 
-   procedure Flush_Logs;
+   procedure Flush_Logs (Show_Console_Progress : Boolean);
 
 end Concorde.Logs;

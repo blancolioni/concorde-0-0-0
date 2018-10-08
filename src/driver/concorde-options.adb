@@ -238,4 +238,10 @@ package body Concorde.Options is
                ("write-character-portraits", ' ');
    end Write_Character_Portraits;
 
+   function Show_Console_Progress return Boolean is
+   begin
+      return WL.Command_Line.Find_Option
+               ("show-console-progress", ' ');
+   end Show_Console_Progress;
+
 end Concorde.Options;

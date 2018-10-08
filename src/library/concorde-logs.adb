@@ -87,7 +87,7 @@ package body Concorde.Logs is
    -- Flush_Logs --
    ----------------
 
-   procedure Flush_Logs is
+   procedure Flush_Logs (Show_Console_Progress : Boolean) is
       Base_Path : constant String := Concorde.Options.Log_Folder;
       Process : WL.Processes.Process_Type;
    begin
@@ -95,8 +95,10 @@ package body Concorde.Logs is
          return;
       end if;
 
-      Process.Start_Percentage
-        ("Writing log files", Positive (Log_Files.Length));
+      if Show_Console_Progress then
+         Process.Start_Percentage
+           ("Writing log files", Positive (Log_Files.Length));
+      end if;
 
       for Position in Log_Files.Iterate loop
          declare
@@ -113,10 +115,14 @@ package body Concorde.Logs is
                Put_Line (File, Line);
             end loop;
             Close (File);
-            Process.Tick;
+            if Show_Console_Progress then
+               Process.Tick;
+            end if;
          end;
       end loop;
-      Process.Finish;
+      if Show_Console_Progress then
+         Process.Finish;
+      end if;
       Log_Files.Clear;
 
    end Flush_Logs;
