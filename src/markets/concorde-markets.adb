@@ -1204,16 +1204,21 @@ package body Concorde.Markets is
          is
             Required      : constant Quantity_Type :=
                               Agent.Daily_Needs (Commodity);
+            Desired       : constant Quantity_Type :=
+                              Agent.Daily_Desire (Commodity);
             Supply        : constant Quantity_Type :=
                               Agent.Daily_Supply (Commodity);
             Have          : constant Quantity_Type :=
                               Agent.Get_Quantity (Commodity);
-            Space          : constant Quantity_Type :=
+            Space         : constant Quantity_Type :=
                                Agent.Available_Capacity;
-            Demand        : constant Quantity_Type :=
+            Basic_Demand  : constant Quantity_Type :=
                               (if Have >= Required
                                then Zero else Required - Have);
-            Budget        : constant Money_Type :=
+            Desire_Demand : constant Quantity_Type :=
+                               (if Have >= Desired
+                                then Zero else Desired - Have);
+            Budget         : constant Money_Type :=
                               Agent.Daily_Budget (Commodity);
             Buy_Tax       : constant Unit_Real :=
                               (if Agent.Market_Resident
@@ -1229,7 +1234,7 @@ package body Concorde.Markets is
                               Without_Tax (Price, Sell_Tax);
             Preferred_Bid : constant Quantity_Type :=
                                Min
-                                 (Demand,
+                                 (Desire_Demand,
                                   Get_Quantity (Budget, Buyer_Price));
             Bid            : constant Quantity_Type :=
                                (if Commodity.Is_Set
@@ -1239,12 +1244,14 @@ package body Concorde.Markets is
                                 else Min (Preferred_Bid, Space));
             Ask           : constant Quantity_Type := Supply;
          begin
-            if Supply > Zero or else Demand > Zero or else Have > Zero
+            if Supply > Zero or else Basic_Demand > Zero or else Have > Zero
               or else Bid > Zero or else Ask > Zero
             then
                Agent.Log (Commodity.Identifier
                           & ": want "
                           & Show (Required)
+                          & "; desire "
+                          & Show (Desired)
                           & "; have "
                           & Show (Have)
                           & "; space "
@@ -1284,7 +1291,7 @@ package body Concorde.Markets is
             end if;
 
             if Required > Have then
-               Total_Desire := Total_Desire + Demand;
+               Total_Desire := Total_Desire + Desire_Demand;
             end if;
 
             Total_Available := Total_Available + Ask;
