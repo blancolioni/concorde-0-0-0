@@ -319,6 +319,14 @@ package body Concorde.Commodities is
       return Db.Get_Database;
    end Object_Database;
 
+   function Pop_Daily_Desires
+     (Commodity : Commodity_Type)
+      return Non_Negative_Real
+   is
+   begin
+      return Daily_Pop.Element (Commodity).Desires;
+   end Pop_Daily_Desires;
+
    ---------------------
    -- Pop_Daily_Needs --
    ---------------------

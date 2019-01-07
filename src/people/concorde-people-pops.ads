@@ -69,6 +69,11 @@ private
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity_Type;
 
+   overriding function Daily_Desire
+     (Pop       : Root_Pop_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity_Type;
+
    overriding function Daily_Supply
      (Pop       : Root_Pop_Type;
       Commodity : Concorde.Commodities.Commodity_Type)

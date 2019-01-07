@@ -89,6 +89,11 @@ package Concorde.Agents is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity_Type;
 
+   function Daily_Desire
+     (Agent     : Root_Agent_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity_Type;
+
    function Daily_Supply
      (Agent     : Root_Agent_Type;
       Commodity : Concorde.Commodities.Commodity_Type)

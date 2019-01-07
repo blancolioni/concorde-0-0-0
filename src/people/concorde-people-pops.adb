@@ -15,6 +15,28 @@ package body Concorde.People.Pops is
         (Pop.Cash, Concorde.Commodities.Pop_Max_Budget (Commodity));
    end Daily_Budget;
 
+   ------------------
+   -- Daily_Desire --
+   ------------------
+
+   overriding function Daily_Desire
+     (Pop       : Root_Pop_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity_Type
+   is
+      use type Concorde.Commodities.Commodity_Type;
+   begin
+      if Pop.Group.Has_Commodity
+        and then Pop.Group.Commodity = Commodity
+      then
+         return Concorde.Quantities.Zero;
+      else
+         return Concorde.Quantities.Scale
+           (Pop.Size_Quantity,
+            Concorde.Commodities.Pop_Daily_Desires (Commodity));
+      end if;
+   end Daily_Desire;
+
    -----------------
    -- Daily_Needs --
    -----------------

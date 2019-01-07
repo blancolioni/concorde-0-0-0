@@ -260,11 +260,16 @@ package body Concorde.Commodities.Configure is
          declare
             Commodity : constant Commodity_Type :=
                           Get (Item_Config.Config_Name);
+            Need      : constant Float := Item_Config.Get ("need");
+            Desire    : constant Float := Item_Config.Get ("desire", Need);
+            Budget    : constant Float := Item_Config.Get ("budget");
          begin
             Vector.Replace_Element
               (Commodity,
-               (Real (Float'(Item_Config.Get ("need"))),
-                Real (Float'(Item_Config.Get ("budget")))));
+               Daily_Record'
+                 (Needs   => Real (Need),
+                  Desires => Real (Desire),
+                  Budget  => Real (Budget)));
          end;
       end loop;
    end Configure_Daily;

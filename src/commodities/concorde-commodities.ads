@@ -184,6 +184,10 @@ package Concorde.Commodities is
      (Commodity : Commodity_Type)
       return Non_Negative_Real;
 
+   function Pop_Daily_Desires
+     (Commodity : Commodity_Type)
+      return Non_Negative_Real;
+
    function Pop_Max_Budget
      (Commodity : Commodity_Type)
       return Unit_Real;
@@ -284,13 +288,15 @@ private
 
    type Daily_Record is
       record
-         Needs  : Non_Negative_Real;
-         Budget : Unit_Real;
+         Needs   : Non_Negative_Real := 0.0;
+         Desires : Non_Negative_Real := 0.0;
+         Budget  : Unit_Real         := 0.0;
       end record;
 
    package Commodity_Daily_Vectors is
-     new Memor.Element_Vectors (Root_Commodity_Type, Daily_Record,
-                                (0.0, 0.0));
+     new Memor.Element_Vectors
+       (Root_Commodity_Type, Daily_Record,
+        (others => <>));
 
    Daily_Pop : Commodity_Daily_Vectors.Vector;
 

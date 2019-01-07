@@ -775,7 +775,7 @@ package body Concorde.Agents is
    exception
       when E : others =>
          Agent.Log_Trade
-           ("while creating bid for " & Commodity.Name
+           ("while creating ask for " & Commodity.Name
             & ": "
             & Ada.Exceptions.Exception_Message (E));
    end Create_Ask;
@@ -1110,6 +1110,19 @@ package body Concorde.Agents is
    begin
       return Concorde.Money.Zero;
    end Daily_Budget;
+
+   ------------------
+   -- Daily_Desire --
+   ------------------
+
+   function Daily_Desire
+     (Agent     : Root_Agent_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity_Type
+   is
+   begin
+      return Root_Agent_Type'Class (Agent).Daily_Needs (Commodity);
+   end Daily_Desire;
 
    -----------------
    -- Daily_Needs --
@@ -1759,11 +1772,33 @@ package body Concorde.Agents is
          & Concorde.Money.Show (Price)
          & " total "
          & Concorde.Money.Show (Total)
+         & "; room = "
+         & Concorde.Quantities.Show (Agent.Available_Quantity)
          & "; cash = "
          & Concorde.Money.Show (Agent.Cash)
          & "; limit = "
          & Concorde.Money.Show (Root_Agent_Type'Class (Agent).Limit_Cash));
       Agent.Remove_Cash (Total);
+
+      if not Commodity.Is_Set
+        (Concorde.Commodities.Virtual)
+        and then Quantity > Agent.Available_Quantity
+      then
+         Agent.Log ("insufficient room");
+         for Item of Concorde.Commodities.All_Commodities loop
+            if Agent.Get_Quantity (Item) > Quantities.Zero then
+               Agent.Log (Quantities.Show (Agent.Get_Quantity (Item))
+                          & " " & Item.Name);
+            end if;
+         end loop;
+         Agent.Log (Quantities.Show (Agent.Total_Quantity)
+                    & " total");
+         Agent.Log (Quantities.Show (Agent.Maximum_Quantity)
+                    & " maximum");
+         raise Constraint_Error with
+           "agent " & Agent.Identifier
+           & " has insufficient room for purchase";
+      end if;
       Agent.Add_Quantity (Commodity, Quantity, Total);
    end On_Commodity_Buy;
 
