@@ -220,20 +220,35 @@ package body Concorde.Managers.Pops is
                             Scale (Manager.Pop.Size_Quantity,
                                    Concorde.Commodities.Pop_Daily_Needs
                                      (Commodity));
+               Desired  : constant Quantity_Type :=
+                             Scale (Manager.Pop.Size_Quantity,
+                                    Concorde.Commodities.Pop_Daily_Desires
+                                      (Commodity));
                Available : constant Quantity_Type :=
                              Manager.Pop.Get_Quantity (Commodity);
             begin
                if Required > Zero then
                   declare
-                     Factor : constant Real :=
-                                To_Real (Available) / To_Real (Required);
+                     Require_Factor : constant Real :=
+                                        To_Real (Available)
+                                        / To_Real (Required);
                   begin
-                     if Required <= Available then
-                        Happiness := Happiness * 1.01;
+                     if Desired <= Available then
+                        Happiness := Happiness * 1.05;
                         Manager.Pop.Update.Remove_Quantity
-                          (Commodity, Required);
+                          (Commodity, Desired);
+                     elsif Required <= Available then
+                        Happiness := Happiness *
+                          (1.0 +
+                             (To_Real (Available) / To_Real (Required) - 1.0)
+                              * 0.05);
+                        Manager.Pop.Update.Set_Quantity
+                          (Commodity, Zero, Zero);
                      else
-                        Happiness := (Happiness + Factor) / 2.0;
+                        if Require_Factor < Happiness then
+                           Happiness :=
+                             Happiness * (0.5 + Require_Factor / 2.0);
+                        end if;
                         Manager.Pop.Update.Set_Quantity
                           (Commodity, Zero, Zero);
                      end if;
