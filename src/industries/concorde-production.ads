@@ -47,6 +47,11 @@ package Concorde.Production is
       Size       : Non_Negative_Real)
       return Concorde.Quantities.Quantity_Type;
 
+   function Input_Consumption
+     (Production : Root_Production_Type'Class;
+      Commodity  : Concorde.Commodities.Commodity_Type)
+      return Unit_Real;
+
    function Relative_Input_Cost
      (Production : Root_Production_Type'Class;
       Commodity  : Concorde.Commodities.Commodity_Type)
@@ -63,6 +68,8 @@ package Concorde.Production is
 
    procedure Execute
      (Production  : Root_Production_Type'Class;
+      Producer    : not null access constant
+        Concorde.Objects.Root_Object_Type'Class;
       Environment : in out Production_Environment_Interface'Class;
       Stock       : in out Concorde.Commodities.Stock_Interface'Class;
       Size        : Non_Negative_Real;

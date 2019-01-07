@@ -1,4 +1,3 @@
-with Concorde.Logging;
 with Concorde.Real_Images;
 
 package body Concorde.Production is
@@ -9,6 +8,8 @@ package body Concorde.Production is
 
    procedure Execute
      (Production  : Root_Production_Type'Class;
+      Producer    : not null access constant
+        Concorde.Objects.Root_Object_Type'Class;
       Environment : in out Production_Environment_Interface'Class;
       Stock       : in out Concorde.Commodities.Stock_Interface'Class;
       Size        : Non_Negative_Real;
@@ -31,9 +32,8 @@ package body Concorde.Production is
          Message  : String)
       is
       begin
-         Concorde.Logging.Log
-           (Production.Identifier, "", "production",
-            Message
+         Producer.Log
+           (Message
             & " " & Show (Quantity)
             & ": capacity "
             & Concorde.Real_Images.Approximate_Image (Capacity)
@@ -82,9 +82,8 @@ package body Concorde.Production is
                This_Cost  : constant Concorde.Money.Money_Type :=
                               Total (This_Price, Quantity);
             begin
-               Concorde.Logging.Log
-                 (Production.Identifier, "", "production",
-                  Show (Quantity)
+               Producer.Log
+                 (Show (Quantity)
                   & " of "
                   & Show (Stock.Get_Quantity (Input.Commodity))
                   & " " & Input.Commodity.Identifier
@@ -95,9 +94,8 @@ package body Concorde.Production is
             end;
          end loop;
 
-         Concorde.Logging.Log
-           (Production.Identifier, "", "production",
-            "total production cost: "
+         Producer.Log
+           ("total production cost: "
             & Concorde.Money.Show (Cost));
       end if;
 
@@ -137,9 +135,8 @@ package body Concorde.Production is
                   end if;
 
                   if Quantity > Zero then
-                     Concorde.Logging.Log
-                       (Production.Identifier, "", "production",
-                        "produce " & Show (Quantity)
+                     Producer.Log
+                       ("produce " & Show (Quantity)
                         & " " & Output.Commodity.Identifier
                         & " for " & Show (This_Cost)
                         & " (minimum sell price "
@@ -184,6 +181,25 @@ package body Concorde.Production is
    begin
       return Db.Get (Name);
    end Get;
+
+   -----------------------
+   -- Input_Consumption --
+   -----------------------
+
+   function Input_Consumption
+     (Production : Root_Production_Type'Class;
+      Commodity  : Concorde.Commodities.Commodity_Type)
+      return Unit_Real
+   is
+      use type Concorde.Commodities.Commodity_Type;
+   begin
+      for Input of Production.Inputs loop
+         if Input.Commodity = Commodity then
+            return Input.Consumption;
+         end if;
+      end loop;
+      return 0.0;
+   end Input_Consumption;
 
    --------------------
    -- Input_Quantity --
