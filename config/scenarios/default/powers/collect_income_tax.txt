@@ -1,0 +1,6 @@
+daily_work = {
+  base = 8 
+  quantity = 0.01
+}
+       
+attributes = { administration energy }
