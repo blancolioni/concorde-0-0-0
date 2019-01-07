@@ -45,7 +45,8 @@ package body Concorde.Industries.Create is
             Government     => Government,
             Market         => Market,
             Cash           => Cash,
-            Stock_Capacity => To_Quantity (Size * 10.0));
+            Stock_Capacity =>
+              To_Quantity (Real'Max (Size * 10.0, 200.0)));
          Industry.Owner := Owner;
          Industry.Community := Community;
          Industry.Production :=
