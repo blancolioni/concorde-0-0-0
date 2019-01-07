@@ -58,6 +58,7 @@ private
          Cost             : Concorde.Money.Money_Type;
          Produced         : Concorde.Commodities.Root_Stock_Type;
          Sold             : Concorde.Commodities.Root_Stock_Type;
+         Historical_Sales : Concorde.Commodities.Virtual_Stock_Type;
          Production_Count : Natural := 0;
       end record;
 

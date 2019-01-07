@@ -110,39 +110,46 @@ package body Concorde.Industries is
    begin
       Industry.Log ("executing production");
 
-      if Industry.Production_Count > 2 then
-         declare
-            Demand : Concorde.Commodities.Root_Stock_Type;
-         begin
-            Demand.Create_Stock (Concorde.Quantities.Zero, Virtual => True);
-            for Commodity of Industry.Production.Outputs loop
-               Demand.Add_Quantity
-                 (Commodity, Industry.Community.Current_Demand (Commodity),
-                  Concorde.Money.Total
-                    (Industry.Community.Current_Price (Commodity),
-                     Industry.Community.Current_Demand (Commodity)));
-            end loop;
+      declare
+         use Concorde.Money, Concorde.Quantities;
+         Earn    : Money_Type    := Zero;
+         Sold    : Quantity_Type := Zero;
+         Stock   : Quantity_Type := Zero;
+         History : Quantity_Type := Zero;
+      begin
+         for Commodity of Industry.Production.Outputs loop
+            Earn := Earn + Industry.Sold.Get_Value (Commodity);
+            Sold := Sold + Industry.Sold.Get_Quantity (Commodity);
+            Stock := Stock + Industry.Get_Quantity (Commodity);
 
-            Max_Size :=
-              Real'Max
-                (Real'Min
-                   (Industry.Production.Minimum_Size (Demand),
-                    Industry.Size),
-                 Industry.Size / 4.0);
-         end;
+            declare
+               Current_Sales : constant Quantity_Type :=
+                                 Industry.Historical_Sales.Get_Quantity
+                                   (Commodity);
+               New_Sales     : constant Quantity_Type :=
+                                 Scale (Current_Sales, 0.5)
+                                 + Scale (Sold, 0.5);
+               Current_Value : constant Money_Type :=
+                                 Industry.Historical_Sales.Get_Value
+                                   (Commodity);
+               New_Value     : constant Money_Type :=
+                                 Adjust (Current_Value, 0.5)
+                                 + Adjust (Earn, 0.5);
+            begin
+               if Industry.Production_Count <= 2
+                 or else Current_Sales = Zero
+               then
+                  Industry.Historical_Sales.Set_Quantity
+                    (Commodity, Sold, Earn);
+               else
+                  Industry.Historical_Sales.Set_Quantity
+                    (Commodity, New_Sales, New_Value);
+                  History := History + New_Sales;
+               end if;
+            end;
+         end loop;
 
-         declare
-            use Concorde.Money, Concorde.Quantities;
-            Earn  : Money_Type    := Zero;
-            Sold  : Quantity_Type := Zero;
-            Stock : Quantity_Type := Zero;
-         begin
-            for Commodity of Industry.Production.Outputs loop
-               Earn := Earn + Industry.Sold.Get_Value (Commodity);
-               Sold := Sold + Industry.Sold.Get_Quantity (Commodity);
-               Stock := Stock + Industry.Get_Quantity (Commodity);
-            end loop;
-
+         if Industry.Production_Count > 2 then
             Industry.Log ("last time earned "
                           & Show (Earn)
                           & " selling " & Show (Sold)
@@ -157,19 +164,46 @@ package body Concorde.Industries is
                      Max_Size := Industry.Production_Size;
                   end if;
                   Max_Size := Max_Size * 0.9;
+                  Industry.Log ("poor earnings ("
+                                & Show (Earn)
+                                & ") reduce max production to "
+                                & Concorde.Real_Images.Approximate_Image
+                                  (Max_Size));
+               end if;
+
+               if Stock > Scale (Sold, 0.1) then
+                  declare
+                     Demand_Size : constant Non_Negative_Real :=
+                                     Industry.Production.Minimum_Size
+                                       (Industry.Historical_Sales);
+                  begin
+                     Max_Size := Real'Min (Max_Size, Demand_Size * 1.1);
+                     Max_Size :=
+                       Real'Max (Max_Size, Industry.Production_Size / 4.0);
+                     Industry.Log ("poor sales ("
+                                   & Show (History)
+                                   & ") reduce max production to "
+                                   & Concorde.Real_Images.Approximate_Image
+                                     (Max_Size));
+                  end;
                end if;
 
                if Stock > Scale (Sold, 0.8) then
                   Max_Size := Max_Size / 2.0;
+                  Industry.Log ("excess stock ("
+                                & Show (Stock)
+                                & ") reduce max production to "
+                                & Concorde.Real_Images.Approximate_Image
+                                  (Max_Size));
                end if;
             end if;
+         end if;
 
-         end;
-
-      end if;
+      end;
 
       Industry.Production.Execute
-        (Environment => Industry.Community.World.Update,
+        (Producer    => Db.Reference (Industry.Reference),
+         Environment => Industry.Community.World.Update,
          Stock       => Industry,
          Size        => Industry.Production_Size,
          Cost        => Industry.Cost);
