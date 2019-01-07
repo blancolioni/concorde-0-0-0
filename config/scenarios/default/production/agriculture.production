@@ -1,4 +1,4 @@
 employees = { farmer = 0.05 }
-inputs = { power = 0.01 machinery = { quantity = 0.1 consumption = 1% } }
+inputs = { power = 0.01 chemicals = 0.0025 machinery = { quantity = 0.1 consumption = 1% } }
 outputs = { food = 1 }
 owner = aristocrat

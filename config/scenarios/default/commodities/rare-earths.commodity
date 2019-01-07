@@ -3,6 +3,6 @@ mineral
 base_price = 20
 deposit = {
    worlds = terrestrial
-   abundance = { 0.02 0.001 }
-   concentration = { 0.02 0.001 }
+   abundance = { 0.08 0.004 }
+   concentration = { 0.08 0.004 }
 }

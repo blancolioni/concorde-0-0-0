@@ -55,6 +55,7 @@ industries = {
    chemicals = 10
    electronics = 10
    basic-ship-fuel = 5
+   luxury-goods = 2
 }
 
 corporations = {

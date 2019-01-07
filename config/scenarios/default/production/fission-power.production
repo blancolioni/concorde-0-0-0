@@ -6,5 +6,5 @@ inputs = {
      }
 }
 tools = { }
-outputs = { power = 1 }
+outputs = { power = 10 }
 owner = capitalist

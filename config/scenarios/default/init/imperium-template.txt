@@ -36,8 +36,8 @@ pops = {
    bureaucrat     = 10000
    capitalist     = 10000
    executive      = 10000
-   farmer         = 2500
-   miner          = 3000
+   farmer         = 5000
+   miner          = 6000
    officer        = 1000
    soldier        = 10000
    spacer         = 1000
@@ -47,14 +47,18 @@ pops = {
 }
 
 industries = {
-   agriculture = 30%
+   agriculture = 6%
+   agriculture = 6%
    precious-metal-mine = 1%
    rare-earths-mine = 1%
    uranium-mine = 1%
-   luxury-goods = 300
+   metal-mine = 1%
+   luxury-goods = 100
+   luxury-goods = 100
+   luxury-goods = 100
    machinery = 50
    fission-power = 10000
-   chemicals = 100
+   chemicals = 400
    electronics = 500
    basic-ship-fuel = 50
 }
