@@ -732,7 +732,7 @@ package body Concorde.Worlds.Xi_Model is
                             (case Rocky_World (World.Category) is
                                 when Water => 2.0,
                                 when Rock | Ice | Venusian => 4.0,
-                                when Martian | Terrestrial => 8.0);
+                                when Martian | Terrestrial => 6.0);
          Roughness      : constant Xi_Unit_Float :=
                             (case Rocky_World (World.Category) is
                                 when Water       => 0.05,
@@ -740,15 +740,15 @@ package body Concorde.Worlds.Xi_Model is
                                 when Venusian    => 0.1,
                                 when Martian     => 0.3,
                                 when Ice         => 0.2,
-                                when Terrestrial => 0.8);
+                                when Terrestrial => 0.4);
          Lacunarity     : constant Xi_Non_Negative_Float :=
                             (case Rocky_World (World.Category) is
-                                when Water       => 2.0,
-                                when Rock        => 2.0,
-                                when Venusian    => 2.0,
-                                when Martian     => 2.0,
-                                when Ice         => 2.0,
-                                when Terrestrial => 2.0);
+                                when Water       => 0.8,
+                                when Rock        => 0.8,
+                                when Venusian    => 0.8,
+                                when Martian     => 0.8,
+                                when Ice         => 0.8,
+                                when Terrestrial => 0.8);
          Noise_Shader   : constant Xi.Shader.Noise.Xi_Noise_Shader :=
                             Xi.Shader.Noise.Create_Noise_Shader
                               (Palette      => Palettes.Get_Palette (World),
