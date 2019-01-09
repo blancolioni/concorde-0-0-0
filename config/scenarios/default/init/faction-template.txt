@@ -42,7 +42,7 @@ pops = {
 
 commodities = {
    food = { price = 100% }
-   luxury-goods = { price = 200% }
+  luxury-goods = { price = 200% }
 }
 
 industries = {
@@ -55,7 +55,6 @@ industries = {
    chemicals = 10
    electronics = 10
    basic-ship-fuel = 5
-   luxury-goods = 2
 }
 
 corporations = {

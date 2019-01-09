@@ -1,10 +1,12 @@
-with Ada.Exceptions;
-with Ada.Text_IO;
-
-with Concorde.Elementary_Functions;
-with Concorde.Real_Images;
+--  with Ada.Exceptions;
+--  with Ada.Text_IO;
+--
+--  with Concorde.Elementary_Functions;
+--  with Concorde.Real_Images;
 
 with Concorde.Agents;
+with Concorde.Transactions;
+
 with Concorde.Logging;
 with Concorde.Logs;
 
@@ -12,7 +14,7 @@ with Concorde.Agents.Reports;
 
 package body Concorde.Markets is
 
-   Log_Market_Queue : constant Boolean := False;
+--     Log_Market_Queue : constant Boolean := True;
 
    Recent_Trade_Limit : constant Duration :=
                           86_400.0;
@@ -1157,17 +1159,7 @@ package body Concorde.Markets is
       procedure Update_Commodity
         (Commodity : Concorde.Commodities.Commodity_Type)
       is
-
-         use Concorde.Quantities;
-         use Concorde.Money;
-
-         Bids : Offer_Queues.Heap;
-         Asks : Offer_Queues.Heap;
-
-         Total_Demand    : Quantity_Type := Zero;
-         Total_Supply    : Quantity_Type := Zero;
-         Total_Desire    : Quantity_Type := Zero;
-         Total_Available : Quantity_Type := Zero;
+         use Concorde.Money, Concorde.Quantities;
 
          Import_Tax      : constant Unit_Real :=
                              Market.Tax_Rate
@@ -1181,18 +1173,11 @@ package body Concorde.Markets is
          Price         : constant Price_Type :=
                            Market.Current_Price (Commodity);
 
+         List : Concorde.Transactions.Transaction_Request_List (Commodity);
+
          procedure Add_Agent_Needs
            (Agent : not null access constant
               Concorde.Agents.Root_Agent_Type'Class);
-
-         procedure Resize_Offers
-           (Large_Queue     : in out Offer_Queues.Heap;
-            Large_Quantity  : Quantity_Type;
-            Small_Quantity  : Quantity_Type);
-
-         function Calculate_Scale_Factor
-           (High, Low : Quantity_Type)
-            return Unit_Real;
 
          ---------------------
          -- Add_Agent_Needs --
@@ -1202,37 +1187,37 @@ package body Concorde.Markets is
            (Agent : not null access constant
               Concorde.Agents.Root_Agent_Type'Class)
          is
-            Required      : constant Quantity_Type :=
-                              Agent.Daily_Needs (Commodity);
-            Desired       : constant Quantity_Type :=
-                              Agent.Daily_Desire (Commodity);
-            Supply        : constant Quantity_Type :=
-                              Agent.Daily_Supply (Commodity);
-            Have          : constant Quantity_Type :=
-                              Agent.Get_Quantity (Commodity);
-            Space         : constant Quantity_Type :=
+            Required       : constant Quantity_Type :=
+                               Agent.Daily_Needs (Commodity);
+            Desired        : constant Quantity_Type :=
+                               Agent.Daily_Desire (Commodity);
+            Supply         : constant Quantity_Type :=
+                               Agent.Daily_Supply (Commodity);
+            Have           : constant Quantity_Type :=
+                               Agent.Get_Quantity (Commodity);
+            Space          : constant Quantity_Type :=
                                Agent.Available_Capacity;
-            Basic_Demand  : constant Quantity_Type :=
-                              (if Have >= Required
-                               then Zero else Required - Have);
-            Desire_Demand : constant Quantity_Type :=
+            Basic_Demand   : constant Quantity_Type :=
+                               (if Have >= Required
+                                then Zero else Required - Have);
+            Desire_Demand  : constant Quantity_Type :=
                                (if Have >= Desired
                                 then Zero else Desired - Have);
             Budget         : constant Money_Type :=
-                              Agent.Daily_Budget (Commodity);
-            Buy_Tax       : constant Unit_Real :=
-                              (if Agent.Market_Resident
-                               then 0.0
-                               else Export_Tax);
-            Sell_Tax      : constant Unit_Real :=
-                              (if Agent.Market_Resident
-                               then Sales_Tax
-                               else Import_Tax);
-            Buyer_Price   : constant Price_Type :=
-                              Add_Tax (Price, Buy_Tax);
-            Seller_Price  : constant Price_Type :=
-                              Without_Tax (Price, Sell_Tax);
-            Preferred_Bid : constant Quantity_Type :=
+                               Agent.Daily_Budget (Commodity);
+            Buy_Tax        : constant Unit_Real :=
+                               (if Agent.Market_Resident
+                                then 0.0
+                                else Export_Tax);
+            Sell_Tax       : constant Unit_Real :=
+                               (if Agent.Market_Resident
+                                then Sales_Tax
+                                else Import_Tax);
+            Buyer_Price    : constant Price_Type :=
+                               Add_Tax (Price, Buy_Tax);
+            Seller_Price   : constant Price_Type :=
+                               Without_Tax (Price, Sell_Tax);
+            Preferred_Bid  : constant Quantity_Type :=
                                Min
                                  (Desire_Demand,
                                   Get_Quantity (Budget, Buyer_Price));
@@ -1242,369 +1227,452 @@ package body Concorde.Markets is
                                 or else Commodity.Is_Pop_Group
                                 then Preferred_Bid
                                 else Min (Preferred_Bid, Space));
-            Ask           : constant Quantity_Type := Supply;
+            Ask            : constant Quantity_Type := Supply;
          begin
             if Supply > Zero or else Basic_Demand > Zero or else Have > Zero
               or else Bid > Zero or else Ask > Zero
             then
                Agent.Log (Commodity.Identifier
-                          & ": want "
-                          & Show (Required)
-                          & "; desire "
-                          & Show (Desired)
-                          & "; have "
+                          & ": have "
                           & Show (Have)
-                          & "; space "
-                          & Show (Space)
+                          & (if Required > Zero
+                            then ": want "
+                            & Show (Required)
+                            & "; desire "
+                            & Show (Desired)
+                            & "; space "
+                            & Show (Space)
+                            else "")
+                          & "; current price "
+                          & Show (Price)
                           & "; budget "
                           & Show (Budget)
-                          & "; bid price "
-                          & Show (Buyer_Price)
-                          & "; ask price "
-                          & Show (Seller_Price)
-                          & "; preferred bid "
-                          & Show (Preferred_Bid)
-                          & "; bid "
-                          & Show (Bid)
-                          & "; ask "
-                          & Show (Ask));
+                          & (if Required > Zero
+                            then "; budget price "
+                            & Show (Money.Price (Budget, Bid))
+                            else "; minimum price "
+                            & Show (Money.Price (Budget, Ask)))
+                          & (if Desired > Zero
+                            then "; taxed bid price "
+                            & Show (Buyer_Price)
+                            & "; preferred bid "
+                            & Show (Preferred_Bid)
+                            & "; bid "
+                            & Show (Bid)
+                            else "; tax-free ask price "
+                            & Show (Seller_Price)
+                            & "; ask "
+                            & Show (Ask)));
             end if;
 
             if Bid > Zero then
-               Bids.Insert (Bid,
-                            Offer_Info'
-                              (Agent              => Agent,
-                               Offered_Quantity   => Bid,
-                               Remaining_Quantity => Bid,
-                               Offer_Price        => Buyer_Price));
-               Total_Demand := Total_Demand + Bid;
+               List.Add_Bid
+                 (Agent        => Agent,
+                  Quantity     => Bid,
+                  Price        => Price,
+                  Tax          => Buy_Tax,
+                  Tax_Category => Concorde.Trades.Export,
+                  Maximum_Cost => Budget);
             elsif Ask > Zero then
-               Asks.Insert
-                 (Key     => Ask,
-                  Element =>
-                    Offer_Info'
-                      (Agent              => Agent,
-                       Offered_Quantity   => Ask,
-                       Remaining_Quantity => Ask,
-                       Offer_Price        => Seller_Price));
-               Total_Supply := Total_Supply + Ask;
+               List.Add_Ask
+                 (Agent           => Agent,
+                  Quantity        => Ask,
+                  Price           => Price,
+                  Tax             => Sell_Tax,
+                  Tax_Category    => (if Agent.Market_Resident
+                                      then Concorde.Trades.Sales
+                                      else Concorde.Trades.Import),
+                  Minimum_Revenue => Budget);
             end if;
 
-            if Required > Have then
-               Total_Desire := Total_Desire + Desire_Demand;
-            end if;
-
-            Total_Available := Total_Available + Ask;
          end Add_Agent_Needs;
 
-         ----------------------------
-         -- Calculate_Scale_Factor --
-         ----------------------------
-
-         function Calculate_Scale_Factor
-           (High, Low : Quantity_Type)
-            return Unit_Real
-         is
-            Raw_Factor : constant Unit_Real :=
-                           To_Real (Low) / To_Real (High);
-         begin
-            if Low = Zero then
-               return 1.0;
-            else
-               return Concorde.Elementary_Functions.Sqrt (Raw_Factor);
-            end if;
-         end Calculate_Scale_Factor;
-
-         -------------------
-         -- Resize_Offers --
-         -------------------
-
-         procedure Resize_Offers
-           (Large_Queue     : in out Offer_Queues.Heap;
-            Large_Quantity  : Quantity_Type;
-            Small_Quantity  : Quantity_Type)
-         is
-            New_Queue : Offer_Queues.Heap;
-            Traded    : Quantity_Type := Zero;
-         begin
-
-            if Log_Market_Queue then
-               Concorde.Logging.Log
-                 (Actor    => "market",
-                  Location => "",
-                  Category => "resize",
-                  Message  =>
-                    "large queue length:"
-                  & Natural'Image (Large_Queue.Length)
-                  & "; large quantity: "
-                  & Show (Large_Quantity)
-                  & "; small quantity: "
-                  & Show (Small_Quantity));
-            end if;
-
-            if Large_Queue.Length >= To_Natural (Small_Quantity) then
-               for I in 1 .. To_Natural (Small_Quantity) loop
-                  if Log_Market_Queue then
-                     Large_Queue.First_Element.Agent.Log
-                       ("changes from "
-                        & Show (Large_Queue.First_Element.Offered_Quantity)
-                        & " to 1");
-                  end if;
-
-                  New_Queue.Insert
-                    (Unit,
-                     (Large_Queue.First_Element with delta
-                          Offered_Quantity => Unit));
-                  Large_Queue.Delete_First;
-               end loop;
-            else
-               while not Large_Queue.Is_Empty loop
-                  declare
-                     Top : constant Offer_Info := Large_Queue.First_Element;
-                  begin
-                     if Traded + Top.Offered_Quantity
-                       < Scale (Small_Quantity, 0.5)
-                     then
-                        if Log_Market_Queue then
-                           Large_Queue.First_Element.Agent.Log
-                             ("gets "
-                              & Show
-                                (Large_Queue.First_Element.Offered_Quantity));
-                        end if;
-
-                        New_Queue.Insert (Top.Offered_Quantity, Top);
-                        Large_Queue.Delete_First;
-                        Traded := Traded + Top.Offered_Quantity;
-                     else
-                        exit;
-                     end if;
-                  end;
-               end loop;
-
-               declare
-                  Factor : constant Unit_Real :=
-                             To_Real (Small_Quantity - Traded)
-                             / To_Real (Large_Quantity - Traded);
-               begin
-                  while not Large_Queue.Is_Empty loop
-                     declare
-                        Top : Offer_Info := Large_Queue.First_Element;
-                        Q   : constant Quantity_Type :=
-                                Top.Offered_Quantity;
-                     begin
-                        Large_Queue.Delete_First;
-                        Top.Offered_Quantity :=
-                          Min (Scale (Top.Offered_Quantity, Factor),
-                               Small_Quantity - Traded);
-                        if Log_Market_Queue then
-                           Top.Agent.Log
-                             ("changes from "
-                              & Show (Q)
-                              & " to "
-                              & Show (Top.Offered_Quantity));
-                        end if;
-
-                        New_Queue.Insert (Top.Offered_Quantity, Top);
-                        Traded := Traded + Top.Offered_Quantity;
-                     end;
-                  end loop;
-               end;
-            end if;
-
-            Large_Queue := New_Queue;
-         end Resize_Offers;
-
       begin
-
          Market.Scan_Agents (Add_Agent_Needs'Access);
+         List.Execute_Transactions;
 
-         if True then
-            Concorde.Logging.Log
-              (Actor    => Market.Identifier,
-               Location => "",
-               Category => Commodity.Identifier,
-               Message  =>
-                 "price="
-               & Concorde.Money.Show (Price)
-               & "; supply=" & Concorde.Quantities.Show (Total_Supply)
-               & "; demand=" & Concorde.Quantities.Show (Total_Demand)
-               & "; available=" & Concorde.Quantities.Show (Total_Available)
-               & "; desire="  & Concorde.Quantities.Show (Total_Desire));
+         if List.Total_Traded > Zero then
+            declare
+               Current_Price      : constant Price_Type :=
+                                      Market.Current_Price (Commodity);
+               Current_Base_Price : constant Price_Type :=
+                                      Market.Base_Price (Commodity);
+               New_Average        : constant Price_Type :=
+                                      List.Average_Price;
+               New_Price          : constant Price_Type :=
+                                      To_Price
+                                        (To_Real (Current_Price)
+                                         + (To_Real (New_Average)
+                                           - To_Real (Current_Price)) / 10.0);
+               New_Base_Price     : constant Price_Type :=
+                                      To_Price
+                                        (To_Real (Current_Base_Price)
+                                         + (To_Real (New_Average)
+                                           - To_Real (Current_Base_Price))
+                                         / 100.0);
+            begin
+
+               Concorde.Logging.Log
+                 (Actor    => Market.Identifier,
+                  Location => Commodity.Name,
+                  Category => "update",
+                  Message  =>
+                    "supply " & Show (List.Total_Asks)
+                  & "; demand " & Show (List.Total_Bids)
+                  & "; traded " & Show (List.Total_Traded)
+                  & "; value " & Show (List.Total_Value)
+                  & "; average price " & Show (New_Average)
+                  & "; old price " & Show (Current_Price)
+                  & " (" & Show (Current_Base_Price) & ")"
+                  & "; new price " & Show (New_Price)
+                  & " (" & Show (New_Base_Price) & ")");
+
+               for Category in Concorde.Trades.Market_Tax_Category loop
+                  Market.Tax_Receipt
+                    (Category  => Category,
+                     Commodity => Commodity,
+                     Tax       => List.Total_Tax (Category));
+               end loop;
+
+               Market.Update_Commodity
+                 (Item          => Commodity,
+                  Demand        => List.Total_Bids,
+                  Supply        => List.Total_Asks,
+                  Available     => List.Total_Traded,
+                  Base_Price    => New_Base_Price,
+                  Current_Price => New_Price);
+            end;
          end if;
-
-         if Total_Demand > Zero and then Total_Supply > Zero then
-            if Total_Demand > Total_Supply then
-               Resize_Offers (Bids, Total_Demand, Total_Supply);
-            elsif Total_Supply > Total_Demand then
-               Resize_Offers (Asks, Total_Supply, Total_Demand);
-            end if;
-
-            while not Bids.Is_Empty loop
-               declare
-                  Offer : constant Offer_Info := Bids.First_Element;
-               begin
-                  Bids.Delete_First;
-                  Offer.Agent.Variable_Reference.On_Commodity_Buy
-                    (Commodity, Offer.Offered_Quantity, Offer.Offer_Price);
-                  if Offer.Offer_Price > Price then
-                     Market.Tax_Receipt
-                       (Category  =>
-                          (if Offer.Agent.Market_Resident
-                           then Concorde.Trades.Sales
-                           else Concorde.Trades.Export),
-                        Commodity => Commodity,
-                        Tax       =>
-                          Total
-                            (Offer.Offer_Price - Price,
-                             Offer.Offered_Quantity));
-                  end if;
-               end;
-            end loop;
-
-            while not Asks.Is_Empty loop
-               declare
-                  Offer : constant Offer_Info := Asks.First_Element;
-               begin
-                  Asks.Delete_First;
-                  Offer.Agent.Variable_Reference.On_Commodity_Sell
-                    (Commodity, Offer.Offered_Quantity,
-                     Offer.Offer_Price);
-                  if Offer.Offer_Price < Price then
-                     Market.Tax_Receipt
-                       (Category  =>
-                          (if Offer.Agent.Market_Resident
-                           then Concorde.Trades.Sales
-                           else Concorde.Trades.Import),
-                        Commodity => Commodity,
-                        Tax       =>
-                          Total
-                            (Price - Offer.Offer_Price,
-                             Offer.Offered_Quantity));
-                  end if;
-               end;
-            end loop;
-
-         end if;
-
-         declare
-            New_Price : Price_Type := Price;
-            New_Base_Price : Price_Type := Market.Base_Price (Commodity);
-         begin
-            if Total_Supply > Total_Demand
-              and then Total_Desire > Zero
-            then
-               declare
-                  Scale_Factor  : constant Unit_Real :=
-                                    Calculate_Scale_Factor
-                                      (Total_Supply, Total_Demand);
-                  Base_Price    : constant Non_Negative_Real :=
-                                    Concorde.Money.To_Real
-                                      (Market.Base_Price (Commodity));
-                  Target_Price  : constant Non_Negative_Real :=
-                                    Base_Price * Scale_Factor;
-                  Price_Change  : constant Real :=
-                                    (To_Real (Price) - Target_Price) / 10.0;
-                  Base_Price_Change : constant Real :=
-                                        (Base_Price - Target_Price) / 100.0;
-               begin
-                  New_Price :=
-                    Max
-                      (To_Price (To_Real (Price) - Price_Change),
-                       To_Price (0.01));
-
-                  New_Base_Price :=
-                    Max
-                      (To_Price (Base_Price - Base_Price_Change),
-                       To_Price (0.01));
-
-                  Concorde.Logging.Log
-                    (Actor    => "market",
-                     Location => "",
-                     Category => Commodity.Identifier,
-                     Message  =>
-                       "supply=" & Concorde.Quantities.Show (Total_Supply)
-                     & "; demand=" & Concorde.Quantities.Show (Total_Demand)
-                     & "; scale factor: "
-                     & Concorde.Real_Images.Approximate_Image (Scale_Factor)
-                     & "; target price: "
-                     & Concorde.Real_Images.Approximate_Image (Target_Price)
-                     & "; price change: "
-                     & Concorde.Real_Images.Approximate_Image (Price_Change)
-                     & "; old price: "
-                     & Concorde.Money.Show (Price)
-                     & "; new price: "
-                     & Concorde.Money.Show (New_Price));
-               end;
-
-            end if;
-
-            if Total_Demand > Total_Supply
-              and then Total_Available > Zero
-            then
-               declare
-                  Scale_Factor      : constant Unit_Real :=
-                                        Calculate_Scale_Factor
-                                          (Total_Demand, Total_Supply);
-                  Base_Price        : constant Non_Negative_Real :=
-                                        Concorde.Money.To_Real
-                                          (Market.Base_Price (Commodity));
-                  Target_Price      : constant Non_Negative_Real :=
-                                        Base_Price / Scale_Factor;
-                  Price_Change      : constant Real :=
-                                        (Target_Price
-                                         - To_Real (Price)) / 10.0;
-                  Base_Price_Change : constant Real :=
-                                        (Target_Price - Base_Price) / 100.0;
-               begin
-                  New_Price :=
-                    To_Price (To_Real (Price) + Price_Change);
-                  New_Base_Price :=
-                    To_Price (Base_Price + Base_Price_Change);
-
-                  Concorde.Logging.Log
-                    (Actor    => "market",
-                     Location => "",
-                     Category => Commodity.Identifier,
-                     Message  =>
-                       "supply=" & Concorde.Quantities.Show (Total_Supply)
-                     & "; demand=" & Concorde.Quantities.Show (Total_Demand)
-                     & "; scale factor: "
-                     & Concorde.Real_Images.Approximate_Image (Scale_Factor)
-                     & "; target price: "
-                     & Concorde.Real_Images.Approximate_Image (Target_Price)
-                     & "; price change: "
-                     & Concorde.Real_Images.Approximate_Image (Price_Change)
-                     & "; old price: "
-                     & Concorde.Money.Show (Price)
-                     & "; new price: "
-                     & Concorde.Money.Show (New_Price));
-               end;
-            end if;
-
-            Market.Update_Commodity
-              (Item          => Commodity,
-               Demand        => Total_Demand,
-               Supply        => Total_Supply,
-               Available     => Total_Available,
-               Base_Price    => New_Base_Price,
-               Current_Price => New_Price);
-         end;
-
-      exception
-         when E : others =>
-            Ada.Text_IO.New_Line
-              (Ada.Text_IO.Standard_Error);
-            Ada.Text_IO.Put_Line
-              (Ada.Text_IO.Standard_Error,
-               "exception while updating " & Commodity.Identifier
-               & " in market " & Market.Identifier
-               & " with price "
-               & Concorde.Money.Show (Market.Current_Price (Commodity))
-               & ": " & Ada.Exceptions.Exception_Name (E)
-               & " " & Ada.Exceptions.Exception_Message (E));
-            raise;
-
       end Update_Commodity;
+
+      --        ----------------------
+--        -- Update_Commodity --
+--        ----------------------
+--
+--        procedure Update_Commodity
+--          (Commodity : Concorde.Commodities.Commodity_Type)
+--        is
+--
+--           use Concorde.Quantities;
+--           use Concorde.Money;
+--
+--           Bids : Offer_Queues.Heap;
+--           Asks : Offer_Queues.Heap;
+--
+--           Total_Demand    : Quantity_Type := Zero;
+--           Total_Supply    : Quantity_Type := Zero;
+--           Total_Desire    : Quantity_Type := Zero;
+--           Total_Available : Quantity_Type := Zero;
+--
+--           procedure Add_Agent_Needs
+--             (Agent : not null access constant
+--                Concorde.Agents.Root_Agent_Type'Class);
+--
+--           procedure Resize_Offers
+--             (Large_Queue     : in out Offer_Queues.Heap;
+--              Large_Quantity  : Quantity_Type;
+--              Small_Quantity  : Quantity_Type);
+--
+--           function Calculate_Scale_Factor
+--             (High, Low   : Quantity_Type;
+--              Zero_Factor : Unit_Real)
+--              return Unit_Real;
+--
+--           ----------------------------
+--           -- Calculate_Scale_Factor --
+--           ----------------------------
+--
+--           function Calculate_Scale_Factor
+--             (High, Low   : Quantity_Type;
+--              Zero_Factor : Unit_Real)
+--              return Unit_Real
+--           is
+--              Raw_Factor : constant Unit_Real :=
+--                             To_Real (Low) / To_Real (High);
+--           begin
+--              if Low = Zero then
+--                 return Zero_Factor;
+--              else
+--                 return Concorde.Elementary_Functions.Sqrt (Raw_Factor);
+--              end if;
+--           end Calculate_Scale_Factor;
+--
+--           -------------------
+--           -- Resize_Offers --
+--           -------------------
+--
+--           procedure Resize_Offers
+--             (Large_Queue     : in out Offer_Queues.Heap;
+--              Large_Quantity  : Quantity_Type;
+--              Small_Quantity  : Quantity_Type)
+--           is
+--              New_Queue : Offer_Queues.Heap;
+--              Traded    : Quantity_Type := Zero;
+--           begin
+--
+--              if Log_Market_Queue then
+--                 Concorde.Logging.Log
+--                   (Actor    => "market",
+--                    Location => "",
+--                    Category => "resize",
+--                    Message  =>
+--                      "large queue length:"
+--                    & Natural'Image (Large_Queue.Length)
+--                    & "; large quantity: "
+--                    & Show (Large_Quantity)
+--                    & "; small quantity: "
+--                    & Show (Small_Quantity));
+--              end if;
+--
+--              while not Large_Queue.Is_Empty loop
+--                 declare
+--                    Top : constant Offer_Info := Large_Queue.First_Element;
+--                 begin
+--                    if Traded + Top.Offered_Quantity
+--                      < Scale (Small_Quantity, 0.5)
+--                    then
+--                       if Log_Market_Queue then
+--                          Large_Queue.First_Element.Agent.Log
+--                            ("gets "
+--                             & Show
+--                               (Large_Queue.First_Element.Offered_Quantity));
+--                       end if;
+--
+--                       New_Queue.Insert (Top.Offered_Quantity, Top);
+--                       Large_Queue.Delete_First;
+--                       Traded := Traded + Top.Offered_Quantity;
+--                    else
+--                       exit;
+--                    end if;
+--                 end;
+--              end loop;
+--
+--              declare
+--                 Factor : constant Unit_Real :=
+--                            To_Real (Small_Quantity - Traded)
+--                            / To_Real (Large_Quantity - Traded);
+--              begin
+--                 while not Large_Queue.Is_Empty loop
+--                    declare
+--                       Top : Offer_Info := Large_Queue.First_Element;
+--                       Q   : constant Quantity_Type :=
+--                               Top.Offered_Quantity;
+--                    begin
+--                       Large_Queue.Delete_First;
+--                       Top.Offered_Quantity :=
+--                         Min (Scale (Top.Offered_Quantity, Factor),
+--                              Small_Quantity - Traded);
+--                       if Log_Market_Queue then
+--                          Top.Agent.Log
+--                            ("changes from "
+--                             & Show (Q)
+--                             & " to "
+--                             & Show (Top.Offered_Quantity));
+--                       end if;
+--
+--                       New_Queue.Insert (Top.Offered_Quantity, Top);
+--                       Traded := Traded + Top.Offered_Quantity;
+--                    end;
+--                 end loop;
+--              end;
+--
+--              Large_Queue := New_Queue;
+--           end Resize_Offers;
+--
+--        begin
+--
+--           Market.Scan_Agents (Add_Agent_Needs'Access);
+--
+--           if True then
+--              Concorde.Logging.Log
+--                (Actor    => Market.Identifier,
+--                 Location => "",
+--                 Category => Commodity.Identifier,
+--                 Message  =>
+--                   "price="
+--                 & Concorde.Money.Show (Price)
+--                 & "; supply=" & Concorde.Quantities.Show (Total_Supply)
+--                 & "; demand=" & Concorde.Quantities.Show (Total_Demand)
+--                 & "; desire=" & Concorde.Quantities.Show (Total_Desire)
+--               & "; available=" & Concorde.Quantities.Show (Total_Available)
+--                 & "; desire="  & Concorde.Quantities.Show (Total_Desire));
+--           end if;
+--
+--           if Total_Demand > Zero and then Total_Supply > Zero then
+--              if Total_Demand > Total_Supply then
+--                 Resize_Offers (Bids, Total_Demand, Total_Supply);
+--              elsif Total_Supply > Total_Demand then
+--                 Resize_Offers (Asks, Total_Supply, Total_Demand);
+--              end if;
+--
+--              while not Bids.Is_Empty loop
+--                 declare
+--                    Offer : constant Offer_Info := Bids.First_Element;
+--                 begin
+--                    Bids.Delete_First;
+--                    Offer.Agent.Variable_Reference.On_Commodity_Buy
+--                      (Commodity, Offer.Offered_Quantity, Offer.Offer_Price);
+--                    if Offer.Offer_Price > Price then
+--                       Market.Tax_Receipt
+--                         (Category  =>
+--                            (if Offer.Agent.Market_Resident
+--                             then Concorde.Trades.Sales
+--                             else Concorde.Trades.Export),
+--                          Commodity => Commodity,
+--                          Tax       =>
+--                            Total
+--                              (Offer.Offer_Price - Price,
+--                               Offer.Offered_Quantity));
+--                    end if;
+--                 end;
+--              end loop;
+--
+--              while not Asks.Is_Empty loop
+--                 declare
+--                    Offer : constant Offer_Info := Asks.First_Element;
+--                 begin
+--                    Asks.Delete_First;
+--                    Offer.Agent.Variable_Reference.On_Commodity_Sell
+--                      (Commodity, Offer.Offered_Quantity,
+--                       Offer.Offer_Price);
+--                    if Offer.Offer_Price < Price then
+--                       Market.Tax_Receipt
+--                         (Category  =>
+--                            (if Offer.Agent.Market_Resident
+--                             then Concorde.Trades.Sales
+--                             else Concorde.Trades.Import),
+--                          Commodity => Commodity,
+--                          Tax       =>
+--                            Total
+--                              (Price - Offer.Offer_Price,
+--                               Offer.Offered_Quantity));
+--                    end if;
+--                 end;
+--              end loop;
+--
+--           end if;
+--
+--           declare
+--              New_Price : Price_Type := Price;
+--              New_Base_Price : Price_Type := Market.Base_Price (Commodity);
+--           begin
+--              if Total_Supply > Total_Demand then
+--                 declare
+--                    Scale_Factor  : constant Unit_Real :=
+--                                      Calculate_Scale_Factor
+--                                        (Total_Supply, Total_Demand,
+--                                         0.9);
+--                    Base_Price    : constant Non_Negative_Real :=
+--                                      Concorde.Money.To_Real
+--                                        (Market.Base_Price (Commodity));
+--                    Target_Price  : constant Non_Negative_Real :=
+--                                      Base_Price * Scale_Factor;
+--                    Price_Change  : constant Real :=
+--                                   (To_Real (Price) - Target_Price) / 10.0;
+--                    Base_Price_Change : constant Real :=
+--                                      (Base_Price - Target_Price) / 100.0;
+--                 begin
+--                    New_Price :=
+--                      Max
+--                        (To_Price (To_Real (Price) - Price_Change),
+--                         To_Price (0.01));
+--
+--                    New_Base_Price :=
+--                      Max
+--                        (To_Price (Base_Price - Base_Price_Change),
+--                         To_Price (0.01));
+--
+--                    Concorde.Logging.Log
+--                      (Actor    => "market",
+--                       Location => "",
+--                       Category => Commodity.Identifier,
+--                       Message  =>
+--                         "supply=" & Concorde.Quantities.Show (Total_Supply)
+--                   & "; demand=" & Concorde.Quantities.Show (Total_Demand)
+--                   & "; desire=" & Concorde.Quantities.Show (Total_Desire)
+--                       & "; scale factor: "
+--                   & Concorde.Real_Images.Approximate_Image (Scale_Factor)
+--                       & "; target price: "
+--                    & Concorde.Real_Images.Approximate_Image (Target_Price)
+--                       & "; price change: "
+--                   & Concorde.Real_Images.Approximate_Image (Price_Change)
+--                       & "; old price: "
+--                       & Concorde.Money.Show (Price)
+--                       & "; new price: "
+--                       & Concorde.Money.Show (New_Price));
+--                 end;
+--
+--              end if;
+--
+--              if Total_Demand > Total_Supply
+--                and then Total_Available > Zero
+--              then
+--                 declare
+--                    Scale_Factor      : constant Unit_Real :=
+--                                          Calculate_Scale_Factor
+--                                            (Total_Demand, Total_Supply,
+--                                             0.9);
+--                    Base_Price        : constant Non_Negative_Real :=
+--                                          Concorde.Money.To_Real
+--                                            (Market.Base_Price (Commodity));
+--                    Target_Price      : constant Non_Negative_Real :=
+--                                          Base_Price / Scale_Factor;
+--                    Price_Change      : constant Real :=
+--                                          (Target_Price
+--                                           - To_Real (Price)) / 10.0;
+--                    Base_Price_Change : constant Real :=
+--                                     (Target_Price - Base_Price) / 100.0;
+--                 begin
+--                    New_Price :=
+--                      To_Price (To_Real (Price) + Price_Change);
+--                    New_Base_Price :=
+--                      To_Price (Base_Price + Base_Price_Change);
+--
+--                    Concorde.Logging.Log
+--                      (Actor    => "market",
+--                       Location => "",
+--                       Category => Commodity.Identifier,
+--                       Message  =>
+--                         "supply=" & Concorde.Quantities.Show (Total_Supply)
+--                   & "; demand=" & Concorde.Quantities.Show (Total_Demand)
+--                  & "; desire=" & Concorde.Quantities.Show (Total_Desire)
+--                       & "; scale factor: "
+--                   & Concorde.Real_Images.Approximate_Image (Scale_Factor)
+--                       & "; target price: "
+--                   & Concorde.Real_Images.Approximate_Image (Target_Price)
+--                       & "; price change: "
+--                   & Concorde.Real_Images.Approximate_Image (Price_Change)
+--                       & "; old price: "
+--                       & Concorde.Money.Show (Price)
+--                       & "; new price: "
+--                       & Concorde.Money.Show (New_Price));
+--                 end;
+--              end if;
+--
+--              Market.Update_Commodity
+--                (Item          => Commodity,
+--                 Demand        => Total_Demand,
+--                 Supply        => Total_Supply,
+--                 Available     => Total_Available,
+--                 Base_Price    => New_Base_Price,
+--                 Current_Price => New_Price);
+--           end;
+--
+--        exception
+--           when E : others =>
+--              Ada.Text_IO.New_Line
+--                (Ada.Text_IO.Standard_Error);
+--              Ada.Text_IO.Put_Line
+--                (Ada.Text_IO.Standard_Error,
+--                 "exception while updating " & Commodity.Identifier
+--                 & " in market " & Market.Identifier
+--                 & " with price "
+--                 & Concorde.Money.Show (Market.Current_Price (Commodity))
+--                 & ": " & Ada.Exceptions.Exception_Name (E)
+--                 & " " & Ada.Exceptions.Exception_Message (E));
+--              raise;
+--
+--        end Update_Commodity;
 
    begin
       Concorde.Commodities.Scan (Update_Commodity'Access);

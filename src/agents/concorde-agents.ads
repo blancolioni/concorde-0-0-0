@@ -99,6 +99,11 @@ package Concorde.Agents is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity_Type;
 
+   function Minimum_Ask_Price
+     (Agent     : Root_Agent_Type;
+      Commodity : Concorde.Commodities.Commodity_Type)
+      return Concorde.Money.Price_Type;
+
    function Daily_Budget
      (Agent     : Root_Agent_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
@@ -601,11 +606,6 @@ private
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Money.Price_Type
    is (Agent.Asks.Element (Commodity).Price);
-
-   function Minimum_Ask_Price
-     (Agent     : Root_Agent_Type'Class;
-      Commodity : Concorde.Commodities.Commodity_Type)
-      return Concorde.Money.Price_Type;
 
    function Guarantor
      (Agent : Root_Agent_Type'Class)

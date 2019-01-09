@@ -1687,19 +1687,21 @@ package body Concorde.Agents is
    -----------------------
 
    function Minimum_Ask_Price
-     (Agent     : Root_Agent_Type'Class;
+     (Agent     : Root_Agent_Type;
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Money.Price_Type
    is
       use Concorde.Money;
+      Agent_Class : Root_Agent_Type'Class renames
+                      Root_Agent_Type'Class (Agent);
       Tax_Category     : constant Concorde.Trades.Market_Tax_Category :=
-                           (if Agent.Market_Resident
+                           (if Agent_Class.Market_Resident
                             then Concorde.Trades.Sales
                             else Concorde.Trades.Import);
       Minimum_Price    : constant Price_Type :=
                            Add_Tax
-                             (Agent.Get_Average_Price (Commodity),
-                              Agent.Market.Manager.Tax_Rate
+                             (Agent_Class.Get_Average_Price (Commodity),
+                              Agent_Class.Market.Manager.Tax_Rate
                                 (Tax_Category, Commodity));
    begin
       return Minimum_Price;

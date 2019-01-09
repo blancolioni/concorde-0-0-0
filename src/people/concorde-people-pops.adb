@@ -10,9 +10,16 @@ package body Concorde.People.Pops is
       return Concorde.Money.Money_Type
    is
       use Concorde.Money;
+      use type Concorde.Commodities.Commodity_Type;
    begin
-      return Adjust
-        (Pop.Cash, Concorde.Commodities.Pop_Max_Budget (Commodity));
+      if Pop.Group.Has_Commodity
+        and then Pop.Group.Commodity = Commodity
+      then
+         return Adjust (Pop.Last_Expenses, 1.1);
+      else
+         return Adjust
+           (Pop.Cash, Concorde.Commodities.Pop_Max_Budget (Commodity));
+      end if;
    end Daily_Budget;
 
    ------------------

@@ -68,31 +68,17 @@ package body Concorde.Industries is
                               Price (Value, Quantity);
             Current_Price : constant Price_Type :=
                               Industry.Community.Current_Price (Commodity);
-            Current_Demand : constant Quantity_Type :=
-                               Industry.Community.Current_Demand
-                                 (Commodity);
             Minimum_Price : constant Price_Type :=
                               Adjust_Price (This_Price, 1.1);
-            Factor        : Unit_Real := 1.0;
          begin
-            if Minimum_Price > Zero
-              and then Current_Price < Minimum_Price
-            then
-               Factor := To_Real (Current_Price) / To_Real (Minimum_Price);
-            end if;
-
             Industry.Log
               (Commodity.Identifier
                & ": value " & Show (Value)
                & "; minimum price " & Show (Minimum_Price)
                & "; current price " & Show (Current_Price)
-               & "; demand " & Show (Current_Demand)
-               & "; factor " & Concorde.Real_Images.Approximate_Image (Factor)
-               & "; available " & Show (Quantity)
-               & "; supply "
-               & Show (Min (Current_Demand, Scale (Quantity, Factor))));
+               & "; supply " & Show (Quantity));
 
-            return Min (Current_Demand, Scale (Quantity, Factor));
+            return Quantity;
          end;
       else
          return Concorde.Quantities.Zero;
