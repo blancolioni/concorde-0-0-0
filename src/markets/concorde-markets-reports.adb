@@ -103,6 +103,8 @@ package body Concorde.Markets.Reports is
               (Log_Path,
                Show (Market.Current_Supply (Commodity)),
                Show (Market.Current_Demand (Commodity)),
+               Show (Market.Current_Imports (Commodity)),
+               Show (Market.Current_Exports (Commodity)),
                Image (Market.Base_Price (Commodity)),
                Image (Market.Current_Price (Commodity)));
          end;
