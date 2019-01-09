@@ -85,7 +85,9 @@ package body Concorde.People.Communities.Create is
                                          Base_Price => Local_Price,
                                          Quantity   => Zero,
                                          Supply     => Zero,
-                                         Demand     => Zero);
+                                         Demand     => Zero,
+                                         Imported   => Zero,
+                                         Exported   => Zero);
             begin
                Community.Local_Commodities.Replace_Element
                  (Commodity, new Local_Commodity_Record'(Local));

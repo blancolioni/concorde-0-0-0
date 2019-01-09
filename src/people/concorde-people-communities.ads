@@ -201,6 +201,8 @@ private
          Quantity   : Concorde.Quantities.Quantity_Type;
          Supply     : Concorde.Quantities.Quantity_Type;
          Demand     : Concorde.Quantities.Quantity_Type;
+         Imported   : Concorde.Quantities.Quantity_Type;
+         Exported   : Concorde.Quantities.Quantity_Type;
       end record;
 
    type Local_Commodity is access all Local_Commodity_Record'Class;
@@ -337,11 +339,6 @@ private
       Item      : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity_Type;
 
-   overriding function Current_Demand
-     (Community : Root_Community_Type;
-      Item      : Concorde.Commodities.Commodity_Type)
-      return Concorde.Quantities.Quantity_Type;
-
    overriding function Base_Price
      (Community : Root_Community_Type;
       Item      : Concorde.Commodities.Commodity_Type)
@@ -352,7 +349,22 @@ private
       Item      : Concorde.Commodities.Commodity_Type)
       return Concorde.Money.Price_Type;
 
+   overriding function Current_Demand
+     (Community : Root_Community_Type;
+      Item      : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity_Type;
+
    overriding function Current_Supply
+     (Community : Root_Community_Type;
+      Item      : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity_Type;
+
+   overriding function Current_Imports
+     (Community : Root_Community_Type;
+      Item      : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity_Type;
+
+   overriding function Current_Exports
      (Community : Root_Community_Type;
       Item      : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity_Type;

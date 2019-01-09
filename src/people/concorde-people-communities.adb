@@ -127,6 +127,13 @@ package body Concorde.People.Communities is
                Exporter.Items.Replace_Element (Commodity, Rec);
             end if;
          end;
+         declare
+            Rec : constant Local_Commodity_Access :=
+                    Community.Local_Commodities.Element (Commodity);
+         begin
+            Rec.Exported := Rec.Exported + Quantity;
+         end;
+
       end loop;
 
       declare
@@ -152,6 +159,32 @@ package body Concorde.People.Communities is
    begin
       return Community.Local_Commodities.Element (Item).Demand;
    end Current_Demand;
+
+   ---------------------
+   -- Current_Exports --
+   ---------------------
+
+   overriding function Current_Exports
+     (Community : Root_Community_Type;
+      Item      : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity_Type
+   is
+   begin
+      return Community.Local_Commodities.Element (Item).Exported;
+   end Current_Exports;
+
+   ---------------------
+   -- Current_Imports --
+   ---------------------
+
+   overriding function Current_Imports
+     (Community : Root_Community_Type;
+      Item      : Concorde.Commodities.Commodity_Type)
+      return Concorde.Quantities.Quantity_Type
+   is
+   begin
+      return Community.Local_Commodities.Element (Item).Imported;
+   end Current_Imports;
 
    ----------------------
    -- Current_Location --
@@ -440,15 +473,6 @@ package body Concorde.People.Communities is
       Price     : Concorde.Money.Price_Type)
    is
    begin
-      Community.Log
-        (Importer.Identifier
-         & " importing "
-         & Concorde.Quantities.Show (Quantity)
-         & " "
-         & Commodity.Identifier
-         & " @ "
-         & Concorde.Money.Show (Price));
-
       Import_Export
         (Vector    => Community.Imports,
          Map       => Community.Importers,
@@ -456,6 +480,19 @@ package body Concorde.People.Communities is
          Commodity => Commodity,
          Quantity  => Quantity,
          Price     => Price);
+
+      Community.Log
+        (Importer.Identifier
+         & " importing "
+         & Concorde.Quantities.Show (Quantity)
+         & " "
+         & Commodity.Identifier
+         & " @ "
+         & Concorde.Money.Show (Price)
+         & "; total imports now "
+         & Concorde.Quantities.Show
+           (Community.Imports.Element (Commodity).Quantity));
+
    end Import;
 
    -------------------
@@ -803,12 +840,26 @@ package body Concorde.People.Communities is
                Importer.Items.Replace_Element (Commodity, Rec);
             end if;
          end;
+
+         declare
+            Rec : constant Local_Commodity_Access :=
+                    Community.Local_Commodities.Element (Commodity);
+         begin
+            Rec.Imported := Rec.Imported + Quantity;
+         end;
+
       end loop;
 
       declare
          Import : Import_Export_Record :=
                     Community.Imports.Element (Commodity);
       begin
+         Community.Log
+           (Commodity.Identifier
+            & ": total sold: " & Show (Total)
+            & "; total wanted: " & Show (Import.Quantity));
+
+         pragma Assert (Total <= Import.Quantity);
          Import.Quantity := Import.Quantity - Total;
          Community.Imports.Replace_Element
            (Commodity, Import);
@@ -956,7 +1007,9 @@ package body Concorde.People.Communities is
            Base_Price => Base_Price,
            Quantity   => Quantity,
            Supply     => Scale (New_Supply, 0.25),
-           Demand     => Scale (New_Demand, 0.25));
+           Demand     => Scale (New_Demand, 0.25),
+           Imported   => Rec.Imported,
+           Exported   => Rec.Exported);
    end Update_Commodity;
 
    -------------------------
