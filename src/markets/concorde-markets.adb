@@ -1277,12 +1277,16 @@ package body Concorde.Markets is
                List.Add_Ask
                  (Agent           => Agent,
                   Quantity        => Ask,
-                  Price           => Price,
+                  Price           =>
+                    Max (Price,
+                      Adjust_Price
+                        (Agent.Get_Average_Price (Commodity), 1.1)),
                   Tax             => Sell_Tax,
                   Tax_Category    => (if Agent.Market_Resident
                                       then Concorde.Trades.Sales
                                       else Concorde.Trades.Import),
-                  Minimum_Revenue => Budget);
+                  Minimum_Revenue =>
+                    Adjust (Agent.Get_Value (Commodity), 1.1));
             end if;
 
          end Add_Agent_Needs;
@@ -1291,7 +1295,7 @@ package body Concorde.Markets is
          Market.Scan_Agents (Add_Agent_Needs'Access);
          List.Execute_Transactions;
 
-         if List.Total_Traded > Zero then
+         if List.Total_Asks > Zero or else List.Total_Bids > Zero then
             declare
                Current_Price      : constant Price_Type :=
                                       Market.Current_Price (Commodity);
@@ -1303,7 +1307,7 @@ package body Concorde.Markets is
                                       To_Price
                                         (To_Real (Current_Price)
                                          + (To_Real (New_Average)
-                                           - To_Real (Current_Price)) / 10.0);
+                                           - To_Real (Current_Price)) / 5.0);
                New_Base_Price     : constant Price_Type :=
                                       To_Price
                                         (To_Real (Current_Base_Price)

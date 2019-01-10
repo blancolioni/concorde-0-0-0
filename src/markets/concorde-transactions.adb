@@ -56,6 +56,7 @@ package body Concorde.Transactions is
       Tax_Category    : Concorde.Trades.Market_Tax_Category;
       Minimum_Revenue : Concorde.Money.Money_Type)
    is
+      use Concorde.Money;
       use type Concorde.Quantities.Quantity_Type;
    begin
       Add_Offer
@@ -63,6 +64,9 @@ package body Concorde.Transactions is
          Minimum_Revenue);
       Add_Agent (List.Askers, Agent, Quantity, Minimum_Revenue);
       List.Total_Asks := List.Total_Asks + Quantity;
+      List.Minimum_Ask_Price :=
+        (if List.Minimum_Ask_Price = Zero
+         then Price else Min (Price, List.Minimum_Ask_Price));
    end Add_Ask;
 
    -------------
@@ -86,6 +90,8 @@ package body Concorde.Transactions is
          Tax, Tax_Category, Maximum_Cost);
       Add_Agent (List.Bidders, Agent, Quantity, Maximum_Cost);
       List.Total_Bids := List.Total_Bids + Quantity;
+      List.Maximum_Bid_Price :=
+        Concorde.Money.Max (Price, List.Maximum_Bid_Price);
    end Add_Bid;
 
    ---------------
@@ -111,6 +117,9 @@ package body Concorde.Transactions is
          Tax          => Tax,
          Tax_Category => Tax_Category,
          Cost         => Cost);
+      Before : Offers_At_Price_Lists.Cursor :=
+                 Offers_At_Price_Lists.No_Element;
+
    begin
       for Position in List.Iterate loop
          declare
@@ -127,16 +136,8 @@ package body Concorde.Transactions is
                   return;
                end;
             elsif Price < Item_Price then
-               declare
-                  Offer : Offers_At_Price_Record := Offers_At_Price_Record'
-                    (Price  => Price,
-                     Total  => Rec.Quantity,
-                     Offers => <>);
-               begin
-                  Offer.Offers.Append (Rec);
-                  List.Insert (Position, Offer);
-                  return;
-               end;
+               Before := Position;
+               exit;
             end if;
          end;
       end loop;
@@ -148,9 +149,31 @@ package body Concorde.Transactions is
             Offers => <>);
       begin
          Offer.Offers.Append (Rec);
-         List.Append (Offer);
+         List.Insert (Before, Offer);
       end;
    end Add_Offer;
+
+   -------------------
+   -- Average_Price --
+   -------------------
+
+   function Average_Price
+     (List : Transaction_Request_List'Class)
+      return Concorde.Money.Price_Type
+   is
+      use Concorde.Money, Concorde.Quantities;
+   begin
+      if List.Total_Traded > Zero then
+         return Price (List.Total_Value, List.Total_Traded);
+      elsif List.Total_Asks = Zero then
+         return List.Maximum_Bid_Price;
+      elsif List.Total_Bids = Zero then
+         return List.Minimum_Ask_Price;
+      else
+         return Adjust_Price (List.Maximum_Bid_Price + List.Minimum_Ask_Price,
+                              0.5);
+      end if;
+   end Average_Price;
 
    --------------------------
    -- Execute_Transactions --
@@ -221,6 +244,8 @@ package body Concorde.Transactions is
                         Tax          => Ask.Tax,
                         Tax_Category => Ask.Tax_Category,
                         Cost         => Remaining_Value);
+                     List.Minimum_Ask_Price :=
+                       Min (Minimum_Ask, List.Minimum_Ask_Price);
                   end if;
                end;
             end if;
@@ -256,6 +281,8 @@ package body Concorde.Transactions is
                         Tax          => Bid.Tax,
                         Tax_Category => Bid.Tax_Category,
                         Cost         => Remaining_Budget);
+                     List.Maximum_Bid_Price :=
+                       Max (Maximum_Price, List.Maximum_Bid_Price);
                   end if;
                end;
             end if;

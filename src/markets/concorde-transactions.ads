@@ -50,7 +50,10 @@ package Concorde.Transactions is
      (List : Transaction_Request_List'Class)
       return Concorde.Money.Price_Type
      with Pre => Concorde.Quantities.">"
-       (List.Total_Traded, Concorde.Quantities.Zero);
+       (List.Total_Asks, Concorde.Quantities.Zero)
+     or else
+       Concorde.Quantities.">"
+         (List.Total_Bids, Concorde.Quantities.Zero);
 
    function Total_Value
      (List : Transaction_Request_List'Class)
@@ -110,20 +113,24 @@ private
         Concorde.Commodities.Root_Commodity_Type'Class)
    is tagged limited
       record
-         Bids         : Offers_At_Price_Lists.List;
-         Asks         : Offers_At_Price_Lists.List;
-         Bidders      : Agent_Maps.Map;
-         Askers       : Agent_Maps.Map;
-         Total_Asks   : Concorde.Quantities.Quantity_Type :=
-                          Concorde.Quantities.Zero;
-         Total_Bids   : Concorde.Quantities.Quantity_Type :=
-                          Concorde.Quantities.Zero;
-         Total_Traded : Concorde.Quantities.Quantity_Type :=
-                          Concorde.Quantities.Zero;
-         Total_Value  : Concorde.Money.Money_Type :=
-                          Concorde.Money.Zero;
-         Total_Tax    : Tax_Array :=
-                          (others => Concorde.Money.Zero);
+         Bids              : Offers_At_Price_Lists.List;
+         Asks              : Offers_At_Price_Lists.List;
+         Bidders           : Agent_Maps.Map;
+         Askers            : Agent_Maps.Map;
+         Total_Asks        : Concorde.Quantities.Quantity_Type :=
+                               Concorde.Quantities.Zero;
+         Total_Bids        : Concorde.Quantities.Quantity_Type :=
+                               Concorde.Quantities.Zero;
+         Total_Traded      : Concorde.Quantities.Quantity_Type :=
+                               Concorde.Quantities.Zero;
+         Total_Value       : Concorde.Money.Money_Type :=
+                               Concorde.Money.Zero;
+         Total_Tax         : Tax_Array :=
+                               (others => Concorde.Money.Zero);
+         Minimum_Ask_Price : Concorde.Money.Price_Type :=
+                               Concorde.Money.Zero;
+         Maximum_Bid_Price : Concorde.Money.Price_Type :=
+                               Concorde.Money.Zero;
       end record;
 
    function Total_Asks
@@ -151,10 +158,5 @@ private
       Category : Concorde.Trades.Market_Tax_Category)
       return Concorde.Money.Money_Type
    is (List.Total_Tax (Category));
-
-   function Average_Price
-     (List : Transaction_Request_List'Class)
-      return Concorde.Money.Price_Type
-   is (Concorde.Money.Price (List.Total_Value, List.Total_Traded));
 
 end Concorde.Transactions;
