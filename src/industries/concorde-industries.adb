@@ -75,7 +75,7 @@ package body Concorde.Industries is
 
    begin
       Industry.Production.Calculate_Input_Requirements
-        (Size        => Industry.Size,
+        (Size        => Industry.Production_Size,
          Consumption => Required);
       Industry.Budget.Clear_Stock;
       Required.Scan_Stock (Set_Cost'Access);
