@@ -10,6 +10,8 @@ with Concorde.Quantities;
 with Concorde.Objects;
 
 with Concorde.Commodities;
+with Concorde.Commodities.Lists;
+
 with Concorde.People.Groups;
 
 with Concorde.Network.Nodes;
@@ -41,16 +43,21 @@ package Concorde.Production is
      (Production : Root_Production_Type'Class)
       return Concorde.People.Groups.Pop_Group;
 
-   function Input_Quantity
-     (Production : Root_Production_Type'Class;
-      Commodity  : Concorde.Commodities.Commodity_Type;
-      Size       : Non_Negative_Real)
-      return Concorde.Quantities.Quantity_Type;
-
    function Input_Consumption
      (Production : Root_Production_Type'Class;
       Commodity  : Concorde.Commodities.Commodity_Type)
       return Unit_Real;
+
+   procedure Calculate_Input_Requirements
+     (Production  : Root_Production_Type'Class;
+      Size        : in     Non_Negative_Real;
+      Consumption :    out Concorde.Commodities.Stock_Interface'Class);
+
+   function Input_Requirement
+     (Production  : Root_Production_Type'Class;
+      Commodity   : Concorde.Commodities.Commodity_Type;
+      Size        : in     Non_Negative_Real)
+      return Concorde.Quantities.Quantity_Type;
 
    function Relative_Input_Cost
      (Production : Root_Production_Type'Class;
@@ -72,8 +79,9 @@ package Concorde.Production is
         Concorde.Objects.Root_Object_Type'Class;
       Environment : in out Production_Environment_Interface'Class;
       Stock       : in out Concorde.Commodities.Stock_Interface'Class;
-      Size        : Non_Negative_Real;
-      Cost        : out Concorde.Money.Money_Type);
+      Size        : in     Non_Negative_Real;
+      Limit_Items :    out Concorde.Commodities.Lists.List;
+      Cost        :    out Concorde.Money.Money_Type);
 
    function Minimum_Size
      (Production : Root_Production_Type'Class;

@@ -2,6 +2,31 @@ with Concorde.Real_Images;
 
 package body Concorde.Production is
 
+   ----------------------------------
+   -- Calculate_Input_Requirements --
+   ----------------------------------
+
+   procedure Calculate_Input_Requirements
+     (Production  : Root_Production_Type'Class;
+      Size        : in     Non_Negative_Real;
+      Consumption :    out Concorde.Commodities.Stock_Interface'Class)
+   is
+   begin
+      Consumption.Clear_Stock;
+
+      for Input of Production.Inputs loop
+         declare
+            Required   : constant Non_Negative_Real :=
+                           Size * Input.Relative_Quantity;
+            Quantity   : constant Concorde.Quantities.Quantity_Type :=
+                           Concorde.Quantities.To_Quantity (Required);
+         begin
+            Consumption.Add_Quantity (Input.Commodity, Quantity,
+                                      Concorde.Money.Zero);
+         end;
+      end loop;
+   end Calculate_Input_Requirements;
+
    -------------
    -- Execute --
    -------------
@@ -12,15 +37,16 @@ package body Concorde.Production is
         Concorde.Objects.Root_Object_Type'Class;
       Environment : in out Production_Environment_Interface'Class;
       Stock       : in out Concorde.Commodities.Stock_Interface'Class;
-      Size        : Non_Negative_Real;
-      Cost        : out Concorde.Money.Money_Type)
+      Size        : in     Non_Negative_Real;
+      Limit_Items :    out Concorde.Commodities.Lists.List;
+      Cost        :    out Concorde.Money.Money_Type)
    is
       use Concorde.Money;
       use Concorde.Quantities;
-      Capacity : Non_Negative_Real := Size;
 
       procedure Log_Capacity
         (Quantity : Quantity_Type;
+         Capacity : Non_Negative_Real;
          Message  : String);
 
       ------------------
@@ -29,6 +55,7 @@ package body Concorde.Production is
 
       procedure Log_Capacity
         (Quantity : Quantity_Type;
+         Capacity : Non_Negative_Real;
          Message  : String)
       is
       begin
@@ -44,9 +71,12 @@ package body Concorde.Production is
             & "%)");
       end Log_Capacity;
 
+      Capacity : Non_Negative_Real := Size;
+
    begin
 
       Cost := Zero;
+      Limit_Items.Clear;
 
       for Input of Production.Inputs loop
          declare
@@ -57,10 +87,20 @@ package body Concorde.Production is
             Max       : Non_Negative_Real := Size;
          begin
             if Available < Required then
-               Max := Max * Available / Required;
+               Max := Size * Available / Required;
+
+               if Max < Capacity / 2.0 then
+                  Limit_Items.Clear;
+               end if;
+
+               if Max < 1.5 * Capacity then
+                  Limit_Items.Append (Input.Commodity);
+               end if;
+
             end if;
+
             Capacity := Real'Min (Capacity, Max);
-            Log_Capacity (Stock.Get_Quantity (Input.Commodity),
+            Log_Capacity (Stock.Get_Quantity (Input.Commodity), Max,
                           Input.Commodity.Identifier);
          end;
       end loop;
@@ -205,10 +245,10 @@ package body Concorde.Production is
    -- Input_Quantity --
    --------------------
 
-   function Input_Quantity
-     (Production : Root_Production_Type'Class;
-      Commodity  : Concorde.Commodities.Commodity_Type;
-      Size       : Non_Negative_Real)
+   function Input_Requirement
+     (Production  : Root_Production_Type'Class;
+      Commodity   : Concorde.Commodities.Commodity_Type;
+      Size        : in     Non_Negative_Real)
       return Concorde.Quantities.Quantity_Type
    is
       use type Concorde.Commodities.Commodity_Type;
@@ -225,7 +265,7 @@ package body Concorde.Production is
          end if;
       end loop;
       return Concorde.Quantities.Zero;
-   end Input_Quantity;
+   end Input_Requirement;
 
    ---------------
    -- Is_Output --

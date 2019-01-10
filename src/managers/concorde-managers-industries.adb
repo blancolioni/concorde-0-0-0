@@ -92,6 +92,7 @@ package body Concorde.Managers.Industries is
       end if;
 
       Manager.Industry.Update.Execute_Production;
+      Manager.Industry.Update.Create_Budget;
 
       Concorde.Objects.Queues.Next_Event
         (Manager.Industry, Manager.Time + 86_400.0);

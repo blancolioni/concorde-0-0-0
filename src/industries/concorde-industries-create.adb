@@ -63,7 +63,7 @@ package body Concorde.Industries.Create is
                declare
                   Quantity : constant Concorde.Quantities.Quantity_Type :=
                                Scale
-                                 (Industry.Production.Input_Quantity
+                                 (Industry.Production.Input_Requirement
                                     (Commodity, Industry.Size),
                                   0.5);
                begin

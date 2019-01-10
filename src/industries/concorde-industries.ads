@@ -15,6 +15,7 @@ with Concorde.Money;
 with Concorde.Quantities;
 
 limited with Concorde.People.Communities;
+private with Concorde.Commodities.Lists;
 
 package Concorde.Industries is
 
@@ -30,6 +31,9 @@ package Concorde.Industries is
       return access constant Concorde.Agents.Root_Agent_Type'Class;
 
    procedure Execute_Production
+     (Industry : in out Root_Industry_Type'Class);
+
+   procedure Create_Budget
      (Industry : in out Root_Industry_Type'Class);
 
    type Updateable_Reference
@@ -55,9 +59,11 @@ private
          Size             : Non_Negative_Real;
          Production_Size  : Non_Negative_Real;
          Production       : Concorde.Production.Production_Type;
+         Limit_Items      : Concorde.Commodities.Lists.List;
          Cost             : Concorde.Money.Money_Type;
-         Produced         : Concorde.Commodities.Root_Stock_Type;
-         Sold             : Concorde.Commodities.Root_Stock_Type;
+         Budget           : Concorde.Commodities.Virtual_Stock_Type;
+         Produced         : Concorde.Commodities.Virtual_Stock_Type;
+         Sold             : Concorde.Commodities.Virtual_Stock_Type;
          Historical_Sales : Concorde.Commodities.Virtual_Stock_Type;
          Production_Count : Natural := 0;
       end record;
