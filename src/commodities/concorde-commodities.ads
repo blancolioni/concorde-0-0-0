@@ -162,7 +162,11 @@ package Concorde.Commodities is
       Quantity : Concorde.Quantities.Quantity_Type)
      with Pre => Stock.Get_Quantity (Item) >= Quantity;
 
-   function Total_Value
+   function Total_Concrete_Value
+     (Stock    : in out Stock_Interface'Class)
+      return Concorde.Money.Money_Type;
+
+   function Total_Virtual_Value
      (Stock    : in out Stock_Interface'Class)
       return Concorde.Money.Money_Type;
 

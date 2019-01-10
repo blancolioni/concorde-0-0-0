@@ -426,7 +426,8 @@ package body Concorde.Commodities is
       is
          use Concorde.Quantities;
       begin
-         if not Commodity.Flags (Virtual)
+         if (Stock.Virtual
+             or else not Commodity.Flags (Virtual))
            and then Info.Quantity > Zero
          then
             Process (Commodity_Type (Commodity));
@@ -450,6 +451,35 @@ package body Concorde.Commodities is
    begin
       Stock.Vector.Replace_Element (Item, (Quantity, Value));
    end Set_Quantity;
+
+   --------------------------
+   -- Total_Concrete_Value --
+   --------------------------
+
+   function Total_Concrete_Value
+     (Stock    : in out Stock_Interface'Class)
+      return Concorde.Money.Money_Type
+   is
+      Result : Concorde.Money.Money_Type := Concorde.Money.Zero;
+
+      procedure Update (Commodity : Commodity_Type);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update (Commodity : Commodity_Type) is
+         use type Concorde.Money.Money_Type;
+      begin
+         if not Commodity.Is_Set (Virtual) then
+            Result := Result + Stock.Get_Value (Commodity);
+         end if;
+      end Update;
+
+   begin
+      Db.Scan (Update'Access);
+      return Result;
+   end Total_Concrete_Value;
 
    ----------------
    -- Total_Mass --
@@ -509,11 +539,11 @@ package body Concorde.Commodities is
       return Result;
    end Total_Quantity;
 
-   -----------------
-   -- Total_Value --
-   -----------------
+   -------------------------
+   -- Total_Virtual_Value --
+   -------------------------
 
-   function Total_Value
+   function Total_Virtual_Value
      (Stock    : in out Stock_Interface'Class)
       return Concorde.Money.Money_Type
    is
@@ -528,15 +558,13 @@ package body Concorde.Commodities is
       procedure Update (Commodity : Commodity_Type) is
          use type Concorde.Money.Money_Type;
       begin
-         if not Commodity.Is_Set (Virtual) then
-            Result := Result + Stock.Get_Value (Commodity);
-         end if;
+         Result := Result + Stock.Get_Value (Commodity);
       end Update;
 
    begin
       Db.Scan (Update'Access);
       return Result;
-   end Total_Value;
+   end Total_Virtual_Value;
 
    -----------------------
    -- Trade_Commodities --
