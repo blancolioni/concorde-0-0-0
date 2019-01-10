@@ -16,7 +16,7 @@ power = {
 }
 
 service-worker = {
-  need = 0.1 desire = 1
+  need = 0.02 desire = 1
   budget = 10%
   effect = { productivity happiness }
 }
