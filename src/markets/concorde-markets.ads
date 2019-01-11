@@ -1,11 +1,8 @@
-private with Ada.Containers.Doubly_Linked_Lists;
-
-private with WL.Heaps;
+private with Ada.Containers.Indefinite_Holders;
 
 private with Memor.Database;
 private with Memor.Element_Vectors;
 
-with Concorde.Calendar;
 with Concorde.Objects;
 
 with Concorde.Money;
@@ -15,6 +12,7 @@ limited with Concorde.Agents;
 with Concorde.Trades;
 
 with Concorde.Commodities;
+with Concorde.Transactions;
 
 package Concorde.Markets is
 
@@ -94,9 +92,6 @@ package Concorde.Markets is
                      Concorde.Agents.Root_Agent_Type'Class))
    is abstract;
 
-   procedure Update_Market
-     (Market : in out Market_Interface'Class);
-
    type Root_Market_Type is
      new Concorde.Objects.Root_Object_Type
      and Trades.Trade_Interface with private;
@@ -167,121 +162,23 @@ package Concorde.Markets is
 
 private
 
-   use type Concorde.Money.Price_Type;
-   use type Concorde.Quantities.Quantity_Type;
-
-   type Price_Quantity_Function is
-     (No_Change,
-      Proportional,
-      Quadratic);
-
-   type Offer_Info is
-      record
-         Agent              : access constant
-           Concorde.Agents.Root_Agent_Type'Class;
-         Offered_Quantity   : Concorde.Quantities.Quantity_Type;
-         Remaining_Quantity : Concorde.Quantities.Quantity_Type;
-         Offer_Price        : Concorde.Money.Price_Type;
-      end record;
-
-   function "<" (Left, Right : Offer_Info) return Boolean
-   is (Left.Offer_Price < Right.Offer_Price);
-
-   function ">" (Left, Right : Offer_Info) return Boolean
-   is (Left.Offer_Price > Right.Offer_Price);
-
-   package Bid_Queues is
-     new WL.Heaps
-       (Key_Type     => Concorde.Money.Price_Type,
-        Element_Type => Offer_Info,
-        "<"          => "<");
-
-   package Ask_Queues is
-     new WL.Heaps
-       (Key_Type     => Concorde.Money.Price_Type,
-        Element_Type => Offer_Info,
-        "<"          => ">");
-
-   package Offer_Queues is
-     new WL.Heaps
-       (Key_Type     => Concorde.Quantities.Quantity_Type,
-        Element_Type => Offer_Info,
-        "<"          => ">");
-
-   function Make_Offer
-     (Agent    : not null access constant
-        Concorde.Agents.Root_Agent_Type'Class;
-      Quantity : Concorde.Quantities.Quantity_Type;
-      Price    : Concorde.Money.Price_Type)
-      return Offer_Info
-   is (Offer_Info'
-         (Agent              => Agent,
-          Offered_Quantity   => Quantity,
-          Remaining_Quantity => Quantity,
-          Offer_Price        => Price));
-
-   type Transaction_Record is
-      record
-         Time_Stamp : Concorde.Calendar.Time;
-         Quantity   : Concorde.Quantities.Quantity_Type;
-         Price      : Concorde.Money.Price_Type;
-         Cost       : Concorde.Money.Money_Type;
-      end record;
-
-   package Recent_Transaction_Lists is
-     new Ada.Containers.Doubly_Linked_Lists (Transaction_Record);
-
-   type Offer_Record is
-      record
-         Time_Stamp : Concorde.Calendar.Time;
-         Offer      : Concorde.Trades.Offer_Type;
-         Resident   : Boolean;
-         Quantity   : Concorde.Quantities.Quantity_Type;
-         Price      : Concorde.Money.Price_Type;
-      end record;
-
-   package Recent_Offer_Lists is
-     new Ada.Containers.Doubly_Linked_Lists (Offer_Record);
-
    type Quantity_Metric_Array is
      array (Concorde.Trades.Quantity_Metric)
      of Concorde.Quantities.Quantity_Type;
 
+   package Transaction_Holders is
+     new Ada.Containers.Indefinite_Holders
+       (Concorde.Transactions.Transaction_Request_List,
+        Concorde.Transactions."=");
+
    type Cached_Commodity_Record is
       record
+         Transactions          : Transaction_Holders.Holder;
          Historical_Mean_Price : Concorde.Money.Price_Type :=
                                    Concorde.Money.Zero;
-         Recent_Transactions   : Recent_Transaction_Lists.List;
-         Recent_Offers         : Recent_Offer_Lists.List;
-         Recent_Time           : Concorde.Calendar.Time;
-         Quantity_Metrics      : Quantity_Metric_Array :=
-                                   (others => Concorde.Quantities.Zero);
-         Recent_Trade_Value    : Concorde.Money.Money_Type :=
-                                   Concorde.Money.Zero;
-         Recent_Trade_Volume   : Concorde.Quantities.Quantity_Type :=
-                                   Concorde.Quantities.Zero;
-         Current_Demand        : Concorde.Quantities.Quantity_Type :=
-                                   Concorde.Quantities.Zero;
-         Current_Supply        : Concorde.Quantities.Quantity_Type :=
-                                   Concorde.Quantities.Zero;
-         Bids                  : Bid_Queues.Heap;
-         Asks                  : Ask_Queues.Heap;
       end record;
 
    type Cached_Commodity is access Cached_Commodity_Record;
-
-   procedure Add_Commodity_Offer
-     (Info     : Cached_Commodity;
-      Offer    : Concorde.Trades.Offer_Type;
-      Resident : Boolean;
-      Quantity : Concorde.Quantities.Quantity_Type;
-      Price    : Concorde.Money.Price_Type);
-
-   procedure Remove_Commodity_Offer
-     (Info     : Cached_Commodity;
-      Offer    : Concorde.Trades.Offer_Type;
-      Quantity : Concorde.Quantities.Quantity_Type;
-      Price    : Concorde.Money.Price_Type);
 
    package Cached_Commodity_Vectors is
      new Memor.Element_Vectors
@@ -375,15 +272,6 @@ private
      (Market    : Root_Market_Type'Class;
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class);
-
---     procedure Check_Market
---       (Market : Root_Market_Type'Class);
-
-   procedure Log_Offer
-     (Market    : Root_Market_Type'Class;
-      Message   : String;
-      Commodity : Concorde.Commodities.Commodity_Type;
-      Offer     : Offer_Info);
 
    package Db is
      new Memor.Database
