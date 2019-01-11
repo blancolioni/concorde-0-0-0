@@ -84,7 +84,9 @@ package body Concorde.Industries is
          Proposed_Budget  : constant Money_Type :=
                               Required.Total_Virtual_Value;
          Limit_Cash       : constant Money_Type := Industry.Limit_Cash;
-         Available_Budget : constant Money_Type := Industry.Cash;
+         Available_Budget : constant Money_Type :=
+                              Min (Adjust (Industry.Cash, 1.5),
+                                   Industry.Limit_Cash);
          New_Size         : Non_Negative_Real := Industry.Production_Size;
          Missing          : Commodity_Type := null;
          Missing_Quantity : Quantity_Type;
@@ -160,7 +162,6 @@ package body Concorde.Industries is
                              & Show
                                (Industry.Budget.Get_Value
                                   (Commodity)));
-
             end Set_Budget;
 
          begin
