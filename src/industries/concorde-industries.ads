@@ -62,6 +62,7 @@ private
          Limit_Items      : Concorde.Commodities.Lists.List;
          Cost             : Concorde.Money.Money_Type;
          Budget           : Concorde.Commodities.Virtual_Stock_Type;
+         Supply           : Concorde.Commodities.Virtual_Stock_Type;
          Produced         : Concorde.Commodities.Virtual_Stock_Type;
          Sold             : Concorde.Commodities.Virtual_Stock_Type;
          Historical_Sales : Concorde.Commodities.Virtual_Stock_Type;

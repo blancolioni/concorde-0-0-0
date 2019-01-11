@@ -86,6 +86,8 @@ package body Concorde.Industries is
          Limit_Cash       : constant Money_Type := Industry.Limit_Cash;
          Available_Budget : constant Money_Type := Industry.Cash;
          New_Size         : Non_Negative_Real := Industry.Production_Size;
+         Missing          : Commodity_Type := null;
+         Missing_Quantity : Quantity_Type;
       begin
          Industry.Log ("initial proposed budget: "
                        & Show (Proposed_Budget)
@@ -107,6 +109,8 @@ package body Concorde.Industries is
                Industry.Production.Calculate_Input_Requirements
                  (Size        => New_Size,
                   Consumption => Required);
+               Missing := Capital_Commodity;
+               Missing_Quantity := Capital_Quantity;
                Capital_Commodity := null;
                Required.Scan_Stock (Set_Cost'Access);
 
@@ -161,9 +165,58 @@ package body Concorde.Industries is
 
          begin
             Required.Scan_Stock (Set_Budget'Access);
-         end;
 
+            if Missing /= null
+              and then Industry.Budget.Total_Virtual_Value
+                < Available_Budget
+            then
+               declare
+                  Remaining : constant Money_Type :=
+                                Available_Budget
+                                  - Industry.Budget.Total_Virtual_Value;
+                  Price     : constant Price_Type :=
+                                Industry.Community.Market.Current_Price
+                                  (Missing);
+                  Quantity  : constant Quantity_Type :=
+                                Min (Missing_Quantity,
+                                     Get_Quantity (Remaining, Price));
+               begin
+                  Industry.Budget.Set_Quantity
+                    (Missing, Quantity,
+                     Total (Price, Quantity));
+                  Industry.Log
+                    (Missing.Name
+                     & ": capital investment: want "
+                     & Show (Quantity)
+                     & " budget "
+                     & Show
+                       (Industry.Budget.Get_Value
+                            (Missing))
+                     & " price "
+                     & Show (Price));
+               end;
+            end if;
+
+         end;
       end;
+
+      Industry.Supply.Clear_Stock;
+      for Commodity of Industry.Production.Outputs loop
+         if Industry.Get_Quantity (Commodity) > Zero then
+            Industry.Supply.Set_Quantity
+              (Item     => Commodity,
+               Quantity => Industry.Get_Quantity (Commodity),
+               Value    => Adjust (Industry.Get_Value (Commodity), 1.1));
+            Industry.Log
+              (Commodity.Name & ": ask "
+               & Show (Industry.Supply.Get_Quantity (Commodity))
+               & " for "
+               & Show (Industry.Supply.Get_Value (Commodity))
+               & " ("
+               & Show (Industry.Supply.Get_Average_Price (Commodity))
+               & " ea)");
+         end if;
+      end loop;
 
    end Create_Budget;
 
@@ -176,8 +229,10 @@ package body Concorde.Industries is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Money.Money_Type
    is
+      use type Concorde.Money.Money_Type;
    begin
-      return Industry.Budget.Get_Value (Commodity);
+      return Industry.Budget.Get_Value (Commodity)
+        + Industry.Supply.Get_Value (Commodity);
    end Daily_Budget;
 
    -----------------
@@ -189,8 +244,16 @@ package body Concorde.Industries is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Concorde.Quantities.Quantity_Type
    is
+      use type Concorde.Quantities.Quantity_Type;
+      Budget : constant Quantities.Quantity_Type :=
+                 Industry.Budget.Get_Quantity (Commodity);
    begin
-      return Industry.Budget.Get_Quantity (Commodity);
+      if Budget > Quantities.Zero then
+         return Industry.Get_Quantity (Commodity)
+           + Industry.Budget.Get_Quantity (Commodity);
+      else
+         return Quantities.Zero;
+      end if;
    end Daily_Needs;
 
    ------------------
@@ -203,32 +266,7 @@ package body Concorde.Industries is
       return Concorde.Quantities.Quantity_Type
    is
    begin
-      if Industry.Production.Is_Output (Commodity) then
-         declare
-            use Concorde.Money, Concorde.Quantities;
-            Quantity      : constant Quantity_Type :=
-                              Industry.Get_Quantity (Commodity);
-            Value         : constant Money_Type :=
-                              Industry.Get_Value (Commodity);
-            This_Price    : constant Price_Type :=
-                              Price (Value, Quantity);
-            Current_Price : constant Price_Type :=
-                              Industry.Community.Current_Price (Commodity);
-            Minimum_Price : constant Price_Type :=
-                              Adjust_Price (This_Price, 1.1);
-         begin
-            Industry.Log
-              (Commodity.Identifier
-               & ": value " & Show (Value)
-               & "; minimum price " & Show (Minimum_Price)
-               & "; current price " & Show (Current_Price)
-               & "; supply " & Show (Quantity));
-
-            return Quantity;
-         end;
-      else
-         return Concorde.Quantities.Zero;
-      end if;
+      return Industry.Supply.Get_Quantity (Commodity);
    end Daily_Supply;
 
    ------------------------

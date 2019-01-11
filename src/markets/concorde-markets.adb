@@ -4,6 +4,8 @@
 --  with Concorde.Elementary_Functions;
 --  with Concorde.Real_Images;
 
+with Concorde.Random;
+
 with Concorde.Agents;
 with Concorde.Transactions;
 
@@ -1299,21 +1301,39 @@ package body Concorde.Markets is
             declare
                Current_Price      : constant Price_Type :=
                                       Market.Current_Price (Commodity);
+               Max_Change         : constant Real :=
+                                      0.05 * To_Real (Current_Price)
+                                      * (Concorde.Random.Unit_Random + 0.5);
+               Noise              : constant Unit_Real :=
+                                      Concorde.Random.Unit_Random;
                Current_Base_Price : constant Price_Type :=
                                       Market.Base_Price (Commodity);
+               Max_Base_Price     : constant Price_Type :=
+                                      Adjust_Price (Current_Base_Price, 1.05);
+               Min_Base_Price     : constant Price_Type :=
+                                      Adjust_Price (Current_Base_Price, 0.95);
                New_Average        : constant Price_Type :=
                                       List.Average_Price;
+               Price_Change       : constant Real :=
+                                      (To_Real (New_Average)
+                                       - To_Real (Current_Price))
+                                      * (Noise + 0.5)
+                                      / 10.0;
+               Absolute_Change    : constant Real :=
+                                      To_Real (Current_Price)
+                                      + Clamp (Price_Change,
+                                               -Max_Change, Max_Change);
                New_Price          : constant Price_Type :=
-                                      To_Price
-                                        (To_Real (Current_Price)
-                                         + (To_Real (New_Average)
-                                           - To_Real (Current_Price)) / 5.0);
+                                      To_Price (Absolute_Change);
                New_Base_Price     : constant Price_Type :=
-                                      To_Price
-                                        (To_Real (Current_Base_Price)
-                                         + (To_Real (New_Average)
-                                           - To_Real (Current_Base_Price))
-                                         / 100.0);
+                                      Max (Min_Base_Price,
+                                           Min (Max_Base_Price,
+                                             To_Price
+                                               (To_Real (Current_Base_Price)
+                                                + (To_Real (New_Average)
+                                                  - To_Real
+                                                    (Current_Base_Price))
+                                                / 100.0)));
             begin
 
                Concorde.Logging.Log
