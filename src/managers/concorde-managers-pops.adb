@@ -89,7 +89,7 @@ package body Concorde.Managers.Pops is
    is
       pragma Unreferenced (Log);
    begin
-      return 2;
+      return 4;
    end Field_Count;
 
    ------------
@@ -123,6 +123,10 @@ package body Concorde.Managers.Pops is
          return "Cash";
       elsif Index = 2 then
          return "Per Person";
+      elsif Index = 3 then
+         return "Earnings";
+      elsif Index = 4 then
+         return "Expenses";
       else
          return Market_Commodities.Element (Index - 2).Identifier;
       end if;
@@ -290,6 +294,10 @@ package body Concorde.Managers.Pops is
          when 2 =>
             return Concorde.Money.Image
               (Concorde.Money.Price (Log.Pop.Cash, Log.Pop.Size_Quantity));
+         when 3 =>
+            return Concorde.Money.Image (Log.Pop.Last_Earnings);
+         when 4 =>
+            return Concorde.Money.Image (Log.Pop.Last_Expenses);
          when others =>
             raise Program_Error;
       end case;
