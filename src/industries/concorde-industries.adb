@@ -201,22 +201,30 @@ package body Concorde.Industries is
          end;
       end;
 
+      declare
+         procedure Create_Bid
+           (Commodity : Concorde.Commodities.Commodity_Type);
+
+         ----------------
+         -- Create_Bid --
+         ----------------
+
+         procedure Create_Bid
+           (Commodity : Concorde.Commodities.Commodity_Type)
+         is
+         begin
+            Industry.Create_Bid
+              (Commodity, Industry.Budget.Get_Quantity (Commodity));
+         end Create_Bid;
+
+      begin
+         Industry.Budget.Scan_Stock (Create_Bid'Access);
+      end;
+
       Industry.Supply.Clear_Stock;
       for Commodity of Industry.Production.Outputs loop
-         if Industry.Get_Quantity (Commodity) > Zero then
-            Industry.Supply.Set_Quantity
-              (Item     => Commodity,
-               Quantity => Industry.Get_Quantity (Commodity),
-               Value    => Adjust (Industry.Get_Value (Commodity), 1.1));
-            Industry.Log
-              (Commodity.Name & ": ask "
-               & Show (Industry.Supply.Get_Quantity (Commodity))
-               & " for "
-               & Show (Industry.Supply.Get_Value (Commodity))
-               & " ("
-               & Show (Industry.Supply.Get_Average_Price (Commodity))
-               & " ea)");
-         end if;
+         Industry.Create_Ask
+           (Commodity, Industry.Get_Quantity (Commodity));
       end loop;
 
    end Create_Budget;

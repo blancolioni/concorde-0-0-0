@@ -1,3 +1,4 @@
+with Ada.Containers.Vectors;
 with Ada.Text_IO;
 
 with Concorde.Money;

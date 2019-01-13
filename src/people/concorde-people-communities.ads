@@ -152,8 +152,8 @@ package Concorde.People.Communities is
       Process : not null access
         procedure (Individual : Concorde.People.Individuals.Individual_Type));
 
---     procedure Update_Local_Market
---       (Community : in out Root_Community_Type'Class);
+   procedure Update_Market
+     (Community : in out Root_Community_Type'Class);
 
    procedure Add_Ship
      (Community : in out Root_Community_Type'Class;

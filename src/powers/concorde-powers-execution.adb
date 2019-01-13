@@ -172,7 +172,7 @@ package body Concorde.Powers.Execution is
                      W :=
                        Duration
                          (Real
-                            (Market.Recent_Transaction_Count (Commodity))
+                            (Market.Daily_Transaction_Count (Commodity))
                           * Item.Factor);
                end case;
                if W > 0.0 then

@@ -1,3 +1,5 @@
+private with WL.Guids;
+
 with Concorde.Money;
 with Concorde.Quantities;
 
@@ -12,8 +14,15 @@ package Concorde.Trades is
      (Belief_Based, Fixed_Price, Average_Price);
 
    type Quantity_Metric is
-     (Current_Supply, Current_Demand,
-      Current_Imports, Current_Exports);
+     (Supply, Demand, Imports, Exports);
+
+   type Market_Tax_Category is
+     (Sales, Purchases, Export, Import);
+
+   type Offer_Reference is private;
+   Null_Offer_Reference : constant Offer_Reference;
+
+   function Create_Reference return Offer_Reference;
 
    type Trade_Interface is limited interface;
 
@@ -33,13 +42,13 @@ package Concorde.Trades is
       return Concorde.Quantities.Quantity_Type
       is abstract;
 
-   procedure Add_Quantity
-     (Trade     : Trade_Interface;
-      Metric    : Quantity_Metric;
-      Commodity : not null access constant
-        Concorde.Commodities.Root_Commodity_Type'Class;
-      Quantity  : Concorde.Quantities.Quantity_Type)
-   is abstract;
+--     procedure Add_Quantity
+--       (Trade     : Trade_Interface;
+--        Metric    : Quantity_Metric;
+--        Commodity : not null access constant
+--          Concorde.Commodities.Root_Commodity_Type'Class;
+--        Quantity  : Concorde.Quantities.Quantity_Type)
+--     is abstract;
 
    function Price
      (Trade     : Trade_Interface;
@@ -62,30 +71,28 @@ package Concorde.Trades is
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
       return Concorde.Quantities.Quantity_Type
-   is (Trade.Current_Quantity (Current_Supply, Commodity));
+   is (Trade.Current_Quantity (Supply, Commodity));
 
    function Current_Demand
      (Trade     : Trade_Interface'Class;
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
       return Concorde.Quantities.Quantity_Type
-   is (Trade.Current_Quantity (Current_Demand, Commodity));
+   is (Trade.Current_Quantity (Demand, Commodity));
 
    function Current_Imports
      (Trade     : Trade_Interface'Class;
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
       return Concorde.Quantities.Quantity_Type
-   is (Trade.Current_Quantity (Current_Imports, Commodity));
+   is (Trade.Current_Quantity (Imports, Commodity));
 
    function Current_Exports
      (Trade     : Trade_Interface'Class;
       Commodity : not null access constant
         Concorde.Commodities.Root_Commodity_Type'Class)
       return Concorde.Quantities.Quantity_Type
-   is (Trade.Current_Quantity (Current_Exports, Commodity));
-
-   type Market_Tax_Category is (Sales, Export, Import);
+   is (Trade.Current_Quantity (Exports, Commodity));
 
    type Trade_Manager_Interface is limited interface;
 
@@ -150,13 +157,14 @@ package Concorde.Trades is
       return Concorde.Quantities.Quantity_Type
       is abstract;
 
-   procedure Create_Offer
+   function Create_Offer
      (Trade     : Trade_Interface;
       Offer     : Offer_Type;
       Trader    : not null access constant Trader_Interface'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity_Type;
       Price     : Concorde.Money.Price_Type)
+      return Offer_Reference
    is abstract
      with Pre'Class => Concorde.Money.">" (Price, Concorde.Money.Zero)
      and then Concorde.Quantities.">" (Quantity, Concorde.Quantities.Zero)
@@ -164,19 +172,19 @@ package Concorde.Trades is
 
    procedure Delete_Offer
      (Trade     : Trade_Interface;
-      Offer     : Offer_Type;
-      Trader    : Trader_Interface'Class;
-      Commodity : not null access constant
-        Concorde.Commodities.Root_Commodity_Type'Class)
+      Reference : Offer_Reference)
    is abstract;
 
-   procedure Update_Offer
+   procedure Update_Offer_Price
      (Trade     : Trade_Interface;
-      Offer     : Offer_Type;
-      Trader    : Trader_Interface'Class;
-      Commodity : not null access constant
-        Concorde.Commodities.Root_Commodity_Type'Class;
+      Reference : Offer_Reference;
       New_Price : Concorde.Money.Price_Type)
+   is abstract;
+
+   procedure Update_Offer_Quantity
+     (Trade        : Trade_Interface;
+      Reference    : Offer_Reference;
+      New_Quantity : Concorde.Quantities.Quantity_Type)
    is abstract;
 
    procedure Notify_Foreign_Trade
@@ -210,5 +218,16 @@ package Concorde.Trades is
       Update : not null access
         procedure (Trader : not null access Trader_Interface'Class))
    is abstract;
+
+private
+
+   type Offer_Reference is
+     new WL.Guids.Guid;
+
+   Null_Offer_Reference : constant Offer_Reference :=
+                            Offer_Reference (WL.Guids.Null_Guid);
+
+   function Create_Reference return Offer_Reference
+   is (Offer_Reference (WL.Guids.New_Guid));
 
 end Concorde.Trades;

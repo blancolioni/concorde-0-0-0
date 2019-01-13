@@ -2,7 +2,7 @@ daily_work = {
  base = 8 
  commodity = {
     value = daily_quantity
-    metric = current_imports
+    metric = imports
     factor = 0.01
     }
 }

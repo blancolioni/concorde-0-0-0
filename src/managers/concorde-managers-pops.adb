@@ -31,7 +31,7 @@ package body Concorde.Managers.Pops is
       end record;
 
    overriding function Path (Log : Pop_Logger) return String
-   is ("pops/" & Log.Pop.Current_Community.World.Identifier
+   is ("pops/" & Log.Pop.Current_Community.Identifier
        & "/" & Log.Pop.Identifier);
 
    overriding function Field_Count (Log : Pop_Logger) return Natural;
@@ -45,6 +45,11 @@ package body Concorde.Managers.Pops is
      (Log   : Pop_Logger;
       Index : Positive)
       return String;
+
+   procedure Create_Bids
+     (Pop        : Concorde.People.Pops.Pop_Type;
+      Budget     : Concorde.Commodities.Stock_Interface'Class;
+      Adjustment : Unit_Real);
 
    ------------
    -- Create --
@@ -64,6 +69,33 @@ package body Concorde.Managers.Pops is
         (Concorde.Signals.Standard.Object_Activated,
          new Object_Activated_Handler'(Manager => Manager_Type (Manager)));
    end Create;
+
+   -----------------
+   -- Create_Bids --
+   -----------------
+
+   procedure Create_Bids
+     (Pop        : Concorde.People.Pops.Pop_Type;
+      Budget     : Concorde.Commodities.Stock_Interface'Class;
+      Adjustment : Unit_Real)
+   is
+      procedure Create_Bid (Commodity : Concorde.Commodities.Commodity_Type);
+
+      ----------------
+      -- Create_Bid --
+      ----------------
+
+      procedure Create_Bid (Commodity : Concorde.Commodities.Commodity_Type) is
+         use Concorde.Quantities;
+      begin
+         Pop.Create_Bid (Commodity,
+                         Scale (Budget.Get_Quantity (Commodity), Adjustment),
+                         Budget.Get_Average_Price (Commodity));
+      end Create_Bid;
+
+   begin
+      Budget.Scan_Stock (Create_Bid'Access);
+   end Create_Bids;
 
    --------------------
    -- Create_Manager --
@@ -263,6 +295,70 @@ package body Concorde.Managers.Pops is
 
          Manager.Happiness := Unit_Clamp (Happiness);
       end;
+
+      declare
+         use Concorde.Money, Concorde.Quantities;
+         Desire_Budget  : Concorde.Commodities.Virtual_Stock_Type;
+         Require_Budget : Concorde.Commodities.Virtual_Stock_Type;
+      begin
+         for Commodity of Concorde.Commodities.All_Commodities loop
+            declare
+               Available : constant Quantity_Type :=
+                             Manager.Pop.Get_Quantity (Commodity);
+               Required  : constant Quantity_Type :=
+                             Scale (Manager.Pop.Size_Quantity,
+                                    Concorde.Commodities.Pop_Daily_Needs
+                                      (Commodity));
+               Desired   : constant Quantity_Type :=
+                             Scale (Manager.Pop.Size_Quantity,
+                                    Concorde.Commodities.Pop_Daily_Desires
+                                      (Commodity));
+            begin
+               if Required > Zero then
+                  declare
+                     Price     : constant Price_Type :=
+                                   Manager.Pop.Create_Bid_Price (Commodity);
+                  begin
+                     if Available < Desired then
+                        Desire_Budget.Set_Quantity_At_Price
+                          (Commodity, Desired - Available, Price);
+                     end if;
+
+                     if Available < Required then
+                        Require_Budget.Set_Quantity_At_Price
+                          (Commodity, Required - Available, Price);
+                     end if;
+                  end;
+               end if;
+            end;
+         end loop;
+
+         if Desire_Budget.Total_Virtual_Value <= Manager.Pop.Cash then
+            Create_Bids (Manager.Pop, Desire_Budget, 1.0);
+         elsif Require_Budget.Total_Virtual_Value <= Manager.Pop.Cash then
+            Create_Bids (Manager.Pop, Require_Budget, 1.0);
+         else
+            Create_Bids (Manager.Pop, Require_Budget,
+                         To_Real (Manager.Pop.Cash)
+                         / To_Real (Require_Budget.Total_Virtual_Value));
+         end if;
+      end;
+
+      if Manager.Pop.Group.Has_Commodity then
+         declare
+            Commodity : constant Concorde.Commodities.Commodity_Type :=
+                          Manager.Pop.Group.Commodity;
+            Ask_Price : constant Concorde.Money.Price_Type :=
+                          Manager.Pop.Create_Ask_Price (Commodity);
+         begin
+            Manager.Pop.Update.Set_Quantity_At_Price
+              (Commodity, Manager.Pop.Size_Quantity, Ask_Price);
+            Manager.Pop.Create_Ask
+              (Manager.Pop.Group.Commodity,
+               Manager.Pop.Size_Quantity,
+               Ask_Price);
+         end;
+      end if;
 
       declare
          Logger : constant Pop_Logger := (Pop => Manager.Pop);

@@ -1,449 +1,392 @@
-with Concorde.Logging;
+with Concorde.Agents;
 
 package body Concorde.Transactions is
-
-   procedure Add_Agent
-     (Maps     : in out Agent_Maps.Map;
-      Agent    : not null access constant
-        Concorde.Agents.Root_Agent_Type'Class;
-      Offered  : Concorde.Quantities.Quantity_Type;
-      Budget   : Concorde.Money.Money_Type);
-
-   procedure Add_Offer
-     (List            : in out Offers_At_Price_Lists.List;
-      Agent           : not null access constant
-        Concorde.Agents.Root_Agent_Type'Class;
-      Quantity        : Concorde.Quantities.Quantity_Type;
-      Price           : Concorde.Money.Price_Type;
-      Tax             : Unit_Real;
-      Tax_Category    : Concorde.Trades.Market_Tax_Category;
-      Cost            : Concorde.Money.Money_Type);
-
-   ---------------
-   -- Add_Agent --
-   ---------------
-
-   procedure Add_Agent
-     (Maps     : in out Agent_Maps.Map;
-      Agent    : not null access constant
-        Concorde.Agents.Root_Agent_Type'Class;
-      Offered  : Concorde.Quantities.Quantity_Type;
-      Budget   : Concorde.Money.Money_Type)
-   is
-   begin
-      Maps.Insert
-        (Key      => Agent.Identifier,
-         New_Item =>
-           Agent_Record'
-             (Agent   => Agent,
-              Offered => Offered,
-              Closed  => Concorde.Quantities.Zero,
-              Budget  => Budget,
-              Value   => Concorde.Money.Zero));
-   end Add_Agent;
-
-   -------------
-   -- Add_Ask --
-   -------------
-
-   procedure Add_Ask
-     (List            : in out Transaction_Request_List'Class;
-      Agent           : not null access constant
-        Concorde.Agents.Root_Agent_Type'Class;
-      Quantity        : Concorde.Quantities.Quantity_Type;
-      Price           : Concorde.Money.Price_Type;
-      Tax             : Unit_Real;
-      Tax_Category    : Concorde.Trades.Market_Tax_Category;
-      Minimum_Revenue : Concorde.Money.Money_Type)
-   is
-      use Concorde.Money;
-      use type Concorde.Quantities.Quantity_Type;
-   begin
-      Add_Offer
-        (List.Asks, Agent, Quantity, Price, Tax, Tax_Category,
-         Minimum_Revenue);
-      Add_Agent (List.Askers, Agent, Quantity, Minimum_Revenue);
-      List.Total_Asks := List.Total_Asks + Quantity;
-      List.Minimum_Ask_Price :=
-        (if List.Minimum_Ask_Price = Zero
-         then Price else Min (Price, List.Minimum_Ask_Price));
-   end Add_Ask;
-
-   -------------
-   -- Add_Bid --
-   -------------
-
-   procedure Add_Bid
-     (List            : in out Transaction_Request_List'Class;
-      Agent           : not null access constant
-        Concorde.Agents.Root_Agent_Type'Class;
-      Quantity        : Concorde.Quantities.Quantity_Type;
-      Price           : Concorde.Money.Price_Type;
-      Tax             : Unit_Real;
-      Tax_Category    : Concorde.Trades.Market_Tax_Category;
-      Maximum_Cost    : Concorde.Money.Money_Type)
-   is
-      use type Concorde.Quantities.Quantity_Type;
-   begin
-      Add_Offer
-        (List.Bids, Agent, Quantity, Price,
-         Tax, Tax_Category, Maximum_Cost);
-      Add_Agent (List.Bidders, Agent, Quantity, Maximum_Cost);
-      List.Total_Bids := List.Total_Bids + Quantity;
-      List.Maximum_Bid_Price :=
-        Concorde.Money.Max (Price, List.Maximum_Bid_Price);
-   end Add_Bid;
 
    ---------------
    -- Add_Offer --
    ---------------
 
-   procedure Add_Offer
-     (List            : in out Offers_At_Price_Lists.List;
+   function Add_Offer
+     (List            : in out Transaction_Request_List'Class;
       Agent           : not null access constant
         Concorde.Agents.Root_Agent_Type'Class;
+      Offer           : Concorde.Trades.Offer_Type;
       Quantity        : Concorde.Quantities.Quantity_Type;
       Price           : Concorde.Money.Price_Type;
       Tax             : Unit_Real;
-      Tax_Category    : Concorde.Trades.Market_Tax_Category;
-      Cost            : Concorde.Money.Money_Type)
+      Tax_Category    : Concorde.Trades.Market_Tax_Category)
+      return Offer_Reference
    is
-      use Concorde.Money, Concorde.Quantities;
-
-      Rec : constant Offer_Record := Offer_Record'
-        (Agent        => Agent,
-         Quantity     => Quantity,
-         Price        => Price,
-         Tax          => Tax,
-         Tax_Category => Tax_Category,
-         Cost         => Cost);
-      Before : Offers_At_Price_Lists.Cursor :=
-                 Offers_At_Price_Lists.No_Element;
-
+      use type Concorde.Money.Price_Type;
+      Before : Offer_Lists.Cursor := Offer_Lists.No_Element;
    begin
-      for Position in List.Iterate loop
-         declare
-            Item_Price : constant Price_Type :=
-                           List (Position).Price;
-         begin
-            if Price = Item_Price then
-               declare
-                  Offer : Offers_At_Price_Record renames
-                            List (Position);
-               begin
-                  Offer.Offers.Append (Rec);
-                  Offer.Total := Offer.Total + Rec.Quantity;
-                  return;
-               end;
-            elsif Price < Item_Price then
-               Before := Position;
-               exit;
-            end if;
-         end;
+      for Position in List.Offers (Offer).Iterate loop
+         if Offer_Lists.Element (Position).Price > Price then
+            Before := Position;
+            exit;
+         end if;
       end loop;
 
       declare
-         Offer : Offers_At_Price_Record := Offers_At_Price_Record'
-           (Price  => Price,
-            Total  => Rec.Quantity,
-            Offers => <>);
+         New_Position : Offer_Lists.Cursor;
+         Rec          : constant Offer_Record := Offer_Record'
+           (Agent        => Agent,
+            Time_Stamp   => Concorde.Calendar.Clock,
+            External     => not Agent.Market_Resident,
+            Offer        => Offer,
+            Quantity     => Quantity,
+            Price        => Price,
+            Tax          => Tax,
+            Tax_Category => Tax_Category);
+
       begin
-         Offer.Offers.Append (Rec);
-         List.Insert (Before, Offer);
+         List.History.Append (Rec);
+         List.Offers (Offer).Insert
+           (Before   => Before,
+            New_Item => Rec,
+            Position => New_Position);
+         return (Offer, New_Position);
       end;
    end Add_Offer;
 
-   -------------------
-   -- Average_Price --
-   -------------------
+   ------------
+   -- Create --
+   ------------
 
-   function Average_Price
+   procedure Create
+     (List      : in out Transaction_Request_List'Class;
+      Commodity : Concorde.Commodities.Commodity_Type)
+   is
+   begin
+      List.Commodity := Commodity;
+   end Create;
+
+   -----------------------------
+   -- Daily_Average_Buy_Price --
+   -----------------------------
+
+   function Daily_Average_Buy_Price
      (List : Transaction_Request_List'Class)
       return Concorde.Money.Price_Type
    is
+      use type Concorde.Calendar.Time;
       use Concorde.Money, Concorde.Quantities;
+      Stop : constant Concorde.Calendar.Time :=
+               Concorde.Calendar.Clock - Concorde.Calendar.Days (1);
+      Total : Money_Type := Zero;
+      Quantity : Quantity_Type := Zero;
    begin
-      if List.Total_Traded > Zero then
-         return Price (List.Total_Value, List.Total_Traded);
-      elsif List.Total_Asks = Zero then
-         return List.Maximum_Bid_Price;
-      elsif List.Total_Bids = Zero then
-         return List.Minimum_Ask_Price;
-      else
-         return Adjust_Price (List.Maximum_Bid_Price + List.Minimum_Ask_Price,
-                              0.5);
-      end if;
-   end Average_Price;
+      for Transaction of reverse List.Transactions loop
+         exit when Transaction.Time_Stamp < Stop;
+         Total := Total + Transaction.Buyer_Cost;
+         Quantity := Quantity + Transaction.Quantity;
+      end loop;
 
-   --------------------------
-   -- Execute_Transactions --
-   --------------------------
+      return Price (Total, Quantity);
+   end Daily_Average_Buy_Price;
 
-   procedure Execute_Transactions
-     (List : in out Transaction_Request_List'Class)
+   -------------------------
+   -- Daily_Average_Price --
+   -------------------------
+
+   function Daily_Average_Price
+     (List : Transaction_Request_List'Class)
+      return Concorde.Money.Price_Type
    is
-      use Concorde.Money;
+      use type Concorde.Calendar.Time;
+      use Concorde.Money, Concorde.Quantities;
+      Stop : constant Concorde.Calendar.Time :=
+               Concorde.Calendar.Clock - Concorde.Calendar.Days (1);
+      Total : Money_Type := Zero;
+      Quantity : Quantity_Type := Zero;
+   begin
+      for Transaction of reverse List.Transactions loop
+         exit when Transaction.Time_Stamp < Stop;
+         Total := Total
+           + Adjust (Transaction.Buyer_Cost + Transaction.Seller_Earn, 0.5);
+         Quantity := Quantity + Transaction.Quantity;
+      end loop;
+
+      return Price (Total, Quantity);
+   end Daily_Average_Price;
+
+   ------------------------------
+   -- Daily_Average_Sell_Price --
+   ------------------------------
+
+   function Daily_Average_Sell_Price
+     (List : Transaction_Request_List'Class)
+      return Concorde.Money.Price_Type
+   is
+      use type Concorde.Calendar.Time;
+      use Concorde.Money, Concorde.Quantities;
+      Stop : constant Concorde.Calendar.Time :=
+               Concorde.Calendar.Clock - Concorde.Calendar.Days (1);
+      Total : Money_Type := Zero;
+      Quantity : Quantity_Type := Zero;
+   begin
+      for Transaction of reverse List.Transactions loop
+         exit when Transaction.Time_Stamp < Stop;
+         Total := Total + Transaction.Seller_Earn;
+         Quantity := Quantity + Transaction.Quantity;
+      end loop;
+
+      return Price (Total, Quantity);
+   end Daily_Average_Sell_Price;
+
+   ------------------
+   -- Daily_Metric --
+   ------------------
+
+   function Daily_Metric
+     (List   : Transaction_Request_List'Class;
+      Metric : Concorde.Trades.Quantity_Metric)
+      return Concorde.Quantities.Quantity_Type
+   is
+      use type Concorde.Calendar.Time;
+      use Concorde.Trades;
       use Concorde.Quantities;
-      use Offers_At_Price_Lists;
-      Total_Traded : Quantity_Type := Zero;
-      Total_Value  : Money_Type    := Zero;
-      Current_Ask  : Cursor := List.Asks.First;
-      Current_Bid  : Cursor := List.Bids.Last;
-
-      procedure Create_New_Offers
-        (Ask_Offers : in out Offers_At_Price_Record;
-         Bid_Offers : in out Offers_At_Price_Record;
-         New_Asks   : in out Offers_At_Price_Lists.List;
-         New_Bids   : in out Offers_At_Price_Lists.List);
-
-      procedure Execute_Offers_At_Price
-        (Ask_Offers : in out Offers_At_Price_Record;
-         Bid_Offers : in out Offers_At_Price_Record);
-
-      -----------------------
-      -- Create_New_Offers --
-      -----------------------
-
-      procedure Create_New_Offers
-        (Ask_Offers : in out Offers_At_Price_Record;
-         Bid_Offers : in out Offers_At_Price_Record;
-         New_Asks   : in out Offers_At_Price_Lists.List;
-         New_Bids   : in out Offers_At_Price_Lists.List)
-      is
-      begin
-         for Ask of Ask_Offers.Offers loop
-            if Ask.Quantity > Zero then
-               declare
-                  Remaining_Value : constant Money_Type := Ask.Cost;
-                  Minimum_Ask     : constant Price_Type :=
-                                      Add_Tax
-                                        (Max
-                                           (Adjust_Price (Ask.Price, 0.5),
-                                            Price
-                                              (Remaining_Value,
-                                               Ask.Quantity)),
-                                         Ask.Tax);
-               begin
-                  if Minimum_Ask < Ask.Price then
-                     Concorde.Logging.Log
-                       ("transaction", "-", List.Commodity.Name,
-                        Ask.Agent.Identifier
-                        & " creates new ask "
-                        & Show (Ask.Quantity)
-                        & " at "
-                        & Show (Minimum_Ask)
-                        & " ("
-                        & Show (Without_Tax (Minimum_Ask, Ask.Tax))
-                        & " without tax)"
-                        & " ea");
-                     Add_Offer
-                       (List         => New_Asks,
-                        Agent        => Ask.Agent,
-                        Quantity     => Ask.Quantity,
-                        Price        => Minimum_Ask,
-                        Tax          => Ask.Tax,
-                        Tax_Category => Ask.Tax_Category,
-                        Cost         => Remaining_Value);
-                     List.Minimum_Ask_Price :=
-                       Min (Minimum_Ask, List.Minimum_Ask_Price);
-                  end if;
-               end;
+      Stop : constant Concorde.Calendar.Time :=
+               Concorde.Calendar.Clock - Concorde.Calendar.Days (1);
+      Result : Quantity_Type := Zero;
+   begin
+      for Offer of reverse List.History loop
+         exit when Offer.Time_Stamp < Stop;
+         declare
+            Include : constant Boolean :=
+                        (case Metric is
+                            when Supply =>
+                              Offer.Offer = Ask and then not Offer.External,
+                            when Demand =>
+                              Offer.Offer = Bid and then not Offer.External,
+                            when Imports =>
+                              Offer.Offer = Ask and then Offer.External,
+                            when Exports =>
+                              Offer.Offer = Bid and then Offer.External);
+         begin
+            if Include then
+               Result := Result + Offer.Quantity;
             end if;
-         end loop;
-         for Bid of Bid_Offers.Offers loop
-            if Bid.Quantity > Zero then
-               declare
-                  Remaining_Budget : constant Money_Type := Bid.Cost;
-                  Maximum_Price    : constant Price_Type :=
-                                      Min
-                                         (Adjust_Price (Bid.Price, 2.0),
-                                          Price
-                                            (Remaining_Budget,
-                                             Bid.Quantity));
-               begin
-                  if Maximum_Price > Bid.Price then
-                     Concorde.Logging.Log
-                       ("transaction", "-", List.Commodity.Name,
-                        Bid.Agent.Identifier
-                        & " creates new bid "
-                        & Show (Bid.Quantity)
-                        & " at "
-                        & Show (Maximum_Price)
-                        & " ("
-                        & Show (Without_Tax (Maximum_Price, Bid.Tax))
-                        & " without tax)"
-                        & " ea");
-                     Add_Offer
-                       (List         => New_Bids,
-                        Agent        => Bid.Agent,
-                        Quantity     => Bid.Quantity,
-                        Price        => Maximum_Price,
-                        Tax          => Bid.Tax,
-                        Tax_Category => Bid.Tax_Category,
-                        Cost         => Remaining_Budget);
-                     List.Maximum_Bid_Price :=
-                       Max (Maximum_Price, List.Maximum_Bid_Price);
-                  end if;
-               end;
-            end if;
-         end loop;
-      end Create_New_Offers;
+         end;
+      end loop;
+      return Result;
+   end Daily_Metric;
 
-      -----------------------------
-      -- Execute_Offers_At_Price --
-      -----------------------------
+   ---------------
+   -- Daily_Tax --
+   ---------------
 
-      procedure Execute_Offers_At_Price
-        (Ask_Offers : in out Offers_At_Price_Record;
-         Bid_Offers : in out Offers_At_Price_Record)
-      is
-         Ask_Total : constant Quantity_Type := Ask_Offers.Total;
-         Bid_Total : constant Quantity_Type := Bid_Offers.Total;
-         Ask_Scale : constant Unit_Real :=
-                       (if Ask_Total >= Bid_Total then 1.0
-                        else To_Real (Ask_Total) / To_Real (Bid_Total));
-         Bid_Scale : constant Unit_Real :=
-                       (if Bid_Total >= Ask_Total then 1.0
-                        else To_Real (Bid_Total) / To_Real (Ask_Total));
-         Price     : constant Price_Type :=
-                       Adjust_Price (Ask_Offers.Price + Bid_Offers.Price, 0.5);
+   function Daily_Tax
+     (List     : Transaction_Request_List'Class;
+      Category : Concorde.Trades.Market_Tax_Category)
+      return Concorde.Money.Money_Type
+   is
+      use type Concorde.Calendar.Time;
+      use Concorde.Money;
+      Stop : constant Concorde.Calendar.Time :=
+               Concorde.Calendar.Clock - Concorde.Calendar.Days (1);
+      Total : Money_Type := Zero;
+   begin
+      for Transaction of reverse List.Transactions loop
+         exit when Transaction.Time_Stamp < Stop;
+         Total := Total + Transaction.Taxes (Category);
+      end loop;
 
-      begin
+      return Total;
+   end Daily_Tax;
 
-         Concorde.Logging.Log
-           ("transaction", "-", List.Commodity.Name,
-            "executing offers at "
-            & Show (Price)
-            & ": asks = " & Show (Ask_Total)
-            & " (" & Natural'Image (Natural (Ask_Scale * 100.0)) & "%)"
-            & "; bids = " & Show (Bid_Total)
-            & " (" & Natural'Image (Natural (Bid_Scale * 100.0)) & "%)");
+   -----------------
+   -- Daily_Value --
+   -----------------
+--
+--     function Daily_Value
+--       (List   : Transaction_Request_List'Class;
+--        Metric : Concorde.Trades.Quantity_Metric)
+--        return Concorde.Money.Money_Type
+--     is
+--        use type Concorde.Calendar.Time;
+--        use Concorde.Trades;
+--        use Concorde.Quantities;
+--        Stop : constant Concorde.Calendar.Time :=
+--                 Concorde.Calendar.Clock - Concorde.Calendar.Days (1);
+--        Result : Quantity_Type := Zero;
+--     begin
+--        for Offer of List.History loop
+--           exit when Offer.Time_Stamp < Stop;
+--           declare
+--              Include : constant Boolean :=
+--                          (case Metric is
+--                              when Supply  =>
+--                            Offer.Offer = Ask and then not Offer.External,
+--                              when Demand  =>
+--                            Offer.Offer = Bid and then not Offer.External,
+--                              when Imports =>
+--                                Offer.Offer = Ask and then Offer.External,
+--                              when Exports =>
+--                                Offer.Offer = Bid and then Offer.External);
+--           begin
+--              if Include then
+--                 Result := Result + Offer.Paid_Before_Tax;
+--              end if;
+--           end;
+--        end loop;
+--        return Result;
+--     end Daily_Value;
 
-         for Ask of Ask_Offers.Offers loop
-            declare
-               Traded : constant Quantity_Type :=
-                          Scale (Ask.Quantity, Bid_Scale);
-               Value  : constant Money_Type :=
-                          Total (Price, Traded);
-            begin
-               Concorde.Logging.Log
-                 ("transaction", "-", List.Commodity.Name,
-                  Ask.Agent.Identifier
-                  & " sells "
-                  & Show (Traded)
-                  & " of "
+   -----------------------------
+   -- Daily_Transaction_Count --
+   -----------------------------
+
+   function Daily_Transaction_Count
+     (List : Transaction_Request_List'Class)
+      return Natural
+   is
+      use type Concorde.Calendar.Time;
+      Stop : constant Concorde.Calendar.Time :=
+               Concorde.Calendar.Clock - Concorde.Calendar.Days (1);
+      Total : Natural := 0;
+   begin
+      for Transaction of reverse List.Transactions loop
+         exit when Transaction.Time_Stamp < Stop;
+         Total := Total + 1;
+      end loop;
+
+      return Total;
+   end Daily_Transaction_Count;
+
+   ------------------
+   -- Delete_Offer --
+   ------------------
+
+   procedure Delete_Offer
+     (List      : in out Transaction_Request_List'Class;
+      Reference : Offer_Reference)
+   is
+      Deleted : Offer_Lists.Cursor := Reference.Position;
+   begin
+      List.Offers (Reference.Offer).Delete (Deleted);
+   end Delete_Offer;
+
+   -------------
+   -- Resolve --
+   -------------
+
+   procedure Resolve (List : in out Transaction_Request_List'Class) is
+      use Offer_Lists;
+      Ask_List : Offer_Lists.List renames List.Offers (Concorde.Trades.Ask);
+      Bid_List : Offer_Lists.List renames List.Offers (Concorde.Trades.Bid);
+      Ask_Position : Cursor := Ask_List.First;
+      Bid_Position : Cursor := Bid_List.Last;
+   begin
+      while Has_Element (Ask_Position)
+        and then Has_Element (Bid_Position)
+      loop
+         declare
+            use Concorde.Money, Concorde.Quantities;
+            Ask          : Offer_Record renames Ask_List (Ask_Position);
+            Bid          : Offer_Record renames Bid_List (Bid_Position);
+            Ask_Price    : constant Price_Type := Ask.Price;
+            Bid_Price    : constant Price_Type := Bid.Price;
+            Quantity     : constant Quantity_Type :=
+                             Min (Ask.Quantity, Bid.Quantity);
+            Price        : constant Price_Type :=
+                             Adjust_Price (Ask_Price + Bid_Price, 0.5);
+            Seller_Price : constant Price_Type :=
+                             Without_Tax (Price, Ask.Tax);
+            Buyer_Price  : constant Price_Type :=
+                             Add_Tax (Price, Bid.Tax);
+            Taxes        : Tax_Array := (others => Zero);
+         begin
+            if Quantity > Zero then
+               List.Commodity.Log
+                 ("ask "
                   & Show (Ask.Quantity)
-                  & " at "
-                  & Show (Price)
-                  & " (" & Show (Without_Tax (Price, Ask.Tax))
-                  & " without tax)"
-                  & " ea, total "
-                  & Show (Value));
-               Total_Traded := Total_Traded + Traded;
-               Total_Value := Total_Value + Value;
+                  & " @ "
+                  & Show (Ask_Price)
+                  & "; bid "
+                  & Show (Bid.Quantity)
+                  & " @ "
+                  & Show (Bid_Price));
+
+               exit when Bid_Price < Ask_Price;
+
+               Ask.Quantity := Ask.Quantity - Quantity;
+               Bid.Quantity := Bid.Quantity - Quantity;
 
                Ask.Agent.Variable_Reference.On_Commodity_Sell
                  (Commodity => List.Commodity,
-                  Quantity  => Traded,
-                  Price     => Without_Tax (Price, Ask.Tax));
-
-               List.Total_Tax (Ask.Tax_Category) :=
-                 List.Total_Tax (Ask.Tax_Category)
-                 + Total (Price - Without_Tax (Price, Ask.Tax), Traded);
-
-               Ask.Quantity := Ask.Quantity - Traded;
-               if Value > Ask.Cost then
-                  Ask.Cost := Zero;
-               else
-                  Ask.Cost := Ask.Cost - Value;
-               end if;
-
-               Ask_Offers.Total := Ask_Offers.Total - Traded;
-            end;
-         end loop;
-
-         for Bid of Bid_Offers.Offers loop
-            declare
-               Traded : constant Quantity_Type :=
-                          Scale (Bid.Quantity, Ask_Scale);
-               Value  : constant Money_Type :=
-                          Total (Bid.Price, Bid.Quantity);
-            begin
-               Concorde.Logging.Log
-                 ("transaction", "-", List.Commodity.Name,
-                  Bid.Agent.Identifier
-                  & " buys "
-                  & Show (Traded)
-                  & " of "
-                  & Show (Bid.Quantity)
-                  & " at "
-                  & Show (Price)
-                  & " ("
-                  & Show (Without_Tax (Price, Bid.Tax))
-                  & " without tax)"
-                  & " ea, total "
-                  & Show (Value));
-
+                  Quantity  => Quantity,
+                  Price     => Seller_Price);
                Bid.Agent.Variable_Reference.On_Commodity_Buy
                  (Commodity => List.Commodity,
-                  Quantity  => Traded,
-                  Price     => Price);
+                  Quantity  => Quantity,
+                  Price     => Buyer_Price);
 
-               List.Total_Tax (Bid.Tax_Category) :=
-                 List.Total_Tax (Bid.Tax_Category)
-                 + Total (Price - Without_Tax (Price, Bid.Tax), Traded);
+               Taxes (Ask.Tax_Category) :=
+                 Total (Price - Seller_Price, Quantity);
 
-               Bid.Quantity := Bid.Quantity - Traded;
-               Bid_Offers.Total := Bid_Offers.Total - Traded;
-            end;
-         end loop;
-      end Execute_Offers_At_Price;
+               Taxes (Bid.Tax_Category) :=
+                 Total (Buyer_Price - Price, Quantity);
 
-   begin
-      while Has_Element (Current_Ask)
-        and then Has_Element (Current_Bid)
-      loop
-         if Element (Current_Ask).Price > Element (Current_Bid).Price then
-            declare
-               New_Asks, New_Bids : Offers_At_Price_Lists.List;
-            begin
-               Create_New_Offers
-                 (Ask_Offers => List.Asks (Current_Ask),
-                  Bid_Offers => List.Bids (Current_Bid),
-                  New_Asks   => New_Asks,
-                  New_Bids   => New_Bids);
-               for New_Bid of New_Bids loop
-                  Next (Current_Bid);
-                  List.Bids.Insert (Current_Bid, New_Bid);
-               end loop;
-               for New_Ask of New_Asks loop
-                  List.Asks.Insert (Current_Ask, New_Ask);
-               end loop;
-               Previous (Current_Ask);
-               exit when not Has_Element (Current_Bid)
-                 or else not Has_Element (Current_Ask)
-                 or else Element (Current_Ask).Price
-                 > Element (Current_Bid).Price;
-            end;
-         end if;
+               List.Commodity.Log
+                 ("sold "
+                  & Show (Quantity)
+                  & " @ "
+                  & Show (Price));
 
-         Execute_Offers_At_Price
-           (List.Asks (Current_Ask),
-            List.Bids (Current_Bid));
+               List.Transactions.Append
+                 (Transaction_Record'
+                    (Time_Stamp      => Concorde.Calendar.Clock,
+                     Buyer           => Bid.Agent,
+                     Seller          => Ask.Agent,
+                     Commodity       => List.Commodity,
+                     Quantity        => Quantity,
+                     Seller_Earn     => Total (Seller_Price, Quantity),
+                     Buyer_Cost      => Total (Buyer_Price, Quantity),
+                     Taxes           => Taxes));
+            end if;
 
-         if List.Asks (Current_Ask).Total = Zero then
-            Next (Current_Ask);
-         end if;
+            if Ask.Quantity = Zero then
+               Next (Ask_Position);
+            end if;
 
-         if List.Bids (Current_Bid).Total = Zero then
-            Previous (Current_Bid);
-         end if;
+            if Bid.Quantity = Zero then
+               Previous (Bid_Position);
+            end if;
+
+         end;
 
       end loop;
+   end Resolve;
 
-      List.Total_Traded := Total_Traded;
-      List.Total_Value := Total_Value;
+   ------------------
+   -- Update_Offer --
+   ------------------
 
-   end Execute_Transactions;
+   procedure Update_Offer_Price
+     (List      : in out Transaction_Request_List'Class;
+      Reference : Offer_Reference;
+      New_Price : Concorde.Money.Price_Type)
+   is
+      Rec : Offer_Record renames
+              List.Offers (Reference.Offer) (Reference.Position);
+   begin
+      Rec.Price := New_Price;
+   end Update_Offer_Price;
+
+   ---------------------------
+   -- Update_Offer_Quantity --
+   ---------------------------
+
+   procedure Update_Offer_Quantity
+     (List         : in out Transaction_Request_List'Class;
+      Reference    : Offer_Reference;
+      New_Quantity : Concorde.Quantities.Quantity_Type)
+   is
+      Rec : Offer_Record renames
+              List.Offers (Reference.Offer) (Reference.Position);
+   begin
+      Rec.Quantity := New_Quantity;
+   end Update_Offer_Quantity;
 
 end Concorde.Transactions;

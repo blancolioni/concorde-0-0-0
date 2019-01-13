@@ -95,7 +95,7 @@ private
    overriding function Short_Name
      (Item : Root_Pop_Type)
       return String
-   is ("[" & Memor.To_String (Item.Reference) & "] ");
+   is ("pop-" & Memor.To_String (Item.Reference));
 
    overriding function Variable_Reference
      (Pop : not null access constant Root_Pop_Type)

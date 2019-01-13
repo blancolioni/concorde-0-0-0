@@ -214,7 +214,9 @@ package body Concorde.Laws.Tax_Laws is
       Category_Name : constant String :=
                         (case Law.Category is
                             when Concorde.Trades.Sales =>
-                               "sales tax",
+                              "sales tax",
+                            when Concorde.Trades.Purchases =>
+                              "purchases tax",
                             when Concorde.Trades.Import =>
                                "import tariff",
                             when Concorde.Trades.Export =>

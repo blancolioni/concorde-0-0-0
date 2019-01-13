@@ -166,9 +166,10 @@ private
      array (Concorde.Trades.Market_Tax_Category) of Unit_Real;
 
    Default_Tax_Rates : constant Array_Of_Tax_Rates :=
-                         (Concorde.Trades.Sales  => 0.0,
-                          Concorde.Trades.Import => 0.0,
-                          Concorde.Trades.Export => 0.0);
+                         (Concorde.Trades.Sales     => 0.0,
+                          Concorde.Trades.Purchases => 0.0,
+                          Concorde.Trades.Import    => 0.0,
+                          Concorde.Trades.Export    => 0.0);
 
    type Array_Of_Tax_Receipts is
      array (Revenue_Source) of Concorde.Money.Money_Type;

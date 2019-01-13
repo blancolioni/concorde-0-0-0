@@ -77,7 +77,8 @@ package body Concorde.Managers.Communities is
          & Concorde.Calendar.Image
            (Manager.Time, True));
 
---        Manager.Community.Update.Run_Network_State;
+      --        Manager.Community.Update.Run_Network_State;
+
       Manager.Community.Update.Update_Market;
 
       Concorde.Markets.Reports.Log_Market_State

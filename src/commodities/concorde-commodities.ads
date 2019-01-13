@@ -121,6 +121,12 @@ package Concorde.Commodities is
 --           - Stock_Interface'Class (Stock).Get_Quantity (Item)
 --       <= Stock.Maximum_Quantity;
 
+   procedure Set_Quantity_At_Price
+     (Stock    : in out Stock_Interface'Class;
+      Item     : Commodity_Type;
+      Quantity : Concorde.Quantities.Quantity_Type;
+      Price    : Concorde.Money.Price_Type);
+
    procedure Scan_Stock
      (Stock : Stock_Interface;
       Process : not null access

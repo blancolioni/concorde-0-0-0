@@ -15,7 +15,9 @@ with Concorde.Contracts;
 with Concorde.Commodities;
 
 with Concorde.Ownership;
+
 with Concorde.Trades;
+with Concorde.Transactions;
 
 package Concorde.Agents is
 
@@ -303,35 +305,41 @@ package Concorde.Agents is
        (Create_Bid_Price'Result, Concorde.Money.Zero);
 
    procedure Create_Ask
-     (Agent        : not null access constant Root_Agent_Type'Class;
-      Commodity    : Concorde.Commodities.Commodity_Type;
-      Ask_Quantity : Concorde.Quantities.Quantity_Type;
-      Ask_Price    : Concorde.Money.Price_Type)
-     with Pre => Concorde.Quantities.">"
-       (Ask_Quantity, Concorde.Quantities.Zero)
-     and then Concorde.Money.">" (Ask_Price, Concorde.Money.Zero);
+     (Agent     : not null access constant Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type)
+     with Pre => Concorde.Quantities.">="
+       (Quantity, Concorde.Quantities.Zero);
 
    procedure Create_Bid
-     (Agent        : not null access constant Root_Agent_Type'Class;
-      Commodity    : Concorde.Commodities.Commodity_Type;
-      Bid_Quantity : Concorde.Quantities.Quantity_Type;
-      Bid_Price    : Concorde.Money.Price_Type)
+     (Agent     : not null access constant Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type)
      with Pre => Concorde.Quantities.">"
-       (Bid_Quantity, Concorde.Quantities.Zero)
-     and then Concorde.Money.">" (Bid_Price, Concorde.Money.Zero);
+       (Quantity, Concorde.Quantities.Zero);
 
    procedure Create_Ask
-     (Agent        : not null access constant Root_Agent_Type'Class;
-      Commodity    : Concorde.Commodities.Commodity_Type;
-      Ask_Quantity : Concorde.Quantities.Quantity_Type);
+     (Agent     : not null access constant Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type)
+     with Pre => Concorde.Quantities.">="
+       (Quantity, Concorde.Quantities.Zero)
+     and then Concorde.Money.">"
+       (Price, Concorde.Money.Zero);
 
    procedure Create_Bid
-     (Agent        : not null access constant Root_Agent_Type'Class;
-      Commodity    : Concorde.Commodities.Commodity_Type;
-      Bid_Quantity : Concorde.Quantities.Quantity_Type);
+     (Agent     : not null access constant Root_Agent_Type'Class;
+      Commodity : Concorde.Commodities.Commodity_Type;
+      Quantity  : Concorde.Quantities.Quantity_Type;
+      Price     : Concorde.Money.Price_Type)
+     with Pre => Concorde.Quantities.">"
+       (Quantity, Concorde.Quantities.Zero)
+     and then Concorde.Money.">"
+       (Price, Concorde.Money.Zero);
 
    procedure Check_Offers
-     (Agent : in out Root_Agent_Type'Class);
+     (Agent : not null access Root_Agent_Type'Class);
 
    function Has_Bid
      (Agent     : Root_Agent_Type'Class;
@@ -493,6 +501,8 @@ private
    type Agent_Offer is
       record
          Valid     : Boolean := False;
+         Reference : Concorde.Trades.Offer_Reference :=
+                       Concorde.Trades.Null_Offer_Reference;
          Price     : Concorde.Money.Price_Type := Concorde.Money.Zero;
          Quantity  : Concorde.Quantities.Quantity_Type :=
                        Concorde.Quantities.Zero;

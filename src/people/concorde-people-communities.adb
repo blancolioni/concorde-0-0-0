@@ -921,14 +921,16 @@ package body Concorde.People.Communities is
       use all type Concorde.Government.Revenue_Source;
       Name : constant String :=
                (case Category is
-                   when Import => "import tariff",
-                   when Export => "export tariff",
-                   when Sales  => "sales tax");
+                   when Import    => "import tariff",
+                   when Export    => "export tariff",
+                   when Sales     => "sales tax",
+                   when Purchases => "purchases tax");
       Revenue : constant Concorde.Government.Revenue_Source :=
                   (case Category is
-                      when Import => Import_Tariff,
-                      when Export => Export_Tariff,
-                      when Sales  => Sales_Tax);
+                      when Import    => Import_Tariff,
+                      when Export    => Export_Tariff,
+                      when Sales     => Sales_Tax,
+                      when Purchases => Sales_Tax);
    begin
 
       Community.Log
@@ -1011,6 +1013,47 @@ package body Concorde.People.Communities is
            Imported   => Rec.Imported,
            Exported   => Rec.Exported);
    end Update_Commodity;
+
+   -------------------
+   -- Update_Market --
+   -------------------
+
+   procedure Update_Market
+     (Community : in out Root_Community_Type'Class)
+   is
+   begin
+      for Commodity of Concorde.Commodities.All_Commodities loop
+         declare
+            use Concorde.Money, Concorde.Quantities;
+            Demand : constant Quantity_Type :=
+                       Community.Market.Current_Demand (Commodity);
+            Supply : constant Quantity_Type :=
+                       Community.Market.Current_Supply (Commodity);
+            Available : constant Quantity_Type :=
+                          Min (Supply, Demand);
+            Base_Price : constant Price_Type :=
+                           Community.Market.Current_Price (Commodity);
+            Current_Price : constant Price_Type := Base_Price;
+         begin
+            Community.Log
+              (Commodity.Name
+               & ": supply "
+               & Show (Supply)
+               & "; demand "
+               & Show (Demand)
+               & "; price "
+               & Show (Current_Price));
+
+            Community.Update_Commodity
+              (Item          => Commodity,
+               Demand        => Demand,
+               Supply        => Supply,
+               Quantity      => Available,
+               Base_Price    => Base_Price,
+               Current_Price => Current_Price);
+         end;
+      end loop;
+   end Update_Market;
 
    -------------------------
    -- Update_Local_Market --

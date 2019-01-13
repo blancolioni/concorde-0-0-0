@@ -6,6 +6,7 @@ package body Concorde.Powers.Taxation is
    is (Taxation_Power'Class (Power).Base_Id
        & (case Power.Category is
              when Concorde.Trades.Sales => "_sales_tax",
+             when Concorde.Trades.Purchases  => "_purchases_tax",
              when Concorde.Trades.Import => "_import_tariffs",
              when Concorde.Trades.Export => "_export_tariffs"));
 

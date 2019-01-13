@@ -452,6 +452,21 @@ package body Concorde.Commodities is
       Stock.Vector.Replace_Element (Item, (Quantity, Value));
    end Set_Quantity;
 
+   ---------------------------
+   -- Set_Quantity_At_Price --
+   ---------------------------
+
+   procedure Set_Quantity_At_Price
+     (Stock    : in out Stock_Interface'Class;
+      Item     : Commodity_Type;
+      Quantity : Concorde.Quantities.Quantity_Type;
+      Price    : Concorde.Money.Price_Type)
+   is
+   begin
+      Stock.Set_Quantity (Item, Quantity,
+                          Concorde.Money.Total (Price, Quantity));
+   end Set_Quantity_At_Price;
+
    --------------------------
    -- Total_Concrete_Value --
    --------------------------
