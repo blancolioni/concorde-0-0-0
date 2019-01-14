@@ -315,7 +315,7 @@ package Concorde.Agents is
      (Agent     : not null access constant Root_Agent_Type'Class;
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity_Type)
-     with Pre => Concorde.Quantities.">"
+     with Pre => Concorde.Quantities.">="
        (Quantity, Concorde.Quantities.Zero);
 
    procedure Create_Ask
@@ -333,7 +333,7 @@ package Concorde.Agents is
       Commodity : Concorde.Commodities.Commodity_Type;
       Quantity  : Concorde.Quantities.Quantity_Type;
       Price     : Concorde.Money.Price_Type)
-     with Pre => Concorde.Quantities.">"
+     with Pre => Concorde.Quantities.">="
        (Quantity, Concorde.Quantities.Zero)
      and then Concorde.Money.">"
        (Price, Concorde.Money.Zero);

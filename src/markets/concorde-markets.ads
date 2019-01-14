@@ -127,6 +127,9 @@ package Concorde.Markets is
       Commodity : Concorde.Commodities.Commodity_Type)
       return Natural;
 
+   procedure Execute_Transactions
+     (Market : Root_Market_Type'Class);
+
    procedure Enable_Logging
      (Market  : in out Root_Market_Type'Class;
       Enabled : Boolean := True);

@@ -146,8 +146,21 @@ package body Concorde.Markets is
                       Market.Manager.Tax_Rate (Tax_Category, Commodity),
                     Tax_Category => Tax_Category);
       begin
+         Agent.Log
+           ("new "
+            & (case Offer is
+                 when Concorde.Trades.Bid => "bid",
+                 when Concorde.Trades.Ask => "ask")
+            & ": "
+            & Show (Quantity)
+            & " "
+            & Commodity.Name
+            & " @ "
+            & Show (Price)
+            & " ea"
+            & "; id="
+            & Concorde.Trades.Image (Id));
          Market.Update.Offers.Insert (Id, (Commodity, Ref));
-         Cache.Transactions.Resolve;
          return Id;
       end;
 
@@ -218,6 +231,9 @@ package body Concorde.Markets is
                 Market.Get_Commodity (Ref.Commodity);
 
    begin
+      Market.Log
+        ("delete offer: "
+         & Concorde.Trades.Image (Reference));
       Info.Transactions.Delete_Offer (Ref.Reference);
    end Delete_Offer;
 
@@ -294,6 +310,21 @@ package body Concorde.Markets is
 --
 --           raise;
 --     end Execute;
+
+   --------------------------
+   -- Execute_Transactions --
+   --------------------------
+
+   procedure Execute_Transactions
+     (Market : Root_Market_Type'Class)
+   is
+   begin
+      for Commodity of Concorde.Commodities.All_Commodities loop
+         if Market.Commodities.Element (Commodity) /= null then
+            Market.Get_Commodity (Commodity).Transactions.Resolve;
+         end if;
+      end loop;
+   end Execute_Transactions;
 
    -------------------
    -- Get_Commodity --

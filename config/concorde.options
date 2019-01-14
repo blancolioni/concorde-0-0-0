@@ -48,6 +48,7 @@ package Concorde.Options is
    Update_Speed            : Natural;
    Log_Ship_Movement       : Boolean;
    Log_Trade_Offers        : Boolean;
+   Log_Offer_Ids           : Boolean;
    
    Political_Map_Mode      : Boolean;
    

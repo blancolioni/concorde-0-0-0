@@ -162,6 +162,10 @@ package body Concorde.Industries is
                              & Show
                                (Industry.Budget.Get_Value
                                   (Commodity)));
+               if Industry.Budget.Get_Quantity (Commodity) = Zero then
+                  Industry.Create_Ask (Commodity, Zero);
+               end if;
+
             end Set_Budget;
 
          begin
@@ -212,9 +216,14 @@ package body Concorde.Industries is
          procedure Create_Bid
            (Commodity : Concorde.Commodities.Commodity_Type)
          is
+            Bid_Price : constant Concorde.Money.Price_Type :=
+                          Industry.Create_Bid_Price (Commodity);
          begin
             Industry.Create_Bid
-              (Commodity, Industry.Budget.Get_Quantity (Commodity));
+              (Commodity,
+               Concorde.Quantities.Min
+                 (Industry.Budget.Get_Quantity (Commodity),
+                  Concorde.Money.Get_Quantity (Industry.Cash, Bid_Price)));
          end Create_Bid;
 
       begin

@@ -2,6 +2,16 @@ with Concorde.Agents;
 
 package body Concorde.Transactions is
 
+   procedure Add_Quantity
+     (List            : in out Transaction_Request_List'Class;
+      Offer           : Concorde.Trades.Offer_Type;
+      Quantity        : Concorde.Quantities.Quantity_Type);
+
+   procedure Remove_Quantity
+     (List            : in out Transaction_Request_List'Class;
+      Offer           : Concorde.Trades.Offer_Type;
+      Quantity        : Concorde.Quantities.Quantity_Type);
+
    ---------------
    -- Add_Offer --
    ---------------
@@ -20,6 +30,9 @@ package body Concorde.Transactions is
       use type Concorde.Money.Price_Type;
       Before : Offer_Lists.Cursor := Offer_Lists.No_Element;
    begin
+
+      List.Add_Quantity (Offer, Quantity);
+
       for Position in List.Offers (Offer).Iterate loop
          if Offer_Lists.Element (Position).Price > Price then
             Before := Position;
@@ -45,9 +58,33 @@ package body Concorde.Transactions is
            (Before   => Before,
             New_Item => Rec,
             Position => New_Position);
+         List.Commodity.Log
+           ("new offer: "
+            & Concorde.Quantities.Show (Quantity)
+            & " @ "
+            & Concorde.Money.Show (Price));
          return (Offer, New_Position);
       end;
    end Add_Offer;
+
+   ------------------
+   -- Add_Quantity --
+   ------------------
+
+   procedure Add_Quantity
+     (List            : in out Transaction_Request_List'Class;
+      Offer           : Concorde.Trades.Offer_Type;
+      Quantity        : Concorde.Quantities.Quantity_Type)
+   is
+      use type Concorde.Quantities.Quantity_Type;
+   begin
+      case Offer is
+         when Concorde.Trades.Ask =>
+            List.Current_Supply := List.Current_Supply + Quantity;
+         when Concorde.Trades.Bid =>
+            List.Current_Demand := List.Current_Demand + Quantity;
+      end case;
+   end Add_Quantity;
 
    ------------
    -- Create --
@@ -263,9 +300,49 @@ package body Concorde.Transactions is
       Reference : Offer_Reference)
    is
       Deleted : Offer_Lists.Cursor := Reference.Position;
+      Quantity : constant Concorde.Quantities.Quantity_Type :=
+                   Offer_Lists.Element (Deleted).Quantity;
    begin
+      List.Commodity.Log
+        ("deleting offer: "
+         & Concorde.Quantities.Show (Quantity)
+         & " @ "
+         & Concorde.Money.Show
+           (Offer_Lists.Element (Deleted).Price));
+      List.Remove_Quantity (Reference.Offer, Quantity);
       List.Offers (Reference.Offer).Delete (Deleted);
    end Delete_Offer;
+
+   ---------------------
+   -- Remove_Quantity --
+   ---------------------
+
+   procedure Remove_Quantity
+     (List            : in out Transaction_Request_List'Class;
+      Offer           : Concorde.Trades.Offer_Type;
+      Quantity        : Concorde.Quantities.Quantity_Type)
+   is
+      use type Concorde.Quantities.Quantity_Type;
+   begin
+      case Offer is
+         when Concorde.Trades.Ask =>
+            List.Commodity.Log
+              ("deleting ask of "
+               & Concorde.Quantities.Show (Quantity)
+               & " units from available supply "
+               & Concorde.Quantities.Show (List.Current_Supply));
+            pragma Assert (Quantity <= List.Current_Supply);
+            List.Current_Supply := List.Current_Supply - Quantity;
+         when Concorde.Trades.Bid =>
+            List.Commodity.Log
+              ("deleting bid of "
+               & Concorde.Quantities.Show (Quantity)
+               & " units from current demand "
+               & Concorde.Quantities.Show (List.Current_Demand));
+            pragma Assert (Quantity <= List.Current_Demand);
+            List.Current_Demand := List.Current_Demand - Quantity;
+      end case;
+   end Remove_Quantity;
 
    -------------
    -- Resolve --
@@ -278,6 +355,17 @@ package body Concorde.Transactions is
       Ask_Position : Cursor := Ask_List.First;
       Bid_Position : Cursor := Bid_List.Last;
    begin
+
+      List.Commodity.Log
+        ("resolve: asks"
+         & Natural'Image (Natural (Ask_List.Length))
+         & " with "
+         & Concorde.Quantities.Show (List.Current_Supply)
+         & "; bids"
+         & Natural'Image (Natural (Bid_List.Length))
+         & " with "
+         & Concorde.Quantities.Show (List.Current_Demand));
+
       while Has_Element (Ask_Position)
         and then Has_Element (Bid_Position)
       loop
@@ -334,6 +422,9 @@ package body Concorde.Transactions is
                   & " @ "
                   & Show (Price));
 
+               List.Remove_Quantity (Concorde.Trades.Bid, Quantity);
+               List.Remove_Quantity (Concorde.Trades.Ask, Quantity);
+
                List.Transactions.Append
                  (Transaction_Record'
                     (Time_Stamp      => Concorde.Calendar.Clock,
@@ -359,9 +450,9 @@ package body Concorde.Transactions is
       end loop;
    end Resolve;
 
-   ------------------
-   -- Update_Offer --
-   ------------------
+   ------------------------
+   -- Update_Offer_Price --
+   ------------------------
 
    procedure Update_Offer_Price
      (List      : in out Transaction_Request_List'Class;
@@ -386,7 +477,9 @@ package body Concorde.Transactions is
       Rec : Offer_Record renames
               List.Offers (Reference.Offer) (Reference.Position);
    begin
+      List.Remove_Quantity (Reference.Offer, Rec.Quantity);
       Rec.Quantity := New_Quantity;
+      List.Add_Quantity (Reference.Offer, Rec.Quantity);
    end Update_Offer_Quantity;
 
 end Concorde.Transactions;

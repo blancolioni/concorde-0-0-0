@@ -153,10 +153,14 @@ private
 
    type Transaction_Request_List is tagged
       record
-         Commodity    : Concorde.Commodities.Commodity_Type;
-         Offers       : Offer_List_Array;
-         History      : Offer_Lists.List;
-         Transactions : Transaction_Lists.List;
+         Commodity      : Concorde.Commodities.Commodity_Type;
+         Offers         : Offer_List_Array;
+         History        : Offer_Lists.List;
+         Transactions   : Transaction_Lists.List;
+         Current_Supply : Concorde.Quantities.Quantity_Type :=
+                            Concorde.Quantities.Zero;
+         Current_Demand : Concorde.Quantities.Quantity_Type :=
+                            Concorde.Quantities.Zero;
       end record;
 
    function Has_Offers

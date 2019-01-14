@@ -1022,6 +1022,9 @@ package body Concorde.People.Communities is
      (Community : in out Root_Community_Type'Class)
    is
    begin
+
+      Community.Market.Execute_Transactions;
+
       for Commodity of Concorde.Commodities.All_Commodities loop
          declare
             use Concorde.Money, Concorde.Quantities;

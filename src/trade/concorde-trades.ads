@@ -23,6 +23,9 @@ package Concorde.Trades is
    Null_Offer_Reference : constant Offer_Reference;
 
    function Create_Reference return Offer_Reference;
+   function Image
+     (Reference : Offer_Reference)
+      return String;
 
    type Trade_Interface is limited interface;
 
@@ -229,5 +232,10 @@ private
 
    function Create_Reference return Offer_Reference
    is (Offer_Reference (WL.Guids.New_Guid));
+
+   function Image
+     (Reference : Offer_Reference)
+      return String
+   is (WL.Guids.To_String (WL.Guids.Guid (Reference)));
 
 end Concorde.Trades;

@@ -716,6 +716,7 @@ package body Concorde.Agents is
                & ": new ask "
                & Show (Offer.Quantity) & "/" & Show (Offer.Price));
          else
+            Offer := (others => <>);
             Agent.Log_Trade
               (Commodity.Name
                & ": none available");
@@ -749,9 +750,7 @@ package body Concorde.Agents is
             Image (Quantity));
       end;
 
-      if Quantity > Zero then
-         Update_Agent (Agent.Variable_Reference);
-      end if;
+      Update_Agent (Agent.Variable_Reference);
 
    exception
       when E : others =>
@@ -907,23 +906,27 @@ package body Concorde.Agents is
             Market.Delete_Offer (Offer.Reference);
          end if;
 
-         declare
-            Reference : constant Concorde.Trades.Offer_Reference :=
-                          Market.Create_Offer
-                            (Offer     => Concorde.Trades.Bid,
-                             Trader    => Agent,
-                             Commodity => Commodity,
-                             Quantity  => Quantity,
-                             Price     => Price);
-         begin
-            Offer := (True, Reference,
-                      Price, Quantity, Zero);
-         end;
+         if Quantity > Zero then
+            declare
+               Reference      : constant Concorde.Trades.Offer_Reference :=
+                                  Market.Create_Offer
+                                    (Offer     => Concorde.Trades.Bid,
+                                     Trader    => Agent,
+                                     Commodity => Commodity,
+                                     Quantity  => Quantity,
+                                     Price     => Price);
+            begin
+               Offer := (True, Reference,
+                         Price, Quantity, Zero);
+            end;
 
-         Agent.Log_Trade
-           (Commodity.Name
-            & ": new bid "
-            & Show (Offer.Quantity) & "/" & Show (Offer.Price));
+            Agent.Log_Trade
+              (Commodity.Name
+               & ": new bid "
+               & Show (Offer.Quantity) & "/" & Show (Offer.Price));
+         else
+            Offer := (others => <>);
+         end if;
 
       end Update_Offer;
 

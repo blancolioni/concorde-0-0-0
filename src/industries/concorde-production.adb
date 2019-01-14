@@ -139,6 +139,7 @@ package body Concorde.Production is
             & Concorde.Money.Show (Cost));
       end if;
 
+      Producer.Log ("clearing transient stock");
       Stock.Clear_Flagged_Stock (Concorde.Commodities.Transient);
       Stock.Clear_Stock (Concorde.Commodities.Pop_Group);
 
